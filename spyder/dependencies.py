@@ -45,6 +45,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0,!=8.17.1"
+IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
@@ -142,6 +143,10 @@ DESCRIPTIONS = [
      'package_name': "IPython",
      'features': _("IPython interactive python environment"),
      'required_version': IPYTHON_REQVER},
+    {'modname': "ipython_pygments_lexers",
+     'package_name': "ipython_pygments_lexers",
+     'features': _("IPython lexers for syntax highlighting"),
+     'required_version': IPYTHON_PYGMENTS_LEXERS_REQVER},
     {'modname': "jedi",
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),

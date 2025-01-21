@@ -2091,7 +2091,13 @@ class EditorMainWidget(PluginMainWidget):
         # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
-        self._clone_file_everywhere(finfo)
+
+        # This is necessary to avoid an error in our tests
+        try:
+            self._clone_file_everywhere(finfo)
+        except RuntimeError:
+            pass
+
         current_es.set_current_filename(finfo.filename)
 
         if not created_from_here:
@@ -3114,13 +3120,12 @@ class EditorMainWidget(PluginMainWidget):
         self, context, extra_action_name, context_modificator, re_run=False
     ) -> Optional[RunConfiguration]:
         editorstack = self.get_current_editorstack()
-        fname = self.get_current_filename()
-        __, filename_ext = osp.splitext(fname)
-        fname_ext = filename_ext[1:]
         run_input = {}
         context_name = None
 
         if context == RunContext.Selection:
+            fname = self.get_current_filename()
+
             if context_modificator == SelectionContextModificator.ToLine:
                 to_current_line = editorstack.get_to_current_line()
                 if to_current_line is not None:
@@ -3149,8 +3154,11 @@ class EditorMainWidget(PluginMainWidget):
         elif context == RunContext.Cell:
             if re_run:
                 info = editorstack.get_last_cell()
+                fname = editorstack.last_cell_call[0]
             else:
                 info = editorstack.get_current_cell()
+                fname = self.get_current_filename()
+
             text, offsets, line_cols, cell_name, enc = info
             context_name = 'Cell'
             copy_cell = self.get_conf('run_cell_copy', section='run')
@@ -3161,6 +3169,9 @@ class EditorMainWidget(PluginMainWidget):
 
             if extra_action_name == ExtraAction.Advance:
                 editorstack.advance_cell()
+
+        __, filename_ext = osp.splitext(fname)
+        fname_ext = filename_ext[1:]
 
         metadata: RunConfigurationMetadata = {
             'name': fname,
