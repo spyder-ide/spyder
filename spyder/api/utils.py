@@ -98,17 +98,18 @@ class ABCMeta(BaseABCMeta):
         @abstract_attribute
         def my_abstract_attribute(self):
             pass
-            
+
     class MyClassOK(MyABC):
         def __init__(self):
             self.my_abstract_attribute = 1
-    
+
     class MyClassNotOK(MyABC):
         pass
-    
+
     Raises
     ------
-    NotImplementedError: Can't instantiate abstract class with abstract attributes.
+    NotImplementedError: Can't instantiate abstract class
+                         with abstract attributes.
     """
 
     def __call__(cls, *args, **kwargs):
@@ -125,7 +126,8 @@ class ABCMeta(BaseABCMeta):
 
         if abstract_attr_names:
             raise NotImplementedError(
-                "Can't instantiate abstract class {} with abstract attributes: {}".format(
+                "Can't instantiate abstract class "
+                "{} with abstract attributes: {}".format(
                     cls.__name__,
                     ", ".join(abstract_attr_names)
                 )

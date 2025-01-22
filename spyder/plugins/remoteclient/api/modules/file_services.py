@@ -10,10 +10,12 @@ import aiohttp
 from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
 from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
-SPYDER_PLUGIN_NAME = "spyder-services"  # jupyter server's extension name for spyder-remote-services
+# jupyter server's extension name for spyder-remote-services
+SPYDER_PLUGIN_NAME = "spyder-services"
 
 
-class SpyderServicesError(Exception): ...
+class SpyderServicesError(Exception):
+    ...
 
 
 class RemoteFileServicesError(SpyderServicesError):
@@ -249,7 +251,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     async def writelines(self, lines: list[bytes | str]):
         """Write lines to the file."""
         await self._send_request(
-            "writelines", lines=[self._encode_data(l) for l in lines]
+            "writelines", lines=list(map(self._encode_data, lines))
         )
         return await self._get_response()
 

@@ -11,7 +11,8 @@ from spyder.plugins.remoteclient import SPYDER_REMOTE_VERSION
 
 SERVER_ENV = "spyder-remote"
 PACKAGE_NAME = "spyder-remote-services"
-SCRIPT_URL = f"https://raw.githubusercontent.com/spyder-ide/{PACKAGE_NAME}/master/scripts"
+SCRIPT_URL = ("https://raw.githubusercontent.com/spyder-ide/"
+              f"{PACKAGE_NAME}/master/scripts")
 
 
 def get_installer_command(platform: str) -> str:

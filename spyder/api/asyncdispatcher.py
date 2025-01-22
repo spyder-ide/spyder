@@ -84,7 +84,7 @@ class AsyncDispatcher:
         loop : asyncio.AbstractEventLoop, optional
             The event loop to be used, by default get the current event loop.
         early_return : bool, optional
-            Return the coroutine as a Future object before it is done 
+            Return the coroutine as a Future object before it is done
             or wait for it to finish and return the result.
         return_awaitable : bool, optional
             Return the coroutine as an awaitable object instead of a Future.

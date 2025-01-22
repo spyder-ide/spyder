@@ -101,7 +101,8 @@ class SpyderRemoteAPIManager:
     START_SERVER_COMMAND = (
         f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
     )
-    GET_SERVER_INFO_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server info"
+    GET_SERVER_INFO_COMMAND = (f"/${{HOME}}/.local/bin/micromamba run"
+                               f" -n {SERVER_ENV} spyder-server info")
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
