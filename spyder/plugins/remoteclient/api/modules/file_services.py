@@ -10,9 +10,7 @@ import aiohttp
 from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
 from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
-SPYDER_PLUGIN_NAME = (
-    "spyder-services"  # jupyter server's extension name for spyder-remote-services
-)
+SPYDER_PLUGIN_NAME = "spyder-services"  # jupyter server's extension name for spyder-remote-services
 
 
 class SpyderServicesError(Exception): ...
@@ -26,7 +24,9 @@ class RemoteFileServicesError(SpyderServicesError):
         self.tracebacks = tracebacks
 
     def __str__(self):
-        return f"(type='{self.type}', message='{self.message}', url='{self.url}')"
+        return (
+            f"(type='{self.type}', message='{self.message}', url='{self.url}')"
+        )
 
 
 class RemoteOSError(OSError, RemoteFileServicesError):
@@ -96,7 +96,10 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
             await self._websocket.close()
             if status.data == 1002:
                 data = json.loads(status.extra)
-                if data["status"] in (HTTPStatus.LOCKED, HTTPStatus.EXPECTATION_FAILED):
+                if data["status"] in (
+                    HTTPStatus.LOCKED,
+                    HTTPStatus.EXPECTATION_FAILED,
+                ):
                     raise RemoteOSError.from_json(
                         data, url=self._websocket._response.url
                     )
@@ -151,7 +154,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         await self._websocket.send_json({"method": method, **args})
 
     async def _get_response(self, timeout=None):
-        message = json.loads(await self._websocket.receive_bytes(timeout=timeout))
+        message = json.loads(
+            await self._websocket.receive_bytes(timeout=timeout)
+        )
 
         if message["status"] > 400:
             if message["status"] == HTTPStatus.EXPECTATION_FAILED:
@@ -207,7 +212,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         return await self.read(size=-1)
 
     async def readinto(self, b) -> int:
-        raise NotImplementedError("readinto() is not supported by the remote file API")
+        raise NotImplementedError(
+            "readinto() is not supported by the remote file API"
+        )
 
     async def seek(self, pos: int, whence: int = 0) -> int:
         """Seek to a new position in the file."""
@@ -377,7 +384,9 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         ) as response:
             return await response.json()
 
-    async def open(self, path, mode="r", atomic=False, lock=False, encoding="utf-8"):
+    async def open(
+        self, path, mode="r", atomic=False, lock=False, encoding="utf-8"
+    ):
         file = SpyderRemoteFileIOAPI(
             path, mode, atomic, lock, encoding, manager=self.manager
         )

@@ -82,7 +82,9 @@ class MainWindowMock(QMainWindow):
 
     @staticmethod
     def unregister_plugin(plugin):
-        assert PLUGIN_REGISTRY.delete_plugin(plugin.NAME), f"{plugin.NAME} not deleted"
+        assert PLUGIN_REGISTRY.delete_plugin(
+            plugin.NAME
+        ), f"{plugin.NAME} not deleted"
         plugin._unregister()
 
     @staticmethod
@@ -132,7 +134,9 @@ def remote_client_id(
     config_id = str(uuid.uuid4())
 
     # Options Required by container widget
-    remote_client.set_conf(f"{config_id}/auth_method", AuthenticationMethod.Password)
+    remote_client.set_conf(
+        f"{config_id}/auth_method", AuthenticationMethod.Password
+    )
     remote_client.set_conf(
         f"{config_id}/{AuthenticationMethod.Password}/name", "test-server"
     )

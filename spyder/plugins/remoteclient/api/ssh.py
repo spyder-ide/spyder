@@ -31,7 +31,9 @@ class SpyderSSHClient(SSHClient):
 
         """
         if self.client._plugin:
-            self.client._plugin.sig_connection_established.emit(self.client.config_id)
+            self.client._plugin.sig_connection_established.emit(
+                self.client.config_id
+            )
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed
@@ -51,7 +53,9 @@ class SpyderSSHClient(SSHClient):
             self.client._plugin.sig_connection_lost.emit(self.client.config_id)
         self.client._handle_connection_lost(exc)
 
-    def debug_msg_received(self, msg: str, lang: str, always_display: bool) -> None:
+    def debug_msg_received(
+        self, msg: str, lang: str, always_display: bool
+    ) -> None:
         """A debug message was received on this connection
 
         This method is called when the other end of the connection sends

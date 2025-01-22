@@ -28,7 +28,9 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            assert await file_api.mkdir(self.remote_temp_dir) == {"success": True}
+            assert await file_api.mkdir(self.remote_temp_dir) == {
+                "success": True
+            }
 
     @AsyncDispatcher.dispatch(early_return=False)
     async def test_list_dir(
@@ -121,12 +123,12 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            assert await file_api.unlink(self.remote_temp_dir + "/test.txt") == {
-                "success": True
-            }
-            assert await file_api.unlink(self.remote_temp_dir + "/test2.txt") == {
-                "success": True
-            }
+            assert await file_api.unlink(
+                self.remote_temp_dir + "/test.txt"
+            ) == {"success": True}
+            assert await file_api.unlink(
+                self.remote_temp_dir + "/test2.txt"
+            ) == {"success": True}
 
     @AsyncDispatcher.dispatch(early_return=False)
     async def test_rm_dir(
@@ -139,7 +141,9 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            assert await file_api.rmdir(self.remote_temp_dir) == {"success": True}
+            assert await file_api.rmdir(self.remote_temp_dir) == {
+                "success": True
+            }
 
 
 if __name__ == "__main__":

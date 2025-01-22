@@ -45,7 +45,9 @@ from spyder.plugins.remoteclient.utils.installation import (
 )
 
 if typing.TYPE_CHECKING:
-    from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPIType
+    from spyder.plugins.remoteclient.api.modules.base import (
+        SpyderBaseJupyterAPIType,
+    )
 
 # ---- Constants
 # -----------------------------------------------------------------------------
@@ -99,9 +101,7 @@ class SpyderRemoteAPIManager:
     START_SERVER_COMMAND = (
         f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
     )
-    GET_SERVER_INFO_COMMAND = (
-        f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server info"
-    )
+    GET_SERVER_INFO_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server info"
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -135,7 +135,9 @@ class SpyderRemoteAPIManager:
     def __emit_connection_status(self, status, message):
         if self._plugin is not None:
             self._plugin.sig_connection_status_changed.emit(
-                ConnectionInfo(id=self.config_id, status=status, message=message)
+                ConnectionInfo(
+                    id=self.config_id, status=status, message=message
+                )
             )
 
     def __emit_version_mismatch(self, version: str):
@@ -161,7 +163,10 @@ class SpyderRemoteAPIManager:
     @property
     def ssh_is_connected(self):
         """Check if SSH connection is open."""
-        return self.__connection_established.is_set() and not self.__creating_connection
+        return (
+            self.__connection_established.is_set()
+            and not self.__creating_connection
+        )
 
     @property
     def port_is_forwarded(self):
@@ -374,7 +379,8 @@ class SpyderRemoteAPIManager:
             if self._server_info != info:
                 self._server_info = info
                 self.logger.info(
-                    "Different server info, updating info " f"for {self.peer_host}"
+                    "Different server info, updating info "
+                    f"for {self.peer_host}"
                 )
                 if await self.forward_local_port():
                     self.__emit_connection_status(
@@ -384,7 +390,8 @@ class SpyderRemoteAPIManager:
                     return True
 
                 self.logger.error(
-                    "Error forwarding local port, server might not be " "reachable"
+                    "Error forwarding local port, server might not be "
+                    "reachable"
                 )
                 self.__emit_connection_status(
                     ConnectionStatus.Error,
@@ -400,9 +407,11 @@ class SpyderRemoteAPIManager:
 
         self.logger.debug(f"Starting remote server for {self.peer_host}")
         try:
-            self._remote_server_process = await self._ssh_connection.create_process(
-                self.START_SERVER_COMMAND,
-                stderr=asyncssh.STDOUT,
+            self._remote_server_process = (
+                await self._ssh_connection.create_process(
+                    self.START_SERVER_COMMAND,
+                    stderr=asyncssh.STDOUT,
+                )
             )
         except (OSError, asyncssh.Error, ValueError) as e:
             self.logger.error(f"Error starting remote server: {e}")
@@ -431,7 +440,8 @@ class SpyderRemoteAPIManager:
         self._server_info = info
 
         self.logger.info(
-            f"Remote server started for {self.peer_host} at port " f"{self.server_port}"
+            f"Remote server started for {self.peer_host} at port "
+            f"{self.server_port}"
         )
 
         if await self.forward_local_port():
@@ -527,7 +537,9 @@ class SpyderRemoteAPIManager:
             )
             return False
 
-        self.logger.debug(f"Installing spyder-remote-server on {self.peer_host}")
+        self.logger.debug(
+            f"Installing spyder-remote-server on {self.peer_host}"
+        )
 
         try:
             command = get_installer_command(self.options["platform"])
@@ -608,7 +620,9 @@ class SpyderRemoteAPIManager:
         )
 
         connect_kwargs = {
-            k: v for k, v in self.options.items() if k not in self._extra_options
+            k: v
+            for k, v in self.options.items()
+            if k not in self._extra_options
         }
         self.logger.debug("Opening SSH connection")
         try:
@@ -695,7 +709,9 @@ class SpyderRemoteAPIManager:
     async def stop_remote_server(self):
         """Close remote server."""
         if not self.server_started:
-            self.logger.warning(f"Remote server is not running for {self.peer_host}")
+            self.logger.warning(
+                f"Remote server is not running for {self.peer_host}"
+            )
             return False
 
         if not self.ssh_is_connected:
@@ -712,12 +728,17 @@ class SpyderRemoteAPIManager:
             f"{self._server_info['pid']}"
         )
         try:
-            async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+            async with JupyterAPI(
+                self.server_url, api_token=self.api_token
+            ) as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
             self.logger.exception("Error stopping remote server", exc_info=err)
 
-        if self._remote_server_process and not self._remote_server_process.is_closing():
+        if (
+            self._remote_server_process
+            and not self._remote_server_process.is_closing()
+        ):
             self._remote_server_process.terminate()
             await self._remote_server_process.wait_closed()
 
@@ -744,7 +765,9 @@ class SpyderRemoteAPIManager:
         )
 
     # --- Kernel Management
-    async def start_new_kernel_ensure_server(self, _retries=5) -> KernelConnectionInfo:
+    async def start_new_kernel_ensure_server(
+        self, _retries=5
+    ) -> KernelConnectionInfo:
         """Launch a new kernel ensuring the remote server is running.
 
         Parameters
@@ -758,7 +781,9 @@ class SpyderRemoteAPIManager:
             The kernel connection information.
         """
         if not await self.ensure_connection_and_server():
-            self.logger.error("Cannot launch kernel, remote server is not running")
+            self.logger.error(
+                "Cannot launch kernel, remote server is not running"
+            )
             return {}
 
         # This is necessary to avoid an error when the server has not started
@@ -794,7 +819,9 @@ class SpyderRemoteAPIManager:
             The kernel connection information.
         """
         if not await self.ensure_connection_and_server():
-            self.logger.error("Cannot launch kernel, remote server is not running")
+            self.logger.error(
+                "Cannot launch kernel, remote server is not running"
+            )
             return {}
 
         # This is necessary to avoid an error when the server has not started
@@ -816,14 +843,18 @@ class SpyderRemoteAPIManager:
 
     async def start_new_kernel(self, kernel_spec=None) -> KernelInfo:
         """Start new kernel."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.create_kernel(kernel_spec=kernel_spec)
         self.logger.info(f"Kernel started with ID {response['id']}")
         return response
 
     async def list_kernels(self) -> list[KernelInfo]:
         """List kernels."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.list_kernels()
 
         self.logger.info(f"Kernels listed for {self.peer_host}")
@@ -831,7 +862,9 @@ class SpyderRemoteAPIManager:
 
     async def get_kernel_info(self, kernel_id) -> KernelInfo:
         """Get kernel info."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.get_kernel(kernel_id=kernel_id)
 
         self.logger.info(f"Kernel info retrieved for ID {kernel_id}")
@@ -839,7 +872,9 @@ class SpyderRemoteAPIManager:
 
     async def terminate_kernel(self, kernel_id) -> bool:
         """Terminate kernel."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.delete_kernel(kernel_id=kernel_id)
 
         self.logger.info(f"Kernel terminated for ID {kernel_id}")
@@ -847,7 +882,9 @@ class SpyderRemoteAPIManager:
 
     async def interrupt_kernel(self, kernel_id) -> bool:
         """Interrupt kernel."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.interrupt_kernel(kernel_id=kernel_id)
 
         self.logger.info(f"Kernel interrupted for ID {kernel_id}")
@@ -855,7 +892,9 @@ class SpyderRemoteAPIManager:
 
     async def restart_kernel(self, kernel_id) -> bool:
         """Restart kernel."""
-        async with JupyterAPI(self.server_url, api_token=self.api_token) as jupyter:
+        async with JupyterAPI(
+            self.server_url, api_token=self.api_token
+        ) as jupyter:
             response = await jupyter.restart_kernel(kernel_id=kernel_id)
 
         self.logger.info(f"Kernel restarted for ID {kernel_id}")

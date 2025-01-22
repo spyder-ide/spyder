@@ -17,20 +17,26 @@ from spyder.plugins.remoteclient.tests.conftest import await_future
 
 class TestIpythonConsole:
     @flaky(max_runs=3, min_passes=1)
-    def test_shutdown_kernel(self, ipyconsole, remote_client, remote_client_id, qtbot):
+    def test_shutdown_kernel(
+        self, ipyconsole, remote_client, remote_client_id, qtbot
+    ):
         """Starts and stops a kernel on the remote server."""
         remote_client.create_ipyclient_for_server(remote_client_id)
         shell = ipyconsole.get_current_shellwidget()
 
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
             timeout=180000,  # longer timeout for installation
         )
 
         ipyconsole.get_widget().close_client()
 
         assert (
-            await_future(remote_client.get_kernels(remote_client_id), timeout=10) == []
+            await_future(
+                remote_client.get_kernels(remote_client_id), timeout=10
+            )
+            == []
         )
 
     def test_restart_kernel(self, shell, ipyconsole, qtbot):
@@ -42,7 +48,8 @@ class TestIpythonConsole:
         shell._prompt_html = None
         ipyconsole.get_widget().restart_action.trigger()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
             timeout=4000,
         )
 
@@ -74,7 +81,9 @@ class TestIpythonConsole:
 
     def test_kernel_kill(self, shell, qtbot):
         """Test that the kernel correctly restarts after a kill."""
-        crash_string = "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
+        crash_string = (
+            "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
+        )
 
         # Since the heartbeat and the tunnels are running in separate threads,
         # we need to make sure that the heartbeat thread has "higher" priority
