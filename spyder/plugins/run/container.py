@@ -145,7 +145,7 @@ class RunContainer(PluginMainContainer):
                 return
 
             # We save the last executed configuration in case we need it to
-            # re-run the last cell with the same parameters.
+            # re-run the last action with the same parameters.
             # This is necessary for spyder-ide/spyder#23076
             if not re_run:
                 uuid = self.currently_selected_configuration
@@ -159,8 +159,8 @@ class RunContainer(PluginMainContainer):
                 if uuid is None:
                     return
 
+            # Get run configuration
             input_provider = self.run_metadata_provider[uuid]
-
             if context in self.super_contexts:
                 run_conf = input_provider.get_run_configuration(uuid)
             else:
@@ -174,11 +174,9 @@ class RunContainer(PluginMainContainer):
             if run_conf is None:
                 return
 
+            # Get last executor
             super_metadata = self.metadata_model[uuid]
             extension = super_metadata['input_extension']
-
-            path = super_metadata['path']
-            dirname = osp.dirname(path)
 
             last_executor = last_executor_name
             if last_executor is None:
@@ -195,26 +193,64 @@ class RunContainer(PluginMainContainer):
                 last_executor = self.executor_model.get_default_executor(
                     run_comb)
 
-            executor_metadata = self.executor_model[
-                ((extension, context), last_executor)]
-            ConfWidget = executor_metadata['configuration_widget']
+            # Get execution params
+            if context in self.super_contexts:
+                # This applies to super contexts because we save run conf
+                # params only for them (we handle just one super context for
+                # now: "file").
 
-            conf = {}
-            if ConfWidget is not None:
-                conf = ConfWidget.get_default_configuration()
+                # Get last used params
+                all_params = (
+                    self.metadata_model.get_run_configuration_parameters(
+                        uuid, last_executor
+                    )["params"]
+                )
 
-            working_dir = WorkingDirOpts(
-                source=WorkingDirSource.ConfigurationDirectory,
-                path=dirname)
+                last_params_uuid = self.get_last_used_execution_params(
+                    uuid, last_executor
+                )
 
-            exec_params = RunExecutionParameters(
-                working_dir=working_dir, executor_params=conf)
+                if last_params_uuid in all_params:
+                    # Use the last params set by the user in RunDialog.
+                    # Fixes spyder-ide/spyder#22496
+                    exec_params = all_params[last_params_uuid]["params"]
+                else:
+                    # If no custom params have been set, use the default ones
+                    for stored_params in all_params.values():
+                        if stored_params.get("default", False):
+                            exec_params = stored_params["params"]
+            else:
+                # This is necessary for subcontexts (e.g. cell and selection).
+                # Although they can have conf widgets (which is also tested),
+                # that functionality is not exposed in the UI at the moment.
+                path = super_metadata['path']
+                dirname = osp.dirname(path)
 
+                executor_metadata = self.executor_model[
+                    ((extension, context), last_executor)
+                ]
+                ConfWidget = executor_metadata['configuration_widget']
+
+                conf = {}
+                if ConfWidget is not None:
+                    conf = ConfWidget.get_default_configuration()
+
+                working_dir = WorkingDirOpts(
+                    source=WorkingDirSource.ConfigurationDirectory,
+                    path=dirname
+                )
+
+                exec_params = RunExecutionParameters(
+                    working_dir=working_dir, executor_params=conf
+                )
+
+            # Perform execution
             ext_exec_params = ExtendedRunExecutionParameters(
                 uuid=None, name=None, params=exec_params)
             executor = self.run_executors[last_executor]
             executor.exec_run_configuration(run_conf, ext_exec_params)
 
+            # Save metadata and set state of re-run actions
             self.last_executed_per_context |= {(uuid, context)}
 
             if (
