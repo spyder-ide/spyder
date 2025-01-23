@@ -290,7 +290,6 @@ class Projects(SpyderDockablePlugin):
         # Open project passed on the command line or reopen last one.
         cli_options = self.get_command_line_options()
         initial_cwd = self._main.get_initial_working_directory()
-        connection_file = cli_options.connection_file
 
         if cli_options.project is not None:
             logger.debug('Opening project from the command line')
