@@ -108,8 +108,10 @@ class TestRemoteFilesAPI:
         async with file_api_class() as file_api:
             ls_content = await file_api.ls(self.remote_temp_dir)
             assert len(ls_content) == 2
-            assert ls_content[0]["name"] == self.remote_temp_dir + "/test.txt"
-            assert ls_content[1]["name"] == self.remote_temp_dir + "/test2.txt"
+            idx = [
+                item["name"] for item in ls_content
+            ].index(self.remote_temp_dir + "/test.txt")
+            assert ls_content[not idx]["name"] == self.remote_temp_dir + "/test2.txt"
             assert ls_content[0]["size"] == ls_content[1]["size"]
 
     @AsyncDispatcher.dispatch(early_return=False)
