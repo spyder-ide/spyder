@@ -292,11 +292,6 @@ class Projects(SpyderDockablePlugin):
         initial_cwd = self._main.get_initial_working_directory()
         connection_file = cli_options.connection_file
 
-        # Avoid conflicts with `--connect-to-kernel` option. See issue #23497
-        # for more information.
-        if connection_file is not None:
-            return
-
         if cli_options.project is not None:
             logger.debug('Opening project from the command line')
             project = osp.normpath(

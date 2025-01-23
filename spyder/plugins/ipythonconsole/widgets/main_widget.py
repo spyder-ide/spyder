@@ -2063,7 +2063,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         for i in range(len(self.clients)):
             client = self.clients[-1]
             self.close_client(client=client, ask_recursive=False)
-        self.create_new_client(give_focus=False, cache=False)
+        self._plugin.on_mainwindow_visible()
         self.create_new_client_if_empty = True
 
     def _current_client_cut(self):
