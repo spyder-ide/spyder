@@ -252,7 +252,7 @@ def generate_run_parameters(mainwindow, filename, selected=None,
         selected=selected,
     )
 
-    return {file_uuid: file_run_params}
+    return {file_uuid: [file_run_params]}
 
 
 def get_random_dockable_plugin(main_window, exclude=None):

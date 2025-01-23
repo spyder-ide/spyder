@@ -294,6 +294,7 @@ class RunContainer(PluginMainContainer):
                 executor=executor_name, selected=ext_params['uuid']
             )
 
+            self._set_last_configured_executor(uuid, executor_name)
             self.set_last_used_execution_params(uuid, last_used_conf)
 
         if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
@@ -1058,20 +1059,24 @@ class RunContainer(PluginMainContainer):
             A dictionary containing the last used executor and parameters
             for the given run configuration.
         """
-        mru_executors_uuids: Dict[
-            str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+        last_executor = self._get_last_configured_executor(uuid)
+        default = StoredRunConfigurationExecutor(executor=None, selected=None)
 
-        last_used_params = mru_executors_uuids.get(
-            uuid,
-            StoredRunConfigurationExecutor(
-                executor=None,
-                selected=None
-            )
-        )
+        if last_executor is None:
+            return default
+        else:
+            mru_executors_uuids: Dict[
+                str, List[StoredRunConfigurationExecutor]
+            ] = self.get_conf('last_used_parameters_per_executor', default={})
 
-        return last_used_params
+            all_params = mru_executors_uuids.get(uuid, [])
+
+            last_used_params = default
+            for params in all_params:
+                if params["executor"] == last_executor:
+                    last_used_params = params
+
+            return last_used_params
 
     def get_last_used_execution_params(
         self,
@@ -1080,7 +1085,7 @@ class RunContainer(PluginMainContainer):
     ) -> Optional[str]:
         """
         Retrieve the last used execution parameters for a given pair of run
-        configuration and execution identifiers.
+        configuration identifier and executor name.
 
         Parameters
         ----------
@@ -1099,18 +1104,19 @@ class RunContainer(PluginMainContainer):
 
         mru_executors_uuids: Dict[
             str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+            List[StoredRunConfigurationExecutor]
+        ] = self.get_conf('last_used_parameters_per_executor', default={})
 
         default = StoredRunConfigurationExecutor(
             executor=executor_name,
             selected=None
         )
-        params = mru_executors_uuids.get(uuid, default)
+        all_params = mru_executors_uuids.get(uuid, [default])
 
         last_used_params = None
-        if params['executor'] == executor_name:
-            last_used_params = params['selected']
+        for params in all_params:
+            if params['executor'] == executor_name:
+                last_used_params = params['selected']
 
         return last_used_params
 
@@ -1120,8 +1126,8 @@ class RunContainer(PluginMainContainer):
         params: StoredRunConfigurationExecutor
     ):
         """
-        Store the last used executor and parameters for a given run
-        configuration.
+        Store the list of last used executors and their parameters for a given
+        run configuration.
 
         Parameters
         ----------
@@ -1133,11 +1139,34 @@ class RunContainer(PluginMainContainer):
         """
         mru_executors_uuids: Dict[
             str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+            List[StoredRunConfigurationExecutor]
+        ] = self.get_conf('last_used_parameters_per_executor', default={})
 
-        mru_executors_uuids[uuid] = params
-        self.set_conf('last_used_parameters', mru_executors_uuids)
+        if uuid in mru_executors_uuids:
+            new_params = []
+            params_added = False
+            for saved_params in mru_executors_uuids[uuid]:
+                # Discard saved params for the executor and use the new ones
+                # instead. We need to do this when the executor was configured
+                # before
+                if params["executor"] == saved_params["executor"]:
+                    new_params.append(params)
+                    params_added = True
+                else:
+                    # Add params for all other executors
+                    new_params.append(saved_params)
+
+            # If the executor hasn't been configured yet, we simply need to add
+            # its new params to the list.
+            if not params_added:
+                new_params.append(params)
+
+            # Replace current params with the new ones
+            mru_executors_uuids[uuid] = new_params
+        else:
+            mru_executors_uuids[uuid] = [params]
+
+        self.set_conf('last_used_parameters_per_executor', mru_executors_uuids)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -1207,3 +1236,34 @@ class RunContainer(PluginMainContainer):
             context_id,
             store_params,
         )
+
+    def _get_last_configured_executor(self, uuid: str) -> Optional[str]:
+        """
+        Get the last executor configured in RunDialog for a given file.
+
+        Parameters
+        ----------
+        uuid: str
+            Unique id associated to a file.
+        """
+        mru_uuids_to_executor_names: Dict[
+            str, str,
+        ] = self.get_conf('last_configured_executor', default={})
+
+        return mru_uuids_to_executor_names.get(uuid, None)
+
+    def _set_last_configured_executor(self, uuid: str, executor_name: str):
+        """
+        Set the last executor configured in RunDialog for a given file.
+
+        Parameters
+        ----------
+        uuid: str
+            Unique id associated to a file.
+        """
+        mru_uuids_to_executor_names: Dict[
+            str, str,
+        ] = self.get_conf('last_configured_executor', default={})
+
+        mru_uuids_to_executor_names[uuid] = executor_name
+        self.set_conf('last_configured_executor', mru_uuids_to_executor_names)
