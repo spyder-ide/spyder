@@ -6546,30 +6546,36 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     # Wait until the window is fully up
     ipyconsole = main_window.ipyconsole
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
 
     # Main variables
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
 
-    # Add a directory to the current list of paths to simulate a path added by
-    # users
+    # Create a directory to use as a user path
     user_dir = tmp_path / 'user_dir'
     user_dir.mkdir()
-    user_paths = OrderedDict({str(user_dir): True})
-    if os.name != "nt":
-        assert ppm.get_container()._spyder_pythonpath == []
 
-    # Check the PPM emits the right signal after closing the dialog
+    # Check that the inital configured spyder_pythonpath is empty
+    assert ppm.get_container()._spyder_pythonpath == []
+
+    # Add a directory to the current list of paths to simulate a path added by
+    # the user
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    ppm.path_manager_dialog.add_path(directory=user_dir)
+
     with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
-        ppm.get_container()._save_paths(user_paths=user_paths)
+        ppm.path_manager_dialog.accept()
 
-    # Check directories were added to sys.path in the right order
+    # Check that user_dir was added to sys.path in the right order
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute("import sys; sys_path = sys.path")
 
     sys_path = shell.get_value("sys_path")
-    assert sys_path[-1:] == [str(user_dir)]
+    assert sys_path[-1] == str(user_dir)  # Path should be at the end
 
     # Create new console
     ipyconsole.create_new_client()
@@ -6577,12 +6583,33 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     qtbot.waitUntil(lambda: shell1._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Check directories are part of the new console's sys.path
+    # Check user_dir is part of the new console's sys.path
     with qtbot.waitSignal(shell1.executed, timeout=2000):
         shell1.execute("import sys; sys_path = sys.path")
 
     sys_path = shell1.get_value("sys_path")
-    assert sys_path[-1:] == [str(user_dir)]
+    assert sys_path[-1] == str(user_dir)  # Path should be at the end
+
+    # Check that user path can be prepended to sys.path
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    # ??? Why does this work...
+    ppm.path_manager_dialog.prioritize_button.setChecked(True)
+    qtbot.wait(500)
+    # ...but this does not?
+    # with qtbot.waitUntil(ppm.path_manager_dialog.prioritize_button.isChecked):
+    #     ppm.path_manager_dialog.prioritize_button.animateClick()
+
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.accept()
+
+    for s in [shell, shell1]:
+        with qtbot.waitSignal(s.executed, timeout=2000):
+            s.execute("sys_path = sys.path")
+
+        sys_path = shell.get_value("sys_path")
+        assert sys_path[1] == str(user_dir)  # Path should be ['', user_dir, ...]
 
     # Check that disabling a path from the PPM removes it from sys.path in all
     # consoles
