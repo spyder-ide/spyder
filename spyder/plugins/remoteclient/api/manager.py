@@ -71,7 +71,7 @@ class SpyderRemoteAPILoggerHandler(logging.Handler):
 
 
 class SpyderRemoteAPIManager:
-    """Class to manage a remote server and its apis."""
+    """Class to manage a remote server and its APIs."""
 
     REGISTERED_MODULE_APIS = {}
 
@@ -82,8 +82,10 @@ class SpyderRemoteAPIManager:
     START_SERVER_COMMAND = (
         f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
     )
-    GET_SERVER_INFO_COMMAND = (f"/${{HOME}}/.local/bin/micromamba run"
-                               f" -n {SERVER_ENV} spyder-server info")
+    GET_SERVER_INFO_COMMAND = (
+        f"/${{HOME}}/.local/bin/micromamba run"
+        f" -n {SERVER_ENV} spyder-server info"
+    )
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -269,7 +271,7 @@ class SpyderRemoteAPIManager:
 
         return info
 
-    # -- Connection and server management
+    # ---- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:
         """Connect to the remote server and install the server."""
         if await self.create_new_connection():
@@ -753,7 +755,7 @@ class SpyderRemoteAPIManager:
             s.bind(("", 0))
             return s.getsockname()[1]
 
-    # --- API Management
+    # ---- API Management
     @classmethod
     def register_api(cls, kclass: type[SpyderBaseJupyterAPIType]):
         """Register a REST API class."""
@@ -773,7 +775,7 @@ class SpyderRemoteAPIManager:
 
         return partial(api_class, manager=self)
 
-    # --- Kernel Management
+    # ---- Kernel Management
     async def start_new_kernel_ensure_server(
         self, _retries=5
     ) -> KernelConnectionInfo:
