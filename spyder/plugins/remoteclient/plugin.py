@@ -10,8 +10,10 @@ Remote Client Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 import logging
 import contextlib
+import typing
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot
@@ -44,6 +46,10 @@ from spyder.plugins.remoteclient.api.modules.file_services import (
     SpyderRemoteFileServicesAPI,
 )
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
+
+if typing.TYPE_CHECKING:
+    from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPIType
+
 
 _logger = logging.getLogger(__name__)
 
@@ -303,13 +309,49 @@ class RemoteClient(SpyderPluginV2):
         )
 
     @staticmethod
-    def register_api(kclass):
+    def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
+        """Register Remote Client API.
+
+        This method is used to register a new API class that will be used to
+        interact with the remote server.
+
+        Can be used as a decorator.
+
+        Parameters
+        ----------
+        kclass: Type[SpyderBaseJupyterAPI]
+            Class to be registered.
+
+        Returns
+        -------
+        Type[SpyderBaseJupyterAPI]
+            Class that was registered.
+        """
         return SpyderRemoteAPIManager.register_api(kclass)
 
-    def get_api(self, config_id, api) -> "SpyderBaseJupyterAPI":
-        client = self._remote_clients.get(config_id)
-        if client is None:
-            return
+    def get_api(
+        self, config_id: str, api: str | typing.Type[SpyderBaseJupyterAPIType]
+    ):
+        """Get the API for a remote server.
+
+        Get the registered API class for a given remote server.
+
+        Parameters
+        ----------
+        config_id: str
+            Configuration id of the remote server.
+        api: str | Type[SpyderBaseJupyterAPI]
+            API class to be retrieved.
+
+        Returns
+        -------
+        SpyderBaseJupyterAPI
+            API class instance.
+        """
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
 
         return client.get_api(api)
 
@@ -391,8 +433,9 @@ class RemoteClient(SpyderPluginV2):
 
     def get_file_api(self, config_id):
         """Get file API."""
-        client = self._remote_clients.get(config_id)
-        if client is None:
-            return
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
 
         return client.get_api(SpyderRemoteFileServicesAPI)

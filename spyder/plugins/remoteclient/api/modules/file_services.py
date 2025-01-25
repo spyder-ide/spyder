@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 from __future__ import annotations
 import base64
 from http import HTTPStatus
@@ -15,10 +21,16 @@ SPYDER_PLUGIN_NAME = "spyder-services"
 
 
 class SpyderServicesError(Exception):
+    """
+    Exception for errors related to Spyder services.
+    """
     ...
 
 
 class RemoteFileServicesError(SpyderServicesError):
+    """
+    Exception for errors related to remote file services.
+    """
     def __init__(self, type, message, url, tracebacks):
         self.type = type
         self.message = message
@@ -32,6 +44,9 @@ class RemoteFileServicesError(SpyderServicesError):
 
 
 class RemoteOSError(OSError, RemoteFileServicesError):
+    """
+    Exception for OSErrors raised on the remote server.
+    """
     def __init__(self, errno, strerror, filename, url):
         super().__init__(errno, strerror, filename)
         super(OSError, self).__init__(OSError, super().__str__(), url, [])
@@ -46,6 +61,42 @@ class RemoteOSError(OSError, RemoteFileServicesError):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
+    """API for remote file I/O.
+    
+    This API is a RawIOBase subclass that allows reading and writing files
+    on a remote server.
+
+    The file is open upon the websocket connection and closed when the
+    connection is closed.
+
+    If lock is True, the file will be locked on the remote server.
+    And any other attempts to open the file will wait until the lock is
+    released.
+
+    If atomic is True, any operations on the file will be done on a temporary
+    copy of the file, and then the file will be replaced with the copy upon
+    closing.
+
+    Parameters
+    ----------
+    file : str
+        The path to the file to open.
+    mode : str, optional
+        The mode to open the file in, by default "r".
+    atomic : bool, optional
+        Whether to open the file atomically, by default False.
+    lock : bool, optional
+        Whether to lock the file, by default False.
+    encoding : str, optional
+        The encoding to use when reading and writing the file, by default "utf-8".
+
+    Raises
+    ------
+    RemoteFileServicesError
+        If an error occurs when opening the file.
+    RemoteOSError
+        If an OSError occured on the remote server.
+    """
     base_url = SPYDER_PLUGIN_NAME + "/fs/open"
 
     def __init__(
@@ -213,9 +264,11 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         return await self._get_response()
 
     async def readall(self):
+        """Read all data from the file."""
         return await self.read(size=-1)
 
     async def readinto(self, b) -> int:
+        """Read data into a buffer."""
         raise NotImplementedError(
             "readinto() is not supported by the remote file API"
         )
@@ -275,6 +328,18 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
+    """API for remote file services.
+    
+    This API allows for interacting with files on a remote server.
+
+    Raises
+    ------
+    RemoteFileServicesError
+        If an error occurs when interacting with the file services.
+    RemoteOSError
+        If an OSError occured on the remote server.
+    """
+
     base_url = SPYDER_PLUGIN_NAME + "/fs"
 
     async def _raise_for_status(self, response: aiohttp.ClientResponse):

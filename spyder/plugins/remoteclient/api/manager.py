@@ -73,7 +73,8 @@ class SpyderRemoteAPILoggerHandler(logging.Handler):
 class SpyderRemoteAPIManager:
     """Class to manage a remote server and its APIs."""
 
-    REGISTERED_MODULE_APIS = {}
+    REGISTERED_MODULE_APIS: typing.ClassVar[
+        dict[str,type[SpyderBaseJupyterAPIType]]] = {}
 
     JUPYTER_SERVER_TIMEOUT = 5  # seconds
 
@@ -757,7 +758,9 @@ class SpyderRemoteAPIManager:
 
     # ---- API Management
     @classmethod
-    def register_api(cls, kclass: type[SpyderBaseJupyterAPIType]):
+    def register_api(
+        cls, kclass: type[SpyderBaseJupyterAPIType]
+    ) -> type[SpyderBaseJupyterAPIType]:
         """Register a REST API class."""
         cls.REGISTERED_MODULE_APIS[kclass.__qualname__] = kclass
         return kclass

@@ -6,6 +6,9 @@
 
 * Add `give_focus` kwarg to the `create_client_for_kernel` method of the
   IPython console plugin.
+* Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` API.
+* Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to get and register new rest API modules for the remote api.
+* Add `get_file_api` method to `RemoteClient` to get the `SpyderRemoteFileServicesAPI` rest API module for remote file systems API.
 
 ## Version 6.0.3 (2024/12/10)
 
