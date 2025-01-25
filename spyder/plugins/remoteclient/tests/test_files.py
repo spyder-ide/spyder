@@ -12,6 +12,7 @@ import pytest
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.plugin import RemoteClient
+from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
 
 
 class TestRemoteFilesAPI:
@@ -31,19 +32,6 @@ class TestRemoteFilesAPI:
             assert await file_api.mkdir(self.remote_temp_dir) == {
                 "success": True
             }
-
-    @AsyncDispatcher.dispatch(early_return=False)
-    async def test_list_dir(
-        self,
-        remote_client: RemoteClient,
-        remote_client_id: str,
-    ):
-        """Test that a directory can be listed on the remote server."""
-        file_api_class = remote_client.get_file_api(remote_client_id)
-        assert file_api_class is not None
-
-        async with file_api_class() as file_api:
-            assert await file_api.ls(self.remote_temp_dir) == []
 
     @AsyncDispatcher.dispatch(early_return=False)
     async def test_write_file(
@@ -147,6 +135,21 @@ class TestRemoteFilesAPI:
                 "success": True
             }
 
+    @AsyncDispatcher.dispatch(early_return=False)
+    async def test_ls_nonexistent_dir(
+        self,
+        remote_client: RemoteClient,
+        remote_client_id: str,
+    ):
+        """Test that listing a nonexistent directory raises an error."""
+        file_api_class = remote_client.get_file_api(remote_client_id)
+        assert file_api_class is not None
+
+        async with file_api_class() as file_api:
+            with pytest.raises(RemoteOSError) as exc_info:
+                await file_api.ls(self.remote_temp_dir)
+
+        assert exc_info.value.errno == 2  # ENOENT: No such file or directory
 
 if __name__ == "__main__":
     pytest.main()
