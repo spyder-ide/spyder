@@ -108,8 +108,9 @@ class ABCMeta(BaseABCMeta):
 
     Raises
     ------
-    NotImplementedError: Can't instantiate abstract class
-                         with abstract attributes.
+    NotImplementedError
+        When it's not possible to instantiate an abstract class with abstract
+        attributes.
     """
 
     def __call__(cls, *args, **kwargs):

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-"""IPython console and Spyder Remote Client integration tests."""
+"""Tests for the remote files API."""
 
 # Third party imports
 import pytest

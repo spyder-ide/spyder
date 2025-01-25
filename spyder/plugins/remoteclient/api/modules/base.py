@@ -3,6 +3,7 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+
 from __future__ import annotations
 from abc import abstractmethod
 import uuid
@@ -530,18 +531,18 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     """
     Base class for Jupyter API plugins.
 
-    This class is must be subclassed to implement the API for a specific
+    This class must be subclassed to implement the API for a specific
     Jupyter extension. Provides a context manager for the API session.
 
     Class Attributes
-    ----------
+    ----------------
     base_url: str
         The base URL for the Jupyter Extension's rest API.
 
     Attributes
     ----------
     api_url: yarl.URL
-        The full URL for the rest.
+        The full URL for the rest API.
 
     api_token: str
         The API token for the Jupyter API.

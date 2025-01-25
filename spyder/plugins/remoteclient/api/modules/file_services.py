@@ -85,6 +85,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
                 "encoding": self.encoding,
             },
         )
+
         try:
             await self._check_connection()
         except Exception as e:
@@ -172,6 +173,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
                 self._websocket._response.url,
                 message.get("tracebacks", []),
             )
+
         data = message.get("data")
         if data is None:
             return None
