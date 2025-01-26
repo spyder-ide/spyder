@@ -39,11 +39,11 @@ class DebuggerWidgetActions:
     Inspect = 'inspect'
     EnterDebug = 'enter_debug'
     InterrupAndDebug = "interrupt_and_debug"
-    Next = "next"
-    Continue = "continue"
-    Step = "step"
-    Return = "return"
-    Stop = "stop"
+    Next = "debug current line"
+    Continue = "debug continue"
+    Step = "debug step into"
+    Return = "debug step return"
+    Stop = "debug stop"
     GotoCursor = "go to editor"
 
     # Toggles
@@ -257,7 +257,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         next_action = self.create_action(
             DebuggerWidgetActions.Next,
-            text=_("Execute current line"),
+            text=_("Debug current line"),
             icon=self.create_icon('arrow-step-over'),
             triggered=lambda: self.debug_command("next"),
             register_shortcut=True,
