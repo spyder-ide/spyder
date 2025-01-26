@@ -19,7 +19,7 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
-from spyder.utils.sourcecode import camel_case_to_snake_case
+from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import _
 from spyder.plugins.run.api import (
@@ -32,6 +32,7 @@ from spyder.plugins.run.api import (
 from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
 from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
+from spyder.utils.sourcecode import camel_case_to_snake_case
 
 
 class RunContainer(PluginMainContainer):
@@ -125,6 +126,7 @@ class RunContainer(PluginMainContainer):
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
         self._last_executed_configuration: Optional[str] = None
+        self._save_last_configured_executor: bool = True
 
     def update_actions(self):
         pass
@@ -178,7 +180,9 @@ class RunContainer(PluginMainContainer):
             super_metadata = self.metadata_model[uuid]
             extension = super_metadata['input_extension']
 
-            last_executor = last_executor_name
+            last_executor = last_executor_name or self._get_default_executor(
+                extension
+            )
             if last_executor is None:
                 last_executor = self.get_last_used_executor_parameters(uuid)
                 last_executor = last_executor['executor']
@@ -267,9 +271,18 @@ class RunContainer(PluginMainContainer):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
+        if selected_executor is None:
+            # If the executor is not provided, check if the file has a default
+            # one.
+            metadata = self.metadata_model.get_selected_metadata()
+            if metadata is not None:
+                extension = metadata["input_extension"]
+                selected_executor = self._get_default_executor(extension)
+
         self.edit_run_configurations(
             display_dialog=False,
-            selected_executor=selected_executor)
+            selected_executor=selected_executor
+        )
 
     def edit_run_configurations(
         self,
@@ -337,7 +350,12 @@ class RunContainer(PluginMainContainer):
                 executor=executor_name, selected=ext_params['uuid']
             )
 
-            self._set_last_configured_executor(uuid, executor_name)
+            if self._save_last_configured_executor:
+                self._set_last_configured_executor(uuid, executor_name)
+
+            # Reset this attribute to the default for next time
+            self._save_last_configured_executor = True
+
             self.set_last_used_execution_params(uuid, last_used_conf)
 
         if (status & RunDialogStatus.Run) == RunDialogStatus.Run:
@@ -1310,3 +1328,38 @@ class RunContainer(PluginMainContainer):
 
         mru_uuids_to_executor_names[uuid] = executor_name
         self.set_conf('last_configured_executor', mru_uuids_to_executor_names)
+
+    def _get_default_executor(self, extension: str) -> Optional[str]:
+        """
+        Get the default for a given file extension.
+
+        Parameters
+        ----------
+        extension: str
+            The file extension
+
+        Returns
+        -------
+        executor_name: Optional[str]
+            The default executor name or None if there isn't one for the given
+            extension.
+
+        Notes
+        -----
+        - This is necessary in case a file has multiple executors so that the
+          Run file, cell and selection buttons use this executor by default.
+        - We need to implement an API and UI for this so that a default
+          executor can be declared for other file types.
+        """
+        executor_name = None
+
+        if extension in ["py", "ipy", "pyx"]:
+            # This is the most intuitive executor for Python-like files and it
+            # was also the default in Spyder 5.
+            executor_name = Plugins.IPythonConsole
+
+        # This avoids changing the last executor selected in RunDialog when
+        # using the default one.
+        self._save_last_configured_executor = False
+
+        return executor_name
