@@ -540,14 +540,14 @@ DEFAULTS = [
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
               # -- Debugger --
+              '_/run file in debugger': "Ctrl+F5",
+              '_/debug current line': "Ctrl+F10",
+              '_/debug continue': "Ctrl+F12",
+              '_/debug step into': "Ctrl+F11",
+              '_/debug step return': "Ctrl+Shift+F11",
+              '_/debug stop': "Ctrl+Shift+F12",
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/run file in debugger': "Ctrl+F5",
-              '_/next': "Ctrl+F10",
-              '_/continue': "Ctrl+F12",
-              '_/step': "Ctrl+F11",
-              '_/return': "Ctrl+Shift+F11",
-              '_/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
               'debugger/show breakpoint table': "",
@@ -678,4 +678,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '85.1.0'
+CONF_VERSION = '86.0.0'

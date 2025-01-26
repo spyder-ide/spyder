@@ -98,7 +98,7 @@ def test_shortcuts_filtering(shortcut_table):
     assert not shortcut_table.isSortingEnabled()
     # Six hits (causes a bit of an issue to hardcode it like this if new
     # shortcuts are added...)
-    assert shortcut_table.model().rowCount() == 9
+    assert shortcut_table.model().rowCount() == 14
     # Remove filter text
     shortcut_table.finder = FilterTextMock('')
     shortcut_table.set_regex()
