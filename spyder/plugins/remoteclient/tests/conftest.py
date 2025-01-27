@@ -184,9 +184,9 @@ def ipyconsole(
 
 
 @pytest.fixture(scope="session")
-def ipyconsole_and_remoteclient(qapp) -> (
-    typing.Iterator[typing.Tuple[IPythonConsole, RemoteClient]]
-):
+def ipyconsole_and_remoteclient(
+    qapp,
+) -> typing.Iterator[typing.Tuple[IPythonConsole, RemoteClient]]:
     """
     Start the Spyder Remote Client plugin with IPython Console.
 

@@ -1,11 +1,25 @@
 # History of changes for Spyder 6
 
+## Version 6.1.0 (Unreleased)
+
+### API changes
+
+* Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
+* Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
+  get and register new rest API modules for the remote client.
+* Add `get_file_api` method to `RemoteClient` to get the
+  `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+
+----
+
 ## Version 6.0.4 (Unreleased)
 
 ### API changes
 
 * Add `give_focus` kwarg to the `create_client_for_kernel` method of the
   IPython console plugin.
+
+----
 
 ## Version 6.0.3 (2024/12/10)
 

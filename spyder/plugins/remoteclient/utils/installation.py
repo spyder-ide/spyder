@@ -12,16 +12,19 @@ from spyder.plugins.remoteclient import SPYDER_REMOTE_VERSION
 SERVER_ENV = "spyder-remote"
 PACKAGE_NAME = "spyder-remote-services"
 SCRIPT_URL = (
-    f"https://raw.githubusercontent.com/spyder-ide/{PACKAGE_NAME}/master/scripts"
+    f"https://raw.githubusercontent.com/spyder-ide/"
+    f"{PACKAGE_NAME}/master/scripts"
 )
 
 
 def get_installer_command(platform: str) -> str:
     if platform == "win":
         raise NotImplementedError("Windows is not supported yet")
-    
+
     if running_remoteclient_tests():
-        return '\n'  # server should be aready installed in the test environment
+        return (
+            "\n"  # server should be aready installed in the test environment
+        )
 
     return (
         f'"${{SHELL}}" <(curl -L {SCRIPT_URL}/installer.sh) '

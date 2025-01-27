@@ -176,7 +176,7 @@ class TestVersionCheck:
         qtbot,
     ):
         monkeypatch.setattr(
-            "spyder.plugins.remoteclient.api.client.SPYDER_REMOTE_MAX_VERSION",
+            "spyder.plugins.remoteclient.api.manager.SPYDER_REMOTE_MAX_VERSION",
             "0.0.1",
         )
         monkeypatch.setattr(
