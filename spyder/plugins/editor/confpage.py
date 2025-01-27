@@ -467,7 +467,7 @@ class MouseShortcutEditor(QDialog):
             _("Goto Definition"),
             mouse_shortcuts['goto_definition']
         )
-        self.goto_def_shortcut .sig_changed.connect(self.validate)
+        self.goto_def_shortcut.sig_changed.connect(self.validate)
         layout.addWidget(self.goto_def_shortcut)
 
         self.add_cursor_shortcut = ShortcutSelector(
