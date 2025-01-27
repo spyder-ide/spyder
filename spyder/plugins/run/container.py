@@ -124,6 +124,7 @@ class RunContainer(PluginMainContainer):
 
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
+        self._last_executed_configuration: Optional[str] = None
 
     def update_actions(self):
         pass
@@ -143,12 +144,25 @@ class RunContainer(PluginMainContainer):
             if self.currently_selected_configuration is None:
                 return
 
-            input_provider = self.run_metadata_provider[
-                self.currently_selected_configuration]
+            # We save the last executed configuration in case we need it to
+            # re-run the last cell with the same parameters.
+            # This is necessary for spyder-ide/spyder#23076
+            if not re_run:
+                uuid = self.currently_selected_configuration
+                self._last_executed_configuration = (
+                    self.currently_selected_configuration
+                )
+            else:
+                uuid = self._last_executed_configuration
+
+                # If nothing has been executed so far, we can't re-run it.
+                if uuid is None:
+                    return
+
+            input_provider = self.run_metadata_provider[uuid]
 
             if context in self.super_contexts:
-                run_conf = input_provider.get_run_configuration(
-                    self.currently_selected_configuration)
+                run_conf = input_provider.get_run_configuration(uuid)
             else:
                 run_conf = input_provider.get_run_configuration_per_context(
                     context, extra_action_name, context_modificator,
@@ -157,7 +171,6 @@ class RunContainer(PluginMainContainer):
             if run_conf is None:
                 return
 
-            uuid = self.currently_selected_configuration
             super_metadata = self.metadata_model[uuid]
             extension = super_metadata['input_extension']
 

@@ -1726,7 +1726,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, server_id=None, can_close=True):
+                                 password, server_id=None, give_focus=False,
+                                 can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1772,6 +1773,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(),
             handlers=self.registered_spyder_kernel_handlers,
             server_id=server_id,
+            give_focus=give_focus,
             can_close=can_close,
         )
 
@@ -1849,9 +1851,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.master_clients -= 1
 
         # Rename client tab with filename
-        client.allow_rename = False
-        tab_text = self.disambiguate_fname(filename)
-        self.rename_client_tab(client, tab_text)
+        if client is not None:
+            client.allow_rename = False
+            tab_text = self.disambiguate_fname(filename)
+            self.rename_client_tab(client, tab_text)
 
         return client
 

@@ -20,6 +20,7 @@ dependencies:
 - importlib-metadata >=4.6.0
 - intervaltree >=3.0.2
 - ipython >=8.13.0,<9.0.0,!=8.17.1
+- ipython_pygments_lexers >=1.0
 - jedi >=0.17.2,<0.20.0
 - jellyfish >=0.7
 - jsonschema >=3.2.0
