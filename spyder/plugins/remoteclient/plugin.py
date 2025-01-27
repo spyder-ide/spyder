@@ -41,14 +41,15 @@ from spyder.plugins.remoteclient.api.protocol import (
     SSHClientOptions,
     ConnectionStatus,
 )
-from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
 from spyder.plugins.remoteclient.api.modules.file_services import (
     SpyderRemoteFileServicesAPI,
 )
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 if typing.TYPE_CHECKING:
-    from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPIType
+    from spyder.plugins.remoteclient.api.modules.base import (
+        SpyderBaseJupyterAPIType,
+    )
 
 
 _logger = logging.getLogger(__name__)
@@ -310,12 +311,11 @@ class RemoteClient(SpyderPluginV2):
 
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
-        """Register Remote Client API.
+        """
+        Register Remote Client API.
 
         This method is used to register a new API class that will be used to
-        interact with the remote server.
-
-        Can be used as a decorator.
+        interact with the remote server. It can be used as a decorator.
 
         Parameters
         ----------
@@ -332,7 +332,8 @@ class RemoteClient(SpyderPluginV2):
     def get_api(
         self, config_id: str, api: str | typing.Type[SpyderBaseJupyterAPIType]
     ):
-        """Get the API for a remote server.
+        """
+        Get the API for a remote server.
 
         Get the registered API class for a given remote server.
 

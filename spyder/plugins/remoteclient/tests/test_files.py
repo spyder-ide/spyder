@@ -99,7 +99,10 @@ class TestRemoteFilesAPI:
             idx = [
                 item["name"] for item in ls_content
             ].index(self.remote_temp_dir + "/test.txt")
-            assert ls_content[not idx]["name"] == self.remote_temp_dir + "/test2.txt"
+            assert (
+                ls_content[not idx]["name"]
+                == self.remote_temp_dir + "/test2.txt"
+            )
             assert ls_content[0]["size"] == ls_content[1]["size"]
 
     @AsyncDispatcher.dispatch(early_return=False)
@@ -150,6 +153,7 @@ class TestRemoteFilesAPI:
                 await file_api.ls(self.remote_temp_dir)
 
         assert exc_info.value.errno == 2  # ENOENT: No such file or directory
+
 
 if __name__ == "__main__":
     pytest.main()

@@ -61,8 +61,9 @@ class RemoteOSError(OSError, RemoteFileServicesError):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
-    """API for remote file I/O.
-    
+    """
+    API for remote file I/O.
+
     This API is a RawIOBase subclass that allows reading and writing files
     on a remote server.
 
@@ -88,7 +89,8 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     lock : bool, optional
         Whether to lock the file, by default False.
     encoding : str, optional
-        The encoding to use when reading and writing the file, by default "utf-8".
+        The encoding to use when reading and writing the file, by default
+        "utf-8".
 
     Raises
     ------
@@ -328,8 +330,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
 
 @SpyderRemoteAPIManager.register_api
 class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
-    """API for remote file services.
-    
+    """
+    API for remote file services.
+
     This API allows for interacting with files on a remote server.
 
     Raises

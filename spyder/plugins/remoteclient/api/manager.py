@@ -74,7 +74,8 @@ class SpyderRemoteAPIManager:
     """Class to manage a remote server and its APIs."""
 
     REGISTERED_MODULE_APIS: typing.ClassVar[
-        dict[str,type[SpyderBaseJupyterAPIType]]] = {}
+        dict[str, type[SpyderBaseJupyterAPIType]]
+    ] = {}
 
     JUPYTER_SERVER_TIMEOUT = 5  # seconds
 
