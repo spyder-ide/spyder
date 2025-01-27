@@ -77,11 +77,13 @@ class SchemeEditor(QDialog):
                     invalid_colors[key] = items[0].text()
 
         if invalid_colors:
-            message = _("The following properties have invalid colors:\n")
+            message = _("The following properties have invalid colors:\n\n")
             for property_name, color in invalid_colors.items():
+                name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
+                clean_name = name[:-1].replace("<br>","")
                 message += _(
                     "The property {} has an invalid color: {}.\n"
-                    ).format(property_name.upper(), color)
+                    ).format(clean_name, color)
             title = _('Error getting colors.')
             self.msgbox = QMessageBox(
                         QMessageBox.Warning,
