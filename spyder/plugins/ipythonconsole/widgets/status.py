@@ -9,12 +9,14 @@
 # Standard library imports
 import functools
 import logging
+import os
 import sys
 import textwrap
 
 # Third-party imports
 from IPython.core import release as ipython_release
-from qtpy.QtCore import Signal
+from qtpy.QtCore import QPoint, Signal
+from qtpy.QtWidgets import QMenu
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 
@@ -22,6 +24,7 @@ from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 from spyder.api.translations import _
 from spyder.config.base import running_in_ci
+from spyder.utils.qthelpers import add_actions, create_action
 
 
 logger = logging.getLogger(__name__)
@@ -179,9 +182,16 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
 
     sig_interpreter_changed = Signal(str)
 
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
+
     def __init__(self, parent):
         self._current_env_info: PythonEnvInfo | None = None
         super().__init__(parent)
+        self.menu = QMenu(self)
+        self.sig_clicked.connect(self.show_menu)
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
@@ -255,3 +265,24 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
         else:
             self.set_shellwidget(shellwidget)
             self.show()
+
+    def show_menu(self):
+        """Display a menu when clicking on the widget."""
+        menu = self.menu
+        menu.clear()
+        text = _("Change default environment in Preferences...")
+        change_action = create_action(
+            self,
+            text=text,
+            triggered=self.open_interpreter_preferences,
+        )
+        add_actions(menu, [change_action])
+        rect = self.contentsRect()
+        os_height = 7 if os.name == 'nt' else 12
+        pos = self.mapToGlobal(
+            rect.topLeft() + QPoint(-40, -rect.height() - os_height))
+        menu.popup(pos)
+
+    def open_interpreter_preferences(self):
+        """Request to open the main interpreter preferences."""
+        self.sig_open_preferences_requested.emit()

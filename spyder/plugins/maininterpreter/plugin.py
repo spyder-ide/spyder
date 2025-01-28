@@ -62,6 +62,7 @@ class MainInterpreter(SpyderPluginV2):
         Path to the new interpreter.
     """
 
+
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod
@@ -82,11 +83,17 @@ class MainInterpreter(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
 
+        # Connect signal to open preferences
+        container.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
+
         # Connect container signals
         container.sig_environments_updated.connect(
             self.sig_environments_updated
         )
         container.sig_interpreter_changed.connect(self.sig_interpreter_changed)
+
 
         # Validate that the custom interpreter from the previous session
         # still exists
@@ -118,3 +125,13 @@ class MainInterpreter(SpyderPluginV2):
         self.set_conf("custom", True)
         self.set_conf("custom_interpreter", interpreter)
         self.set_conf("executable", interpreter)
+
+    # ---- Private API
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the main interpreter section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("main_interpreter")
+        dlg.set_current_index(index)
