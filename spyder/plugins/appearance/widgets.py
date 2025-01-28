@@ -6,11 +6,19 @@
 
 """Appearance entry in Preferences."""
 
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QVBoxLayout, QWidget, QMessageBox)
-
 import re
+
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
@@ -73,7 +81,7 @@ class SchemeEditor(QDialog):
         for key in self.widgets[scheme_name]:
             items = self.widgets[scheme_name][key]
 
-            if(not bool(re.match(pattern, items[0].text()))):
+            if not bool(re.match(pattern, items[0].text())):
                     invalid_colors[key] = items[0].text()
 
         if invalid_colors:
@@ -82,17 +90,17 @@ class SchemeEditor(QDialog):
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
                 clean_name = name[:-1].replace("<br>","")
                 message += _(
-                    "The property {} has an invalid color: {}.\n"
-                    ).format(clean_name, color)
-            title = _('Error getting colors.')
-            self.msgbox = QMessageBox(
-                        QMessageBox.Warning,
-                        title,
-                        message,
-                        QMessageBox.Ok,
-                        self
-                    )
-            self.msgbox.exec_()         
+                    "The property <b>{}</b> has an invalid color: {}\n"
+                ).format(clean_name, color)
+
+            msgbox = QMessageBox(
+                QMessageBox.Warning,
+                _('Error setting colors'),
+                message,
+                QMessageBox.Ok,
+                self
+            )
+            msgbox.exec_()         
         else:
             self.accept()
 
