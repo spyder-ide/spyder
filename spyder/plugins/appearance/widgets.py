@@ -72,23 +72,25 @@ class SchemeEditor(QDialog):
 
     def validate_colors(self):
         """
-        Validate the current color scheme and display a message box listing 
+        Validate the current color scheme and display a message box listing
         any invalid colors.
         """
         invalid_colors = {}
         scheme_name = self.last_used_scheme
-        pattern = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8}|[A-Fa-f0-9]{4})$"
+        pattern = (
+            r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8}|[A-Fa-f0-9]{4})$"
+        )
         for key in self.widgets[scheme_name]:
             items = self.widgets[scheme_name][key]
 
             if not bool(re.match(pattern, items[0].text())):
-                    invalid_colors[key] = items[0].text()
+                invalid_colors[key] = items[0].text()
 
         if invalid_colors:
             message = _("The following properties have invalid colors:\n\n")
             for property_name, color in invalid_colors.items():
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
-                clean_name = name[:-1].replace("<br>","")
+                clean_name = name[:-1].replace("<br>", "")
                 message += _(
                     "The property <b>{}</b> has an invalid color: {}\n"
                 ).format(clean_name, color)
@@ -100,7 +102,7 @@ class SchemeEditor(QDialog):
                 QMessageBox.Ok,
                 self
             )
-            msgbox.exec_()         
+            msgbox.exec_()
         else:
             self.accept()
 
