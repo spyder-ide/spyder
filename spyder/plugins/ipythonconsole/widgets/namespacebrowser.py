@@ -39,20 +39,22 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
         reason_dead = _("The kernel is dead")
-        reason_other = _("An unkown error occurred. Check the console because"
-                         " its contents could have been printed there")
+        reason_other = _("An unkown error occurred. Check the console because "
+                         "its contents could have been printed there")
         reason_comm = _("The comm channel is not working")
-        reason_missing_package = _("The required package '{module}' to open "
-                                   "this variable is not installed")
-        reason_missing_package_conda = _("{reason_missing_package}. You can "
-                                         "try to install the missing modules "
-                                         "in the environment you are trying "
-                                         "to run Spyder.")
+        reason_missing_package_installer = _(
+            "The '{}' package is required to open this variable. "
+            "Unfortunately, it's not part of our installer, which means your "
+            "variable can't be displayed by Spyder."
+        )
+        reason_missing_package = _(
+            "The '{}' package is required to open this variable and it's not "
+            "installed alongside Spyder. To fix this problem, please install "
+            "it in the same environment that you use to run Spyder."
+        )
         msg = _("<br><i>%s.</i><br><br><br>"
-                "<b>Note</b>: This issue is related to your Python "
-                "environment or interpreter configuration. For workarounds"
-                " and troubleshooting, please refer to "
-                "https://docs.spyder-ide.org/current/faq.html")
+                "<b>Note</b>: Please don't report this problem on Github, "
+                "there's nothing to do about it.")
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -72,13 +74,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except CommError:
             raise ValueError(msg % reason_comm)
         except ModuleNotFoundError as e:
-
             if is_conda_based_app():
-                raise ValueError(msg % reason_missing_package
-                                 .format(module = e.name))
+                raise ValueError(
+                    msg % reason_missing_package_installer.format(e.name)
+                )
             else:
-                raise ValueError(msg % reason_missing_package_conda
-                                 .format(module = e.name))
+                raise ValueError(
+                    msg % reason_missing_package.format(e.name)
+                )
         except Exception:
             raise ValueError(msg % reason_other)
 
