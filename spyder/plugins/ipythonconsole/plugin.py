@@ -565,19 +565,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
+
         if connection_file is not None:
-            self._handle_connect_to_kernel_cli(connection_file)
+            self.create_client_for_kernel(
+                self.get_widget().find_connection_file(connection_file),
+                give_focus=False,
+            )
         else:
             self.create_new_client(give_focus=False)
 
     # ---- Private methods
     # -------------------------------------------------------------------------
-    def _handle_connect_to_kernel_cli(self, connection_file):
-        self.create_client_for_kernel(
-            self.get_widget().find_connection_file(connection_file),
-            give_focus=False,
-        )
-
     def _on_project_loaded(self, path):
         self.get_widget().update_active_project_path(path)
 
