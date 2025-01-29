@@ -73,7 +73,8 @@ class AsyncDispatcher:
                              typing.Any, typing.Any, typing.Any]],
                  *,
                  loop: LoopID | None = None,
-                 early_return: bool = True):
+                 early_return: bool = True,
+                 return_awaitable: bool = False):
         """Initialize the decorator.
 
         Parameters
@@ -82,6 +83,11 @@ class AsyncDispatcher:
             The coroutine to be wrapped.
         loop : asyncio.AbstractEventLoop, optional
             The event loop to be used, by default get the current event loop.
+        early_return : bool, optional
+            Return the coroutine as a Future object before it is done
+            or wait for it to finish and return the result.
+        return_awaitable : bool, optional
+            Return the coroutine as an awaitable object instead of a Future.
         """
         if not asyncio.iscoroutinefunction(async_func):
             msg = f"{async_func} is not a coroutine function"
@@ -89,11 +95,15 @@ class AsyncDispatcher:
         self._async_func = async_func
         self._loop = self._ensure_running_loop(loop)
         self._early_return = early_return
+        self._return_awaitable = return_awaitable
 
     def __call__(self, *args, **kwargs):
         task = asyncio.run_coroutine_threadsafe(
             self._async_func(*args, **kwargs), loop=self._loop
         )
+        if self._return_awaitable:
+            return asyncio.wrap_future(task, loop=asyncio.get_running_loop())
+
         if self._early_return:
             AsyncDispatcher._running_tasks.append(task)
             task.add_done_callback(self._callback_task_done)
@@ -104,16 +114,20 @@ class AsyncDispatcher:
     def dispatch(cls,
                  *,
                  loop: LoopID | None = None,
-                 early_return: bool = True):
+                 early_return: bool = True,
+                 return_awaitable: bool = False):
         """Create a decorator to run the coroutine with a given event loop."""
 
         def decorator(
             async_func: typing.Callable[P, typing.Coroutine[typing.Any,
                                                             typing.Any, T]]
-        ) -> typing.Callable[P, Future[T] | T]:
+        ) -> typing.Callable[P, asyncio.Future[T] | Future[T] | T]:
             @functools.wraps(async_func)
             def wrapper(*args, **kwargs):
-                return cls(async_func, loop=loop, early_return=early_return)(
+                return cls(async_func,
+                           loop=loop,
+                           early_return=early_return,
+                           return_awaitable=return_awaitable)(
                     *args, **kwargs
                 )
 

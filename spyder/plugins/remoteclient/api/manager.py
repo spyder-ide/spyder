@@ -4,11 +4,20 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+"""
+spyder.plugins.remoteclient.api.manager
+=======================================
+
+Remote Client Plugin API Manager.
+"""
+
 from __future__ import annotations
 import asyncio
+from functools import partial
 import json
 import logging
 import socket
+import typing
 
 import asyncssh
 from packaging.version import Version
@@ -19,7 +28,7 @@ from spyder.plugins.remoteclient import (
     SPYDER_REMOTE_MAX_VERSION,
     SPYDER_REMOTE_MIN_VERSION,
 )
-from spyder.plugins.remoteclient.api.jupyterhub import JupyterAPI
+from spyder.plugins.remoteclient.api.modules.base import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
@@ -35,16 +44,19 @@ from spyder.plugins.remoteclient.utils.installation import (
     SERVER_ENV,
 )
 
+if typing.TYPE_CHECKING:
+    from spyder.plugins.remoteclient.api.modules.base import (
+        SpyderBaseJupyterAPIType,
+    )
 
-class SpyderRemoteClientLoggerHandler(logging.Handler):
+
+class SpyderRemoteAPILoggerHandler(logging.Handler):
     def __init__(self, client, *args, **kwargs):
         self._client = client
         super().__init__(*args, **kwargs)
 
         log_format = "%(message)s &#8212; %(asctime)s"
-        formatter = logging.Formatter(
-            log_format, datefmt="%H:%M:%S %d/%m/%Y"
-        )
+        formatter = logging.Formatter(log_format, datefmt="%H:%M:%S %d/%m/%Y")
         self.setFormatter(formatter)
 
     def emit(self, record):
@@ -58,15 +70,24 @@ class SpyderRemoteClientLoggerHandler(logging.Handler):
         )
 
 
-class SpyderRemoteClient:
-    """Class to manage a remote server and its kernels."""
+class SpyderRemoteAPIManager:
+    """Class to manage a remote server and its APIs."""
+
+    REGISTERED_MODULE_APIS: typing.ClassVar[
+        dict[str, type[SpyderBaseJupyterAPIType]]
+    ] = {}
 
     JUPYTER_SERVER_TIMEOUT = 5  # seconds
 
     _extra_options = ["platform", "id"]
 
-    START_SERVER_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
-    GET_SERVER_INFO_COMMAND = f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server info"
+    START_SERVER_COMMAND = (
+        f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"
+    )
+    GET_SERVER_INFO_COMMAND = (
+        f"/${{HOME}}/.local/bin/micromamba run"
+        f" -n {SERVER_ENV} spyder-server info"
+    )
 
     def __init__(self, conf_id, options: SSHClientOptions, _plugin=None):
         self._config_id = conf_id
@@ -84,17 +105,18 @@ class SpyderRemoteClient:
         self._remote_server_process: asyncssh.SSHClientProcess = None
         self._port_forwarder: asyncssh.SSHListener = None
         self._server_info = {}
+        self._local_port = None
 
         # For logging
-        self._logger = logging.getLogger(
+        self.logger = logging.getLogger(
             f"{__name__}.{self.__class__.__name__}({self.config_id})"
         )
 
         if not get_debug_level():
-            self._logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.DEBUG)
 
         if self._plugin is not None:
-            self._logger.addHandler(SpyderRemoteClientLoggerHandler(self))
+            self.logger.addHandler(SpyderRemoteAPILoggerHandler(self))
 
     def __emit_connection_status(self, status, message):
         if self._plugin is not None:
@@ -159,9 +181,9 @@ class SpyderRemoteClient:
         ValueError
             If the local port is not set.
         """
-        if not self.local_port:
+        if not self._local_port:
             raise ValueError("Local port is not set")
-        return f"http://127.0.0.1:{self.local_port}"
+        return f"http://127.0.0.1:{self._local_port}"
 
     @property
     def api_token(self):
@@ -211,7 +233,7 @@ class SpyderRemoteClient:
         self.__server_started.clear()
         self._port_forwarder = None
         if exc:
-            self._logger.error(
+            self.logger.error(
                 f"Connection to {self.peer_host} was lost",
                 exc_info=exc,
             )
@@ -223,7 +245,7 @@ class SpyderRemoteClient:
     async def get_server_info(self):
         """Check if the remote server is running."""
         if self._ssh_connection is None:
-            self._logger.debug("ssh connection was not established")
+            self.logger.debug("ssh connection was not established")
             return None
 
         try:
@@ -231,29 +253,27 @@ class SpyderRemoteClient:
                 self.GET_SERVER_INFO_COMMAND, check=True
             )
         except asyncssh.TimeoutError:
-            self._logger.error("Getting server info timed out")
+            self.logger.error("Getting server info timed out")
             return None
         except asyncssh.misc.ChannelOpenError:
-            self._logger.error(
+            self.logger.error(
                 "The connection is closed, so it's not possible to get the "
                 "server info"
             )
             return None
         except asyncssh.ProcessError as err:
-            self._logger.debug(f"Error getting server info: {err.stderr}")
+            self.logger.debug(f"Error getting server info: {err.stderr}")
             return None
 
         try:
             info = json.loads(output.stdout.splitlines()[-1])
         except (json.JSONDecodeError, IndexError):
-            self._logger.debug(
-                f"Issue parsing server info: {output.stdout}"
-            )
+            self.logger.debug(f"Issue parsing server info: {output.stdout}")
             return None
 
         return info
 
-    # -- Connection and server management
+    # ---- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:
         """Connect to the remote server and install the server."""
         if await self.create_new_connection():
@@ -329,7 +349,7 @@ class SpyderRemoteClient:
     async def __start_remote_server(self):
         """Start remote server."""
         if not self.ssh_is_connected:
-            self._logger.error("SSH connection is not open")
+            self.logger.error("SSH connection is not open")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("The SSH connection is not open"),
@@ -337,14 +357,14 @@ class SpyderRemoteClient:
             return False
 
         if info := await self.get_server_info():
-            self._logger.warning(
+            self.logger.warning(
                 f"Remote server is already running for {self.peer_host}"
             )
 
-            self._logger.debug("Checking server info")
+            self.logger.debug("Checking server info")
             if self._server_info != info:
                 self._server_info = info
-                self._logger.info(
+                self.logger.info(
                     "Different server info, updating info "
                     f"for {self.peer_host}"
                 )
@@ -355,7 +375,7 @@ class SpyderRemoteClient:
                     )
                     return True
 
-                self._logger.error(
+                self.logger.error(
                     "Error forwarding local port, server might not be "
                     "reachable"
                 )
@@ -371,7 +391,7 @@ class SpyderRemoteClient:
 
             return True
 
-        self._logger.debug(f"Starting remote server for {self.peer_host}")
+        self.logger.debug(f"Starting remote server for {self.peer_host}")
         try:
             self._remote_server_process = (
                 await self._ssh_connection.create_process(
@@ -380,7 +400,7 @@ class SpyderRemoteClient:
                 )
             )
         except (OSError, asyncssh.Error, ValueError) as e:
-            self._logger.error(f"Error starting remote server: {e}")
+            self.logger.error(f"Error starting remote server: {e}")
             self._remote_server_process = None
             self.__emit_connection_status(
                 ConnectionStatus.Error, _("Error starting the remote server")
@@ -393,7 +413,7 @@ class SpyderRemoteClient:
             _time += 1
 
         if info is None:
-            self._logger.error("Faield to get server info")
+            self.logger.error("Faield to get server info")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _(
@@ -405,7 +425,7 @@ class SpyderRemoteClient:
 
         self._server_info = info
 
-        self._logger.info(
+        self.logger.info(
             f"Remote server started for {self.peer_host} at port "
             f"{self.server_port}"
         )
@@ -417,7 +437,7 @@ class SpyderRemoteClient:
             )
             return True
 
-        self._logger.error("Error forwarding local port.")
+        self.logger.error("Error forwarding local port.")
         self.__emit_connection_status(
             ConnectionStatus.Error,
             _("It was not possible to forward the local port"),
@@ -427,7 +447,7 @@ class SpyderRemoteClient:
     async def ensure_server_installed(self) -> bool:
         """Check remote server version."""
         if not self.ssh_is_connected:
-            self._logger.error("SSH connection is not open")
+            self.logger.error("SSH connection is not open")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("The SSH connection is not open"),
@@ -437,17 +457,13 @@ class SpyderRemoteClient:
         commnad = get_server_version_command(self.options["platform"])
 
         try:
-            output = await self._ssh_connection.run(
-                commnad, check=True
-            )
+            output = await self._ssh_connection.run(commnad, check=True)
         except asyncssh.ProcessError as err:
             # Server is not installed
-            self._logger.warning(
-                f"Issue checking server version: {err.stderr}"
-            )
+            self.logger.warning(f"Issue checking server version: {err.stderr}")
             return await self.install_remote_server()
         except asyncssh.TimeoutError:
-            self._logger.error("Checking server version timed out")
+            self.logger.error("Checking server version timed out")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("The server version check timed out"),
@@ -457,7 +473,7 @@ class SpyderRemoteClient:
         version = output.stdout.splitlines()[-1].strip()
 
         if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
-            self._logger.error(
+            self.logger.error(
                 f"Server version mismatch: {version} is greater than "
                 f"the maximum supported version {SPYDER_REMOTE_MAX_VERSION}"
             )
@@ -469,14 +485,14 @@ class SpyderRemoteClient:
             return False
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
-            self._logger.warning(
+            self.logger.warning(
                 f"Server version mismatch: {version} is lower than "
                 f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}. "
                 f"A more recent version will be installed."
             )
             return await self.install_remote_server()
 
-        self._logger.info(f"Supported Server version: {version}")
+        self.logger.info(f"Supported Server version: {version}")
 
         return True
 
@@ -500,21 +516,21 @@ class SpyderRemoteClient:
     async def __install_remote_server(self):
         """Install remote server."""
         if not self.ssh_is_connected:
-            self._logger.error("SSH connection is not open")
+            self.logger.error("SSH connection is not open")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("The SSH connection is not open"),
             )
             return False
 
-        self._logger.debug(
+        self.logger.debug(
             f"Installing spyder-remote-server on {self.peer_host}"
         )
 
         try:
             command = get_installer_command(self.options["platform"])
         except NotImplementedError:
-            self._logger.error(
+            self.logger.error(
                 f"Cannot install spyder-remote-server on "
                 f"{self.options['platform']} automatically. Please install it "
                 f"manually."
@@ -528,21 +544,21 @@ class SpyderRemoteClient:
         try:
             await self._ssh_connection.run(command, check=True)
         except asyncssh.ProcessError as err:
-            self._logger.error(f"Installation script failed: {err.stderr}")
+            self.logger.error(f"Installation script failed: {err.stderr}")
             self.__emit_connection_status(
                 status=ConnectionStatus.Error,
                 message=_("There was an error installing the remote server"),
             )
             return False
         except asyncssh.TimeoutError:
-            self._logger.error("Installation script timed out")
+            self.logger.error("Installation script timed out")
             self.__emit_connection_status(
                 status=ConnectionStatus.Error,
                 message=_("There was an error installing the remote server"),
             )
             return False
 
-        self._logger.info(
+        self.logger.info(
             f"Successfully installed spyder-remote-server on {self.peer_host}"
         )
 
@@ -578,7 +594,7 @@ class SpyderRemoteClient:
             True if the connection was successful, False otherwise.
         """
         if self.ssh_is_connected:
-            self._logger.debug(
+            self.logger.debug(
                 f"Atempting to create a new connection with an existing for "
                 f"{self.peer_host}"
             )
@@ -594,27 +610,27 @@ class SpyderRemoteClient:
             for k, v in self.options.items()
             if k not in self._extra_options
         }
-        self._logger.debug("Opening SSH connection")
+        self.logger.debug("Opening SSH connection")
         try:
             self._ssh_connection = await asyncssh.connect(
                 **connect_kwargs, client_factory=self.client_factory
             )
         except (OSError, asyncssh.Error) as e:
-            self._logger.error(f"Failed to open ssh connection: {e}")
+            self.logger.error(f"Failed to open ssh connection: {e}")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("It was not possible to open a connection to this machine"),
             )
             return False
 
-        self._logger.info(f"SSH connection opened for {self.peer_host}")
+        self.logger.info(f"SSH connection opened for {self.peer_host}")
 
         return True
 
     async def forward_local_port(self):
         """Forward local port."""
         if not self.server_port:
-            self._logger.error("Server port is not set")
+            self.logger.error("Server port is not set")
             self.__emit_connection_status(
                 status=ConnectionStatus.Error,
                 message=_("The server port is not set"),
@@ -622,21 +638,21 @@ class SpyderRemoteClient:
             return False
 
         if not self.ssh_is_connected:
-            self._logger.error("SSH connection is not open")
+            self.logger.error("SSH connection is not open")
             self.__emit_connection_status(
                 status=ConnectionStatus.Error,
                 message=_("The SSH connection is not open"),
             )
             return False
 
-        self._logger.debug(
+        self.logger.debug(
             f"Forwarding an free local port to remote port {self.server_port}"
         )
 
         if self._port_forwarder:
-            self._logger.warning(
+            self.logger.warning(
                 f"Port forwarder is already open for host {self.peer_host} "
-                f"with local port {self.local_port} and remote port "
+                f"with local port {self._local_port} and remote port "
                 f"{self.server_port}"
             )
             await self.close_port_forwarder()
@@ -652,9 +668,9 @@ class SpyderRemoteClient:
             self.server_port,
         )
 
-        self.local_port = local_port
+        self._local_port = local_port
 
-        self._logger.debug(
+        self.logger.debug(
             f"Forwarded local port {local_port} to remote server at "
             f"{server_host}:{self.server_port}"
         )
@@ -664,28 +680,28 @@ class SpyderRemoteClient:
     async def close_port_forwarder(self):
         """Close port forwarder."""
         if self.port_is_forwarded:
-            self._logger.debug(
+            self.logger.debug(
                 f"Closing port forwarder for host {self.peer_host} with local "
-                f"port {self.local_port}"
+                f"port {self._local_port}"
             )
             self._port_forwarder.close()
             await self._port_forwarder.wait_closed()
             self._port_forwarder = None
-            self._logger.debug(
+            self.logger.debug(
                 f"Port forwarder closed for host {self.peer_host} with local "
-                f"port {self.local_port}"
+                f"port {self._local_port}"
             )
 
     async def stop_remote_server(self):
         """Close remote server."""
         if not self.server_started:
-            self._logger.warning(
+            self.logger.warning(
                 f"Remote server is not running for {self.peer_host}"
             )
             return False
 
         if not self.ssh_is_connected:
-            self._logger.error("SSH connection is not open")
+            self.logger.error("SSH connection is not open")
             self.__emit_connection_status(
                 ConnectionStatus.Error,
                 _("The SSH connection is not open"),
@@ -693,7 +709,7 @@ class SpyderRemoteClient:
             return False
 
         # bug in jupyterhub, need to send SIGINT twice
-        self._logger.debug(
+        self.logger.debug(
             f"Stopping remote server for {self.peer_host} with pid "
             f"{self._server_info['pid']}"
         )
@@ -703,9 +719,7 @@ class SpyderRemoteClient:
             ) as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
-            self._logger.exception(
-                "Error stopping remote server", exc_info=err
-            )
+            self.logger.exception("Error stopping remote server", exc_info=err)
 
         if (
             self._remote_server_process
@@ -716,27 +730,56 @@ class SpyderRemoteClient:
 
         self.__server_started.clear()
         self._remote_server_process = None
-        self._logger.info(f"Remote server process closed for {self.peer_host}")
+        self.logger.info(f"Remote server process closed for {self.peer_host}")
         return True
 
     async def close_ssh_connection(self):
         """Close SSH connection."""
         if not self.ssh_is_connected:
-            self._logger.debug("SSH connection is not open")
+            self.logger.debug("SSH connection is not open")
             return
 
-        self._logger.debug(f"Closing SSH connection for {self.peer_host}")
+        self.logger.debug(f"Closing SSH connection for {self.peer_host}")
         self._ssh_connection.close()
         await self._ssh_connection.wait_closed()
         self._ssh_connection = None
-        self._logger.info("SSH connection closed")
+        self.logger.info("SSH connection closed")
         self.__connection_established.clear()
         self.__emit_connection_status(
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),
         )
 
-    # --- Kernel Management
+    @staticmethod
+    def get_free_port():
+        """Request a free port from the OS."""
+        with socket.socket() as s:
+            s.bind(("", 0))
+            return s.getsockname()[1]
+
+    # ---- API Management
+    @classmethod
+    def register_api(
+        cls, kclass: type[SpyderBaseJupyterAPIType]
+    ) -> type[SpyderBaseJupyterAPIType]:
+        """Register a REST API class."""
+        cls.REGISTERED_MODULE_APIS[kclass.__qualname__] = kclass
+        return kclass
+
+    def get_api(
+        self, api: str | type[SpyderBaseJupyterAPIType]
+    ) -> typing.Callable[..., SpyderBaseJupyterAPIType]:
+        """Get a registered REST API class."""
+        if isinstance(api, type):
+            api = api.__qualname__
+
+        api_class = self.REGISTERED_MODULE_APIS.get(api)
+        if api_class is None:
+            raise ValueError(f"API {api} is not registered")
+
+        return partial(api_class, manager=self)
+
+    # ---- Kernel Management
     async def start_new_kernel_ensure_server(
         self, _retries=5
     ) -> KernelConnectionInfo:
@@ -753,7 +796,7 @@ class SpyderRemoteClient:
             The kernel connection information.
         """
         if not await self.ensure_connection_and_server():
-            self._logger.error(
+            self.logger.error(
                 "Cannot launch kernel, remote server is not running"
             )
             return {}
@@ -767,7 +810,7 @@ class SpyderRemoteClient:
         while not kernel_id and retries < _retries:
             await asyncio.sleep(1)
             kernel_id = await self.start_new_kernel()
-            self._logger.debug(
+            self.logger.debug(
                 f"Server might not be ready yet, retrying kernel launch "
                 f"({retries + 1}/{_retries})"
             )
@@ -791,7 +834,7 @@ class SpyderRemoteClient:
             The kernel connection information.
         """
         if not await self.ensure_connection_and_server():
-            self._logger.error(
+            self.logger.error(
                 "Cannot launch kernel, remote server is not running"
             )
             return {}
@@ -805,7 +848,7 @@ class SpyderRemoteClient:
         while not kernel_info and retries < _retries:
             await asyncio.sleep(1)
             kernel_info = await self.get_kernel_info(kernel_id)
-            self._logger.debug(
+            self.logger.debug(
                 f"Server might not be ready yet, retrying kernel launch "
                 f"({retries + 1}/{_retries})"
             )
@@ -819,7 +862,7 @@ class SpyderRemoteClient:
             self.server_url, api_token=self.api_token
         ) as jupyter:
             response = await jupyter.create_kernel(kernel_spec=kernel_spec)
-        self._logger.info(f"Kernel started with ID {response['id']}")
+        self.logger.info(f"Kernel started with ID {response['id']}")
         return response
 
     async def list_kernels(self) -> list[KernelInfo]:
@@ -829,7 +872,7 @@ class SpyderRemoteClient:
         ) as jupyter:
             response = await jupyter.list_kernels()
 
-        self._logger.info(f"Kernels listed for {self.peer_host}")
+        self.logger.info(f"Kernels listed for {self.peer_host}")
         return response
 
     async def get_kernel_info(self, kernel_id) -> KernelInfo:
@@ -839,7 +882,7 @@ class SpyderRemoteClient:
         ) as jupyter:
             response = await jupyter.get_kernel(kernel_id=kernel_id)
 
-        self._logger.info(f"Kernel info retrieved for ID {kernel_id}")
+        self.logger.info(f"Kernel info retrieved for ID {kernel_id}")
         return response
 
     async def terminate_kernel(self, kernel_id) -> bool:
@@ -849,7 +892,7 @@ class SpyderRemoteClient:
         ) as jupyter:
             response = await jupyter.delete_kernel(kernel_id=kernel_id)
 
-        self._logger.info(f"Kernel terminated for ID {kernel_id}")
+        self.logger.info(f"Kernel terminated for ID {kernel_id}")
         return response
 
     async def interrupt_kernel(self, kernel_id) -> bool:
@@ -859,7 +902,7 @@ class SpyderRemoteClient:
         ) as jupyter:
             response = await jupyter.interrupt_kernel(kernel_id=kernel_id)
 
-        self._logger.info(f"Kernel interrupted for ID {kernel_id}")
+        self.logger.info(f"Kernel interrupted for ID {kernel_id}")
         return response
 
     async def restart_kernel(self, kernel_id) -> bool:
@@ -869,12 +912,5 @@ class SpyderRemoteClient:
         ) as jupyter:
             response = await jupyter.restart_kernel(kernel_id=kernel_id)
 
-        self._logger.info(f"Kernel restarted for ID {kernel_id}")
+        self.logger.info(f"Kernel restarted for ID {kernel_id}")
         return response
-
-    @staticmethod
-    def get_free_port():
-        """Request a free port from the OS."""
-        with socket.socket() as s:
-            s.bind(("", 0))
-            return s.getsockname()[1]
