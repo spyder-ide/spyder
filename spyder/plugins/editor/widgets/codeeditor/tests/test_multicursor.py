@@ -5,6 +5,7 @@
 #
 
 # Standard library imports
+from inspect import cleandoc
 
 # Third party imports
 import pytest
@@ -12,6 +13,7 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 
 # Local imports
+from spyder.plugins.completion.api import CompletionRequestTypes
 
 
 ControlModifier = Qt.KeyboardModifier.ControlModifier
@@ -349,6 +351,7 @@ def test_smart_text(codeeditor, qtbot):
 #     assert completion.isHidden()
 #     # TODO test ctrl-space shortcut too
 
+
 def test_move_line(codeeditor, qtbot):
     """Test multi-cursor move line up and down shortcut"""
 
@@ -390,35 +393,185 @@ def test_delete_line(codeeditor, qtbot):
 
 
 def test_goto_new_line(codeeditor, qtbot):
-    """Test 'go to new line' shortcut"""
+    """Test 'go to' shortcuts except go to definition."""
 
+    # Test go to new line (for each cursor)
     codeeditor.set_text("\n".join("123456"))
     click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
     call_shortcut(codeeditor, "go to new line")
     assert codeeditor.toPlainText() == "1\n\n2\n3\n\n4\n5\n6"
 
+    # go to line (skip dialog for ease of testing)
+    assert codeeditor.extra_cursors
+    codeeditor.go_to_line(6)
+    assert not codeeditor.extra_cursors
 
-# TODO test goto line number / definition / next cell / previous cell
-# TODO test toggle comment, blockcomment, unblockcomment
-# TODO test transform to UPPER / lower case
-# TODO test indent / unindent
-# TODO test start/end of document
-# TODO test start/end of line
-# TODO test prev/next char/word
+    codeeditor.set_text(
+        "# comment\n"
+        "# %% cell\n"
+        "# comment\n"
+    )
+    click_at(codeeditor, qtbot, 2)
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+    codeeditor.go_to_next_cell()
+    assert not codeeditor.extra_cursors
+
+    click_at(codeeditor, qtbot, 22)
+    click_at(codeeditor, qtbot, 24, ctrl=True, alt=True)
+    codeeditor.go_to_previous_cell()
+    assert not codeeditor.extra_cursors
+
+
+def check_doc_def(method, *args):
+    return method == CompletionRequestTypes.DOCUMENT_DEFINITION
+
+
+def test_goto_def(completions_codeeditor, qtbot):
+    """Test shortcut and mouse click for goto definition."""
+    codeeditor, completion_plugin = completions_codeeditor
+    codeeditor.set_text(
+        "def test():\n"
+        "    return\n"
+        "test()\n"
+        "#comment"
+    )
+
+    # Test go to definition keyboard shortcut
+    click_at(codeeditor, qtbot, 32)  # Position cursor in comment
+    # Add a new cursor at current pos and move main cursor to 25
+    click_at(codeeditor, qtbot, 25, ctrl=True, alt=True)
+    assert codeeditor.extra_cursors
+    with qtbot.waitSignal(
+                codeeditor.completions_response_signal,
+                check_params_cb=check_doc_def
+            ):
+        call_shortcut(codeeditor, "go to definition")
+    assert not codeeditor.extra_cursors
+
+    # Test go to definition mouse click
+    # Position cursor in comment and clear extra cursors
+    click_at(codeeditor, qtbot, 32)
+    # Add an extra cursor also in the comment
+    click_at(codeeditor, qtbot, 34, ctrl=True, alt=True)
+    assert codeeditor.extra_cursors
+    # Ctrl click on function call
+    with qtbot.waitSignal(
+                codeeditor.completions_response_signal,
+                check_params_cb=check_doc_def
+            ):
+        click_at(codeeditor, qtbot, 25, ctrl=True)
+    assert not codeeditor.extra_cursors
+
+
+def test_comments(codeeditor, qtbot):
+    codeeditor.set_text("0123456789\nabcdefghij")
+    click_at(codeeditor, qtbot, 12, ctrl=True, alt=True)
+    # main cursor before 'b' extra cursor before '0'
+
+    # Test toggle comment
+    call_shortcut(codeeditor, "toggle comment")
+    assert codeeditor.toPlainText() == "# 0123456789\n# abcdefghij"
+    call_shortcut(codeeditor, "toggle comment")
+    assert codeeditor.toPlainText() == "0123456789\nabcdefghij"
+
+    # Test block comment
+    call_shortcut(codeeditor, "blockcomment")
+    # Note: blockcomment adds a trailing newline if none exists
+    assert codeeditor.toPlainText() == cleandoc(
+            """
+            # =============================================================================
+            # 0123456789
+            # =============================================================================
+            # =============================================================================
+            # abcdefghij
+            # =============================================================================
+            """
+        ) + "\n"
+    # Note: unblockcomment will not remove the first or last line of a file
+    call_shortcut(codeeditor, "unblockcomment")
+    assert codeeditor.toPlainText() == "\n0123456789\nabcdefghij\n"
+
+
+def test_misc_shortcuts(codeeditor, qtbot):
+    """
+    Test several shortcuts including:
+        transform to uppercase
+        transform to lowercase
+        indent
+        unindent
+        start/end of document
+        start/end of line
+        prev/next char/word
+        prev/next warning
+        delete
+        select all
+        docstring
+        autoformatting
+    """
+
+    # Test transform to upper/lowercase
+    codeeditor.set_text("one two three")
+    click_at(codeeditor, qtbot, 10, ctrl=True, alt=True)
+    call_shortcut(codeeditor, "transform to uppercase")
+    assert codeeditor.toPlainText() == "ONE two THREE"
+    call_shortcut(codeeditor, "transform to lowercase")
+    assert codeeditor.toPlainText() == "one two three"
+    codeeditor.clear_extra_cursors()
+
+    # Test indent/unindent
+    codeeditor.set_text("def foo():\n"
+                        "    a = 1\n"
+                        "\n"
+                        "def bar():\n"
+                        "    if a:\n")
+    click_at(codeeditor, qtbot, 21)
+    click_at(codeeditor, qtbot, 43, ctrl=True, alt=True)
+    call_shortcut(codeeditor, "indent")
+    assert codeeditor.toPlainText() == ("def foo():\n"
+                                        "    a = 1\n"
+                                        "    \n"
+                                        "def bar():\n"
+                                        "    if a:\n"
+                                        "        ")
+    call_shortcut(codeeditor, "unindent")
+    assert codeeditor.toPlainText() == ("def foo():\n"
+                                        "    a = 1\n"
+                                        "\n"
+                                        "def bar():\n"
+                                        "    if a:\n"
+                                        "    ")
+
+    # Test start/end of document
+    assert codeeditor.extra_cursors
+    call_shortcut(codeeditor, "start of document")
+    assert not codeeditor.extra_cursors
+
+    click_at(codeeditor, qtbot, 21)
+    click_at(codeeditor, qtbot, 43, ctrl=True, alt=True)
+
+    assert codeeditor.extra_cursors
+    call_shortcut(codeeditor, "end of document")
+    assert not codeeditor.extra_cursors
+    codeeditor.clear_extra_cursors()
+
+
+    # TODO test start/end of line
+    # TODO test prev/next char/word
 # TODO test next/prev warning
 # TODO test killring
 # TODO test undo/redo
 # TODO test cut copy paste
-# TODO test delete
-# TODO test select all
-# TODO test docstring
-# TODO test autoformatting
+    # TODO test delete
+    # TODO test select all
+    # TODO test docstring
+    # TODO test autoformatting
 # TODO test enter inline array/table
 # TODO test inspect current object
 # TODO test last edit location
 # TODO test next/prev cursor position
 # TODO test run Cell (and advance)
 # TODO test run selection (and advance)(from line)(in debugger)
+
 
 if __name__ == '__main__':
     pytest.main(['test_multicursor.py'])
