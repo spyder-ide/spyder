@@ -1409,14 +1409,7 @@ overrided by the Sympy module (e.g. plot)
                     + self.kernel_handler.fault_filename()
                 )
             else:
-                self.ipyclient.show_kernel_error(
-                    _(
-                        "It was not possible to connect to the kernel. If you "
-                        "are trying to connect to an existing kernel, check "
-                        "that the connection file you selected actually "
-                        "corresponds to the kernel you want to connect to."
-                    )
-                )
+                self.ipyclient.show_kernel_connection_error()
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
         self.insert_horizontal_ruler()

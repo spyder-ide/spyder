@@ -503,6 +503,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Stop shellwidget
         self.shellwidget.shutdown()
 
+    def show_kernel_connection_error(self):
+        self.show_kernel_error(
+            _(
+                "It was not possible to connect to the kernel associated to "
+                "this console. If you are trying to connect to an existing "
+                "kernel, check that the connection file you selected actually "
+                "corresponds to the kernel you want to connect to."
+            )
+        )
+
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [

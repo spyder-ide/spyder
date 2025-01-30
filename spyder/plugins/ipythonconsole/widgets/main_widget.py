@@ -1350,14 +1350,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
         cf_filename = osp.basename(connection_file)
+
         # To change a possible empty string to None
         cf_path = cf_path if cf_path else None
-        connection_file = find_connection_file(filename=cf_filename,
-                                               path=cf_path)
-        if os.path.splitext(connection_file)[1] != ".json":
+
+        # This error is raised when find_connection_file can't find the file
+        try:
+            connection_file = find_connection_file(
+                filename=cf_filename, path=cf_path
+            )
+        except OSError:
+            connection_file = None
+
+        if connection_file and os.path.splitext(connection_file)[1] != ".json":
             # There might be a file with the same id in the path.
             connection_file = find_connection_file(
-                filename=cf_filename + ".json", path=cf_path)
+                filename=cf_filename + ".json", path=cf_path
+            )
+
         return connection_file
 
     # ---- Public API
