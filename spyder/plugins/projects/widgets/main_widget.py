@@ -518,9 +518,9 @@ class ProjectExplorerWidget(PluginMainWidget):
                 self.recent_projects = self._get_valid_recent_projects(
                     self.recent_projects)[:max_projects]
 
-    def reopen_last_project(self):
+    def reopen_last_project(self, working_directory, restart_console):
         """
-        Reopen the active project when Spyder was closed last time, if any
+        Reopen the active project when Spyder was closed last time, if any.
         """
         current_project_path = self.get_conf('current_project_path',
                                              default=None)
@@ -530,12 +530,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             current_project_path and
             self.is_valid_project(current_project_path)
         ):
-            cli_options = self.get_plugin().get_command_line_options()
             self.open_project(
                 path=current_project_path,
-                restart_console=True,
+                restart_console=restart_console,
                 save_previous_files=False,
-                workdir=cli_options.working_directory
+                workdir=working_directory,
             )
             self._load_config()
 
