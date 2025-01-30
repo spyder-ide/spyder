@@ -2283,6 +2283,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.show_code_analysis_results(line_number, data)
                 return self.get_position('cursor')
 
+    def go_to_next_cell(self):
+        """Go to the next cell of lines"""
+        self.clear_extra_cursors()
+        super().go_to_next_cell()
+
+    def go_to_previous_cell(self):
+        """Go to the previous cell of lines"""
+        self.clear_extra_cursors()
+        super().go_to_previous_cell()
+
     def cell_list(self):
         """Get the outline explorer data for all cells."""
         for oedata in self.outlineexplorer_data_list():
