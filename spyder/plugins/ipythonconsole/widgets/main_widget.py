@@ -388,6 +388,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.pythonenv_status.sig_interpreter_changed.connect(
             self.sig_interpreter_changed
         )
+        self.pythonenv_status.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
@@ -1159,6 +1162,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     # default of Selector
                     asyncio.set_event_loop_policy(
                         WindowsSelectorEventLoopPolicy())
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the main interpreter section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("main_interpreter")
+        dlg.set_current_index(index)
 
     @Slot()
     def _create_client_for_kernel(self):

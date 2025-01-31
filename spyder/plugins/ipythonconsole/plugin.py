@@ -480,13 +480,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_main_interpreter_available(self):
         main_interpreter = self.get_plugin(Plugins.MainInterpreter)
         main_interpreter.sig_environments_updated.connect(self._update_envs)
-        mi_container = main_interpreter.get_container()
-
-        pythonenv_status = self.get_widget().pythonenv_status
-
-        # connect signals
-        pythonenv_status.sig_open_preferences_requested.connect(
-            mi_container.sig_open_preferences_requested)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):

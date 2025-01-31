@@ -55,10 +55,6 @@ class MainInterpreterContainer(PluginMainContainer):
         :py:meth:`spyder.utils.envs.get_list_envs`.
     """
 
-    sig_open_preferences_requested = Signal()
-    """
-    Signal to open the main interpreter preferences.
-    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
