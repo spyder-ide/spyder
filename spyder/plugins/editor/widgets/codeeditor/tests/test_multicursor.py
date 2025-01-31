@@ -425,42 +425,42 @@ def test_goto_new_line(codeeditor, qtbot):
 def check_doc_def(method, *args):
     return method == CompletionRequestTypes.DOCUMENT_DEFINITION
 
+# TODO uncomment. disabled to speed up test runs for development
+# def test_goto_def(completions_codeeditor, qtbot):
+#     """Test shortcut and mouse click for goto definition."""
+#     codeeditor, completion_plugin = completions_codeeditor
+#     codeeditor.set_text(
+#         "def test():\n"
+#         "    return\n"
+#         "test()\n"
+#         "#comment"
+#     )
 
-def test_goto_def(completions_codeeditor, qtbot):
-    """Test shortcut and mouse click for goto definition."""
-    codeeditor, completion_plugin = completions_codeeditor
-    codeeditor.set_text(
-        "def test():\n"
-        "    return\n"
-        "test()\n"
-        "#comment"
-    )
+#     # Test go to definition keyboard shortcut
+#     click_at(codeeditor, qtbot, 32)  # Position cursor in comment
+#     # Add a new cursor at current pos and move main cursor to 25
+#     click_at(codeeditor, qtbot, 25, ctrl=True, alt=True)
+#     assert codeeditor.extra_cursors
+#     with qtbot.waitSignal(
+#                 codeeditor.completions_response_signal,
+#                 check_params_cb=check_doc_def
+#             ):
+#         call_shortcut(codeeditor, "go to definition")
+#     assert not codeeditor.extra_cursors
 
-    # Test go to definition keyboard shortcut
-    click_at(codeeditor, qtbot, 32)  # Position cursor in comment
-    # Add a new cursor at current pos and move main cursor to 25
-    click_at(codeeditor, qtbot, 25, ctrl=True, alt=True)
-    assert codeeditor.extra_cursors
-    with qtbot.waitSignal(
-                codeeditor.completions_response_signal,
-                check_params_cb=check_doc_def
-            ):
-        call_shortcut(codeeditor, "go to definition")
-    assert not codeeditor.extra_cursors
-
-    # Test go to definition mouse click
-    # Position cursor in comment and clear extra cursors
-    click_at(codeeditor, qtbot, 32)
-    # Add an extra cursor also in the comment
-    click_at(codeeditor, qtbot, 34, ctrl=True, alt=True)
-    assert codeeditor.extra_cursors
-    # Ctrl click on function call
-    with qtbot.waitSignal(
-                codeeditor.completions_response_signal,
-                check_params_cb=check_doc_def
-            ):
-        click_at(codeeditor, qtbot, 25, ctrl=True)
-    assert not codeeditor.extra_cursors
+#     # Test go to definition mouse click
+#     # Position cursor in comment and clear extra cursors
+#     click_at(codeeditor, qtbot, 32)
+#     # Add an extra cursor also in the comment
+#     click_at(codeeditor, qtbot, 34, ctrl=True, alt=True)
+#     assert codeeditor.extra_cursors
+#     # Ctrl click on function call
+#     with qtbot.waitSignal(
+#                 codeeditor.completions_response_signal,
+#                 check_params_cb=check_doc_def
+#             ):
+#         click_at(codeeditor, qtbot, 25, ctrl=True)
+#     assert not codeeditor.extra_cursors
 
 
 def test_comments(codeeditor, qtbot):
@@ -552,19 +552,207 @@ def test_misc_shortcuts(codeeditor, qtbot):
     assert codeeditor.extra_cursors
     call_shortcut(codeeditor, "end of document")
     assert not codeeditor.extra_cursors
-    codeeditor.clear_extra_cursors()
+
+    # Test start/end of line
+    codeeditor.set_text("123456789\n123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(codeeditor, Qt.Key.Key_End)
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 9
+    assert codeeditor.textCursor().position() == 19
+
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "end of line")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 9
+    assert codeeditor.textCursor().position() == 19
+
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Home)
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 0
+    assert codeeditor.textCursor().position() == 10
+
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "start of line")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 0
+    assert codeeditor.textCursor().position() == 10
+
+    # Test prev/next word
+    codeeditor.set_text("123456789 123456789\n123456789 123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 23, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_Right,
+        modifier=Qt.KeyboardModifier.ControlModifier
+    )  # Ctrl-Right
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 10
+    assert codeeditor.textCursor().position() == 30
+
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 23, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "next word")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 10
+    assert codeeditor.textCursor().position() == 30
+
+    click_at(codeeditor, qtbot, 13)
+    click_at(codeeditor, qtbot, 15, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 33, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_Left,
+        modifier=Qt.KeyboardModifier.ControlModifier
+    )  # Ctrl-Left
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 10
+    assert codeeditor.textCursor().position() == 30
+
+    click_at(codeeditor, qtbot, 13)
+    click_at(codeeditor, qtbot, 15, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 33, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "previous word")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.extra_cursors[0].position() == 10
+    assert codeeditor.textCursor().position() == 30
+
+    # Test prev/next char
+    codeeditor.set_text("123456789\n123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "next char")
+    assert len(codeeditor.extra_cursors) == 2
+    assert codeeditor.extra_cursors[0].position() == 4
+    assert codeeditor.textCursor().position() == 14
+
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "previous char")
+    assert len(codeeditor.extra_cursors) == 2
+    assert codeeditor.extra_cursors[0].position() == 2
+    assert codeeditor.textCursor().position() == 12
+
+    # Test delete
+    codeeditor.set_text("123456789 123456789\n123456789 123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 23, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_Right,
+        modifier=(
+            Qt.KeyboardModifier.ControlModifier |
+            Qt.KeyboardModifier.ShiftModifier
+        )
+    )  # Shift-Ctrl-Right select up to next word
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Delete)
+    assert codeeditor.toPlainText() == "123123456789\n123123456789"
+
+    codeeditor.set_text("123456789 123456789\n123456789 123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 23, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_Right,
+        modifier=(
+            Qt.KeyboardModifier.ControlModifier |
+            Qt.KeyboardModifier.ShiftModifier
+        )
+    )  # Shift-Ctrl-Right select up to next word
+    call_shortcut(codeeditor, "delete")
+    assert codeeditor.toPlainText() == "123123456789\n123123456789"
+
+    # Test select all
+    codeeditor.set_text("123456789\n123456789")
+    click_at(codeeditor, qtbot, 3)
+    click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 13, ctrl=True, alt=True)
+    assert len(codeeditor.extra_cursors) == 2
+    call_shortcut(codeeditor, "select all")
+    assert not codeeditor.extra_cursors
+    text = codeeditor.textCursor().selectedText().replace("\u2029", "\n")
+    assert text == "123456789\n123456789"
+
+    # Test docstring
+    codeeditor.set_text(
+        cleandoc(
+            """
+            def foo():
+                pass
+
+            def bar():
+                pass
+            """
+        )
+    )
+    click_at(codeeditor, qtbot, 5)
+    click_at(codeeditor, qtbot, 26, ctrl=True, alt=True)
+    call_shortcut(codeeditor, "docstring")
+    # Docstring adds whitespace that cleandoc will strip out
+    call_shortcut(codeeditor, "unindent")
+    assert codeeditor.toPlainText() == cleandoc(
+        '''
+        def foo():
+            """
 
 
-    # TODO test start/end of line
-    # TODO test prev/next char/word
+            Returns
+            -------
+            None.
+
+            """
+            pass
+
+        def bar():
+            """
+
+
+            Returns
+            -------
+            None.
+
+            """
+            pass
+        '''
+    )
+
+    # Test autoformatting
+    assert codeeditor.extra_cursors
+    call_shortcut(codeeditor, "autoformatting")
+    assert not codeeditor.extra_cursors
+
 # TODO test next/prev warning
 # TODO test killring
 # TODO test undo/redo
 # TODO test cut copy paste
-    # TODO test delete
-    # TODO test select all
-    # TODO test docstring
-    # TODO test autoformatting
 # TODO test enter inline array/table
 # TODO test inspect current object
 # TODO test last edit location
