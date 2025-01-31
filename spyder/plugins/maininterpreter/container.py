@@ -55,7 +55,6 @@ class MainInterpreterContainer(PluginMainContainer):
         :py:meth:`spyder.utils.envs.get_list_envs`.
     """
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
