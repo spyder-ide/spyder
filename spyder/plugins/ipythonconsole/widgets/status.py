@@ -9,19 +9,24 @@
 # Standard library imports
 import functools
 import logging
+import os
 import sys
 import textwrap
 
 # Third-party imports
 from IPython.core import release as ipython_release
-from qtpy.QtCore import Signal
+from qtpy.QtCore import QPoint, Signal
+from qtpy.QtGui import QFontMetrics
 from spyder_kernels.comms.frontendcomm import CommError
 from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
 
 # Local imports
 from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import running_in_ci
+from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.stylesheet import MAC, WIN
 
 
 logger = logging.getLogger(__name__)
@@ -176,12 +181,20 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
 
     ID = 'pythonenv_status'
     CONF_SECTION = 'ipython_console'
+    INTERACT_ON_CLICK = True
 
     sig_interpreter_changed = Signal(str)
+
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
 
     def __init__(self, parent):
         self._current_env_info: PythonEnvInfo | None = None
         super().__init__(parent)
+        self.menu = SpyderMenu(self)
+        self.sig_clicked.connect(self.show_menu)
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
@@ -255,3 +268,39 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
         else:
             self.set_shellwidget(shellwidget)
             self.show()
+
+    def show_menu(self):
+        """Display a menu when clicking on the widget."""
+        self.menu.clear_actions()
+        text = _("Change default environment in Preferences...")
+        change_action = self.create_action(
+            "change_environment",
+            text=text,
+            triggered=self.open_interpreter_preferences,
+            register_action=False,
+        )
+        self.add_item_to_menu(change_action, self.menu)
+
+        x_offset = (
+            # Margin of menu items to left and right
+            2 * SpyderMenu.HORIZONTAL_MARGIN_FOR_ITEMS
+            # Padding of menu items to left and right
+            + 2 * SpyderMenu.HORIZONTAL_PADDING_FOR_ITEMS
+        )
+        y_offset = 4 if MAC else (3 if WIN else 2)
+
+        metrics = QFontMetrics(self.font())
+        rect = self.contentsRect()
+        pos = self.mapToGlobal(
+            rect.topLeft()
+            + QPoint(
+                -metrics.width(text) // 2 + x_offset,
+                -2 * self.parent().height() + y_offset,
+            )
+        )
+
+        self.menu.popup(pos)
+
+    def open_interpreter_preferences(self):
+        """Request to open the main interpreter preferences."""
+        self.sig_open_preferences_requested.emit()
