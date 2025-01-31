@@ -242,7 +242,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Main widget signals
         # Connect signal to open preferences
         widget.sig_open_preferences_requested.connect(
-            self._open_interpreter_preferences)
+            self._open_interpreter_preferences
+        )
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)

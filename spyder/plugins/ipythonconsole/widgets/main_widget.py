@@ -112,6 +112,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     """
     Signal to open the main interpreter preferences.
     """
+
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a
