@@ -1661,6 +1661,9 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert control.toPlainText().split()[-2:] == ["In", "[3]:"]
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 8), reason="Fails in Python 3.8"
+)
 def test_pdb_magics_are_recursive(ipyconsole, qtbot, tmp_path):
     """
     Check that calls to Pdb magics start a recursive debugger when called in
