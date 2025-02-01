@@ -19,7 +19,7 @@ from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QAction
 
 # Local imports
-from spyder.utils.sourcecode import camel_case_to_snake_case
+from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import _
 from spyder.plugins.run.api import (
@@ -32,6 +32,7 @@ from spyder.plugins.run.api import (
 from spyder.plugins.run.models import (
     RunExecutorParameters, RunExecutorListModel, RunConfigurationListModel)
 from spyder.plugins.run.widgets import RunDialog, RunDialogStatus
+from spyder.utils.sourcecode import camel_case_to_snake_case
 
 
 class RunContainer(PluginMainContainer):
@@ -125,6 +126,7 @@ class RunContainer(PluginMainContainer):
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
         self._last_executed_configuration: Optional[str] = None
+        self._save_last_configured_executor: bool = True
 
     def update_actions(self):
         pass
@@ -145,7 +147,7 @@ class RunContainer(PluginMainContainer):
                 return
 
             # We save the last executed configuration in case we need it to
-            # re-run the last cell with the same parameters.
+            # re-run the last action with the same parameters.
             # This is necessary for spyder-ide/spyder#23076
             if not re_run:
                 uuid = self.currently_selected_configuration
@@ -159,55 +161,100 @@ class RunContainer(PluginMainContainer):
                 if uuid is None:
                     return
 
+            # Get run configuration
             input_provider = self.run_metadata_provider[uuid]
-
             if context in self.super_contexts:
                 run_conf = input_provider.get_run_configuration(uuid)
             else:
                 run_conf = input_provider.get_run_configuration_per_context(
-                    context, extra_action_name, context_modificator,
-                    re_run=re_run)
+                    context,
+                    extra_action_name,
+                    context_modificator,
+                    re_run=re_run,
+                )
 
             if run_conf is None:
                 return
 
+            # Get last executor
             super_metadata = self.metadata_model[uuid]
             extension = super_metadata['input_extension']
 
-            path = super_metadata['path']
-            dirname = osp.dirname(path)
-
-            last_executor = last_executor_name
+            last_executor = last_executor_name or self._get_default_executor(
+                extension
+            )
             if last_executor is None:
                 last_executor = self.get_last_used_executor_parameters(uuid)
                 last_executor = last_executor['executor']
 
             run_comb = (extension, context)
-            if (last_executor is None or
-                    not self.executor_model.executor_supports_configuration(
-                        last_executor, run_comb)):
+            if (
+                last_executor is None
+                or not self.executor_model.executor_supports_configuration(
+                    last_executor, run_comb
+                )
+            ):
                 last_executor = self.executor_model.get_default_executor(
                     run_comb)
-            executor_metadata = self.executor_model[
-                ((extension, context), last_executor)]
-            ConfWidget = executor_metadata['configuration_widget']
 
-            conf = {}
-            if ConfWidget is not None:
-                conf = ConfWidget.get_default_configuration()
+            # Get execution params
+            if context in self.super_contexts:
+                # This applies to super contexts because we save run conf
+                # params only for them (we handle just one super context for
+                # now: "file").
 
-            working_dir = WorkingDirOpts(
-                source=WorkingDirSource.ConfigurationDirectory,
-                path=dirname)
+                # Get last used params
+                all_params = (
+                    self.metadata_model.get_run_configuration_parameters(
+                        uuid, last_executor
+                    )["params"]
+                )
 
-            exec_params = RunExecutionParameters(
-                working_dir=working_dir, executor_params=conf)
+                last_params_uuid = self.get_last_used_execution_params(
+                    uuid, last_executor
+                )
 
+                if last_params_uuid in all_params:
+                    # Use the last params set by the user in RunDialog.
+                    # Fixes spyder-ide/spyder#22496
+                    exec_params = all_params[last_params_uuid]["params"]
+                else:
+                    # If no custom params have been set, use the default ones
+                    for stored_params in all_params.values():
+                        if stored_params.get("default", False):
+                            exec_params = stored_params["params"]
+            else:
+                # This is necessary for subcontexts (e.g. cell and selection).
+                # Although they can have conf widgets (which is also tested),
+                # that functionality is not exposed in the UI at the moment.
+                path = super_metadata['path']
+                dirname = osp.dirname(path)
+
+                executor_metadata = self.executor_model[
+                    ((extension, context), last_executor)
+                ]
+                ConfWidget = executor_metadata['configuration_widget']
+
+                conf = {}
+                if ConfWidget is not None:
+                    conf = ConfWidget.get_default_configuration()
+
+                working_dir = WorkingDirOpts(
+                    source=WorkingDirSource.ConfigurationDirectory,
+                    path=dirname
+                )
+
+                exec_params = RunExecutionParameters(
+                    working_dir=working_dir, executor_params=conf
+                )
+
+            # Perform execution
             ext_exec_params = ExtendedRunExecutionParameters(
                 uuid=None, name=None, params=exec_params)
             executor = self.run_executors[last_executor]
             executor.exec_run_configuration(run_conf, ext_exec_params)
 
+            # Save metadata and set state of re-run actions
             self.last_executed_per_context |= {(uuid, context)}
 
             if (
@@ -224,9 +271,18 @@ class RunContainer(PluginMainContainer):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
+        if selected_executor is None:
+            # If the executor is not provided, check if the file has a default
+            # one.
+            metadata = self.metadata_model.get_selected_metadata()
+            if metadata is not None:
+                extension = metadata["input_extension"]
+                selected_executor = self._get_default_executor(extension)
+
         self.edit_run_configurations(
             display_dialog=False,
-            selected_executor=selected_executor)
+            selected_executor=selected_executor
+        )
 
     def edit_run_configurations(
         self,
@@ -293,6 +349,12 @@ class RunContainer(PluginMainContainer):
             last_used_conf = StoredRunConfigurationExecutor(
                 executor=executor_name, selected=ext_params['uuid']
             )
+
+            if self._save_last_configured_executor:
+                self._set_last_configured_executor(uuid, executor_name)
+
+            # Reset this attribute to the default for next time
+            self._save_last_configured_executor = True
 
             self.set_last_used_execution_params(uuid, last_used_conf)
 
@@ -1058,20 +1120,24 @@ class RunContainer(PluginMainContainer):
             A dictionary containing the last used executor and parameters
             for the given run configuration.
         """
-        mru_executors_uuids: Dict[
-            str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+        last_executor = self._get_last_configured_executor(uuid)
+        default = StoredRunConfigurationExecutor(executor=None, selected=None)
 
-        last_used_params = mru_executors_uuids.get(
-            uuid,
-            StoredRunConfigurationExecutor(
-                executor=None,
-                selected=None
-            )
-        )
+        if last_executor is None:
+            return default
+        else:
+            mru_executors_uuids: Dict[
+                str, List[StoredRunConfigurationExecutor]
+            ] = self.get_conf('last_used_parameters_per_executor', default={})
 
-        return last_used_params
+            all_params = mru_executors_uuids.get(uuid, [])
+
+            last_used_params = default
+            for params in all_params:
+                if params["executor"] == last_executor:
+                    last_used_params = params
+
+            return last_used_params
 
     def get_last_used_execution_params(
         self,
@@ -1080,7 +1146,7 @@ class RunContainer(PluginMainContainer):
     ) -> Optional[str]:
         """
         Retrieve the last used execution parameters for a given pair of run
-        configuration and execution identifiers.
+        configuration identifier and executor name.
 
         Parameters
         ----------
@@ -1099,18 +1165,19 @@ class RunContainer(PluginMainContainer):
 
         mru_executors_uuids: Dict[
             str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+            List[StoredRunConfigurationExecutor]
+        ] = self.get_conf('last_used_parameters_per_executor', default={})
 
         default = StoredRunConfigurationExecutor(
             executor=executor_name,
             selected=None
         )
-        params = mru_executors_uuids.get(uuid, default)
+        all_params = mru_executors_uuids.get(uuid, [default])
 
         last_used_params = None
-        if params['executor'] == executor_name:
-            last_used_params = params['selected']
+        for params in all_params:
+            if params['executor'] == executor_name:
+                last_used_params = params['selected']
 
         return last_used_params
 
@@ -1120,8 +1187,8 @@ class RunContainer(PluginMainContainer):
         params: StoredRunConfigurationExecutor
     ):
         """
-        Store the last used executor and parameters for a given run
-        configuration.
+        Store the list of last used executors and their parameters for a given
+        run configuration.
 
         Parameters
         ----------
@@ -1133,11 +1200,34 @@ class RunContainer(PluginMainContainer):
         """
         mru_executors_uuids: Dict[
             str,
-            StoredRunConfigurationExecutor
-        ] = self.get_conf('last_used_parameters', default={})
+            List[StoredRunConfigurationExecutor]
+        ] = self.get_conf('last_used_parameters_per_executor', default={})
 
-        mru_executors_uuids[uuid] = params
-        self.set_conf('last_used_parameters', mru_executors_uuids)
+        if uuid in mru_executors_uuids:
+            new_params = []
+            params_added = False
+            for saved_params in mru_executors_uuids[uuid]:
+                # Discard saved params for the executor and use the new ones
+                # instead. We need to do this when the executor was configured
+                # before
+                if params["executor"] == saved_params["executor"]:
+                    new_params.append(params)
+                    params_added = True
+                else:
+                    # Add params for all other executors
+                    new_params.append(saved_params)
+
+            # If the executor hasn't been configured yet, we simply need to add
+            # its new params to the list.
+            if not params_added:
+                new_params.append(params)
+
+            # Replace current params with the new ones
+            mru_executors_uuids[uuid] = new_params
+        else:
+            mru_executors_uuids[uuid] = [params]
+
+        self.set_conf('last_used_parameters_per_executor', mru_executors_uuids)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -1207,3 +1297,69 @@ class RunContainer(PluginMainContainer):
             context_id,
             store_params,
         )
+
+    def _get_last_configured_executor(self, uuid: str) -> Optional[str]:
+        """
+        Get the last executor configured in RunDialog for a given file.
+
+        Parameters
+        ----------
+        uuid: str
+            Unique id associated to a file.
+        """
+        mru_uuids_to_executor_names: Dict[
+            str, str,
+        ] = self.get_conf('last_configured_executor', default={})
+
+        return mru_uuids_to_executor_names.get(uuid, None)
+
+    def _set_last_configured_executor(self, uuid: str, executor_name: str):
+        """
+        Set the last executor configured in RunDialog for a given file.
+
+        Parameters
+        ----------
+        uuid: str
+            Unique id associated to a file.
+        """
+        mru_uuids_to_executor_names: Dict[
+            str, str,
+        ] = self.get_conf('last_configured_executor', default={})
+
+        mru_uuids_to_executor_names[uuid] = executor_name
+        self.set_conf('last_configured_executor', mru_uuids_to_executor_names)
+
+    def _get_default_executor(self, extension: str) -> Optional[str]:
+        """
+        Get the default for a given file extension.
+
+        Parameters
+        ----------
+        extension: str
+            The file extension
+
+        Returns
+        -------
+        executor_name: Optional[str]
+            The default executor name or None if there isn't one for the given
+            extension.
+
+        Notes
+        -----
+        - This is necessary in case a file has multiple executors so that the
+          Run file, cell and selection buttons use this executor by default.
+        - We need to implement an API and UI for this so that a default
+          executor can be declared for other file types.
+        """
+        executor_name = None
+
+        if extension in ["py", "ipy", "pyx"]:
+            # This is the most intuitive executor for Python-like files and it
+            # was also the default in Spyder 5.
+            executor_name = Plugins.IPythonConsole
+
+        # This avoids changing the last executor selected in RunDialog when
+        # using the default one.
+        self._save_last_configured_executor = False
+
+        return executor_name
