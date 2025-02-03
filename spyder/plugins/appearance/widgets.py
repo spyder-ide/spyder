@@ -87,12 +87,14 @@ class SchemeEditor(QDialog):
                 invalid_colors[key] = items[0].text()
 
         if invalid_colors:
-            message = _("The following properties have invalid colors:\n\n")
+            message = _(
+                "The following properties have invalid colors:<br><br>"
+                )
             for property_name, color in invalid_colors.items():
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
                 clean_name = name[:-1].replace("<br>", "")
                 message += _(
-                    "The property <b>{}</b> has an invalid color: {}\n"
+                    'The property <b>{}</b> has an invalid color: {}<br>'
                 ).format(clean_name, color)
 
             msgbox = QMessageBox(
@@ -102,6 +104,7 @@ class SchemeEditor(QDialog):
                 QMessageBox.Ok,
                 self
             )
+            msgbox.setTextFormat(Qt.RichText)
             msgbox.exec_()
         else:
             self.accept()
