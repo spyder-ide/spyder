@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-01-31 22:39-0500\n"
-"PO-Revision-Date: 2025-02-01 03:51\n"
+"PO-Revision-Date: 2025-02-03 23:10\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -177,7 +177,7 @@ msgstr "Reiniciando"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr ""
+msgstr "No fue posible guardar una configuración de forma segura. Una posible solución es instalar el paquete <tt>keyrings.alt</tt> con {}.<br><br><bb>Nota</bb>: El uso del paquete puede conllevar riesgos de seguridad u otras implicaciones. Por lo tanto, no se aconseja utilizarlo en sistemas de producción general o sensibles a la seguridad."
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -591,15 +591,15 @@ msgstr "Administrar apariencia de la aplicación y temas."
 
 #: spyder/plugins/appearance/widgets.py:90
 msgid "The following properties have invalid colors:\n\n"
-msgstr ""
+msgstr "Las siguientes propiedades tienen colores inválidos:\n\n"
 
 #: spyder/plugins/appearance/widgets.py:94
 msgid "The property <b>{}</b> has an invalid color: {}\n"
-msgstr ""
+msgstr "La propiedad <b>{}</b> tiene un color inválido: {}\n"
 
 #: spyder/plugins/appearance/widgets.py:100
 msgid "Error setting colors"
-msgstr ""
+msgstr "Error al establecer colores"
 
 #: spyder/plugins/appearance/widgets.py:138
 msgid "Text"
@@ -1907,7 +1907,7 @@ msgstr "Interrumpir la ejecución e iniciar el depurador"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:260
 msgid "Debug current line"
-msgstr ""
+msgstr "Depurar la línea actual"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:270
 msgid "Continue execution until next breakpoint"
@@ -3356,11 +3356,11 @@ msgstr "Ejecutar scripts en una terminal de comandos del sistema."
 
 #: spyder/plugins/externalterminal/plugin.py:182
 msgid "Run in external terminal"
-msgstr ""
+msgstr "Ejecutar en una terminal externa"
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in an operating system terminal"
-msgstr ""
+msgstr "Ejecutar en una terminal del sistema operativo"
 
 #: spyder/plugins/externalterminal/plugin.py:241
 msgid "Running an external system terminal is not supported on platform %s."
