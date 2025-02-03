@@ -1,0 +1,496 @@
+# Ruff configuration file.
+
+# A list of builtins to treat as defined references.
+builtins = []
+
+# A path to the cache directory.
+cache-dir = ".ruff_cache"
+
+# A list of file patterns to exclude from formatting and linting.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# A path to a local pyproject.toml file to merge into this configuration.
+# extend = null
+
+# A list of file patterns to omit from formatting and linting, in addition
+# to those specified by `exclude`.
+extend-exclude = ["tests"]
+
+# A list of file patterns to include when linting, in addition to those
+# specified by `include`.
+extend-include = []
+
+# Enable fix behavior by default when running Ruff.
+fix = false
+
+# Like `fix`, but disables reporting on leftover violations. Implies `fix`.
+fix-only = false
+
+# Whether to enforce exclusion patterns even for explicitly passed paths.
+force-exclude = false
+
+# A list of file patterns to include when linting.
+include = ["*.py", "*.pyi", "*.ipynb", "**/pyproject.toml"]
+
+# The number of spaces per indentation level.
+indent-width = 4
+
+# The line length to use when enforcing long-line violations.
+line-length = 79
+
+# Mark the specified directories as namespace packages.
+namespace-packages = []
+
+# The style in which violation messages should be formatted.
+output-format = "full"
+
+# Whether to enable preview mode for unstable rules, fixes, and formatting.
+preview = false
+
+# Enforce a requirement on the version of Ruff (PEP 440 specifier).
+required-version = "0.9.4"
+
+# Whether to automatically exclude files ignored by `.gitignore` etc.
+respect-gitignore = true
+
+# Whether to show an enumeration of all fixed lint violations.
+show-fixes = false
+
+# The directories to consider when resolving first- vs. third-party imports.
+src = [".", "src"]
+
+# The minimum Python version to target (like "py39", "py310", etc.).
+target-version = "py38"
+
+# Enable application of unsafe fixes (null => not set).
+# unsafe-fixes = 
+
+# ------------------------------------------------------------------------------
+# Ruff's `analyze` command configuration
+# ------------------------------------------------------------------------------
+[analyze]
+# Whether to detect imports from string literals.
+detect-string-imports = false
+
+# Whether to generate a map from file -> dependencies ("Dependencies") or
+# file -> dependents ("Dependents").
+direction = "Dependencies"
+
+# A list of file patterns to exclude from analysis (in addition to global excludes).
+exclude = []
+
+# A map from file path to the list of additional dependencies (files or globs).
+include-dependencies = {}
+
+# Whether to enable preview mode for the analyze command.
+preview = false
+
+# ------------------------------------------------------------------------------
+# Ruff's code formatting configuration
+# ------------------------------------------------------------------------------
+[format]
+# Whether to format Python code snippets in docstrings.
+docstring-code-format = false
+
+# The line length used when formatting code snippets in docstrings.
+docstring-code-line-length = "dynamic"
+
+# A list of file patterns to exclude from formatting (in addition to global excludes).
+exclude = []
+
+# Whether to use spaces or tabs for indentation.
+indent-style = "space"
+
+# The character used at the end of a line.
+line-ending = "auto"
+
+# Enable the unstable "preview" style formatting.
+preview = false
+
+# The preferred quote style for strings: "double", "single", or "preserve".
+quote-style = "double"
+
+# Whether to ignore an existing trailing comma when deciding to join lines.
+skip-magic-trailing-comma = false
+
+# ------------------------------------------------------------------------------
+# Ruff's lint configuration
+# ------------------------------------------------------------------------------
+[lint]
+# A list of allowed "confusable" Unicode characters to ignore (RUF001, RUF002, RUF003).
+allowed-confusables = []
+
+# A regex used to identify "dummy" variables (e.g., `_`, `__`, `_var`).
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# A list of file patterns to exclude from linting (in addition to global excludes).
+exclude = []
+
+# Whether to require exact codes to select preview rules.
+explicit-preview-rules = false
+
+# A list of rule codes or prefixes to consider fixable, in addition to `fixable`.
+extend-fixable = []
+
+# Deprecated; same effect as `ignore`. A list of codes or prefixes to ignore.
+extend-ignore = []
+
+# A map of file patterns to codes/prefixes to ignore, in addition to `per-file-ignores`.
+extend-per-file-ignores = {}
+
+# A list of rule codes or prefixes for which unsafe fixes should be considered safe.
+extend-safe-fixes = []
+
+# A list of rule codes or prefixes to enable, in addition to `select`.
+extend-select = []
+
+# A list of rule codes or prefixes for which safe fixes should be considered unsafe.
+extend-unsafe-fixes = []
+
+# A list of rule codes or prefixes that are unsupported by Ruff but should be preserved
+# when validating `# noqa`.
+external = []
+
+# A list of rule codes or prefixes to consider fixable. By default, all rules are fixable.
+fixable = ["ALL"]
+
+# A list of rule codes or prefixes to ignore.
+ignore = []
+
+# A list of objects that should be treated as equivalent to a logging.Logger.
+logger-objects = []
+
+# A mapping of file patterns to rule codes/prefixes to ignore for matching files.
+per-file-ignores = {}
+
+# Whether to enable preview mode for linting rules and fixes.
+preview = true
+
+# A list of rule codes or prefixes to enable.
+select = ["ALL"]
+
+# A list of task tags to recognize, e.g. TODO, FIXME, XXX.
+task-tags = ["TODO", "FIXME", "XXX"]
+
+# A list of modules whose exports should be considered the same as `typing`.
+typing-modules = []
+
+# A list of rule codes or prefixes to consider non-fixable.
+unfixable = []
+
+# ------------------------------------------------------------------------------
+# flake8-annotations
+# ------------------------------------------------------------------------------
+[lint.flake8-annotations]
+allow-star-arg-any = false
+ignore-fully-untyped = false
+mypy-init-return = false
+suppress-dummy-args = false
+suppress-none-returning = false
+
+# ------------------------------------------------------------------------------
+# flake8-bandit
+# ------------------------------------------------------------------------------
+[lint.flake8-bandit]
+check-typed-exception = false
+hardcoded-tmp-directory = ["/tmp", "/var/tmp", "/dev/shm"]
+hardcoded-tmp-directory-extend = []
+
+# ------------------------------------------------------------------------------
+# flake8-boolean-trap
+# ------------------------------------------------------------------------------
+[lint.flake8-boolean-trap]
+extend-allowed-calls = []
+
+# ------------------------------------------------------------------------------
+# flake8-bugbear
+# ------------------------------------------------------------------------------
+[lint.flake8-bugbear]
+extend-immutable-calls = []
+
+# ------------------------------------------------------------------------------
+# flake8-builtins
+# ------------------------------------------------------------------------------
+[lint.flake8-builtins]
+builtins-allowed-modules = []
+builtins-ignorelist = []
+
+# ------------------------------------------------------------------------------
+# flake8-comprehensions
+# ------------------------------------------------------------------------------
+[lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = false
+
+# ------------------------------------------------------------------------------
+# flake8-copyright
+# ------------------------------------------------------------------------------
+[lint.flake8-copyright]
+author = "Spyder Project Contributors"
+min-file-size = 0
+notice-rgx = "(?i)Copyright\\s+((?:\\(c\\)|\\(C\\)|©)\\s+)?\\d{4}((-|,\\s)(\\d{4})?)*"
+
+# ------------------------------------------------------------------------------
+# flake8-errmsg
+# ------------------------------------------------------------------------------
+[lint.flake8-errmsg]
+max-string-length = 0
+
+# ------------------------------------------------------------------------------
+# flake8-gettext
+# ------------------------------------------------------------------------------
+[lint.flake8-gettext]
+extend-function-names = []
+function-names = ["_", "gettext", "ngettext"]
+
+# ------------------------------------------------------------------------------
+# flake8-implicit-str-concat
+# ------------------------------------------------------------------------------
+[lint.flake8-implicit-str-concat]
+allow-multiline = true
+
+# ------------------------------------------------------------------------------
+# flake8-import-conventions
+# ------------------------------------------------------------------------------
+[lint.flake8-import-conventions]
+banned-from = ["typing"]
+
+[lint.flake8-import-conventions.aliases]
+altair = "alt"
+matplotlib = "mpl"
+"matplotlib.pyplot" = "plt"
+numpy = "np"
+pandas = "pd"
+seaborn = "sns"
+tensorflow = "tf"
+tkinter = "tk"
+holoviews = "hv"
+panel = "pn"
+"plotly.express" = "px"
+polars = "pl"
+pyarrow = "pa"
+"xml.etree.ElementTree" = "ET"
+
+[lint.flake8-import-conventions.banned-aliases]
+
+[lint.flake8-import-conventions.extend-aliases]
+
+
+# ------------------------------------------------------------------------------
+# flake8-pytest-style
+# ------------------------------------------------------------------------------
+[lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "tuple"
+parametrize-values-row-type = "tuple"
+parametrize-values-type = "list"
+raises-extend-require-match-for = []
+raises-require-match-for = [
+    "BaseException",
+    "Exception",
+    "ValueError",
+    "OSError",
+    "IOError",
+    "EnvironmentError",
+    "socket.error",
+]
+warns-extend-require-match-for = []
+warns-require-match-for = ["Warning", "UserWarning", "DeprecationWarning"]
+
+# ------------------------------------------------------------------------------
+# flake8-quotes
+# ------------------------------------------------------------------------------
+[lint.flake8-quotes]
+avoid-escape = true
+docstring-quotes = "double"
+inline-quotes = "double"
+multiline-quotes = "double"
+
+# ------------------------------------------------------------------------------
+# flake8-self
+# ------------------------------------------------------------------------------
+[lint.flake8-self]
+extend-ignore-names = []
+ignore-names = [
+    "_make",
+    "_asdict",
+    "_replace",
+    "_fields",
+    "_field_defaults",
+    "_name_",
+    "_value_",
+]
+
+# ------------------------------------------------------------------------------
+# flake8-tidy-imports
+# ------------------------------------------------------------------------------
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+banned-module-level-imports = []
+
+[lint.flake8-tidy-imports.banned-api]
+"PyQt5".msg = "Use 'qtpy' instead of 'PyQt5'."
+"PyQt6".msg = "Use 'qtpy' instead of 'PyQt6'."
+
+
+# ------------------------------------------------------------------------------
+# flake8-type-checking
+# ------------------------------------------------------------------------------
+[lint.flake8-type-checking]
+exempt-modules = ["typing"]
+quote-annotations = false
+runtime-evaluated-base-classes = []
+runtime-evaluated-decorators = []
+strict = false
+
+# ------------------------------------------------------------------------------
+# flake8-unused-arguments
+# ------------------------------------------------------------------------------
+[lint.flake8-unused-arguments]
+ignore-variadic-names = false
+
+# ------------------------------------------------------------------------------
+# isort
+# ------------------------------------------------------------------------------
+[lint.isort]
+case-sensitive = false
+classes = []
+combine-as-imports = false
+constants = []
+default-section = "third-party"
+detect-same-package = true
+extra-standard-library = []
+force-single-line = false
+force-sort-within-sections = false
+force-to-top = []
+force-wrap-aliases = false
+forced-separate = ["tests"]
+from-first = false
+known-first-party = []
+known-local-folder = []
+known-third-party = []
+length-sort = false
+length-sort-straight = false
+lines-after-imports = -1
+lines-between-types = 0
+no-lines-before = []
+no-sections = false
+order-by-type = true
+relative-imports-order = "furthest-to-closest"
+required-imports = []
+section-order = ["future", "standard-library", "qt", "third-party", "first-party", "local-folder"]
+single-line-exclusions = []
+split-on-trailing-comma = true
+variables = []
+
+[lint.isort.sections]
+"qt" = ["qtpy"]
+
+# ------------------------------------------------------------------------------
+# mccabe
+# ------------------------------------------------------------------------------
+[lint.mccabe]
+max-complexity = 10
+
+# ------------------------------------------------------------------------------
+# pep8-naming
+# ------------------------------------------------------------------------------
+[lint.pep8-naming]
+classmethod-decorators = []
+extend-ignore-names = []
+ignore-names = [
+    "setUp",
+    "tearDown",
+    "setUpClass",
+    "tearDownClass",
+    "setUpModule",
+    "tearDownModule",
+    "asyncSetUp",
+    "asyncTearDown",
+    "setUpTestData",
+    "failureException",
+    "longMessage",
+    "maxDiff",
+]
+staticmethod-decorators = []
+
+# ------------------------------------------------------------------------------
+# pycodestyle
+# ------------------------------------------------------------------------------
+[lint.pycodestyle]
+ignore-overlong-task-comments = false
+max-doc-length = 88
+max-line-length = 79
+
+# ------------------------------------------------------------------------------
+# pydoclint
+# ------------------------------------------------------------------------------
+[lint.pydoclint]
+ignore-one-line-docstrings = true
+
+# ------------------------------------------------------------------------------
+# pydocstyle
+# ------------------------------------------------------------------------------
+[lint.pydocstyle]
+convention = "numpy"
+ignore-decorators = []
+ignore-var-parameters = false
+property-decorators = []
+
+# ------------------------------------------------------------------------------
+# pyflakes
+# ------------------------------------------------------------------------------
+[lint.pyflakes]
+allowed-unused-imports = []
+extend-generics = []
+
+# ------------------------------------------------------------------------------
+# pylint
+# ------------------------------------------------------------------------------
+[lint.pylint]
+allow-dunder-method-names = []
+allow-magic-value-types = ["str", "bytes"]
+max-args = 5
+max-bool-expr = 5
+max-branches = 12
+max-locals = 15
+max-nested-blocks = 5
+max-positional-args = 5
+max-public-methods = 30
+max-returns = 6
+max-statements = 50
+
+# ------------------------------------------------------------------------------
+# pyupgrade
+# ------------------------------------------------------------------------------
+[lint.pyupgrade]
+keep-runtime-typing = false
+
+# ------------------------------------------------------------------------------
+# ruff
+# ------------------------------------------------------------------------------
+[lint.ruff]
+allowed-markup-calls = []
+extend-markup-names = []
+parenthesize-tuple-in-subscript = false
