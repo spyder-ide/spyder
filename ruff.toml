@@ -35,7 +35,7 @@ exclude = [
 
 # A list of file patterns to omit from formatting and linting, in addition
 # to those specified by `exclude`.
-extend-exclude = ["tests"]
+extend-exclude = ["external_deps"]
 
 # A list of file patterns to include when linting, in addition to those
 # specified by `include`.
@@ -51,7 +51,7 @@ fix-only = false
 force-exclude = false
 
 # A list of file patterns to include when linting.
-include = ["*.py", "*.pyi", "*.ipynb", "**/pyproject.toml"]
+include = ["*.py", "*.pyi", "**/pyproject.toml"]
 
 # The number of spaces per indentation level.
 indent-width = 4
@@ -123,7 +123,7 @@ exclude = []
 indent-style = "space"
 
 # The character used at the end of a line.
-line-ending = "auto"
+line-ending = "lf"
 
 # Enable the unstable "preview" style formatting.
 preview = false
@@ -142,7 +142,7 @@ skip-magic-trailing-comma = false
 allowed-confusables = []
 
 # A regex used to identify "dummy" variables (e.g., `_`, `__`, `_var`).
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+dummy-variable-rgx = "^(__+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # A list of file patterns to exclude from linting (in addition to global excludes).
 exclude = []
@@ -191,7 +191,7 @@ preview = true
 select = ["ALL"]
 
 # A list of task tags to recognize, e.g. TODO, FIXME, XXX.
-task-tags = ["TODO", "FIXME", "XXX"]
+task-tags = ["TODO", "FIXME", "XXX", "???"]
 
 # A list of modules whose exports should be considered the same as `typing`.
 typing-modules = []
@@ -204,10 +204,10 @@ unfixable = []
 # ------------------------------------------------------------------------------
 [lint.flake8-annotations]
 allow-star-arg-any = false
-ignore-fully-untyped = false
+ignore-fully-untyped = true
 mypy-init-return = false
 suppress-dummy-args = false
-suppress-none-returning = false
+suppress-none-returning = true
 
 # ------------------------------------------------------------------------------
 # flake8-bandit
@@ -399,13 +399,12 @@ no-sections = false
 order-by-type = true
 relative-imports-order = "furthest-to-closest"
 required-imports = []
-section-order = ["future", "standard-library", "qt", "third-party", "first-party", "local-folder"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 single-line-exclusions = []
 split-on-trailing-comma = true
 variables = []
 
-[lint.isort.sections]
-"qt" = ["qtpy"]
+# [lint.isort.sections]
 
 # ------------------------------------------------------------------------------
 # mccabe
@@ -440,7 +439,7 @@ staticmethod-decorators = []
 # ------------------------------------------------------------------------------
 [lint.pycodestyle]
 ignore-overlong-task-comments = false
-max-doc-length = 88
+max-doc-length = 79
 max-line-length = 79
 
 # ------------------------------------------------------------------------------
