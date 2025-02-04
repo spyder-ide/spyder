@@ -1197,9 +1197,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             path_to_interpreter, python_version = env_info
 
             # Text for actions
-            folder_env = path_to_interpreter.split("\\")[-3]
-            unique_env = f"{folder_env}/{env_key}"
-            text = f"{unique_env} ({python_version})"
+            text = f"{env_key} ({python_version})"
             
 
             # Change text in case env is the default or internal (i.e. same as
@@ -1217,7 +1215,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
             # Create action
             action = self.create_action(
-                name=unique_env,
+                name=env_key,
                 text=text,
                 icon=self.create_icon('ipython_console'),
                 triggered=(
