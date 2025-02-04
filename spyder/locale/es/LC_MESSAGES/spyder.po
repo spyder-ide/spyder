@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-01-31 22:39-0500\n"
-"PO-Revision-Date: 2025-02-04 00:20\n"
+"PO-Revision-Date: 2025-02-04 15:53\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4501,7 +4501,7 @@ msgstr "Haga clic para alternar entre el graficado en línea y el interactivo de
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:275
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Cambiar el entorno por defecto en Preferencias..."
 
 #: spyder/plugins/layout/container.py:79
 msgid "Close current pane"
@@ -5491,7 +5491,7 @@ msgstr "La conexión se ha perdido"
 
 #: spyder/plugins/remoteclient/api/client.py:336 spyder/plugins/remoteclient/api/client.py:434 spyder/plugins/remoteclient/api/client.py:507 spyder/plugins/remoteclient/api/client.py:629 spyder/plugins/remoteclient/api/client.py:692
 msgid "The SSH connection is not open"
-msgstr ""
+msgstr "La conexión SSH no está abierta"
 
 #: spyder/plugins/remoteclient/api/client.py:355 spyder/plugins/remoteclient/api/client.py:370 spyder/plugins/remoteclient/api/client.py:417
 msgid "The connection was established successfully"
@@ -5507,11 +5507,11 @@ msgstr "Error iniciando el servidor remoto"
 
 #: spyder/plugins/remoteclient/api/client.py:400
 msgid "There was an error when trying to get the remote server information"
-msgstr ""
+msgstr "Hubo un error intentando obtener la información del servidor remoto"
 
 #: spyder/plugins/remoteclient/api/client.py:454
 msgid "The server version check timed out"
-msgstr ""
+msgstr "El tiempo de espera para la verificación de la versión del servidor se ha agotado"
 
 #: spyder/plugins/remoteclient/api/client.py:468
 msgid "Error connecting to the remote server"
