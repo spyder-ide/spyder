@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-01-31 22:39-0500\n"
-"PO-Revision-Date: 2025-02-04 15:53\n"
+"PO-Revision-Date: 2025-02-04 17:16\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5519,7 +5519,7 @@ msgstr "Error conectándose al servidor remoto"
 
 #: spyder/plugins/remoteclient/api/client.py:525 spyder/plugins/remoteclient/api/client.py:535 spyder/plugins/remoteclient/api/client.py:542
 msgid "There was an error installing the remote server"
-msgstr ""
+msgstr "Hubo un error instalando el servidor remoto"
 
 #: spyder/plugins/remoteclient/api/client.py:590
 msgid "We're establishing the connection. Please be patient"
@@ -5531,7 +5531,7 @@ msgstr "No fue posible conectarse a esta máquina"
 
 #: spyder/plugins/remoteclient/api/client.py:621
 msgid "The server port is not set"
-msgstr ""
+msgstr "El puerto del servidor no está definido"
 
 #: spyder/plugins/remoteclient/api/client.py:737
 msgid "The connection was closed successfully"
@@ -5891,7 +5891,7 @@ msgstr "Nueva configuración de ejecución para: {}"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Configure the selected runner for this file"
-msgstr ""
+msgstr "Configurar el ejecutor seleccionado para este archivo"
 
 #: spyder/plugins/run/widgets.py:605
 msgid "Preset configuration:"
@@ -6469,7 +6469,7 @@ msgstr "La verificación del certificado SSL falló al comprobar las actualizaci
 
 #: spyder/plugins/updatemanager/workers.py:54
 msgid "An error occurred while checking for Spyder updates, possibly related to your operating system configuration or file access.<br><br>If you're not sure what to do about it, you can disable checking for updates below. <br><br>The error was:<br><br><i>{error}</i>"
-msgstr ""
+msgstr "Ocurrió un error, posiblemente relacionado a la configuración de su sistema operativo o permisos de acceso a archivos, mientras se estaba comprobando si hay actualizaciones para Spyder.<br><br>Si no está seguro de que hacer, puede deshabilitar la búsqueda de actualizaciones abajo. <br><br>El error fue:<br><br><i>{error}</i>"
 
 #: spyder/plugins/updatemanager/workers.py:435
 msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
@@ -7501,11 +7501,11 @@ msgstr "elemento"
 
 #: spyder/widgets/collectionseditor.py:488
 msgid "Click to deselect this row"
-msgstr ""
+msgstr "Haga clic para anular la selección de esta fila"
 
 #: spyder/widgets/collectionseditor.py:490
 msgid "Click to select this row. Maintain pressed Ctrl (Cmd on macOS) for multiple rows"
-msgstr ""
+msgstr "Haga clic para seleccionar esta fila. Mantenga pulsado Ctrl (Cmd en macOS) para varias filas"
 
 #: spyder/widgets/collectionseditor.py:527
 msgid "Value"
@@ -7557,19 +7557,19 @@ msgstr "<b>No fue posible guardar el arreglo</b><br><br>Mensaje de error:<br>%s"
 
 #: spyder/widgets/collectionseditor.py:1513
 msgid "It was not possible to retrieve the value of one or more of the variables you selected in order to copy them."
-msgstr ""
+msgstr "No fue posible recuperar el valor de una o más de las variables seleccionadas para copiarlas."
 
 #: spyder/widgets/collectionseditor.py:1523
 msgid "It was not possible to copy one or more of the dataframes and Numpy arrays you selected"
-msgstr ""
+msgstr "No fue posible copiar uno o más de los dataframes y arreglos de Numpy que seleccionó"
 
 #: spyder/widgets/collectionseditor.py:1532
 msgid "It was not possible to copy one or more of the Numpy arrays you selected"
-msgstr ""
+msgstr "No fue posible copiar uno o más de los arreglos de Numpy que seleccionó"
 
 #: spyder/widgets/collectionseditor.py:1541
 msgid "It was not possible to copy one or more of the dataframes you selected"
-msgstr ""
+msgstr "No fue posible copiar uno o más de los dataframes que seleccionó"
 
 #: spyder/widgets/collectionseditor.py:1554
 msgid "Clipboard contents"
