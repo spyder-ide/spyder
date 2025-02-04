@@ -92,7 +92,7 @@ class SchemeEditor(QDialog):
         if invalid_colors:
             message = _(
                 "The following properties have invalid colors:<br><br>"
-                )
+            )
             for property_name, color in invalid_colors.items():
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
                 clean_name = name[:-1].replace("<br>", "")
@@ -149,8 +149,9 @@ class SchemeEditor(QDialog):
             ]
 
         parent = self.parent
-        self.line_edit = parent.create_lineedit(_("Scheme name:"),
-                                           '{0}/name'.format(scheme_name))
+        self.line_edit = parent.create_lineedit(
+            _("Scheme name:"), '{0}/name'.format(scheme_name)
+        )
 
         self.widgets[scheme_name] = {}
 
@@ -240,7 +241,8 @@ class SchemeEditor(QDialog):
         "Restores the original values of the scheme being edited."
         parent = self.parent
         self.line_edit.textbox.setText(
-            str(parent.get_option('{0}/name'.format(scheme_name))))
+            str(parent.get_option('{0}/name'.format(scheme_name)))
+        )
         
         for key, value in self.original_scheme.items():
             if isinstance(value, tuple):
