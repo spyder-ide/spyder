@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2025-01-31 22:39-0500\n"
+"POT-Creation-Date: 2025-02-04 19:31-0500\n"
 "PO-Revision-Date: 2024-11-29 21:42\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
@@ -584,11 +584,11 @@ msgstr ""
 msgid "Previews"
 msgstr ""
 
-#: spyder/plugins/appearance/confpage.py:555 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:423 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editorstack/editorstack.py:405 spyder/plugins/ipythonconsole/widgets/main_widget.py:2329 spyder/plugins/ipythonconsole/widgets/main_widget.py:2429 spyder/plugins/layout/container.py:308 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:498 spyder/plugins/layout/plugin.py:515 spyder/plugins/maininterpreter/confpage.py:187 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:173 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:654 spyder/utils/environ.py:169 spyder/utils/environ.py:249 spyder/utils/environ.py:280 spyder/widgets/collectionseditor.py:1282 spyder/widgets/collectionseditor.py:1512 spyder/widgets/collectionseditor.py:1522 spyder/widgets/collectionseditor.py:1531 spyder/widgets/collectionseditor.py:1540
+#: spyder/plugins/appearance/confpage.py:556 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:423 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editorstack/editorstack.py:405 spyder/plugins/ipythonconsole/widgets/main_widget.py:2329 spyder/plugins/ipythonconsole/widgets/main_widget.py:2429 spyder/plugins/layout/container.py:308 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:498 spyder/plugins/layout/plugin.py:515 spyder/plugins/maininterpreter/confpage.py:187 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:173 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:654 spyder/utils/environ.py:169 spyder/utils/environ.py:249 spyder/utils/environ.py:280 spyder/widgets/collectionseditor.py:1282 spyder/widgets/collectionseditor.py:1512 spyder/widgets/collectionseditor.py:1522 spyder/widgets/collectionseditor.py:1531 spyder/widgets/collectionseditor.py:1540
 msgid "Warning"
 msgstr "Попередження"
 
-#: spyder/plugins/appearance/confpage.py:556
+#: spyder/plugins/appearance/confpage.py:557
 msgid "Are you sure you want to delete this scheme?"
 msgstr "Ви дійсно хочете видалити цю схему?"
 
@@ -600,37 +600,35 @@ msgstr "Зовнішній вигляд"
 msgid "Manage application appearance and themes."
 msgstr "Управління зовнішнім виглядом та темами програми."
 
-#: spyder/plugins/appearance/widgets.py:90
-msgid ""
-"The following properties have invalid colors:\n"
-"\n"
+#: spyder/plugins/appearance/widgets.py:93
+msgid "The following properties have invalid colors:<br><br>"
 msgstr ""
 
-#: spyder/plugins/appearance/widgets.py:94
-msgid "The property <b>{}</b> has an invalid color: {}\n"
+#: spyder/plugins/appearance/widgets.py:99
+msgid "The property <b>{}</b> has an invalid color: {}<br>"
 msgstr ""
 
-#: spyder/plugins/appearance/widgets.py:100
+#: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
 msgstr ""
 
-#: spyder/plugins/appearance/widgets.py:138
+#: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
 msgstr "Текст"
 
-#: spyder/plugins/appearance/widgets.py:140 spyder/plugins/editor/confpage.py:120
+#: spyder/plugins/appearance/widgets.py:146 spyder/plugins/editor/confpage.py:120
 msgid "Highlight"
 msgstr "Підсвічування"
 
-#: spyder/plugins/appearance/widgets.py:142
+#: spyder/plugins/appearance/widgets.py:148
 msgid "Background"
 msgstr "Фон"
 
-#: spyder/plugins/appearance/widgets.py:146
+#: spyder/plugins/appearance/widgets.py:153
 msgid "Scheme name:"
 msgstr "Назва схеми:"
 
-#: spyder/plugins/appearance/widgets.py:153
+#: spyder/plugins/appearance/widgets.py:160
 msgid "Color scheme editor"
 msgstr "Редактор колірної схеми"
 
