@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 3.0.3 (2025-02-05)
+
+### Pull Requests Merged
+
+* [PR 530](https://github.com/spyder-ide/spyder-kernels/pull/530) - PR: Correctly process Pdb commands available in `cmdqueue`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 527](https://github.com/spyder-ide/spyder-kernels/pull/527) - PR: Use an older Ubuntu version on CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 526](https://github.com/spyder-ide/spyder-kernels/pull/526) - PR: Filter frames that come from Spyder-kernels in tracebacks and fix tracebacks in Python 3.8, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 3.0.2 (2024-12-04)
 
 ### Pull Requests Merged
