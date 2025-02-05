@@ -463,7 +463,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             cmd = [
                 "osascript", "-e",
                 ("""'tell application "Terminal" to do script"""
-                 f""" "set +o history; {sub_cmd_str}; exit;"'"""),
+                 f""" "unset HISTFILE; {sub_cmd_str}; exit;"'"""),
             ]
         else:
             programs = [
