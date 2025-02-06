@@ -1195,9 +1195,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         for env_key, env_info in self.envs.items():
             env_name = env_key.split()[-1]
             path_to_interpreter, python_version = env_info
+            fm = QFontMetrics(self.font())
+            env_elided = fm.elidedText(env_key, Qt.ElideMiddle,
+                                 250)
 
             # Text for actions
-            text = f"{env_key} ({python_version})"
+            text = f"{env_elided} ({python_version})"
 
             # Change text in case env is the default or internal (i.e. same as
             # Spyder) one
@@ -1212,13 +1215,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             ):
                 text = _("Internal") + " / " + text
 
-            fm = QFontMetrics(self.font())
-            text_elided = fm.elidedText(text, Qt.ElideMiddle,
-                                 300)
             # Create action
             action = self.create_action(
                 name=env_key,
-                text=text_elided,
+                text=text,
                 icon=self.create_icon('ipython_console'),
                 triggered=(
                     self.create_new_client
@@ -1231,6 +1231,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 ),
                 overwrite=True,
                 register_action=False,
+                tip=text,
+
             )
 
             # Add default env as the first entry in the menu
