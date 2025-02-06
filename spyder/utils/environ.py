@@ -86,9 +86,32 @@ def listdict2envdict(listdict):
     return listdict
 
 
-def get_user_environment_variables():
+def get_user_environment_variables(clear_cache: bool = False) -> dict:
     """
-    Get user environment variables from a subprocess.
+    Get cached user environment variables.
+
+    Parameters
+    ----------
+    clear_cache : bool (False)
+        Get user environment variables after resetting the cache.
+
+    Returns
+    -------
+    env_var : dict
+        Key-value pairs of environment variables.
+    """
+    if clear_cache:
+        _get_user_environment_variables.cache_clear()
+
+    # Return copy in order to protect the cached object from mutation
+    env_var = _get_user_environment_variables().copy()
+    return env_var
+
+
+@lru_cache
+def _get_user_environment_variables() -> dict:
+    """
+    Get user environment variables from a subprocess and cache the result.
 
     Returns
     -------
@@ -117,9 +140,7 @@ def get_user_environment_variables():
                 proc = run_shell_command(user_env_script, env={}, text=True)
 
                 # Use timeout to fix spyder-ide/spyder#21172
-                stdout, stderr = proc.communicate(
-                    timeout=3 if running_in_ci() else 0.5
-                )
+                stdout, stderr = proc.communicate(timeout=3)
 
                 if stderr:
                     logger.info(stderr.strip())
@@ -171,6 +192,7 @@ def set_user_env(env, parent=None):
                   "Please restart this Windows <i>session</i> "
                   "(not the computer) for changes to take effect.")
             )
+        _get_user_environment_variables.cache_clear()
     elif os.name == 'posix' and running_in_ci():
         text = "\n".join([f"export {k}={v}" for k, v in env_dict.items()])
         amend_user_shell_init(text)
@@ -214,6 +236,7 @@ def amend_user_shell_init(text="", restore=False):
         _script = script.rstrip() + "\n\n" + new_text
 
     init_file.write_text(_script.rstrip() + "\n")
+    _get_user_environment_variables.cache_clear()
 
 
 def clean_env(env_vars):
