@@ -23,8 +23,8 @@ from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir
 import qstylizer.style
 from qtconsole.svg import save_svg, svg_to_clipboard
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QColor, QKeySequence, QFontMetrics
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -1198,7 +1198,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
             # Text for actions
             text = f"{env_key} ({python_version})"
-            
 
             # Change text in case env is the default or internal (i.e. same as
             # Spyder) one
@@ -1213,10 +1212,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             ):
                 text = _("Internal") + " / " + text
 
+            fm = QFontMetrics(self.font())
+            text_elided = fm.elidedText(text, Qt.ElideMiddle,
+                                 300)
             # Create action
             action = self.create_action(
                 name=env_key,
-                text=text,
+                text=text_elided,
                 icon=self.create_icon('ipython_console'),
                 triggered=(
                     self.create_new_client
