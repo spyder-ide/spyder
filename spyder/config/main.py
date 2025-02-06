@@ -651,8 +651,10 @@ NAME_MAP = {
             'breakpoints',
             'configurations',
             'default/wdir/fixed_directory',
-            'last_used_parameters',
-            'parameters'
+            'parameters',
+            'last_used_parameters', # Needed for Spyder 6.0.0 to 6.0.3
+            'last_used_parameters_per_executor',
+            'last_configured_executor',
           ]
          ),
         ('workingdir', [

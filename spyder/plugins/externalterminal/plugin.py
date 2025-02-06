@@ -27,6 +27,7 @@ from spyder.plugins.externalterminal.api import (
     ExtTerminalPyConfiguration, ExtTerminalShConfiguration)
 from spyder.plugins.externalterminal.widgets.run_conf import (
     ExternalTerminalPyConfiguration, ExternalTerminalShConfiguration)
+from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
 from spyder.plugins.run.api import (
     RunContext, run_execute, RunConfiguration, ExtendedRunExecutionParameters,
     RunResult, RunExecutor)
@@ -175,6 +176,19 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
         run = self.get_plugin(Plugins.Run)
         run.register_executor_configuration(self, self.executor_configuration)
 
+        run.create_run_in_executor_button(
+            RunContext.File,
+            self.NAME,
+            text=_("Run in external terminal"),
+            tip=_("Run in an operating system terminal"),
+            icon=self.get_icon(),
+            register_shortcut=False,
+            add_to_menu={
+                "menu": ApplicationMenus.Run,
+                "section": RunMenuSections.RunInExecutors
+            },
+        )
+
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -185,7 +199,9 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)
         run.deregister_executor_configuration(
-            self, self.executor_configuration)
+            self, self.executor_configuration
+        )
+        run.destroy_run_in_executor_button(RunContext.File, self.NAME)
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):

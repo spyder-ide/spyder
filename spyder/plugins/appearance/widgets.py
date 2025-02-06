@@ -9,6 +9,7 @@
 import re
 
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -39,6 +40,7 @@ class SchemeEditor(QDialog):
         self.scheme_name_textbox = {}
         self.last_edited_color_scheme = None
         self.last_used_scheme = None
+        self.original_scheme = None
 
         # Widgets
         bbox = SpyderDialogButtonBox(
@@ -62,6 +64,7 @@ class SchemeEditor(QDialog):
         """Set the current stack by 'scheme_name'."""
         self.stack.setCurrentIndex(self.order.index(scheme_name))
         self.last_used_scheme = scheme_name
+        self.original_scheme = self.get_edited_color_scheme()
 
     def get_scheme_name(self):
         """
@@ -87,12 +90,14 @@ class SchemeEditor(QDialog):
                 invalid_colors[key] = items[0].text()
 
         if invalid_colors:
-            message = _("The following properties have invalid colors:\n\n")
+            message = _(
+                "The following properties have invalid colors:<br><br>"
+            )
             for property_name, color in invalid_colors.items():
                 name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
                 clean_name = name[:-1].replace("<br>", "")
                 message += _(
-                    "The property <b>{}</b> has an invalid color: {}\n"
+                    'The property <b>{}</b> has an invalid color: {}<br>'
                 ).format(clean_name, color)
 
             msgbox = QMessageBox(
@@ -102,6 +107,7 @@ class SchemeEditor(QDialog):
                 QMessageBox.Ok,
                 self
             )
+            msgbox.setTextFormat(Qt.RichText)
             msgbox.exec_()
         else:
             self.accept()
@@ -143,25 +149,26 @@ class SchemeEditor(QDialog):
             ]
 
         parent = self.parent
-        line_edit = parent.create_lineedit(_("Scheme name:"),
-                                           '{0}/name'.format(scheme_name))
+        self.line_edit = parent.create_lineedit(
+            _("Scheme name:"), '{0}/name'.format(scheme_name)
+        )
 
         self.widgets[scheme_name] = {}
 
         # Widget setup
-        line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.setWindowTitle(_('Color scheme editor'))
 
         # Layout
         name_layout = QHBoxLayout()
-        name_layout.addWidget(line_edit.label)
-        name_layout.addWidget(line_edit.textbox)
-        self.scheme_name_textbox[scheme_name] = line_edit.textbox
+        name_layout.addWidget(self.line_edit.label)
+        name_layout.addWidget(self.line_edit.textbox)
+        self.scheme_name_textbox[scheme_name] = self.line_edit.textbox
 
         if not custom:
-            line_edit.textbox.setDisabled(True)
+            self.line_edit.textbox.setDisabled(True)
         if not self.isVisible():
-            line_edit.setVisible(False)
+            self.line_edit.setVisible(False)
 
         cs_layout = QVBoxLayout()
         cs_layout.addLayout(name_layout)
@@ -229,3 +236,27 @@ class SchemeEditor(QDialog):
         self.stack.removeWidget(widget)
         index = self.order.index(scheme_name)
         self.order.pop(index)
+
+    def restore_original_scheme(self, scheme_name):
+        "Restores the original values of the scheme being edited."
+        parent = self.parent
+        self.line_edit.textbox.setText(
+            str(parent.get_option('{0}/name'.format(scheme_name)))
+        )
+        
+        for key, value in self.original_scheme.items():
+            if isinstance(value, tuple):
+                color = QColor()
+                color.setNamedColor(value[0])
+                self.widgets[scheme_name][key][0].update_text(color)
+                self.widgets[scheme_name][key][1].setChecked(value[1])
+                self.widgets[scheme_name][key][2].setChecked(value[2])
+            else:
+                color = QColor()
+                color.setNamedColor(value)
+                self.widgets[scheme_name][key][0].update_text(color)
+    
+    def reject(self):
+        """Executes when Cancel is pressed: Restores the edited scheme."""
+        self.restore_original_scheme(self.last_used_scheme)
+        super().reject()

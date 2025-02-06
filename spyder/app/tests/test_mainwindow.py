@@ -39,7 +39,13 @@ import pytest
 from qtpy import PYQT_VERSION, PYQT5
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
-from qtpy.QtWidgets import QAction, QApplication, QInputDialog, QWidget
+from qtpy.QtWidgets import (
+    QAction,
+    QApplication,
+    QDialogButtonBox,
+    QInputDialog,
+    QWidget,
+)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels.utils.pythonenv import is_conda_env
 
@@ -81,8 +87,13 @@ from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
-    RunExecutionParameters, ExtendedRunExecutionParameters, WorkingDirOpts,
-    WorkingDirSource, RunContext)
+    ExtendedRunExecutionParameters,
+    RunActions,
+    RunContext,
+    RunExecutionParameters,
+    WorkingDirOpts,
+    WorkingDirSource,
+)
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.environ import set_user_env
@@ -737,7 +748,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(main_window, test_file, exec_uuid)
-    CONF.set('run', 'last_used_parameters', run_parameters)
+    CONF.set('run', 'last_used_parameters_per_executor', run_parameters)
 
     # --- Run test file ---
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -787,8 +798,8 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 @pytest.mark.order(1)
 @pytest.mark.no_new_console
 @pytest.mark.skipif(
-    sys.platform.startswith("linux"),
-    reason='Fails sometimes on Linux'
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason='Fails sometimes on Linux and CIs'
 )
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
@@ -826,7 +837,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(main_window, test_file, exec_uuid)
-    CONF.set('run', 'last_used_parameters', run_parameters)
+    CONF.set('run', 'last_used_parameters_per_executor', run_parameters)
 
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -882,7 +893,7 @@ def test_dedicated_consoles(main_window, qtbot):
     # ---- Closing test file and resetting config ----
     main_window.editor.close_file()
     CONF.set('run', 'configurations', {})
-    CONF.set('run', 'last_used_parameters', {})
+    CONF.set('run', 'last_used_parameters_per_executor', {})
 
 
 @flaky(max_runs=3)
@@ -946,7 +957,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(
         main_window, test_file, exec_uuid, external_terminal.NAME)
-    CONF.set('run', 'last_used_parameters', run_parameters)
+    CONF.set('run', 'last_used_parameters_per_executor', run_parameters)
 
     # --- Run test file and assert that the script gets executed ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -7107,6 +7118,112 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
 
     # Restore debug toolbar
     debug_toolbar_action.trigger()
+
+
+@flaky(max_runs=3)
+def test_custom_run_config_for_multiple_executors(
+    main_window, qtbot, tmp_path
+):
+    """
+    Check that we correctly use custom run configurations for multiple
+    executors.
+
+    This is a regression test for issue spyder-ide/spyder#22496
+    """
+    # Auxiliary function
+    def change_run_options(
+        executor: str, change_cwd: bool, dedicated_console: bool
+    ):
+        # Select executor
+        dialog = main_window.run.get_container().dialog
+        dialog.select_executor(executor)
+
+        # Use a fixed path for cwd
+        if change_cwd:
+            dialog.fixed_dir_radio.setChecked(True)
+            dialog.wd_edit.setText(str(tmp_path))
+
+        if dedicated_console:
+            dialog.current_widget.dedicated_radio.setChecked(True)
+
+        # Accept changes
+        ok_btn = dialog.bbox.button(QDialogButtonBox.Ok)
+        ok_btn.animateClick()
+
+        # Wait for a bit until changes are saved to disk
+        qtbot.wait(500)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Open test file
+    main_window.editor.load(osp.join(LOCATION, 'script.py'))
+
+    # Configure debugger with custom options
+    run_config_action = main_window.run.get_action(RunActions.Configure)
+    run_config_action.trigger()
+    change_run_options(
+        executor=Plugins.Debugger,
+        change_cwd=True,
+        dedicated_console=False,
+    )
+
+    # Run test file
+    run_action = main_window.run.get_action(RunActions.Run)
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    # Check we used the default executor, i.e. we ran the file instead of
+    # debugging it (the run config per file dialog must be used for
+    # configuration only, not to decide what plugin gets associated to the
+    # Run file, cell, selection actions).
+    assert "runfile" in control.toPlainText()
+
+    # Check we didn't change the cwd
+    cwd = (
+        str(tmp_path).replace("\\", "/") if os.name == "nt" else str(tmp_path)
+    )
+    assert cwd not in control.toPlainText()
+
+    # Configure IPython console with custom options
+    run_config_action.trigger()
+    change_run_options(
+        executor=Plugins.IPythonConsole,
+        change_cwd=False,
+        dedicated_console=True,
+    )
+
+    # Debug file
+    debug_action = main_window.run.get_action(
+        "run file in debugger"
+    )
+    with qtbot.waitSignal(shell.executed):
+        debug_action.trigger()
+
+    # Check debugging happened in the same console and not in a new one
+    assert (
+        "debugfile" in control.toPlainText()
+        and "runfile" in control.toPlainText()
+    )
+
+    # Check we used the selected cwd for debugging
+    assert cwd in control.toPlainText()
+
+    # Run file again
+    run_action.trigger()
+
+    # Check a new console was created
+    ipyconsole_widget = main_window.ipyconsole.get_widget()
+    qtbot.waitUntil(lambda: len(ipyconsole_widget.clients) == 2)
+
+    # Check it's a dedicated console for the file we're running
+    client = main_window.ipyconsole.get_current_client()
+    assert "script.py" in client.get_name()
 
 
 if __name__ == "__main__":

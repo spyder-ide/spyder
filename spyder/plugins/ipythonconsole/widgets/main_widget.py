@@ -108,6 +108,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     """
 
     # Signals
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
+
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a
@@ -388,6 +393,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.pythonenv_status.sig_interpreter_changed.connect(
             self.sig_interpreter_changed
         )
+        self.pythonenv_status.sig_open_preferences_requested.connect(
+            self.sig_open_preferences_requested)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
