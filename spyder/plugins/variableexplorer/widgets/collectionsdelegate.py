@@ -544,8 +544,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         """Actions to take when interacting with a cell."""
         if event.type() == QEvent.MouseButtonRelease and index.column() == 3:
             # Getting the position of the mouse click
-            click_x = QMouseEvent(event).x()
-            click_y = QMouseEvent(event).y()
+            click_x = event.x()
+            click_y = event.y()
 
             # Getting the cell's rectangle
             rect = option.rect
