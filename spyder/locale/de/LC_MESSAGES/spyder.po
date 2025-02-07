@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-02-04 19:31-0500\n"
-"PO-Revision-Date: 2025-02-07 01:49\n"
+"PO-Revision-Date: 2025-02-07 03:03\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -592,7 +592,7 @@ msgstr "Aussehen und Themen der Anwendung verwalten."
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "Die folgenden Eigenschaften haben ungültige Farben:<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
@@ -1883,7 +1883,7 @@ msgstr "Gültigkeitsbereich"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:220
 msgid "Exclude frames that are not part of the user code"
-msgstr ""
+msgstr "Frames ausschließen, die nicht Teil des Benutzercodes sind"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:228
 msgid "Search frames"
@@ -5478,7 +5478,7 @@ msgstr "Die Verbindung wurde unterbrochen"
 
 #: spyder/plugins/remoteclient/api/client.py:336 spyder/plugins/remoteclient/api/client.py:434 spyder/plugins/remoteclient/api/client.py:507 spyder/plugins/remoteclient/api/client.py:629 spyder/plugins/remoteclient/api/client.py:692
 msgid "The SSH connection is not open"
-msgstr ""
+msgstr "Die SSH-Verbindung ist nicht geöffnet"
 
 #: spyder/plugins/remoteclient/api/client.py:355 spyder/plugins/remoteclient/api/client.py:370 spyder/plugins/remoteclient/api/client.py:417
 msgid "The connection was established successfully"
@@ -5498,11 +5498,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/api/client.py:454
 msgid "The server version check timed out"
-msgstr ""
+msgstr "Zeitüberschreitung bei der Überprüfung der Serverversion"
 
 #: spyder/plugins/remoteclient/api/client.py:468
 msgid "Error connecting to the remote server"
-msgstr ""
+msgstr "Fehler beim Verbinden mit dem entfernten Server"
 
 #: spyder/plugins/remoteclient/api/client.py:525 spyder/plugins/remoteclient/api/client.py:535 spyder/plugins/remoteclient/api/client.py:542
 msgid "There was an error installing the remote server"
