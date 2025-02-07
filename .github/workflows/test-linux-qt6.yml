@@ -57,7 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip']  # conda has no PyQt6 package
-        PYTHON_VERSION: ['3.10']
+        PYTHON_VERSION: ['3.10', '3.12']
         TEST_TYPE: ['fast', 'slow']
         SPYDER_QT_BINDING: ['pyqt6'] # TODO add 'pyside6' once Spyder supports it
     timeout-minutes: 90
@@ -87,7 +87,7 @@ jobs:
         uses: actions/cache@v4
         env:
           # Increase this value to reset cache if requirements/*.txt has not changed
-          CACHE_NUMBER: 1
+          CACHE_NUMBER: 2
         with:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
@@ -149,9 +149,9 @@ jobs:
           PYTEST_QT_API: ${{ matrix.SPYDER_QT_BINDING }}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          # .github/scripts/run_tests.sh || \
-          # .github/scripts/run_tests.sh || \
-          # .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
+          .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh
       - name: Coverage
         uses: codecov/codecov-action@v4
