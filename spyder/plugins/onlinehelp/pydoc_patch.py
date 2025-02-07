@@ -164,12 +164,17 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
         """Make a link to source file."""
         return '<a href="file:%s">%s</a>' % (url, path)
 
-    def markup(self, text, escape=None, funcs={}, classes={}, methods={}):
+    def markup(
+        self, text, escape=None, funcs=None, classes=None, methods=None
+    ):
         """
         Mark up some plain text, given a context of symbols to look for.
 
         Each context dictionary maps object names to anchor names.
         """
+        funcs = {} if funcs is None else funcs
+        classes = {} if classes is None else classes
+        methods = {} if methods is None else methods
         escape = escape or self.escape
         results = []
         here = 0
@@ -370,9 +375,11 @@ class CustomHTMLDoc(Doc, SpyderFontsMixin):
 
         return result
 
-    def docclass(self, object, name=None, mod=None, funcs={}, classes={},
+    def docclass(self, object, name=None, mod=None, funcs=None, classes=None,
                  *ignored):
         """Produce HTML documentation for a class object."""
+        funcs = {} if funcs is None else funcs
+        classes = {} if classes is None else classes
         realname = object.__name__
         name = name or realname
         bases = object.__bases__
