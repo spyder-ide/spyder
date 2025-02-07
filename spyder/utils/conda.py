@@ -121,7 +121,7 @@ def get_list_conda_envs():
 
     for env in out['envs']:
         data = env.split(osp.sep)
-        name = f'{data[-1]}'
+        name = data[-1]
         path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
             env, 'bin', 'python')
 
@@ -148,15 +148,17 @@ def get_list_conda_envs():
             ant_data = ant_info[0]
             ant_data = ant_data.split(osp.sep)
             env_list.pop(name)
-            fc=1
+            index_folder_comun=1
+            if not WINDOWS:
+                index_folder_comun=2
             for i in range(-1, -len(data)-1, -1):
                 if data[i] == ant_data[i-1]:
-                    fc+=1
+                    index_folder_comun+=1
                 else:
                     break
-            ant_name = f'Conda: {"/".join(ant_data[-fc-1:-1])}'
+            ant_name = f'Conda: {"/".join(ant_data[-index_folder_comun-1:-1])}'
             env_list[ant_name] = ant_info
-            name = f'Conda: {"/".join(data[-fc:])}'
+            name = f'Conda: {"/".join(data[-index_folder_comun:])}'
 
         env_list[name] = (path, version.strip())
 
