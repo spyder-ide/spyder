@@ -17,20 +17,20 @@
 ### New features
 
 * Add command line option to connect to an existing kernel at startup.
-* Display a button to select a variable entire row when hovering it.
+* Display a button to select an entire row when hovering it in the Variable Explorer.
 
 ### Important fixes
 
-* Fix error in debugger with Python 3.12.5+ (`_pdbcmd_print_frame_status' is not defined` message).
+* Fix error in debugger with Python 3.12.5+ (`_pdbcmd_print_frame_status is not defined` message).
 * Improve messages shown when a variable can't be viewed due to a missing module.
-* Add validations when doing theme color changes.
+* Add validations when doing color theme changes.
 * Fix error when executing in a dedicated console with an interpreter without a valid version of `spyder-kernels` installed.
-* Improve run configuration for executors usability and current executor selection handling.
-* Fix errors related with the update logic (checking updates and doing updates when using the installers).
-* Fix Debugger shortcuts not working and make them global.
-* Show debugger buttons in the main toolbar while debugging.
+* Fix setting run configurations per file for multiple runners (e.g. the IPython console and Debugger).
+* Fix errors related to the update logic of our standalone installers.
+* Make shortcuts that control the Debugger global again.
+* Show debugger buttons in the main toolbar while executing code in debugging mode.
 * Restore functionality to select a custom interpreter from the statusbar.
-* Fix thumbnails key navigation in the Plots pane when their order changes.
+* Fix thumbnails keyboard navigation in the Plots pane when their order changes.
 * Handle keyring backend not being available.
 
 ### API changes
