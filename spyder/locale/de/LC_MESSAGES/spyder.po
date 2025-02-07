@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-02-04 19:31-0500\n"
-"PO-Revision-Date: 2025-02-05 00:59\n"
+"PO-Revision-Date: 2025-02-07 00:48\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5518,7 +5518,7 @@ msgstr "Es war nicht möglich, eine Verbindung zu diesem Rechner zu öffnen"
 
 #: spyder/plugins/remoteclient/api/client.py:621
 msgid "The server port is not set"
-msgstr ""
+msgstr "Der Serverport ist nicht festgelegt"
 
 #: spyder/plugins/remoteclient/api/client.py:737
 msgid "The connection was closed successfully"
@@ -5582,7 +5582,7 @@ msgstr "Remote-Adresse *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:324
 msgid "This is the IP address or domain name of your remote machine"
-msgstr ""
+msgstr "Dies ist die IP-Adresse oder der Domänenname Ihres entfernten Rechners"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:328
 msgid "The address is not a valid IP or domain name"
