@@ -24,7 +24,7 @@ def check_path(path):
     if os.name == 'nt':
         pattern_string = (
             f'.*({pattern_string}'
-            r'|(l|L)ib/(site|dist)-packages).*'
+            r'|(l|L)ib/(site|dist)-packages.*'
             r'|AppData/Roaming/Python).*'
         )
     else:
