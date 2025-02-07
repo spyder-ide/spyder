@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-02-04 19:31-0500\n"
-"PO-Revision-Date: 2025-02-07 00:48\n"
+"PO-Revision-Date: 2025-02-07 01:49\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -596,11 +596,11 @@ msgstr ""
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "Die Eigenschaft <b>{}</b> hat eine ungültige Farbe: {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "Fehler beim Festlegen der Farben"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -1855,7 +1855,7 @@ msgstr "Starten Sie mit der Schaltfläche ⏯ eine Debugging-Sitzung, die es Ihn
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:214
 msgid "Frames"
-msgstr ""
+msgstr "Rahmen"
 
 #: spyder/plugins/debugger/widgets/framesbrowser.py:215
 msgid "Debugger stack"
@@ -3348,11 +3348,11 @@ msgstr "Ausführen von Skripten in einem externen Systemterminal."
 
 #: spyder/plugins/externalterminal/plugin.py:182
 msgid "Run in external terminal"
-msgstr ""
+msgstr "In externem Terminal ausführen"
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in an operating system terminal"
-msgstr ""
+msgstr "In einem Betriebssystem-Terminal ausführen"
 
 #: spyder/plugins/externalterminal/plugin.py:241
 msgid "Running an external system terminal is not supported on platform %s."
@@ -3424,7 +3424,7 @@ msgstr "Nach Textmustern in Dateien suchen."
 
 #: spyder/plugins/findinfiles/plugin.py:62
 msgid "Search text in the Find pane"
-msgstr ""
+msgstr "Text im Suchbereich suchen"
 
 #: spyder/plugins/findinfiles/plugin.py:63
 msgid "Search text in multiple files"
@@ -4068,11 +4068,11 @@ msgstr "Python-Dateien, Zellen, Code und Befehle interaktiv ausführen."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "Es war nicht möglich, einen SSH-Tunnel zu öffnen, um sich mit dem entfernten Kernel zu verbinden. Bitte überprüfen Sie Ihre Anmeldedaten und den Verbindungsstatus des Servers."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:38
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
-msgstr ""
+msgstr "Das Verzeichnis <tt>{}</tt> ist nicht beschreibbar und wird benötigt, um IPython-Konsolen zu erstellen. Bitte machen Sie es beschreibbar."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:43
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
@@ -5726,7 +5726,7 @@ msgstr "Beim Verbinden mit dem Server <b>{}</b> ist ein Fehler aufgetreten. Bitt
 
 #: spyder/plugins/remoteclient/widgets/container.py:278
 msgid "Remote server error"
-msgstr ""
+msgstr "Fehler beim entfernten Server"
 
 #: spyder/plugins/remoteclient/widgets/container.py:279
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
@@ -7476,11 +7476,11 @@ msgstr "Element"
 
 #: spyder/widgets/collectionseditor.py:488
 msgid "Click to deselect this row"
-msgstr ""
+msgstr "Zum Abwählen dieser Zeile anklicken"
 
 #: spyder/widgets/collectionseditor.py:490
 msgid "Click to select this row. Maintain pressed Ctrl (Cmd on macOS) for multiple rows"
-msgstr ""
+msgstr "Zum Auswählen dieser Zeile anklicken. Strg (Cmd auf macOS) für mehrere Zeilen gedrückt halten"
 
 #: spyder/widgets/collectionseditor.py:527
 msgid "Value"
@@ -7532,19 +7532,19 @@ msgstr "<b>Array kann nicht gespeichert werden</b><br><br>Fehlermeldung:<br>%s"
 
 #: spyder/widgets/collectionseditor.py:1513
 msgid "It was not possible to retrieve the value of one or more of the variables you selected in order to copy them."
-msgstr ""
+msgstr "Es war nicht möglich, den Wert einer oder mehrerer der von Ihnen ausgewählten Variablen abzurufen, um sie zu kopieren."
 
 #: spyder/widgets/collectionseditor.py:1523
 msgid "It was not possible to copy one or more of the dataframes and Numpy arrays you selected"
-msgstr ""
+msgstr "Es war nicht möglich, einen oder mehrere der von Ihnen ausgewählten Datenframes und Numpy-Arrays zu kopieren"
 
 #: spyder/widgets/collectionseditor.py:1532
 msgid "It was not possible to copy one or more of the Numpy arrays you selected"
-msgstr ""
+msgstr "Es war nicht möglich, eines oder mehrere der von Ihnen ausgewählten Numpy-Arrays zu kopieren"
 
 #: spyder/widgets/collectionseditor.py:1541
 msgid "It was not possible to copy one or more of the dataframes you selected"
-msgstr ""
+msgstr "Es war nicht möglich, einen oder mehrere der von Ihnen ausgewählten Datenframes zu kopieren"
 
 #: spyder/widgets/collectionseditor.py:1554
 msgid "Clipboard contents"
