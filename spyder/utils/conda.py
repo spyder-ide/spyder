@@ -158,11 +158,10 @@ def get_list_conda_envs():
                         index_folder_comun+=1
                     else:
                         break
+                path_part=ant_data[-index_folder_comun-final_path:-final_path]
                 ant_name = (
                     f'Conda: '
-                    f'{"/".join(
-                        ant_data[-index_folder_comun-final_path:-final_path]
-                        )}'
+                    f'{"/".join(path_part)}'
                     )
                 env_list[ant_name] = ant_info
                 name = f'Conda: {"/".join(data[-index_folder_comun:])}'
