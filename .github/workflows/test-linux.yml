@@ -169,7 +169,7 @@ jobs:
       # Note: This will remove qtwebengine so make sure it's done last!
       # TODO: MOVE TO BOTTOM
       - name: Ensure QtWebEngine is optional
-        run: .github/scripts/remove_check_qtwebengine.sh
+        run: xvfb-run --auto-servernum .github/scripts/remove_check_qtwebengine.sh
         shell: bash -l {0}
         if: matrix.INSTALL_TYPE == 'pip' && matrix.TEST_TYPE == 'fast'
       - name: Run tests with gdb
