@@ -22,10 +22,11 @@ def check_path(path):
     """
     pattern_string = r'(ana|mini|micro)(conda|mamba|forge)\d*(/base)*/pkgs'
     if os.name == 'nt':
+        path_appdata = os.getenv("APPDATA").replace('\\', '/')
         pattern_string = (
             f'.*({pattern_string}'
             r'|(l|L)ib/(site|dist)-packages.*'
-            f'|(AppData|{os.getenv("APPDATA")})/Roaming/Python).*'
+            f'|(AppData|{path_appdata})/Roaming/Python).*'
         )
     else:
         pattern_string = (
