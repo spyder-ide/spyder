@@ -190,5 +190,5 @@ jobs:
           verbose: true
       - name: Ensure QtWebEngine is optional
         run: .github/scripts/remove_check_qtwebengine.sh
-        shell: bash
+        shell: bash -l {0}
         if: matrix.INSTALL_TYPE == 'pip' && matrix.PYTHON_VERSION == '3.12'
