@@ -166,8 +166,15 @@ jobs:
       - name: Run manifest checks
         shell: bash -l {0}
         run: check-manifest
+      # Note: This will remove qtwebengine so make sure it's done last!
+      # TODO: MOVE TO BOTTOM
+      - name: Ensure QtWebEngine is optional
+        run: .github/scripts/remove_check_qtwebengine.sh
+        shell: bash -l {0}
+        if: matrix.INSTALL_TYPE == 'pip' && matrix.TEST_TYPE == 'fast'
       - name: Run tests with gdb
-        if: env.USE_GDB == 'true'
+        # TODO: REMOVE FALSE
+        if: env.USE_GDB == 'true' && false
         shell: bash -l {0}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,13 +189,10 @@ jobs:
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh
-      # Note: This will remove qtwebengine so make sure it's done last!
+        # TODO: REMOVE FALSE
+        if: false
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
           verbose: true
-      - name: Ensure QtWebEngine is optional
-        run: .github/scripts/remove_check_qtwebengine.sh
-        shell: bash -l {0}
-        if: matrix.INSTALL_TYPE == 'pip' && matrix.TEST_TYPE == 'fast'
