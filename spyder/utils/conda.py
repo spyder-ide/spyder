@@ -149,7 +149,7 @@ def get_list_conda_envs():
                 ant_data = ant_info[0]
                 ant_data = ant_data.split(osp.sep)
                 env_list.pop(name)
-                index_folder_comun=1
+                index_folder_comun = 1
                 final_path=1
                 if not WINDOWS:
                     final_path=2
