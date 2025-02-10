@@ -6,8 +6,11 @@ echo "which spyder: $(which spyder)"
 pip show qtwebengine
 TO=10s
 for i in 1 2; do
+    echo "::group::Iteration $i"
     if [[ "$i" == "2" ]]; then
-        pip remove -y qtwebengine
+        echo "Removing pyqtwebengine"
+        pip remove -y pyqtwebengine
+        echo
     fi
     echo "Running Spyder with a timeout of $TO:"
     timeout $TO spyder
@@ -19,4 +22,5 @@ for i in 1 2; do
         echo "Spyder failed with error code $RESULT (should be 124 for timeout)"
         exit 1
     fi
+    echo "::endgroup::"
 done
