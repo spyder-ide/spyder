@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o pipefail
+set -eo pipefail
 
 echo "which spyder: $(which spyder)"
 pip show pyqtwebengine
@@ -13,8 +13,10 @@ for i in 1 2; do
         echo
     fi
     echo "Running Spyder with a timeout of $TO:"
+    set +e
     timeout $TO spyder
     RESULT=$?
+    set -e
     if [[ $RESULT -eq 124 ]]; then
         echo "Spyder succeeded with timeout"
         echo
