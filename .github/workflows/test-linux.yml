@@ -182,8 +182,13 @@ jobs:
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh || \
           .github/scripts/run_tests.sh
+      # Note: This will remove qtwebengine so make sure it's done last!
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
           verbose: true
+      - name: Ensure QtWebEngine is optional
+        run: .github/scripts/remove_check_qtwebengine.sh
+        shell: bash
+        if: env.USE_CONDA != 'true'
