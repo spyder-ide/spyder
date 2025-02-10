@@ -144,25 +144,28 @@ def get_list_conda_envs():
         name = 'Conda: {}'.format(name)
 
         if name in env_list:
-            ant_info = env_list[name]
-            ant_data = ant_info[0]
-            ant_data = ant_data.split(osp.sep)
-            env_list.pop(name)
-            index_folder_comun=1
-            folder_comun=1
-            if not WINDOWS:
-                index_folder_comun=2
-                folder_comun=2
-            for i in range(-1, -len(data)-1, -1):
-                if data[i] == ant_data[i-1]:
-                    index_folder_comun+=1
-                else:
-                    break
-            ant_name = (
-                f'Conda: '
-                f'{"/".join(ant_data[-index_folder_comun-1:-folder_comun])}')
-            env_list[ant_name] = ant_info
-            name = f'Conda: {"/".join(data[-index_folder_comun:])}'
+            if not (path, version.strip()) == env_list[name]:
+                ant_info = env_list[name]
+                ant_data = ant_info[0]
+                ant_data = ant_data.split(osp.sep)
+                env_list.pop(name)
+                index_folder_comun=1
+                final_path=1
+                if not WINDOWS:
+                    final_path=2
+                for i in range(-1, -len(data)-1, -1):
+                    if data[i] == ant_data[i-final_path]:
+                        index_folder_comun+=1
+                    else:
+                        break
+                ant_name = (
+                    f'Conda: '
+                    f'{"/".join(
+                        ant_data[-index_folder_comun-final_path:-final_path]
+                        )}'
+                    )
+                env_list[ant_name] = ant_info
+                name = f'Conda: {"/".join(data[-index_folder_comun:])}'
 
         env_list[name] = (path, version.strip())
 
