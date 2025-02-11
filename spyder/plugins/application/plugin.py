@@ -226,13 +226,17 @@ class Application(SpyderPluginV2):
     def _populate_help_menu_support_section(self):
         """Add Spyder base support actions to the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for support_action in [
+        actions = [
             self.trouble_action,
             self.report_action,
             self.dependencies_action,
             self.support_group_action,
-            self.get_action(ApplicationActions.HelpSpyderAction),
-        ]:
+        ]
+        if WEBENGINE:
+            actions += [
+                self.get_action(ApplicationActions.HelpSpyderAction),
+            ]
+        for support_action in actions:
             mainmenu.add_item_to_application_menu(
                 support_action,
                 menu_id=ApplicationMenus.Help,
