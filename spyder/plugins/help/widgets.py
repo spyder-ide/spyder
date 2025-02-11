@@ -35,16 +35,10 @@ from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import start_file
+from spyder.utils.qthelpers import start_file, WEBENGINE
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
-
-# In case WebEngine is not available (e.g. in Conda-forge)
-try:
-    from qtpy.QtWebEngineWidgets import WEBENGINE
-except ImportError:
-    WEBENGINE = False
 
 
 # --- Constants
