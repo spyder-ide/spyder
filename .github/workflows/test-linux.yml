@@ -76,12 +76,21 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.8', '3.10']
+        PYTHON_VERSION: ['3.8', '3.10', '3.12']
         TEST_TYPE: ['fast', 'slow']
         exclude:
-          # Only test Python 3.8 with pip because Conda-forge will drop it soon
+          # Only test Python 3.8 with pip because Conda-forge drop support for
+          # it
           - INSTALL_TYPE: 'conda'
             PYTHON_VERSION: '3.8'
+          # We can't test with pip in Python 3.11+ due to an error, so we use
+          # 3.10 instead.
+          - INSTALL_TYPE: 'pip'
+            PYTHON_VERSION: '3.12'
+          # Some slow tests are failing in Python 3.12, so we skip them for now
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '3.12'
+            TEST_TYPE: 'slow'
     timeout-minutes: 90
     steps:
       - name: Setup Remote SSH Connection

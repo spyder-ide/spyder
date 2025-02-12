@@ -687,7 +687,12 @@ class SpyderPdb(ipyPdb):
         stop = None
         while not stop:
             if self.cmdqueue:
-                line = self.cmdqueue.pop(0)
+                # Anything available in cmdqueue is a Pdb command, so we need
+                # to process it as such.
+                # Fixes spyder-ide/spyder#22500
+                line = (
+                    "!" if self.pdb_use_exclamation_mark else ""
+                ) + self.cmdqueue.pop(0)
             else:
                 try:
                     line = self.cmd_input(self.prompt)

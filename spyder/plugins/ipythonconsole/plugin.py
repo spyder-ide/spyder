@@ -240,6 +240,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
 
         # Main widget signals
+        # Connect signal to open preferences
+        widget.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
@@ -596,6 +600,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _update_envs(self, envs):
         self.get_widget().update_envs(envs)
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the main interpreter section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("main_interpreter")
+        dlg.set_current_index(index)
 
     # ---- Public API
     # -------------------------------------------------------------------------
