@@ -28,6 +28,7 @@ def test_check_path(tmp_path):
         assert not check_path('lib\\dist-packages')
         assert not check_path('Lib/site-packages')
         assert not check_path('Anaconda3/pkgs')
+        assert not check_path("C:\\Users\\user\\AppData\\Roaming\\Python\\Scripts")
     else:
         # One digit Python versions
         assert not check_path('lib/python3.9/site-packages')

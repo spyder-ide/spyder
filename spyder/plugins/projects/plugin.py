@@ -291,6 +291,11 @@ class Projects(SpyderDockablePlugin):
         cli_options = self.get_command_line_options()
         initial_cwd = self._main.get_initial_working_directory()
 
+        # There's no need to restart the console if the user wants to connect
+        # to a kernel at startup.
+        # Fixes spyder-ide/spyder#23497
+        restart_console = cli_options.connection_file is None
+
         if cli_options.project is not None:
             logger.debug('Opening project from the command line')
             project = osp.normpath(
@@ -298,12 +303,16 @@ class Projects(SpyderDockablePlugin):
             )
             self.open_project(
                 project,
-                workdir=cli_options.working_directory
+                workdir=cli_options.working_directory,
+                restart_console=restart_console
             )
         else:
             self.get_widget().set_pane_empty()
             logger.debug('Reopening project from last session')
-            self.get_widget().reopen_last_project()
+            self.get_widget().reopen_last_project(
+                working_directory=cli_options.working_directory,
+                restart_console=restart_console
+            )
 
     # ---- Public API
     # -------------------------------------------------------------------------

@@ -240,6 +240,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
 
         # Main widget signals
+        # Connect signal to open preferences
+        widget.sig_open_preferences_requested.connect(
+            self._open_interpreter_preferences
+        )
         widget.sig_append_to_history_requested.connect(
             self.sig_append_to_history_requested)
         widget.sig_switch_to_plugin_requested.connect(self.switch_to_plugin)
@@ -560,16 +564,23 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def on_mainwindow_visible(self):
         """
-        Connect to an existing kernel if a `kernel-*.json` file is given via 
+        Connect to an existing kernel if a `kernel-*.json` file is given via
         command line options. Otherwise create a new client.
         """
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
+
         if connection_file is not None:
-            self.create_client_for_kernel(
-                self.get_widget().find_connection_file(connection_file),
-                give_focus=False,
-            )
+            cf_path = self.get_widget().find_connection_file(connection_file)
+            if cf_path is None:
+                # Show an error if the connection file passed on the command
+                # line doesn't exist (find_connection_file returns None in that
+                # case).
+                self.create_new_client(give_focus=False)
+                client = self.get_current_client()
+                client.show_kernel_connection_error()
+            else:
+                self.create_client_for_kernel(cf_path, give_focus=False)
         else:
             self.create_new_client(give_focus=False)
 
@@ -589,6 +600,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _update_envs(self, envs):
         self.get_widget().update_envs(envs)
+
+    def _open_interpreter_preferences(self):
+        """Open the Preferences dialog in the main interpreter section."""
+        self._main.show_preferences()
+        preferences = self._main.preferences
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("main_interpreter")
+        dlg.set_current_index(index)
 
     # ---- Public API
     # -------------------------------------------------------------------------

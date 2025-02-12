@@ -58,7 +58,7 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
           lookup-only: true
           enableCrossOsArchive: true
@@ -67,6 +67,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
+          condarc: |
+            conda_build:
+              pkg_format: '2'
+              zstd_compression_level: '19'
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-

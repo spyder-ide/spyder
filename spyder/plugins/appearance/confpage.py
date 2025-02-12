@@ -534,6 +534,7 @@ class AppearanceConfigPage(PluginConfigPage):
         """Edit current scheme."""
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(self.current_scheme)
+        dlg.rejected.connect(lambda: self.apply_button_enabled.emit(False))
 
         if dlg.exec_():
             # Update temp scheme to reflect instant edits on the preview

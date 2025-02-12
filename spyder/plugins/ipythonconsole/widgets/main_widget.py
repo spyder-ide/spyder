@@ -108,6 +108,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     """
 
     # Signals
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
+
     sig_append_to_history_requested = Signal(str, str)
     """
     This signal is emitted when the plugin requires to add commands to a
@@ -388,6 +393,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self.pythonenv_status.sig_interpreter_changed.connect(
             self.sig_interpreter_changed
         )
+        self.pythonenv_status.sig_open_preferences_requested.connect(
+            self.sig_open_preferences_requested)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
@@ -1350,14 +1357,24 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
         cf_filename = osp.basename(connection_file)
+
         # To change a possible empty string to None
         cf_path = cf_path if cf_path else None
-        connection_file = find_connection_file(filename=cf_filename,
-                                               path=cf_path)
-        if os.path.splitext(connection_file)[1] != ".json":
+
+        # This error is raised when find_connection_file can't find the file
+        try:
+            connection_file = find_connection_file(
+                filename=cf_filename, path=cf_path
+            )
+        except OSError:
+            connection_file = None
+
+        if connection_file and os.path.splitext(connection_file)[1] != ".json":
             # There might be a file with the same id in the path.
             connection_file = find_connection_file(
-                filename=cf_filename + ".json", path=cf_path)
+                filename=cf_filename + ".json", path=cf_path
+            )
+
         return connection_file
 
     # ---- Public API
