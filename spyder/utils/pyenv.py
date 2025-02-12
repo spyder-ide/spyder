@@ -57,19 +57,19 @@ def get_list_pyenv_envs():
 
         if name in env_list:
             if not (path, version) == env_list[name]:
-                ant_info = env_list[name]
-                ant_data = ant_info[0]
-                ant_data = ant_data.split(osp.sep)
+                prev_info = env_list[name]
+                prev_data = prev_info[0]
+                prev_data = prev_data.split(osp.sep)
                 env_list.pop(name)
                 index_folder_comun = 1
                 for i in range(-1, -len(data)-1, -1):
-                    if data[i] == ant_data[i]:
+                    if data[i] == prev_data[i]:
                         index_folder_comun+=1
                     else:
                         break
-                part_path = ant_data[-index_folder_comun:-1]
-                ant_name = f'Pyenv: {"/".join(part_path)}'
-                env_list[ant_name] = ant_info
+                part_path = prev_data[-index_folder_comun:-1]
+                prev_name = f'Pyenv: {"/".join(part_path)}'
+                env_list[prev_name] = prev_info
                 name = f'Pyenv: {"/".join(data[-index_folder_comun:])}'
 
         
