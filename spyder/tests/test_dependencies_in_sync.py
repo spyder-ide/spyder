@@ -9,6 +9,8 @@ from ast import literal_eval
 import os.path as osp
 
 # Third party imports
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 import pytest
 import yaml
 
@@ -42,15 +44,11 @@ def parse_environment_yaml(fpath):
         elif dep == 'websockify':
             continue
         else:
-            parts = dep.split(' ')
-            if len(parts) > 1:
-                ver = parts[-1]
-                if ver[0] == '=':
-                    ver = '=' + ver
-
-                deps[parts[0]] = ver
+            req = Requirement(dep)
+            if req.specifier:
+                deps[req.name] = str(req.specifier)
             else:
-                deps[parts[0]] = None
+                deps[req.name] = None
 
     return deps
 
@@ -66,10 +64,7 @@ def parse_spyder_dependencies():
 
         ver = dep['required_version']
         if ver:
-            if ';' in ver:
-                ver = ver.replace(';', ',')
-            elif ver[0] == '=':
-                ver = '=' + ver
+            ver = str(SpecifierSet(ver))
 
         deps[dep['package_name'].lower()] = ver
 
@@ -105,21 +100,16 @@ def parse_setup_install_requires(fpath):
     # Process dependencies
     deps = {}
     for dep in deps_list:
-        dep = dep.split(';')[0]
-        name, ver = None, None
-
-        for sep in ['>=', '==', '<=', '<', '>']:
-            if sep in dep:
-                name, ver = dep.split(sep)
-                name = name.split('[')[0]  # Discard e.g. [all]
-                ver = sep + ver  # Include comparator
-                break
+        req = Requirement(dep)
 
         # Transform pypi to conda name
-        if name == 'pyqt5':
-            name = 'pyqt'
+        if req.name == 'pyqt5':
+            req.name = 'pyqt'
 
-        deps[name] = ver
+        if req.specifier:
+            deps[req.name] = str(req.specifier)
+        else:
+            deps[req.name] = None
 
     return deps
 
@@ -147,27 +137,22 @@ def parse_setup_extra_requires(fpath):
     dep_list = dep_dict.get('test')
     dep_list = [item for item in dep_list if item[0] != '#']
     for dep in dep_list:
-        dep = dep.split(';')[0]
-        name, ver = None, None
-
-        for sep in ['>=', '==', '<=', '<', '>']:
-            if sep in dep:
-                idx = dep.index(sep)
-                name = dep[:idx]
-                ver = dep[idx:]
-                break
-
-        if name is not None:
-            name = name.split('[')[0]
-        else:
-            name = dep.split('[')[0]
+        req = Requirement(dep)
 
         # Transform pypi to conda name
-        if name == 'pyqt5':
-            name = 'pyqt'
+        if req.name == 'pyqt5':
+            req.name = 'pyqt'
 
-        deps[name] = ver
-    print(deps)
+        if req.marker:
+            # Skip dependencies with environment markers (e.g.
+            # 'pywin32;platform_system=="Windows"')
+            continue
+
+        if req.specifier:
+            deps[req.name] = str(req.specifier)
+        else:
+            deps[req.name] = None
+
     return deps
 
 
