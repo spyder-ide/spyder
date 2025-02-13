@@ -10,6 +10,7 @@ Script for running Spyder tests programmatically.
 
 # Standard library imports
 import argparse
+import gc
 import os
 
 # To activate/deactivate certain things for pytests only
@@ -58,6 +59,14 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
+
+    for obj in gc.get_objects():
+        if obj.__class__.__name__ == "QThread":
+            try:
+                obj.disconnect()
+            except TypeError:  # disconnect() of all signals failed
+                pass
+            obj.terminate()
 
     # sys.exit doesn't work here because some things could be running in the
     # background (e.g. closing the main window) when this point is reached.
