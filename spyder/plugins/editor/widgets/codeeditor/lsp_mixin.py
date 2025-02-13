@@ -117,6 +117,8 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    sig_code_folding_info = Signal(tuple)
+
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
 
@@ -146,8 +148,6 @@ class LSPMixin:
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread(None)
-        self.update_folding_thread.finished.connect(
-            self._finish_update_folding)
 
         # Autoformat on save
         self.format_on_save = False
@@ -168,7 +168,6 @@ class LSPMixin:
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
-        self.patch = []
         self.leading_whitespaces = {}
 
         # Other attributes
@@ -193,7 +192,6 @@ class LSPMixin:
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
-        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -443,14 +441,14 @@ class LSPMixin:
 
         self.text_version += 1
 
-        self.patch = self.differ.patch_make(self.previous_text, text)
+        patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         cursor = self.textCursor()
         params = {
             "file": self.filename,
             "version": self.text_version,
             "text": text,
-            "diff": self.patch,
+            "diff": patch,
             "offset": cursor.position(),
             "selection_start": cursor.selectionStart(),
             "selection_end": cursor.selectionEnd(),
@@ -1262,8 +1260,8 @@ class LSPMixin:
                 self.folding_panel.current_tree, self.folding_panel.root
             )
 
-            folding_info = collect_folding_regions(root)
-            self._folding_info = (current_tree, root, *folding_info)
+            folding_info = (current_tree, root, *collect_folding_regions(root))
+            self.sig_code_folding_info.emit(folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1274,18 +1272,18 @@ class LSPMixin:
     def highlight_folded_regions(self):
         self.folding_panel.highlight_folded_regions()
 
-    def _finish_update_folding(self):
+    def apply_code_folding(self, folding_info):
         """Finish updating code folding."""
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
-        if self._folding_info is not None:
-            self.folding_panel.update_folding(self._folding_info)
+        if folding_info is not None:
+            self.folding_panel.update_folding(folding_info)
 
         self.highlight_folded_regions()
 
         # Update indent guides, which depend on folding
-        if self.indent_guides._enabled and len(self.patch) > 0:
+        if self.indent_guides._enabled:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
 
