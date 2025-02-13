@@ -13,21 +13,14 @@ from pathlib import Path
 
 import aiohttp
 
-from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI
+from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI, SpyderRemoteAPIError
 from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
 
 # jupyter server's extension name for spyder-remote-services
 SPYDER_PLUGIN_NAME = "spyder-services"
 
 
-class SpyderServicesError(Exception):
-    """
-    Exception for errors related to Spyder services.
-    """
-    ...
-
-
-class RemoteFileServicesError(SpyderServicesError):
+class RemoteFileServicesError(SpyderRemoteAPIError):
     """
     Exception for errors related to remote file services.
     """
