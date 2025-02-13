@@ -176,7 +176,9 @@ external = []
 fixable = ["ALL"]
 
 # A list of rule codes or prefixes to ignore.
-ignore = []
+ignore = [
+    "UP009"  # https://docs.astral.sh/ruff/rules/utf8-encoding-declaration
+]
 
 # A list of objects that should be treated as equivalent to a logging.Logger.
 logger-objects = []
