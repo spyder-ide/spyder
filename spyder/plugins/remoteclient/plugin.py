@@ -112,11 +112,6 @@ class RemoteClient(SpyderPluginV2):
         container.sig_create_ipyclient_requested.connect(
             self.create_ipyclient_for_server
         )
-        container.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
-        container.sig_interrupt_kernel_requested.connect(
-            self._interrupt_kernel
-        )
-
         # Plugin signals
         self.sig_connection_status_changed.connect(
             container.sig_connection_status_changed
@@ -270,6 +265,7 @@ class RemoteClient(SpyderPluginV2):
         """Get configured remote servers ids."""
         return self.get_conf(self.CONF_SECTION_SERVERS, {}).keys()
 
+    # TODO: Move to ipythonconsole plugin
     @Slot(str)
     def create_ipyclient_for_server(self, config_id):
         """Create a new IPython console client for a server."""
@@ -298,9 +294,17 @@ class RemoteClient(SpyderPluginV2):
             can_close=False,
         )
 
+        # IMPORTANT NOTE: We use a signal here instead of calling directly
+        # container.on_kernel_started because doing that generates segfaults
+        # and odd issues (e.g. the Variable Explorer not working).
+        @AsyncDispatcher(loop="asyncssh")
+        async def start_new_kernel():
+            async with self.get_jupyter_api(config_id) as api:
+                return await api.create_kernel()
+
         container = self.get_container()
-        future = self._start_new_kernel(config_id)
-        future.connect(
+
+        start_new_kernel().connect(
             AsyncDispatcher.QtSlot(
                 lambda future: container.on_kernel_started(
                     ipyclient, future.result()
@@ -308,6 +312,7 @@ class RemoteClient(SpyderPluginV2):
             )
         )
 
+    # --- API Methods
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
         """
@@ -355,60 +360,27 @@ class RemoteClient(SpyderPluginV2):
 
         return client.get_api(api)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    # --- Remote Server Kernel Methods
-    @Slot(str)
-    @AsyncDispatcher(loop="asyncssh")
-    async def get_kernels(self, config_id) -> list:
-        """Get opened kernels."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            return await client.list_kernels()
-        return []
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _get_kernel_info(self, config_id, kernel_id) -> dict:
-        """Get kernel info."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            return await client.get_kernel_info_ensure_server(kernel_id)
-        return {}
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _shutdown_kernel(self, config_id, kernel_id):
-        """Shutdown a running kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            with contextlib.suppress(Exception):
-                await client.terminate_kernel(kernel_id)
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _start_new_kernel(self, config_id):
-        """Start new kernel."""
+    def get_file_api(self, config_id):
+        """Get file API."""
         if config_id not in self._remote_clients:
             self.load_client_from_id(config_id)
 
         client = self._remote_clients[config_id]
-        return await client.start_new_kernel_ensure_server()
 
-    @AsyncDispatcher(loop="asyncssh")
-    async def _restart_kernel(self, config_id, kernel_id) -> bool:
-        """Restart kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            with contextlib.suppress(Exception):
-                return await client.restart_kernel(kernel_id)
+        return client.get_api(SpyderRemoteFileServicesAPI)
 
-        return False
+    def get_jupyter_api(self, config_id):
+        """Get Jupyter API."""
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
 
-    @AsyncDispatcher(loop="asyncssh")
-    async def _interrupt_kernel(self, config_id, kernel_id):
-        """Interrupt kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            await client.interrupt_kernel(kernel_id)
+        client = self._remote_clients[config_id]
 
+        return client.get_jupyter_api()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    # --- Remote Server Kernel Methods
     def _reset_status(self):
         """Reset status of servers."""
         for config_id in self.get_config_ids():
@@ -430,12 +402,3 @@ class RemoteClient(SpyderPluginV2):
         )
 
         self._is_consoles_menu_added = True
-
-    def get_file_api(self, config_id):
-        """Get file API."""
-        if config_id not in self._remote_clients:
-            self.load_client_from_id(config_id)
-
-        client = self._remote_clients[config_id]
-
-        return client.get_api(SpyderRemoteFileServicesAPI)

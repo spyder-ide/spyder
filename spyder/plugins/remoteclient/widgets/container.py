@@ -145,6 +145,8 @@ class RemoteClientContainer(PluginMainContainer):
             self._on_connection_status_changed
         )
         self.sig_client_message_logged.connect(self._on_client_message_logged)
+        self.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
+        self.sig_interrupt_kernel_requested.connect(self._interrupt_kernel)
 
         self.__requested_restart = False
         self.__requested_info = False
@@ -314,7 +316,7 @@ class RemoteClientContainer(PluginMainContainer):
         if self.__requested_restart:
             return
 
-        future = self._plugin._restart_kernel(
+        future = self._restart_kernel(
             ipyclient.server_id, ipyclient.kernel_id
         )
 
@@ -334,7 +336,7 @@ class RemoteClientContainer(PluginMainContainer):
         if self.__requested_info:
             return
 
-        future = self._plugin._get_kernel_info(
+        future = self._get_kernel_info(
             ipyclient.server_id, ipyclient.kernel_id
         )
 
@@ -399,3 +401,24 @@ class RemoteClientContainer(PluginMainContainer):
 
         # Add message to deque
         self.client_logs[msg_id].append(message)
+
+    #TODO: Only added while not moved to ipythonconsole plugin
+    @AsyncDispatcher(loop="asyncssh")
+    async def _restart_kernel(self, server_id: str, kernel_id: str):
+        async with self._plugin.get_jupyter_api(server_id) as api:
+            return await api.restart_kernel(kernel_id)
+
+    @AsyncDispatcher(loop="asyncssh")
+    async def _get_kernel_info(self, server_id: str, kernel_id: str):
+        async with self._plugin.get_jupyter_api(server_id) as api:
+            return await api.get_kernel(kernel_id)
+
+    @AsyncDispatcher(loop="asyncssh")
+    async def _shutdown_kernel(self, server_id: str, kernel_id: str):
+        async with self._plugin.get_jupyter_api(server_id) as api:
+            return await api.terminate_kernel(kernel_id)
+
+    @AsyncDispatcher(loop="asyncssh")
+    async def _interrupt_kernel(self, server_id: str, kernel_id: str):
+        async with self._plugin.get_jupyter_api(server_id) as api:
+            return await api.interrupt_kernel(kernel_id)
