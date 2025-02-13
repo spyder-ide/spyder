@@ -567,10 +567,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
 
     async def connect(self):
         if not await AsyncDispatcher(
-            self.manager.ensure_connection_and_server,
             loop="asyncssh",
             return_awaitable=True,
-        )():
+        )(self.manager.ensure_connection_and_server)():
             raise RuntimeError("Failed to connect to Jupyter server")
 
         if self.session is not None and not self.session.closed:

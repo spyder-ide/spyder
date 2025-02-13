@@ -18,7 +18,7 @@ from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
 class TestRemoteFilesAPI:
     remote_temp_dir = "/tmp/spyder-remote-tests"
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_create_dir(
         self,
         remote_client: RemoteClient,
@@ -33,7 +33,7 @@ class TestRemoteFilesAPI:
                 "success": True
             }
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_write_file(
         self,
         remote_client: RemoteClient,
@@ -52,7 +52,7 @@ class TestRemoteFilesAPI:
                 await f.seek(0)
                 assert await f.read() == "Hello, world!"
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_list_directories(
         self,
         remote_client: RemoteClient,
@@ -77,7 +77,7 @@ class TestRemoteFilesAPI:
             assert ls_content[0]["ino"] > 0
             assert ls_content[0]["nlink"] == 1
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_copy_file(
         self,
         remote_client: RemoteClient,
@@ -105,7 +105,7 @@ class TestRemoteFilesAPI:
             )
             assert ls_content[0]["size"] == ls_content[1]["size"]
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_rm_file(
         self,
         remote_client: RemoteClient,
@@ -123,7 +123,7 @@ class TestRemoteFilesAPI:
                 self.remote_temp_dir + "/test2.txt"
             ) == {"success": True}
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_rm_dir(
         self,
         remote_client: RemoteClient,
@@ -138,7 +138,7 @@ class TestRemoteFilesAPI:
                 "success": True
             }
 
-    @AsyncDispatcher.dispatch(early_return=False)
+    @AsyncDispatcher(early_return=False)
     async def test_ls_nonexistent_dir(
         self,
         remote_client: RemoteClient,
