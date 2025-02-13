@@ -168,6 +168,7 @@ class LSPMixin:
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
+        self.patch = []
         self.leading_whitespaces = {}
 
         # Other attributes
@@ -441,14 +442,14 @@ class LSPMixin:
 
         self.text_version += 1
 
-        patch = self.differ.patch_make(self.previous_text, text)
+        self.patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         cursor = self.textCursor()
         params = {
             "file": self.filename,
             "version": self.text_version,
             "text": text,
-            "diff": patch,
+            "diff": self.patch,
             "offset": cursor.position(),
             "selection_start": cursor.selectionStart(),
             "selection_end": cursor.selectionEnd(),

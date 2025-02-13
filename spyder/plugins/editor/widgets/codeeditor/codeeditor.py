@@ -932,6 +932,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             # This is required for the line number area
             self.setFont(font)
 
+            # Needed to show indent guides for splited editor panels
+            # See spyder-ide/spyder#10900
+            self.patch = cloned_from.patch
+
             cloned_from.sig_code_folding_info.connect(self.apply_code_folding)
 
             # Clone text and other properties
