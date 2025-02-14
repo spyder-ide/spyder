@@ -70,7 +70,17 @@ def test_find_conda():
 def test_get_list_conda_envs():
     output = get_list_conda_envs()
 
-    expected_envs = ['base', 'jedi-test-env', 'spytest-ž', 'test']
+    if sys.platform == 'darwin':
+        expected_envs = [
+            'base',
+            'jedi-test-env',
+            'spytest-ž',
+            'micromamba/envs/test',
+            'miniconda3/envs/test'
+        ]
+    else:
+        expected_envs = ['base', 'jedi-test-env', 'spytest-ž', 'test']
+
     expected_envs = ['Conda: ' + env for env in expected_envs]
 
     assert set(expected_envs) == set(output.keys())
