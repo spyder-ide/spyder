@@ -546,6 +546,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Harmless warning from OpenCL on Windows.
             # See spyder-ide/spyder#22551
             "The system cannot find the path specified",
+            # UNC paths, see pyder-ide/spyder#23726
+            " UNC ",
         ]
 
         return any([err in error for err in benign_errors])
