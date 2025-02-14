@@ -31,7 +31,7 @@ from spyder.plugins.application.container import (
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
-from spyder.utils.qthelpers import add_actions
+from spyder.utils.qthelpers import add_actions, WEBENGINE
 
 
 class Application(SpyderPluginV2):
@@ -101,8 +101,9 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         statusbar = self.get_plugin(Plugins.StatusBar)
-        inapp_appeal_status = self.get_container().inapp_appeal_status
-        statusbar.add_status_widget(inapp_appeal_status)
+        if WEBENGINE:
+            inapp_appeal_status = self.get_container().inapp_appeal_status
+            statusbar.add_status_widget(inapp_appeal_status)
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
@@ -130,8 +131,9 @@ class Application(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         statusbar = self.get_plugin(Plugins.StatusBar)
-        inapp_appeal_status = self.get_container().inapp_appeal_status
-        statusbar.remove_status_widget(inapp_appeal_status.ID)
+        if WEBENGINE:
+            inapp_appeal_status = self.get_container().inapp_appeal_status
+            statusbar.remove_status_widget(inapp_appeal_status.ID)
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -158,7 +160,9 @@ class Application(SpyderPluginV2):
 
         # Show appeal the fifth and 25th time Spyder starts
         spyder_runs = self.get_conf("spyder_runs_for_appeal", default=1)
-        if spyder_runs in [5, 25]:
+        if not WEBENGINE:
+            pass
+        elif spyder_runs in [5, 25]:
             container.inapp_appeal_status.show_appeal()
 
             # Increase counting in one to not get stuck at this point.
@@ -222,13 +226,17 @@ class Application(SpyderPluginV2):
     def _populate_help_menu_support_section(self):
         """Add Spyder base support actions to the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for support_action in [
+        actions = [
             self.trouble_action,
             self.report_action,
             self.dependencies_action,
             self.support_group_action,
-            self.get_action(ApplicationActions.HelpSpyderAction),
-        ]:
+        ]
+        if WEBENGINE:
+            actions += [
+                self.get_action(ApplicationActions.HelpSpyderAction),
+            ]
+        for support_action in actions:
             mainmenu.add_item_to_application_menu(
                 support_action,
                 menu_id=ApplicationMenus.Help,
