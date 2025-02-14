@@ -936,15 +936,20 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             # See spyder-ide/spyder#10900
             self.patch = cloned_from.patch
 
+            cloned_from.sig_code_folding_info.connect(self.apply_code_folding)
+
             # Clone text and other properties
             self.set_as_clone(cloned_from)
 
             # Refresh panels
             self.panels.refresh()
-        elif font is not None:
-            self.set_font(font, color_scheme)
-        elif color_scheme is not None:
-            self.set_color_scheme(color_scheme)
+        else:
+            if font is not None:
+                self.set_font(font, color_scheme)
+            if color_scheme is not None:
+                self.set_color_scheme(color_scheme)
+
+            self.sig_code_folding_info.connect(self.apply_code_folding)
 
         # Set tab spacing after font is set
         self.set_tab_stop_width_spaces(tab_stop_width_spaces)
