@@ -18,7 +18,7 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QEvent,
@@ -147,7 +147,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -367,7 +367,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QScrollArea.__init__(self, parent)

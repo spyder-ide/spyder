@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
@@ -98,7 +98,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
     def __init__(self, parent, handle_links=True, class_parent=None):
         class_parent = parent if class_parent is None else class_parent
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=class_parent)
         else:
             QWebEngineView.__init__(self, parent)
