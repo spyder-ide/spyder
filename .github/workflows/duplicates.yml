@@ -118,5 +118,11 @@ jobs:
                "reply": "Thanks for reporting. You need to manually update Spyder to fix this problem.<br><br>To do that, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there<br><br>`conda install spyder=6`",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "AttributeError: 'WorkerUpdate' object has no attribute 'channel'",
+               "reply": "Thanks for reporting. You need to manually update Spyder to fix this problem.<br><br>To do that, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there<br><br>`conda install spyder=6.0.3`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
