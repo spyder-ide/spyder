@@ -120,7 +120,8 @@ def get_list_conda_envs():
         out = {'envs': []}
 
     for env in out['envs']:
-        name = env.split(osp.sep)[-1]
+        data = env.split(osp.sep)
+        name = data[-1]
         path = osp.join(env, 'python.exe') if WINDOWS else osp.join(
             env, 'bin', 'python')
 
@@ -141,6 +142,32 @@ def get_list_conda_envs():
         name = ('base' if name.lower().startswith('anaconda') or
                 name.lower().startswith('miniconda') else name)
         name = 'Conda: {}'.format(name)
+
+        if name in env_list:
+            if not (path, version.strip()) == env_list[name]:
+                prev_info = env_list[name]
+                prev_data = prev_info[0]
+                prev_data = prev_data.split(osp.sep)
+                env_list.pop(name)
+                index_common_folder = 1
+                end_path = 1
+                if not WINDOWS:
+                    end_path = 2
+                for i in range(-1, -len(data) - 1, -1):
+                    if data[i] == prev_data[i - end_path]:
+                        index_common_folder += 1
+                    else:
+                        break
+                path_part = prev_data[
+                    -index_common_folder - end_path : -end_path
+                ]
+                prev_name = (
+                    f'Conda: '
+                    f'{"/".join(path_part)}'
+                )
+                env_list[prev_name] = prev_info
+                name = f'Conda: {"/".join(data[-index_common_folder:])}'
+
         env_list[name] = (path, version.strip())
 
     CONDA_ENV_LIST_CACHE = env_list
