@@ -8,7 +8,6 @@
 
 # Standard library imports
 from glob import glob
-from pathlib import Path
 import json
 import os
 import os.path as osp
@@ -150,22 +149,24 @@ def get_list_conda_envs():
                 prev_data = prev_info[0]
                 prev_data = prev_data.split(osp.sep)
                 env_list.pop(name)
-                index_folder_comun = 1
+                index_common_folder = 1
                 end_path = 1
                 if not WINDOWS:
                     end_path = 2
-                for i in range(-1, -len(data)-1, -1):
-                    if data[i] == prev_data[i-end_path]:
-                        index_folder_comun+=1
+                for i in range(-1, -len(data) - 1, -1):
+                    if data[i] == prev_data[i - end_path]:
+                        index_common_folder += 1
                     else:
                         break
-                path_part = prev_data[-index_folder_comun-end_path:-end_path]
+                path_part = prev_data[
+                    -index_common_folder - end_path : -end_path
+                ]
                 prev_name = (
                     f'Conda: '
                     f'{"/".join(path_part)}'
-                    )
+                )
                 env_list[prev_name] = prev_info
-                name = f'Conda: {"/".join(data[-index_folder_comun:])}'
+                name = f'Conda: {"/".join(data[-index_common_folder:])}'
 
         env_list[name] = (path, version.strip())
 

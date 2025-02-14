@@ -71,8 +71,13 @@ def test_get_list_conda_envs():
     output = get_list_conda_envs()
 
     if sys.platform == 'darwin':
-        expected_envs = ['base', 'jedi-test-env', 'spytest-ž',
-                         'micromamba/envs/test', 'miniconda3/envs/test']
+        expected_envs = [
+            'base',
+            'jedi-test-env',
+            'spytest-ž',
+            'micromamba/envs/test',
+            'miniconda3/envs/test'
+        ]
     else:
         expected_envs = ['base', 'jedi-test-env', 'spytest-ž', 'test']
 

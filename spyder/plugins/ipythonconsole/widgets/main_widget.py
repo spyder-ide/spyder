@@ -24,7 +24,7 @@ from jupyter_core.paths import jupyter_config_dir
 import qstylizer.style
 from qtconsole.svg import save_svg, svg_to_clipboard
 from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtGui import QColor, QKeySequence, QFontMetrics
+from qtpy.QtGui import QColor, QFontMetrics, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -1203,8 +1203,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             env_name = env_key.split()[-1]
             path_to_interpreter, python_version = env_info
             fm = QFontMetrics(self.font())
-            env_elided = fm.elidedText(env_key, Qt.ElideMiddle,
-                                 250)
+            env_elided = fm.elidedText(
+                env_key, Qt.ElideMiddle, 250
+            )
 
             # Text for actions
             text = f"{env_elided} ({python_version})"
@@ -1239,7 +1240,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 overwrite=True,
                 register_action=False,
                 tip=text,
-
             )
 
             # Add default env as the first entry in the menu
