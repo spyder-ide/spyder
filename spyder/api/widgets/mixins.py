@@ -672,7 +672,7 @@ class SpyderWidgetMixin(
     # Context name used to store actions, toolbars, toolbuttons and menus
     CONTEXT_NAME = None
 
-    def __init__(self, class_parent=None):
+    def __init__(self, class_parent=None, parent=None):
         for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
             if getattr(self, attr, None) is None:
                 if hasattr(class_parent, attr):

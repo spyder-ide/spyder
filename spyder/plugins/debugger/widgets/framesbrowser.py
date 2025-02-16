@@ -492,13 +492,13 @@ class ResultsBrowser(QTreeWidget):
 
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
-        self.itemActivated.connect(self.activated)
-        self.itemClicked.connect(self.activated)
+        self.itemActivated.connect(self.on_item_activated)
+        self.itemClicked.connect(self.on_item_activated)
 
     def set_title(self, title):
         self.setHeaderLabels([title])
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
