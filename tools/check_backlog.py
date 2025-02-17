@@ -1,0 +1,546 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Public API signature checker.
+
+This script compares a “base” version of a Python module with an updated
+version by parsing both files using AST and extracting their signatures
+(functions, classes, and public methods/assignments). It then compares the
+signatures between the base and updated versions. Any addition, removal, or
+change in signature is flagged as an API change.
+
+Finally, the script reads a backlog file and checks that each API change (using
+the public API name extracted from the signature) is mentioned in the "API
+changes" section for the current version.
+"""
+from __future__ import annotations
+
+import argparse
+import ast
+import logging
+import re
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from enum import Enum, auto
+from functools import cached_property, wraps
+from pathlib import Path
+
+# Get the current version from Spyder.
+try:
+    from spyder import __version__
+except ImportError:
+    sys.stderr.write("Error: Could not import Spyder to get __version__.\n")
+    sys.exit(1)
+
+if sys.version_info >= (3, 9):
+    _unparse = ast.unparse
+else:
+    import astor
+    def _unparse(node):
+        return astor.to_source(node).strip()
+
+
+_logger = logging.getLogger(Path(__file__).stem)
+
+
+def generate_to(cls):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return cls(func(*args, **kwargs))
+        return wrapper
+    return decorator
+
+
+def get_current_version():
+    m = re.match(r"(\d+\.\d+\.\d+)", __version__)
+    if m:
+        return m.group(1)
+    return __version__
+
+
+class SignatureType(Enum):
+    FUNCTION = auto()
+    ASYNC_FUNCTION = auto()
+    CLASS = auto()
+    ASSIGNMENT = auto()
+
+    def __str__(self):
+        return self.name[:min(5, len(self.name))]
+
+
+class SignatureItem:
+    def __init__(self, module, sig_type, name, arguments=None):
+        self._module = module
+        self._sig_type = sig_type
+        self._name = name
+        self._arguments = frozenset() if arguments is None else frozenset(arguments)
+
+        _logger.debug("Created SignatureItem: %s", self)
+
+    def __hash__(self):
+        return hash((self.module, self.sig_type, self.name, self.arguments))
+
+    def __eq__(self, other):
+        if not isinstance(other, SignatureItem):
+            msg = f"Cannot compare SignatureItem with {type(other)}"
+            raise TypeError(msg)
+
+        return self.__hash__() == other.__hash__()
+
+    def __repr__(self):
+        return (
+            f"{self.module}:{self.sig_type}:{self.name}" +
+            (f"({', '.join(self.arguments)})" if self.arguments else "")
+        )
+
+    @property
+    def module(self):
+        return self._module
+
+    @property
+    def sig_type(self):
+        return self._sig_type
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def arguments(self):
+        return self._arguments
+
+    def is_included(self, other):
+        return other.module + "." + other.name in self.module
+
+    def is_renamed(self, other):
+        return self.module == other.module and self.sig_type == other.sig_type and self.arguments == other.arguments and self.name != other.name
+
+    def is_args_changed(self, other):
+        return self.module == other.module and self.sig_type == other.sig_type and self.name == other.name and self.arguments != other.arguments
+
+    @classmethod
+    def function_signature(cls, node, parent_id=""):
+        """
+        Reconstruct a function signature (for both module functions and methods)
+        ignoring type annotations and default values.
+        """
+        # Skip non-public (unless dunder)
+        if node.name.startswith("_") and not (node.name.startswith("__") and node.name.endswith("__")):
+            yield from []
+        params = []
+        # Positional-only arguments (Python 3.8+)
+        if hasattr(node.args, "posonlyargs") and node.args.posonlyargs:
+            posonly = [arg.arg for arg in node.args.posonlyargs]
+            params.extend(posonly)
+            params.append("/")
+        # Regular arguments
+        if node.args.args:
+            params.extend(arg.arg for arg in node.args.args)
+        # Vararg (*args)
+        if node.args.vararg:
+            params.append("*" + node.args.vararg.arg)
+        elif node.args.kwonlyargs:
+            params.append("*")
+        # Keyword-only arguments
+        if node.args.kwonlyargs:
+            params.extend(arg.arg for arg in node.args.kwonlyargs)
+        # Kwarg (**kwargs)
+        if node.args.kwarg:
+            params.append("**" + node.args.kwarg.arg)
+
+        yield cls(
+            module=parent_id,
+            sig_type=SignatureType.ASYNC_FUNCTION if isinstance(node, ast.AsyncFunctionDef) else SignatureType.FUNCTION,
+            name=node.name,
+            arguments=params,
+        )
+
+    @classmethod
+    def class_signature(cls, node, parent_id=""):
+        """
+        Reconstruct a class signature, including base classes.
+        """
+        if node.name.startswith("_"):
+            yield from []
+
+        sig = node.name
+
+        yield cls(
+            module=parent_id,
+            sig_type=SignatureType.CLASS,
+            name=sig,
+            arguments={_unparse(b) for b in node.bases} if node.bases else set(),
+        )
+        new_parent = parent_id + "." + node.name
+        for item in node.body:
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                yield from cls.function_signature(item, new_parent)
+            elif isinstance(item, (ast.Assign, ast.AnnAssign)):
+                yield from cls.assignment_signature(item, new_parent)
+
+    @classmethod
+    def assignment_signature(cls, node, parent_id=""):
+        """
+        Build a simple assignment signature by listing variable names.
+        """
+        if isinstance(node, ast.Assign):
+            for t in node.targets:
+                var_name = t.id if isinstance(t, ast.Name) else _unparse(t)
+                if var_name.startswith("_"):
+                    continue
+                yield cls(
+                    module=parent_id,
+                    sig_type=SignatureType.ASSIGNMENT,
+                    name=var_name,
+                )
+        elif isinstance(node, ast.AnnAssign):
+            if isinstance(node.target, ast.Name):
+                var_name = node.target.id
+            else:
+                var_name = _unparse(node.target)
+            if not var_name.startswith("_"):
+                yield cls(
+                    module=parent_id,
+                    sig_type=SignatureType.ASSIGNMENT,
+                    name=var_name,
+                )
+
+    @classmethod
+    def find_signatures(cls, filename: Path):
+        source = filename.read_bytes()
+        tree = ast.parse(source, filename)
+        # Build a module id from the file path. (e.g. spyder.api.asyncdispatcher)
+        mod_id = ".".join([*filename.parts[:-1], filename.stem])
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                yield from cls.function_signature(node, mod_id)
+            elif isinstance(node, ast.ClassDef):
+                yield from cls.class_signature(node, mod_id)
+            elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+                yield from cls.assignment_signature(node, mod_id)
+
+    @classmethod
+    def get_signatures(cls, filename: Path | None):
+        if filename is None:
+            return set()
+
+        return set(cls.find_signatures(filename))
+
+
+class EntryType(Enum):
+    NEW = auto()
+    OLD = auto()
+    UPD_NAME = auto()
+    UPD_ARGS = auto()
+
+    def __str__(self):
+        return self.name.title()
+
+
+class Entry:
+    def __init__(self, old_signature=None, new_signature=None):
+        if old_signature is None and new_signature is None:
+            msg = "Either old_signature or new_signature must be provided."
+            raise ValueError(msg)
+        if old_signature and new_signature and old_signature.sig_type != new_signature.sig_type:
+            msg = "Old and new signatures must be of the same type."
+            raise ValueError(msg)
+
+        self.old_signature = old_signature
+        self.new_signature = new_signature
+
+        _logger.debug("Created Entry: %s", self)
+
+    def __repr__(self):
+        if self.old_signature is None:
+            return f"Entry({self.new_signature})"
+        if self.new_signature is None:
+            return f"Entry({self.old_signature})"
+        return f"Entry({self.old_signature} -> {self.new_signature})"
+
+    @cached_property
+    def sig_type(self):
+        if self.old_signature is None:
+            return self.new_signature.sig_type
+
+        return self.old_signature.sig_type
+
+    @cached_property
+    def is_sig_type_class(self):
+        return self.sig_type == SignatureType.CLASS
+
+    @cached_property
+    def type(self):
+        if self.old_signature is None:
+            return EntryType.NEW
+
+        if self.new_signature is None:
+            return EntryType.OLD
+
+        if self.old_signature.name != self.new_signature.name:
+            return EntryType.UPD_NAME
+
+        return EntryType.UPD_ARGS
+
+    @cached_property
+    def new_module(self):
+        if self.new_signature is None:
+            return None
+
+        return self.new_signature.module
+
+    @cached_property
+    def old_module(self):
+        if self.old_signature is None:
+            return None
+
+        return self.old_signature.module
+
+    @cached_property
+    def new_name(self):
+        if self.new_signature is None:
+            return None
+
+        return self.new_signature.name
+
+    @cached_property
+    def old_name(self):
+        if self.old_signature is None:
+            return None
+
+        return self.old_signature.name
+
+    @cached_property
+    def new_args(self):
+        if self.type == EntryType.NEW:
+            return self.new_signature.arguments
+        if self.type == EntryType.UPD_ARGS:
+            return self.new_signature.arguments - self.old_signature.arguments
+        return None
+
+    @cached_property
+    def old_args(self):
+        if self.type == EntryType.OLD:
+            return self.old_signature.arguments
+        if self.type == EntryType.UPD_ARGS:
+            return self.old_signature.arguments - self.new_signature.arguments
+        return None
+
+    def is_included(self, entries):
+        if self.type == EntryType.NEW:
+            return any(
+                self.new_signature.is_included(entry.new_signature) for entry in entries if entry.type == EntryType.NEW
+            )
+        if self.type == EntryType.OLD:
+            return any(
+                self.old_signature.is_included(entry.old_signature) for entry in entries if entry.type == EntryType.OLD
+            )
+        return False
+
+    @classmethod
+    def create_new(cls, signature):
+        return cls(new_signature=signature)
+
+    @classmethod
+    def create_old(cls, signature):
+        return cls(old_signature=signature)
+
+    @classmethod
+    @generate_to(set)
+    def map_entries(cls, old_signatures: set[SignatureItem], new_signatures: set[SignatureItem]):
+        dif_signatures_new = (new_signatures - old_signatures)
+        diff_signatures_old = (old_signatures - new_signatures)
+
+        while dif_signatures_new:
+            new_sig = dif_signatures_new.pop()
+            for old_sig in diff_signatures_old:
+                if new_sig.is_renamed(old_sig):
+                    diff_signatures_old.remove(old_sig)
+                    yield Entry(new_sig, old_sig)
+                    break
+                if new_sig.is_args_changed(old_sig):
+                    diff_signatures_old.remove(old_sig)
+                    yield Entry(old_sig, new_sig)
+                    break
+            yield Entry.create_new(new_sig)
+
+        yield from map(Entry.create_old, diff_signatures_old)
+
+
+class ChagelogAPI:
+    def __init__(self, api_items):
+        self._api_items = api_items
+
+    def check(self, entry):
+        if entry.type == EntryType.NEW:
+            return any(entry.new_module in item and entry.new_name in item for item in self._api_items)
+        if entry.type == EntryType.OLD:
+            return any(entry.old_module in item and entry.old_name in item for item in self._api_items)
+        if entry.type == EntryType.UPD_NAME:
+            return any(entry.old_module in item and entry.old_name and entry.new_name in item for item in self._api_items)
+
+        # EntryType.UPD_ARGS
+        test_args = lambda item: all(arg in item for arg in entry.new_args | entry.old_args)
+        return any(entry.new_module in item and entry.new_name in item and test_args(item) for item in self._api_items)
+
+    def get_missing(self, entries: set[Entry]):
+        classes = filter(lambda x: x.is_sig_type_class, entries)
+
+        pool = ThreadPoolExecutor()
+
+        class_in_backlog = [
+            entry for (check, entry) in pool.map(lambda x: (self.check(x), x), classes) if check
+        ]
+
+        _logger.debug("Classes in backlog: %s", class_in_backlog)
+
+        def not_class_items(entry):
+            return not entry.is_included(class_in_backlog)
+
+        not_included_in_class = filter(not_class_items, entries)
+
+        return (
+            entry for (check, entry) in pool.map(lambda x: (self.check(x), x), not_included_in_class) if not check
+        )
+
+    @classmethod
+    def from_file(cls, filename, version=None):
+        try:
+            backlog_text = filename.read_text(encoding="utf-8")
+        except (ValueError, OSError) as e:
+            sys.stderr.write(f"Error reading backlog file: {e}\n")
+            return None
+
+        version = version or get_current_version()
+        version_header_re = rf"##\s+Version\s+{re.escape(version)}"
+        version_match = re.search(version_header_re, backlog_text)
+        if not version_match:
+            sys.stderr.write(f"Could not find a backlog section for version {version}.\n")
+            return None
+
+        start = version_match.end()
+        next_section_match = re.search(r"\n##\s+", backlog_text[start:])
+        end = start + next_section_match.start() if next_section_match else len(backlog_text)
+        version_section = backlog_text[start:end]
+        api_header_match = re.search(r"###\s+API changes\s*(?:\n|-)+", version_section)
+        if not api_header_match:
+            sys.stderr.write(f"Could not find a '### API changes' section in version {current_version}.\n")
+            return None
+        api_start = api_header_match.end()
+        next_subsec_match = re.search(r"\n###\s+", version_section[api_start:])
+        api_end = api_start + next_subsec_match.start() if next_subsec_match else len(version_section)
+        api_section = version_section[api_start:api_end].strip()
+
+        api_items = []
+        current_item = []
+        for line in api_section.splitlines():
+            if re.match(r"^\s*\*\s+", line):
+                if current_item:
+                    api_items.append("\n".join(current_item).strip())
+                current_item = [line]
+            else:
+                current_item.append(line)
+        if current_item:
+            api_items.append("\n".join(current_item).strip())
+
+        return cls(api_items)
+
+    @staticmethod
+    def format_missing_item(entry):
+        if entry.type in {EntryType.NEW, EntryType.OLD}:
+            return (
+                f"{entry.type} API `{entry.new_signature or entry.old_signature}` missing in changelog:\n"
+                f" - `{entry.new_module or entry.old_module}` mention not found.\n"
+                f" - `{entry.new_name or entry.old_name}` mention not found.\n"
+            )
+        if entry.type == EntryType.UPD_NAME:
+            return (
+                f"Updated API `{entry.old_signature} -> {entry.new_signature}` missing in changelog:\n"
+                f" - `{entry.new_module}` mention not found.\n"
+                f" - `{entry.old_name}` mention not found.\n"
+                f" - `{entry.new_name}` mention not found.\n"
+            )
+
+        msg = (
+            f"Updated API `{entry.old_signature} -> {entry.new_signature}` missing in changelog:\n"
+            f" - `{entry.new_module}` mention not found.\n"
+            f" - `{entry.new_name}` mention not found.\n"
+        )
+        for arg in entry.new_args | entry.old_args:
+            msg += f" - `{arg}` mention not found.\n"
+
+        return msg
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Compare API signatures between a base file and an updated file and check changes against the backlog."
+    )
+    parser.add_argument(
+        "--old",
+        type=Path,
+        required=False,
+        help="Path to the base version of the API file.",
+    )
+    parser.add_argument(
+        "--new",
+        type=Path,
+        required=False,
+        help="Path to the updated version of the API file.",
+    )
+    parser.add_argument(
+        "--backlog",
+        default=Path("changelogs/Spyder-6.md"),
+        type=Path,
+        help="Path to the backlog file (e.g. CHANGELOG.md).",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging.",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    if not args.old and not args.new:
+        sys.stderr.write("Error: At least one of --old or --new must be provided.\n")
+        sys.exit(1)
+
+    old_signatures = SignatureItem.get_signatures(args.old)
+    new_signatures = SignatureItem.get_signatures(args.new)
+
+    entries = Entry.map_entries(old_signatures, new_signatures)
+
+    if not entries:
+        sys.stdout.write("No public API changes detected.\n")
+        sys.exit(0)
+
+    changelog = ChagelogAPI.from_file(args.backlog)
+    if changelog is None:
+        sys.exit(1)
+
+    missing_entries = changelog.get_missing(entries)
+
+    try:
+        first_missing_entry = next(missing_entries)
+    except StopIteration:
+        sys.stdout.write("All public API changes are properly logged in the backlog.\n")
+        sys.exit(0)
+
+    sys.stdout.write(changelog.format_missing_item(first_missing_entry))
+
+    for item in missing_entries:
+        sys.stdout.write(changelog.format_missing_item(item))
+
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
