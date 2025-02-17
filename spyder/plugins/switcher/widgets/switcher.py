@@ -8,7 +8,7 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
+from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QItemSelectionModel
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
@@ -530,7 +530,7 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(
-            proxy_index, selection_model.ClearAndSelect
+            proxy_index, QItemSelectionModel.SelectionFlag.ClearAndSelect
         )
 
         # Ensure that the selected item is visible

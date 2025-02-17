@@ -1661,18 +1661,22 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Select/drag downwards
         if move_n_blocks > 0:
             for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.NextBlock, cursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.MoveOperation.NextBlock,
+                                    QTextCursor.MoveMode.KeepAnchor)
         # Select/drag upwards or select single line
         else:
-            cursor.movePosition(cursor.NextBlock)
+            cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
             for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(cursor.PreviousBlock, cursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock,
+                                    QTextCursor.MoveMode.KeepAnchor)
 
         # Account for last line case
         if linenumber_released == self.blockCount():
-            cursor.movePosition(cursor.EndOfBlock, cursor.KeepAnchor)
+            cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock,
+                                QTextCursor.MoveMode.KeepAnchor)
         else:
-            cursor.movePosition(cursor.StartOfBlock, cursor.KeepAnchor)
+            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock,
+                                QTextCursor.MoveMode.KeepAnchor)
 
         self.setTextCursor(cursor)
 
@@ -4080,10 +4084,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                     line_start_position = cursor.position()
 
                     cursor.setPosition(line_start_position + start,
-                                       cursor.MoveAnchor)
+                                       QTextCursor.MoveMode.MoveAnchor)
                     start_rect = self.cursorRect(cursor)
                     cursor.setPosition(line_start_position + end,
-                                       cursor.MoveAnchor)
+                                       QTextCursor.MoveMode.MoveAnchor)
                     end_rect = self.cursorRect(cursor)
                     bounding_rect = start_rect.united(end_rect)
 
@@ -4091,7 +4095,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                     if bounding_rect.contains(coordinates):
                         text = line[start:end]
                         cursor.setPosition(line_start_position + start,
-                                           cursor.KeepAnchor)
+                                           QTextCursor.MoveMode.KeepAnchor)
                         break_loop = True
                         break
 

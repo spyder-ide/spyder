@@ -8,7 +8,7 @@
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtGui import QColor, QTextFrameFormat
+from qtpy.QtGui import QColor, QTextFrameFormat, QTextCursor
 from qtpy.QtWidgets import QTextEdit
 
 # Local imports
@@ -67,7 +67,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         ruler.setWidth(10000)
         ruler.setBackground(QColor(SpyderPalette.COLOR_TEXT_1))
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
+        cursor.movePosition(QTextCursor.MoveOperation.End)
         cursor.insertFrame(ruler)
 
     # ---- Private methods
