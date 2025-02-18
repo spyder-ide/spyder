@@ -1053,13 +1053,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Set splash message"""
         if self.splash is None:
             return
-        if message:
-            logger.info(message)
         self.splash.show()
-        self.splash.showMessage(message,
-                                int(Qt.AlignBottom | Qt.AlignCenter |
-                                    Qt.AlignAbsolute),
-                                QColor(Qt.white))
+        self.splash.showMessage(
+            message,
+            int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+            QColor(Qt.white),
+        )
         QApplication.processEvents()
 
     def change_last_focused_widget(self, old, now):
