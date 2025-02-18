@@ -57,7 +57,8 @@ jobs:
         uses: tj-actions/changed-files@v45
         with:
           # since_last_remote_commit: true 
-          files: *.py
+          files: |
+            *.py
       - name: List all changed files
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
