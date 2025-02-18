@@ -4763,8 +4763,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         line_text = self.textCursor().block().text()
         pos = self.textCursor().position()
 
-        timer = QTimer()
-        timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
+        timer = QTimer(self)
+        timer.setInterval(300)
+        timer.setSingleShot(True)
+        timer.timeout.connect(lambda: self.popup_docstring(line_text, pos))
+        timer.start()
 
     def set_current_project_path(self, root_path=None):
         """

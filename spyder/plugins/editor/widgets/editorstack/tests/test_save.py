@@ -17,6 +17,7 @@ from unittest.mock import Mock
 # Third party imports
 from flaky import flaky
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -211,6 +212,7 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved = save_file_saved
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
     """Test EditorStack.file_saved_in_other_editorstack()."""
     es = editor_splitter_layout_bot

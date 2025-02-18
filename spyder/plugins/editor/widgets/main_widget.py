@@ -342,7 +342,6 @@ class EditorMainWidget(PluginMainWidget):
         # Start autosave component
         # (needs to be done before EditorSplitter)
         self.autosave = AutosaveForPlugin(self)
-        self.autosave.try_recover_from_autosave()
 
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_conf('autosave_interval') * 1000
