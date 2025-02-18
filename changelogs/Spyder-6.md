@@ -4,6 +4,7 @@
 
 ### API changes
 
+* **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
 * Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
 * Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
   get and register new rest API modules for the remote client.
