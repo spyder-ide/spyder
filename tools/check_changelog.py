@@ -24,17 +24,12 @@ import ast
 import logging
 import re
 import sys
+from io import StringIO
+from subprocess import check_output
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
-from functools import cached_property, wraps
+from functools import cached_property, wraps, lru_cache
 from pathlib import Path
-
-# Get the current version from Spyder.
-try:
-    from spyder import __version__
-except ImportError:
-    sys.stderr.write("Error: Could not import Spyder to get __version__.\n")
-    sys.exit(1)
 
 if sys.version_info >= (3, 9):
     _unparse = ast.unparse
@@ -43,11 +38,11 @@ else:
     def _unparse(node):
         return astor.to_source(node).strip()
 
-
 _logger = logging.getLogger(Path(__file__).stem)
 
 
 CHAGELOG_DIR = Path("changelogs")
+API_REGEX = re.compile(r".*spyder\/(api\/.+|plugins/[^\/]+\/plugin)\.py")
 
 
 def generate_to(cls):
@@ -60,21 +55,26 @@ def generate_to(cls):
 
 
 def get_current_changelog():
-    major = __version__.split(".")[0]
+    if (version := get_current_version()) is None:
+        return None
+    major = version.split(".")[0]
     return CHAGELOG_DIR / f"Spyder-{major}.md"
 
 
+@lru_cache
 def get_current_version():
+    # Get the current version from Spyder.
+    try:
+        version = check_output(["python", "-c", "from spyder import __version__; print(__version__)"], text=True).strip()
+    except Exception:
+        _logger.exception("Error: Could not import Spyder to get __version__.")
+        sys.exit(1)
     # PEP 440 compliant
-    m = re.match(r"(d+(\.\d)*)((a|b|rc)\d)?(.post\d)?(.dev\d)?", __version__)
-    # Exclude pre-releases
-    if m and (m.group(4) or m.group(6)):
-        return None
-
+    m = re.match(r"(\d+(\.\d)*)((a|b|rc)\d)?(\.post\d)?(\.dev\d)?", version)
     if m:
         return m.group(1)
 
-    sys.stderr.write(f"Could not extract a valid version from {__version__}.\n")
+    sys.stderr.write(f"Could not extract a valid version from {version}\n")
     sys.exit(1)
 
 
@@ -227,7 +227,7 @@ class SignatureItem:
 
     @classmethod
     @generate_to(set)
-    def get_signatures(cls, source: str, module: str):
+    def get_signatures(cls, source: str | bytearray, module: str):
         tree = ast.parse(source)
         for node in tree.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -367,7 +367,7 @@ class Entry:
             for old_sig in diff_signatures_old:
                 if new_sig.is_renamed(old_sig):
                     diff_signatures_old.remove(old_sig)
-                    yield Entry(new_sig, old_sig)
+                    yield Entry(old_sig, new_sig)
                     break
                 if new_sig.is_args_changed(old_sig):
                     diff_signatures_old.remove(old_sig)
@@ -482,46 +482,90 @@ class ChagelogAPI:
         return msg
 
 
-_HDR_PAT = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
+def fqn_from_path(path):
+    if path.startswith(("a/", "b/")):
+        path = path[2:]
+    path = path.split(".")[0]
+    return ".".join(path.split("/"))
 
 
-def apply_patch(diff, *, revert=False):
-    p = diff.splitlines(keepends=True)
-
-    i = 0
-    while i < len(p) + 1 and p[i].startswith("---"):
-        i += 1
-
-    filename = Path(p[i - 1][6:])
-    file = filename.read_text(encoding="utf-8")
-    s = file.splitlines(keepends=True)
-
-    i += 2
-    t = ""
-    sl = 0
+def apply_patch(original, patch, *, revert=False):
+    original_lines = original.splitlines(keepends=True)
+    patch_lines = patch.splitlines(keepends=True)
+    line_patch = 0
+    patched_text = ""
+    line_start = 0
     (midx, sign) = (1, "+") if not revert else (3, "-")
-    while i < len(p):
-        m = _HDR_PAT.match(p[i])
-        if not m:
+    hunk_header = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+    while line_patch < len(patch_lines):
+        match = hunk_header.match(patch_lines[line_patch])
+        if not match:
             msg = "Cannot process diff"
             raise RuntimeError(msg)
-        i += 1
-        l = int(m.group(midx)) - 1 + (m.group(midx + 1) == "0")
-        t += "".join(s[sl:l])
-        sl = l
-        while i < len(p) and p[i][0] != "@":
-            if i + 1 < len(p) and p[i + 1][0] == "\\":
-                line = p[i][:-1]
-                i += 2
+        line_patch += 1
+        line_end = int(match.group(midx)) - 1 + (match.group(midx + 1) == "0")
+        patched_text += "".join(original_lines[line_start:line_end])
+        line_start = line_end
+        while line_patch < len(patch_lines) and patch_lines[line_patch][0] != "@":
+            if line_patch + 1 < len(patch_lines) and patch_lines[line_patch + 1][0] == "\\":
+                line = patch_lines[line_patch][:-1]
+                line_patch += 2
             else:
-                line = p[i]
-                i += 1
+                line = patch_lines[line_patch]
+                line_patch += 1
             if len(line) > 0:
                 if line[0] == sign or line[0] == " ":
-                    t += line[1:]
-                sl += line[0] != sign
-    t += "".join(s[sl:])
-    return t, file, filename
+                    patched_text += line[1:]
+                line_start += line[0] != sign
+    patched_text += "".join(original_lines[line_start:])
+    return patched_text
+
+
+def get_diff_buffer(old_file, new_file, *, revert=False):
+    if revert:
+        old_file, new_file = new_file, old_file
+
+    old_buffer = StringIO()
+    new_buffer = StringIO()
+
+    if old_file.strip() == "/dev/null":
+        new_buffer.name = fqn_from_path(new_file)
+    elif new_file.strip() == "/dev/null":
+        old_buffer.name = fqn_from_path(old_file)
+        old_path = Path(old_file[2:] if old_file.startswith(("a/", "b/")) else old_file)
+        old_buffer.write(old_path.read_text(encoding="utf-8"))
+        old_buffer.seek(0)
+    else:
+        # A modified file (both versions exist).
+        old_path = Path(old_file[2:] if old_file.startswith(("a/", "b/")) else old_file)
+        old_buffer.write(old_path.read_text(encoding="utf-8"))
+        old_buffer.seek(0)
+        old_buffer.name = fqn_from_path(old_file)
+        new_buffer.name = fqn_from_path(new_file)
+
+    return old_buffer, new_buffer
+
+
+def parse_diff(diff, *, match=None, revert=False):
+    # Remove metadata lines (like "diff --git", "index", "new file mode", etc.)
+    diff = re.sub(r"^\w.*\n?", "", diff, flags=re.MULTILINE)
+
+    # Split the diff into header and content parts.
+    parts = re.split(r"^---\s+(.+)\n\+\+\+\s+(.+)\n", diff, flags=re.MULTILINE)
+    for i in range(1, len(parts), 3):  # skip preamble
+        old_file = parts[i].strip()
+        new_file = parts[i + 1].strip()
+        if match and not (match.match(old_file) or match.match(new_file)):
+            _logger.debug("Skipping diff for %s -> %s", old_file, new_file)
+            continue
+
+        _logger.debug("Processing diff for %s -> %s", old_file, new_file)
+        patch = parts[i + 2]
+        old_buffer, new_buffer = get_diff_buffer(old_file, new_file, revert=revert)
+        patched_content = apply_patch(old_buffer.getvalue(), patch, revert=revert)
+        new_buffer.write(patched_content)
+        new_buffer.seek(0)
+        yield old_buffer, new_buffer
 
 
 def parse_arguments():
@@ -565,12 +609,11 @@ def main():
         sys.stdout.write("Skipping pre-release version.\n")
         sys.exit(0)
 
-    old_file, new_file, filename = apply_patch(args.diff.read(), revert=True)
-
-    module = ".".join([*filename.parts[:-1], filename.stem])
-
-    old_signatures = SignatureItem.get_signatures(old_file, module)
-    new_signatures = SignatureItem.get_signatures(new_file, module)
+    old_signatures = set()
+    new_signatures = set()
+    for new_file, old_file in parse_diff(args.diff.read(), match=API_REGEX, revert=True):
+        old_signatures.update(SignatureItem.get_signatures(old_file.getvalue(), old_file.name))
+        new_signatures.update(SignatureItem.get_signatures(new_file.getvalue(), new_file.name))
 
     entries = Entry.map_entries(old_signatures, new_signatures)
 
