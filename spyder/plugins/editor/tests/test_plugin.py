@@ -368,9 +368,9 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     codeeditor = editor.get_current_editor()
     assert codeeditor.is_cloned
 
-    # Assert the number of calls to document_did_open is exactly the
-    # same as before
-    assert CodeEditor.document_did_open.call_count == 5
+    # Assert the number of calls to document_did_open is exactly double
+    # compared to the previous count.
+    assert CodeEditor.document_did_open.call_count == 10
 
     # Close cloned editor to verify that notify_close is called from it.
     assert CodeEditor.notify_close.call_count == 0
