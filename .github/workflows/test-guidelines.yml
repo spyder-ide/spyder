@@ -69,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-            fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+            fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -79,7 +79,7 @@ jobs:
         id: files-diff
         run: |
             if ${{ github.event_name == 'pull_request' }}; then
-              git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -U0 --output diff.txt
+              git diff ${{ github.event.base_ref }} ${{ github.event.pull_request.head.sha }} -U0 --output diff.txt
             else
               git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --output diff.txt
             fi
