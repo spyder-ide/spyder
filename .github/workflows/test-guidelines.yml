@@ -78,9 +78,9 @@ jobs:
         id: files-diff
         run: |
             if ${{ github.event_name == 'pull_request' }}; then
-              (git diff -r ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | xargs) > diff.txt
+              git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > diff.txt
             else
-              (git diff ${{ github.event.before }} ${{ github.event.after }} | xargs) > diff.txt
+              git diff ${{ github.event.before }} ${{ github.event.after }} > diff.txt
             fi
       - name: List changed files
         run: |
