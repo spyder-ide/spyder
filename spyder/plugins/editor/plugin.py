@@ -829,6 +829,11 @@ class Editor(SpyderDockablePlugin):
         font = self.get_font(SpyderFontType.Monospace)
         self.get_widget().update_font(font)
 
+    def before_mainwindow_visible(self):
+        # Don't move this to on_mainwindow_visible because the window appears
+        # empty while the recovery dialog is shown.
+        self.get_widget().autosave.try_recover_from_autosave()
+
     def on_mainwindow_visible(self):
         widget = self.get_widget()
         widget.restore_scrollbar_position()

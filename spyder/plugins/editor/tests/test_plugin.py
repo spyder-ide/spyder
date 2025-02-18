@@ -226,8 +226,13 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
 # The mock_RecoveryDialog fixture needs to be called before setup_editor, so
 # it needs to be mentioned first
 def test_editor_calls_recoverydialog_exec_if_nonempty(
-        mock_RecoveryDialog, editor_plugin):
-    """Check that editor tries to exec a recovery dialog on construction."""
+    mock_RecoveryDialog, editor_plugin
+):
+    """
+    Check that the editor tries to exec a recovery dialog before the main
+    window is visible.
+    """
+    editor_plugin.before_mainwindow_visible()
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
