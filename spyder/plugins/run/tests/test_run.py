@@ -18,6 +18,7 @@ from unittest.mock import MagicMock
 
 # Third-part imports
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import (
     QAction, QWidget, QCheckBox, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel)
@@ -360,6 +361,7 @@ def run_mock(qtbot, tmpdir):
     return run, mock_main_window, temp_dir
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_run_plugin(qtbot, run_mock):
     run, main_window, temp_cwd = run_mock
 

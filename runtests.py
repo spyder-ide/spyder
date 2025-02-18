@@ -21,6 +21,8 @@ os.environ['SPYDER_PYTEST'] = 'True'
 # Don't remove it or change it to a different location!
 # pylint: disable=wrong-import-position
 from qtpy import QtWebEngineWidgets  # noqa
+
+from qtpy.QtCore import QThread
 import pytest
 
 
@@ -58,6 +60,15 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
+
+    # Disconnect all signal-slots connection of the main QThread just before
+    # runtests.py exits. This prevents a SEGFAULT when the finished signal of
+    # the main QThread is triggered. This is an issue in the PyQt6 bindings
+    # (PySide6 is also affected).
+    try:
+        QThread.currentThread().disconnect()
+    except TypeError:  # raised when no signals are connected
+        pass
 
     # sys.exit doesn't work here because some things could be running in the
     # background (e.g. closing the main window) when this point is reached.
