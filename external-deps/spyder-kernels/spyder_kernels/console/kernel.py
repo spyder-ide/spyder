@@ -93,6 +93,11 @@ class SpyderKernel(IPythonKernel):
         # To save the python env info
         self.pythonenv_info: PythonEnvInfo = {}
 
+        # Store original sys.path. Kernels are started with PYTHONPATH
+        # removed from environment variables, so this will never have
+        # user paths and should be clean.
+        self._sys_path = sys.path.copy()
+
     @property
     def kernel_info(self):
         # Used for checking correct version by spyder
@@ -770,27 +775,42 @@ class SpyderKernel(IPythonKernel):
         raise NotImplementedError(f"{special}")
 
     @comm_handler
-    def update_syspath(self, path_dict, new_path_dict):
+    def update_syspath(self, new_path, prioritize):
         """
         Update the PYTHONPATH of the kernel.
 
-        `path_dict` and `new_path_dict` have the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
+        Parameters
+        ----------
+        new_path: list of str
+            List of PYTHONPATH paths.
+        prioritize: bool
+            Whether to place PYTHONPATH paths at the front (True) or
+            back (False) of sys.path.
 
-        `path_dict` corresponds to the previous state of the PYTHONPATH.
-        `new_path_dict` corresponds to the new state of the PYTHONPATH.
+        Notes
+        -----
+        A copy of sys.path is made at instantiation, which should be clean,
+        so we can just prepend/append to the copy without having to explicitly
+        remove old user paths. PYTHONPATH can just be overwritten.
         """
-        # Remove old paths
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
+        if new_path is not None:
+            # Overwrite PYTHONPATH
+            os.environ.update({'PYTHONPATH': os.pathsep.join(new_path)})
 
-        # Add new paths
-        pypath = [path for path, active in new_path_dict.items() if active]
-        if pypath:
-            sys.path.extend(pypath)
-            os.environ.update({'PYTHONPATH': os.pathsep.join(pypath)})
+            # Add new paths to original sys.path
+            if prioritize:
+                sys.path[:] = new_path + self._sys_path
+
+                # Ensure current directory is always first to imitate Python
+                # standard behavior
+                if '' in sys.path:
+                    sys.path.remove('')
+                    sys.path.insert(0, '')
+            else:
+                sys.path[:] = self._sys_path + new_path
         else:
+            # Restore original sys.path and remove PYTHONPATH
+            sys.path[:] = self._sys_path
             os.environ.pop('PYTHONPATH', None)
 
     @comm_handler
