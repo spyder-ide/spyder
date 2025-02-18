@@ -7,7 +7,7 @@
 from __future__ import annotations
 import asyncio
 import asyncio.events
-from asyncio.tasks import _current_tasks
+from asyncio.tasks import _current_tasks  # type: ignore
 import atexit
 from concurrent.futures import CancelledError, Future
 import contextlib
@@ -31,36 +31,14 @@ _logger = logging.getLogger(__name__)
 
 LoopID = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
 
-P = ParamSpec("P")
 
-T = typing.TypeVar("T")
+_P = ParamSpec("_P")
+_T = typing.TypeVar("_T")
+_RT = typing.TypeVar("_RT")
 
 
-class AsyncDispatcher:
-    """Decorator to convert a coroutine to a sync function.
-
-    Helper class to facilitate the conversion of coroutines to sync functions
-    or to run a coroutine as a sync function without the need to call the event
-    loop method.
-
-    Usage
-    ------
-    As a decorator:
-    ```
-    @AsyncDispatcher.dispatch()
-    async def my_coroutine():
-        pass
-
-    my_coroutine()
-    ```
-
-    As a class wrapper:
-    ```
-    sync_coroutine = AsyncDispatcher(my_coroutine)
-
-    sync_coroutine()
-    ```
-    """
+class AsyncDispatcher(typing.Generic[_RT]):
+    """Decorator to run a coroutine in a specific event loop."""
 
     __rlock = threading.RLock()
 
@@ -68,72 +46,172 @@ class AsyncDispatcher:
     __running_threads: typing.ClassVar[dict[typing.Hashable, _LoopRunner]] = {}
     _running_tasks: typing.ClassVar[list[Future]] = []
 
+    @typing.overload
+    def __init__(
+        self: AsyncDispatcher[Future[_T]],
+        *,
+        loop: LoopID | None = ...,
+        early_return: typing.Literal[True] = ...,
+        return_awaitable: typing.Literal[False] = ...
+    ):
+        ...
+
+    @typing.overload
+    def __init__(
+        self: AsyncDispatcher[typing.Awaitable[_T]],
+        *,
+        loop: LoopID | None = ...,
+        early_return: typing.Literal[True] = ...,
+        return_awaitable: typing.Literal[True] = ...
+    ):
+        ...
+
+    @typing.overload
+    def __init__(
+        self: AsyncDispatcher[_T],
+        *,
+        loop: LoopID | None = ...,
+        early_return: typing.Literal[False] = ...,
+        return_awaitable: typing.Literal[False] = ...
+    ):
+        ...
+
+    @typing.overload
+    def __init__(
+        self: AsyncDispatcher[typing.Awaitable[_T]],
+        *,
+        loop: LoopID | None = ...,
+        early_return: typing.Literal[False] = ...,
+        return_awaitable: typing.Literal[True] = ...
+    ):
+        ...
+
     def __init__(self,
-                 async_func: typing.Callable[..., typing.Coroutine[
-                             typing.Any, typing.Any, typing.Any]],
                  *,
                  loop: LoopID | None = None,
                  early_return: bool = True,
                  return_awaitable: bool = False):
-        """Initialize the decorator.
+        """
+        Decorate a coroutine to run in a specific event loop.
+
+        The `loop` parameter can be an existing loop or a hashable to identify
+        an existing/new one (to be) created by the AsyncDispatcher. If the
+        loop is not running, it will be started in a new thread and managed by
+        the AsyncDispatcher.
+
+        This instance can be called with the same arguments as the coroutine it
+        wraps and will return a concurrent Future object, or an awaitable
+        Future for the current running event loop or the result of the coroutine
+        depending on the `early_return` and `return_awaitable` parameters.
+
+        Usage
+        -----
+        Non-Blocking usage (returns a concurrent Future):
+        ```
+        @AsyncDispatcher()
+        async def my_coroutine(...):
+            ...
+
+        future = my_coroutine(...)  # Non-blocking call
+
+        result = future.result()  # Blocking call
+        ```
+
+        Blocking usage (returns the result):
+        ```
+        @AsyncDispatcher(early_return=False)
+        async def my_coroutine(...):
+            ...
+
+        result = my_coroutine(...)  # Blocking call
+        ```
+
+        Coroutine usage (returns an awaitable Future):
+        ```
+        @AsyncDispatcher(return_awaitable=True)
+        async def my_coroutine(...):
+            ...
+
+        result = await my_coroutine(...)  # Wait for the result to be ready
+        ```
 
         Parameters
         ----------
-        coro : coroutine
-            The coroutine to be wrapped.
-        loop : asyncio.AbstractEventLoop, optional
+        loop : LoopID, optional (default: None)
             The event loop to be used, by default get the current event loop.
-        early_return : bool, optional
-            Return the coroutine as a Future object before it is done
-            or wait for it to finish and return the result.
-        return_awaitable : bool, optional
-            Return the coroutine as an awaitable object instead of a Future.
+        early_return : bool, optional (default: True)
+            Return the coroutine as a concurrent Future before it is done.
+        return_awaitable : bool, optional (default: False)
+            Return the coroutine as an awaitable (asyncio) Future instead
+            of a concurrent Future. Idenpendently of the value of `early_return`.
+        """
+        self._loop = self._ensure_running_loop(loop)
+        self._early_return = early_return
+        self._return_awaitable = return_awaitable
+    
+    @typing.overload
+    def __call__(
+        self: AsyncDispatcher[typing.Awaitable[_T]],
+        async_func: typing.Callable[_P, typing.Awaitable[_T]],
+    ) -> typing.Callable[_P, typing.Awaitable[_T]]:
+        ...
+
+    @typing.overload
+    def __call__(
+        self: AsyncDispatcher[Future[_T]],
+        async_func: typing.Callable[_P, typing.Awaitable[_T]],
+    ) -> typing.Callable[_P, Future[_T]]:
+        ...
+
+    @typing.overload
+    def __call__(
+        self: AsyncDispatcher[_T],
+        async_func: typing.Callable[_P, typing.Awaitable[_T]],
+    ) -> typing.Callable[_P, _T]:
+        ...
+
+    def __call__(
+            self,
+            async_func: typing.Callable[_P, typing.Awaitable[_T]],
+        ) -> typing.Callable[_P, typing.Union[_T, Future[_T], typing.Awaitable[_T]]]:
+        """
+        Run the coroutine in the event loop.
+
+        Parameters
+        ----------
+        *args : tuple
+            The positional arguments to be passed to the coroutine.
+        **kwargs : dict
+            The keyword arguments to be passed to the coroutine.
+
+        Returns
+        -------
+        concurrent.Future or asyncio.Future or result of the coroutine
+
+        Raises
+        ------
+        TypeError
+            If the function is not a coroutine function.
         """
         if not asyncio.iscoroutinefunction(async_func):
             msg = f"{async_func} is not a coroutine function"
             raise TypeError(msg)
-        self._async_func = async_func
-        self._loop = self._ensure_running_loop(loop)
-        self._early_return = early_return
-        self._return_awaitable = return_awaitable
 
-    def __call__(self, *args, **kwargs):
-        task = asyncio.run_coroutine_threadsafe(
-            self._async_func(*args, **kwargs), loop=self._loop
-        )
-        if self._return_awaitable:
-            return asyncio.wrap_future(task, loop=asyncio.get_running_loop())
+        @functools.wraps(async_func)
+        def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Union[_T, Future[_T], typing.Awaitable[_T]]:
+            task = asyncio.run_coroutine_threadsafe(
+                async_func(*args, **kwargs), loop=self._loop
+            )
+            if self._return_awaitable:
+                return asyncio.wrap_future(task, loop=asyncio.get_running_loop())
 
-        if self._early_return:
-            AsyncDispatcher._running_tasks.append(task)
-            task.add_done_callback(self._callback_task_done)
-            return task
-        return task.result()
+            if self._early_return:
+                AsyncDispatcher._running_tasks.append(task)
+                task.add_done_callback(self._callback_task_done)
+                return task
+            return task.result()
 
-    @classmethod
-    def dispatch(cls,
-                 *,
-                 loop: LoopID | None = None,
-                 early_return: bool = True,
-                 return_awaitable: bool = False):
-        """Create a decorator to run the coroutine with a given event loop."""
-
-        def decorator(
-            async_func: typing.Callable[P, typing.Coroutine[typing.Any,
-                                                            typing.Any, T]]
-        ) -> typing.Callable[P, asyncio.Future[T] | Future[T] | T]:
-            @functools.wraps(async_func)
-            def wrapper(*args, **kwargs):
-                return cls(async_func,
-                           loop=loop,
-                           early_return=early_return,
-                           return_awaitable=return_awaitable)(
-                    *args, **kwargs
-                )
-
-            return wrapper
-
-        return decorator
+        return wrapper
 
     def _callback_task_done(self, future: Future):
         AsyncDispatcher._running_tasks.remove(future)
@@ -222,7 +300,7 @@ class AsyncDispatcher:
     @classmethod
     def _stop_running_loop(cls,
                            loop_id: LoopID,
-                           timeout: int | None = None):
+                           timeout: float | None = None):
         runner = cls.__running_threads.pop(loop_id, None)
 
         if runner is None:
@@ -234,7 +312,7 @@ class AsyncDispatcher:
 class _LoopRunner(threading.Thread):
     """A task runner that runs an asyncio event loop on a background thread."""
 
-    def __init__(self, loop_id: str,
+    def __init__(self, loop_id: typing.Hashable,
                  loop: asyncio.AbstractEventLoop):
         super().__init__(daemon=True, name=f"AsyncDispatcher-{loop_id}")
         self.__loop = loop
@@ -387,11 +465,11 @@ def _patch_loop_as_reentrant(loop):
     if not isinstance(loop, asyncio.BaseEventLoop):
         raise ValueError('Can\'t patch loop of type %s' % type(loop))
     cls = loop.__class__
-    cls.run_forever = run_forever
-    cls.run_until_complete = run_until_complete
-    cls._run_once = _run_once
-    cls._check_running = _check_running
-    cls._num_runs_pending = 1 if loop.is_running() else 0
-    cls._is_proactorloop = (
-        os.name == 'nt' and issubclass(cls, asyncio.ProactorEventLoop))
-    cls._nest_patched = True
+    setattr(cls, 'run_forever', run_forever)
+    setattr(cls, 'run_until_complete', run_until_complete)
+    setattr(cls, '_run_once', _run_once)
+    setattr(cls, '_check_running', _check_running)
+    setattr(cls, '_num_runs_pending', 1 if loop.is_running() else 0)
+    setattr(cls, '_is_proactorloop', (
+        os.name == 'nt' and issubclass(cls, asyncio.ProactorEventLoop)))
+    setattr(cls, '_nest_patched', True)
