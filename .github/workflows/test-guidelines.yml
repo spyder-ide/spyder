@@ -78,7 +78,6 @@ jobs:
       - name: Get diff files
         id: files-diff
         run: |
-            git fetch --all
             if ${{ github.event_name == 'pull_request' }}; then
               git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -U0 --output diff.txt
             else
