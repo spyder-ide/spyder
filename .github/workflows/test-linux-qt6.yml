@@ -1,4 +1,4 @@
-name: Linux tests with PyQt6/PySide6
+name: Linux tests with PyQt6
 
 on:
   push:
@@ -43,14 +43,14 @@ on:
   workflow_dispatch:
     inputs:
       ssh:
-        # github_cli: gh workflow run test-linux.yml --ref <branch> -f ssh=true
+        # github_cli: gh workflow run test-linux-qt6.yml --ref <branch> -f ssh=true
         description: 'Enable ssh debugging'
         required: false
         default: false
         type: boolean
 
 concurrency:
-  group: test-linux-${{ github.ref }}
+  group: test-linux-qt6-${{ github.ref }}
   cancel-in-progress: true
 
 env:
