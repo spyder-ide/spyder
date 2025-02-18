@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
 """
 Public API signature checker.
 
@@ -9,7 +13,7 @@ version by parsing both files using AST and extracting their signatures
 signatures between the base and updated versions. Any addition, removal, or
 change in signature is flagged as an API change.
 
-Finally, the script reads a backlog file and checks that each API change (using
+Finally, the script reads a chagelog file and checks that each API change (using
 the public API name extracted from the signature) is mentioned in the "API
 changes" section for the current version.
 """
@@ -43,6 +47,9 @@ else:
 _logger = logging.getLogger(Path(__file__).stem)
 
 
+CHAGELOG_DIR = Path("changelogs")
+
+
 def generate_to(cls):
     def decorator(func):
         @wraps(func)
@@ -52,11 +59,23 @@ def generate_to(cls):
     return decorator
 
 
+def get_current_changelog():
+    major = __version__.split(".")[0]
+    return CHAGELOG_DIR / f"Spyder-{major}.md"
+
+
 def get_current_version():
-    m = re.match(r"(\d+\.\d+\.\d+)", __version__)
+    # PEP 440 compliant
+    m = re.match(r"(d+(\.\d)*)((a|b|rc)\d)?(.post\d)?(.dev\d)?", __version__)
+    # Exclude pre-releases
+    if m and (m.group(4) or m.group(6)):
+        return None
+
     if m:
         return m.group(1)
-    return __version__
+
+    sys.stderr.write(f"Could not extract a valid version from {__version__}.\n")
+    sys.exit(1)
 
 
 class SignatureType(Enum):
@@ -207,25 +226,16 @@ class SignatureItem:
                 )
 
     @classmethod
-    def find_signatures(cls, filename: Path):
-        source = filename.read_bytes()
-        tree = ast.parse(source, filename)
-        # Build a module id from the file path. (e.g. spyder.api.asyncdispatcher)
-        mod_id = ".".join([*filename.parts[:-1], filename.stem])
+    @generate_to(set)
+    def get_signatures(cls, source: str, module: str):
+        tree = ast.parse(source)
         for node in tree.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                yield from cls.function_signature(node, mod_id)
+                yield from cls.function_signature(node, module)
             elif isinstance(node, ast.ClassDef):
-                yield from cls.class_signature(node, mod_id)
+                yield from cls.class_signature(node, module)
             elif isinstance(node, (ast.Assign, ast.AnnAssign)):
-                yield from cls.assignment_signature(node, mod_id)
-
-    @classmethod
-    def get_signatures(cls, filename: Path | None):
-        if filename is None:
-            return set()
-
-        return set(cls.find_signatures(filename))
+                yield from cls.assignment_signature(node, module)
 
 
 class EntryType(Enum):
@@ -389,14 +399,14 @@ class ChagelogAPI:
 
         pool = ThreadPoolExecutor()
 
-        class_in_backlog = [
+        class_in_chagelog = [
             entry for (check, entry) in pool.map(lambda x: (self.check(x), x), classes) if check
         ]
 
-        _logger.debug("Classes in backlog: %s", class_in_backlog)
+        _logger.debug("Classes in chagelog: %s", class_in_chagelog)
 
         def not_class_items(entry):
-            return not entry.is_included(class_in_backlog)
+            return not entry.is_included(class_in_chagelog)
 
         not_included_in_class = filter(not_class_items, entries)
 
@@ -405,24 +415,23 @@ class ChagelogAPI:
         )
 
     @classmethod
-    def from_file(cls, filename, version=None):
+    def from_file(cls, filename, version):
         try:
-            backlog_text = filename.read_text(encoding="utf-8")
+            chagelog_text = filename.read_text(encoding="utf-8")
         except (ValueError, OSError) as e:
-            sys.stderr.write(f"Error reading backlog file: {e}\n")
+            sys.stderr.write(f"Error reading chagelog file: {e}\n")
             return None
 
-        version = version or get_current_version()
         version_header_re = rf"##\s+Version\s+{re.escape(version)}"
-        version_match = re.search(version_header_re, backlog_text)
+        version_match = re.search(version_header_re, chagelog_text)
         if not version_match:
-            sys.stderr.write(f"Could not find a backlog section for version {version}.\n")
+            sys.stderr.write(f"Could not find a chagelog section for version {version}.\n")
             return None
 
         start = version_match.end()
-        next_section_match = re.search(r"\n##\s+", backlog_text[start:])
-        end = start + next_section_match.start() if next_section_match else len(backlog_text)
-        version_section = backlog_text[start:end]
+        next_section_match = re.search(r"\n##\s+", chagelog_text[start:])
+        end = start + next_section_match.start() if next_section_match else len(chagelog_text)
+        version_section = chagelog_text[start:end]
         api_header_match = re.search(r"###\s+API changes\s*(?:\n|-)+", version_section)
         if not api_header_match:
             sys.stderr.write(f"Could not find a '### API changes' section in version {current_version}.\n")
@@ -473,27 +482,70 @@ class ChagelogAPI:
         return msg
 
 
+_HDR_PAT = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
+
+
+def apply_patch(diff, *, revert=False):
+    p = diff.splitlines(keepends=True)
+
+    i = 0
+    while i < len(p) + 1 and p[i].startswith("---"):
+        i += 1
+
+    filename = Path(p[i - 1][6:])
+    file = filename.read_text(encoding="utf-8")
+    s = file.splitlines(keepends=True)
+
+    i += 2
+    t = ""
+    sl = 0
+    (midx, sign) = (1, "+") if not revert else (3, "-")
+    while i < len(p):
+        m = _HDR_PAT.match(p[i])
+        if not m:
+            msg = "Cannot process diff"
+            raise RuntimeError(msg)
+        i += 1
+        l = int(m.group(midx)) - 1 + (m.group(midx + 1) == "0")
+        t += "".join(s[sl:l])
+        sl = l
+        while i < len(p) and p[i][0] != "@":
+            if i + 1 < len(p) and p[i + 1][0] == "\\":
+                line = p[i][:-1]
+                i += 2
+            else:
+                line = p[i]
+                i += 1
+            if len(line) > 0:
+                if line[0] == sign or line[0] == " ":
+                    t += line[1:]
+                sl += line[0] != sign
+    t += "".join(s[sl:])
+    return t, file, filename
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Compare API signatures between a base file and an updated file and check changes against the backlog."
+        description="Compare API signatures between a base file and an updated file and check changes against the chagelog."
     )
     parser.add_argument(
-        "--old",
-        type=Path,
-        required=False,
-        help="Path to the base version of the API file.",
+        "diff",
+        nargs="?",
+        type=argparse.FileType("r", encoding="utf-8"),
+        default=sys.stdin,
+        help="Path to git diff file (default: STDIN)",
     )
     parser.add_argument(
-        "--new",
+        "--chagelog",
+        default=get_current_changelog(),
         type=Path,
-        required=False,
-        help="Path to the updated version of the API file.",
+        help="Path to the changelog file (e.g. CHANGELOG.md).",
     )
     parser.add_argument(
-        "--backlog",
-        default=Path("changelogs/Spyder-6.md"),
-        type=Path,
-        help="Path to the backlog file (e.g. CHANGELOG.md).",
+        "--version",
+        default=get_current_version(),
+        type=str,
+        help="Version to check in the changelog.",
     )
     parser.add_argument(
         "--debug",
@@ -509,12 +561,16 @@ def main():
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    if not args.old and not args.new:
-        sys.stderr.write("Error: At least one of --old or --new must be provided.\n")
-        sys.exit(1)
+    if args.version is None:
+        sys.stdout.write("Skipping pre-release version.\n")
+        sys.exit(0)
 
-    old_signatures = SignatureItem.get_signatures(args.old)
-    new_signatures = SignatureItem.get_signatures(args.new)
+    old_file, new_file, filename = apply_patch(args.diff.read(), revert=True)
+
+    module = ".".join([*filename.parts[:-1], filename.stem])
+
+    old_signatures = SignatureItem.get_signatures(old_file, module)
+    new_signatures = SignatureItem.get_signatures(new_file, module)
 
     entries = Entry.map_entries(old_signatures, new_signatures)
 
@@ -522,7 +578,7 @@ def main():
         sys.stdout.write("No public API changes detected.\n")
         sys.exit(0)
 
-    changelog = ChagelogAPI.from_file(args.backlog)
+    changelog = ChagelogAPI.from_file(args.chagelog, args.version)
     if changelog is None:
         sys.exit(1)
 
@@ -531,7 +587,7 @@ def main():
     try:
         first_missing_entry = next(missing_entries)
     except StopIteration:
-        sys.stdout.write("All public API changes are properly logged in the backlog.\n")
+        sys.stdout.write("All public API changes are properly logged in the chagelog.\n")
         sys.exit(0)
 
     sys.stdout.write(changelog.format_missing_item(first_missing_entry))
