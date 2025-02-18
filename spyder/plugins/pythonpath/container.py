@@ -145,12 +145,6 @@ class PythonpathContainer(PluginMainContainer):
         """
         Save user and system path dictionaries and prioritize to config.
 
-        Notes
-        -----
-        - Each dictionary key is a path and the value is the active state.
-        - sig_pythonpath_changed is emitted from this method, and nowhere else,
-        on condition that _spyder_pythonpath changed.
-
         Parameters
         ----------
         user_paths: OrderedDict
@@ -160,6 +154,12 @@ class PythonpathContainer(PluginMainContainer):
         prioritize: bool
             Whether paths should be prepended (True) or appended (False) to
             sys.path.
+
+        Notes
+        -----
+        - Each dictionary key is a path and the value is the active state.
+        - sig_pythonpath_changed is emitted from this method, and nowhere else,
+        on condition that _spyder_pythonpath changed.
 
         """
         assert isinstance(user_paths, (type(None), OrderedDict))
@@ -203,7 +203,7 @@ class PythonpathContainer(PluginMainContainer):
         Migrate paths saved in the `path` and `not_active_path` files located
         in our config directory to our config system.
 
-        ??? When should we remove this?
+        # TODO: Remove for Spyder 7
         """
         path_file = get_conf_path('path')
         not_active_path_file = get_conf_path('not_active_path')
