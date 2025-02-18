@@ -78,10 +78,10 @@ jobs:
         id: files-diff
         run: |
             if ${{ github.event_name == 'pull_request' }}; then
-                echo "changed_files=$(git diff -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+              (git diff -r ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | xargs) > diff.txt
             else
-                echo "changed_files=$(git diff ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+              (git diff ${{ github.event.before }} ${{ github.event.after }} | xargs) > diff.txt
             fi
       - name: List changed files
         run: |
-            echo "${{ steps.files-diff.outputs.changed_files }}"
+            cat diff.txt
