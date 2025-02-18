@@ -117,6 +117,8 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    sig_code_folding_info = Signal(tuple)
+
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
 
@@ -1263,8 +1265,7 @@ class LSPMixin:
                 self.folding_panel.current_tree, self.folding_panel.root
             )
 
-            folding_info = collect_folding_regions(root)
-            self._folding_info = (current_tree, root, *folding_info)
+            self._folding_info = (current_tree, root, *collect_folding_regions(root))
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1277,11 +1278,16 @@ class LSPMixin:
 
     def _finish_update_folding(self):
         """Finish updating code folding."""
+        self.sig_code_folding_info.emit(self._folding_info)
+        self.apply_code_folding(self._folding_info)
+
+    def apply_code_folding(self, folding_info):
+
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
-        if self._folding_info is not None:
-            self.folding_panel.update_folding(self._folding_info)
+        if folding_info is not None:
+            self.folding_panel.update_folding(folding_info)
 
         self.highlight_folded_regions()
 
