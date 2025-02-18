@@ -148,6 +148,8 @@ class LSPMixin:
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread(None)
+        self.update_folding_thread.finished.connect(
+            self._finish_update_folding)
 
         # Autoformat on save
         self.format_on_save = False
@@ -193,6 +195,7 @@ class LSPMixin:
         self.formatting_characters = []
         self.completion_args = None
         self.folding_supported = False
+        self._folding_info = None
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
@@ -254,7 +257,8 @@ class LSPMixin:
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-            self.document_did_open()
+
+        self.document_did_open()
 
         logger.debug(
             "Completion services available for {0}: {1}".format(
@@ -1261,8 +1265,8 @@ class LSPMixin:
                 self.folding_panel.current_tree, self.folding_panel.root
             )
 
-            folding_info = (current_tree, root, *collect_folding_regions(root))
-            self.sig_code_folding_info.emit(folding_info)
+            folding_info = collect_folding_regions(root)
+            self._folding_info = (current_tree, root, *folding_info)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1273,18 +1277,18 @@ class LSPMixin:
     def highlight_folded_regions(self):
         self.folding_panel.highlight_folded_regions()
 
-    def apply_code_folding(self, folding_info):
+    def _finish_update_folding(self):
         """Finish updating code folding."""
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
-        if folding_info is not None:
-            self.folding_panel.update_folding(folding_info)
+        if self._folding_info is not None:
+            self.folding_panel.update_folding(self._folding_info)
 
         self.highlight_folded_regions()
 
         # Update indent guides, which depend on folding
-        if self.indent_guides._enabled:
+        if self.indent_guides._enabled and len(self.patch) > 0:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
 
