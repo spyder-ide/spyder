@@ -117,8 +117,6 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
-    sig_code_folding_info = Signal(tuple)
-
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
 
