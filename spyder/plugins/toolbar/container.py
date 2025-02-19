@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Tuple, Union
 # Third party imports
 from qtpy.QtCore import QSize, Slot
 from qtpy.QtWidgets import QAction, QWidget
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -469,7 +469,7 @@ class ToolbarContainer(PluginMainContainer):
                 # MainWindow and EditorMainWindow.
                 action.triggered.connect(self.save_last_visible_toolbars)
 
-                if not PYSIDE2:
+                if not (PYSIDE2 or PYSIDE6):
                     # Modifying __class__ of a QObject created by C++ [1] seems
                     # to invalidate the corresponding Python object when PySide
                     # is used (changing __class__ of a QObject created in
