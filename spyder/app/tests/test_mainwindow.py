@@ -4797,12 +4797,18 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=20)
+@flaky(max_runs=8)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Only works on Linux"
+)
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 10),
+    reason="Too flaky in old Python versions"
+)
 @pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """

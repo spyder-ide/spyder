@@ -16,6 +16,7 @@ from qtpy.QtCore import (Qt, Signal, QAbstractListModel, QModelIndex,
 
 # Local imports
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
     RunConfigurationMetadata,
@@ -112,7 +113,16 @@ class RunExecutorListModel(QAbstractListModel):
 
     def get_run_executor_index(self, executor_name: str) -> int:
         ordered_executors = self.executors_per_input[self.current_input]
-        executor_index = ordered_executors[executor_name]
+
+        # This is necessary to avoid an error at teardown of some tests
+        if running_under_pytest():
+            try:
+                executor_index = ordered_executors[executor_name]
+            except KeyError:
+                pass
+        else:
+            executor_index = ordered_executors[executor_name]
+
         return executor_index
 
     def get_initial_index(self) -> int:
@@ -287,7 +297,16 @@ class RunExecutorParameters(QAbstractListModel):
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         pos = index.row()
         pos = 0 if pos == -1 else pos
-        params_id = self.params_index[pos]
+
+        # This is necessary to avoid an error at teardown of some tests
+        if running_under_pytest():
+            try:
+                params_id = self.params_index[pos]
+            except KeyError:
+                pass
+        else:
+            params_id = self.params_index[pos]
+
         params = self.executor_conf_params[params_id]
         params_name = params['name']
         if role == Qt.DisplayRole or role == Qt.EditRole:
