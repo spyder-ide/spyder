@@ -117,7 +117,9 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
-    sig_code_folding_info = Signal(tuple)
+    #: Signal emitted to tell cloned editors that they need to update their
+    # code folding info
+    sig_update_code_folding_info = Signal(tuple)
 
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
@@ -257,8 +259,7 @@ class LSPMixin:
             additional_msg = "cloned editor"
         else:
             additional_msg = ""
-
-        self.document_did_open()
+            self.document_did_open()
 
         logger.debug(
             "Completion services available for {0}: {1}".format(
