@@ -22,6 +22,7 @@ from qtpy.QtWidgets import QAction
 from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.run.api import (
     RunActions, StoredRunExecutorParameters, RunContext, RunExecutor,
     RunResultFormat, RunConfigurationProvider, RunResultViewer, OutputFormat,
@@ -196,6 +197,10 @@ class RunContainer(PluginMainContainer):
             ):
                 last_executor = self.executor_model.get_default_executor(
                     run_comb)
+
+            # This is necessary to avoid an error at teardown of several tests
+            if running_under_pytest():
+                exec_params = {}
 
             # Get execution params
             if context in self.super_contexts:
