@@ -118,8 +118,8 @@ class LSPMixin:
     sig_process_code_analysis = Signal()
 
     #: Signal emitted to tell cloned editors that they need to update their
-    # code folding info
-    sig_update_code_folding_info = Signal(tuple)
+    # code folding.
+    sig_update_code_folding = Signal(tuple)
 
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
@@ -1279,7 +1279,7 @@ class LSPMixin:
 
     def _finish_update_folding(self):
         """Finish updating code folding."""
-        self.sig_code_folding_info.emit(self._folding_info)
+        self.sig_update_code_folding.emit(self._folding_info)
         self.apply_code_folding(self._folding_info)
 
     def apply_code_folding(self, folding_info):

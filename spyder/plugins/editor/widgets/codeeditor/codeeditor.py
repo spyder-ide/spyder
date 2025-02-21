@@ -938,7 +938,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
             # Needed to show code folding in cloned editors.
             # Fixes spyder-ide/spyder#23622
-            cloned_from.sig_update_code_folding_info.connect(
+            cloned_from.sig_update_code_folding.connect(
                 self.apply_code_folding
             )
 
