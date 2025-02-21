@@ -936,6 +936,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             # See spyder-ide/spyder#10900
             self.patch = cloned_from.patch
 
+            # Needed to show code folding in cloned editors.
+            # Fixes spyder-ide/spyder#23622
+            cloned_from.sig_update_code_folding.connect(
+                self.apply_code_folding
+            )
+
             # Clone text and other properties
             self.set_as_clone(cloned_from)
 
