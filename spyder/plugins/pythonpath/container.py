@@ -9,6 +9,7 @@
 
 from collections import OrderedDict
 import logging
+import os
 import os.path as osp
 
 from qtpy.QtCore import Signal
@@ -34,32 +35,34 @@ class PythonpathActions:
 # -----------------------------------------------------------------------------
 class PythonpathContainer(PluginMainContainer):
 
-    sig_pythonpath_changed = Signal(object, object)
+    sig_pythonpath_changed = Signal(object, bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.path = ()
-        self.not_active_path = ()
-        self.project_path = ()
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
     def setup(self):
-
-        # Migrate from old conf files to config options
-        if self.get_conf('paths_in_conf_files', default=True):
+        # Migrate to new config options if necessary
+        if not self.get_conf("config_options_migrated", False):
             self._migrate_to_config_options()
 
-        # Load Python path
-        self._load_pythonpath()
+        # This attribute is only used to detect changes and after initializing
+        # here should only be set in update_active_project_path.
+        self._project_path = OrderedDict()
 
-        # Save current Pythonpath at startup so plugins can use it afterwards
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
+        # These attributes are only used to detect changes and after
+        # initializing here should only be set in _save_paths.
+        self._user_paths = OrderedDict(self.get_conf('user_paths'))
+        self._system_paths = self.get_conf('system_paths')
+        self._prioritize = self.get_conf('prioritize')
+        self._spyder_pythonpath = self.get_conf('spyder_pythonpath')
 
         # Path manager dialog
         self.path_manager_dialog = PathManager(parent=self, sync=True)
         self.path_manager_dialog.sig_path_changed.connect(
-            self._update_python_path)
+            self._save_paths
+        )
         self.path_manager_dialog.redirect_stdio.connect(
             self.sig_redirect_stdio_requested)
 
@@ -74,47 +77,37 @@ class PythonpathContainer(PluginMainContainer):
     def update_actions(self):
         pass
 
-    def on_close(self):
-        # Save current system path to detect changes next time Spyder starts
-        self.set_conf('system_path', get_system_pythonpath())
-
     # ---- Public API
     # -------------------------------------------------------------------------
     def update_active_project_path(self, path):
-        """Update active project path."""
+        """
+        Update active project path.
+
+        _project_path is set in this method and nowhere else.
+        """
+        # _project_path should be reset whenever it is updated.
+        self._project_path = OrderedDict()
         if path is None:
-            logger.debug("Update Pythonpath because project was closed")
-            path = ()
+            logger.debug("Update Spyder PYTHONPATH because project was closed")
         else:
-            logger.debug(f"Add to Pythonpath project's path -> {path}")
-            path = (path,)
+            logger.debug(f"Add project paths to Spyder PYTHONPATH: {path}")
+            self._project_path.update({path: True})
 
-        # Old path
-        old_path_dict_p = self._get_spyder_pythonpath_dict()
-
-        # Change project path
-        self.project_path = path
-        self.path_manager_dialog.project_path = path
-
-        # New path
-        new_path_dict_p = self._get_spyder_pythonpath_dict()
-
-        # Update path
-        self.set_conf('spyder_pythonpath', self.get_spyder_pythonpath())
-        self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+        self._save_paths()
 
     def show_path_manager(self):
-        """Show path manager dialog."""
-        # Do not update paths or run setup if widget is already open,
-        # see spyder-ide/spyder#20808
+        """
+        Show path manager dialog.
+        """
+        # Do not update paths if widget is already open,
+        # see spyder-ide/spyder#20808.
         if not self.path_manager_dialog.isVisible():
-            # Set main attributes saved here
             self.path_manager_dialog.update_paths(
-                self.path, self.not_active_path, get_system_pythonpath()
+                project_path=self._project_path,
+                user_paths=self._user_paths,
+                system_paths=self._system_paths,
+                prioritize=self._prioritize
             )
-
-            # Setup its contents again
-            self.path_manager_dialog.setup()
 
         # Show and give it focus
         self.path_manager_dialog.show()
@@ -123,146 +116,151 @@ class PythonpathContainer(PluginMainContainer):
         self.path_manager_dialog.setFocus()
 
     def get_spyder_pythonpath(self):
-        """
-        Return active Spyder PYTHONPATH plus project path as a list of paths.
-        """
-        path_dict = self._get_spyder_pythonpath_dict()
-        path = [k for k, v in path_dict.items() if v]
-        return path
+        """Return active Spyder PYTHONPATH as a list of paths."""
+        # Desired behavior is project_path | user_paths | system_paths, but
+        # Python 3.8 does not support | operator for OrderedDict.
+        all_paths = OrderedDict(reversed(self._system_paths.items()))
+        all_paths.update(reversed(self._user_paths.items()))
+        all_paths.update(reversed(self._project_path.items()))
+        all_paths = OrderedDict(reversed(all_paths.items()))
+
+        return [p for p, v in all_paths.items() if v]
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _load_pythonpath(self):
-        """Load Python paths."""
-        # Get current system PYTHONPATH
-        system_path = get_system_pythonpath()
+    def _get_system_paths(self):
+        system_paths = get_system_pythonpath()
+        conf_system_paths = self.get_conf('system_paths', {})
 
-        # Get previous system PYTHONPATH
-        previous_system_path = self.get_conf('system_path', default=())
-
-        # Load all paths
-        paths = []
-        previous_paths = self.get_conf('path')
-        for path in previous_paths:
-            # Path was removed since last time or it's not a directory
-            # anymore
-            if not osp.isdir(path):
-                continue
-
-            # Path was removed from system path
-            if path in previous_system_path and path not in system_path:
-                continue
-
-            paths.append(path)
-
-        self.path = tuple(paths)
-
-        # Update path option. This avoids loading paths that were removed in
-        # this session in later ones.
-        self.set_conf('path', self.path)
-
-        # Update system path so that path_manager_dialog can work with its
-        # latest contents.
-        self.set_conf('system_path', system_path)
-
-        # Add system path
-        if system_path:
-            self.path = self.path + system_path
-
-        # Load not active paths
-        not_active_paths = self.get_conf('not_active_path')
-        self.not_active_path = tuple(
-            name for name in not_active_paths if osp.isdir(name)
+        # If a system path already exists in the configuration, use the
+        # configuration active state. If it does not exist in the
+        # configuration, then set the active state to True.
+        system_paths = OrderedDict(
+            {p: conf_system_paths.get(p, True) for p in system_paths}
         )
 
-    def _save_paths(self, new_path_dict):
-        """
-        Save tuples for all paths and not active ones to config system and
-        update their associated attributes.
+        return system_paths
 
-        `new_path_dict` is an OrderedDict that has the new paths as keys and
-        the state as values. The state is `True` for active and `False` for
-        inactive.
+    def _save_paths(self, user_paths=None, system_paths=None, prioritize=None):
         """
-        path = tuple(p for p in new_path_dict)
-        not_active_path = tuple(
-            p for p in new_path_dict if not new_path_dict[p]
-        )
+        Save user and system path dictionaries and prioritize to config.
+
+        Parameters
+        ----------
+        user_paths: OrderedDict
+            Paths set by the user.
+        system_paths: OrderedDict
+            Paths set in the PYTHONPATH environment variable.
+        prioritize: bool
+            Whether paths should be prepended (True) or appended (False) to
+            sys.path.
+
+        Notes
+        -----
+        - Each dictionary key is a path and the value is the active state.
+        - sig_pythonpath_changed is emitted from this method, and nowhere else,
+        on condition that _spyder_pythonpath changed.
+
+        """
+        assert isinstance(user_paths, (type(None), OrderedDict))
+        assert isinstance(system_paths, (type(None), OrderedDict))
+        assert isinstance(prioritize, (type(None), bool))
+
+        emit = False
 
         # Don't set options unless necessary
-        if path != self.path:
-            self.set_conf('path', path)
-            self.path = path
+        if user_paths is not None and user_paths != self._user_paths:
+            logger.debug(f"Saving user paths: {user_paths}")
+            self.set_conf('user_paths', dict(user_paths))
+            self._user_paths = user_paths
 
-        if not_active_path != self.not_active_path:
-            self.set_conf('not_active_path', not_active_path)
-            self.not_active_path = not_active_path
+        if system_paths is not None and system_paths != self._system_paths:
+            logger.debug(f"Saving system paths: {system_paths}")
+            self.set_conf('system_paths', dict(system_paths))
+            self._system_paths = system_paths
 
-    def _get_spyder_pythonpath_dict(self):
-        """
-        Return Spyder PYTHONPATH plus project path as dictionary of paths.
+        if prioritize is not None and prioritize != self._prioritize:
+            logger.debug(f"Saving prioritize: {prioritize}")
+            self.set_conf('prioritize', prioritize)
+            self._prioritize = prioritize
+            emit = True
 
-        The returned ordered dictionary has the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
+        spyder_pythonpath = self.get_spyder_pythonpath()
+        if spyder_pythonpath != self._spyder_pythonpath:
+            logger.debug(f"Saving Spyder pythonpath: {spyder_pythonpath}")
+            self.set_conf('spyder_pythonpath', spyder_pythonpath)
+            self._spyder_pythonpath = spyder_pythonpath
+            emit = True
 
-        Example:
-            OrderedDict([('/some/path, True), ('/some/other/path, False)])
-        """
-        path_dict = OrderedDict()
-
-        # Make project path to be the first one so that modules developed in a
-        # project are not shadowed by those present in other paths.
-        for path in self.project_path:
-            path_dict[path] = True
-
-        for path in self.path:
-            path_dict[path] = path not in self.not_active_path
-
-        return path_dict
-
-    def _update_python_path(self, new_path_dict=None):
-        """
-        Update Python path on language server and kernels.
-
-        The new_path_dict should not include the project path.
-        """
-        # Load existing path plus project path
-        old_path_dict_p = self._get_spyder_pythonpath_dict()
-
-        # Save new path
-        if new_path_dict is not None:
-            self._save_paths(new_path_dict)
-
-        # Load new path plus project path
-        new_path_dict_p = self._get_spyder_pythonpath_dict()
-
-        # Do not notify observers unless necessary
-        if new_path_dict_p != old_path_dict_p:
-            pypath = self.get_spyder_pythonpath()
-            logger.debug(f"Update Pythonpath to {pypath}")
-            self.set_conf('spyder_pythonpath', pypath)
-            self.sig_pythonpath_changed.emit(old_path_dict_p, new_path_dict_p)
+        # Only emit signal if spyder_pythonpath or prioritize changed
+        if emit:
+            self.sig_pythonpath_changed.emit(
+                self._spyder_pythonpath, self._prioritize
+            )
 
     def _migrate_to_config_options(self):
         """
         Migrate paths saved in the `path` and `not_active_path` files located
         in our config directory to our config system.
 
-        This was the way we save those paths in Spyder 5 and before.
+        # TODO: Remove for Spyder 7
         """
         path_file = get_conf_path('path')
         not_active_path_file = get_conf_path('not_active_path')
+        config_path = self.get_conf('path', None)
+        config_not_active_path = self.get_conf('not_active_path', None)
+        paths_in_conf_files = self.get_conf('paths_in_conf_files', None)
+        system_path = self.get_conf('system_path', None)
 
         path = []
+        not_active_path = []
+
+        # Get path from file
         if osp.isfile(path_file):
             with open(path_file, 'r', encoding='utf-8') as f:
                 path = f.read().splitlines()
+            try:
+                os.remove(path_file)
+            except OSError:
+                pass
 
-        not_active_path = []
+        # Get inactive paths from file
         if osp.isfile(not_active_path_file):
             with open(not_active_path_file, 'r', encoding='utf-8') as f:
                 not_active_path = f.read().splitlines()
+            try:
+                os.remove(not_active_path_file)
+            except OSError:
+                pass
 
-        self.set_conf('path', tuple(path))
-        self.set_conf('not_active_path', tuple(not_active_path))
-        self.set_conf('paths_in_conf_files', False)
+        # Get path from config; supersedes paths from file
+        if config_path is not None:
+            path = config_path
+            self.remove_conf('path')
+
+        # Get inactive path from config; supersedes paths from file
+        if config_not_active_path is not None:
+            not_active_path = config_not_active_path
+            self.remove_conf('not_active_path')
+
+        if paths_in_conf_files is not None:
+            self.remove_conf('paths_in_conf_files')
+
+        # Get system path
+        system_paths = {}
+        if system_path is not None:
+            system_paths = {p: p not in not_active_path for p in system_path}
+            self.remove_conf('system_path')
+
+        # path config has all user and system paths; only want user paths
+        user_paths = {
+            p: p not in not_active_path for p in path if p not in system_path
+        }
+
+
+        # Update the configuration
+        self.set_conf('user_paths', user_paths)
+        self.set_conf('system_paths', system_paths)
+
+        # Do not migrate again
+        self.set_conf("config_options_migrated", True)

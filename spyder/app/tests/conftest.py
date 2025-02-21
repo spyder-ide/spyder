@@ -27,15 +27,13 @@ import pytest
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import Plugins
 from spyder.app import start
-from spyder.config.base import get_home_dir, running_in_ci
+from spyder.config.base import get_home_dir
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.run.api import RunActions, StoredRunConfigurationExecutor
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
-from spyder.utils.environ import (get_user_env, set_user_env,
-                                  amend_user_shell_init)
 
 # =============================================================================
 # ---- Constants
@@ -624,20 +622,3 @@ def main_window(request, tmpdir, qtbot):
                     CONF.reset_manager()
                     PLUGIN_REGISTRY.reset()
                     raise
-
-
-@pytest.fixture
-def restore_user_env():
-    """Set user environment variables and restore upon test exit"""
-    if not running_in_ci():
-        pytest.skip("Skipped because not in CI.")
-
-    if os.name == "nt":
-        orig_env = get_user_env()
-
-    yield
-
-    if os.name == "nt":
-        set_user_env(orig_env)
-    else:
-        amend_user_shell_init(restore=True)
