@@ -1131,6 +1131,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # Create dialog using current options
         dialog = PreferencesDialog('array', parent=self)
         dialog.float_format = self.arraywidget.model.get_format_spec()
+        if dialog.float_format == 'd':
+            dialog.float_format = '.0f'
         dialog.varying_background = self.arraywidget.model.bgcolor_enabled
 
         # Show dialog and allow user to interact
