@@ -25,6 +25,7 @@ import logging
 import re
 import sys
 from io import StringIO
+from itertools import chain
 from subprocess import check_output
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
@@ -65,7 +66,7 @@ def get_current_changelog():
 def get_current_version():
     # Get the current version from Spyder.
     try:
-        version = check_output(["python", "-c", "from spyder import __version__; print(__version__)"], text=True).strip()
+        version = check_output([sys.executable, "-c", "from spyder import __version__; print(__version__)"], text=True).strip()
     except Exception:
         _logger.exception("Error: Could not import Spyder to get __version__.")
         sys.exit(1)
@@ -89,11 +90,13 @@ class SignatureType(Enum):
 
 
 class SignatureItem:
-    def __init__(self, module, sig_type, name, arguments=None):
+    def __init__(self, module, sig_type, name, arguments=None, lineno=None, col_offset=None):
         self._module = module
         self._sig_type = sig_type
         self._name = name
         self._arguments = frozenset() if arguments is None else frozenset(arguments)
+        self._lineno = lineno
+        self._col_offset = col_offset
 
         _logger.debug("Created SignatureItem: %s", self)
 
@@ -104,7 +107,6 @@ class SignatureItem:
         if not isinstance(other, SignatureItem):
             msg = f"Cannot compare SignatureItem with {type(other)}"
             raise TypeError(msg)
-
         return self.__hash__() == other.__hash__()
 
     def __repr__(self):
@@ -129,14 +131,28 @@ class SignatureItem:
     def arguments(self):
         return self._arguments
 
+    @property
+    def lineno(self):
+        return self._lineno
+
+    @property
+    def col_offset(self):
+        return self._col_offset
+
     def is_included(self, other):
         return other.module + "." + other.name in self.module
 
     def is_renamed(self, other):
-        return self.module == other.module and self.sig_type == other.sig_type and self.arguments == other.arguments and self.name != other.name
+        return (self.module == other.module and
+                self.sig_type == other.sig_type and
+                self.arguments == other.arguments and
+                self.name != other.name)
 
     def is_args_changed(self, other):
-        return self.module == other.module and self.sig_type == other.sig_type and self.name == other.name and self.arguments != other.arguments
+        return (self.module == other.module and
+                self.sig_type == other.sig_type and
+                self.name == other.name and
+                self.arguments != other.arguments)
 
     @classmethod
     def function_signature(cls, node, parent_id=""):
@@ -173,6 +189,8 @@ class SignatureItem:
             sig_type=SignatureType.ASYNC_FUNCTION if isinstance(node, ast.AsyncFunctionDef) else SignatureType.FUNCTION,
             name=node.name,
             arguments=params,
+            lineno=node.lineno,
+            col_offset=node.col_offset,
         )
 
     @classmethod
@@ -190,6 +208,8 @@ class SignatureItem:
             sig_type=SignatureType.CLASS,
             name=sig,
             arguments={_unparse(b) for b in node.bases} if node.bases else set(),
+            lineno=node.lineno,
+            col_offset=node.col_offset,
         )
         new_parent = parent_id + "." + node.name
         for item in node.body:
@@ -212,6 +232,8 @@ class SignatureItem:
                     module=parent_id,
                     sig_type=SignatureType.ASSIGNMENT,
                     name=var_name,
+                    lineno=node.lineno,
+                    col_offset=node.col_offset,
                 )
         elif isinstance(node, ast.AnnAssign):
             if isinstance(node.target, ast.Name):
@@ -223,6 +245,8 @@ class SignatureItem:
                     module=parent_id,
                     sig_type=SignatureType.ASSIGNMENT,
                     name=var_name,
+                    lineno=node.lineno,
+                    col_offset=node.col_offset,
                 )
 
     @classmethod
@@ -434,7 +458,7 @@ class ChagelogAPI:
         version_section = chagelog_text[start:end]
         api_header_match = re.search(r"###\s+API changes\s*(?:\n|-)+", version_section)
         if not api_header_match:
-            sys.stderr.write(f"Could not find a '### API changes' section in version {current_version}.\n")
+            sys.stderr.write(f"Could not find a '### API changes' section in version {version}.\n")
             return None
         api_start = api_header_match.end()
         next_subsec_match = re.search(r"\n###\s+", version_section[api_start:])
@@ -570,7 +594,7 @@ def parse_diff(diff, *, match=None, revert=False):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Compare API signatures between a base file and an updated file and check changes against the chagelog."
+        description="Compare API signatures between a base file and an updated file and check changes against the changelog."
     )
     parser.add_argument(
         "diff",
@@ -595,6 +619,12 @@ def parse_arguments():
         "--debug",
         action="store_true",
         help="Enable debug logging.",
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["default", "github"],
+        default="default",
+        help="Output format: 'default' for plain text or 'github' for GitHub Actions error annotations.",
     )
     return parser.parse_args()
 
@@ -633,10 +663,24 @@ def main():
         sys.stdout.write("All public API changes are properly logged in the chagelog.\n")
         sys.exit(0)
 
-    sys.stdout.write(changelog.format_missing_item(first_missing_entry))
+    missing_entries = chain([first_missing_entry], missing_entries)
 
-    for item in missing_entries:
-        sys.stdout.write(changelog.format_missing_item(item))
+    if args.output_format == "github":
+        # Output errors as GitHub Actions annotations.
+        for entry in missing_entries:
+            sig = entry.new_signature if entry.new_signature is not None else entry.old_signature
+            file_path = sig.module.replace(".", "/") + ".py"
+            line = sig.lineno if sig.lineno is not None else 1
+            col = sig.col_offset if sig.col_offset is not None else 0
+            # Build a single-line message by replacing newlines
+            message = ChagelogAPI.format_missing_item(entry)
+            sys.stdout.write(
+                f"::error title=Missing Changelog,file={file_path},line={line},col={col}::{message}\n"
+            )
+    else:
+        # Default output format.
+        for entry in missing_entries:
+            sys.stdout.write(ChagelogAPI.format_missing_item(entry))
 
     sys.exit(1)
 
