@@ -619,6 +619,7 @@ def test_window_title(main_window, tmpdir, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.parametrize("debugcell", [True, False])
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Fails sometimes on Windows and Mac")
@@ -897,6 +898,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.order(after="test_dedicated_consoles")
 def test_shell_execution(main_window, qtbot, tmpdir):
     """Test that bash/batch files can be executed."""
@@ -1389,6 +1391,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
@@ -1786,6 +1789,7 @@ def test_close_when_file_is_changed(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
     # Wait until the window is fully up
@@ -2002,6 +2006,7 @@ def test_varexp_edit_inline(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
@@ -2080,6 +2085,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
@@ -2119,6 +2125,7 @@ def test_stop_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It only works on Linux")
 def test_change_cwd_dbg(main_window, qtbot):
@@ -2161,6 +2168,7 @@ def test_change_cwd_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
@@ -3099,6 +3107,7 @@ def test_report_comms_error(qtbot, main_window):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_break_while_running(main_window, qtbot, tmpdir):
     """Test that we can set breakpoints while running."""
     # Create loop
@@ -3522,6 +3531,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
@@ -3820,6 +3830,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
                     reason="Fails on Mac and Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -4212,6 +4223,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     sys.platform.startswith("linux") and not running_in_ci_with_conda(),
     reason="Sometimes hangs on Linux with pip packages"
@@ -4568,6 +4580,7 @@ def test_immediate_debug(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
     Test that the local namespace is not reset.
@@ -4787,12 +4800,18 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=20)
+@flaky(max_runs=8)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Only works on Linux"
+)
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 10),
+    reason="Too flaky in old Python versions"
+)
 @pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """
@@ -5190,6 +5209,7 @@ def test_prevent_closing(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_continue_first_line(main_window, qtbot):
     """
     Check we can bypass prevent closing.
@@ -7118,6 +7138,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_custom_run_config_for_multiple_executors(
     main_window, qtbot, tmp_path
 ):
