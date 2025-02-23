@@ -162,10 +162,9 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         default_interpreter = self.get_conf(
             'default', section='main_interpreter')
 
-        # Ensure that user environment variables are included, but don't
-        # override existing environ values
-        env_vars = get_user_environment_variables()
-        env_vars.update(os.environ)
+        # Ensure that user environment variables supersede existing variables
+        env_vars = os.environ.copy()
+        env_vars.update(get_user_environment_variables())
 
         # Avoid IPython adding the virtualenv on which Spyder is running
         # to the kernel sys.path
