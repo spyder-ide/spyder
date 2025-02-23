@@ -172,7 +172,6 @@ class LSPMixin:
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
-        self.patch = []
         self.leading_whitespaces = {}
 
         # Other attributes
@@ -447,14 +446,14 @@ class LSPMixin:
 
         self.text_version += 1
 
-        self.patch = self.differ.patch_make(self.previous_text, text)
+        patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         cursor = self.textCursor()
         params = {
             "file": self.filename,
             "version": self.text_version,
             "text": text,
-            "diff": self.patch,
+            "diff": patch,
             "offset": cursor.position(),
             "selection_start": cursor.selectionStart(),
             "selection_end": cursor.selectionEnd(),
@@ -1283,7 +1282,7 @@ class LSPMixin:
         self.apply_code_folding(self._folding_info)
 
     def apply_code_folding(self, folding_info):
-
+        """Apply code folding info."""
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
@@ -1293,9 +1292,13 @@ class LSPMixin:
         self.highlight_folded_regions()
 
         # Update indent guides, which depend on folding
-        if self.indent_guides._enabled and len(self.patch) > 0:
+        if self.indent_guides._enabled:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
+
+            # This is necessary to repaint guides in cloned editors and the
+            # original one after making edits in any one of them.
+            self.update()
 
         self.folding_in_sync = True
 
