@@ -166,6 +166,7 @@ jobs:
       - name: Run manifest checks
         shell: bash -l {0}
         run: check-manifest
+      # Note: This will remove qtwebengine so make sure it's done last!
       - name: Run tests with gdb
         if: env.USE_GDB == 'true'
         shell: bash -l {0}
@@ -187,3 +188,7 @@ jobs:
         with:
           fail_ci_if_error: false
           verbose: true
+      - name: Ensure QtWebEngine is optional
+        run: xvfb-run --auto-servernum .github/scripts/remove_check_qtwebengine.sh
+        shell: bash -l {0}
+        if: matrix.INSTALL_TYPE == 'pip' && matrix.TEST_TYPE == 'fast'

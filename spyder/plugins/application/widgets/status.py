@@ -23,7 +23,6 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
 from spyder.utils.stylesheet import WIN
-from spyder.widgets.browser import WebView
 
 
 class InAppAppealDialog(QDialog, SpyderFontsMixin):
@@ -53,6 +52,8 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
         )
 
         # Create webview to render the appeal message
+        from spyder.widgets.browser import WebView
+
         webview = WebView(self, handle_links=True)
 
         # Set font used in the view

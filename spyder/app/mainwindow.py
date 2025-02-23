@@ -52,12 +52,6 @@ from qtpy.QtWidgets import (
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
 
-# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-try:
-    from qtpy.QtWebEngineWidgets import WEBENGINE
-except ImportError:
-    WEBENGINE = False
-
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -88,7 +82,7 @@ from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import file_uri, qapplication, start_file
+from spyder.utils.qthelpers import file_uri, qapplication, start_file, WEBENGINE
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
