@@ -206,12 +206,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         """Helper to create a new list item."""
         item = QListWidgetItem(path)
 
-        if path in self.project_path:
-            item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked)
-        else:
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-            item.setCheckState(Qt.Checked if active else Qt.Unchecked)
+        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+        item.setCheckState(Qt.Checked if active else Qt.Unchecked)
 
         return item
 
@@ -322,6 +318,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
             for path, active in self.project_path.items():
                 item = self._create_item(path, active)
+
+                # Project path should not be editable
+                item.setFlags(Qt.NoItemFlags | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
+
                 self.listwidget.addItem(item)
 
         # Paths added by the user
@@ -539,7 +540,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
         self.last_path = directory
 
         if directory in self.get_user_paths():
-            item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
+            # Always take the last item to avoid retrieving the project path
+            item = self.listwidget.findItems(directory, Qt.MatchExactly)[-1]
             item.setCheckState(Qt.Checked)
             answer = QMessageBox.question(
                 self,
@@ -551,8 +553,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
             if answer == QMessageBox.Yes:
                 item = self.listwidget.takeItem(self.listwidget.row(item))
-                self.listwidget.insertItem(1, item)
-                self.listwidget.setCurrentRow(1)
+                self.listwidget.insertItem(self.editable_top_row, item)
+                self.listwidget.setCurrentRow(self.editable_top_row)
         else:
             if check_path(directory):
                 if not self.user_header:
