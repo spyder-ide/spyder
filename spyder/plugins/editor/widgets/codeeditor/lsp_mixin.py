@@ -1299,6 +1299,7 @@ class LSPMixin:
 
             # This is necessary to repaint guides in cloned editors and the
             # original one after making edits in any one of them.
+            # See spyder-ide/spyder#23297
             self.update()
 
         self.folding_in_sync = True
