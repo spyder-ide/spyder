@@ -2356,6 +2356,21 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             else:
                 break
 
+    def _update_index_size(self):
+        """Update the column width of the index."""
+        self.table_level.resizeColumnsToContents()
+        column_count = self.table_level.model().columnCount()
+        for index in range(0, column_count):
+            if index < column_count:
+                column_width = self.table_index.columnWidth(index)
+                header_width = self.table_level.columnWidth(index)
+                if column_width > header_width:
+                    self.table_level.setColumnWidth(index, column_width)
+                else:
+                    self.table_index.setColumnWidth(index, header_width)
+            else:
+                break
+
     def _sort_update(self):
         """
         Update the model for all the QTableView objects.
@@ -2393,6 +2408,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()
         self._update_header_size()
+        self._update_index_size()
         QApplication.restoreOverrideCursor()
 
 
