@@ -381,7 +381,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     "<br><br><tt>{extensions}</tt>").format(
                         extensions=', '.join(IMPORT_EXT))
             return msg
-        except (UnpicklingError, RuntimeError, CommError):
+        except (UnpicklingError, RuntimeError, CommError, OSError):
             return None
 
     def reset_namespace(self):
