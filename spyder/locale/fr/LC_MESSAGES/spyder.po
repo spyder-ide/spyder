@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-02-04 19:31-0500\n"
-"PO-Revision-Date: 2025-02-05 00:59\n"
+"PO-Revision-Date: 2025-02-25 15:24\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -177,7 +177,7 @@ msgstr "Redémarrage"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr ""
+msgstr "Il n'était pas possible d'enregistrer un paramètre de configuration de manière sécurisée. Une solution possible est d'installer le paquet <tt>keyrings.alt</tt> avec {}.<br><br><bb>Note</bb>: Ce paquet peut avoir des failles de sécurité ou d'autres problèmes. Il n'est donc pas conseillé de l'utiliser dans des systèmes de production ou sensibles à la sécurité."
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -567,11 +567,11 @@ msgstr "Éditeur"
 
 #: spyder/plugins/appearance/confpage.py:169
 msgid "Interface font"
-msgstr ""
+msgstr "Police de l'interface"
 
 #: spyder/plugins/appearance/confpage.py:213
 msgid "Previews"
-msgstr ""
+msgstr "Aperçus"
 
 #: spyder/plugins/appearance/confpage.py:556 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:423 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editorstack/editorstack.py:405 spyder/plugins/ipythonconsole/widgets/main_widget.py:2329 spyder/plugins/ipythonconsole/widgets/main_widget.py:2429 spyder/plugins/layout/container.py:308 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:498 spyder/plugins/layout/plugin.py:515 spyder/plugins/maininterpreter/confpage.py:187 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:173 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:654 spyder/utils/environ.py:169 spyder/utils/environ.py:249 spyder/utils/environ.py:280 spyder/widgets/collectionseditor.py:1282 spyder/widgets/collectionseditor.py:1512 spyder/widgets/collectionseditor.py:1522 spyder/widgets/collectionseditor.py:1531 spyder/widgets/collectionseditor.py:1540
 msgid "Warning"
@@ -591,15 +591,15 @@ msgstr "Gérer l'apparence de l'application et les thèmes."
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "Les propriétés suivantes ont des couleurs invalides :<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "La propriété <b>{}</b> a une couleur invalide : {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "Erreur lors du réglage des couleurs"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -761,7 +761,7 @@ msgstr "Support technique de Spyder..."
 
 #: spyder/plugins/application/container.py:143
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Aider Spyder..."
 
 #: spyder/plugins/application/container.py:151
 msgid "About %s..."
@@ -841,7 +841,7 @@ msgstr "Fournir les actions de base de l'application principale."
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "À propos de Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -861,11 +861,11 @@ msgstr "Copier Infos de Version"
 
 #: spyder/plugins/application/widgets/status.py:44
 msgid "Help Spyder"
-msgstr ""
+msgstr "Aider Spyder"
 
 #: spyder/plugins/application/widgets/status.py:148
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Aidez Spyder!"
 
 #: spyder/plugins/completion/confpage.py:28
 msgid "Providers"
@@ -1899,7 +1899,7 @@ msgstr "Interrompre l'exécution et démarrer le débogueur"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:260
 msgid "Debug current line"
-msgstr ""
+msgstr "Déboguer la ligne courante"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:270
 msgid "Continue execution until next breakpoint"
@@ -3338,11 +3338,11 @@ msgstr "Exécutez des scripts dans un terminal système externe."
 
 #: spyder/plugins/externalterminal/plugin.py:182
 msgid "Run in external terminal"
-msgstr ""
+msgstr "Exécuter dans un terminal externe"
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in an operating system terminal"
-msgstr ""
+msgstr "Exécuter dans un terminal du système d'exploitation"
 
 #: spyder/plugins/externalterminal/plugin.py:241
 msgid "Running an external system terminal is not supported on platform %s."
@@ -3858,19 +3858,19 @@ msgstr "Par défaut : 4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:175
 msgid "Font size:"
-msgstr ""
+msgstr "Taille de police :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
 msgid "points"
-msgstr ""
+msgstr "points"
 
 #: spyder/plugins/ipythonconsole/confpage.py:181
 msgid "Default is 10"
-msgstr ""
+msgstr "La valeur par défaut est 10"
 
 #: spyder/plugins/ipythonconsole/confpage.py:184
 msgid "Bottom edge:"
-msgstr ""
+msgstr "Bord inférieur :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:185
 msgid "of figure height"
@@ -3976,7 +3976,7 @@ msgstr "En mode <b>%s</b>, l'appel automatique n'est pas activé si il n'y a pas
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Autoreload"
-msgstr ""
+msgstr "Rechargement automatique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Autoreload reloads modules automatically every time before executing your Python code.<br>This is a different mechanism than the User Module Reloader (UMR) and it can be slow on Windows due to limitations of its file system."
