@@ -271,7 +271,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.close_all_but_this = self.create_action(
             EditorStackActions.CloseAllButThis,
             text=_("Close all but this"),
-            triggered=self.close_all_but_this,
+            triggered=self.on_close_all_but_this,
             register_action=False
         )
         self.sort_tabs = self.create_action(
@@ -1676,7 +1676,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         for __ in range(num, n - 1):
             self.close_file(num + 1)
 
-    def close_all_but_this(self):
+    def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
         for __ in range(0, self.get_stack_count() - 1):
