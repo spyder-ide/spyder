@@ -381,6 +381,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     "<br><br><tt>{extensions}</tt>").format(
                         extensions=', '.join(IMPORT_EXT))
             return msg
+        except TypeError:
+            msg = _("Spyder is unable to open the file "
+                    "you're trying to load. This could be caused due to a "
+                    "difference between the packages versions used to create "
+                    "the data and the versions installed with the currently "
+                    "selected interpreter. Please check the packages versions "
+                    "used to create the data and their compatibility with the "
+                    "packages versions installed.<br>")
         except (UnpicklingError, RuntimeError, CommError):
             return None
 
