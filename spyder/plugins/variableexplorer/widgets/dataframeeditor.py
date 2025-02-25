@@ -2126,7 +2126,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         else:
             idx_width = self.table_level.columnViewportPosition(last_col) + \
                         self.table_level.columnWidth(last_col) + \
-                        self.table_level.verticalHeader().width()
+                        self.table_level.verticalHeader().width() + 5
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
@@ -2367,8 +2367,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                 header_width = self.table_level.columnWidth(index)
                 if column_width > header_width:
                     self.table_level.setColumnWidth(index, column_width)
+                    self.table_index.setFixedWidth(column_width)
+                    self.table_level.setFixedWidth(column_width)
                 else:
                     self.table_index.setColumnWidth(index, header_width)
+                    self.table_index.setFixedWidth(header_width)
+                    self.table_level.setFixedWidth(header_width)
             else:
                 break
 
