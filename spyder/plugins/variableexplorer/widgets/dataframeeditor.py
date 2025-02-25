@@ -1003,6 +1003,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 self.parent().table_index.resizeRowsToContents()
             else:
                 self.parent().resize_to_contents()
+                self.parent().table_index.resizeColumnsToContents()
 
     def flags(self, index):
         """Set flags"""
