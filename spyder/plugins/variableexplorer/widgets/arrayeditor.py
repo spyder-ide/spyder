@@ -1131,8 +1131,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # Create dialog using current options
         dialog = PreferencesDialog('array', parent=self)
         dialog.float_format = self.arraywidget.model.get_format_spec()
-        if dialog.float_format == 'd':
-            dialog.float_format = '.0f'
         dialog.varying_background = self.arraywidget.model.bgcolor_enabled
 
         # Show dialog and allow user to interact
@@ -1140,6 +1138,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # If user clicked 'OK' then set new options accordingly
         if result == QDialog.Accepted:
+            if dialog.float_format == 'd':
+                dialog.float_format = '.0f'
             float_format = dialog.float_format
             try:
                 format(1.1, float_format)
