@@ -25,6 +25,7 @@ except Exception:
 # Third party imports
 import psutil
 from qtpy.QtWidgets import QMessageBox
+from requests.structures import CaseInsensitiveDict
 
 # Local imports
 from spyder.config.base import (
@@ -88,7 +89,26 @@ def listdict2envdict(listdict):
     return listdict
 
 
-def get_user_environment_variables():
+def resolve_windows_environment_variables(
+        env_vars: CaseInsensitiveDict
+) -> dict:
+    if os.name != "nt":
+        return env_vars
+
+    resolved_env_vars = env_vars.copy()
+    for k, v in env_vars.items():
+        if "%" not in v:
+            continue
+
+        for _k, _v in env_vars.items():
+            v = re.sub(f"%{_k}%", re.escape(_v), v, flags=re.I)
+            if "%" not in v:
+                break
+        resolved_env_vars[k] = v
+
+    return dict(resolved_env_vars)
+
+def get_user_environment_variables() -> dict:
     """
     Get user environment variables from a subprocess.
 
@@ -100,11 +120,46 @@ def get_user_environment_variables():
     env_var = {}
 
     if os.name == 'nt':
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        # System variables
+        key = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        )
         num_values = winreg.QueryInfoKey(key)[1]
-        env_var = dict(
+        env_var = CaseInsensitiveDict(
             [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
         )
+
+        # User variables
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        num_values = winreg.QueryInfoKey(key)[1]
+        user_env_var = CaseInsensitiveDict(
+            [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
+        )
+
+        # Combine PATH variables
+        path = ";".join([
+            env_var.pop("PATH", "").strip(";"),
+            user_env_var.pop("PATH", "").strip(";")
+        ]).strip(";")
+
+        # Combine PYTHONPATH variables
+        pypath = ";".join([
+            env_var.pop("PYTHONPATH", "").strip(";"),
+            user_env_var.pop("PYTHONPATH", "").strip(";")
+        ]).strip(";")
+
+        # Merge system and user variables, user takes precedent
+        env_var.update(user_env_var)
+
+        # Reintroduce PATH and PYTHONPATH if not empty
+        if path:
+            env_var.update(PATH=path)
+        if pypath:
+            env_var.update(PYTHONPATH=pypath)
+
+        env_var = resolve_windows_environment_variables(env_var)
+
     elif os.name == 'posix':
         # Detect if the Spyder process was launched from a system terminal.
         # This is None if that was not the case.
