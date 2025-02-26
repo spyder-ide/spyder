@@ -382,13 +382,14 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                         extensions=', '.join(IMPORT_EXT))
             return msg
         except TypeError:
-            msg = _("Spyder is unable to open the file "
-                    "you're trying to load. This could be caused due to a "
-                    "difference between the packages versions used to create "
-                    "the data and the versions installed with the currently "
-                    "selected interpreter. Please check the packages versions "
-                    "used to create the data and their compatibility with the "
-                    "packages versions installed.<br>")
+            msg = _(
+                "Spyder is unable to open the file you're trying to load. "
+                "This could be caused due to a difference between the package "
+                "versions used when you saved this spydata file and the ones "
+                "installed in the current environment. Please check the "
+                "compatibility between them (e.g. that you're using Numpy 2.x "
+                "in both environments).<br>"
+            )
         except (UnpicklingError, RuntimeError, CommError):
             return None
 
