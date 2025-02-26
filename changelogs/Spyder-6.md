@@ -5,11 +5,18 @@
 ### API changes
 
 * **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
+* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions are now in the `ApplicationActions` class in the `Application` plugin instead of the `EditorWidgetActions` class in the `Editor` plugin.
+* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" are now in the "main" section instead of the "editor" section.
 * Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
 * Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
   get and register new rest API modules for the remote client.
 * Add `get_file_api` method to `RemoteClient` to get the
   `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to the `SpyderPluginV2` API to allow other plugins to hook into file actions
+* Add `sig_focused_plugin_changed` signal to `SpyderPluginV2` API to signal that the plugin with focus has changed.
+* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to the `Application` plugin to perform file operations in the appropriate plugin.
+* Add `focused_plugin` attribute to the `Application` plugin.
+* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods to the `Editor` plugin to perform file operations in that plugin.
 
 ----
 
