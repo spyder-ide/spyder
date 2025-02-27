@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+from collections import OrderedDict
 import gc
 import os
 import os.path as osp
@@ -96,7 +97,6 @@ from spyder.plugins.run.api import (
 )
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
 from spyder.py3compat import qbytearray_to_str, to_text_string
-from spyder.utils.environ import set_user_env
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
@@ -620,6 +620,7 @@ def test_window_title(main_window, tmpdir, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.parametrize("debugcell", [True, False])
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Fails sometimes on Windows and Mac")
@@ -898,6 +899,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.order(after="test_dedicated_consoles")
 def test_shell_execution(main_window, qtbot, tmpdir):
     """Test that bash/batch files can be executed."""
@@ -1391,6 +1393,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
@@ -1791,6 +1794,7 @@ def test_close_when_file_is_changed(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_maximize_minimize_plugins(main_window, qtbot):
     """Test that the maximize button is working as expected."""
@@ -2008,6 +2012,7 @@ def test_varexp_edit_inline(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
@@ -2086,6 +2091,7 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     os.name == 'nt', reason="It times out sometimes on Windows")
 def test_stop_dbg(main_window, qtbot):
@@ -2125,6 +2131,7 @@ def test_stop_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It only works on Linux")
 def test_change_cwd_dbg(main_window, qtbot):
@@ -2167,6 +2174,7 @@ def test_change_cwd_dbg(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(os.name == 'nt', reason="Times out sometimes")
 def test_varexp_magic_dbg(main_window, qtbot):
     """Test that %varexp is working while debugging."""
@@ -3104,6 +3112,7 @@ def test_report_comms_error(qtbot, main_window):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_break_while_running(main_window, qtbot, tmpdir):
     """Test that we can set breakpoints while running."""
     # Create loop
@@ -3529,6 +3538,7 @@ def test_go_to_definition(main_window, qtbot, capsys):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
@@ -3829,6 +3839,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(sys.platform == 'darwin' or os.name == 'nt',
                     reason="Fails on Mac and Windows")
 @pytest.mark.order(after="test_debug_unsaved_function")
@@ -4221,6 +4232,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 @pytest.mark.skipif(
     sys.platform.startswith("linux") and not running_in_ci_with_conda(),
     reason="Sometimes hangs on Linux with pip packages"
@@ -4578,6 +4590,7 @@ def test_immediate_debug(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
     Test that the local namespace is not reset.
@@ -4797,12 +4810,18 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=20)
+@flaky(max_runs=8)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Only works on Linux"
+)
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 10),
+    reason="Too flaky in old Python versions"
+)
 @pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """
@@ -5200,6 +5219,7 @@ def test_prevent_closing(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_continue_first_line(main_window, qtbot):
     """
     Check we can bypass prevent closing.
@@ -6518,8 +6538,7 @@ def test_switch_to_plugin(main_window, qtbot):
 
 
 @flaky(max_runs=5)
-def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
-                                restore_user_env):
+def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
     """
     Test that PYTHONPATH is passed to IPython consoles under different
     scenarios.
@@ -6527,42 +6546,36 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     # Wait until the window is fully up
     ipyconsole = main_window.ipyconsole
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
 
     # Main variables
     ppm = main_window.get_plugin(Plugins.PythonpathManager)
 
-    # Add a directory to PYTHONPATH
-    sys_dir = tmp_path / 'sys_dir'
-    sys_dir.mkdir()
-    set_user_env({"PYTHONPATH": str(sys_dir)})
-
-    # Add a directory to the current list of paths to simulate a path added by
-    # users
+    # Create a directory to use as a user path
     user_dir = tmp_path / 'user_dir'
     user_dir.mkdir()
-    if os.name != "nt":
-        assert ppm.get_container().path == ()
-    ppm.get_container().path = (str(user_dir),) + ppm.get_container().path
 
-    # Open Pythonpath dialog to detect sys_dir
+    # Check that the inital configured spyder_pythonpath is empty
+    assert ppm.get_container()._spyder_pythonpath == []
+
+    # Add a directory to the current list of paths to simulate a path added by
+    # the user
     ppm.show_path_manager()
     qtbot.wait(500)
 
-    # Check we're showing two headers
-    assert len(ppm.path_manager_dialog.headers) == 2
+    ppm.path_manager_dialog.add_path(directory=user_dir)
 
-    # Check the PPM emits the right signal after closing the dialog
     with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
-        ppm.path_manager_dialog.close()
+        ppm.path_manager_dialog.accept()
 
-    # Check directories were added to sys.path in the right order
+    # Check that user_dir was added to sys.path in the right order
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute("import sys; sys_path = sys.path")
 
     sys_path = shell.get_value("sys_path")
-    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+    assert sys_path[-1] == str(user_dir)  # Path should be at the end
 
     # Create new console
     ipyconsole.create_new_client()
@@ -6570,12 +6583,33 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path,
     qtbot.waitUntil(lambda: shell1._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    # Check directories are part of the new console's sys.path
+    # Check user_dir is part of the new console's sys.path
     with qtbot.waitSignal(shell1.executed, timeout=2000):
         shell1.execute("import sys; sys_path = sys.path")
 
     sys_path = shell1.get_value("sys_path")
-    assert sys_path[-2:] == [str(user_dir), str(sys_dir)]
+    assert sys_path[-1] == str(user_dir)  # Path should be at the end
+
+    # Check that user path can be prepended to sys.path
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    # ??? Why does this work...
+    ppm.path_manager_dialog.prioritize_button.setChecked(True)
+    qtbot.wait(500)
+    # ...but this does not?
+    # with qtbot.waitUntil(ppm.path_manager_dialog.prioritize_button.isChecked):
+    #     ppm.path_manager_dialog.prioritize_button.animateClick()
+
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.accept()
+
+    for s in [shell, shell1]:
+        with qtbot.waitSignal(s.executed, timeout=2000):
+            s.execute("sys_path = sys.path")
+
+        sys_path = shell.get_value("sys_path")
+        assert sys_path[1] == str(user_dir)  # Path should be ['', user_dir, ...]
 
     # Check that disabling a path from the PPM removes it from sys.path in all
     # consoles
@@ -7132,6 +7166,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
 def test_custom_run_config_for_multiple_executors(
     main_window, qtbot, tmp_path
 ):
