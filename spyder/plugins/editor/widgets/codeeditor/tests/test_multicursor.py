@@ -11,6 +11,7 @@ from inspect import cleandoc
 import pytest
 from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.completion.api import CompletionRequestTypes
@@ -425,42 +426,42 @@ def test_goto_new_line(codeeditor, qtbot):
 def check_doc_def(method, *args):
     return method == CompletionRequestTypes.DOCUMENT_DEFINITION
 
-# TODO uncomment. disabled to speed up test runs for development
-# def test_goto_def(completions_codeeditor, qtbot):
-#     """Test shortcut and mouse click for goto definition."""
-#     codeeditor, completion_plugin = completions_codeeditor
-#     codeeditor.set_text(
-#         "def test():\n"
-#         "    return\n"
-#         "test()\n"
-#         "#comment"
-#     )
 
-#     # Test go to definition keyboard shortcut
-#     click_at(codeeditor, qtbot, 32)  # Position cursor in comment
-#     # Add a new cursor at current pos and move main cursor to 25
-#     click_at(codeeditor, qtbot, 25, ctrl=True, alt=True)
-#     assert codeeditor.extra_cursors
-#     with qtbot.waitSignal(
-#                 codeeditor.completions_response_signal,
-#                 check_params_cb=check_doc_def
-#             ):
-#         call_shortcut(codeeditor, "go to definition")
-#     assert not codeeditor.extra_cursors
+def test_goto_def(completions_codeeditor, qtbot):
+    """Test shortcut and mouse click for goto definition."""
+    codeeditor, completion_plugin = completions_codeeditor
+    codeeditor.set_text(
+        "def test():\n"
+        "    return\n"
+        "test()\n"
+        "#comment"
+    )
 
-#     # Test go to definition mouse click
-#     # Position cursor in comment and clear extra cursors
-#     click_at(codeeditor, qtbot, 32)
-#     # Add an extra cursor also in the comment
-#     click_at(codeeditor, qtbot, 34, ctrl=True, alt=True)
-#     assert codeeditor.extra_cursors
-#     # Ctrl click on function call
-#     with qtbot.waitSignal(
-#                 codeeditor.completions_response_signal,
-#                 check_params_cb=check_doc_def
-#             ):
-#         click_at(codeeditor, qtbot, 25, ctrl=True)
-#     assert not codeeditor.extra_cursors
+    # Test go to definition keyboard shortcut
+    click_at(codeeditor, qtbot, 32)  # Position cursor in comment
+    # Add a new cursor at current pos and move main cursor to 25
+    click_at(codeeditor, qtbot, 25, ctrl=True, alt=True)
+    assert codeeditor.extra_cursors
+    with qtbot.waitSignal(
+                codeeditor.completions_response_signal,
+                check_params_cb=check_doc_def
+            ):
+        call_shortcut(codeeditor, "go to definition")
+    assert not codeeditor.extra_cursors
+
+    # Test go to definition mouse click
+    # Position cursor in comment and clear extra cursors
+    click_at(codeeditor, qtbot, 32)
+    # Add an extra cursor also in the comment
+    click_at(codeeditor, qtbot, 34, ctrl=True, alt=True)
+    assert codeeditor.extra_cursors
+    # Ctrl click on function call
+    with qtbot.waitSignal(
+                codeeditor.completions_response_signal,
+                check_params_cb=check_doc_def
+            ):
+        click_at(codeeditor, qtbot, 25, ctrl=True)
+    assert not codeeditor.extra_cursors
 
 
 def test_comments(codeeditor, qtbot):
@@ -752,7 +753,52 @@ def test_misc_shortcuts(codeeditor, qtbot):
 # TODO test next/prev warning
 # TODO test killring
 # TODO test undo/redo
-# TODO test cut copy paste
+
+def test_clipboard(codeeditor, qtbot):
+    # copy
+    codeeditor.set_text("one two\nthree four\nfive six\n")
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_Right,
+        modifier=(
+            Qt.KeyboardModifier.ControlModifier |
+            Qt.KeyboardModifier.ShiftModifier
+        )
+    )  # Shift-Ctrl-Right select up to next word
+    call_shortcut(codeeditor, "copy")
+    cb = QApplication.clipboard()
+    assert cb.text() == "one \nthree \nfive "
+    # cut
+    call_shortcut(codeeditor, "cut")
+    assert cb.text() == "one \nthree \nfive "
+    assert codeeditor.toPlainText() == "two\nfour\nsix\n"
+    # 1-n paste
+    click_at(codeeditor, qtbot, 13) # set single cursor at end of file
+    call_shortcut(codeeditor, "paste")
+    assert codeeditor.toPlainText() == "two\nfour\nsix\none \nthree \nfive "
+    # n-n paste
+    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "paste")
+    assert codeeditor.toPlainText() == "one two\nthree four\nfive six\none \nthree \nfive "
+    # n-m paste: number of cursors < lines in clipboard
+    codeeditor.set_text("\n\n\n\n")
+    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "paste")
+    assert codeeditor.toPlainText() == "one \nthree \n\n\n"
+    # n-m paste: number of cursors > lines in clipboard
+    codeeditor.set_text("\n\n\n\n")
+    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "paste")
+    assert codeeditor.toPlainText() == "one \nthree \nfive \n\n"
+
 # TODO test enter inline array/table
 # TODO test inspect current object
 # TODO test last edit location
