@@ -31,7 +31,6 @@ from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 def editor_stack():
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
-    editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack
 
 
@@ -76,7 +75,6 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
 
     def clone(editorstack, template=None):
         editorstack.set_find_widget(Mock())
-        editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         # Emulate "cloning"
         editorstack.new('test.py', 'utf-8', text)
 
@@ -90,7 +88,6 @@ def editor_splitter_lsp(qtbot_module, completion_plugin_all_started, request):
     )
 
     editorsplitter.editorstack.set_find_widget(Mock())
-    editorsplitter.editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorsplitter.editorstack.new('test.py', 'utf-8', text)
 
     mock_main_widget.clone_editorstack.side_effect = partial(
@@ -117,7 +114,6 @@ def editor_splitter_layout_bot(editor_splitter_bot):
     def clone(editorstack):
         editorstack.close_split_action.setEnabled(False)
         editorstack.set_find_widget(Mock())
-        editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
         editorstack.new('foo.py', 'utf-8', 'a = 1\nprint(a)\n\nx = 2')
         editorstack.new('layout_test.py', 'utf-8', 'print(spam)')
         with open(__file__) as f:
