@@ -390,7 +390,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 "compatibility between them (e.g. that you're using Numpy 2.x "
                 "in both environments).<br>"
             )
-        except (UnpicklingError, RuntimeError, CommError):
+        except (UnpicklingError, RuntimeError, CommError, OSError):
             return None
 
     def reset_namespace(self):
