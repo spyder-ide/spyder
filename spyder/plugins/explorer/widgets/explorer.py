@@ -1267,7 +1267,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def move(self, fnames=None, directory=None):
         """Move files/directories"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
@@ -1798,7 +1798,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_package(self, basedir=None):
         """New package"""
 
-        if basedir is None or isinstance(basedir, None):
+        if basedir is None or isinstance(basedir, bool):
             basedir = self.get_selected_dir()
 
         title = _('New package')
