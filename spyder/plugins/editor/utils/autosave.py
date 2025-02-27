@@ -72,9 +72,12 @@ class AutosaveForPlugin(object):
         self.editor = editor
         self.name_mapping = {}
         self.file_hashes = {}
+        self.recover_files_to_open = []
+
         self.timer = QTimer(self.editor)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
+
         self._enabled = False  # Can't use setter here
         self._interval = self.DEFAULT_AUTOSAVE_INTERVAL
 

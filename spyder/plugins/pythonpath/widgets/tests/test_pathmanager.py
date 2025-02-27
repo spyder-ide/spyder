@@ -8,6 +8,7 @@
 Tests for pathmanager.py
 """
 # Standard library imports
+from collections import OrderedDict
 import sys
 import os
 
@@ -17,7 +18,9 @@ from qtpy.QtCore import Qt, QTimer
 from qtpy.QtWidgets import QMessageBox, QPushButton
 
 # Local imports
+from spyder.utils.environ import get_user_env, set_user_env
 from spyder.utils.programs import is_module_installed
+from spyder.utils.tests.conftest import restore_user_env
 from spyder.plugins.pythonpath.utils import check_path
 from spyder.plugins.pythonpath.widgets import pathmanager as pathmanager_mod
 
@@ -25,29 +28,57 @@ from spyder.plugins.pythonpath.widgets import pathmanager as pathmanager_mod
 @pytest.fixture
 def pathmanager(qtbot, request):
     """Set up PathManager."""
-    path, project_path, not_active_path = request.param
-    widget = pathmanager_mod.PathManager(
-        None,
-        path=tuple(path),
-        project_path=tuple(project_path),
-        not_active_path=tuple(not_active_path))
+    user_paths, project_path, system_paths = request.param
+
+    widget = pathmanager_mod.PathManager(None)
+    widget.update_paths(
+        user_paths=OrderedDict({p: True for p in user_paths}),
+        project_path=OrderedDict({p: True for p in project_path}),
+        system_paths=OrderedDict({p: True for p in system_paths}),
+        prioritize=False
+    )
     widget.show()
     qtbot.addWidget(widget)
     return widget
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(sys.path[:-10], sys.path[-10:], ())],
-                         indirect=True)
-def test_pathmanager(pathmanager, qtbot):
+@pytest.mark.parametrize(
+    'pathmanager', [(sys.path[:-10], sys.path[-10:], ())], indirect=True
+)
+def test_pathmanager(qtbot, pathmanager):
     """Run PathManager test"""
     pathmanager.show()
     assert pathmanager
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(sys.path[:-10], sys.path[-10:], ())],
-                         indirect=True)
+@pytest.mark.parametrize('pathmanager', [((), (), ())], indirect=True)
+def test_import_PYTHONPATH(qtbot, pathmanager, tmp_path, restore_user_env):
+    """
+    Test that PYTHONPATH is imported.
+    """
+
+    # Add a directory to PYTHONPATH environment variable
+    sys_dir = tmp_path / 'sys_dir'
+    sys_dir.mkdir()
+    set_user_env({"PYTHONPATH": str(sys_dir)})
+
+    # Open Pythonpath dialog
+    pathmanager.show()
+    qtbot.wait(500)
+
+    assert len(pathmanager.headers) == 0
+    assert pathmanager.get_system_paths() == OrderedDict()
+
+    # Import PYTHONPATH from environment
+    pathmanager.import_pythonpath()
+    assert len(pathmanager.headers) == 1
+
+    assert pathmanager.get_system_paths() == OrderedDict({str(sys_dir): True})
+
+
+@pytest.mark.parametrize(
+    'pathmanager', [(sys.path[:-10], sys.path[-10:], ())], indirect=True
+)
 def test_check_uncheck_path(pathmanager):
     """
     Test that checking and unchecking a path in the PathManager correctly
@@ -60,20 +91,16 @@ def test_check_uncheck_path(pathmanager):
             assert item.checkState() == Qt.Checked
 
 
-@pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
-                    reason=("This feature is not applicable for Unix "
-                            "systems and pywin32 is needed"))
-@pytest.mark.parametrize('pathmanager',
-                         [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],
-                         indirect=True)
-def test_export_to_PYTHONPATH(pathmanager, mocker):
-    # Import here to prevent an ImportError when testing on unix systems
-    from spyder.utils.environ import (get_user_env, set_user_env,
-                                      listdict2envdict)
-
-    # Store PYTHONPATH original state
-    env = get_user_env()
-    original_pathlist = env.get('PYTHONPATH', [])
+@pytest.mark.skipif(
+    os.name != 'nt' or not is_module_installed('win32con'),
+    reason=("This feature is not applicable for Unix "
+            "systems and pywin32 is needed")
+)
+@pytest.mark.parametrize(
+    'pathmanager', [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],
+    indirect=True
+)
+def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):
 
     # Mock the dialog window and answer "Yes" to clear contents of PYTHONPATH
     # before adding Spyder's path list
@@ -107,14 +134,10 @@ def test_export_to_PYTHONPATH(pathmanager, mocker):
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
-    # Restore PYTHONPATH to its original state
-    env['PYTHONPATH'] = original_pathlist
-    set_user_env(listdict2envdict(env))
 
-
-@pytest.mark.parametrize('pathmanager',
-                         [(sys.path[:-10], sys.path[-10:], ())],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'pathmanager', [(sys.path[:-10], sys.path[-10:], ())], indirect=True
+)
 def test_invalid_directories(qtbot, pathmanager):
     """Check [site/dist]-packages are invalid paths."""
     if os.name == 'nt':
@@ -137,9 +160,9 @@ def test_invalid_directories(qtbot, pathmanager):
         pathmanager.add_path(path)
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(('/spam', '/bar'), ('/foo', ), ())],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'pathmanager', [(('/spam', '/bar'), ('/foo', ), ())], indirect=True
+)
 def test_remove_item_and_reply_no(qtbot, pathmanager):
     """Check that the item is not removed after answering 'No'."""
     pathmanager.show()
@@ -163,9 +186,9 @@ def test_remove_item_and_reply_no(qtbot, pathmanager):
     assert pathmanager.count() == count
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(('/spam', '/bar'), ('/foo', ), ())],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'pathmanager', [(('/spam', '/bar'), ('/foo', ), ())], indirect=True
+)
 def test_remove_item_and_reply_yes(qtbot, pathmanager):
     """Check that the item is indeed removed after answering 'Yes'."""
     pathmanager.show()
@@ -190,9 +213,7 @@ def test_remove_item_and_reply_yes(qtbot, pathmanager):
     assert pathmanager.count() == (count - 1)
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [((), (), ())],
-                         indirect=True)
+@pytest.mark.parametrize('pathmanager', [((), (), ())], indirect=True)
 def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     """
     Check behavior when an unchecked item that is already on the list is added.
@@ -207,7 +228,7 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     pathmanager.add_path(dir2)
     pathmanager.add_path(dir3)
     pathmanager.set_row_check_state(2, Qt.Unchecked)
-    assert not all(pathmanager.get_path_dict().values())
+    assert not all(pathmanager.get_user_paths().values())
 
     def interact_message_box():
         messagebox = pathmanager.findChild(QMessageBox)
@@ -222,17 +243,17 @@ def test_add_repeated_item(qtbot, pathmanager, tmpdir):
     timer.timeout.connect(interact_message_box)
     timer.start(500)
     pathmanager.add_path(dir2)
-    print(pathmanager.get_path_dict())
+    print(pathmanager.get_user_paths())
 
     # Back to main thread
     assert pathmanager.count() == 4
-    assert list(pathmanager.get_path_dict().keys())[0] == dir2
-    assert all(pathmanager.get_path_dict().values())
+    assert list(pathmanager.get_user_paths().keys())[0] == dir2
+    assert all(pathmanager.get_user_paths().values())
 
 
-@pytest.mark.parametrize('pathmanager',
-                         [(('/spam', '/bar'), ('/foo', ), ())],
-                         indirect=True)
+@pytest.mark.parametrize(
+    'pathmanager', [(('/spam', '/bar'), ('/foo', ), ())], indirect=True
+)
 def test_buttons_state(qtbot, pathmanager, tmpdir):
     """Check buttons are enabled/disabled based on items and position."""
     pathmanager.show()
@@ -276,6 +297,14 @@ def test_buttons_state(qtbot, pathmanager, tmpdir):
     # Check delete and ok button
     pathmanager.remove_path(True)
     assert not pathmanager.button_ok.isEnabled()
+
+    # Check prioritize button
+    assert pathmanager.prioritize_button.isEnabled()
+    assert not pathmanager.prioritize_button.isChecked()
+    pathmanager.prioritize_button.animateClick()
+    qtbot.waitUntil(pathmanager.prioritize_button.isChecked)
+    assert pathmanager.prioritize_button.isChecked()
+    assert pathmanager.button_ok.isEnabled()
 
 
 if __name__ == "__main__":
