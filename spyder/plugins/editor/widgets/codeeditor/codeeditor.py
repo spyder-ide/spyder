@@ -1475,10 +1475,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if background_color is not None:
             selection.format.setBackground(background_color)
         if underline_color is not None:
-            selection.format.setProperty(QTextFormat.TextUnderlineStyle,
-                                         to_qvariant(underline_style))
-            selection.format.setProperty(QTextFormat.TextUnderlineColor,
-                                         to_qvariant(underline_color))
+            selection.format.setUnderlineColor(underline_color)
+            selection.format.setUnderlineStyle(underline_style)
         if outline_color is not None:
             selection.set_outline(outline_color)
         return selection
