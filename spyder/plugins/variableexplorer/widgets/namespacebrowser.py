@@ -381,7 +381,16 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     "<br><br><tt>{extensions}</tt>").format(
                         extensions=', '.join(IMPORT_EXT))
             return msg
-        except (UnpicklingError, RuntimeError, CommError):
+        except TypeError:
+            msg = _(
+                "Spyder is unable to open the file you're trying to load. "
+                "This could be caused due to a difference between the package "
+                "versions used when you saved this spydata file and the ones "
+                "installed in the current environment. Please check the "
+                "compatibility between them (e.g. that you're using Numpy 2.x "
+                "in both environments).<br>"
+            )
+        except (UnpicklingError, RuntimeError, CommError, OSError):
             return None
 
     def reset_namespace(self):

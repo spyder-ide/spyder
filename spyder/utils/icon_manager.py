@@ -290,6 +290,8 @@ class IconManager():
             '1uparrow':                [('mdi.arrow-up',), {'color': self.MAIN_FG_COLOR}],
             '2downarrow':              [('mdi.arrow-collapse-down',), {'color': self.MAIN_FG_COLOR}],
             '1downarrow':              [('mdi.arrow-down',), {'color': self.MAIN_FG_COLOR}],
+            'prepend':                 [('mdi.arrow-collapse-left',), {'color': self.MAIN_FG_COLOR}],
+            'append':                  [('mdi.arrow-collapse-right',), {'color': self.MAIN_FG_COLOR}],
             'undock':                  [('mdi.open-in-new',), {'color': self.MAIN_FG_COLOR}],
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],

@@ -226,8 +226,13 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
 # The mock_RecoveryDialog fixture needs to be called before setup_editor, so
 # it needs to be mentioned first
 def test_editor_calls_recoverydialog_exec_if_nonempty(
-        mock_RecoveryDialog, editor_plugin):
-    """Check that editor tries to exec a recovery dialog on construction."""
+    mock_RecoveryDialog, editor_plugin
+):
+    """
+    Check that the editor tries to exec a recovery dialog before the main
+    window is visible.
+    """
+    editor_plugin.before_mainwindow_visible()
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
@@ -369,7 +374,7 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     assert codeeditor.is_cloned
 
     # Assert the number of calls to document_did_open is exactly the
-    # same as before
+    # same as before.
     assert CodeEditor.document_did_open.call_count == 5
 
     # Close cloned editor to verify that notify_close is called from it.

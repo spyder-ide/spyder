@@ -23,8 +23,8 @@ from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir
 import qstylizer.style
 from qtconsole.svg import save_svg, svg_to_clipboard
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtGui import QColor, QFontMetrics, QKeySequence
 from qtpy.QtPrintSupport import QPrintDialog, QPrinter
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout, QWidget)
@@ -1202,9 +1202,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         for env_key, env_info in self.envs.items():
             env_name = env_key.split()[-1]
             path_to_interpreter, python_version = env_info
+            fm = QFontMetrics(self.font())
+            env_elided = fm.elidedText(
+                env_key, Qt.ElideMiddle, 250
+            )
 
             # Text for actions
-            text = f"{env_key} ({python_version})"
+            text = f"{env_elided} ({python_version})"
 
             # Change text in case env is the default or internal (i.e. same as
             # Spyder) one
@@ -1235,6 +1239,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 ),
                 overwrite=True,
                 register_action=False,
+                tip=text,
             )
 
             # Add default env as the first entry in the menu
@@ -2467,13 +2472,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if dirname and osp.isdir(dirname):
             self.sig_current_directory_changed.emit(dirname)
 
-    def update_path(self, path_dict, new_path_dict):
+    def update_path(self, new_path, prioritize):
         """Update path on consoles."""
         logger.debug("Update sys.path in all console clients")
         for client in self.clients:
             shell = client.shellwidget
             if shell is not None:
-                shell.update_syspath(path_dict, new_path_dict)
+                shell.update_syspath(new_path, prioritize)
 
     def get_active_project_path(self):
         """Get the active project path."""
