@@ -1425,16 +1425,16 @@ def main(options, args):
         fonts_message = QMessageBox(
             QMessageBox.Icon.Information,
             "Spyder",
-            "It was not possible to load Spyder's icon theme, so Spyder "
-            "cannot start on your system. The most probable causes for this "
-            "are either that you are using a Windows version earlier than "
-            "Windows 10 1803/Windows Server 2019, which is no longer "
-            "supported by Spyder or Microsoft, or your system administrator "
-            "has disabled font installation for non-admin users.<br><br>"
-            "Please ask your system administrator for help to upgrade Windows "
-            "or to install for all users the following fonts:"
-            "<ul>{fonts_list}</ul>which are located at:<br><br>"
-            "<code>{fonts_directory}</code>".format(
+            _("It was not possible to load Spyder's icon theme, so Spyder "
+              "cannot start on your system. The most probable causes for this "
+              "are either that you are using a Windows version earlier than "
+              "Windows 10 1803/Windows Server 2019, which is no longer "
+              "supported by Spyder or Microsoft, or your system administrator "
+              "has disabled font installation for non-admin users.<br><br>"
+              "Please ask your system administrator for help to upgrade "
+              "Windows or to install for all users the following fonts:"
+              "<ul>{fonts_list}</ul>which are located at:<br><br>"
+              "<code>{fonts_directory}</code>").format(
                 fonts_list=fonts_list, fonts_directory=fonts_directory,
             ),
             QMessageBox.StandardButton.Ok
