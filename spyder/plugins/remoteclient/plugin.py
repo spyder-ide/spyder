@@ -301,9 +301,8 @@ class RemoteClient(SpyderPluginV2):
         container = self.get_container()
         future = self._start_new_kernel(config_id)
         future.connect(
-            AsyncDispatcher.QtSlot(lambda kernel_info: container.on_kernel_started(ipyclient, kernel_info))
+            AsyncDispatcher.QtSlot(lambda future: container.on_kernel_started(ipyclient, future.result()))
         )
-
 
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):

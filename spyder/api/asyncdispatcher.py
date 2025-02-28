@@ -7,6 +7,7 @@
 from __future__ import annotations
 import asyncio
 import asyncio.events
+from asyncio.futures import _chain_future  # type: ignore
 from asyncio.tasks import _current_tasks  # type: ignore
 import atexit
 from concurrent.futures import CancelledError, Future
@@ -201,7 +202,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         @functools.wraps(async_func)
         def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]]:
-            task = asyncio.run_coroutine_threadsafe(
+            task = run_coroutine_threadsafe(
                 async_func(*args, **kwargs), loop=self._loop
             )
             if self._return_awaitable:
@@ -210,7 +211,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             if self._early_return:
                 AsyncDispatcher._running_tasks.append(task)
                 task.add_done_callback(self._callback_task_done)
-                return DispatcherFuture(task)
+                return task
             return task.result()
 
         return wrapper
@@ -484,38 +485,83 @@ def _patch_loop_as_reentrant(loop):
 
 
 class _QCallbackEvent(QEvent):
+    """Event to execute a callback in the main Qt loop."""
     def __init__(self, func: typing.Callable):
         super().__init__(QEvent.Type.User)
         self.func = func
 
 
 class _QCallbackExecutor(QObject):
+    """Executor to run callbacks in the main Qt loop."""
     def customEvent(self, e: _QCallbackEvent):
         e.func()
 
 
-class DispatcherFuture(typing.Generic[_T]):
+class DispatcherFuture(typing.Generic[_T], Future[_T]):
+    """Wraps a Future object to allow runing callbacks in the main Qt loop."""
+
     QT_SLOT_ATTRIBUTE = "__dispatch_qt_slot__"
 
     _callback_executor = _QCallbackExecutor()
 
-    def __init__(self, future: Future[_T]):
-        self.__future = future
+    def connect(self, fn: typing.Callable[[DispatcherFuture[_T]], None]):
+        """Attaches a callable that will be called when the future finishes.
+        
+        The callable will be called by a thread in the same process in which
+        it was added if the it was not marked with 
+        `DispatherFuture.QT_SLOT_ATTRIBUTE`.
 
-    @property
-    def future(self) -> Future[_T]:
-        return self.__future
+        If the future has already completed or been
+        cancelled then the callable will be called immediately. These
+        callables are called in the order that they were added.
 
-    def result(self, timeout: float | None = None) -> _T:
-        return self.__future.result(timeout)
+        Parameters
+        ----------
+        fn: Callable
+            A callable that will be called with this future's result as its only
+            argument when the future completes.
 
-    def connect(self, fn: typing.Callable[[_T], None]):
+        """
         if getattr(fn, self.QT_SLOT_ATTRIBUTE, False):
-            def callback(future: Future[_T]):
-                e = _QCallbackEvent(lambda: fn(future.result()))
+            def callback(future: DispatcherFuture[_T]):
+                e = _QCallbackEvent(lambda: fn(future))
                 QCoreApplication.postEvent(self._callback_executor, e)
+            self.add_done_callback(callback)  # type: ignore
         else:
-            def callback(future: Future[_T]):
-                fn(future.result())
+            self.add_done_callback(fn)  # type: ignore
 
-        self.__future.add_done_callback(callback)
+
+def run_coroutine_threadsafe(
+    coro: typing.Coroutine[_T, None, _RT],
+    loop: asyncio.AbstractEventLoop
+) -> DispatcherFuture[_RT]:
+    """Submit a coroutine object to a given event loop.
+
+    Arguments
+    ---------
+    coro: Coroutine
+        The coroutine object to be submitted.
+    loop: AbstractEventLoop
+        The event loop to run the coroutine.
+
+    Returns
+    -------
+    DispatcherFuture
+        A future object representing the result of the coroutine.
+    """
+    if not asyncio.iscoroutine(coro):
+        raise TypeError('A coroutine object is required')
+    future = DispatcherFuture()
+
+    def callback():
+        try:
+            _chain_future(asyncio.ensure_future(coro, loop=loop), future)
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except BaseException as exc:
+            if future.set_running_or_notify_cancel():
+                future.set_exception(exc)
+            raise
+
+    loop.call_soon_threadsafe(callback)
+    return future

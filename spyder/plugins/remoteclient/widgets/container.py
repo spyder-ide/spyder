@@ -321,8 +321,8 @@ class RemoteClientContainer(PluginMainContainer):
         self.__requested_restart = True
 
         future.connect(
-            AsyncDispatcher.QtSlot(lambda restarted: self._on_kernel_restarted(
-                ipyclient, restarted
+            AsyncDispatcher.QtSlot(lambda future: self._on_kernel_restarted(
+                ipyclient, future.result()
             ))
         )
 
@@ -341,8 +341,8 @@ class RemoteClientContainer(PluginMainContainer):
         self.__requested_info = True
 
         future.connect(
-            AsyncDispatcher.QtSlot(lambda kernel_info: self._on_kernel_info_reply(
-                ipyclient, kernel_info
+            AsyncDispatcher.QtSlot(lambda future: self._on_kernel_info_reply(
+                ipyclient, future.result()
             ))
         )
 
