@@ -79,7 +79,6 @@ class RemoteClient(SpyderPluginV2):
 
     sig_version_mismatch = Signal(str, str)
 
-    _sig_kernel_started = Signal(object, dict)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -126,7 +125,6 @@ class RemoteClient(SpyderPluginV2):
             container.sig_client_message_logged
         )
         self.sig_version_mismatch.connect(container.on_server_version_mismatch)
-        self._sig_kernel_started.connect(container.on_kernel_started)
 
     def on_first_registration(self):
         pass
@@ -300,15 +298,12 @@ class RemoteClient(SpyderPluginV2):
             can_close=False,
         )
 
-        # IMPORTANT NOTE: We use a signal here instead of calling directly
-        # container.on_kernel_started because doing that generates segfaults
-        # and odd issues (e.g. the Variable Explorer not working).
+        container = self.get_container()
         future = self._start_new_kernel(config_id)
-        future.add_done_callback(
-            lambda future: self._sig_kernel_started.emit(
-                ipyclient, future.result()
-            )
+        future.connect(
+            AsyncDispatcher.QtSlot(lambda kernel_info: container.on_kernel_started(ipyclient, kernel_info))
         )
+
 
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
