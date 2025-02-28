@@ -1001,9 +1001,9 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             if rows:
                 self.resizeRowsToContents()
                 self.parent().table_index.resizeRowsToContents()
-            else:
-                self.parent().resize_to_contents()
+            else:                
                 self.parent().table_index.resizeColumnsToContents()
+                self.parent().resize_to_contents()
 
     def flags(self, index):
         """Set flags"""
@@ -2367,12 +2367,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                 header_width = self.table_level.columnWidth(index)
                 if column_width > header_width:
                     self.table_level.setColumnWidth(index, column_width)
-                    self.table_index.setFixedWidth(column_width)
-                    self.table_level.setFixedWidth(column_width)
                 else:
                     self.table_index.setColumnWidth(index, header_width)
-                    self.table_index.setFixedWidth(header_width)
-                    self.table_level.setFixedWidth(header_width)
             else:
                 break
 
@@ -2414,6 +2410,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataTable.resizeColumnsToContents()
         self._update_header_size()
         self._update_index_size()
+        self._update_layout()
+
         QApplication.restoreOverrideCursor()
 
 
