@@ -6,6 +6,7 @@
 
 # Standard library imports
 from inspect import cleandoc
+import sys
 
 # Third party imports
 import pytest
@@ -754,50 +755,78 @@ def test_misc_shortcuts(codeeditor, qtbot):
 # TODO test killring
 # TODO test undo/redo
 
+
 def test_clipboard(codeeditor, qtbot):
     # copy
-    codeeditor.set_text("one two\nthree four\nfive six\n")
+    codeeditor.set_text("one two\n"
+                        "three four\n"
+                        "five six\n")
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "add cursor down")
+
+    ctrl = Qt.KeyboardModifier.ControlModifier
+    if sys.platform == "darwin":
+        ctrl = Qt.KeyboardModifier.MetaModifier
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Right,
-        modifier=(
-            Qt.KeyboardModifier.ControlModifier |
-            Qt.KeyboardModifier.ShiftModifier
-        )
+        modifier=(ctrl | Qt.KeyboardModifier.ShiftModifier)
     )  # Shift-Ctrl-Right select up to next word
     call_shortcut(codeeditor, "copy")
     cb = QApplication.clipboard()
-    assert cb.text() == "one \nthree \nfive "
+    assert cb.text() == ("one \n"
+                         "three \n"
+                         "five ")
     # cut
     call_shortcut(codeeditor, "cut")
-    assert cb.text() == "one \nthree \nfive "
-    assert codeeditor.toPlainText() == "two\nfour\nsix\n"
+    assert cb.text() == ("one \n"
+                         "three \n"
+                         "five ")
+    assert codeeditor.toPlainText() == ("two\n"
+                                        "four\n"
+                                        "six\n")
     # 1-n paste
-    click_at(codeeditor, qtbot, 13) # set single cursor at end of file
+    click_at(codeeditor, qtbot, 13)  # set single cursor at end of file
     call_shortcut(codeeditor, "paste")
-    assert codeeditor.toPlainText() == "two\nfour\nsix\none \nthree \nfive "
+    assert codeeditor.toPlainText() == ("two\n"
+                                        "four\n"
+                                        "six\n"
+                                        "one \n"
+                                        "three \n"
+                                        "five ")
     # n-n paste
-    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    click_at(codeeditor, qtbot, 0)  # set single cursor at start of file
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "paste")
-    assert codeeditor.toPlainText() == "one two\nthree four\nfive six\none \nthree \nfive "
+    assert codeeditor.toPlainText() == ("one two\n"
+                                        "three four\n"
+                                        "five six\n"
+                                        "one \n"
+                                        "three \n"
+                                        "five ")
     # n-m paste: number of cursors < lines in clipboard
-    codeeditor.set_text("\n\n\n\n")
-    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    codeeditor.set_text("\n"
+                        "\n"
+                        "\n"
+                        "\n")
+    click_at(codeeditor, qtbot, 0)  # set single cursor at start of file
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "paste")
-    assert codeeditor.toPlainText() == "one \nthree \n\n\n"
+    assert codeeditor.toPlainText() == ("one \n"
+                                        "three \n"
+                                        "\n"
+                                        "\n")
     # n-m paste: number of cursors > lines in clipboard
-    codeeditor.set_text("\n\n\n\n")
-    click_at(codeeditor, qtbot, 0) # set single cursor at start of file
+    click_at(codeeditor, qtbot, 0)  # set single cursor at start of file
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "add cursor down")
     call_shortcut(codeeditor, "paste")
-    assert codeeditor.toPlainText() == "one \nthree \nfive \n\n"
+    assert codeeditor.toPlainText() == ("one one \n"
+                                        "three three \n"
+                                        "five \n"
+                                        "\n")
 
 # TODO test enter inline array/table
 # TODO test inspect current object
