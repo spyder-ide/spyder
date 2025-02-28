@@ -20,11 +20,13 @@ import sys
 import threading
 import typing
 
-
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
 else:
     from typing import ParamSpec  # noqa: ICN003
+
+from qtpy.QtCore import QCoreApplication, QEvent, QObject
+
 
 _logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @typing.overload
     def __init__(
-        self: AsyncDispatcher[Future[_T]],
+        self: AsyncDispatcher[DispatcherFuture[_T]],
         *,
         loop: LoopID | None = ...,
         early_return: typing.Literal[True] = ...,
@@ -158,9 +160,9 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @typing.overload
     def __call__(
-        self: AsyncDispatcher[Future[_T]],
+        self: AsyncDispatcher[DispatcherFuture[_T]],
         async_func: typing.Callable[_P, typing.Awaitable[_T]],
-    ) -> typing.Callable[_P, Future[_T]]:
+    ) -> typing.Callable[_P, DispatcherFuture[_T]]:
         ...
 
     @typing.overload
@@ -173,7 +175,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
     def __call__(
             self,
             async_func: typing.Callable[_P, typing.Awaitable[_T]],
-        ) -> typing.Callable[_P, typing.Union[_T, Future[_T], typing.Awaitable[_T]]]:
+        ) -> typing.Callable[_P, typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]]]:
         """
         Run the coroutine in the event loop.
 
@@ -198,7 +200,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             raise TypeError(msg)
 
         @functools.wraps(async_func)
-        def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Union[_T, Future[_T], typing.Awaitable[_T]]:
+        def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]]:
             task = asyncio.run_coroutine_threadsafe(
                 async_func(*args, **kwargs), loop=self._loop
             )
@@ -208,7 +210,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             if self._early_return:
                 AsyncDispatcher._running_tasks.append(task)
                 task.add_done_callback(self._callback_task_done)
-                return task
+                return DispatcherFuture(task)
             return task.result()
 
         return wrapper
@@ -307,6 +309,12 @@ class AsyncDispatcher(typing.Generic[_RT]):
             return
 
         runner.join(timeout)
+
+    @staticmethod
+    def QtSlot(func: typing.Callable[_P, None]) -> typing.Callable[_P, None]:
+        """Decorator to mark a function to be executed inside the main qt loop."""
+        setattr(func, DispatcherFuture.QT_SLOT_ATTRIBUTE, True)
+        return func
 
 
 class _LoopRunner(threading.Thread):
@@ -473,3 +481,41 @@ def _patch_loop_as_reentrant(loop):
     setattr(cls, '_is_proactorloop', (
         os.name == 'nt' and issubclass(cls, asyncio.ProactorEventLoop)))
     setattr(cls, '_nest_patched', True)
+
+
+class _QCallbackEvent(QEvent):
+    def __init__(self, func: typing.Callable):
+        super().__init__(QEvent.Type.User)
+        self.func = func
+
+
+class _QCallbackExecutor(QObject):
+    def customEvent(self, e: _QCallbackEvent):
+        e.func()
+
+
+class DispatcherFuture(typing.Generic[_T]):
+    QT_SLOT_ATTRIBUTE = "__dispatch_qt_slot__"
+
+    _callback_executor = _QCallbackExecutor()
+
+    def __init__(self, future: Future[_T]):
+        self.__future = future
+
+    @property
+    def future(self) -> Future[_T]:
+        return self.__future
+
+    def result(self, timeout: float | None = None) -> _T:
+        return self.__future.result(timeout)
+
+    def connect(self, fn: typing.Callable[[_T], None]):
+        if getattr(fn, self.QT_SLOT_ATTRIBUTE, False):
+            def callback(future: Future[_T]):
+                e = _QCallbackEvent(lambda: fn(future.result()))
+                QCoreApplication.postEvent(self._callback_executor, e)
+        else:
+            def callback(future: Future[_T]):
+                fn(future.result())
+
+        self.__future.add_done_callback(callback)
