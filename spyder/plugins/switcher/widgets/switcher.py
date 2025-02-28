@@ -220,9 +220,7 @@ class Switcher(QDialog, SpyderFontsMixin):
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
-        self.model.beginResetModel()
         self.model.clear()
-        self.model.endResetModel()
         self.setMinimumHeight(self._MIN_HEIGHT)
 
     def set_placeholder_text(self, text):
