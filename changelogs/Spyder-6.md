@@ -5,8 +5,8 @@
 ### API changes
 
 * **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
-* Add class `DispatcherFuture` and `QtSlot` method to `AsyncDispatcher` so connected methods can be run inside main qt event loop.
-* **Breaking** Remove `dispatch` method from `spyder.api.asyncdispatcher.AsyncDispatcher` to use it directly as decorator.
+* **Breaking** - Remove `dispatch` method from `spyder.api.asyncdispatcher.AsyncDispatcher` to use it directly as decorator.
+* Add class `DispatcherFuture` to `spyder/api/asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
 * Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
 * Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
   get and register new rest API modules for the remote client.
