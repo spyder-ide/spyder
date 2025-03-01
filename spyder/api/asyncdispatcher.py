@@ -109,8 +109,9 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         This instance can be called with the same arguments as the coroutine it
         wraps and will return a concurrent Future object, or an awaitable
-        Future for the current running event loop or the result of the coroutine
-        depending on the `early_return` and `return_awaitable` parameters.
+        Future for the current running event loop or the result of the
+        coroutine depending on the `early_return` and `return_awaitable`
+        parameters.
 
         Usage
         -----
@@ -207,7 +208,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         @functools.wraps(async_func)
         def wrapper(
-            *args: _P.args, **kwargs: _P.kwargs
+            *args: _P.args, **kwargs: _P.kwargs,
         ) -> typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]]:  # noqa: UP007
             task = run_coroutine_threadsafe(
                 async_func(*args, **kwargs),
@@ -215,7 +216,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             )
             if self._return_awaitable:
                 return asyncio.wrap_future(
-                    task, loop=asyncio.get_running_loop()
+                    task, loop=asyncio.get_running_loop(),
                 )
 
             if self._early_return:
@@ -279,7 +280,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @classmethod
     def __run_loop(
-        cls, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop
+        cls, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop,
     ):
         if loop_id not in cls.__running_threads:
             with cls.__rlock:
@@ -321,7 +322,21 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @staticmethod
     def QtSlot(func: typing.Callable[_P, None]) -> typing.Callable[_P, None]:  # noqa: N802
-        """Mark a function to be executed inside the main qt loop."""
+        """Mark a function to be executed inside the main qt loop.
+
+        Set the `DispatcherFuture.QT_SLOT_ATTRIBUTE` attribute to the function
+        to mark it as a slot to be executed in the main Qt loop.
+
+        Parameters
+        ----------
+        func : Callable
+            The function to be marked.
+
+        Returns
+        -------
+        Callable
+            The marked function.
+        """
         setattr(func, DispatcherFuture.QT_SLOT_ATTRIBUTE, True)
         return func
 
@@ -330,7 +345,7 @@ class _LoopRunner(threading.Thread):
     """A task runner that runs an asyncio event loop on a background thread."""
 
     def __init__(
-        self, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop
+        self, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop,
     ):
         super().__init__(daemon=True, name=f"AsyncDispatcher-{loop_id}")
         self.__loop = loop
@@ -427,7 +442,7 @@ def _patch_loop_as_reentrant(loop):  # noqa: C901, PLR0915
             handle = heappop(scheduled)
             ready.append(handle)
 
-        for _ in range(len(ready)):
+        for __ in range(len(ready)):
             if not ready:
                 break
             handle = ready.popleft()
@@ -526,12 +541,44 @@ class _QCallbackExecutor(QObject):
         e.func()
 
 
-class DispatcherFuture(Future[_T], typing.Generic[_T]):
-    """Wraps a Future object to allow runing callbacks in the main Qt loop."""
+class DispatcherFuture(Future, typing.Generic[_T]):
+    """Represents the result of an asynchronous computation.
+
+    This class is a subclass of `concurrent.Future` that adds a `connect`
+    method to allow attaching callbacks to be executed in the main Qt loop.
+    """
 
     QT_SLOT_ATTRIBUTE = "__dispatch_qt_slot__"
 
     _callback_executor = _QCallbackExecutor()
+
+    def result(self, timeout: typing.Optional[float] = None) -> _T:  # noqa: UP045
+        """
+        Return the result of the call that the future represents.
+
+        Parameters
+        ----------
+        timeout: float | None
+            The number of seconds to wait for the result. If None, then wait
+            indefinitely.
+
+        Returns
+        -------
+        DispatchedFuture@_T
+            The result of the call that the future represents.
+
+        Raises
+        ------
+        CancelledError
+            If the future was cancelled.
+
+        TimeoutError
+            If the future didn't finish executing before the given timeout.
+
+        Exception
+            Exception raised by the call that the future represents.
+        """  # noqa: DOC502
+        return super().result(timeout=timeout)
 
     def connect(self, fn: typing.Callable[[DispatcherFuture[_T]], None]):
         """Attaches a callable that will be called when the future finishes.
@@ -547,7 +594,7 @@ class DispatcherFuture(Future[_T], typing.Generic[_T]):
         Parameters
         ----------
         fn: Callable
-            A callable that will be called with this future's result as its only
+            A callable that will be called with this future's as its only
             argument when the future completes.
 
         """
@@ -563,7 +610,7 @@ class DispatcherFuture(Future[_T], typing.Generic[_T]):
 
 
 def run_coroutine_threadsafe(
-    coro: typing.Coroutine[_T, None, _RT], loop: asyncio.AbstractEventLoop
+    coro: typing.Coroutine[_T, None, _RT], loop: asyncio.AbstractEventLoop,
 ) -> DispatcherFuture[_RT]:
     """Submit a coroutine object to a given event loop.
 
