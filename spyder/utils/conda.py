@@ -8,6 +8,7 @@
 
 # Standard library imports
 from glob import glob
+from packaging.version import parse
 import json
 import os
 import os.path as osp
@@ -224,3 +225,18 @@ def get_spyder_conda_channel():
         channel_url = None
 
     return channel, channel_url
+
+
+def conda_version(conda_executable=None):
+    """Get the conda version if available."""
+    version = parse('0')
+    if not conda_executable:
+        conda_executable = find_conda()
+    if not conda_executable:
+        return version
+    try:
+        version, __ = run_program(conda_executable, ['--version']).communicate()
+        version = parse(version.decode().split()[-1].strip())
+    except Exception:
+        pass
+    return version

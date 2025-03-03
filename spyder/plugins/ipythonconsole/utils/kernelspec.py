@@ -9,6 +9,7 @@ Kernel spec for Spyder kernels
 """
 
 # Standard library imports
+from packaging.version import parse
 import logging
 import os
 import os.path as osp
@@ -25,7 +26,7 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import find_conda
+from spyder.utils.conda import conda_version, find_conda
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
@@ -125,6 +126,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # If executable is a conda environment, use "run" subcommand to
             # activate it and run spyder-kernels.
             conda_exe = find_conda()
+            conda_exe_version = conda_version(conda_executable=conda_exe)
 
             kernel_cmd.extend([
                 conda_exe,
@@ -138,10 +140,21 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # show them in Spyder.
             if conda_exe.endswith(('micromamba', 'micromamba.exe')):
                 kernel_cmd.extend(['--attach', '""'])
-            else:
+            elif conda_exe_version >= parse("4.9"):
                 # Note: We use --no-capture-output instead of --live-stream
-                # here because it works for older Conda versions.
+                # here because it works for older Conda versions (conda>=4.9).
                 kernel_cmd.append('--no-capture-output')
+            else:
+                # Raise error since an unsupported conda version is being used
+                # (conda<4.9).
+                # See spyder-ide/spyder#22554
+                raise SpyderKernelError(
+                    _("The detected conda version is too old and not "
+                      "supported by Spyder. Minimum conda version supported "
+                      "is conda 4.9. Currently you have {conda_version}"
+                      .format(conda_version=conda_exe_version)
+                      )
+                )
 
         kernel_cmd.extend([
             pyexec,
