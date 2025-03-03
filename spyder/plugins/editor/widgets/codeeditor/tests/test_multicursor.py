@@ -118,6 +118,32 @@ def test_column_add_cursor(codeeditor, qtbot):
         assert cursor.selectedText() == "012345"
 
 
+def test_add_cursor_up_down(codeeditor, qtbot):
+    """
+    Test adding a extra cursors above and below main cursor with shortcuts.
+    """
+
+    codeeditor.set_text("012345678\n012345678\n01234567\n\n012345678\n")
+
+    click_at(codeeditor, qtbot, 13)
+    call_shortcut(codeeditor, "add cursor up")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.textCursor().position() == 3
+
+    call_shortcut(codeeditor, "add cursor down")
+    assert len(codeeditor.extra_cursors) == 1
+    assert codeeditor.textCursor().position() == 13
+
+    call_shortcut(codeeditor, "add cursor down")
+    assert len(codeeditor.extra_cursors) == 2
+    assert codeeditor.textCursor().position() == 23
+
+    # is cursor column retained after passing an empty line?
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    assert codeeditor.textCursor().position() == 33
+
+
 def test_settings_toggle(codeeditor, qtbot):
     """Test toggling multicursor support in settings"""
 
