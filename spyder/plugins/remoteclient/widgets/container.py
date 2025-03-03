@@ -17,6 +17,7 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
@@ -34,37 +35,6 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 
 class RemoteClientContainer(PluginMainContainer):
-
-    _sig_kernel_restarted = Signal(object, bool)
-    """
-    This private signal is used to inform that a kernel restart took place in
-    the server.
-
-    Parameters
-    ----------
-    ipyclient: ClientWidget
-        An IPython console client widget (the first parameter in both
-        signatures).
-    response: bool or None
-        Response returned by the server. `None` can happen when the connection
-        to the server is lost.
-    """
-
-    _sig_kernel_info_replied = Signal(object, dict)
-    """
-    This private signal is used to inform that a kernel info request to the
-    server was replied.
-
-    Parameters
-    ----------
-    ipyclient: ClientWidget
-        An IPython console client widget (the first parameter in both
-        signatures).
-    response: dict or None
-        Response returned by the server. `None` can happen when the connection
-        to the server is lost.
-    """
-
     sig_start_server_requested = Signal(str)
     """
     This signal is used to request starting a remote server.
@@ -175,8 +145,6 @@ class RemoteClientContainer(PluginMainContainer):
             self._on_connection_status_changed
         )
         self.sig_client_message_logged.connect(self._on_client_message_logged)
-        self._sig_kernel_restarted.connect(self._on_kernel_restarted)
-        self._sig_kernel_info_replied.connect(self._on_kernel_info_reply)
 
         self.__requested_restart = False
         self.__requested_info = False
@@ -352,10 +320,10 @@ class RemoteClientContainer(PluginMainContainer):
 
         self.__requested_restart = True
 
-        future.add_done_callback(
-            lambda future: self._sig_kernel_restarted.emit(
+        future.connect(
+            AsyncDispatcher.QtSlot(lambda future: self._on_kernel_restarted(
                 ipyclient, future.result()
-            )
+            ))
         )
 
     def _request_kernel_info(self, ipyclient):
@@ -372,10 +340,10 @@ class RemoteClientContainer(PluginMainContainer):
 
         self.__requested_info = True
 
-        future.add_done_callback(
-            lambda future: self._sig_kernel_info_replied.emit(
+        future.connect(
+            AsyncDispatcher.QtSlot(lambda future: self._on_kernel_info_reply(
                 ipyclient, future.result()
-            )
+            ))
         )
 
     def _on_kernel_restarted(self, ipyclient, restarted: bool):
