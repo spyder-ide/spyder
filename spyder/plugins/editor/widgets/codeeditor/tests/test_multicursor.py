@@ -254,6 +254,8 @@ def test_overwrite_mode(codeeditor, qtbot):
 #     point = QPoint(*codeeditor.get_coordinates(22))
 #     # TODO not working: this doesn't generate a DragEnter event or DragMove
 #     #    events. Why?
+#     # drag-and-drop not testable currently?
+#     # https://bugreports.qt.io/browse/QTBUG-5232
 #     qtbot.mouseMove(codeeditor.viewport(),
 #                     pos=point)
 #     assert codeeditor._drag_cursor is not None
