@@ -1043,6 +1043,7 @@ class AnimatedTour(QWidget):
                         self.close_tour()
             else:
                 if not self.any_has_focus():
+                    self.hide_tips()
                     self.close_tour()
 
     def gain_focus(self):
