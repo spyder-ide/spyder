@@ -329,7 +329,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if self.enable_infowidget:
             from spyder.widgets.browser import FrameWebView
 
-            self.infowidget = FrameWebView(self)
+            self._infowidget = FrameWebView(self)
             if WEBENGINE:
                 self.infowidget.page().setBackgroundColor(
                     QColor(MAIN_BG_COLOR))
@@ -338,7 +338,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     "background:{}".format(MAIN_BG_COLOR))
             layout.addWidget(self.infowidget)
         else:
-            self.infowidget = None
+            self._infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -1384,6 +1384,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
+    @property
+    def infowidget(self):
+        try:
+            return self._infowidget
+        except RuntimeError:
+            self.enable_infowidget = False
+            return None
 
     # ---- General
     # -------------------------------------------------------------------------
@@ -1425,18 +1432,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
-                self.infowidget.show()
+                if self.infowidget is not None:
+                    self.infowidget.show()
             else:
                 if self.enable_infowidget:
-                    try:
+                    if self.infowidget is not None:
                         self.infowidget.hide()
-                    except RuntimeError:
-                        # Needed to handle the possible scenario where the
-                        # `infowidget` (`FrameWebView`) related C/C++ object
-                        # has been already deleted when trying to hide it.
-                        # See spyder-ider/spyder#21509
-                        self.enable_infowidget = False
-                        self.infowidget = None
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
