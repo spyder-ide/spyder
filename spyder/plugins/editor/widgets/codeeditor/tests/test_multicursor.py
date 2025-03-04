@@ -625,11 +625,14 @@ def test_misc_shortcuts(codeeditor, qtbot):
     click_at(codeeditor, qtbot, 5, ctrl=True, alt=True)
     click_at(codeeditor, qtbot, 23, ctrl=True, alt=True)
     assert len(codeeditor.extra_cursors) == 2
+    ctrl = Qt.KeyboardModifier.ControlModifier
+    if sys.platform == "darwin":
+        ctrl = Qt.KeyboardModifier.AltModifier
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Right,
-        modifier=Qt.KeyboardModifier.ControlModifier
-    )  # Ctrl-Right
+        modifier=ctrl
+    )  # Ctrl-Right (next word)
     assert len(codeeditor.extra_cursors) == 1
     assert codeeditor.extra_cursors[0].position() == 10
     assert codeeditor.textCursor().position() == 30
@@ -650,8 +653,8 @@ def test_misc_shortcuts(codeeditor, qtbot):
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Left,
-        modifier=Qt.KeyboardModifier.ControlModifier
-    )  # Ctrl-Left
+        modifier=ctrl
+    )  # Ctrl-Left (previous word)
     assert len(codeeditor.extra_cursors) == 1
     assert codeeditor.extra_cursors[0].position() == 10
     assert codeeditor.textCursor().position() == 30
@@ -694,10 +697,7 @@ def test_misc_shortcuts(codeeditor, qtbot):
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Right,
-        modifier=(
-            Qt.KeyboardModifier.ControlModifier |
-            Qt.KeyboardModifier.ShiftModifier
-        )
+        modifier=(ctrl | Qt.KeyboardModifier.ShiftModifier)
     )  # Shift-Ctrl-Right select up to next word
     qtbot.keyClick(codeeditor, Qt.Key.Key_Delete)
     assert codeeditor.toPlainText() == "123123456789\n123123456789"
@@ -710,10 +710,7 @@ def test_misc_shortcuts(codeeditor, qtbot):
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Right,
-        modifier=(
-            Qt.KeyboardModifier.ControlModifier |
-            Qt.KeyboardModifier.ShiftModifier
-        )
+        modifier=(ctrl | Qt.KeyboardModifier.ShiftModifier)
     )  # Shift-Ctrl-Right select up to next word
     call_shortcut(codeeditor, "delete")
     assert codeeditor.toPlainText() == "123123456789\n123123456789"
@@ -792,7 +789,7 @@ def test_clipboard(codeeditor, qtbot):
 
     ctrl = Qt.KeyboardModifier.ControlModifier
     if sys.platform == "darwin":
-        ctrl = Qt.KeyboardModifier.MetaModifier
+        ctrl = Qt.KeyboardModifier.AltModifier
     qtbot.keyClick(
         codeeditor,
         Qt.Key.Key_Right,
