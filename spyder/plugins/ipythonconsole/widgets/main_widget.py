@@ -1386,6 +1386,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     # -------------------------------------------------------------------------
     @property
     def infowidget(self):
+        """
+        This is necessary to prevent an error when, in some situations, Python
+        garbage collects _infowidget.
+
+        Notes
+        -----
+        * See spyder-ide/spyder#21509 and spyder-ide/spyder#23529
+        """
         try:
             return self._infowidget
         except RuntimeError:
