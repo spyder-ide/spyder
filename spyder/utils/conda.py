@@ -7,14 +7,15 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+from functools import lru_cache
 from glob import glob
-from packaging.version import parse
 import json
 import os
 import os.path as osp
 import sys
 
 # Third-party imports
+from packaging.version import parse
 from spyder_kernels.utils.pythonenv import (
     add_quotes,
     get_conda_env_path,
@@ -227,6 +228,7 @@ def get_spyder_conda_channel():
     return channel, channel_url
 
 
+@lru_cache(maxsize=1)
 def conda_version(conda_executable=None):
     """Get the conda version if available."""
     version = parse('0')
