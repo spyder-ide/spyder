@@ -165,6 +165,12 @@ class SpyderRemoteAPIManager:
         return self._config_id
 
     @property
+    def server_name(self):
+        if self._plugin is None:
+            return None
+        return self._plugin.get_server_name(self.config_id)
+
+    @property
     def server_url(self):
         """Return server URL
 

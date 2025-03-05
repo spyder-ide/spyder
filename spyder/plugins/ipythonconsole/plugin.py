@@ -11,6 +11,7 @@ IPython Console plugin based on QtConsole.
 # Standard library imports
 import sys
 from typing import List
+from functools import cached_property
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -23,9 +24,11 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import _
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsolePyConfiguration,
+    IPythonConsoleWidgetActions,
     IPythonConsoleWidgetMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
+from spyder.plugins.ipythonconsole.remote import RemoteClientMenus
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
@@ -239,6 +242,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_initialize(self):
         widget = self.get_widget()
 
+        self._is_remote_consoles_menu_added = False
+
         # Main widget signals
         # Connect signal to open preferences
         widget.sig_open_preferences_requested.connect(
@@ -439,6 +444,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             before_section=HelpMenuSections.About,
         )
 
+        # Add remote console submenu
+        if (
+            self.is_plugin_available(Plugins.RemoteClient)
+            and not self._is_remote_consoles_menu_added
+        ):
+            self._add_remote_consoles_menu()
+
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -476,9 +488,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_available(plugin=Plugins.RemoteClient)
     def on_remote_client_available(self):
-        remote_client = self.get_plugin(Plugins.RemoteClient)
-        remote_client.sig_server_stopped.connect(self._close_remote_clients)
-        remote_client.sig_server_renamed.connect(self._rename_remote_clients)
+        self._remote_client.sig_server_stopped.connect(self._close_remote_clients)
+        self._remote_client.sig_server_renamed.connect(self._rename_remote_clients)
+        self._remote_client.sig_server_changed.connect(self._on_remote_server_changed)
+
+        if (
+            self.is_plugin_available(Plugins.MainMenu)
+            and not self._is_remote_consoles_menu_added
+        ):
+            self._add_remote_consoles_menu()
 
     @on_plugin_available(plugin=Plugins.MainInterpreter)
     def on_main_interpreter_available(self):
@@ -501,6 +519,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             IPythonConsoleWidgetMenus.Documentation,
             menu_id=ApplicationMenus.Help
         )
+
+        if self._is_remote_consoles_menu_added:
+            mainmenu.remove_item_from_application_menu(
+                RemoteClientMenus.RemoteConsoles,
+                menu_id=ApplicationMenus.Consoles,
+            )
 
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
@@ -540,11 +564,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_teardown(plugin=Plugins.RemoteClient)
     def on_remote_client_teardown(self):
-        remote_client = self.get_plugin(Plugins.RemoteClient)
-        remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
-        remote_client.sig_server_renamed.disconnect(
+        self._remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
+        self._remote_client.sig_server_renamed.disconnect(
             self._rename_remote_clients
         )
+        self._remote_client.sig_server_changed.disconnect(self._on_remote_server_changed)
 
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_main_interpreter_teardown(self):
@@ -591,12 +615,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     def _on_project_closed(self):
         self.get_widget().update_active_project_path(None)
-
-    def _close_remote_clients(self, server_id):
-        self.get_widget().close_remote_clients(server_id)
-
-    def _rename_remote_clients(self, server_id):
-        self.get_widget().rename_remote_clients(server_id)
 
     def _update_envs(self, envs):
         self.get_widget().update_envs(envs)
@@ -1075,3 +1093,37 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def show_quickref(self):
         """Show IPython Cheat Sheet."""
         self.get_widget().show_quickref()
+
+    # ---- Remote plugin
+    # -------------------------------------------------------------------------
+    @cached_property
+    def _remote_client(self):
+        return self.get_plugin(Plugins.RemoteClient)
+
+    def _add_remote_consoles_menu(self):
+        """Add remote consoles submenu to the Consoles menu."""
+        widget = self.get_widget()
+        widget.setup_remote_consoles_submenu(render=False)
+
+        menu = widget.get_menu(RemoteClientMenus.RemoteConsoles)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            menu,
+            menu_id=ApplicationMenus.Consoles,
+            section=ConsolesMenuSections.New,
+            before=IPythonConsoleWidgetActions.ConnectToKernel,
+        )
+
+        self._is_remote_consoles_menu_added = True
+
+    @Slot()
+    def _close_remote_clients(self, server_id):
+        self.get_widget().close_remote_clients(server_id)
+
+    @Slot()
+    def _rename_remote_clients(self, server_id):
+        self.get_widget().rename_remote_clients(server_id)
+
+    @Slot()
+    def _on_remote_server_changed(self):
+        self.get_widget().setup_remote_consoles_submenu()

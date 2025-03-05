@@ -95,7 +95,17 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     verify_ssl = VERIFY_SSL
 
     @abstract_attribute
-    def base_url(self): ...
+    def base_url(self) -> str: ...
+
+    @property
+    def server_id(self):
+        """Server ID or configuration ID of the remote server."""
+        return self.manager.config_id
+    
+    @property
+    def server_name(self):
+        """Server name of the remote server."""
+        return self.manager.server_name
 
     def __init__(self, manager: SpyderRemoteAPIManager):
         self.manager = manager
@@ -139,10 +149,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     async def connect(self):
         # Default connect method which ensures a connection via the manager.
         if not await AsyncDispatcher(
-            self.manager.ensure_connection_and_server,
             loop="asyncssh",
             return_awaitable=True,
-        )():
+        )(self.manager.ensure_connection_and_server)():
             raise RuntimeError("Failed to connect to Jupyter server")
         if not self.closed:
             return
