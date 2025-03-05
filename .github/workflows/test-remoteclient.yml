@@ -151,7 +151,7 @@ jobs:
         run: |
           rm -f pytest_log.txt
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh
+          .github/scripts/run_tests.sh -n 0 || \
+          .github/scripts/run_tests.sh -n 1 || \
+          .github/scripts/run_tests.sh -n 2 || \
+          .github/scripts/run_tests.sh -n 3
