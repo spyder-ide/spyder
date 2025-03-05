@@ -1754,6 +1754,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.glayout = None
         self.menu_header_v = None
         self.dataTable = None
+        self.resizeToHeader = False
 
     def setup_and_check(self, data, title='') -> bool:
         """
@@ -2344,7 +2345,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def _update_header_size(self):
         """Update the column width of the header."""
-        self.table_header.resizeColumnsToContents()
+        if self.resizeToHeader:
+            self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
@@ -2359,7 +2361,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def _update_index_size(self):
         """Update the column width of the index."""
-        self.table_level.resizeColumnsToContents()
+        if self.resizeToHeader:
+            self.table_level.resizeColumnsToContents()
         column_count = self.table_level.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
@@ -2401,6 +2404,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """Fetch more data for the index (rows)."""
         self.table_index.model().fetch_more()
 
+    def _update_flag_resize(self):
+        self.resizeToHeader = not self.resizeToHeader
+        if self.resizeToHeader:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to headers"))
+        else:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to contents"))
+
     @Slot()
     def resize_to_contents(self):
         """"Resize columns to contents"""
@@ -2410,6 +2422,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataTable.resizeColumnsToContents()
         self._update_header_size()
         self._update_index_size()
+        self._update_flag_resize()
         self._update_layout()
 
         QApplication.restoreOverrideCursor()
