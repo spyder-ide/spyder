@@ -126,6 +126,16 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # If executable is a conda environment, use "run" subcommand to
             # activate it and run spyder-kernels.
             conda_exe = find_conda()
+            if not conda_exe:
+                # Raise error since we were unable to determine the path to
+                # the conda executable (e.g conda was installed in a
+                # non-standard location).
+                # See spyder-ide/spyder#23595
+                raise SpyderKernelError(
+                    _("Unable to determine path to conda executable. "
+                      "Please add the path to the conda executable to your "
+                      "PATH environment variable for it to be detected.")
+                )
             conda_exe_version = conda_version(conda_executable=conda_exe)
 
             kernel_cmd.extend([
