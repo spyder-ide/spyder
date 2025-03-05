@@ -9,13 +9,13 @@ Kernel spec for Spyder kernels
 """
 
 # Standard library imports
-from packaging.version import parse
 import logging
 import os
 import os.path as osp
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
+from packaging.version import parse
 from spyder_kernels.utils.pythonenv import get_conda_env_path, is_conda_env
 
 # Local imports
@@ -128,13 +128,17 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             conda_exe = find_conda()
             if not conda_exe:
                 # Raise error since we were unable to determine the path to
-                # the conda executable (e.g conda was installed in a
-                # non-standard location).
+                # the conda executable (e.g when Anaconda/Miniconda was
+                # installed in a non-standard location).
                 # See spyder-ide/spyder#23595
                 raise SpyderKernelError(
-                    _("Unable to determine path to conda executable. "
-                      "Please add the path to the conda executable to your "
-                      "PATH environment variable for it to be detected.")
+                    _(
+                        "Spyder couldn't find conda or mamba in your system "
+                        "to activate the kernel's environment. Please add the "
+                        "directory where the conda or mamba executable is "
+                        "located to your PATH environment variable for it to "
+                        "be detected."
+                    )
                 )
             conda_exe_version = conda_version(conda_executable=conda_exe)
 
@@ -163,7 +167,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                         "The detected version of Conda is too old and not "
                         "supported by Spyder. The minimum supported version is "
                         "4.9 and currently you have {conda_version}.<br><br>."
-                        "<b>Note</b>: You need to update restart Spyder after "
+                        "<b>Note</b>: You need to restart Spyder after "
                         "updating Conda for the change to take effect."
                     ).format(conda_version=conda_exe_version)
                 )
