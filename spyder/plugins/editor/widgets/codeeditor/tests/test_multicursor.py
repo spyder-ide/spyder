@@ -265,9 +265,6 @@ def test_overwrite_mode(codeeditor, qtbot):
 #     assert codeeditor._drag_cursor is None
 #     assert codeeditor.toPlainText() == "abcdefghij\n0123456789\n"
 
-# fmt: off
-# Disable formatting so that Black/Ruff don't incorrectly format the multiline
-# strings below.
 def test_smart_text(codeeditor, qtbot):
     """
     Test smart text features: Smart backspace, whitespace insertion, colon
@@ -353,7 +350,6 @@ def test_smart_text(codeeditor, qtbot):
         "\n"
     )
 
-# fmt: on
 
 # ---- shortcuts
 
@@ -776,9 +772,104 @@ def test_misc_shortcuts(codeeditor, qtbot):
     call_shortcut(codeeditor, "autoformatting")
     assert not codeeditor.extra_cursors
 
+
 # TODO test next/prev warning
-# TODO test killring
-# TODO test undo/redo
+# TODO test killring if multi cursor handling is added
+
+
+def test_undo(codeeditor, qtbot):
+    """Test undo and redo functionality with multiple cursors."""
+
+    # cases:
+    #    codeeditor.delete
+    #    codeeditor.delete_line
+    #    multiCursorMixin.handle_multi_cursor_keypress
+    #    multiCursorMixin.multi_cursor_cut
+    #    multiCursorMixin.multi_cursor_paste
+    #    multiCursorMixin.for_each_cursor
+    #       (handles many other functions originally for single cursor)
+
+    text = (
+        "abcdefghi\n"
+        "012345678\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    codeeditor.set_text(text)
+
+    # case codeeditor.delete
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "add cursor down")
+    call_shortcut(codeeditor, "delete")
+    assert codeeditor.toPlainText() == (
+        "bcdefghi\n"
+        "12345678\n"
+        "klmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
+    # case codeeditor.delete_line
+    click_at(codeeditor, qtbot, 2)
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+    call_shortcut(codeeditor, "delete line")
+    assert codeeditor.toPlainText() == (
+        "012345678\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
+    # case multiCursorMixin.handle_multi_cursor_keypress
+    click_at(codeeditor, qtbot, 2)
+    click_at(codeeditor, qtbot, 4, ctrl=True, alt=True)
+    click_at(codeeditor, qtbot, 6, ctrl=True, alt=True)
+    qtbot.keyClick(codeeditor, Qt.Key.Key_Space)
+    assert codeeditor.toPlainText() == (
+        "ab cd ef ghi\n"
+        "012345678\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
+    # case multiCursorMixin.multi_cursor_cut
+    click_at(codeeditor, qtbot, 6)
+    click_at(codeeditor, qtbot, 16, ctrl=True, alt=True)
+    qtbot.keyClick(
+        codeeditor,
+        Qt.Key.Key_End,
+        modifier=Qt.KeyboardModifier.ShiftModifier
+    )
+    call_shortcut(codeeditor, "cut")
+    assert codeeditor.toPlainText() == (
+        "abcdef\n"
+        "012345\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
+    call_shortcut(codeeditor, "paste")
+    assert codeeditor.toPlainText() == (
+        "abcdefghighi\n"
+        "012345678678\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
+    # case multiCursorMixin.for_each_cursor
+    call_shortcut(codeeditor, "toggle comment")
+    assert codeeditor.toPlainText() == (
+        "# abcdefghi\n"
+        "# 012345678\n"
+        "jklmnopqr\n"
+        "9abcdef01\n"
+    )
+    call_shortcut(codeeditor, "undo")
+    assert codeeditor.toPlainText() == text
 
 
 def test_clipboard(codeeditor, qtbot):
