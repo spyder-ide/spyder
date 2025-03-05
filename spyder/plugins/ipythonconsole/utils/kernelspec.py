@@ -149,11 +149,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 # (conda<4.9).
                 # See spyder-ide/spyder#22554
                 raise SpyderKernelError(
-                    _("The detected conda version is too old and not "
-                      "supported by Spyder. Minimum conda version supported "
-                      "is conda 4.9. Currently you have {conda_version}"
-                      .format(conda_version=conda_exe_version)
-                      )
+                    _(
+                        "The detected version of Conda is too old and not "
+                        "supported by Spyder. The minimum supported version is "
+                        "4.9 and currently you have {conda_version}.<br><br>."
+                        "<b>Note</b>: You need to update restart Spyder after "
+                        "updating Conda for the change to take effect."
+                    ).format(conda_version=conda_exe_version)
                 )
 
         kernel_cmd.extend([
