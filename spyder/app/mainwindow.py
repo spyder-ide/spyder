@@ -1435,8 +1435,9 @@ def main(options, args):
               "Windows or to install for all users the following fonts:"
               "<ul>{fonts_list}</ul>which are located at:<br><br>"
               "<code>{fonts_directory}</code><br><br>"
-              "If you have admintrator privileges you can run the following "
-              "from a Command Prompt to install the required fonts:<br><br>"
+              "If you have administrator privileges, you can run the "
+              "following command in a Command Prompt to install the required "
+              "fonts:<br><br>"
               "<code>qta-install-fonts-all-users</code>").format(
                 fonts_list=fonts_list, fonts_directory=fonts_directory,
             ),
