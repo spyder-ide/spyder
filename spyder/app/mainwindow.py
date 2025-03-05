@@ -1434,7 +1434,10 @@ def main(options, args):
               "Please ask your system administrator for help to upgrade "
               "Windows or to install for all users the following fonts:"
               "<ul>{fonts_list}</ul>which are located at:<br><br>"
-              "<code>{fonts_directory}</code>").format(
+              "<code>{fonts_directory}</code><br><br>"
+              "If you have admintrator privileges you can run the following "
+              "from a Command Prompt to install the required fonts:<br><br>"
+              "<code>qta-install-fonts-all-users</code>").format(
                 fonts_list=fonts_list, fonts_directory=fonts_directory,
             ),
             QMessageBox.StandardButton.Ok
