@@ -20,6 +20,11 @@ import sys
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
 
+
+# ---- Tests to skip on the first CI run
+SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
+
+
 # ---- Pytest adjustments
 import pytest
 
@@ -49,7 +54,26 @@ def get_passed_tests():
         for line in logfile:
             match = test_re.match(line)
             if match:
-                tests.add(match.group(1))
+                if any(
+                    skipped_first_run in line
+                    for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+                ):
+                    passed_first_run = "passed_tests_skipped_on_first_run.txt"
+                    if "PASSED" in line or "XFAIL" in line:
+                        with open(passed_first_run, "w+") as f:
+                            f.write(match.group(1))
+                            tests.add(match.group(1))
+                            continue
+                    else:
+                        if osp.isfile(passed_first_run):
+                            with open(passed_first_run) as f:
+                                passed_first_run_contents = f.readlines()
+                            if match.group(1) in passed_first_run_contents:
+                                tests.add(match.group(1))
+                            else:
+                                continue
+                else:
+                    tests.add(match.group(1))
 
         return tests
     else:
@@ -66,6 +90,7 @@ def pytest_collection_modifyitems(config, items):
     skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
     skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
+    skip_first_run = pytest.mark.skip(reason="Test skipped in first CI run")
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
@@ -97,6 +122,13 @@ def pytest_collection_modifyitems(config, items):
                 slow_items.append(item)
 
     for item in items:
+        if int(os.environ.get("CI_RUN_NUMBER", -1)) == 0 and any(
+            skipped_first_run in item.nodeid
+            for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+        ):
+            item.add_marker(skip_first_run)
+            continue
+
         if slow_option:
             if item not in slow_items:
                 item.add_marker(skip_fast)
