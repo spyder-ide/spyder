@@ -61,16 +61,11 @@ from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.qthelpers import WEBENGINE
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.printer import SpyderPrinter
-
-# In case WebEngine is not available (e.g. in Conda-forge)
-try:
-    from qtpy.QtWebEngineWidgets import WEBENGINE
-except ImportError:
-    WEBENGINE = False
 
 
 # Logging

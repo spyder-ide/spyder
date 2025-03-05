@@ -30,7 +30,7 @@ from spyder.config.base import get_conf_path, get_debug_level
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.environ import UserEnvDialog
-from spyder.utils.qthelpers import start_file, DialogManager
+from spyder.utils.qthelpers import start_file, DialogManager, WEBENGINE
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
 
@@ -97,7 +97,8 @@ class ApplicationContainer(PluginMainContainer):
 
         # Attributes
         self.dialog_manager = DialogManager()
-        self.inapp_appeal_status = InAppAppealStatus(self)
+        if WEBENGINE:
+            self.inapp_appeal_status = InAppAppealStatus(self)
 
         # Actions
         # Documentation actions
@@ -138,12 +139,13 @@ class ApplicationContainer(PluginMainContainer):
             _("Spyder support..."),
             triggered=lambda: start_file(__forum_url__))
 
-        self.create_action(
-            ApplicationActions.HelpSpyderAction,
-            _("Help Spyder..."),
-            icon=self.create_icon("inapp_appeal"),
-            triggered=self.inapp_appeal_status.show_appeal
-        )
+        if WEBENGINE:
+            self.create_action(
+                ApplicationActions.HelpSpyderAction,
+                _("Help Spyder..."),
+                icon=self.create_icon("inapp_appeal"),
+                triggered=self.inapp_appeal_status.show_appeal
+            )
 
         # About action
         self.about_action = self.create_action(

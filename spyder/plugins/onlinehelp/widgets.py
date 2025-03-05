@@ -23,14 +23,9 @@ from qtpy.QtWidgets import QApplication, QLabel, QVBoxLayout
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.onlinehelp.pydoc_patch import _start_server, _url_handler
+from spyder.utils.qthelpers import WEBENGINE
 from spyder.widgets.comboboxes import UrlComboBox
 from spyder.widgets.findreplace import FindReplace
-
-# In case WebEngine is not available (e.g. in Conda-forge)
-try:
-    from qtpy.QtWebEngineWidgets import WEBENGINE
-except ImportError:
-    WEBENGINE = False
 
 
 # --- Constants

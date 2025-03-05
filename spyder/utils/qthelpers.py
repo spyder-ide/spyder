@@ -53,6 +53,13 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
+# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
+# And in case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
+
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
