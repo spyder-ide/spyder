@@ -7245,9 +7245,7 @@ def test_custom_run_config_for_multiple_executors(
     )
 
     # Debug file
-    debug_action = main_window.run.get_action(
-        "run file in debugger"
-    )
+    debug_action = main_window.run.get_action("run file in debugger")
     with qtbot.waitSignal(shell.executed):
         debug_action.trigger()
 
@@ -7270,6 +7268,53 @@ def test_custom_run_config_for_multiple_executors(
     # Check it's a dedicated console for the file we're running
     client = main_window.ipyconsole.get_current_client()
     assert "script.py" in client.get_name()
+
+
+@flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
+def test_debug_file_with_modules_in_same_dir(main_window, qtbot, tmp_path):
+    """
+    Check that by default we can debug a file that imports a module in the
+    same directory.
+
+    This is a regression test for issue spyder-ide/spyder#23694
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Main file to debug
+    file1 = tmp_path / "test_file.py"
+    file1.write_text("from testing_in import a_test\n\na_test()")
+
+    # Module
+    file2 = tmp_path / "testing_in.py"
+    file2.write_text("def a_test():\n    print('This is a test')")
+
+    # Open test file
+    main_window.editor.load(str(file1))
+
+    # Start debugging
+    debug_action = main_window.run.get_action("run file in debugger")
+    with qtbot.waitSignal(shell.executed):
+        debug_action.trigger()
+
+    # Debug the two next lines
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!next')
+            qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Wait for a bit until the code is debugged
+    qtbot.wait(500)
+
+    # Check there are no errors and the imported function was executed
+    assert "error" not in control.toPlainText().lower()
+    assert "This is a test" in control.toPlainText()
 
 
 if __name__ == "__main__":
