@@ -58,6 +58,7 @@ try:
 except ImportError:
     WEBENGINE = False
 
+from qtawesome import get_fonts_info
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -1417,17 +1418,36 @@ def main(options, args):
         else:
             mainwindow = create_window(MainWindow, app, splash, options, args)
     except FontError:
-        QMessageBox.information(
-            None, "Spyder",
-            "It was not possible to load Spyder's icon theme, so Spyder "
-            "cannot start on your system. The most probable causes for this "
-            "are either that you are using a Windows version earlier than "
-            "Windows 10 1803/Windows Server 2019, which is no longer "
-            "supported by Spyder or Microsoft, or your system administrator "
-            "has disabled font installation for non-admin users. Please "
-            "upgrade Windows or ask your system administrator for help to "
-            "allow Spyder to start."
+        fonts_directory, fonts = get_fonts_info()
+        fonts_list = "".join(
+            [f"<li><code>{font}</code></li>" for font in fonts]
         )
+        fonts_message = QMessageBox(
+            QMessageBox.Icon.Information,
+            "Spyder",
+            _("It was not possible to load Spyder's icon theme, so Spyder "
+              "cannot start on your system. The most probable causes for this "
+              "are either that you are using a Windows version earlier than "
+              "Windows 10 1803/Windows Server 2019, which is no longer "
+              "supported by Spyder or Microsoft, or your system administrator "
+              "has disabled font installation for non-admin users.<br><br>"
+              "Please ask your system administrator for help to upgrade "
+              "Windows or to install for all users the following fonts:"
+              "<ul>{fonts_list}</ul>which are located at:<br><br>"
+              "<code>{fonts_directory}</code><br><br>"
+              "If you have administrator privileges, you can run the "
+              "following command in a Command Prompt to install the required "
+              "fonts:<br><br>"
+              "<code>qta-install-fonts-all-users</code>").format(
+                fonts_list=fonts_list, fonts_directory=fonts_directory,
+            ),
+            QMessageBox.StandardButton.Ok
+        )
+        fonts_message.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        fonts_message.exec_()
+
     if mainwindow is None:
         # An exception occurred
         if splash is not None:
