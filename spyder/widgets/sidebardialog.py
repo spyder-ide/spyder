@@ -18,6 +18,7 @@ from qtpy.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QLayout,
     QListView,
     QListWidget,
     QListWidgetItem,
@@ -305,14 +306,17 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         page.show_this_page.connect(lambda row=self.contents_widget.count():
                                     self.contents_widget.setCurrentRow(row))
 
-        # Container widget so that we can center the page
+        # Container widget so that we can set margins around the page
         layout = QHBoxLayout()
         layout.addWidget(page)
-        layout.setAlignment(Qt.AlignHCenter)
 
         # The smaller margin to the right is necessary to compensate for the
         # space added by the vertical scrollbar
         layout.setContentsMargins(27, 27, 15, 27)
+
+        # This is necessary to show the full contents of the page in case it
+        # doesn't fit vertically in the available space.
+        layout.setSizeConstraint(QLayout.SetFixedSize)
 
         container = QWidget(self)
         container.setLayout(layout)
@@ -322,8 +326,10 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         # in the dialog
         scrollarea = PageScrollArea(self)
         scrollarea.setObjectName('sidebardialog-scrollarea')
-        scrollarea.setWidgetResizable(True)
+        scrollarea.setWidgetResizable(False)
         scrollarea.setWidget(container)
+        scrollarea.setAlignment(Qt.AlignHCenter)
+        scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pages_widget.addWidget(scrollarea)
 
         # Add plugin entry item to contents widget
