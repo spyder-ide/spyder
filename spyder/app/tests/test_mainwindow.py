@@ -7317,5 +7317,111 @@ def test_debug_file_with_modules_in_same_dir(main_window, qtbot, tmp_path):
     assert "This is a test" in control.toPlainText()
 
 
+@flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
+def test_custom_run_config_with_cwd(main_window, qtbot, tmp_path):
+    """
+    Check that we use the Run current working directory option when it's set by
+    users.
+
+    This is a regression test for issue spyder-ide/spyder#23866
+    """
+    # Auxiliary functions
+    def set_cwd_for_executor(executor: str):
+        # Select executor
+        dialog = main_window.run.get_container().dialog
+        dialog.select_executor(executor)
+
+        # Use the cwd for execution
+        dialog.cwd_radio.setChecked(True)
+
+        # Accept changes
+        ok_btn = dialog.bbox.button(QDialogButtonBox.Ok)
+        ok_btn.animateClick()
+
+        # Wait for a bit until changes are saved to disk
+        qtbot.wait(500)
+
+    def clear_console(prompt_number):
+        shell.clear_console()
+        empty_text = (
+            f"\n\nIn [{prompt_number}]: "
+            if os.name == "nt"
+            else f"\nIn [{prompt_number}]: "
+        )
+        qtbot.waitUntil(
+            lambda: empty_text in control.toPlainText()
+        )
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Open test file
+    main_window.editor.load(osp.join(LOCATION, 'script.py'))
+
+    # Create test directories
+    cwd1 = tmp_path / "test_cwd_1"
+    cwd2 = cwd1 / "test_cwd_2"
+    cwd2.mkdir(parents=True)
+
+    cwd1_str = str(cwd1).replace('\\', '/')
+    cwd2_str = str(cwd2).replace('\\', '/')
+
+    # Change the cwd
+    main_window.workingdirectory.chdir(cwd1_str)
+
+    # Set cwd to run files
+    run_config_action = main_window.run.get_action(RunActions.Configure)
+    run_config_action.trigger()
+    set_cwd_for_executor(executor=Plugins.IPythonConsole)
+
+    # Run test file
+    run_action = main_window.run.get_action(RunActions.Run)
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    # Check we used the cwd
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
+
+    clear_console(prompt_number=3)
+
+    # Change cwd in the console, run again and check we use the new cwd
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, f"cd {cwd2_str}")
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    assert f"--wdir {cwd2_str}" in control.toPlainText()
+
+    clear_console(prompt_number=6)
+
+    # Change cwd in Files, run again and check we use the new cwd
+    main_window.explorer.chdir(f"{cwd1_str}")
+
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
+
+    clear_console(prompt_number=8)
+
+    # Set cwd to debug files and check we use it
+    run_config_action.trigger()
+    set_cwd_for_executor(executor=Plugins.Debugger)
+
+    debug_action = main_window.run.get_action("run file in debugger")
+    with qtbot.waitSignal(shell.executed):
+        debug_action.trigger()
+
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
