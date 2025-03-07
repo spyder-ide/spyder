@@ -11,7 +11,7 @@ spyder.plugins.remoteclient.api
 Remote Client Plugin API.
 """
 
-from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager  # noqa
+from spyder.plugins.remoteclient.api.modules import *  # noqa
 
 # ---- Constants
 # -----------------------------------------------------------------------------

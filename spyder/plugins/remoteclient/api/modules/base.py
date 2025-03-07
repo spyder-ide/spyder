@@ -14,7 +14,7 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.utils import ABCMeta, abstract_attribute
 
 if typing.TYPE_CHECKING:
-    from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
+    from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager
 
 
 SpyderBaseJupyterAPIType = typing.TypeVar(
