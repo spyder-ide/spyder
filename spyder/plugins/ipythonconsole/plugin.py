@@ -25,10 +25,10 @@ from spyder.api.translations import _
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsolePyConfiguration,
     IPythonConsoleWidgetActions,
-    IPythonConsoleWidgetMenus
+    IPythonConsoleWidgetMenus,
+    RemoteConsolesMenus
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
-from spyder.plugins.ipythonconsole.remote import RemoteClientMenus
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
@@ -522,7 +522,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         if self._is_remote_consoles_menu_added:
             mainmenu.remove_item_from_application_menu(
-                RemoteClientMenus.RemoteConsoles,
+                RemoteConsolesMenus.RemoteConsoles,
                 menu_id=ApplicationMenus.Consoles,
             )
 
@@ -1105,7 +1105,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         widget.setup_remote_consoles_submenu(render=False)
 
-        menu = widget.get_menu(RemoteClientMenus.RemoteConsoles)
+        menu = widget.get_menu(RemoteConsolesMenus.RemoteConsoles)
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.add_item_to_application_menu(
             menu,
