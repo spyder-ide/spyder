@@ -76,6 +76,17 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
+
+def _only_remote(func):
+    """Decorator to only allow remote clients to acess a method."""
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self.is_remote():
+            raise RuntimeError("This method is only for remote clients.")
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
@@ -157,7 +168,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             handlers=handlers,
             local_kernel=True,
             special_kernel=special_kernel,
-            server_id=server_id,
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
@@ -810,16 +820,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def jupyter_api(self):
         return self._jupyter_api
 
-    @staticmethod
-    def __only_remote(func):
-        """Decorator to only allow remote clients."""
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if not self.is_remote():
-                raise RuntimeError("This method is only for remote clients.")
-            return func(self, *args, **kwargs)
-        return wrapper
-
     def remote_kernel_restarted_failure_message(
         self, error=None, shutdown=False
     ):
@@ -938,12 +938,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             # Connect client to the kernel
             self.connect_kernel(kernel_handler)
 
-    @__only_remote
+    @_only_remote
     @AsyncDispatcher(loop="ipythonconsole")
     async def shutdown_remote_kernel(self):
         return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
-    @__only_remote
+    @_only_remote
     @AsyncDispatcher(loop="ipythonconsole")
     async def interrupt_remote_kernel(self):
         return await self._jupyter_api.interrupt_kernel(self.kernel_id)
@@ -961,7 +961,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         await self.jupyter_api.connect()
         return await self._jupyter_api.create_kernel()
 
-    @__only_remote
+    @_only_remote
     def restart_remote_kernel(self):
         if self.__remote_restart_requested:
             return
@@ -970,13 +970,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         )
         self.__remote_restart_requested = True
 
-    @__only_remote
+    @_only_remote
     def reconnect_remote_kernel(self):
         if self.__remote_reconnect_requested:
             return
         self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
         self.__remote_reconnect_requested = True
 
-    @__only_remote
+    @_only_remote
     def start_remote_kernel(self):
         self._new_remote_kernel().connect(self._on_remote_kernel_started)

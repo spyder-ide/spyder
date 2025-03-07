@@ -402,6 +402,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
 
+        # Remote Consoles menu
+        self._remote_consoles_menu = None
+
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
     def get_title(self):
@@ -2600,9 +2603,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def setup_remote_consoles_submenu(self, render=True):
         """Create the remote consoles submenu in the Consoles app one."""
 
-        self._remote_consoles_menu = self.create_menu(
-            RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
-        )
+        if self._remote_consoles_menu is None:
+            self._remote_consoles_menu = self.create_menu(
+                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+            )
 
         self._remote_consoles_menu.clear_actions()
 
@@ -2618,7 +2622,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         )
 
         for config_id in self._plugin._remote_client.get_config_ids():
-            name = self._plugin._remote_client.get_name(config_id)
+            name = self._plugin._remote_client.get_server_name(config_id)
 
             action = self.create_action(
                 name=config_id,

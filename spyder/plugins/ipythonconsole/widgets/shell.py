@@ -159,7 +159,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers,
         *args,
         special_kernel=None,
-        server_id=None,
         **kw,
     ):
         # To override the Qt widget used by RichJupyterWidget
@@ -171,7 +170,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.ipyclient: ClientWidget = ipyclient
         self.additional_options = additional_options
         self.special_kernel = special_kernel
-        self.server_id = server_id
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -1097,7 +1095,7 @@ overrided by the Sympy module (e.g. plot)
 
     def is_remote(self):
         """Check if this shell is connected to a remote server."""
-        return self.server_id is not None
+        return self.ipyclient.is_remote()
 
     # ---- Public methods (overrode by us)
     def paste(self, mode=QClipboard.Clipboard):
