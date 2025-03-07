@@ -120,8 +120,12 @@ class RunContainer(PluginMainContainer):
         self.run_executor_actions: Dict[
             Tuple[str, str], Tuple[QAction, Callable]] = {}
 
+        # 'File' is the only super context we support for now. It needs to be
+        # set here so that run actions for files in different plugins (e.g.
+        # 'Debug file') are declared correctly at startup.
+        # Fixes spyder-ide/spyder#23694
+        self.super_contexts: Set[str] = {RunContext.File}
         self.supported_extension_contexts: Dict[str, Set[Tuple[str, str]]] = {}
-        self.super_contexts: Set[str] = set({})
 
         self.last_executed_file: Optional[str] = None
         self.last_executed_per_context: Set[Tuple[str, str]] = set()
