@@ -35,7 +35,7 @@ class WorkingDirectory(SpyderPluginV2):
     NAME = 'workingdir'
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Find, Plugins.Projects]
+                Plugins.Find, Plugins.Projects, Plugins.Run]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -175,6 +175,7 @@ class WorkingDirectory(SpyderPluginV2):
         explorer = self.get_plugin(Plugins.Explorer)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         find = self.get_plugin(Plugins.Find)
+        run = self.get_plugin(Plugins.Run)
 
         if explorer and sender_plugin != explorer:
             explorer.chdir(directory, emit=False)
@@ -185,6 +186,14 @@ class WorkingDirectory(SpyderPluginV2):
 
         if find:
             find.refresh_search_directory()
+
+        # This is a quick hack to make the Run plugin use the current working
+        # directory when the option for it is set by users. In 6.1 we'll
+        # improve how other plugins receive changes to the cwd from this one
+        # to avoid things like this.
+        # Fixes spyder-ide/spyder#23866
+        if run:
+            run._switch_working_dir(directory)
 
         if sender_plugin is not None:
             container = self.get_container()
