@@ -223,7 +223,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
@@ -240,7 +240,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
     def sort_section(self, idx):
         self.setSortingEnabled(True)
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         """Click event."""
         if isinstance(item, FileMatchItem):
             if item.isExpanded():
@@ -248,7 +248,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
             else:
                 self.expandItem(item)
         else:
-            self.activated(item)
+            self.on_item_activated(item)
 
     def clear_title(self, search_text):
         self.font = self.get_font(SpyderFontType.MonospaceInterface)

@@ -9,7 +9,7 @@
 
 # Third party imports
 import qstylizer.parser
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
@@ -82,7 +82,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
