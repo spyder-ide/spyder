@@ -6,6 +6,8 @@
 
 * **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
 * **Breaking** - Remove `dispatch` method from `spyder.api.asyncdispatcher.AsyncDispatcher` to use it directly as decorator.
+* **Breaking** - Remove `set_working_directory` method of the IPython console (you can use `set_current_client_working_directory` instead, which does the same).
+* **Breaking** - The `save_working_directory` method of the IPython console was made private because it's only used internally.
 * Add class `DispatcherFuture` to `spyder/api/asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
 * Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
 * Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to

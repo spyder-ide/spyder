@@ -467,7 +467,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_available(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.connect(
-            self.save_working_directory
+            self._save_working_directory
         )
         working_directory.sig_current_directory_changed.connect(
             self.set_current_client_working_directory
@@ -535,7 +535,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_teardown(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
-            self.save_working_directory
+            self._save_working_directory
         )
         working_directory.sig_current_directory_changed.disconnect(
             self.set_current_client_working_directory
@@ -617,6 +617,18 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         dlg = container.dialog
         index = dlg.get_index_by_name("main_interpreter")
         dlg.set_current_index(index)
+
+    @Slot(str)
+    def _save_working_directory(self, dirname):
+        """
+        Save current working directory on the main widget to start new clients.
+
+        Parameters
+        ----------
+        new_dir: str
+            Path to the new current working directory.
+        """
+        self.get_widget().save_working_directory(dirname)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -1004,34 +1016,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().set_current_client_working_directory(directory)
 
-    def set_working_directory(self, dirname):
-        """
-        Set current working directory in the Working Directory and Files
-        plugins.
-
-        Parameters
-        ----------
-        dirname : str
-            Path to the new current working directory.
-
-        Returns
-        -------
-        None.
-        """
-        self.get_widget().set_working_directory(dirname)
-
-    @Slot(str)
-    def save_working_directory(self, dirname):
-        """
-        Save current working directory on the main widget to start new clients.
-
-        Parameters
-        ----------
-        new_dir: str
-            Path to the new current working directory.
-        """
-        self.get_widget().save_working_directory(dirname)
-
     def update_path(self, new_path, prioritize):
         """
         Update path on consoles.
@@ -1052,6 +1036,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         self.get_widget().update_path(new_path, prioritize)
 
+    # ---- For restarts
     def restart(self):
         """
         Restart the console.
