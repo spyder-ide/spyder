@@ -34,8 +34,12 @@ class WorkingDirectory(SpyderPluginV2):
 
     NAME = 'workingdir'
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
-    OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Find, Plugins.Projects, Plugins.Run]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.Explorer,
+        Plugins.IPythonConsole,
+        Plugins.Projects,
+    ]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -52,7 +56,7 @@ class WorkingDirectory(SpyderPluginV2):
     Parameters
     ----------
     new_working_directory: str
-        The new new working directory path.
+        The new working directory path.
     """
 
     # --- SpyderPluginV2 API
@@ -73,9 +77,8 @@ class WorkingDirectory(SpyderPluginV2):
         container = self.get_container()
 
         container.sig_current_directory_changed.connect(
-            self.sig_current_directory_changed)
-        self.sig_current_directory_changed.connect(
-            lambda path, plugin=None: self.chdir(path, plugin))
+            self.sig_current_directory_changed
+        )
 
         cli_options = self.get_command_line_options()
         container.set_history(
@@ -104,17 +107,14 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Explorer)
     def on_explorer_available(self):
         explorer = self.get_plugin(Plugins.Explorer)
-        self.sig_current_directory_changed.connect(self._explorer_change_dir)
         explorer.sig_dir_opened.connect(self._explorer_dir_opened)
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        self.sig_current_directory_changed.connect(
-            ipyconsole.set_current_client_working_directory)
         ipyconsole.sig_current_directory_changed.connect(
-            self._ipyconsole_change_dir)
+            self._ipyconsole_change_dir
+        )
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -141,17 +141,14 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.Explorer)
     def on_explorer_teardown(self):
         explorer = self.get_plugin(Plugins.Explorer)
-        self.sig_current_directory_changed.disconnect(self._explorer_change_dir)
         explorer.sig_dir_opened.disconnect(self._explorer_dir_opened)
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        self.sig_current_directory_changed.disconnect(
-            ipyconsole.set_current_client_working_directory)
         ipyconsole.sig_current_directory_changed.disconnect(
-            self._ipyconsole_change_dir)
+            self._ipyconsole_change_dir
+        )
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -172,35 +169,8 @@ class WorkingDirectory(SpyderPluginV2):
         sender_plugin: spyder.api.plugins.SpyderPluginsV2
             The plugin that requested this change: Default is None.
         """
-        explorer = self.get_plugin(Plugins.Explorer)
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        find = self.get_plugin(Plugins.Find)
-        run = self.get_plugin(Plugins.Run)
-
-        if explorer and sender_plugin != explorer:
-            explorer.chdir(directory, emit=False)
-            explorer.refresh(directory, force_current=True)
-
-        if ipyconsole and sender_plugin != ipyconsole:
-            ipyconsole.set_current_client_working_directory(directory)
-
-        if find:
-            find.refresh_search_directory()
-
-        # This is a quick hack to make the Run plugin use the current working
-        # directory when the option for it is set by users. In 6.1 we'll
-        # improve how other plugins receive changes to the cwd from this one
-        # to avoid things like this.
-        # Fixes spyder-ide/spyder#23866
-        if run:
-            run._switch_working_dir(directory)
-
-        if sender_plugin is not None:
-            container = self.get_container()
-            container.chdir(directory, emit=False)
-            if ipyconsole:
-                ipyconsole.save_working_directory(directory)
-
+        container = self.get_container()
+        container.chdir(directory)
         self.save_history()
 
     def load_history(self, workdir=None):
@@ -249,11 +219,6 @@ class WorkingDirectory(SpyderPluginV2):
     def _editor_change_dir(self, path):
         editor = self.get_plugin(Plugins.Editor)
         self.chdir(path, editor)
-
-    def _explorer_change_dir(self, path):
-        explorer = self.get_plugin(Plugins.Explorer)
-        if explorer:
-            explorer.chdir(path, emit=False)
 
     def _explorer_dir_opened(self, path):
         explorer = self.get_plugin(Plugins.Explorer)

@@ -467,7 +467,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_available(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.connect(
-            self.save_working_directory)
+            self.save_working_directory
+        )
+        working_directory.sig_current_directory_changed.connect(
+            self.set_current_client_working_directory
+        )
 
     @on_plugin_available(plugin=Plugins.PythonpathManager)
     def on_pythonpath_manager_available(self):
@@ -531,7 +535,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_working_directory_teardown(self):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
-            self.save_working_directory)
+            self.save_working_directory
+        )
+        working_directory.sig_current_directory_changed.disconnect(
+            self.set_current_client_working_directory
+        )
 
     @on_plugin_teardown(plugin=Plugins.PythonpathManager)
     def on_pythonpath_manager_teardown(self):
