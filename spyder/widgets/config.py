@@ -18,11 +18,27 @@ from qtpy.compat import (getexistingdirectory, getopenfilename, from_qvariant,
                          to_qvariant)
 from qtpy.QtCore import Qt, QRegularExpression, QSize, Signal, Slot
 from qtpy.QtGui import QColor, QRegularExpressionValidator, QTextOption
-from qtpy.QtWidgets import (QAction, QButtonGroup, QCheckBox, QDoubleSpinBox,
-                            QFileDialog, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPlainTextEdit, QPushButton, QRadioButton,
-                            QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QButtonGroup,
+    QCheckBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLayout,
+    QLineEdit,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QRadioButton,
+    QSpinBox,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
@@ -1109,8 +1125,18 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         tab = QWidget(self)
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+
+        # This is necessary to make Qt respect the declared vertical spacing
+        # for widgets. In other words, it prevents text to be cropped when the
+        # total height of the page is too large.
+        layout.setSizeConstraint(QLayout.SetFixedSize)
+
         for w in widgets:
+            # We need to set a min width so that pages are not shown too thin
+            # due to setting the layout size constraint above.
+            w.setMinimumWidth(self.MAX_WIDTH - 70)
             layout.addWidget(w)
+
         layout.addStretch(1)
         tab.setLayout(layout)
 
