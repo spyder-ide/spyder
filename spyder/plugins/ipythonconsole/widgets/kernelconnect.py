@@ -55,6 +55,9 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         cf_open_btn = QPushButton(_('Browse'))
         cf_open_btn.clicked.connect(self.select_connection_file)
 
+        # Signals
+        self.cf.textChanged.connect(self.activate_button)
+
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
         cf_layout.addWidget(self.cf)
@@ -142,6 +145,8 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             Qt.Horizontal,
             self,
         )
+        self.button_ok = self.accept_btns.button(QDialogButtonBox.Ok)
+        self.button_ok.setEnabled(False)
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
         self.accept_btns.accepted.connect(self.accept)
@@ -166,6 +171,12 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
         self.cf.setFocus()
         self.load_connection_settings()
+
+    def activate_button(self):
+        if self.cf.text() == "":
+            self.button_ok.setEnabled(False)
+        else:
+            self.button_ok.setEnabled(True)
 
     def load_connection_settings(self):
         """Load the user's previously-saved kernel connection settings."""
