@@ -154,7 +154,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             special_kernel=special_kernel,
             server_id=server_id,
         )
-        self._infowidget = self.container.infowidget
+        self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.loading_page = self._create_loading_page()
         # To keep a reference to the page to be displayed
@@ -338,13 +338,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if self.kernel_handler is None:
             return None
         return self.kernel_handler.connection_file
-    
-    @property
-    def infowidget(self):
-        try:
-            return self._infowidget
-        except RuntimeError:
-            return None
 
     def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect kernel to client using our handler."""

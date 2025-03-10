@@ -331,7 +331,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
             self._infowidget = FrameWebView(self)
             if WEBENGINE:
-                self.infowidget.page().setBackgroundColor(
+                self._infowidget.page().setBackgroundColor(
                     QColor(MAIN_BG_COLOR))
             else:
                 self.infowidget.setStyleSheet(
@@ -1406,7 +1406,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self._font = font
         self._app_font = app_font
 
-        if self.enable_infowidget:
+        if self.enable_infowidget and self.infowidget is not None:
             self.infowidget.set_font(app_font)
 
         for client in self.clients:
@@ -1443,9 +1443,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 if self.infowidget is not None:
                     self.infowidget.show()
             else:
-                if self.enable_infowidget:
-                    if self.infowidget is not None:
-                        self.infowidget.hide()
+                if self.enable_infowidget and self.infowidget is not None:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
