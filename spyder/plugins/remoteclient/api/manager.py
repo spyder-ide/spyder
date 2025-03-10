@@ -32,8 +32,6 @@ from spyder.plugins.remoteclient.api.modules.base import JupyterAPI
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
-    KernelConnectionInfo,
-    KernelInfo,
     RemoteClientLog,
     SSHClientOptions,
 )
@@ -75,7 +73,9 @@ class SpyderRemoteAPIManager:
 
     REGISTERED_MODULE_APIS: typing.ClassVar[
         dict[str, type[SpyderBaseJupyterAPIType]]
-    ] = {}
+    ] = {
+        JupyterAPI.__qualname__: JupyterAPI,
+    }
 
     JUPYTER_SERVER_TIMEOUT = 5  # seconds
 
@@ -163,6 +163,12 @@ class SpyderRemoteAPIManager:
     def config_id(self):
         """Return the configuration ID"""
         return self._config_id
+
+    @property
+    def server_name(self):
+        if self._plugin is None:
+            return None
+        return self._plugin.get_server_name(self.config_id)
 
     @property
     def server_url(self):
@@ -714,9 +720,7 @@ class SpyderRemoteAPIManager:
             f"{self._server_info['pid']}"
         )
         try:
-            async with JupyterAPI(
-                self.server_url, api_token=self.api_token
-            ) as jupyter:
+            async with self.get_jupyter_api() as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
             self.logger.exception("Error stopping remote server", exc_info=err)
@@ -778,139 +782,6 @@ class SpyderRemoteAPIManager:
             raise ValueError(f"API {api} is not registered")
 
         return partial(api_class, manager=self)
-
-    # ---- Kernel Management
-    async def start_new_kernel_ensure_server(
-        self, _retries=5
-    ) -> KernelConnectionInfo:
-        """Launch a new kernel ensuring the remote server is running.
-
-        Parameters
-        ----------
-        options : SSHClientOptions
-            The options to use for the SSH connection.
-
-        Returns
-        -------
-        KernelConnectionInfo
-            The kernel connection information.
-        """
-        if not await self.ensure_connection_and_server():
-            self.logger.error(
-                "Cannot launch kernel, remote server is not running"
-            )
-            return {}
-
-        # This is necessary to avoid an error when the server has not started
-        # before
-        await asyncio.sleep(1)
-        kernel_id = await self.start_new_kernel()
-
-        retries = 0
-        while not kernel_id and retries < _retries:
-            await asyncio.sleep(1)
-            kernel_id = await self.start_new_kernel()
-            self.logger.debug(
-                f"Server might not be ready yet, retrying kernel launch "
-                f"({retries + 1}/{_retries})"
-            )
-            retries += 1
-
-        return kernel_id
-
-    async def get_kernel_info_ensure_server(
-        self, kernel_id, _retries=5
-    ) -> KernelConnectionInfo:
-        """Launch a new kernel ensuring the remote server is running.
-
-        Parameters
-        ----------
-        options : SSHClientOptions
-            The options to use for the SSH connection.
-
-        Returns
-        -------
-        KernelConnectionInfo
-            The kernel connection information.
-        """
-        if not await self.ensure_connection_and_server():
-            self.logger.error(
-                "Cannot launch kernel, remote server is not running"
-            )
-            return {}
-
-        # This is necessary to avoid an error when the server has not started
-        # before
-        await asyncio.sleep(1)
-        kernel_info = await self.get_kernel_info(kernel_id)
-
-        retries = 0
-        while not kernel_info and retries < _retries:
-            await asyncio.sleep(1)
-            kernel_info = await self.get_kernel_info(kernel_id)
-            self.logger.debug(
-                f"Server might not be ready yet, retrying kernel launch "
-                f"({retries + 1}/{_retries})"
-            )
-            retries += 1
-
-        return kernel_info
-
-    async def start_new_kernel(self, kernel_spec=None) -> KernelInfo:
-        """Start new kernel."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.create_kernel(kernel_spec=kernel_spec)
-        self.logger.info(f"Kernel started with ID {response['id']}")
-        return response
-
-    async def list_kernels(self) -> list[KernelInfo]:
-        """List kernels."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.list_kernels()
-
-        self.logger.info(f"Kernels listed for {self.peer_host}")
-        return response
-
-    async def get_kernel_info(self, kernel_id) -> KernelInfo:
-        """Get kernel info."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.get_kernel(kernel_id=kernel_id)
-
-        self.logger.info(f"Kernel info retrieved for ID {kernel_id}")
-        return response
-
-    async def terminate_kernel(self, kernel_id) -> bool:
-        """Terminate kernel."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.delete_kernel(kernel_id=kernel_id)
-
-        self.logger.info(f"Kernel terminated for ID {kernel_id}")
-        return response
-
-    async def interrupt_kernel(self, kernel_id) -> bool:
-        """Interrupt kernel."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.interrupt_kernel(kernel_id=kernel_id)
-
-        self.logger.info(f"Kernel interrupted for ID {kernel_id}")
-        return response
-
-    async def restart_kernel(self, kernel_id) -> bool:
-        """Restart kernel."""
-        async with JupyterAPI(
-            self.server_url, api_token=self.api_token
-        ) as jupyter:
-            response = await jupyter.restart_kernel(kernel_id=kernel_id)
-
-        self.logger.info(f"Kernel restarted for ID {kernel_id}")
-        return response
+    
+    def get_jupyter_api(self) -> JupyterAPI:
+        return JupyterAPI(manager=self)
