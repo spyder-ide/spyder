@@ -131,15 +131,23 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 # the conda executable (e.g when Anaconda/Miniconda was
                 # installed in a non-standard location).
                 # See spyder-ide/spyder#23595
-                raise SpyderKernelError(
-                    _(
-                        "Spyder couldn't find conda or mamba in your system "
-                        "to activate the kernel's environment. Please add the "
-                        "directory where the conda or mamba executable is "
-                        "located to your PATH environment variable for it to "
-                        "be detected."
-                    )
+                not_found_exe_message = _(
+                    "Spyder couldn't find conda or mamba in your system "
+                    "to activate the kernel's environment. Please add the "
+                    "directory where the conda or mamba executable is "
+                    "located to your PATH environment variable for it to "
+                    "be detected."
                 )
+                if ".pixi" in pyexec:
+                    # Validate if the interpreter path contains ".pixi" to
+                    # handle pixi created environments when conda is not
+                    # installed and show proper feedback.
+                    # See spyder-ide/spyder#23558 (issuecomment-2707561132)
+                    not_found_exe_message = _(
+                        "Spyder doesn't support Pixi environments at the "
+                        "time, but it will in version 6.1.0"
+                    )
+                raise SpyderKernelError(not_found_exe_message)
             conda_exe_version = conda_version(conda_executable=conda_exe)
 
             kernel_cmd.extend([
