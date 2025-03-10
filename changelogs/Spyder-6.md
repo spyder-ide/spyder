@@ -4,16 +4,31 @@
 
 ### API changes
 
-* **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
-* **Breaking** - Remove `dispatch` method from `spyder.api.asyncdispatcher.AsyncDispatcher` to use it directly as decorator.
-* **Breaking** - Remove `set_working_directory` method of the IPython console (you can use `set_current_client_working_directory` instead, which does the same).
-* **Breaking** - The `save_working_directory` method of the IPython console was made private because it's only used internally.
-* Add class `DispatcherFuture` to `spyder/api/asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
-* Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
-* Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
-  get and register new rest API modules for the remote client.
-* Add `get_file_api` method to `RemoteClient` to get the
-  `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+#### IPython console
+
+* **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
+* **Breaking** - The `save_working_directory` method was made private because it's only used internally.
+* Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
+
+#### Working Directory
+
+* **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
+* **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
+
+#### Remote Client
+
+* Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
+* Add `get_file_api` method to get the `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+
+#### Pythonpath manager
+
+* **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
+
+#### AsyncDispatcher
+
+* **Breaking** - Remove `dispatch` method to use it directly as decorator.
+* Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
+* Add `early_return` and `return_awaitable` kwargs its constructor.
 
 ----
 

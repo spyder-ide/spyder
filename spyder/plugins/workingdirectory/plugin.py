@@ -9,7 +9,9 @@ Working Directory Plugin.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
+from typing import Optional
 
 # Third party imports
 from qtpy.QtCore import Signal
@@ -25,6 +27,9 @@ from spyder.plugins.workingdirectory.container import (
     WorkingDirectoryContainer)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
+
+
+logger = logging.getLogger(__name__)
 
 
 class WorkingDirectory(SpyderPluginV2):
@@ -49,7 +54,7 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_current_directory_changed = Signal(str)
+    sig_current_directory_changed = Signal(str, str)
     """
     This signal is emitted when the current directory has changed.
 
@@ -57,6 +62,8 @@ class WorkingDirectory(SpyderPluginV2):
     ----------
     new_working_directory: str
         The new working directory path.
+    sender_plugin: str
+        Name of the plugin that requested the directory to be changed.
     """
 
     # --- SpyderPluginV2 API
@@ -76,9 +83,9 @@ class WorkingDirectory(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
 
-        container.sig_current_directory_changed.connect(
-            self.sig_current_directory_changed
-        )
+        # To report to other plugins that cwd changed when the user selected a
+        # new one directly in the toolbar.
+        container.sig_current_directory_changed.connect(self.chdir)
 
         cli_options = self.get_command_line_options()
         container.set_history(
@@ -158,7 +165,7 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory, sender_plugin=None):
+    def chdir(self, directory: str, sender_plugin: Optional[str] = None):
         """
         Change current working directory.
 
@@ -166,11 +173,22 @@ class WorkingDirectory(SpyderPluginV2):
         ----------
         directory: str
             The new working directory to set.
-        sender_plugin: spyder.api.plugins.SpyderPluginsV2
-            The plugin that requested this change: Default is None.
+        sender_plugin: str
+            The plugin that requested this change. Default is None, which means
+            this is the plugin requesting the change.
         """
         container = self.get_container()
-        container.chdir(directory)
+
+        if sender_plugin is None:
+            sender_plugin = self.NAME
+
+        logger.debug(
+            f"The plugin {sender_plugin} requested changing the cwd to "
+            f"{directory}"
+        )
+        container.chdir(directory, emit=False)
+        self.sig_current_directory_changed.emit(directory, sender_plugin)
+
         self.save_history()
 
     def load_history(self, workdir=None):
@@ -217,24 +235,20 @@ class WorkingDirectory(SpyderPluginV2):
 
     # -------------------------- Private API ----------------------------------
     def _editor_change_dir(self, path):
-        editor = self.get_plugin(Plugins.Editor)
-        self.chdir(path, editor)
+        self.chdir(path, Plugins.Editor)
 
     def _explorer_dir_opened(self, path):
-        explorer = self.get_plugin(Plugins.Explorer)
-        self.chdir(path, explorer)
+        self.chdir(path, Plugins.Explorer)
 
     def _ipyconsole_change_dir(self, path):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.chdir(path, ipyconsole)
+        self.chdir(path, Plugins.IPythonConsole)
 
     def _project_loaded(self, path):
-        projects = self.get_plugin(Plugins.Projects)
-        self.chdir(directory=path, sender_plugin=projects)
+        self.chdir(directory=path, sender_plugin=Plugins.Projects)
 
     def _project_closed(self, path):
         projects = self.get_plugin(Plugins.Projects)
         self.chdir(
             directory=projects.get_last_working_dir(),
-            sender_plugin=projects
+            sender_plugin=Plugins.Projects
         )

@@ -16,6 +16,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.translations import _
@@ -297,10 +298,18 @@ class Explorer(SpyderDockablePlugin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _chdir_from_working_directory(self, directory):
+    @qdebounced(timeout=100)
+    def _chdir_from_working_directory(self, directory, sender_plugin):
         """
         Change the working directory when requested from the Working Directory
         plugin.
+
+        Notes
+        -----
+        * This method is debounced to avoid calling it several times when
+          multiple plugins try to change the cwd in quick succession.
         """
-        self.chdir(directory, emit=False)
-        self.refresh(directory)
+        # Only update the cwd if this plugin didn't request changing it
+        if sender_plugin != self.NAME:
+            self.chdir(directory, emit=False)
+            self.refresh(directory)

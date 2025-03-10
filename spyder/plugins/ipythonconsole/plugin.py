@@ -10,10 +10,11 @@ IPython Console plugin based on QtConsole.
 
 # Standard library imports
 import sys
-from typing import List
+from typing import List, Optional
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.fonts import SpyderFontType
@@ -618,7 +619,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         index = dlg.get_index_by_name("main_interpreter")
         dlg.set_current_index(index)
 
-    @Slot(str)
     def _save_working_directory(self, dirname):
         """
         Save current working directory on the main widget to start new clients.
@@ -1001,7 +1001,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self.get_widget().execute_code(lines)
 
     # ---- For working directory and path management
-    def set_current_client_working_directory(self, directory):
+    @qdebounced(timeout=100)
+    def set_current_client_working_directory(
+        self, directory: str, sender_plugin: Optional[str] = None
+    ):
         """
         Set current client working directory.
 
@@ -1009,12 +1012,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         ----------
         directory : str
             Path for the new current working directory.
+        sender_plugin: str
+            Name of the plugin that requested changing the working directory.
+            Default is None, which means this plugin did it.
 
         Returns
         -------
         None.
         """
-        self.get_widget().set_current_client_working_directory(directory)
+        # Only update the cwd if this plugin didn't request changing it
+        if sender_plugin != self.NAME:
+            self.get_widget().set_current_client_working_directory(directory)
 
     def update_path(self, new_path, prioritize):
         """
