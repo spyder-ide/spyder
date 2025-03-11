@@ -145,7 +145,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     # See spyder-ide/spyder#23558 (issuecomment-2707561132)
                     not_found_exe_message = _(
                         "Spyder doesn't support Pixi environments at the "
-                        "time, but it will in version 6.1.0"
+                        "moment, but it will in version 6.1.0"
                     )
                 raise SpyderKernelError(not_found_exe_message)
             conda_exe_version = conda_version(conda_executable=conda_exe)
