@@ -334,9 +334,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 self._infowidget.page().setBackgroundColor(
                     QColor(MAIN_BG_COLOR))
             else:
-                self.infowidget.setStyleSheet(
-                    "background:{}".format(MAIN_BG_COLOR))
-            layout.addWidget(self.infowidget)
+                self._infowidget.setStyleSheet(
+                    "background:{}".format(MAIN_BG_COLOR)
+                )
+            layout.addWidget(self._infowidget)
         else:
             self._infowidget = None
 
@@ -1395,9 +1396,14 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         * See spyder-ide/spyder#21509 and spyder-ide/spyder#23529
         """
         try:
+            # We need to call a method to detect if the object was garbage
+            # collected and trigger the RuntimeError we want to catch here.
+            self._infowidget.isVisible()
             return self._infowidget
         except RuntimeError:
-            self.enable_infowidget = False
+            self._infowidget = self._create_info_widget()
+            return self._infowidget
+        except AttributeError:
             return None
 
     # ---- General
