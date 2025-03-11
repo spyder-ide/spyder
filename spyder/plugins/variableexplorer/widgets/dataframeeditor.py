@@ -2133,12 +2133,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                 # the index.
                 + 5
             )
-                + self.table_level.columnWidth(last_col)
-                + self.table_level.verticalHeader().width()
-                # This is necessary to show the separator that allows to resize
-                # the index.
-                + 5
-            )
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
