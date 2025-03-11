@@ -2125,9 +2125,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if last_col < 0:
             idx_width = self.table_level.verticalHeader().width()
         else:
-            idx_width = self.table_level.columnViewportPosition(last_col) + \
-                        self.table_level.columnWidth(last_col) + \
-                        self.table_level.verticalHeader().width() + 5
+            idx_width = (
+                self.table_level.columnViewportPosition(last_col)
+                + self.table_level.columnWidth(last_col)
+                + self.table_level.verticalHeader().width()
+                # This is necessary to show the separator that allows to resize
+                # the index.
+                + 5
+            )
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
@@ -2360,9 +2365,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                 break
 
     def _update_index_size(self):
-        """Update the column width of the index."""
+        """Update the index's column width."""
         if self.resizeToHeader:
             self.table_level.resizeColumnsToContents()
+
         column_count = self.table_level.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
@@ -2408,10 +2414,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.resizeToHeader = not self.resizeToHeader
         if self.resizeToHeader:
             self.dataTable.resize_columns_action.setText(
-                _("Resize columns to headers"))
+                _("Resize columns to headers")
+            )
         else:
             self.dataTable.resize_columns_action.setText(
-                _("Resize columns to contents"))
+                _("Resize columns to contents")
+            )
 
     @Slot()
     def resize_to_contents(self):
