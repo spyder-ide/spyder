@@ -2375,6 +2375,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if self.resizeToHeader:
             self.table_level.resizeColumnsToContents()
 
+
         column_count = self.table_level.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
