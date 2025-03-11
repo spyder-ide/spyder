@@ -117,9 +117,7 @@ def get_user_environment_variables():
                 proc = run_shell_command(user_env_script, env={}, text=True)
 
                 # Use timeout to fix spyder-ide/spyder#21172
-                stdout, stderr = proc.communicate(
-                    timeout=3 if running_in_ci() else 0.5
-                )
+                stdout, stderr = proc.communicate(timeout=5)
 
                 if stderr:
                     logger.info(stderr.strip())
