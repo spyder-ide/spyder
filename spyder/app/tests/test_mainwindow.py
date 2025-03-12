@@ -6300,8 +6300,10 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-            timeout=SHELL_TIMEOUT)
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT,
+        )
         with qtbot.waitSignal(shell.executed):
             shell.execute(f'cd {str(sync_dir)}')
 
@@ -6310,8 +6312,11 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
     for i in range(3):
         ipyconsole.get_widget().tabwidget.setCurrentIndex(i)
         shell_cwd = ipyconsole.get_current_shellwidget().get_cwd()
-        assert shell_cwd == workdir.get_workdir() == files.get_current_folder()
-
+        qtbot.waitUntil(
+            lambda: shell_cwd
+            == workdir.get_workdir()
+            == files.get_current_folder()
+        )
 
 @flaky(max_runs=5)
 def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
@@ -6335,9 +6340,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == str(tmpdir))
-    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == str(tmpdir)
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check that a new client has the same initial cwd as the current one
     ipyconsole.create_new_client()
@@ -6345,9 +6353,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == str(tmpdir))
-    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == str(tmpdir)
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check new clients with a fixed directory
     ipyconsole.set_conf('console/use_cwd', False, section='workingdir')
@@ -6369,9 +6380,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == fixed_dir)
-    assert shell.get_cwd() == fixed_dir == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == fixed_dir
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check when opening projects
     project_path = str(tmpdir.mkdir('test_project'))
@@ -6382,9 +6396,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == project_path)
-    assert shell.get_cwd() == project_path == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == project_path
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check when closing projects
     main_window.projects.close_project()
@@ -6394,9 +6411,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == get_home_dir())
-    assert shell.get_cwd() == get_home_dir() == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == get_home_dir()
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
 
 def test_debug_selection(main_window, qtbot):
