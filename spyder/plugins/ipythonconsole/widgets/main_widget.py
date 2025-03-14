@@ -1088,14 +1088,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def _create_info_widget(self):
         from spyder.widgets.browser import FrameWebView
 
-        self._infowidget = FrameWebView(self)
+        infowidget = FrameWebView(self)
         if WEBENGINE:
-            self._infowidget.page().setBackgroundColor(
+            infowidget.page().setBackgroundColor(
                 QColor(MAIN_BG_COLOR))
         else:
-            self._infowidget.setStyleSheet(
+            infowidget.setStyleSheet(
                 "background:{}".format(MAIN_BG_COLOR)
             )
+        return infowidget
 
     def _change_client_conf(self, client, client_conf_func, value):
         """
