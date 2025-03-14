@@ -194,7 +194,6 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
               "like Bokeh, Plotly or Altair.")
         )
 
-
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
@@ -205,7 +204,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
             f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
         self.splitter.setChildrenCollapsible(False)
-        self.splitter.splitterMoved.connect(self.on_splitter_moved)
+        self.splitter.splitterMoved.connect(self._on_splitter_moved)
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)
@@ -215,13 +214,10 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
 
-    def on_splitter_moved(self):
+    def _on_splitter_moved(self):
         total_width = self.splitter.width()
-
-        min_width_percentage = 0.5
-
-        min_width = total_width * min_width_percentage
-
+        min_width_percentage = 0.55
+        min_width = int(total_width * min_width_percentage)
         self.figviewer.setMinimumWidth(min_width)
 
     def _update_zoom_value(self, value):
