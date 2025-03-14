@@ -13,3 +13,4 @@ pillow
 django
 h5py
 pydicom
+anyio

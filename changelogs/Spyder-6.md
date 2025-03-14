@@ -4,14 +4,76 @@
 
 ### API changes
 
-* **Breaking** - The `sig_pythonpath_changed` signal of the Python path manager plugin now emits a list of strings and a bool, instead of two dictionaries.
-* **Breaking** - Remove `dispatch` method from `spyder.api.asyncdispatcher.AsyncDispatcher` to use it directly as decorator.
-* Add class `DispatcherFuture` to `spyder/api/asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
-* Add `early_return` and `return_awaitable` kwargs to `AsyncDispatcher` constructor.
-* Add `register_api` and `get_api` methods to `RemoteClient` plugin in order to
-  get and register new rest API modules for the remote client.
-* Add `get_file_api` method to `RemoteClient` to get the
-  `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+#### IPython console
+
+* **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
+* **Breaking** - The `save_working_directory` method was made private because it's only used internally.
+* Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
+
+#### Working Directory
+
+* **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
+* **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
+
+#### Remote Client
+
+* Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
+* Add `get_file_api` method to get the `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+
+#### Pythonpath manager
+
+* **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
+
+#### AsyncDispatcher
+
+* **Breaking** - Remove `dispatch` method to use it directly as decorator.
+* Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
+* Add `early_return` and `return_awaitable` kwargs its constructor.
+
+----
+
+## Version 6.1.0a1 (2025/03/13)
+
+### Issues Closed
+
+* [Issue 22830](https://github.com/spyder-ide/spyder/issues/22830) - A couple of errors with PyQt6 ([PR 22846](https://github.com/spyder-ide/spyder/pull/22846) by [@fxjaeckel](https://github.com/fxjaeckel))
+* [Issue 22207](https://github.com/spyder-ide/spyder/issues/22207) - Feature: Select full floating point numbers by double-clicking on them ([PR 22728](https://github.com/spyder-ide/spyder/pull/22728) by [@athompson673](https://github.com/athompson673))
+* [Issue 21264](https://github.com/spyder-ide/spyder/issues/21264) - Request: copy entire line with CTRL+C and no selection ([PR 22480](https://github.com/spyder-ide/spyder/pull/22480) by [@The-Ludwig](https://github.com/The-Ludwig))
+* [Issue 17066](https://github.com/spyder-ide/spyder/issues/17066) - Suggestion: insert paths from PYTHONPATH manager before system's PYTHONPATH ([PR 21769](https://github.com/spyder-ide/spyder/pull/21769) by [@mrclary](https://github.com/mrclary))
+* [Issue 8574](https://github.com/spyder-ide/spyder/issues/8574) - Feature Suggestion: Cut current line ([PR 22480](https://github.com/spyder-ide/spyder/pull/22480) by [@The-Ludwig](https://github.com/The-Ludwig))
+* [Issue 2112](https://github.com/spyder-ide/spyder/issues/2112) - Add multiline editing to the Editor ([PR 22996](https://github.com/spyder-ide/spyder/pull/22996) by [@athompson673](https://github.com/athompson673))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 23946](https://github.com/spyder-ide/spyder/pull/23946) - PR: Update `spyder-kernels` to 3.1.0a1 (for Spyder 6.1.0a1), by [@dalthviz](https://github.com/dalthviz)
+* [PR 23944](https://github.com/spyder-ide/spyder/pull/23944) - PR: Check async changes to debugger completions (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23932](https://github.com/spyder-ide/spyder/pull/23932) - PR: Fix `sig_current_directory_changed` signal of the Working directory plugin, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23754](https://github.com/spyder-ide/spyder/pull/23754) - PR: Fix workflow to run tests with PyQt6 (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23721](https://github.com/spyder-ide/spyder/pull/23721) - PR: Use `AsyncDispatcher` as class decorator (API), by [@hlouzada](https://github.com/hlouzada)
+* [PR 23481](https://github.com/spyder-ide/spyder/pull/23481) - PR: Add `ipython_pygments_lexers` as a new dependency, by [@takluyver](https://github.com/takluyver)
+* [PR 23447](https://github.com/spyder-ide/spyder/pull/23447) - PR: Fix code style for some multicursor tests (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23381](https://github.com/spyder-ide/spyder/pull/23381) - PR: Add remote filesystem API to the Remote client plugin, by [@hlouzada](https://github.com/hlouzada)
+* [PR 23320](https://github.com/spyder-ide/spyder/pull/23320) - PR: Make `TextEditBaseWidget.__move_line_or_selection` public, by [@athompson673](https://github.com/athompson673)
+* [PR 23118](https://github.com/spyder-ide/spyder/pull/23118) - PR: Add workflow to run tests with PyQt6 (CI), by [@rear1019](https://github.com/rear1019)
+* [PR 23100](https://github.com/spyder-ide/spyder/pull/23100) - PR: Use style functions from `spyder-kernels` (IPython Console), by [@dalthviz](https://github.com/dalthviz)
+* [PR 23079](https://github.com/spyder-ide/spyder/pull/23079) - PR: Update Remote client plugin to the new `spyder-remote-services` API, by [@hlouzada](https://github.com/hlouzada)
+* [PR 22996](https://github.com/spyder-ide/spyder/pull/22996) - PR: Add multi-cursor support to the Editor, by [@athompson673](https://github.com/athompson673) ([2112](https://github.com/spyder-ide/spyder/issues/2112))
+* [PR 22846](https://github.com/spyder-ide/spyder/pull/22846) - PR: Fix error with PyQt6 when pasting code with middle-click on Linux, by [@fxjaeckel](https://github.com/fxjaeckel) ([22830](https://github.com/spyder-ide/spyder/issues/22830))
+* [PR 22728](https://github.com/spyder-ide/spyder/pull/22728) - PR: Select full floating point numbers by double-clicking them, by [@athompson673](https://github.com/athompson673) ([22207](https://github.com/spyder-ide/spyder/issues/22207))
+* [PR 22670](https://github.com/spyder-ide/spyder/pull/22670) - PR: Fix issue where cache keys with spaces are not removed (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 22663](https://github.com/spyder-ide/spyder/pull/22663) - PR: Purge workflow cache weekly, by [@mrclary](https://github.com/mrclary)
+* [PR 22662](https://github.com/spyder-ide/spyder/pull/22662) - PR: Replace `is_anaconda` with `is_conda_env`, by [@mrclary](https://github.com/mrclary)
+* [PR 22642](https://github.com/spyder-ide/spyder/pull/22642) - PR: Simplify min/max required versions of spyder-kernels in the master branch (IPython console), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22620](https://github.com/spyder-ide/spyder/pull/22620) - PR: Various additional fixes for Qt 6 compatibility, by [@rear1019](https://github.com/rear1019)
+* [PR 22576](https://github.com/spyder-ide/spyder/pull/22576) - PR: Remove `dock_toolbar` attribute from the Editor main widget, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 22480](https://github.com/spyder-ide/spyder/pull/22480) - PR: Copy/cut entire line if nothing is selected (Editor), by [@The-Ludwig](https://github.com/The-Ludwig) ([8574](https://github.com/spyder-ide/spyder/issues/8574), [21264](https://github.com/spyder-ide/spyder/issues/21264))
+* [PR 22465](https://github.com/spyder-ide/spyder/pull/22465) - PR: Update dev version to correctly reflect what `master` is pointing at, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 21891](https://github.com/spyder-ide/spyder/pull/21891) - PR: Pass paths from the Pythonpath manager to the Pylint plugin, by [@znapy](https://github.com/znapy)
+* [PR 21769](https://github.com/spyder-ide/spyder/pull/21769) - PR: Add option to prepend or append Pythonpath Manager paths to `sys.path`, by [@mrclary](https://github.com/mrclary) ([17066](https://github.com/spyder-ide/spyder/issues/17066))
+
+In this release 25 pull requests were closed.
 
 ----
 

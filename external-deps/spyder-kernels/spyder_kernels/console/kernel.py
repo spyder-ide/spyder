@@ -20,6 +20,7 @@ import sys
 import traceback
 import tempfile
 import threading
+import inspect
 import cloudpickle
 
 # Third-party imports
@@ -448,9 +449,21 @@ class SpyderKernel(IPythonKernel):
         return iofunctions.save(data, filename)
 
     # --- For Pdb
-    def _do_complete(self, code, cursor_pos):
+    async def _do_complete(self, code, cursor_pos):
         """Call parent class do_complete"""
-        return super(SpyderKernel, self).do_complete(code, cursor_pos)
+        super_method = super().do_complete
+
+        # handle async def do_comlpete
+        if inspect.iscoroutinefunction(super_method):
+            return await super_method(code, cursor_pos)
+
+        result = super_method(code, cursor_pos)
+
+        # handle sync do_complete, returns a Future.
+        if inspect.isawaitable(result):
+            result = await result
+
+        return result
 
     def do_complete(self, code, cursor_pos):
         """
