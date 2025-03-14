@@ -2456,14 +2456,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             )
 
     # ---- For working directory and path management
-    def set_working_directory(self, dirname):
-        """
-        Set current working directory in the Working Directory and Files
-        plugins.
-        """
-        if osp.isdir(dirname):
-            self.sig_current_directory_changed.emit(dirname)
-
     def save_working_directory(self, dirname):
         """
         Save current working directory when changed by the Working Directory

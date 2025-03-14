@@ -200,8 +200,7 @@ jobs:
               - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
-              # TODO: Add this channel when we create it
-              # - conda-forge/label/spyder_kernels_dev
+              - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -224,8 +223,7 @@ jobs:
               - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
-              # TODO: Add this channel when we create it
-              # - conda-forge/label/spyder_kernels_dev
+              - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst

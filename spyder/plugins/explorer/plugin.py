@@ -16,6 +16,7 @@ import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.translations import _
@@ -31,7 +32,11 @@ class Explorer(SpyderDockablePlugin):
 
     NAME = 'explorer'
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.Editor]
+    OPTIONAL = [
+        Plugins.IPythonConsole,
+        Plugins.Editor,
+        Plugins.WorkingDirectory,
+    ]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = ExplorerWidget
     CONF_SECTION = NAME
@@ -217,6 +222,13 @@ class Explorer(SpyderDockablePlugin):
             )
         )
 
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.connect(
+            self._chdir_from_working_directory
+        )
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -241,6 +253,13 @@ class Explorer(SpyderDockablePlugin):
         self.sig_open_interpreter_requested.disconnect(
             ipyconsole.create_client_from_path)
         self.sig_run_requested.disconnect()
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.disconnect(
+            self._chdir_from_working_directory
+        )
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -276,3 +295,21 @@ class Explorer(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.update_history(new_path)
         widget.refresh(new_path, force_current=force_current)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    @qdebounced(timeout=100)
+    def _chdir_from_working_directory(self, directory, sender_plugin):
+        """
+        Change the working directory when requested from the Working Directory
+        plugin.
+
+        Notes
+        -----
+        * This method is debounced to avoid calling it several times when
+          multiple plugins try to change the cwd in quick succession.
+        """
+        # Only update the cwd if this plugin didn't request changing it
+        if sender_plugin != self.NAME:
+            self.chdir(directory, emit=False)
+            self.refresh(directory)

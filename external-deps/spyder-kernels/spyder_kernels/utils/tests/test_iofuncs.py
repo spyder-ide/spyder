@@ -342,6 +342,7 @@ def test_spydata_export(input_namespace, expected_namespace,
 
 def test_save_load_hdf5_files(tmp_path):
     """Simple test to check that we can save and load HDF5 files."""
+    import h5py
     h5_file = tmp_path / "test.h5"
     data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
     iofuncs.save_hdf5(data, h5_file)

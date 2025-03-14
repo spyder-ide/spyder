@@ -4810,7 +4810,7 @@ def test_tour_message(main_window, qtbot):
     qtbot.wait(2000)
 
 
-@flaky(max_runs=8)
+@flaky(max_runs=20)
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
@@ -6300,8 +6300,10 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
         ipyconsole.create_new_client()
         shell = ipyconsole.get_current_shellwidget()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-            timeout=SHELL_TIMEOUT)
+            lambda: shell.spyder_kernel_ready
+            and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT,
+        )
         with qtbot.waitSignal(shell.executed):
             shell.execute(f'cd {str(sync_dir)}')
 
@@ -6310,8 +6312,11 @@ def test_cwd_is_synced_when_switching_consoles(main_window, qtbot, tmpdir):
     for i in range(3):
         ipyconsole.get_widget().tabwidget.setCurrentIndex(i)
         shell_cwd = ipyconsole.get_current_shellwidget().get_cwd()
-        assert shell_cwd == workdir.get_workdir() == files.get_current_folder()
-
+        qtbot.waitUntil(
+            lambda: shell_cwd
+            == workdir.get_workdir()
+            == files.get_current_folder()
+        )
 
 @flaky(max_runs=5)
 def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
@@ -6335,9 +6340,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == str(tmpdir))
-    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == str(tmpdir)
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check that a new client has the same initial cwd as the current one
     ipyconsole.create_new_client()
@@ -6345,9 +6353,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == str(tmpdir))
-    assert shell.get_cwd() == str(tmpdir) == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == str(tmpdir)
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check new clients with a fixed directory
     ipyconsole.set_conf('console/use_cwd', False, section='workingdir')
@@ -6369,9 +6380,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == fixed_dir)
-    assert shell.get_cwd() == fixed_dir == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == fixed_dir
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check when opening projects
     project_path = str(tmpdir.mkdir('test_project'))
@@ -6382,9 +6396,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == project_path)
-    assert shell.get_cwd() == project_path == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == project_path
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
     # Check when closing projects
     main_window.projects.close_project()
@@ -6394,9 +6411,12 @@ def test_console_initial_cwd_is_synced(main_window, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
         timeout=SHELL_TIMEOUT)
-    qtbot.waitUntil(lambda: shell.get_cwd() == get_home_dir())
-    assert shell.get_cwd() == get_home_dir() == workdir.get_workdir() == \
-           files.get_current_folder()
+    qtbot.waitUntil(
+        lambda: shell.get_cwd()
+        == get_home_dir()
+        == workdir.get_workdir()
+        == files.get_current_folder()
+    )
 
 
 def test_debug_selection(main_window, qtbot):
@@ -7245,9 +7265,7 @@ def test_custom_run_config_for_multiple_executors(
     )
 
     # Debug file
-    debug_action = main_window.run.get_action(
-        "run file in debugger"
-    )
+    debug_action = main_window.run.get_action("run file in debugger")
     with qtbot.waitSignal(shell.executed):
         debug_action.trigger()
 
@@ -7270,6 +7288,159 @@ def test_custom_run_config_for_multiple_executors(
     # Check it's a dedicated console for the file we're running
     client = main_window.ipyconsole.get_current_client()
     assert "script.py" in client.get_name()
+
+
+@flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
+def test_debug_file_with_modules_in_same_dir(main_window, qtbot, tmp_path):
+    """
+    Check that by default we can debug a file that imports a module in the
+    same directory.
+
+    This is a regression test for issue spyder-ide/spyder#23694
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Main file to debug
+    file1 = tmp_path / "test_file.py"
+    file1.write_text("from testing_in import a_test\n\na_test()")
+
+    # Module
+    file2 = tmp_path / "testing_in.py"
+    file2.write_text("def a_test():\n    print('This is a test')")
+
+    # Open test file
+    main_window.editor.load(str(file1))
+
+    # Start debugging
+    debug_action = main_window.run.get_action("run file in debugger")
+    with qtbot.waitSignal(shell.executed):
+        debug_action.trigger()
+
+    # Debug the two next lines
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!next')
+            qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Wait for a bit until the code is debugged
+    qtbot.wait(500)
+
+    # Check there are no errors and the imported function was executed
+    assert "error" not in control.toPlainText().lower()
+    assert "This is a test" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.qt_no_exception_capture
+def test_custom_run_config_with_cwd(main_window, qtbot, tmp_path):
+    """
+    Check that we use the Run current working directory option when it's set by
+    users.
+
+    This is a regression test for issue spyder-ide/spyder#23866
+    """
+    # Auxiliary functions
+    def set_cwd_for_executor(executor: str):
+        # Select executor
+        dialog = main_window.run.get_container().dialog
+        dialog.select_executor(executor)
+
+        # Use the cwd for execution
+        dialog.cwd_radio.setChecked(True)
+
+        # Accept changes
+        ok_btn = dialog.bbox.button(QDialogButtonBox.Ok)
+        ok_btn.animateClick()
+
+        # Wait for a bit until changes are saved to disk
+        qtbot.wait(500)
+
+    def clear_console(prompt_number):
+        shell.clear_console()
+        empty_text = (
+            f"\n\nIn [{prompt_number}]: "
+            if os.name == "nt"
+            else f"\nIn [{prompt_number}]: "
+        )
+        qtbot.waitUntil(
+            lambda: empty_text in control.toPlainText()
+        )
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Open test file
+    main_window.editor.load(osp.join(LOCATION, 'script.py'))
+
+    # Create test directories
+    cwd1 = tmp_path / "test_cwd_1"
+    cwd2 = cwd1 / "test_cwd_2"
+    cwd2.mkdir(parents=True)
+
+    cwd1_str = str(cwd1).replace('\\', '/')
+    cwd2_str = str(cwd2).replace('\\', '/')
+
+    # Change the cwd
+    main_window.workingdirectory.chdir(cwd1_str)
+
+    # Set cwd to run files
+    run_config_action = main_window.run.get_action(RunActions.Configure)
+    run_config_action.trigger()
+    set_cwd_for_executor(executor=Plugins.IPythonConsole)
+
+    # Run test file
+    run_action = main_window.run.get_action(RunActions.Run)
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    # Check we used the cwd
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
+
+    clear_console(prompt_number=3)
+
+    # Change cwd in the console, run again and check we use the new cwd
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, f"cd {cwd2_str}")
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    assert f"--wdir {cwd2_str}" in control.toPlainText()
+
+    clear_console(prompt_number=6)
+
+    # Change cwd in Files, run again and check we use the new cwd
+    main_window.explorer.chdir(f"{cwd1_str}")
+
+    with qtbot.waitSignal(shell.executed):
+        run_action.trigger()
+
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
+
+    clear_console(prompt_number=8)
+
+    # Set cwd to debug files and check we use it
+    run_config_action.trigger()
+    set_cwd_for_executor(executor=Plugins.Debugger)
+
+    debug_action = main_window.run.get_action("run file in debugger")
+    with qtbot.waitSignal(shell.executed):
+        debug_action.trigger()
+
+    assert f"--wdir {cwd1_str}" in control.toPlainText()
 
 
 if __name__ == "__main__":

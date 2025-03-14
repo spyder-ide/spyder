@@ -40,7 +40,7 @@ class KernelClientTunneler:
             self.ssh_connection.close()
 
     @classmethod
-    @AsyncDispatcher.dispatch(loop="asyncssh", early_return=False)
+    @AsyncDispatcher(loop="asyncssh", early_return=False)
     async def new_connection(cls, *args, **kwargs):
         """Create a new SSH connection."""
         return cls(
@@ -53,7 +53,7 @@ class KernelClientTunneler:
         """Create a new KernelTunnelHandler from an existing connection."""
         return cls(ssh_connection)
 
-    @AsyncDispatcher.dispatch(loop="asyncssh", early_return=False)
+    @AsyncDispatcher(loop="asyncssh", early_return=False)
     async def forward_port(self, remote_host, remote_port):
         """Forward a port through the SSH connection."""
         local = self._get_free_port()
