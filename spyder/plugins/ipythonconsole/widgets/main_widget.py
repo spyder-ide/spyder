@@ -327,16 +327,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Info widget
         if self.enable_infowidget:
-            from spyder.widgets.browser import FrameWebView
-
-            self._infowidget = FrameWebView(self)
-            if WEBENGINE:
-                self._infowidget.page().setBackgroundColor(
-                    QColor(MAIN_BG_COLOR))
-            else:
-                self._infowidget.setStyleSheet(
-                    "background:{}".format(MAIN_BG_COLOR)
-                )
+            self._infowidget = self._create_info_widget()
             layout.addWidget(self._infowidget)
         else:
             self._infowidget = None
@@ -1094,6 +1085,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
+    def _create_info_widget(self):
+        from spyder.widgets.browser import FrameWebView
+
+        self._infowidget = FrameWebView(self)
+        if WEBENGINE:
+            self._infowidget.page().setBackgroundColor(
+                QColor(MAIN_BG_COLOR))
+        else:
+            self._infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR)
+            )
+
     def _change_client_conf(self, client, client_conf_func, value):
         """
         Change a client configuration option, taking into account if it is
@@ -1359,6 +1362,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Render consoles menu and submenus
         self.console_environment_menu.render()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def find_connection_file(self, connection_file):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
@@ -1383,8 +1388,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         return connection_file
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
     @property
     def infowidget(self):
         """
