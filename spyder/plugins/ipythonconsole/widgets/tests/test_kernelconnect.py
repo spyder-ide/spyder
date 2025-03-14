@@ -12,7 +12,8 @@
 import sys
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QDialogButtonBox
+from qtpy.QtWidgets import QDialogButtonBox, QMessageBox
+from unittest.mock import patch
 
 # Local imports
 from spyder.config.base import running_in_ci
@@ -117,9 +118,10 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
     dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
                                                          save_settings=True)
 
-    # Press ok and save connection settings
-    qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
-                     Qt.LeftButton)
+    with patch.object(QMessageBox, 'warning', return_value=None):
+        # Press ok and save connection settings
+        qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
+                         Qt.LeftButton)
 
     # create new dialog and check fields
     new_dlg = connection_dialog_factory.get_default_dialog()
