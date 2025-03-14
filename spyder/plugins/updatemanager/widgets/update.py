@@ -572,7 +572,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 "Updating Spyder, this will take a few minutes ..."
             ),
             "success_message": _(
-                "The update was succesful!<br>Spyder will be launched shortly"
+                "The update was succesful! Spyder will be launched shortly"
             ),
             "failure_message": _("Unfortunately the update failed"),
             "error_message": _("There was an error in the update process"),
