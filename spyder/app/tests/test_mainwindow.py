@@ -4812,6 +4812,10 @@ def test_tour_message(main_window, qtbot):
     sys.version_info[:2] < (3, 10),
     reason="Too flaky in old Python versions"
 )
+@pytest.mark.skipif(
+    not running_in_ci_with_conda(),
+    reason="Too flaky with pip packages"
+)
 @pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """
