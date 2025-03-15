@@ -900,14 +900,16 @@ def test_matplotlib_inline(kernel):
         # Assert backend is inline
         assert 'inline' in value
 
-
-def test_do_complete(kernel):
+@pytest.mark.anyio
+async def test_do_complete(kernel):
     """
     Check do complete works in normal and debugging mode.
     """
-    asyncio.run(kernel.do_execute('abba = 1', True))
-    assert kernel.get_value('abba') == 1
-    match = kernel.do_complete('ab', 2)
+    await kernel.do_execute("abba = 1", True)
+    assert kernel.get_value("abba") == 1
+    match = kernel.do_complete("ab", 2)
+    if inspect.isawaitable(match):
+        match = await match
     assert 'abba' in match['matches']
 
     # test pdb
@@ -916,6 +918,8 @@ def test_do_complete(kernel):
     pdb_obj.completenames = lambda *ignore: ['baba']
     kernel.shell._namespace_stack = [pdb_obj]
     match = kernel.do_complete('ba', 2)
+    if inspect.isawaitable(match):
+        match = await match
     assert 'baba' in match['matches']
     pdb_obj.curframe = None
 
@@ -1296,7 +1300,7 @@ def test_debug_namespace(tmpdir):
                     break
 
 
-def test_interrupt():
+def test_interrupt_short_loop():
     """
     Test that the kernel can be interrupted by calling a comm handler.
     """
@@ -1321,17 +1325,35 @@ def test_interrupt():
         kernel_comm.remote_call().raise_interrupt_signal()
         # Wait for shell message
         while True:
-            assert time.time() - t0 < 5
+            delta = time.time() - t0
+            assert delta < 5
             msg = client.get_shell_msg(timeout=TIMEOUT)
             if msg["parent_header"].get("msg_id") != msg_id:
                 # not from my request
                 continue
             break
-        assert time.time() - t0 < 5
+        delta = time.time() - t0
+        assert delta < 5, (
+            "10 seconds long call should have been interrupted, so the "
+            "interrupt signal was likely mishandled"
+        )
 
-        if os.name == 'nt':
-            # Windows doesn't do "interrupting sleep"
-            return
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows doesn't do 'interrupting sleep'")
+def test_interrupt_long_sleep():
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+    with setup_kernel(cmd) as client:
+        kernel_comm = CommBase()
+
+        # Create new comm and send the highest protocol
+        comm = Comm(kernel_comm._comm_name, client)
+        comm.open(data={})
+        comm._send_channel = client.control_channel
+        kernel_comm._register_comm(comm)
+
+        client.execute_interactive("import time", timeout=TIMEOUT)
+
 
         # Try interrupting sleep
         t0 = time.time()
@@ -1417,6 +1439,7 @@ def test_django_settings(kernel):
 
     This is a regression test for issue spyder-ide/spyder#19516
     """
+    import django
     asyncio.run(kernel.do_execute('from django.conf import settings', True))
     nsview = repr(kernel.get_namespace_view())
     assert "'settings':" in nsview
