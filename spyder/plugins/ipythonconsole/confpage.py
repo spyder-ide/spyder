@@ -293,7 +293,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "<tt>&lt;Space&gt;</tt> for some completions; "
                                 "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
                                 "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
-                                "</tt> doesn't.<br><br>"))
+                                "</tt> doesn't."))
         greedy_label.setWordWrap(True)
         greedy_box = newcb(_("Use greedy completion in the IPython console"),
                            "greedy_completer",

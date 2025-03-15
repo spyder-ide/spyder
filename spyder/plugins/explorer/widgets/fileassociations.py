@@ -338,8 +338,10 @@ class FileAssociationsWidget(QWidget):
         layout.addWidget(self.label)
         layout.addWidget(self.label_extensions)
         layout.addLayout(layout_extensions)
+        layout.addSpacing(9)
         layout.addWidget(self.label_applications)
         layout.addLayout(layout_applications)
+        layout.addSpacing(9)
 
         self.setLayout(layout)
 
@@ -414,7 +416,7 @@ class FileAssociationsWidget(QWidget):
     def _update_extensions(self):
         """Update extensions list."""
         self.list_extensions.clear()
-        for extension, _ in sorted(self._data.items()):
+        for extension, __ in sorted(self._data.items()):
             self._add_association(extension)
 
         # Select first item
