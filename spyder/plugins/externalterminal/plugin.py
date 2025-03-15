@@ -182,7 +182,8 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             text=_("Run in external terminal"),
             tip=_("Run in an operating system terminal"),
             icon=self.get_icon(),
-            register_shortcut=False,
+            shortcut_context=self.NAME,
+            register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.RunInExecutors
