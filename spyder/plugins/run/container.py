@@ -275,14 +275,6 @@ class RunContainer(PluginMainContainer):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
             self.switch_focused_run_configuration(selected_uuid)
 
-        if selected_executor is None:
-            # If the executor is not provided, check if the file has a default
-            # one.
-            metadata = self.metadata_model.get_selected_metadata()
-            if metadata is not None:
-                extension = metadata["input_extension"]
-                selected_executor = self._get_default_executor(extension)
-
         self.edit_run_configurations(
             display_dialog=False,
             selected_executor=selected_executor
@@ -307,6 +299,14 @@ class RunContainer(PluginMainContainer):
         self.dialog.sig_delete_config_requested.connect(
             self.delete_executor_configuration_parameters
         )
+
+        # If the file is going to be executed (not configured) and the executor
+        # is not provided, check if it has a default one.
+        if not display_dialog and selected_executor is None:
+            metadata = self.metadata_model.get_selected_metadata()
+            if metadata is not None:
+                extension = metadata["input_extension"]
+                selected_executor = self._get_default_executor(extension)
 
         if selected_executor is not None:
             self.dialog.select_executor(selected_executor)
