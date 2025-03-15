@@ -327,18 +327,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Info widget
         if self.enable_infowidget:
-            from spyder.widgets.browser import FrameWebView
-
-            self.infowidget = FrameWebView(self)
-            if WEBENGINE:
-                self.infowidget.page().setBackgroundColor(
-                    QColor(MAIN_BG_COLOR))
-            else:
-                self.infowidget.setStyleSheet(
-                    "background:{}".format(MAIN_BG_COLOR))
-            layout.addWidget(self.infowidget)
+            self._infowidget = self._create_info_widget()
+            layout.addWidget(self._infowidget)
         else:
-            self.infowidget = None
+            self._infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -1093,6 +1085,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
+    def _create_info_widget(self):
+        from spyder.widgets.browser import FrameWebView
+
+        infowidget = FrameWebView(self)
+        if WEBENGINE:
+            infowidget.page().setBackgroundColor(
+                QColor(MAIN_BG_COLOR))
+        else:
+            infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR)
+            )
+        return infowidget
+
     def _change_client_conf(self, client, client_conf_func, value):
         """
         Change a client configuration option, taking into account if it is
@@ -1358,6 +1363,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Render consoles menu and submenus
         self.console_environment_menu.render()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def find_connection_file(self, connection_file):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
@@ -1382,8 +1389,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         return connection_file
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
+    @property
+    def infowidget(self):
+        """
+        This is necessary to prevent an error when, in some situations, Python
+        garbage collects _infowidget.
+
+        Notes
+        -----
+        * See spyder-ide/spyder#21509 and spyder-ide/spyder#23529
+        """
+        try:
+            # We need to call a method to detect if the object was garbage
+            # collected and trigger the RuntimeError we want to catch here.
+            self._infowidget.isVisible()
+            return self._infowidget
+        except RuntimeError:
+            self._infowidget = self._create_info_widget()
+            return self._infowidget
+        except AttributeError:
+            return None
 
     # ---- General
     # -------------------------------------------------------------------------
@@ -1391,7 +1416,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self._font = font
         self._app_font = app_font
 
-        if self.enable_infowidget:
+        if self.enable_infowidget and self.infowidget is not None:
             self.infowidget.set_font(app_font)
 
         for client in self.clients:
@@ -1425,18 +1450,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
-                self.infowidget.show()
+                if self.infowidget is not None:
+                    self.infowidget.show()
             else:
-                if self.enable_infowidget:
-                    try:
-                        self.infowidget.hide()
-                    except RuntimeError:
-                        # Needed to handle the possible scenario where the
-                        # `infowidget` (`FrameWebView`) related C/C++ object
-                        # has been already deleted when trying to hide it.
-                        # See spyder-ider/spyder#21509
-                        self.enable_infowidget = False
-                        self.infowidget = None
+                if self.enable_infowidget and self.infowidget is not None:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
