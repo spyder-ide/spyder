@@ -332,7 +332,8 @@ DEFAULTS = [
               'show_hidden': True,
               'size_column': False,
               'type_column': False,
-              'date_column': False
+              'date_column': False,
+              'search_files_in_switcher': True,
               }),
             ('explorer',
              {
