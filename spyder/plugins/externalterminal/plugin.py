@@ -15,6 +15,7 @@ from typing import List
 
 # Third-party imports
 from packaging.version import parse
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -182,7 +183,9 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
             text=_("Run in external terminal"),
             tip=_("Run in an operating system terminal"),
             icon=self.get_icon(),
-            register_shortcut=False,
+            shortcut_context='_',
+            register_shortcut=True,
+            shortcut_widget_context=Qt.ApplicationShortcut,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.RunInExecutors
