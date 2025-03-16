@@ -6,9 +6,6 @@
 
 """Editor config page."""
 
-import os
-import sys
-
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout)
 
@@ -17,7 +14,6 @@ from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -32,6 +28,7 @@ DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
 class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         SpyderConfigurationObserver.__init__(self)
@@ -39,25 +36,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.removetrail_box = None
         self.add_newline_box = None
         self.remove_trail_newline_box = None
-
-        # *********************** IMPORTANT NOTES *****************************
-        # * This value needs to be ajusted if we add new options to the
-        #   "Advanced settings" tab.
-        # * We need to do this so that the text of some options is not clipped.
-        if os.name == "nt":
-            min_height = 620
-        elif sys.platform == "darwin":
-            min_height = 760
-        else:
-            min_height = 670
-
-        self.setMinimumHeight(min_height)
-
-    def get_name(self):
-        return _("Editor")
-
-    def get_icon(self):
-        return ima.icon('edit')
 
     def setup_page(self):
         newcb = self.create_checkbox
