@@ -13,7 +13,7 @@ SERVER_ENV = "spyder-remote"
 PACKAGE_NAME = "spyder-remote-services"
 SCRIPT_URL = (
     f"https://raw.githubusercontent.com/spyder-ide/"
-    f"{PACKAGE_NAME}/master/scripts"
+    f"{PACKAGE_NAME}/main/scripts"
 )
 
 
@@ -27,7 +27,7 @@ def get_installer_command(platform: str) -> str:
         )
 
     return (
-        f'"${{SHELL}}" <(curl -L {SCRIPT_URL}/installer.sh) '
+        f'"`which bash`" <(curl -L {SCRIPT_URL}/installer.sh) '
         f'"{SPYDER_REMOTE_VERSION}" "{SPYDER_KERNELS_VERSION}"'
     )
 
