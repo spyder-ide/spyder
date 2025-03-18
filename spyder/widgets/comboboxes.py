@@ -108,10 +108,10 @@ class BaseComboBox(SpyderComboBox):
     def add_text(self, text):
         """Add text to combo box: add a new item if text is not found in
         combo box items."""
-        index = self.findText(text)
+        index = self.findText(text, Qt.MatchCaseSensitive)
         while index != -1:
             self.removeItem(index)
-            index = self.findText(text)
+            index = self.findText(text, Qt.MatchCaseSensitive)
         self.insertItem(0, text)
         index = self.findText('')
         if index != -1:
