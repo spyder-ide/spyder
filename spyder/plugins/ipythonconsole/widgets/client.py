@@ -328,6 +328,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                     section='workingdir'
                 )
 
+        # TODO: Check handling for remote kernels
         if osp.isdir(cwd_path):
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 

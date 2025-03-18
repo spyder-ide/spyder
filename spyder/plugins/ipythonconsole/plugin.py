@@ -199,7 +199,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    sig_current_directory_changed = Signal(str)
+    sig_current_directory_changed = Signal(str, str)
     """
     This signal is emitted when the current directory of the active shell
     widget has changed.
@@ -1003,7 +1003,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     # ---- For working directory and path management
     @qdebounced(timeout=100)
     def set_current_client_working_directory(
-        self, directory: str, sender_plugin: Optional[str] = None
+        self, directory: str, sender_plugin: Optional[str] = None, server_id: Optional[str] = None
     ):
         """
         Set current client working directory.
@@ -1022,7 +1022,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         # Only update the cwd if this plugin didn't request changing it
         if sender_plugin != self.NAME:
-            self.get_widget().set_current_client_working_directory(directory)
+            self.get_widget().set_current_client_working_directory(directory, server_id)
 
     def update_path(self, new_path, prioritize):
         """

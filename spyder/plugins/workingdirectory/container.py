@@ -338,7 +338,8 @@ class WorkingDirectoryContainer(PluginMainContainer):
     @Slot(str)
     @Slot(str, bool)
     @Slot(str, bool, bool)
-    def chdir(self, directory, browsing_history=False, emit=True):
+    @Slot(str, bool, bool, str)
+    def chdir(self, directory, browsing_history=False, emit=True, server_id=None):
         """
         Set `directory` as working directory.
 
@@ -352,10 +353,15 @@ class WorkingDirectoryContainer(PluginMainContainer):
             Emit a signal when changing the working directory.
             Default is True.
         """
-        if directory:
+        if directory and not server_id:
             directory = osp.abspath(str(directory))
 
         # Working directory history management
+        # TODO: Each host/server requires an independent history
+        # Possibly handle current history with `history` as it is but populate it
+        # with entry from a dict that contains all hosts histories depending
+        # on server_id value passed:
+        #       {"server_id": "", "history": []})
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -372,7 +378,8 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Changing working directory
         try:
             logger.debug(f'Setting cwd to {directory}')
-            os.chdir(directory)
+            if not server_id:
+                os.chdir(directory)
             self.pathedit.add_text(directory)
             self.update_actions()
 

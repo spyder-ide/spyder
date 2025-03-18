@@ -245,7 +245,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    sig_current_directory_changed = Signal(str)
+    sig_current_directory_changed = Signal(str, str)
     """
     This signal is emitted when the current directory of the active shell
     widget has changed.
@@ -1486,7 +1486,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # we call on_working_directory_changed to validate that the cwd
             # exists (this couldn't be the case for remote kernels).
             if sw.get_cwd() != self.get_working_directory():
-                self.on_working_directory_changed(sw.get_cwd())
+                self.on_working_directory_changed(sw.get_cwd(), sw.server_id)
 
         self.update_tabs_text()
         self.update_actions()
@@ -2468,19 +2468,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Get saved value of current working directory."""
         return self._current_working_directory
 
-    def set_current_client_working_directory(self, directory):
+    def set_current_client_working_directory(self, directory, server_id=None):
         """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def on_working_directory_changed(self, dirname):
+    def on_working_directory_changed(self, dirname, server_id):
         """
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        if dirname and osp.isdir(dirname):
-            self.sig_current_directory_changed.emit(dirname)
+        logger.info(dirname)
+        logger.info(server_id)
+        if dirname: # osp.isdir(dirname)):
+            self.sig_current_directory_changed.emit(dirname, server_id)
 
     def update_path(self, new_path, prioritize):
         """Update path on consoles."""

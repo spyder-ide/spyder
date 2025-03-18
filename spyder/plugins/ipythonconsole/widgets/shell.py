@@ -119,7 +119,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_remote_execute = Signal()
 
     # For global working directory
-    sig_working_directory_changed = Signal(str)
+    sig_working_directory_changed = Signal(str, str)
 
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
@@ -563,22 +563,29 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             Whether to emit a Qt signal that informs other panes in Spyder that
             the current working directory has changed.
         """
-        if self.ipyclient.hostname is not None:
-            # Only sync for local kernels
-            return
+        import inspect
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        logger.info(f"Caller name: {calframe[1][3]}")
+        logger.info(f"Attempt to change cwd: {dirname}")
+        # if self.ipyclient.hostname is not None:
+        #     # Only sync for local kernels
+        #     return
 
         if dirname is None:
             if not self.get_cwd():
                 return
             dirname = self.get_cwd()
-        elif os.name == 'nt':
+        elif os.name == 'nt' and self.server_id is None:
+            # TODO: Is there a way to check remote server OS?
+            # This only should apply on Windows (local and remote kernels)
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
         self.set_kernel_configuration("cwd", dirname)
 
         if emit_cwd_change:
-            self.sig_working_directory_changed.emit(dirname)
+            self.sig_working_directory_changed.emit(dirname, self.server_id)
 
     def send_mpl_backend(self, option=None):
         """
@@ -694,7 +701,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if cwd and self.get_cwd() and cwd != self.get_cwd():
             # Only set it if self.get_cwd() is already set
             self._kernel_configuration["cwd"] = cwd
-            self.sig_working_directory_changed.emit(cwd)
+            self.sig_working_directory_changed.emit(cwd, self.server_id)
 
         if state:
             self.sig_kernel_state_arrived.emit(state)
