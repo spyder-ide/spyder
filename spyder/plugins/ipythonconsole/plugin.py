@@ -14,7 +14,7 @@ from typing import List, Optional
 from functools import cached_property
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 from superqt.utils import qdebounced
 
 # Local imports
