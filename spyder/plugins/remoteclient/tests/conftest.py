@@ -35,13 +35,10 @@ def run_async(func: typing.Callable[..., typing.Awaitable[T]], *args, **kwargs):
 
 
 def mark_remote_test(func):
-    remote_client_tests = os.environ.get(
-        'SPYDER_TEST_REMOTE_CLIENT', False
-    )
-    return pytest.mark.skipif(
-        remote_client_tests is False,
-        reason="Skipping as SPYDER_TEST_REMOTE_CLIENT is not set"
-    )(func)
+    """
+    Decorator for tests that require --remote-client in order to run.
+    """
+    return pytest.mark.remote_test(func)
 
 
 @pytest.fixture(scope="session")

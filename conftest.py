@@ -30,9 +30,15 @@ import pytest
 
 
 def pytest_addoption(parser):
-    """Add option to run slow tests."""
+    """Add extra options for pytest.
+    
+    --run-slow: Run slow tests.
+    --remote-client: Run remote-client tests.
+    """
     parser.addoption("--run-slow", action="store_true",
                      default=False, help="Run slow tests")
+    parser.addoption("--remote-client", action="store_true",
+                     default=False, help="Run remote-client tests")
 
 
 def get_passed_tests():
@@ -87,10 +93,15 @@ def pytest_collection_modifyitems(config, items):
     """
     passed_tests = get_passed_tests()
     slow_option = config.getoption("--run-slow")
+    remote_client_option = config.getoption("--remote-client")
+
     skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
     skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
     skip_first_run = pytest.mark.skip(reason="Test skipped in first CI run")
+    skip_remote = pytest.mark.skip(
+        reason="Skipping remote test because --remote-client was not set"
+    )
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
@@ -128,6 +139,9 @@ def pytest_collection_modifyitems(config, items):
         ):
             item.add_marker(skip_first_run)
             continue
+        
+        if "remote_test" in item.keywords and not remote_client_option:
+            item.add_marker(skip_remote)
 
         if slow_option:
             if item not in slow_items:
