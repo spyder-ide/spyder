@@ -46,7 +46,7 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.config.base import _, is_conda_based_app
+from spyder.api.translations import _
 from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
@@ -163,7 +163,6 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
-        val_type = index.sibling(index.row(), 1).data()
         self.sig_editor_creation_started.emit()
         if index.column() < 3:
             return None
@@ -180,37 +179,6 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             value = self.get_value(index)
             if value is None:
                 return None
-        except ImportError as msg:
-            self.sig_editor_shown.emit()
-            module = str(msg).split("'")[1]
-            if module in ['pandas', 'numpy']:
-                if module == 'numpy':
-                    val_type = 'array'
-                else:
-                    val_type = 'dataframe or series'
-                message = _("Spyder is unable to show the {val_type} object "
-                            "you're trying to view because <tt>{module}</tt> "
-                            "is missing. Please install that package in your "
-                            "Spyder environment to fix this problem.")
-                QMessageBox.critical(
-                    self.parent(), _("Error"),
-                    message.format(val_type=val_type, module=module))
-                return
-            else:
-                if is_conda_based_app():
-                    message = _("Spyder is unable to show the variable you're"
-                                " trying to view because the module "
-                                "<tt>{module}</tt> is not supported "
-                                "by Spyder's standalone application.<br>")
-                else:
-                    message = _("Spyder is unable to show the variable you're"
-                                " trying to view because the module "
-                                "<tt>{module}</tt> is not found in your "
-                                "Spyder environment. Please install this "
-                                "package in this environment.<br>")
-                QMessageBox.critical(self.parent(), _("Error"),
-                                     message.format(module=module))
-                return
         except Exception as msg:
             self.sig_editor_shown.emit()
             msg_box = QMessageBox(self.parent())
