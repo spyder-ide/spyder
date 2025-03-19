@@ -241,8 +241,10 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
 
         if mode == '@' and current is not None:
             editorstack = self._editorstack()
-            line_number = int(current.get_data()['line_number'])
-            editorstack.go_to_line(line_number)
+            data = current.get_data()
+            if isinstance(data, dict):
+                line_number = int(data['line_number'])
+                editorstack.go_to_line(line_number)
 
     def editor_switcher_handler(self, data):
         """Populate switcher with FileInfo data."""

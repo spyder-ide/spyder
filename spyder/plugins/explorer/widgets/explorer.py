@@ -31,7 +31,7 @@ from qtpy.QtCore import (
     Signal,
     Slot,
 )
-from qtpy.QtGui import QDrag
+from qtpy.QtGui import QClipboard, QDrag
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -984,7 +984,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def get_selected_filenames(self):
         """Return selected filenames"""
         fnames = []
-        if self.selectionMode() == self.ExtendedSelection:
+        if (
+            self.selectionMode()
+            == QAbstractItemView.SelectionMode.ExtendedSelection
+        ):
             if self.selectionModel() is not None:
                 fnames = [self.get_filename(idx) for idx in
                           self.selectionModel().selectedRows()]
@@ -1267,7 +1270,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     @Slot()
     def move(self, fnames=None, directory=None):
         """Move files/directories"""
-        if fnames is None:
+        if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
         orig = fixpath(osp.dirname(fnames[0]))
         while True:
@@ -1441,7 +1444,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                                              clipboard_files)
             else:
                 clipboard_files = clipboard_files[0]
-        cb.setText(clipboard_files, mode=cb.Clipboard)
+        cb.setText(clipboard_files, mode=QClipboard.Mode.Clipboard)
 
     @Slot()
     def copy_absolute_path(self):
@@ -1464,7 +1467,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             file_content = QMimeData()
             file_content.setUrls([QUrl.fromLocalFile(_fn) for _fn in fnames])
             cb = QApplication.clipboard()
-            cb.setMimeData(file_content, mode=cb.Clipboard)
+            cb.setMimeData(file_content, mode=QClipboard.Mode.Clipboard)
         except Exception as e:
             QMessageBox.critical(
                 self, _('File/Folder copy error'),
@@ -1798,7 +1801,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def new_package(self, basedir=None):
         """New package"""
 
-        if basedir is None or isinstance(basedir, None):
+        if basedir is None or isinstance(basedir, bool):
             basedir = self.get_selected_dir()
 
         title = _('New package')

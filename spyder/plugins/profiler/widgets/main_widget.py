@@ -944,7 +944,9 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
                 if self.item_depth < 3:
                     self.populate_tree(child_item, callees)
                 elif callees:
-                    child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
+                    child_item.setChildIndicatorPolicy(
+                        QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator
+                    )
                     self.items_to_be_shown[id(child_item)] = callees
             self.item_depth -= 1
 

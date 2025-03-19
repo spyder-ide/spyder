@@ -281,7 +281,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         return workdir
 
     @Slot()
-    def _select_directory(self, directory=None):
+    def _select_directory(self):
         """
         Select working directory.
 
@@ -294,14 +294,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
         -----
         If directory is None, a get directory dialog will be used.
         """
-        if directory is None:
-            self.sig_redirect_stdio_requested.emit(False)
-            directory = getexistingdirectory(
-                self,
-                _("Select directory"),
-                getcwd_or_home(),
-            )
-            self.sig_redirect_stdio_requested.emit(True)
+        self.sig_redirect_stdio_requested.emit(False)
+        directory = getexistingdirectory(
+            self,
+            _("Select directory"),
+            getcwd_or_home(),
+        )
+        self.sig_redirect_stdio_requested.emit(True)
 
         if directory:
             self.chdir(directory)
