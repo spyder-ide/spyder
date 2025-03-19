@@ -230,10 +230,13 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             connection_file = None
 
         if connection_file is None:
-            QMessageBox.warning(
+            QMessageBox.error(
                 self,
-                _('Warning'),
-                _("The value for the connection file is not correct."),
+                _('Error'),
+                _(
+                    "The connection file you passed doesn't exist or can't be "
+                    "found by Spyder."
+                ),
                 QMessageBox.Ok
             )
         else:
