@@ -860,16 +860,20 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             self.shellwidget.reset(clear=True)
         else:
             self.remote_kernel_restarted_failure_message(shutdown=True)
+            # This will show an error message in the plugins connected to the
+            # IPython console and disable kernel related actions in its Options
+            # menu.
+            sw = self.shellwidget
+            sw.sig_shellwidget_errored.emit(sw)
         self.__remote_restart_requested = False
 
     @AsyncDispatcher.QtSlot
     def _reconnect_on_kernel_info(self, future):
         if (kernel_info := future.result()):
             try:
-                ssh_connection = self.kernel_handler.ssh_connection
                 kernel_handler = KernelHandler.from_connection_info(
                     kernel_info["connection_info"],
-                    ssh_connection=ssh_connection,
+                    ssh_connection=self._jupyter_api.manager._ssh_connection,
                 )
                 kernel_handler.set_time_to_dead(1.0)
             except Exception as err:
