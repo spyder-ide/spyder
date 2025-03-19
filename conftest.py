@@ -11,6 +11,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
       QtAwesome being called before a QApplication is created.
 """
 
+import concurrent.futures
 import os
 import os.path as osp
 import re
@@ -135,28 +136,28 @@ def pytest_collection_modifyitems(config, items):
             if i < len(ipyconsole_items) * percentage:
                 slow_items.append(item)
 
-    for item in items:
+    def mark_item(item):
         if int(os.environ.get("CI_RUN_NUMBER", -1)) == 0 and any(
             skipped_first_run in item.nodeid
             for skipped_first_run in SKIP_ON_FIRST_CI_RUN
         ):
             item.add_marker(skip_first_run)
-            continue
-        
-        if "remote_test" in item.keywords and not remote_client_option:
-            item.add_marker(skip_remote)
-        elif "remote_test" not in item.keywords:
-            item.add_marker(skip_non_remote)
+            return
 
-        if slow_option:
-            if item not in slow_items:
-                item.add_marker(skip_fast)
-        else:
-            if item in slow_items:
-                item.add_marker(skip_slow)
+        if remote_client_option and "remote_test" not in item.keywords:
+            item.add_marker(skip_non_remote)
+        elif not remote_client_option and "remote_test" in item.keywords:
+            item.add_marker(skip_remote)
+
+        if slow_option and item not in slow_items:
+            item.add_marker(skip_fast)
+        elif not slow_option and item in slow_items:
+            item.add_marker(skip_slow)
 
         if item.nodeid in passed_tests:
             item.add_marker(skip_passed)
+
+    concurrent.futures.ThreadPoolExecutor().map(mark_item, items)
 
 
 @pytest.fixture(autouse=True)
