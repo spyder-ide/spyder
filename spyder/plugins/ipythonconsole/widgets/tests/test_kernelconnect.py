@@ -118,7 +118,7 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
     dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
                                                          save_settings=True)
 
-    with patch.object(QMessageBox, 'warning', return_value=None):
+    with patch.object(QMessageBox, 'critical', return_value=None):
         # Press ok and save connection settings
         qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
                          Qt.LeftButton)
@@ -146,7 +146,7 @@ def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
     dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=True,
                                                          save_settings=False)
 
-    with patch.object(QMessageBox, 'warning', return_value=None):
+    with patch.object(QMessageBox, 'critical', return_value=None):
         # Press ok and save connection settings
         qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
                          Qt.LeftButton)
@@ -173,7 +173,7 @@ def test_connection_dialog_remembers_input_with_password(
     dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
                                                          save_settings=True)
 
-    with patch.object(QMessageBox, 'warning', return_value=None):
+    with patch.object(QMessageBox, 'critical', return_value=None):
         # Press ok and save connection settings
         qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
                          Qt.LeftButton)
@@ -200,7 +200,7 @@ def test_connection_dialog_doesnt_remember_input_with_password(
     dlg = connection_dialog_factory.submit_filled_dialog(use_keyfile=False,
                                                          save_settings=False)
 
-    with patch.object(QMessageBox, 'warning', return_value=None):
+    with patch.object(QMessageBox, 'critical', return_value=None):
         # Press ok and save connection settings
         qtbot.mouseClick(dlg.accept_btns.button(QDialogButtonBox.Ok),
                          Qt.LeftButton)
