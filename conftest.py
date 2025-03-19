@@ -102,6 +102,9 @@ def pytest_collection_modifyitems(config, items):
     skip_remote = pytest.mark.skip(
         reason="Skipping remote test because --remote-client was not set"
     )
+    skip_non_remote = pytest.mark.skip(
+        reason="Skipping non-remote test because --remote-client was set"
+    )
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
@@ -142,6 +145,8 @@ def pytest_collection_modifyitems(config, items):
         
         if "remote_test" in item.keywords and not remote_client_option:
             item.add_marker(skip_remote)
+        elif "remote_test" not in item.keywords:
+            item.add_marker(skip_non_remote)
 
         if slow_option:
             if item not in slow_items:
