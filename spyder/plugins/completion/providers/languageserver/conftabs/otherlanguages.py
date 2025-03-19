@@ -9,9 +9,8 @@ Language Server Protocol configuration tabs.
 """
 
 # Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
-                            QPushButton, QVBoxLayout)
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -19,6 +18,8 @@ from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.plugins.completion.providers.languageserver.widgets import (
     LSPServerTable)
+from spyder.utils.icon_manager import ima
+from spyder.utils.stylesheet import AppStyle
 
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
@@ -44,17 +45,22 @@ class OtherLanguagesConfigTab(SpyderPreferencesTab):
         servers_label.setAlignment(Qt.AlignJustify)
 
         # Servers table
-        table_group = QGroupBox(_('Available servers:'))
+        table_label = QLabel(_('Available servers:'))
         self.table = LSPServerTable(self)
-        self.table.setMaximumHeight(150)
-        table_layout = QVBoxLayout()
+        self.table.setMaximumHeight(200)
+
+        table_layout = QHBoxLayout()
+        table_layout.addSpacing(2 * AppStyle.MarginSize)
         table_layout.addWidget(self.table)
-        table_group.setLayout(table_layout)
+        table_layout.addSpacing(2 * AppStyle.MarginSize)
 
         # Buttons
-        self.reset_btn = QPushButton(_("Reset to default values"))
-        self.new_btn = QPushButton(_("Set up a new server"))
-        self.delete_btn = QPushButton(_("Delete currently selected server"))
+        self.new_btn = QPushButton(icon=ima.icon("edit_add"))
+        self.new_btn.setToolTip(_("Set up a new server"))
+        self.delete_btn = QPushButton(icon=ima.icon("editclear"))
+        self.delete_btn.setToolTip(_("Delete currently selected server"))
+        self.reset_btn = QPushButton(icon=ima.icon("restart"))
+        self.reset_btn.setToolTip(_("Reset to default values"))
         self.delete_btn.setEnabled(False)
 
         # Slots connected to buttons
@@ -64,19 +70,22 @@ class OtherLanguagesConfigTab(SpyderPreferencesTab):
 
         # Buttons layout
         btns = [self.new_btn, self.delete_btn, self.reset_btn]
-        buttons_layout = QGridLayout()
-        for i, btn in enumerate(btns):
-            buttons_layout.addWidget(btn, i, 1)
-        buttons_layout.setColumnStretch(0, 1)
-        buttons_layout.setColumnStretch(1, 2)
-        buttons_layout.setColumnStretch(2, 1)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        for btn in btns:
+            btn.setIconSize(
+                QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+            )
+            buttons_layout.addWidget(btn)
+        buttons_layout.addStretch()
 
         # Combined layout
         servers_layout = QVBoxLayout()
         servers_layout.addWidget(servers_label)
-        servers_layout.addSpacing(9)
-        servers_layout.addWidget(table_group)
-        servers_layout.addSpacing(9)
+        servers_layout.addSpacing(3 * AppStyle.MarginSize)
+        servers_layout.addWidget(table_label)
+        servers_layout.addLayout(table_layout)
+        servers_layout.addSpacing(AppStyle.MarginSize)
         servers_layout.addLayout(buttons_layout)
 
         self.setLayout(servers_layout)

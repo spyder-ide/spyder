@@ -1,4 +1,4 @@
-name: Remote Client Tests
+name: Linux tests with PyQt6
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
       - 'requirements/*.yml'
+      - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
@@ -22,10 +23,12 @@ on:
     branches:
       - master
       - 6.*
+      - 5.*
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'
       - 'requirements/*.yml'
+      - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
@@ -40,14 +43,14 @@ on:
   workflow_dispatch:
     inputs:
       ssh:
-        # github_cli: gh workflow run test-remoteclient.yml --ref <branch> -f ssh=true
+        # github_cli: gh workflow run test-linux-qt6.yml --ref <branch> -f ssh=true
         description: 'Enable ssh debugging'
         required: false
         default: false
         type: boolean
 
 concurrency:
-  group: test-remoteclient-${{ github.ref }}
+  group: test-linux-qt6-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -57,7 +60,7 @@ jobs:
   build:
     # Use this to disable the workflow
     # if: false
-    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.INSTALL_TYPE }}
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.SPYDER_QT_BINDING }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
     runs-on: ubuntu-22.04
     env:
       CI: 'true'
@@ -65,17 +68,17 @@ jobs:
       CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
       OS: 'linux'
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
-      SPYDER_TEST_REMOTE_CLIENT: 'true'
+      USE_GDB: 'false'
+      SPYDER_QT_BINDING: ${{ matrix.SPYDER_QT_BINDING }}
     strategy:
       fail-fast: false
       matrix:
-        INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.8', '3.12']
-        exclude:
-          # Only test Python 3.8 with pip because Conda-forge will drop it soon
-          - INSTALL_TYPE: 'conda'
-            PYTHON_VERSION: '3.8'
+        INSTALL_TYPE: ['pip']  # conda has no PyQt6 package
+        PYTHON_VERSION: ['3.10']
+        TEST_TYPE: ['fast', 'slow']
+        SPYDER_QT_BINDING: ['pyqt6'] # TODO add 'pyside6' once Spyder supports it
     timeout-minutes: 90
     steps:
       - name: Setup Remote SSH Connection
@@ -98,7 +101,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 libxcb-cursor0 xterm --fix-missing
       - name: Cache conda
         uses: actions/cache@v4
         env:
@@ -148,14 +151,29 @@ jobs:
           micromamba info
           micromamba list
           pip list
+      - name: Run manifest checks
+        shell: bash -l {0}
+        run: check-manifest
+      - name: Run tests with gdb
+        if: env.USE_GDB == 'true'
+        shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
       - name: Run tests
         shell: bash -l {0}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QT_API: ${{ matrix.SPYDER_QT_BINDING }}
+          PYTEST_QT_API: ${{ matrix.SPYDER_QT_BINDING }}
         run: |
-          rm -f pytest_log.txt
           rm -f pytest_log.txt  # Must remove any log file from a previous run
           .github/scripts/run_tests.sh -n 0 || \
           .github/scripts/run_tests.sh -n 1 || \
           .github/scripts/run_tests.sh -n 2 || \
           .github/scripts/run_tests.sh -n 3
+      - name: Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+          verbose: true

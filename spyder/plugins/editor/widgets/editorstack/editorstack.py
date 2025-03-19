@@ -1399,11 +1399,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             else:
                 if self.new_window_action:
                     actions += [self.new_window_action]
-                actions += [
-                    main_widget.lock_unlock_action,
-                    main_widget.undock_action,
-                    main_widget.close_action
-                ]
+                if not self.new_window:
+                    actions += [
+                        main_widget.lock_unlock_action,
+                        main_widget.undock_action,                    
+                        main_widget.close_action
+                    ]
 
         return actions
 

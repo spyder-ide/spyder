@@ -255,6 +255,10 @@ qt_requirements = {
         'pyqt6-webengine>=6.5,<7',
         'qtconsole>=5.6.1,<5.7.0',
     ],
+    'pyside6': [
+        'pyside6>=6.5,<7',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
     'conda-forge': [
         'qtconsole>=5.6.1,<5.7.0',
     ]
@@ -295,18 +299,18 @@ install_requires += [
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
     'python-lsp-black>=2.0.0,<3.0.0',
-    'python-lsp-server[all]>=1.12.0,<1.13.0',
+    'python-lsp-server[all]>=1.12.2,<1.13.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=24.0.0',
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
-    'qtawesome>=1.3.1,<1.4.0',
+    'qtawesome>=1.4.0,<1.5.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0,<3.2.0',
+    'spyder-kernels>=3.1.0a1,<3.2.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
@@ -325,11 +329,10 @@ if 'dev' in __version__:
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
 
-    install_requires.append('python-lsp-server[all]>=1.12.0,<1.14.0')
+    install_requires.append('python-lsp-server[all]>=1.12.2,<1.14.0')
     install_requires.append('qtconsole>=5.5.1,<5.7.0')
 
 extras_require = {
-    'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',
         'cython',
@@ -344,6 +347,7 @@ extras_require = {
         'pytest-order',
         'pytest-qt',
         'pytest-timeout',
+        'pywin32;platform_system=="Windows"',
         'pyyaml',
         'scipy',
         'sympy',

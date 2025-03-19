@@ -342,7 +342,6 @@ class EditorMainWidget(PluginMainWidget):
         # Start autosave component
         # (needs to be done before EditorSplitter)
         self.autosave = AutosaveForPlugin(self)
-        self.autosave.try_recover_from_autosave()
 
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_conf('autosave_interval') * 1000
@@ -2466,6 +2465,12 @@ class EditorMainWidget(PluginMainWidget):
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
             self.__add_recent_file(fname)
+
+            # We need to call this directly because at least on Windows
+            # editorstack.editor_focus_changed is not emitted after saving the
+            # file (and it's not harmful to do it for other OSes).
+            # Fixes spyder-ide/spyder#23716
+            self.update_run_focus_file()
 
     @Slot()
     def save_copy_as(self):

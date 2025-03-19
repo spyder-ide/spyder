@@ -264,7 +264,7 @@ class Editor(SpyderDockablePlugin):
             RunContext.Cell,
             _("Run cell"),
             icon=self.create_icon('run_cell'),
-            tip=_("Run current cell"),
+            tip=_("Run cell"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,
@@ -274,7 +274,7 @@ class Editor(SpyderDockablePlugin):
             RunContext.Cell,
             _("Run cell and advance"),
             icon=self.create_icon('run_cell_advance'),
-            tip=_("Run current cell and go to the next one"),
+            tip=_("Run cell and advance"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,
@@ -828,6 +828,11 @@ class Editor(SpyderDockablePlugin):
         """Update font from Preferences"""
         font = self.get_font(SpyderFontType.Monospace)
         self.get_widget().update_font(font)
+
+    def before_mainwindow_visible(self):
+        # Don't move this to on_mainwindow_visible because the window appears
+        # empty while the recovery dialog is shown.
+        self.get_widget().autosave.try_recover_from_autosave()
 
     def on_mainwindow_visible(self):
         widget = self.get_widget()

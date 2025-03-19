@@ -203,6 +203,8 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setStyleSheet(
             f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.splitterMoved.connect(self._on_splitter_moved)
 
         self.stack_layout = QStackedLayout()
         self.stack_layout.addWidget(splitter)
@@ -211,6 +213,12 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.stack_layout.setContentsMargins(0, 0, 0, 0)
         self.stack_layout.setSpacing(0)
         self.setContentsMargins(0, 0, 0, 0)
+
+    def _on_splitter_moved(self):
+        total_width = self.splitter.width()
+        min_width_percentage = 0.55
+        min_width = int(total_width * min_width_percentage)
+        self.figviewer.setMinimumWidth(min_width)
 
     def _update_zoom_value(self, value):
         """
