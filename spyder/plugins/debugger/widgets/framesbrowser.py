@@ -544,9 +544,7 @@ class ResultsBrowser(QTreeWidget):
                     )
                     self.data[id(item)] = (frame["filename"], frame["lineno"])
             else:
-                item = LineFrameItem(
-                    parent, 0, None, '', 0, '', None,
-                )
+                item = LineFrameItem(parent, 0, None, '', 0, '')
 
     def do_find(self, text):
         """Update the regex text for the variable finder."""

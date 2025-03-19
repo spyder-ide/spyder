@@ -712,7 +712,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         # Make actions visible conditionally
         self.move_action.setVisible(
-            all([fixpath(osp.dirname(fname)) == basedir for fname in fnames]))
+            all(
+                [fixpath(osp.dirname(fname)) == basedir for fname in fnames])
+                and only_files
+            )
         self.open_external_action.setVisible(False)
         self.open_interpreter_action.setVisible(only_dirs)
         self.open_with_spyder_action.setVisible(only_files and only_valid)
