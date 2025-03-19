@@ -2464,6 +2464,12 @@ class EditorMainWidget(PluginMainWidget):
             fname = editorstack.get_current_filename()
             self.__add_recent_file(fname)
 
+            # We need to call this directly because at least on Windows
+            # editorstack.editor_focus_changed is not emitted after saving the
+            # file (and it's not harmful to do it for other OSes).
+            # Fixes spyder-ide/spyder#23716
+            self.update_run_focus_file()
+
     @Slot()
     def save_copy_as(self):
         """Save *copy as* the currently edited file"""

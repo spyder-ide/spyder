@@ -159,7 +159,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
     Parameters
     ----------
     new_working_directory: str
-        The new new working directory path.
+        The new working directory path.
     """
 
     edit_goto = Signal(str, int, str)
@@ -200,7 +200,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
-        self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.textActivated.connect(self.chdir)
 

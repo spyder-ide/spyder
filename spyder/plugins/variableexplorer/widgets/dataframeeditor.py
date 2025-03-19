@@ -1001,7 +1001,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             if rows:
                 self.resizeRowsToContents()
                 self.parent().table_index.resizeRowsToContents()
-            else:
+            else:                
+                self.parent().table_index.resizeColumnsToContents()
                 self.parent().resize_to_contents()
 
     def flags(self, index):
@@ -1753,6 +1754,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.glayout = None
         self.menu_header_v = None
         self.dataTable = None
+        self.resizeToHeader = False
 
     def setup_and_check(self, data, title='') -> bool:
         """
@@ -2123,9 +2125,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if last_col < 0:
             idx_width = self.table_level.verticalHeader().width()
         else:
-            idx_width = self.table_level.columnViewportPosition(last_col) + \
-                        self.table_level.columnWidth(last_col) + \
-                        self.table_level.verticalHeader().width()
+            idx_width = (
+                self.table_level.columnViewportPosition(last_col)
+                + self.table_level.columnWidth(last_col)
+                + self.table_level.verticalHeader().width()
+                # This is necessary to show the separator that allows to resize
+                # the index.
+                + 5
+            )
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
@@ -2349,7 +2356,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def _update_header_size(self):
         """Update the column width of the header."""
-        self.table_header.resizeColumnsToContents()
+        if self.resizeToHeader:
+            self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
@@ -2359,6 +2367,24 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                     self.table_header.setColumnWidth(index, column_width)
                 else:
                     self.dataTable.setColumnWidth(index, header_width)
+            else:
+                break
+
+    def _update_index_size(self):
+        """Update the index's column width."""
+        if self.resizeToHeader:
+            self.table_level.resizeColumnsToContents()
+
+
+        column_count = self.table_level.model().columnCount()
+        for index in range(0, column_count):
+            if index < column_count:
+                column_width = self.table_index.columnWidth(index)
+                header_width = self.table_level.columnWidth(index)
+                if column_width > header_width:
+                    self.table_level.setColumnWidth(index, column_width)
+                else:
+                    self.table_index.setColumnWidth(index, header_width)
             else:
                 break
 
@@ -2391,6 +2417,17 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """Fetch more data for the index (rows)."""
         self.table_index.model().fetch_more()
 
+    def _update_flag_resize(self):
+        self.resizeToHeader = not self.resizeToHeader
+        if self.resizeToHeader:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to headers")
+            )
+        else:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to contents")
+            )
+
     @Slot()
     def resize_to_contents(self):
         """"Resize columns to contents"""
@@ -2399,6 +2436,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()
         self._update_header_size()
+        self._update_index_size()
+        self._update_flag_resize()
+        self._update_layout()
+
         QApplication.restoreOverrideCursor()
 
 
