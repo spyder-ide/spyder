@@ -27,7 +27,6 @@ from qtpy.QtCore import (
     Qt,
     Signal,
 )
-from qtpy.QtGui import QMouseEvent
 from qtpy.QtWidgets import (
     QAbstractItemDelegate,
     QApplication,
@@ -214,12 +213,18 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 return
         except Exception as msg:
             self.sig_editor_shown.emit()
-            QMessageBox.critical(
-                self.parent(), _("Error"),
-                _("Spyder was unable to retrieve the value of "
-                  "this variable from the console.<br><br>"
-                  "The error message was:<br>"
-                  "%s") % to_text_string(msg))
+            msg_box = QMessageBox(self.parent())
+            msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
+            msg_box.critical(
+                self.parent(),
+                _("Error"),
+                _(
+                    "Spyder was unable to retrieve the value of this variable "
+                    "from the console.<br><br>"
+                    "The problem is:<br>"
+                    "%s"
+                ) % str(msg)
+            )
             return
 
         key = index.model().get_key(index)
@@ -666,12 +671,18 @@ class ToggleColumnDelegate(CollectionsDelegate):
             if value is None:
                 return None
         except Exception as msg:
-            QMessageBox.critical(
-                self.parent(), _("Error"),
-                _("Spyder was unable to retrieve the value of "
-                  "this variable from the console.<br><br>"
-                  "The error message was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
+            msg_box = QMessageBox(self.parent())
+            msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
+            msg_box.critical(
+                self.parent(),
+                _("Error"),
+                _(
+                    "Spyder was unable to retrieve the value of this variable "
+                    "from the console.<br><br>"
+                    "The problem is:<br>"
+                    "<i>%s</i>"
+                ) % str(msg)
+            )
             return
         self.current_index = index
 
