@@ -2038,7 +2038,7 @@ class EditorMainWidget(PluginMainWidget):
         else:
             current_es = editorstack
 
-        created_from_here = fname is None
+        created_from_here = fname is None or isinstance(fname, bool)
         if created_from_here:
             if self.untitled_num == 0:
                 for finfo in current_es.data:
@@ -2453,6 +2453,8 @@ class EditorMainWidget(PluginMainWidget):
     @Slot()
     def save(self, index=None, force=False):
         """Save file"""
+        if isinstance(index, bool):
+            index = None
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
 

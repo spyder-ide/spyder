@@ -11,7 +11,7 @@ import os.path as osp
 import re
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
@@ -128,7 +128,7 @@ class FindInFilesWidget(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(name, plugin, parent=parent)
         else:
             PluginMainWidget.__init__(self, name, plugin, parent=parent)

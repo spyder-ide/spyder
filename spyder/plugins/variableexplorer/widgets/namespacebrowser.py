@@ -17,7 +17,7 @@ from pickle import UnpicklingError
 import tarfile
 
 # Third library imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
@@ -74,7 +74,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)

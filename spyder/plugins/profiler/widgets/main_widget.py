@@ -23,7 +23,7 @@ import time
 from itertools import islice
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
@@ -672,7 +672,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     sig_edit_goto_requested = Signal(str, int, str)
 
     def __init__(self, parent=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QTreeWidget.__init__(self, parent)
@@ -944,7 +944,9 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
                 if self.item_depth < 3:
                     self.populate_tree(child_item, callees)
                 elif callees:
-                    child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
+                    child_item.setChildIndicatorPolicy(
+                        QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator
+                    )
                     self.items_to_be_shown[id(child_item)] = callees
             self.item_depth -= 1
 
