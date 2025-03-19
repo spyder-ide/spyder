@@ -209,13 +209,17 @@ class TextHelper(object):
         line = min(line, self.line_count())
         text_cursor = self._move_cursor_to(line)
         if column:
-            text_cursor.movePosition(QTextCursor.MoveOperation.Right,
-                                     QTextCursor.MoveMode.MoveAnchor,
-                                     column)
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.Right,
+                QTextCursor.MoveMode.MoveAnchor,
+                column
+            )
         if end_column:
-            text_cursor.movePosition(QTextCursor.MoveOperation.Right,
-                                     QTextCursor.MoveMode.KeepAnchor,
-                                     end_column)
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.Right,
+                QTextCursor.MoveMode.KeepAnchor,
+                end_column
+            )
         if move:
             block = text_cursor.block()
             self.unfold_if_colapsed(text_cursor)
@@ -297,7 +301,9 @@ class TextHelper(object):
         while not text_cursor.atStart():
             text_cursor.movePosition(
                 QTextCursor.MoveOperation.Left,
-                QTextCursor.MoveMode.KeepAnchor, 1)
+                QTextCursor.MoveMode.KeepAnchor,
+                1
+            )
             try:
                 char = text_cursor.selectedText()[0]
                 word_separators = editor.word_separators
@@ -314,8 +320,11 @@ class TextHelper(object):
             # select the resot of the word
             text_cursor.setPosition(end_pos)
             while not text_cursor.atEnd():
-                text_cursor.movePosition(QTextCursor.MoveOperation.Right,
-                                         QTextCursor.MoveMode.KeepAnchor, 1)
+                text_cursor.movePosition(
+                    QTextCursor.MoveOperation.Right,
+                    QTextCursor.MoveMode.KeepAnchor,
+                    1
+                )
                 char = text_cursor.selectedText()[0]
                 selected_txt = text_cursor.selectedText()
                 if (selected_txt in word_separators and
@@ -422,8 +431,10 @@ class TextHelper(object):
         """Removes the last line of the document."""
         editor = self._editor
         text_cursor = editor.textCursor()
-        text_cursor.movePosition(QTextCursor.MoveOperation.End,
-                                 QTextCursor.MoveMode.MoveAnchor)
+        text_cursor.movePosition(
+            QTextCursor.MoveOperation.End,
+            QTextCursor.MoveMode.MoveAnchor
+        )
         text_cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         text_cursor.removeSelectedText()
         text_cursor.deletePreviousChar()
@@ -459,23 +470,33 @@ class TextHelper(object):
             start = 0
         text_cursor = self._move_cursor_to(start)
         if end > start:  # Going down
-            text_cursor.movePosition(QTextCursor.MoveOperation.Down,
-                                     QTextCursor.MoveMode.KeepAnchor,
-                                     end - start)
-            text_cursor.movePosition(QTextCursor.MoveOperation.EndOfLine,
-                                     QTextCursor.MoveMode.KeepAnchor)
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.Down,
+                QTextCursor.MoveMode.KeepAnchor,
+                end - start
+            )
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.EndOfLine,
+                QTextCursor.MoveMode.KeepAnchor
+            )
         elif end < start:  # going up
             # don't miss end of line !
             text_cursor.movePosition(QTextCursor.MoveOperation.EndOfLine,
                                      QTextCursor.MoveMode.MoveAnchor)
-            text_cursor.movePosition(QTextCursor.MoveOperation.Up,
-                                     QTextCursor.MoveMode.KeepAnchor,
-                                     start - end)
-            text_cursor.movePosition(QTextCursor.MoveOperation.StartOfLine,
-                                     QTextCursor.MoveMode.KeepAnchor)
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.Up,
+                QTextCursor.MoveMode.KeepAnchor,
+                start - end
+            )
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.StartOfLine,
+                QTextCursor.MoveMode.KeepAnchor
+            )
         else:
-            text_cursor.movePosition(QTextCursor.MoveOperation.EndOfLine,
-                                     QTextCursor.MoveMode.KeepAnchor)
+            text_cursor.movePosition(
+                QTextCursor.MoveOperation.EndOfLine,
+                QTextCursor.MoveMode.KeepAnchor
+            )
         if apply_selection:
             editor.setTextCursor(text_cursor)
         return text_cursor

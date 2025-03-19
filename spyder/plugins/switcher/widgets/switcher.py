@@ -8,7 +8,15 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex, QItemSelectionModel
+from qtpy.QtCore import (
+    QEvent,
+    QItemSelectionModel,
+    QModelIndex,
+    QObject,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,

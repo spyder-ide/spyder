@@ -113,15 +113,21 @@ class TextDecoration(QTextEdit.ExtraSelection):
         if end_pos is not None:
             self.cursor.setPosition(end_pos, QTextCursor.MoveMode.KeepAnchor)
         if start_line is not None:
-            self.cursor.movePosition(QTextCursor.MoveOperation.Start,
-                                     QTextCursor.MoveMode.MoveAnchor)
-            self.cursor.movePosition(QTextCursor.MoveOperation.Down,
-                                     QTextCursor.MoveMode.MoveAnchor,
-                                     start_line)
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Start,
+                QTextCursor.MoveMode.MoveAnchor
+            )
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Down,
+                QTextCursor.MoveMode.MoveAnchor,
+                start_line
+            )
         if end_line is not None:
-            self.cursor.movePosition(QTextCursor.MoveOperation.Down,
-                                     QTextCursor.MoveMode.KeepAnchor,
-                                     end_line - start_line)
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Down,
+                QTextCursor.MoveMode.KeepAnchor,
+                end_line - start_line
+            )
         if font is not None:
             self.format.setFont(font)
 
@@ -180,8 +186,10 @@ class TextDecoration(QTextEdit.ExtraSelection):
         text = self.cursor.block().text()
         lindent = len(text) - len(text.lstrip())
         self.cursor.setPosition(self.cursor.block().position() + lindent)
-        self.cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock,
-                                 QTextCursor.MoveMode.KeepAnchor)
+        self.cursor.movePosition(
+            QTextCursor.MoveOperation.EndOfBlock,
+            QTextCursor.MoveMode.KeepAnchor
+        )
 
     def set_full_width(self, flag=True, clear=True):
         """

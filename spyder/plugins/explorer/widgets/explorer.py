@@ -984,7 +984,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
     def get_selected_filenames(self):
         """Return selected filenames"""
         fnames = []
-        if self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection:
+        if (
+            self.selectionMode()
+            == QAbstractItemView.SelectionMode.ExtendedSelection
+        ):
             if self.selectionModel() is not None:
                 fnames = [self.get_filename(idx) for idx in
                           self.selectionModel().selectedRows()]

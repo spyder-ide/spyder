@@ -1659,22 +1659,30 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Select/drag downwards
         if move_n_blocks > 0:
             for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(QTextCursor.MoveOperation.NextBlock,
-                                    QTextCursor.MoveMode.KeepAnchor)
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.NextBlock,
+                    QTextCursor.MoveMode.KeepAnchor
+                )
         # Select/drag upwards or select single line
         else:
             cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
             for n in range(abs(move_n_blocks) + 1):
-                cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock,
-                                    QTextCursor.MoveMode.KeepAnchor)
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.PreviousBlock,
+                    QTextCursor.MoveMode.KeepAnchor
+                )
 
         # Account for last line case
         if linenumber_released == self.blockCount():
-            cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock,
-                                QTextCursor.MoveMode.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.MoveOperation.EndOfBlock,
+                QTextCursor.MoveMode.KeepAnchor
+            )
         else:
-            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock,
-                                QTextCursor.MoveMode.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.MoveOperation.StartOfBlock,
+                QTextCursor.MoveMode.KeepAnchor
+            )
 
         self.setTextCursor(cursor)
 
