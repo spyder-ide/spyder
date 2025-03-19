@@ -516,7 +516,7 @@ class Run(SpyderPluginV2):
                 toolbar_id = add_to_toolbar['toolbar']
                 section = add_to_toolbar.get('section')
                 before = add_to_toolbar.get('before')
-                before_section = add_to_menu.get('before_section')
+                before_section = add_to_toolbar.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
@@ -739,7 +739,7 @@ class Run(SpyderPluginV2):
                 toolbar_id = add_to_toolbar['toolbar']
                 section = add_to_toolbar.get('section')
                 before = add_to_toolbar.get('before')
-                before_section = add_to_menu.get('before_section')
+                before_section = add_to_toolbar.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
