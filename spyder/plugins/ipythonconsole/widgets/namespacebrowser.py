@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 # Max time before giving up when making a blocking call to the kernel
 CALL_KERNEL_TIMEOUT = 30
 
+# URL to our Github issues
+GH_ISSUES = "https://github.com/spyder-ide/spyder/issues/new"
+
 
 class NamepaceBrowserWidget(RichJupyterWidget):
     """
@@ -37,11 +40,18 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def get_value(self, name):
         """Ask kernel for a value"""
         reason_big = _("The variable is too big to be retrieved")
-        reason_not_picklable = _("The variable is not picklable")
+        reason_not_picklable = _(
+            "It was not possible to create a copy of the variable in the "
+            "kernel to pass it to Spyder."
+        )
         reason_dead = _("The kernel is dead")
-        reason_other = _("An unkown error occurred. Check the console because "
-                         "its contents could have been printed there")
-        reason_comm = _("The comm channel is not working")
+        reason_other = _(
+            "An unknown error occurred. Check the console because its contents "
+            "could have been printed there."
+        )
+        reason_comm = _(
+            "The channel used to communicate with the kernel is not working."
+        )
         reason_missing_package_installer = _(
             "The '{}' package is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
@@ -52,9 +62,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "installed alongside Spyder. To fix this problem, please install "
             "it in the same environment that you use to run Spyder."
         )
-        msg = _("<br><i>%s.</i><br><br><br>"
-                "<b>Note</b>: Please don't report this problem on Github, "
-                "there's nothing to do about it.")
+        msg = _(
+            "<br><i>%s.</i><br><br><br>"
+            "<b>Note</b>: If you consider this to be a valid error that needs "
+            "to be fixed by the Spyder team, please report it on "
+            "<a href='{}'>Github</a>."
+        ).format(GH_ISSUES)
+
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -79,9 +93,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                     msg % reason_missing_package_installer.format(e.name)
                 )
             else:
-                raise ValueError(
-                    msg % reason_missing_package.format(e.name)
-                )
+                raise ValueError(msg % reason_missing_package.format(e.name))
         except Exception:
             raise ValueError(msg % reason_other)
 
