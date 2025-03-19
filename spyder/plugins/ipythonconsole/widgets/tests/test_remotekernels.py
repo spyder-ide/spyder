@@ -12,16 +12,24 @@ from flaky import flaky
 import pytest
 
 # Local imports
-from spyder.plugins.remoteclient.tests.conftest import await_future
+from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.plugins.remoteclient.tests.conftest import await_future, mark_remote_test
 
 
+@AsyncDispatcher(loop="test")
+async def list_kernels(remote_client_plugin, server_id):
+    async with remote_client_plugin.get_jupyter_api(server_id) as jupyter_api:
+        return await jupyter_api.list_kernels()
+
+
+@mark_remote_test
 class TestIpythonConsole:
     @flaky(max_runs=3, min_passes=1)
-    def test_shutdown_kernel(
+    def test_start_stop_kernel(
         self, ipyconsole, remote_client, remote_client_id, qtbot
     ):
         """Starts and stops a kernel on the remote server."""
-        remote_client.create_ipyclient_for_server(remote_client_id)
+        ipyconsole.get_widget().create_ipyclient_for_server(remote_client_id)
         shell = ipyconsole.get_current_shellwidget()
 
         qtbot.waitUntil(
@@ -32,54 +40,52 @@ class TestIpythonConsole:
 
         ipyconsole.get_widget().close_client()
 
-        assert (
-            await_future(
-                remote_client.get_kernels(remote_client_id), timeout=10
-            )
-            == []
-        )
+        assert await_future(
+            list_kernels(remote_client, remote_client_id),
+            timeout=5
+        ) == []
 
-    def test_restart_kernel(self, shell, ipyconsole, qtbot):
+    def test_restart_kernel(self, remote_shell, ipyconsole, qtbot):
         """Test that kernel is restarted correctly."""
         # Do an assignment to verify that it's not there after restarting
-        with qtbot.waitSignal(shell.executed):
-            shell.execute("a = 10")
+        with qtbot.waitSignal(remote_shell.executed):
+            remote_shell.execute("a = 10")
 
-        shell._prompt_html = None
+        remote_shell._prompt_html = None
         ipyconsole.get_widget().restart_action.trigger()
         qtbot.waitUntil(
-            lambda: shell.spyder_kernel_ready
-            and shell._prompt_html is not None,
+            lambda: remote_shell.spyder_kernel_ready
+            and remote_shell._prompt_html is not None,
             timeout=4000,
         )
 
-        assert not shell.is_defined("a")
+        assert not remote_shell.is_defined("a")
 
-        with qtbot.waitSignal(shell.executed):
-            shell.execute("b = 10")
+        with qtbot.waitSignal(remote_shell.executed):
+            remote_shell.execute("b = 10")
 
         # Make sure that kernel is responsive after restart
-        qtbot.waitUntil(lambda: shell.is_defined("b"), timeout=2000)
+        qtbot.waitUntil(lambda: remote_shell.is_defined("b"), timeout=2000)
 
-    def test_interrupt_kernel(self, shell, qtbot):
+    def test_interrupt_kernel(self, remote_shell, qtbot):
         """Test that the kernel correctly interrupts."""
         loop_string = "while True: pass"
 
-        with qtbot.waitSignal(shell.executed):
-            shell.execute("b = 10")
+        with qtbot.waitSignal(remote_shell.executed):
+            remote_shell.execute("b = 10")
 
-        shell.execute(loop_string)
+        remote_shell.execute(loop_string)
 
         qtbot.wait(500)
 
-        shell.interrupt_kernel()
+        remote_shell.interrupt_kernel()
 
         qtbot.wait(1000)
 
         # Make sure that kernel didn't die
-        assert shell.get_value("b") == 10
+        assert remote_shell.get_value("b") == 10
 
-    def test_kernel_kill(self, shell, qtbot):
+    def test_kernel_kill(self, remote_shell, qtbot):
         """Test that the kernel correctly restarts after a kill."""
         crash_string = (
             "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
@@ -91,18 +97,18 @@ class TestIpythonConsole:
         # the tunnels recreated before the heartbeat can detect the kernel
         # is dead. In the test enviroment, the heartbeat needs to be set to a
         # lower value because there are fewer threads running.
-        shell.kernel_handler.set_time_to_dead(0.2)
+        remote_shell.kernel_handler.set_time_to_dead(0.2)
 
-        with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
-            shell.execute(crash_string)
+        with qtbot.waitSignal(remote_shell.sig_prompt_ready, timeout=30000):
+            remote_shell.execute(crash_string)
 
-        assert "The kernel died, restarting..." in shell._control.toPlainText()
+        assert "The kernel died, restarting..." in remote_shell._control.toPlainText()
 
-        with qtbot.waitSignal(shell.executed):
-            shell.execute("b = 10")
+        with qtbot.waitSignal(remote_shell.executed):
+            remote_shell.execute("b = 10")
 
         # Make sure that kernel is responsive after restart
-        qtbot.waitUntil(lambda: shell.is_defined("b"), timeout=2000)
+        qtbot.waitUntil(lambda: remote_shell.is_defined("b"), timeout=2000)
 
 
 if __name__ == "__main__":
