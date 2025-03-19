@@ -230,7 +230,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             connection_file = None
 
         if connection_file is None:
-            QMessageBox.error(
+            QMessageBox.critical(
                 self,
                 _('Error'),
                 _(
