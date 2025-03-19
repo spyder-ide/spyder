@@ -7,6 +7,11 @@ from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 
 import pytest
 
+__all__ = [
+    "remote_client_id",
+    "ssh_server_addr",
+    "docker_compose_file",
+]
 
 # NOTE: These credentials are hardcoded in the Dockerfile.
 USERNAME = "ubuntu"

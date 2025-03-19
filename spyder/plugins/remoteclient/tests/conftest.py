@@ -17,12 +17,11 @@ import pytest
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.plugin import RemoteClient
 
+from spyder.plugins.remoteclient.tests.fixtures import *
+from spyder.api.plugins.pytest import *
+
 T = typing.TypeVar("T")
 
-pytest_plugins = [
-    "spyder.api.plugins.pytest",
-    "spyder.plugins.remoteclient.tests.fixtures",
-]
 
 def await_future(future: Future[T], timeout=10) -> T:
     """Wait for a future to finish or timeout."""

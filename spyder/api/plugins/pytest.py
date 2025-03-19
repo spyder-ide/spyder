@@ -14,6 +14,7 @@ from spyder.config.manager import CONF
 if typing.TYPE_CHECKING:
     from spyder.api.plugin_registration.registry import SpyderPluginClass
 
+__all__ = ["main_window_mock", "plugins_cls", "register_fixture"]
 
 class MainWindowMock(QMainWindow):
     """QMainWindow mock for the Remote Client plugin tests."""

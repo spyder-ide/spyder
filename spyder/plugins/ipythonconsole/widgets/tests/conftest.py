@@ -5,12 +5,8 @@ import pytest
 from spyder.plugins.remoteclient.plugin import RemoteClient
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 
-
-pytest_plugins = [
-    "spyder.api.plugins.pytest",
-    "spyder.plugins.remoteclient.tests.fixtures",
-]
-
+from spyder.plugins.remoteclient.tests.fixtures import *
+from spyder.api.plugins.pytest import *
 
 @pytest.fixture(scope="session")
 def plugins_cls():
