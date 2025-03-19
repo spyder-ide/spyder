@@ -54,7 +54,6 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
     if remoteclient:
         pytest_args += ['--container-scope=class']
         os.environ["SPYDER_TEST_REMOTE_CLIENT"] = "true"
-    else:
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
