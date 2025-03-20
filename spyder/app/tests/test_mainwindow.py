@@ -859,7 +859,10 @@ def test_dedicated_consoles(main_window, qtbot):
         == "script.py/A"
     )
 
-    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 4,
+        timeout=SHELL_TIMEOUT
+    )
     assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert runfile text is present and we show the banner ---
@@ -867,11 +870,11 @@ def test_dedicated_consoles(main_window, qtbot):
     assert ('runfile' in text) and ('Python' in text and 'IPython' in text)
 
     # --- Check namespace retention after re-execution ---
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute('zz = -1')
 
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.waitUntil(lambda: shell.is_defined('zz'))
+    qtbot.waitUntil(lambda: shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns and there's no banner
@@ -885,7 +888,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.waitUntil(lambda: not shell.is_defined('zz'))
+    qtbot.waitUntil(lambda: not shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert not shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns ---
