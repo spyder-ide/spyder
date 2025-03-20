@@ -860,7 +860,10 @@ def test_dedicated_consoles(main_window, qtbot):
         == "script.py/A"
     )
 
-    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 4,
+        timeout=SHELL_TIMEOUT
+    )
     assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert runfile text is present and we show the banner ---
