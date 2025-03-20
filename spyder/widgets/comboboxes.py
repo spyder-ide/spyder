@@ -70,6 +70,14 @@ class BaseComboBox(SpyderComboBox):
             self.sig_tab_pressed.emit(True)
             return True
         return super().event(event)
+    
+    def focusOutEvent(self, event):
+        
+        if self.add_current_text_if_valid():
+            self.selected()
+            self.hide_completer()
+
+        super().focusOutEvent(event)
 
     def keyPressEvent(self, event):
         """Qt Override.
