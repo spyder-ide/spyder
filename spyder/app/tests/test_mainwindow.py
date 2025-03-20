@@ -5414,7 +5414,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
     for i in range(5):
         item = file_item.child(i)
         findinfiles.result_browser.setCurrentItem(item)
-        findinfiles.result_browser.activated(item)
+        findinfiles.result_browser.on_item_activated(item)
         cursor = code_editor.textCursor()
         position = (cursor.selectionStart(), cursor.selectionEnd())
         assert position == match_positions[i]

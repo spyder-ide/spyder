@@ -13,6 +13,9 @@ import logging
 from typing import Any, Callable, Optional, Union
 import warnings
 
+# Third-party imports
+from qtpy import PYSIDE6
+
 # Local imports
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
@@ -239,10 +242,13 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
             section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
             for option in observed_options:
-                logger.debug(
-                    f'{self} is observing option "{option}" in section '
-                    f'"{section}"'
-                )
+                # Avoid a crash at startup due to MRO
+                if not PYSIDE6:
+                    logger.debug(
+                        f'{self} is observing option "{option}" in section '
+                        f'"{section}"'
+                    )
+
                 CONF.observe_configuration(self, section, option)
 
     def __del__(self):
@@ -252,6 +258,16 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     def _gather_observers(self):
         """Gather all the methods decorated with `on_conf_change`."""
         for method_name in dir(self):
+            # Avoid crash at startup due to MRO
+            if PYSIDE6 and method_name in {
+                # PySide seems to require that the class is instantiated to
+                # access this method
+                "painters",
+                # Method is debounced
+                "restart_kernel",
+            }:
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, '_conf_listen'):
                 info = method._conf_listen
