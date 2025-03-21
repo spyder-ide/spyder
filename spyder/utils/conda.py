@@ -85,7 +85,7 @@ def find_conda(pyexec=None):
     # First try Spyder's conda executable
     if is_conda_based_app():
         root = osp.dirname(os.environ['CONDA_EXE'])
-        conda = osp.join(root, 'mamba.exe' if WINDOWS else 'mamba')
+        conda = osp.join(root, 'conda.exe' if WINDOWS else 'conda')
 
     # Next try the environment variables
     if conda is None:
