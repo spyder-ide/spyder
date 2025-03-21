@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-03-20 22:01-0500\n"
-"PO-Revision-Date: 2025-03-21 03:11\n"
+"PO-Revision-Date: 2025-03-21 10:31\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr "Вимкніть плагін Spyder (зовнішній або вбуд
 
 #: spyder/api/plugin_registration/_confpage.py:56
 msgid "Built-in"
-msgstr ""
+msgstr "Вбудовано"
 
 #: spyder/api/plugin_registration/registry.py:802
 msgid "Plugins"
@@ -31,11 +31,11 @@ msgstr "Плагіни"
 
 #: spyder/api/shellconnect/main_widget.py:152
 msgid "No connected console"
-msgstr ""
+msgstr "Немає підключеної консолі"
 
 #: spyder/api/shellconnect/main_widget.py:153
 msgid "The current console has no active kernel, so there is no content to show here"
-msgstr ""
+msgstr "Поточна консоль не має активного ядра, тому тут немає вмісту для показу"
 
 #: spyder/api/widgets/main_widget.py:259
 msgid "Main widget toolbar"
@@ -63,7 +63,7 @@ msgstr "Закріпити панель"
 
 #: spyder/api/widgets/main_widget.py:361 spyder/api/widgets/main_widget.py:450 spyder/plugins/base.py:205 spyder/plugins/base.py:497
 msgid "Move"
-msgstr ""
+msgstr "Перемістити"
 
 #: spyder/api/widgets/main_widget.py:362 spyder/api/widgets/main_widget.py:455 spyder/plugins/base.py:206 spyder/plugins/base.py:501
 msgid "Unlock to move pane to another position"
@@ -135,7 +135,7 @@ msgstr "Ініціалізація..."
 
 #: spyder/app/mainwindow.py:1428
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "Не вдалося завантажити тему іконки Spyder, тому Spyder не може запуститися у вашій системі. Найімовірнішими причинами цього є те, що ви використовуєте більш ранню версію Windows, ніж Windows 10 1803/Windows Server 2019, який більше не підтримується Spyder або Microsoft, або ваш системний адміністратор вимкнув встановлення шрифтів для користувачів, які не є адміністраторами.<br><br>Будь ласка, зверніться до системного адміністратора за допомогою в оновленні Windows або встановленні для всіх користувачів наступних шрифтів<ul>{fonts_list}</ul>які знаходяться за:<br><br><code>{fonts_directory}</code><br><br>Якщо у вас є права адміністратора, ви можете виконати наступну команду в командному рядку, щоб встановити потрібні шрифти:<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:137
 msgid "It was not possible to close the previous Spyder instance.\n"
@@ -181,7 +181,7 @@ msgstr "Перезавантаження"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr ""
+msgstr "Не вдалося безпечно зберегти налаштування конфігурації. Можливим рішенням є встановлення<tt>keyrings.alt</tt> пакет з {}.<br><br><bb>Зверніть увагу</bb>: Цей пакет може мати ризики для безпеки або інші наслідки. Тому не рекомендується використовувати його в системах загального призначення або в системах, чутливих до безпеки."
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -303,7 +303,7 @@ msgstr "Підтримувані текстові файли"
 
 #: spyder/dependencies.py:102
 msgid "Async http client/server"
-msgstr ""
+msgstr "Асинхронний http клієнт/сервер"
 
 #: spyder/dependencies.py:106
 msgid "Notify macOS that Spyder can open Python files"
@@ -335,7 +335,7 @@ msgstr "Обчислення змін у текстовому файлі під 
 
 #: spyder/dependencies.py:135
 msgid "Access the metadata for a Python package"
-msgstr ""
+msgstr "Доступ до метаданих пакунка Python"
 
 #: spyder/dependencies.py:139
 msgid "Compute folding range nesting levels"
@@ -387,7 +387,7 @@ msgstr "Інформація про використання процесора 
 
 #: spyder/dependencies.py:189
 msgid "Python API for Github REST API"
-msgstr ""
+msgstr "Python API для Github REST API"
 
 #: spyder/dependencies.py:193
 msgid "Syntax highlighting for a lot of file types in the Editor"
@@ -415,7 +415,7 @@ msgstr "Плагін Spyder для Python LSP Server"
 
 #: spyder/dependencies.py:219
 msgid "Properly sort lists of non-English strings"
-msgstr ""
+msgstr "Правильне сортування списків неанглійських рядків"
 
 #: spyder/dependencies.py:223
 msgid "Parse desktop files on Linux"
@@ -447,11 +447,11 @@ msgstr "Рівень абстракції для зв'язування Python Qt
 
 #: spyder/dependencies.py:252
 msgid "Fast access to code snippet regions"
-msgstr ""
+msgstr "Швидкий доступ до областей фрагментів коду"
 
 #: spyder/dependencies.py:256
 msgid "Determine package versions"
-msgstr ""
+msgstr "Визначення версій пакунків"
 
 #: spyder/dependencies.py:260
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -463,7 +463,7 @@ msgstr "Ядра Jupyter для консолі Spyder"
 
 #: spyder/dependencies.py:268
 msgid "Special widgets and utilities for PyQt applications"
-msgstr ""
+msgstr "Спеціальні віджети та утиліти для PyQt-додатків"
 
 #: spyder/dependencies.py:272
 msgid "Compute distances between strings"
@@ -479,7 +479,7 @@ msgstr "Спостерігайте за змінами файлів у ката�
 
 #: spyder/dependencies.py:284
 msgid "URL parsing and changing"
-msgstr ""
+msgstr "Розбір та зміна URL-адрес"
 
 #: spyder/dependencies.py:293
 msgid "Run Cython files in the IPython Console"
@@ -551,7 +551,7 @@ msgstr "Шрифти"
 
 #: spyder/plugins/appearance/confpage.py:135
 msgid "Monospace"
-msgstr ""
+msgstr "Монопростір"
 
 #: spyder/plugins/appearance/confpage.py:141 spyder/plugins/application/confpage.py:258 spyder/plugins/application/confpage.py:263 spyder/plugins/editor/confpage.py:344 spyder/plugins/ipythonconsole/confpage.py:423 spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Interface"
@@ -559,11 +559,11 @@ msgstr "Інтерфейс"
 
 #: spyder/plugins/appearance/confpage.py:148
 msgid "Changing the interface font does not work reliably on macOS"
-msgstr ""
+msgstr "Зміна шрифту інтерфейсу не працює надійно на macOS"
 
 #: spyder/plugins/appearance/confpage.py:154
 msgid "Use the system default interface font"
-msgstr ""
+msgstr "Використовувати шрифт інтерфейсу за замовчуванням"
 
 #: spyder/plugins/appearance/confpage.py:161 spyder/plugins/base.py:333 spyder/plugins/editor/plugin.py:166 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4647 spyder/plugins/editor/widgets/editorstack/editorstack.py:311 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:361 spyder/plugins/editor/widgets/main_widget.py:2167 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:343 spyder/plugins/tours/tours.py:82
 msgid "Editor"
@@ -571,11 +571,11 @@ msgstr "Редактор"
 
 #: spyder/plugins/appearance/confpage.py:169
 msgid "Interface font"
-msgstr ""
+msgstr "Шрифт інтерфейсу"
 
 #: spyder/plugins/appearance/confpage.py:213
 msgid "Previews"
-msgstr ""
+msgstr "Попередні перегляди"
 
 #: spyder/plugins/appearance/confpage.py:556 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:423 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/editor/widgets/editorstack/editorstack.py:405 spyder/plugins/ipythonconsole/widgets/main_widget.py:2352 spyder/plugins/ipythonconsole/widgets/main_widget.py:2452 spyder/plugins/layout/container.py:308 spyder/plugins/layout/container.py:367 spyder/plugins/layout/plugin.py:498 spyder/plugins/layout/plugin.py:515 spyder/plugins/maininterpreter/confpage.py:187 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:109 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:171 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:627 spyder/utils/environ.py:167 spyder/utils/environ.py:247 spyder/utils/environ.py:278 spyder/widgets/collectionseditor.py:1282 spyder/widgets/collectionseditor.py:1512 spyder/widgets/collectionseditor.py:1522 spyder/widgets/collectionseditor.py:1531 spyder/widgets/collectionseditor.py:1540
 msgid "Warning"
@@ -595,15 +595,15 @@ msgstr "Управління зовнішнім виглядом та темам
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "Наступні властивості мають неприпустимі кольори:<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "Властивість <b>{}</b> має неприпустимий колір: {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "Помилка встановлення кольорів"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -655,7 +655,7 @@ msgstr "Перевіряти наявність оновлень при запу
 
 #: spyder/plugins/application/confpage.py:78
 msgid "Check for stable releases only"
-msgstr ""
+msgstr "Перевіряти наявність тільки стабільних релізів"
 
 #: spyder/plugins/application/confpage.py:110 spyder/plugins/layout/container.py:163
 msgid "Panes"
@@ -667,7 +667,7 @@ msgstr "Вертикальні вкладки в панелях"
 
 #: spyder/plugins/application/confpage.py:114
 msgid "Custom margin for panes:"
-msgstr ""
+msgstr "Індивідуальна націнка для панелей:"
 
 #: spyder/plugins/application/confpage.py:116
 msgid "pixels"
@@ -683,15 +683,15 @@ msgstr "мс"
 
 #: spyder/plugins/application/confpage.py:164
 msgid "macOS integration"
-msgstr ""
+msgstr "інтеграція macOS"
 
 #: spyder/plugins/application/confpage.py:166
 msgid "Open files from Finder with Spyder"
-msgstr ""
+msgstr "Відкривати файли з Finder за допомогою Spyder"
 
 #: spyder/plugins/application/confpage.py:168
 msgid "Register Spyder with the Launch Services"
-msgstr ""
+msgstr "Зареєструйте Spyder у сервісах запуску"
 
 #: spyder/plugins/application/confpage.py:176
 msgid "Launch Spyder with <code>python.app</code> to enable Apple event integrations."
