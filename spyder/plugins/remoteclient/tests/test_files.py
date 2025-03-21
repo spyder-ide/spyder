@@ -151,7 +151,8 @@ class TestRemoteFilesAPI:
 
         async with file_api_class() as file_api:
             with pytest.raises(RemoteOSError) as exc_info:
-                await file_api.ls(self.remote_temp_dir)
+                async for ls_file in file_api.ls(self.remote_temp_dir):
+                    ...
 
         assert exc_info.value.errno == 2  # ENOENT: No such file or directory
 
