@@ -53,17 +53,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "The channel used to communicate with the kernel is not working."
         )
         reason_missing_package_installer = _(
-            "The '{}' package is required to open this variable. "
+            "The '<tt>{}</tt>' module is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
             "variable can't be displayed by Spyder."
         )
         reason_missing_package = _(
-            "The '{}' package is required to open this variable and it's not "
-            "installed alongside Spyder. To fix this problem, please install "
-            "it in the same environment that you use to run Spyder."
+            "The '<tt>{}</tt>' module is required to open this variable and "
+            "it's not installed alongside Spyder. To fix this problem, please "
+            "install it in the same environment that you use to run Spyder."
         )
         msg = _(
-            "<br><i>%s.</i><br><br><br>"
+            "<br>%s<br><br>"
             "<b>Note</b>: If you consider this to be a valid error that needs "
             "to be fixed by the Spyder team, please report it on "
             "<a href='{}'>Github</a>."
