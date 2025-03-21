@@ -10,6 +10,7 @@ Utilities to define configuration values
 
 import os
 import os.path as osp
+import platform
 import sys
 
 from spyder.config.base import _
@@ -214,3 +215,11 @@ def is_kde_desktop():
             return False
     else:
         return False
+
+
+def is_wsl():
+    """Detect if we are running in WSL"""
+    if (platform.system() == "Linux" and
+        "microsoft" in platform.release().lower()):
+        return True
+    return False
