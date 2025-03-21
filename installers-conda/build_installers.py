@@ -142,7 +142,6 @@ base_specs = {
     "python": "=3.11.9",
     "conda": "=24.5.0",
     "menuinst": "=2.1.2",
-    "mamba": "=1.5.8",
 }
 rt_specs = {
     "python": f"={PY_VER}",

@@ -90,6 +90,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         self.language = 'python3'
         self.resource_dir = ''
 
+        self.env = get_user_environment_variables()
+
     @property
     def argv(self):
         """Command to start kernels"""
@@ -201,7 +203,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Ensure that user environment variables are included, but don't
         # override existing environ values
-        env_vars = get_user_environment_variables()
+        env_vars = self._env_vars.copy()
         env_vars.update(os.environ)
 
         # Avoid IPython adding the virtualenv on which Spyder is running
@@ -257,3 +259,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         clean_env_vars = clean_env(env_vars)
 
         return clean_env_vars
+
+    @env.setter
+    def env(self, env_vars):
+        self._env_vars = dict(env_vars)
+        self._env_vars.pop('PYTEST_CURRENT_TEST', None)

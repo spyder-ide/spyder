@@ -71,6 +71,18 @@ class BaseComboBox(SpyderComboBox):
             self.sig_tab_pressed.emit(True)
             return True
         return super().event(event)
+    
+    def focusOutEvent(self, event):
+        """
+        Qt Override.
+
+        Handle focus out event to prevent changing current text with some other
+        entry in the history that could match the current text in a case
+        insensitive manner.
+        See spyder-ide/spyder#23597
+        """
+        self.add_current_text_if_valid()
+        super().focusOutEvent(event)
 
     def keyPressEvent(self, event):
         """Qt Override.
@@ -109,10 +121,10 @@ class BaseComboBox(SpyderComboBox):
     def add_text(self, text):
         """Add text to combo box: add a new item if text is not found in
         combo box items."""
-        index = self.findText(text)
+        index = self.findText(text, Qt.MatchCaseSensitive)
         while index != -1:
             self.removeItem(index)
-            index = self.findText(text)
+            index = self.findText(text, Qt.MatchCaseSensitive)
         self.insertItem(0, text)
         index = self.findText('')
         if index != -1:
