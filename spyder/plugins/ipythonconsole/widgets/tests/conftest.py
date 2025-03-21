@@ -1,12 +1,18 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 import os
 
 import pytest
 
+from spyder.api.plugins.pytest import *  # noqa
 from spyder.plugins.remoteclient.plugin import RemoteClient
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+from spyder.plugins.remoteclient.tests.fixtures import *  # noqa
 
-from spyder.plugins.remoteclient.tests.fixtures import *
-from spyder.api.plugins.pytest import *
 
 @pytest.fixture(scope="session")
 def plugins_cls():

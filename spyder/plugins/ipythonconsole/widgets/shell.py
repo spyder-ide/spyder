@@ -49,6 +49,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 if typing.TYPE_CHECKING:
     from spyder.plugins.ipythonconsole.widgets.client import ClientWidget
 
+
 logger = logging.getLogger(__name__)
 
 MODULES_FAQ_URL = (

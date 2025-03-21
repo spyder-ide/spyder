@@ -1,11 +1,18 @@
-import typing
-import socket
-import uuid
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
 
 from pathlib import Path
-from spyder.plugins.remoteclient.widgets import AuthenticationMethod
+import socket
+import typing
+import uuid
 
 import pytest
+
+from spyder.plugins.remoteclient.widgets import AuthenticationMethod
+
 
 __all__ = [
     "remote_client_id",

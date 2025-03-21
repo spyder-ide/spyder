@@ -13,7 +13,10 @@ from pathlib import Path
 
 import aiohttp
 
-from spyder.plugins.remoteclient.api.modules.base import SpyderBaseJupyterAPI, SpyderRemoteAPIError
+from spyder.plugins.remoteclient.api.modules.base import (
+    SpyderBaseJupyterAPI,
+    SpyderRemoteAPIError,
+)
 from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager
 
 # jupyter server's extension name for spyder-remote-services

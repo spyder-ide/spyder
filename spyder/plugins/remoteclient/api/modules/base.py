@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 from __future__ import annotations
 from abc import abstractmethod
-import uuid
 import logging
 import time
 import typing
@@ -27,11 +32,13 @@ logger = logging.getLogger(__name__)
 REQUEST_TIMEOUT = 5  # seconds
 VERIFY_SSL = True
 
+
 class SpyderRemoteAPIError(Exception):
     """
     Exception for errors related to Spyder remote client API.
     """
     ...
+
 
 class SpyderRemoteSessionClosed(SpyderRemoteAPIError):
     """
@@ -45,6 +52,7 @@ async def token_authentication(api_token, verify_ssl=True):
         headers={"Authorization": f"token {api_token}"},
         connector=aiohttp.TCPConnector(ssl=None if verify_ssl else False),
     )
+
 
 async def basic_authentication(hub_url, username, password, verify_ssl=True):
     session = aiohttp.ClientSession(
@@ -60,6 +68,7 @@ async def basic_authentication(hub_url, username, password, verify_ssl=True):
         },
     )
     return session
+
 
 async def keycloak_authentication(hub_url, username, password, verify_ssl=True):
     session = aiohttp.ClientSession(
@@ -157,7 +166,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
             return
         self.session = aiohttp.ClientSession(
             headers={"Authorization": f"token {self.manager.api_token}"},
-            connector=aiohttp.TCPConnector(ssl=None if self.verify_ssl else False),
+            connector=aiohttp.TCPConnector(
+                ssl=None if self.verify_ssl else False
+            ),
             raise_for_status=self._raise_for_status,
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
         )
@@ -214,7 +225,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
                 ret = await func(*args, **kwargs)
                 if check(ret):
                     return ret
-                logger.debug(f"retry={tryth} delay={delay} invalid return={ret}")
+                logger.debug(
+                    f"retry={tryth} delay={delay} invalid return={ret}"
+                )
                 await asyncio.sleep(delay)
         else:
             async def run_try(tryth, func, *args, **kwargs):
@@ -226,7 +239,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
                 else:
                     if check(ret):
                         return ret
-                    logger.debug(f"retry={tryth} delay={delay} invalid return={ret}")
+                    logger.debug(
+                        f"retry={tryth} delay={delay} invalid return={ret}"
+                    )
                     await asyncio.sleep(delay)
 
         def decorator(func):
@@ -269,24 +284,38 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
         if not self.closed:
             return
         if self.auth_type == "token":
-            self.session = await token_authentication(self.api_token, verify_ssl=self.verify_ssl)
+            self.session = await token_authentication(
+                self.api_token, verify_ssl=self.verify_ssl
+            )
         elif self.auth_type == "basic":
             self.session = await basic_authentication(
-                self.manager.server_url, self.username, self.password, verify_ssl=self.verify_ssl
+                self.manager.server_url,
+                self.username,
+                self.password,
+                verify_ssl=self.verify_ssl,
             )
             # Upgrade to token-based auth
             self.api_token = await self.create_token(self.username)
             await self.session.close()
             logger.debug("upgrading basic authentication to token authentication")
-            self.session = await token_authentication(self.api_token, verify_ssl=self.verify_ssl)
+            self.session = await token_authentication(
+                self.api_token, verify_ssl=self.verify_ssl
+            )
         elif self.auth_type == "keycloak":
             self.session = await keycloak_authentication(
-                self.manager.server_url, self.username, self.password, verify_ssl=self.verify_ssl
+                self.manager.server_url,
+                self.username,
+                self.password,
+                verify_ssl=self.verify_ssl,
             )
             self.api_token = await self.create_token(self.username)
             await self.session.close()
-            logger.debug("upgrading keycloak authentication to token authentication")
-            self.session = await token_authentication(self.api_token, verify_ssl=self.verify_ssl)
+            logger.debug(
+                "upgrading keycloak authentication to token authentication"
+            )
+            self.session = await token_authentication(
+                self.api_token, verify_ssl=self.verify_ssl
+            )
 
     async def _raise_for_status(self, response: aiohttp.ClientResponse):
         response.raise_for_status()
@@ -308,13 +337,16 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
                 await self.create_user(username)
             else:
                 raise ValueError(
-                    f"current username={username} does not exist and create_user={create_user}"
+                    f"current username={username} does not exist and "
+                    f"create_user={create_user}"
                 )
             user = await self.get_user(username)
         return user
 
     async def get_user(self, username):
-        async with self.session.get(self.api_url / "users" / username) as response:
+        async with self.session.get(
+            self.api_url / "users" / username
+        ) as response:
             if response.status == 200:
                 return await response.json()
             elif response.status == 404:
@@ -322,7 +354,9 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
                 return None
 
     async def create_user(self, username):
-        async with self.session.post(self.api_url / "users" / username) as response:
+        async with self.session.post(
+            self.api_url / "users" / username
+        ) as response:
             if response.status == 201:
                 logger.debug(f"created username={username}")
                 response_json = await response.json()
@@ -332,11 +366,15 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
                 raise ValueError(f"username={username} already exists")
 
     async def delete_user(self, username):
-        async with self.session.delete(self.api_url / "users" / username) as response:
+        async with self.session.delete(
+            self.api_url / "users" / username
+        ) as response:
             if response.status == 204:
                 logger.debug(f"deleted username={username}")
             elif response.status == 404:
-                raise ValueError(f"username={username} does not exist cannot delete")
+                raise ValueError(
+                    f"username={username} does not exist cannot delete"
+                )
 
     async def create_server(self, username, user_options=None):
         user_options = user_options or {}
@@ -344,18 +382,24 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
             self.api_url / "users" / username / "server", json=user_options
         ) as response:
             logger.debug(
-                f"creating cluster username={username} user_options={user_options}"
+                f"creating cluster username={username} "
+                f"user_options={user_options}"
             )
             if response.status == 400:
-                raise ValueError(f"server for username={username} is already running")
+                raise ValueError(
+                    f"server for username={username} is already running"
+                )
             elif response.status == 201:
                 logger.debug(
-                    f"created server for username={username} with user_options={user_options}"
+                    f"created server for username={username} with "
+                    f"user_options={user_options}"
                 )
                 return True
 
     async def delete_server(self, username):
-        response = await self.session.delete(self.api_url / "users" / username / "server")
+        response = await self.session.delete(
+            self.api_url / "users" / username / "server"
+        )
         logger.debug(f"deleted server for username={username}")
         return response.status
 
@@ -375,9 +419,15 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
             await asyncio.sleep(5)
             total_time = time.time() - start_time
             if total_time > timeout:
-                logger.error(f"jupyterhub server creation timeout={timeout:.0f} [s]")
-                raise TimeoutError(f"jupyterhub server creation timeout={timeout:.0f} [s]")
-            logger.debug(f"pending spawn polling for seconds={total_time:.0f} [s]")
+                logger.error(
+                    f"jupyterhub server creation timeout={timeout:.0f} [s]"
+                )
+                raise TimeoutError(
+                    f"jupyterhub server creation timeout={timeout:.0f} [s]"
+                )
+            logger.debug(
+                f"pending spawn polling for seconds={total_time:.0f} [s]"
+            )
 
     async def ensure_server_deleted(self, username, timeout):
         user = await self.get_user(username)
@@ -391,9 +441,15 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
             await asyncio.sleep(5)
             total_time = time.time() - start_time
             if total_time > timeout:
-                logger.error(f"jupyterhub server deletion timeout={timeout:.0f} [s]")
-                raise TimeoutError(f"jupyterhub server deletion timeout={timeout:.0f} [s]")
-            logger.debug(f"pending deletion polling for seconds={total_time:.0f} [s]")
+                logger.error(
+                    f"jupyterhub server deletion timeout={timeout:.0f} [s]"
+                )
+                raise TimeoutError(
+                    f"jupyterhub server deletion timeout={timeout:.0f} [s]"
+                )
+            logger.debug(
+                f"pending deletion polling for seconds={total_time:.0f} [s]"
+            )
 
     async def info(self):
         async with self.session.get(self.api_url / "info") as response:
@@ -408,7 +464,9 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
             return await response.json()
 
     async def identify_token(self, token):
-        async with self.session.get(self.api_url / "authorizations" / "token" / token) as response:
+        async with self.session.get(
+            self.api_url / "authorizations" / "token" / token
+        ) as response:
             return await response.json()
 
     async def get_services(self):
@@ -416,28 +474,36 @@ class JupyterHubAPI(SpyderBaseJupyterAPI):
             return await response.json()
 
     async def get_service(self, service_name):
-        async with self.session.get(self.api_url / "services" / service_name) as response:
+        async with self.session.get(
+            self.api_url / "services" / service_name
+        ) as response:
             if response.status == 404:
                 return None
             elif response.status == 200:
                 return await response.json()
 
     async def execute_post_service(self, service_name, url="", data=None):
-        async with self.session.post(self.server_url / "services" / service_name / url, data=data) as response:
+        async with self.session.post(
+            self.server_url / "services" / service_name / url, data=data
+        ) as response:
             if response.status == 404:
                 return None
             elif response.status == 200:
                 return await response.json()
 
     async def execute_get_service(self, service_name, url=""):
-        async with self.session.get(self.server_url / "services" / service_name / url) as response:
+        async with self.session.get(
+            self.server_url / "services" / service_name / url
+        ) as response:
             if response.status == 404:
                 return None
             elif response.status == 200:
                 return await response.json()
 
     async def execute_delete_service(self, service_name, url=""):
-        async with self.session.delete(self.server_url / "services" / service_name / url) as response:
+        async with self.session.delete(
+            self.server_url / "services" / service_name / url
+        ) as response:
             if response.status == 404:
                 return None
             elif response.status == 200:
@@ -449,7 +515,8 @@ class JupyterAPI(SpyderBaseJupyterAPI):
 
     def __init__(self, manager: SpyderRemoteAPIManager, verify_ssl=True):
         """
-        For JupyterAPI, the manager.server_url is expected to be the notebook URL.
+        For JupyterAPI, the manager.server_url is expected to be the notebook
+        URL.
         """
         super().__init__(manager)
         self.verify_ssl = verify_ssl
@@ -466,7 +533,9 @@ class JupyterAPI(SpyderBaseJupyterAPI):
         if kernel_spec:
             data["name"] = kernel_spec
 
-        async with self.session.post(self.api_url / "kernels", json=data) as response:
+        async with self.session.post(
+            self.api_url / "kernels", json=data
+        ) as response:
             return await response.json()
 
     async def list_kernel_specs(self):
@@ -480,7 +549,9 @@ class JupyterAPI(SpyderBaseJupyterAPI):
     @SpyderBaseJupyterAPI.retry()
     async def get_kernel(self, kernel_id):
         try:
-            async with self.session.get(self.api_url / "kernels" / kernel_id) as response:
+            async with self.session.get(
+                self.api_url / "kernels" / kernel_id
+            ) as response:
                 return await response.json()
         except aiohttp.ClientResponseError as e:
             if e.status == 404:
@@ -489,7 +560,9 @@ class JupyterAPI(SpyderBaseJupyterAPI):
                 raise e
 
     async def terminate_kernel(self, kernel_id):
-        async with self.session.delete(self.api_url / "kernels" / kernel_id) as response:
+        async with self.session.delete(
+            self.api_url / "kernels" / kernel_id
+        ) as response:
             if response.status == 204:
                 logger.debug(f"deleted kernel={kernel_id} for jupyter")
                 return True
@@ -497,7 +570,9 @@ class JupyterAPI(SpyderBaseJupyterAPI):
                 return False
 
     async def interrupt_kernel(self, kernel_id):
-        async with self.session.post(self.api_url / "kernels" / kernel_id / "interrupt") as response:
+        async with self.session.post(
+            self.api_url / "kernels" / kernel_id / "interrupt"
+        ) as response:
             if response.status == 204:
                 logger.debug(f"interrupted kernel={kernel_id} for jupyter")
                 return True
@@ -505,7 +580,9 @@ class JupyterAPI(SpyderBaseJupyterAPI):
                 return False
 
     async def restart_kernel(self, kernel_id):
-        async with self.session.post(self.api_url / "kernels" / kernel_id / "restart") as response:
+        async with self.session.post(
+            self.api_url / "kernels" / kernel_id / "restart"
+        ) as response:
             if response.status == 200:
                 logger.debug(f"restarted kernel={kernel_id} for jupyter")
                 return True

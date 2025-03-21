@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Spyder Project Contributors
+# Licensed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+
 from __future__ import annotations
 import gc
 import sys
@@ -16,8 +22,9 @@ if typing.TYPE_CHECKING:
 
 __all__ = ["main_window_mock", "plugins_cls", "register_fixture"]
 
+
 class MainWindowMock(QMainWindow):
-    """QMainWindow mock for the Remote Client plugin tests."""
+    """QMainWindow mock for plugin tests."""
 
     def __init__(self):
         # This avoids using the cli options passed to pytest
@@ -49,7 +56,7 @@ class MainWindowMock(QMainWindow):
 
 @pytest.fixture(scope="session")
 def main_window_mock(qapp):
-    """Create a QMainWindow mock for the Remote Client plugin tests."""
+    """Create a QMainWindow mock for plugin tests."""
     
     window = MainWindowMock()
 

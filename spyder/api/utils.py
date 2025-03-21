@@ -8,8 +8,9 @@
 """
 API utilities.
 """
-import sys
+
 from abc import ABCMeta as BaseABCMeta
+import sys
 import typing
 
 if sys.version_info < (3, 10):
@@ -85,8 +86,9 @@ class DummyAttribute:
 
 
 def abstract_attribute(
-    obj: typing.Optional[typing.Union[
-         typing.Callable[_P, _T], DummyAttribute]] = None
+    obj: typing.Optional[
+        typing.Union[typing.Callable[_P, _T], DummyAttribute]
+    ] = None
 ) -> _T:
     """
     Decorator to mark abstract attributes. Must be used in conjunction with the

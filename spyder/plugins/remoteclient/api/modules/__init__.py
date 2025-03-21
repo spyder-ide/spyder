@@ -16,7 +16,10 @@ to interact with the Jupyter Server.
 These modules provides an interface to control the Jupyter Server that sits
 in the remote machine.
 """
+
 from spyder.plugins.remoteclient.api.modules.base import JupyterAPI
-from spyder.plugins.remoteclient.api.modules.file_services import SpyderRemoteFileServicesAPI
+from spyder.plugins.remoteclient.api.modules.file_services import (
+    SpyderRemoteFileServicesAPI,
+)
 
 __all__ = ['JupyterAPI', 'SpyderRemoteFileServicesAPI']

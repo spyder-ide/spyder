@@ -14,7 +14,11 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.plugins.remoteclient.plugin import RemoteClient
-from spyder.plugins.remoteclient.tests.conftest import await_future, run_async, mark_remote_test
+from spyder.plugins.remoteclient.tests.conftest import (
+    await_future,
+    run_async,
+    mark_remote_test,
+)
 
 
 # =============================================================================
@@ -40,7 +44,9 @@ class TestNewServer:
 
         await_future(run_async(jupyter_api.connect), timeout=5)
 
-        assert await_future(run_async(jupyter_api.list_kernels), timeout=10) == []
+        assert (
+            await_future(run_async(jupyter_api.list_kernels), timeout=10) == []
+        )
 
 
 @mark_remote_test

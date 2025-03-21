@@ -13,7 +13,10 @@ import pytest
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
-from spyder.plugins.remoteclient.tests.conftest import await_future, mark_remote_test
+from spyder.plugins.remoteclient.tests.conftest import (
+    await_future,
+    mark_remote_test,
+)
 
 
 @AsyncDispatcher(loop="test")

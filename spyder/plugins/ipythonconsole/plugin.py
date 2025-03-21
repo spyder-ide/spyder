@@ -9,9 +9,9 @@ IPython Console plugin based on QtConsole.
 """
 
 # Standard library imports
+from functools import cached_property
 import sys
 from typing import List, Optional
-from functools import cached_property
 
 # Third party imports
 from qtpy.QtCore import Signal, Slot
@@ -493,9 +493,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_available(plugin=Plugins.RemoteClient)
     def on_remote_client_available(self):
-        self._remote_client.sig_server_stopped.connect(self._close_remote_clients)
-        self._remote_client.sig_server_renamed.connect(self._rename_remote_clients)
-        self._remote_client.sig_server_changed.connect(self._on_remote_server_changed)
+        self._remote_client.sig_server_stopped.connect(
+            self._close_remote_clients
+        )
+        self._remote_client.sig_server_renamed.connect(
+            self._rename_remote_clients
+        )
+        self._remote_client.sig_server_changed.connect(
+            self._on_remote_server_changed
+        )
 
         if (
             self.is_plugin_available(Plugins.MainMenu)
@@ -573,11 +579,15 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_teardown(plugin=Plugins.RemoteClient)
     def on_remote_client_teardown(self):
-        self._remote_client.sig_server_stopped.disconnect(self._close_remote_clients)
+        self._remote_client.sig_server_stopped.disconnect(
+            self._close_remote_clients
+        )
         self._remote_client.sig_server_renamed.disconnect(
             self._rename_remote_clients
         )
-        self._remote_client.sig_server_changed.disconnect(self._on_remote_server_changed)
+        self._remote_client.sig_server_changed.disconnect(
+            self._on_remote_server_changed
+        )
 
     @on_plugin_teardown(plugin=Plugins.MainInterpreter)
     def on_main_interpreter_teardown(self):
@@ -1095,7 +1105,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Show IPython Cheat Sheet."""
         self.get_widget().show_quickref()
 
-    # ---- Remote plugin
+    # ---- For the Remote client plugin
     # -------------------------------------------------------------------------
     @cached_property
     def _remote_client(self):
