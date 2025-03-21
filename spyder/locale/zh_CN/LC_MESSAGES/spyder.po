@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-03-20 22:01-0500\n"
-"PO-Revision-Date: 2025-03-21 03:11\n"
+"PO-Revision-Date: 2025-03-21 08:31\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -135,7 +135,7 @@ msgstr "正在初始化..."
 
 #: spyder/app/mainwindow.py:1428
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "无法加载 Spyder 的图标主题，因此 Spyder 无法在你的系统上启动。 此问题最可能的原因或者是你在使用的 Windows 版本早于 Windows 10 1803/Windows Server 2019，它已不被 Spyder 或 Microsoft 所支持，或者是你的系统管理员设置了不允许非管理员用户安装字体。<br><br>请询问你的系统管理员如何升级 Windows 或为所有用户安装下列字体：<ul>{fonts_list}</ul>字体位于：<br><br><code>{fonts_directory}</code><br><br>如果你有管理员权限，你可以在命令提示符下运行以下命令来安装所需的字体：<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:137
 msgid "It was not possible to close the previous Spyder instance.\n"
@@ -595,11 +595,11 @@ msgstr "管理应用程序外观和主题。"
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "下列特征属性具有无效的颜色：<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "特征属性 <b>{}</b> 具有无效的颜色: {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
@@ -1398,7 +1398,7 @@ msgstr "Spyder 允许定义自定义的补全代码片段作为语言服务器�
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
-msgstr ""
+msgstr "可用的代码片段："
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:88
 msgid "Create a new snippet"
@@ -3932,7 +3932,7 @@ msgstr "贪心补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
-msgstr ""
+msgstr "针对列表元素、函数调用结果等启用 <tt>Tab</tt> 补全，而 <i>不必</i> 将它们赋值给变量，如 <tt>li[0].&lt;Tab&gt;</tt> 或 <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>警告：</b> 由于存在程序缺陷，IPython 的贪婪补全对于某些补全场景需要添加一个开头的 <tt>&lt;Space&gt;</tt>；例如  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> 可以但 <tt>np.sin(np.&lt;Tab&gt; </tt> 则不可以。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:298
 msgid "Use greedy completion in the IPython console"
@@ -4072,15 +4072,15 @@ msgstr "解释器位于<pre>    <tt>{0}</tt></pre>的 Python 环境或安装版�
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:136
 msgid "Spyder couldn't find conda or mamba in your system to activate the kernel's environment. Please add the directory where the conda or mamba executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Spyder 无法在你的系统中找到 conda 或 mamba 来激活内核的环境。 请将 conda 或 mamba 可执行文件所在的目录添加到你的 PATH 环境变量以便它能被检测到。"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:148
 msgid "Spyder doesn't support Pixi environments at the moment, but it will in version 6.1.0"
-msgstr ""
+msgstr "Spyder 目前不支持 Pixi 环境，但将在 6.1.0 版中支持"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:176
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "检测到的 Conda 版本太旧且不再受 Spyder 支持。 受支持的最低版本是 4.9 而你当前的版本是 {conda_version}。<br><br>.<b>注意</b>：你需要在更新 Conda 后重启 Spyder 以使更改生效。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:226
 msgid "Connecting to kernel..."
@@ -4168,7 +4168,7 @@ msgstr "保存连接设置"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:236
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "你传入的连接文件不存在或无法被 Spyder 找到。"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:278
 msgid "Select kernel connection file"
@@ -4360,7 +4360,7 @@ msgstr "该变量太大，无法获取"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:43
 msgid "It was not possible to create a copy of the variable in the kernel to pass it to Spyder."
-msgstr ""
+msgstr "无法在内核中创建该变量的副本以将其传递给 Spyder。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:47
 msgid "The kernel is dead"
@@ -4368,23 +4368,23 @@ msgstr "内核已死亡"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:48
 msgid "An unknown error occurred. Check the console because its contents could have been printed there."
-msgstr ""
+msgstr "发生未知错误。 请检查控制台因为错误内容会打印到那里。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "The channel used to communicate with the kernel is not working."
-msgstr ""
+msgstr "用来与内核通信的频道无法工作。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:55
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr ""
+msgstr "需要 '<tt>{}</tt>' 模块来打开此变量。 不幸的是，它不是我们的安装程序的组成部分，这意味着你的变量无法被 Spyder 显示。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:60
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "需要 '<tt>{}</tt>' 模块来打开此变量而它没有随 Spyder 一起安装。 要修复此问题，请在你用来运行 Spyder 的同一个环境中安装它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:65
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>注意</b>：如果你认为这是一个需要由 Spyder 团队来修复的有效错误，请在 <a href='{}'>Github</a> 上报告它。"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -5201,7 +5201,7 @@ msgstr "最近的项目"
 
 #: spyder/plugins/projects/widgets/main_widget.py:283
 msgid "Search files in the switcher"
-msgstr ""
+msgstr "在切换器中搜索文件"
 
 #: spyder/plugins/projects/widgets/main_widget.py:356
 msgid "<b>{}</b> is not a registered Spyder project type!"
@@ -6625,7 +6625,7 @@ msgstr "打开这个变量可能很慢\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The problem is:<br>%s"
-msgstr ""
+msgstr "Spyder 无法从控制台获取此变量的值。<br><br>问题详情：<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:426
 msgid "Edit item"
@@ -6637,7 +6637,7 @@ msgstr "<b>无法将数据赋值给项目。</b><br><br>错误消息：<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:647
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The problem is:<br><i>%s</i>"
-msgstr ""
+msgstr "Spyder 无法从控制台获取此变量的值。<br><br>问题详情：<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:487
 msgid "It is not possible to display this value because\n"
@@ -6771,7 +6771,7 @@ msgstr "数据网格编辑器"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2428
 msgid "Resize columns to headers"
-msgstr ""
+msgstr "按标头调整列宽"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:108 spyder/plugins/variableexplorer/widgets/importwizard.py:442
 msgid "Import as"
@@ -7007,7 +7007,7 @@ msgstr "无法成功打开此文件。 注意变量浏览器支持用以下文�
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:385
 msgid "Spyder is unable to open the file you're trying to load. This could be caused due to a difference between the package versions used when you saved this spydata file and the ones installed in the current environment. Please check the compatibility between them (e.g. that you're using Numpy 2.x in both environments).<br>"
-msgstr ""
+msgstr "Spyder 无法打开你想要加载的文件。 这可能是因为你保存此 spydata 文件时使用的软件包版本与当前环境中安装的版本存在差异。 请检查它们之间的兼容性（例如你是否在两个环境中都使用了 Numpy 2.x）。<br>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:434
 msgid "<b>Some objects could not be saved:</b>"
