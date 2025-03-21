@@ -72,11 +72,15 @@ class BaseComboBox(SpyderComboBox):
         return super().event(event)
     
     def focusOutEvent(self, event):
-        
-        if self.add_current_text_if_valid():
-            self.selected()
-            self.hide_completer()
+        """
+        Qt Override.
 
+        Handle focus out event to prevent changing current text with some other
+        entry in the history that could match the current text in a case
+        insensitive manner.
+        See spyder-ide/spyder#23597
+        """
+        self.add_current_text_if_valid()
         super().focusOutEvent(event)
 
     def keyPressEvent(self, event):
