@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-03-20 22:01-0500\n"
-"PO-Revision-Date: 2025-03-21 03:11\n"
+"PO-Revision-Date: 2025-03-21 19:39\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -135,7 +135,7 @@ msgstr "Inicializando..."
 
 #: spyder/app/mainwindow.py:1428
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "No ha sido posible cargar el tema de iconos de Spyder, por lo que Spyder no puede iniciarse en su sistema. Las causas más probables para esto son que está usando una versión de Windows anterior a Windows 10 1803/Windows Server 2019, que ya no está soportado por Spyder o Microsoft, o el administrador del sistema ha desactivado la instalación de fuentes para usuarios que no son administradores.<br><br>Por favor, solicite ayuda al administrador del sistema para actualizar Windows o para instalar para todos los usuarios las siguientes fuentes:<ul>{fonts_list}</ul>que se encuentran en:<br><br><code>{fonts_directory}</code><br><br>Si tiene privilegios de administrador puede ejecutar el siguiente comando para instalar las fuentes necesarias en una instancia de Símbolo del sistema:<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:137
 msgid "It was not possible to close the previous Spyder instance.\n"
@@ -1403,7 +1403,7 @@ msgstr "Spyder permite definir fragmentos de completado personalizados que se us
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
-msgstr ""
+msgstr "Fragmentos disponibles:"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:88
 msgid "Create a new snippet"
@@ -3961,7 +3961,7 @@ msgstr "Completado ambicioso"
 
 #: spyder/plugins/ipythonconsole/confpage.py:286
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
-msgstr ""
+msgstr "Habilita el completado usando la tecla <tt>Tab</tt> en elementos de listas, resultados de llamadas de funciones, etc, <i>sin</i> asignarlos a una variable, como <tt>li[0].&lt;Tab&gt;</tt> o <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Advertencia:</b> Debido a un error, el completado ambicioso de IPython requiere de un <tt>&lt;Espacio&gt;</tt> inicial en algunas expresiones; por ejemplo, <tt>np.sin(&lt;Espacio&gt;np.&lt;Tab&gt;</tt> funciona, mientras que <tt>np.sin(np.&lt;Tab&gt; </tt> no."
 
 #: spyder/plugins/ipythonconsole/confpage.py:298
 msgid "Use greedy completion in the IPython console"
@@ -4101,15 +4101,15 @@ msgstr "El entorno o instalación de Python cuyo interprete esta localizado en<p
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:136
 msgid "Spyder couldn't find conda or mamba in your system to activate the kernel's environment. Please add the directory where the conda or mamba executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Spyder no ha podido encontrar conda o mamba en su sistema para activar el entorno del núcleo. Por favor, agregue el directorio donde se encuentra el ejecutable conda o mamba a su variable de entorno PATH para que sea detectado."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:148
 msgid "Spyder doesn't support Pixi environments at the moment, but it will in version 6.1.0"
-msgstr ""
+msgstr "Spyder no soporta entornos Pixi por el momento, pero lo hará en la versión 6.1.0"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:176
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "La versión detectada de Conda es demasiado vieja y no es soportada por Spyder. La mínima versión soportada es 4.9 y actualmente tiene {conda_version}.<br><br>.<b>Nota</b>: Necesita reiniciar Spyder después de actualizar Conda para que el cambio surta efecto."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:226
 msgid "Connecting to kernel..."
@@ -4197,7 +4197,7 @@ msgstr "Guardar configuración de conexión"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:236
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "El archivo de conexión que ha introducido no existe o no ha podido ser encontrado por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:278
 msgid "Select kernel connection file"
@@ -4389,7 +4389,7 @@ msgstr "La variable es demasiado grande para ser recuperada"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:43
 msgid "It was not possible to create a copy of the variable in the kernel to pass it to Spyder."
-msgstr ""
+msgstr "No fue posible crear una copia de la variable en el núcleo para pasarla a Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:47
 msgid "The kernel is dead"
@@ -4397,23 +4397,23 @@ msgstr "El núcleo está muerto"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:48
 msgid "An unknown error occurred. Check the console because its contents could have been printed there."
-msgstr ""
+msgstr "Se ha producido un error desconocido. Compruebe la consola porque su contenido podría haber sido impreso allí."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "The channel used to communicate with the kernel is not working."
-msgstr ""
+msgstr "El canal utilizado para comunicarse con el núcleo no funciona."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:55
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr ""
+msgstr "El módulo '<tt>{}</tt>' es necesario para abrir esta variable. Desafortunadamente, no es parte de nuestro instalador, lo que significa que su variable no puede ser mostrada por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:60
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está instalado junto a Spyder. Para solucionar este problema, por favor instálelo en el mismo entorno que usa para ejecutar Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:65
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>Nota</b>: Si considera que esto es un error válido que necesita ser solucionado por el equipo de Spyder, por favor repórtelo en <a href='{}'>GitHub</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -5231,7 +5231,7 @@ msgstr "Proyectos recientes"
 
 #: spyder/plugins/projects/widgets/main_widget.py:283
 msgid "Search files in the switcher"
-msgstr ""
+msgstr "Buscar archivos en el cambiador"
 
 #: spyder/plugins/projects/widgets/main_widget.py:356
 msgid "<b>{}</b> is not a registered Spyder project type!"
@@ -6655,7 +6655,7 @@ msgstr "Abrir e inspeccionar esta variable puede tomar mucho tiempo\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The problem is:<br>%s"
-msgstr ""
+msgstr "Spyder no fue capaz de extraer el valor de esta variable de la terminal.<br><br>El problema es:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:426
 msgid "Edit item"
@@ -6667,7 +6667,7 @@ msgstr "<b>No fue posible asignarle los datos al ítem.</b><br><br>Mensaje de er
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:647
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The problem is:<br><i>%s</i>"
-msgstr ""
+msgstr "Spyder no fue capaz de extraer el valor de esta variable de la terminal.<br><br>El problema es:<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:487
 msgid "It is not possible to display this value because\n"
@@ -6801,7 +6801,7 @@ msgstr "Editor de dataframe"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2428
 msgid "Resize columns to headers"
-msgstr ""
+msgstr "Ajustar columnas a los encabezados"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:108 spyder/plugins/variableexplorer/widgets/importwizard.py:442
 msgid "Import as"
@@ -7037,7 +7037,7 @@ msgstr "El archivo no se pudo abrir con éxito. Recuerde que el Explorador de Va
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:385
 msgid "Spyder is unable to open the file you're trying to load. This could be caused due to a difference between the package versions used when you saved this spydata file and the ones installed in the current environment. Please check the compatibility between them (e.g. that you're using Numpy 2.x in both environments).<br>"
-msgstr ""
+msgstr "Spyder no puede abrir el archivo que está intentando cargar. Esto podría ser causado debido a una diferencia entre la versión de los paquetes que estaba utilizando cuando guardó este archivo spydata y las instaladas en el entorno actual. Por favor, compruebe la compatibilidad entre estas (por ejemplo, que este usando Numpy 2.x en ambos entornos).<br>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:434
 msgid "<b>Some objects could not be saved:</b>"
