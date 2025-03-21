@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
-	branch = feat-straming-ls
-	commit = fc7095d768f224dc9985760471d54fa36924073c
-	parent = e9154b9a4e0936f2139bc39d401be1ee060c81ad
+	branch = main
+	commit = b4de4a02107feec976fe6f457278ace842c29ec1
+	parent = 11ab489965089bae137f60d0b73729082e05b3f4
 	method = merge
 	cmdver = 0.4.9
