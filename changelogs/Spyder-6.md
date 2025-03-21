@@ -21,7 +21,7 @@
 * Add `sig_server_changed` signal to report when a server was added or removed.
 * Add `get_server_name` method to get a server name given its id.
 * Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
-* Add `get_jupyter_api` method to get the new Jupyter APIO to communicate with the remote server.
+* Add `get_jupyter_api` method to get the Jupyter API to interact with a remote Jupyter server.
 * Add `get_file_api` method to get the `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
 
 #### Pythonpath manager
