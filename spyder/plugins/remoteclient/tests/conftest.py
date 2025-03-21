@@ -13,7 +13,7 @@ import typing
 
 import pytest
 
-from spyder.api.plugins.pytest import *  # noqa
+from spyder.api.plugins.tests import *  # noqa
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.plugin import RemoteClient
 from spyder.plugins.remoteclient.tests.fixtures import *  # noqa

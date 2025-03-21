@@ -57,7 +57,7 @@ class MainWindowMock(QMainWindow):
 @pytest.fixture(scope="session")
 def main_window_mock(qapp):
     """Create a QMainWindow mock for plugin tests."""
-    
+
     window = MainWindowMock()
 
     try:
