@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.config.utils import (is_wsl)
+from spyder.config.utils import is_wsl
 from spyder.plugins.layout.api import BaseGridLayoutType
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.plugins.layout.widgets.dialog import (
@@ -109,6 +109,9 @@ class LayoutContainer(PluginMainContainer):
                                                  "macOS built-in feature"))
         if is_wsl():
             self._fullscreen_action.setEnabled(False)
+            self._fullscreen_action.setToolTip(
+                _("Fullscreen mode doesn't work reliably on WSL")
+            )
 
         # Lock dockwidgets and toolbars
         self._lock_interface_action = self.create_action(

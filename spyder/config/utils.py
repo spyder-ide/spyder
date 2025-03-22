@@ -218,8 +218,10 @@ def is_kde_desktop():
 
 
 def is_wsl():
-    """Detect if we are running in WSL"""
-    if (platform.system() == "Linux" and
-        "microsoft" in platform.release().lower()):
+    """Detect if we are running in WSL."""
+    if (
+        platform.system() == "Linux"
+        and "microsoft" in platform.release().lower()
+    ):
         return True
     return False
