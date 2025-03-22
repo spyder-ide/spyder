@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import contextmanager
 from http import HTTPStatus
 from http.client import responses
 import re
@@ -37,6 +38,16 @@ class BaseFSHandler(FilesRESTMixin, JupyterHandler):
         self.set_status(status)
         self.set_header("Content-Type", "application/json")
         self.finish(orjson.dumps(data))
+
+    @contextmanager
+    def stream_json(self, status=200):
+        self.set_status(status)
+        self.set_header("Content-Type", "application/stream+json")
+        def write_json(data):
+            self.write(orjson.dumps(data) + b"\n")
+            self.flush()
+        yield write_json
+        self.finish()
 
     def write_error(self, status_code, **kwargs):
         """APIHandler errors are JSON, not human pages."""
@@ -91,9 +102,9 @@ class LsHandler(BaseFSHandler):
     def get(self, path):
         detail_arg = self.get_argument("detail", default="true").lower()
         detail = detail_arg == "true"
-        result = self.fs_ls(path, detail=detail)
-        self.write_json(result)
-
+        with self.stream_json() as write_json:
+            for result in self.fs_ls(path, detail=detail):
+                write_json(result)
 
 class InfoHandler(BaseFSHandler):
     @web.authenticated
