@@ -496,8 +496,8 @@ class UpdateMessageCheckBox(MessageCheckBox):
         self._parent = parent
         self.set_checkbox_text(_("Check for updates at startup"))
         self.option = 'check_updates_on_startup'
-        self.accepted.connect(self.accept)  # ??? Why is the signal necessary?
-        self.rejected.connect(self.accept)
+        self.accepted.connect(self.on_close)
+        self.rejected.connect(self.on_close)
         if self._parent is not None:
             self.set_checked(parent.get_conf(self.option))
 
