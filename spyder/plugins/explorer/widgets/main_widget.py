@@ -9,18 +9,23 @@ Explorer Main Widget.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
 from spyder.utils.misc import getcwd_or_home
+
+logger = logging.getLogger(__name__)
 
 
 # ---- Constants
@@ -40,7 +45,7 @@ class ExplorerWidget(PluginMainWidget):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_dir_opened = Signal(str)
+    sig_dir_opened = Signal(str, str)
     """
     This signal is emitted to indicate a folder has been opened.
 
@@ -145,6 +150,8 @@ class ExplorerWidget(PluginMainWidget):
         Path to use as working directory of interpreter.
     """
 
+    ENABLE_SPINNER = True
+
     def __init__(self, name, plugin, parent=None):
         """
         Initialize the widget.
@@ -161,7 +168,11 @@ class ExplorerWidget(PluginMainWidget):
         super().__init__(name, plugin=plugin, parent=parent)
 
         # Widgets
+        self.stackwidget = QStackedWidget(parent=self)
         self.treewidget = ExplorerTreeWidget(parent=self)
+        self.remote_treewidget = RemoteExplorer(parent=self)
+        self.stackwidget.addWidget(self.remote_treewidget)
+        self.stackwidget.addWidget(self.treewidget)
 
         # Setup widgets
         self.treewidget.setup()
@@ -169,11 +180,12 @@ class ExplorerWidget(PluginMainWidget):
 
         # Layouts
         layout = QHBoxLayout()
-        layout.addWidget(self.treewidget)
+        layout.addWidget(self.stackwidget)
         self.setLayout(layout)
 
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        self.remote_treewidget.sig_dir_opened.connect(self._do_remote_sig_dir_opened)
         self.treewidget.sig_file_created.connect(self.sig_file_created)
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
@@ -235,9 +247,23 @@ class ExplorerWidget(PluginMainWidget):
         """Handle the update of actions of the plugin."""
         pass
 
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    @AsyncDispatcher.QtSlot
+    def _on_remote_ls(self, future):
+        data = future.result()
+        logger.info(data)
+        self.remote_treewidget.import_data(data)
+        self.stop_spinner()
+
+    def _do_remote_sig_dir_opened(self, path, server_id):
+        self.start_spinner()
+        self._plugin._do_remote_ls(path, server_id).connect(self._on_remote_ls)
+        self.sig_dir_opened.emit(path, server_id)
+
     # ---- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory, emit=True):
+    def chdir(self, directory, emit=True, server_id=None):
         """
         Set working directory.
 
@@ -248,11 +274,17 @@ class ExplorerWidget(PluginMainWidget):
         emit: bool, optional
             Default is True.
         """
-        self.treewidget.chdir(directory, emit=emit)
+        if not server_id:
+            self.treewidget.chdir(directory, emit=emit)
+            self.stackwidget.setCurrentWidget(self.treewidget)
+        else:
+            logger.info(f"Request ls for {server_id} at {directory}")
+            self.remote_treewidget.chdir(directory, server_id=server_id, emit=True)
+            self.stackwidget.setCurrentWidget(self.remote_treewidget)
 
     def get_current_folder(self):
         """Get current folder in the tree widget."""
-        return self.treewidget.get_current_folder()
+        return self.stackwidget.currentWidget().get_current_folder()
 
     def set_current_folder(self, folder):
         """
@@ -263,19 +295,19 @@ class ExplorerWidget(PluginMainWidget):
         folder: str
             Folder path to set as current folder.
         """
-        self.treewidget.set_current_folder(folder)
+        self.stackwidget.currentWidget().set_current_folder(folder)
 
     def go_to_parent_directory(self):
         """Move to parent directory."""
-        self.treewidget.go_to_parent_directory()
+        self.stackwidget.currentWidget().go_to_parent_directory()
 
     def go_to_previous_directory(self):
         """Move to previous directory in history."""
-        self.treewidget.go_to_previous_directory()
+        self.stackwidget.currentWidget().go_to_previous_directory()
 
     def go_to_next_directory(self):
         """Move to next directory in history."""
-        self.treewidget.go_to_next_directory()
+        self.stackwidget.currentWidget().go_to_next_directory()
 
     def refresh(self, new_path=None, force_current=False):
         """
