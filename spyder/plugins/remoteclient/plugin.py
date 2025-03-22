@@ -26,17 +26,14 @@ from spyder.api.plugin_registration.decorators import (
 )
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
-from spyder.plugins.ipythonconsole.api import IPythonConsoleWidgetActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
-    ConsolesMenuSections,
     ToolsMenuSections,
 )
 from spyder.plugins.remoteclient.api import (
     RemoteClientActions,
-    RemoteClientMenus,
 )
-from spyder.plugins.remoteclient.api import SpyderRemoteAPIManager
+from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager
 from spyder.plugins.remoteclient.api.protocol import (
     SSHClientOptions,
     ConnectionStatus,
@@ -71,6 +68,7 @@ class RemoteClient(SpyderPluginV2):
     # ---- Signals
     sig_server_stopped = Signal(str)
     sig_server_renamed = Signal(str)
+    sig_server_changed = Signal()
     sig_client_message_logged = Signal(dict)
 
     sig_connection_established = Signal(str)
@@ -101,7 +99,6 @@ class RemoteClient(SpyderPluginV2):
 
     def on_initialize(self):
         self._reset_status()
-        self._is_consoles_menu_added = False
         container = self.get_container()
 
         # Container signals
@@ -109,13 +106,7 @@ class RemoteClient(SpyderPluginV2):
         container.sig_stop_server_requested.connect(self.stop_remote_server)
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
         container.sig_server_renamed.connect(self.sig_server_renamed)
-        container.sig_create_ipyclient_requested.connect(
-            self.create_ipyclient_for_server
-        )
-        container.sig_shutdown_kernel_requested.connect(self._shutdown_kernel)
-        container.sig_interrupt_kernel_requested.connect(
-            self._interrupt_kernel
-        )
+        container.sig_server_changed.connect(self.sig_server_changed)
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
@@ -149,12 +140,6 @@ class RemoteClient(SpyderPluginV2):
             before_section=ToolsMenuSections.Extras,
         )
 
-        if (
-            self.is_plugin_available(Plugins.IPythonConsole)
-            and not self._is_consoles_menu_added
-        ):
-            self._add_remote_consoles_menu()
-
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
@@ -163,20 +148,6 @@ class RemoteClient(SpyderPluginV2):
             RemoteClientActions.ManageConnections,
             menu_id=ApplicationMenus.Tools,
         )
-
-        if self._is_consoles_menu_added:
-            mainmenu.remove_item_from_application_menu(
-                RemoteClientMenus.RemoteConsoles,
-                menu_id=ApplicationMenus.Consoles,
-            )
-
-    @on_plugin_available(plugin=Plugins.IPythonConsole)
-    def on_ipython_console_available(self):
-        if (
-            self.is_plugin_available(Plugins.MainMenu)
-            and not self._is_consoles_menu_added
-        ):
-            self._add_remote_consoles_menu()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -270,44 +241,12 @@ class RemoteClient(SpyderPluginV2):
         """Get configured remote servers ids."""
         return self.get_conf(self.CONF_SECTION_SERVERS, {}).keys()
 
-    @Slot(str)
-    def create_ipyclient_for_server(self, config_id):
-        """Create a new IPython console client for a server."""
+    def get_server_name(self, config_id):
+        """Get configured remote server name."""
         auth_method = self.get_conf(f"{config_id}/auth_method")
-        hostname = self.get_conf(f"{config_id}/{auth_method}/name")
+        return self.get_conf(f"{config_id}/{auth_method}/name")
 
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        ipyclient = ipyconsole.create_client_for_kernel(
-            # The connection file will be supplied when connecting a remote
-            # kernel to this client
-            connection_file="",
-            # We use the server name as hostname because for clients it's the
-            # attribute used by the IPython console to set their tab name.
-            hostname=hostname,
-            # These values are not necessary at this point.
-            sshkey=None,
-            password=None,
-            # We save the server id in the client to perform on it operations
-            # related to this plugin.
-            server_id=config_id,
-            # This is necessary because it takes a while before getting a
-            # response from the server with the kernel id that will be
-            # associated to this client. So, if users could close it before
-            # that then it'll not be possible to shutdown that kernel unless
-            # the server is stopped as well.
-            can_close=False,
-        )
-
-        container = self.get_container()
-        future = self._start_new_kernel(config_id)
-        future.connect(
-            AsyncDispatcher.QtSlot(
-                lambda future: container.on_kernel_started(
-                    ipyclient, future.result()
-                )
-            )
-        )
-
+    # --- API Methods
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
         """
@@ -355,82 +294,6 @@ class RemoteClient(SpyderPluginV2):
 
         return client.get_api(api)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    # --- Remote Server Kernel Methods
-    @Slot(str)
-    @AsyncDispatcher(loop="asyncssh")
-    async def get_kernels(self, config_id) -> list:
-        """Get opened kernels."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            return await client.list_kernels()
-        return []
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _get_kernel_info(self, config_id, kernel_id) -> dict:
-        """Get kernel info."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            return await client.get_kernel_info_ensure_server(kernel_id)
-        return {}
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _shutdown_kernel(self, config_id, kernel_id):
-        """Shutdown a running kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            with contextlib.suppress(Exception):
-                await client.terminate_kernel(kernel_id)
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _start_new_kernel(self, config_id):
-        """Start new kernel."""
-        if config_id not in self._remote_clients:
-            self.load_client_from_id(config_id)
-
-        client = self._remote_clients[config_id]
-        return await client.start_new_kernel_ensure_server()
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _restart_kernel(self, config_id, kernel_id) -> bool:
-        """Restart kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            with contextlib.suppress(Exception):
-                return await client.restart_kernel(kernel_id)
-
-        return False
-
-    @AsyncDispatcher(loop="asyncssh")
-    async def _interrupt_kernel(self, config_id, kernel_id):
-        """Interrupt kernel."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
-            await client.interrupt_kernel(kernel_id)
-
-    def _reset_status(self):
-        """Reset status of servers."""
-        for config_id in self.get_config_ids():
-            self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
-            self.set_conf(f"{config_id}/status_message", "")
-
-    def _add_remote_consoles_menu(self):
-        """Add remote consoles submenu to the Consoles menu."""
-        container = self.get_container()
-        container.setup_remote_consoles_submenu(render=False)
-
-        menu = container.get_menu(RemoteClientMenus.RemoteConsoles)
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.add_item_to_application_menu(
-            menu,
-            menu_id=ApplicationMenus.Consoles,
-            section=ConsolesMenuSections.New,
-            before=IPythonConsoleWidgetActions.ConnectToKernel,
-        )
-
-        self._is_consoles_menu_added = True
-
     def get_file_api(self, config_id):
         """Get file API."""
         if config_id not in self._remote_clients:
@@ -439,3 +302,21 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
 
         return client.get_api(SpyderRemoteFileServicesAPI)
+
+    def get_jupyter_api(self, config_id):
+        """Get Jupyter API."""
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
+
+        return client.get_jupyter_api()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    # --- Remote Server Kernel Methods
+    def _reset_status(self):
+        """Reset status of servers."""
+        for config_id in self.get_config_ids():
+            self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
+            self.set_conf(f"{config_id}/status_message", "")

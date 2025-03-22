@@ -14,6 +14,7 @@ import os
 import os.path as osp
 import time
 from textwrap import dedent
+import typing
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -44,6 +45,9 @@ from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
+
+if typing.TYPE_CHECKING:
+    from spyder.plugins.ipythonconsole.widgets.client import ClientWidget
 
 
 logger = logging.getLogger(__name__)
@@ -156,7 +160,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers,
         *args,
         special_kernel=None,
-        server_id=None,
         **kw,
     ):
         # To override the Qt widget used by RichJupyterWidget
@@ -165,10 +168,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_edit = True
 
         super().__init__(*args, **kw)
-        self.ipyclient = ipyclient
+        self.ipyclient: ClientWidget = ipyclient
         self.additional_options = additional_options
         self.special_kernel = special_kernel
-        self.server_id = server_id
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
@@ -514,9 +516,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
             elif self.is_remote():
                 # Request an interrupt to the server for remote kernels
-                self.ipyclient.sig_interrupt_kernel_requested.emit(
-                    self.server_id, self.ipyclient.kernel_id
-                )
+                self.ipyclient.interrupt_remote_kernel()
             else:
                 self._append_html(
                     _("<br><br>The kernel appears to be dead, so it can't be "
@@ -1096,7 +1096,7 @@ overrided by the Sympy module (e.g. plot)
 
     def is_remote(self):
         """Check if this shell is connected to a remote server."""
-        return self.server_id is not None
+        return self.ipyclient.is_remote()
 
     # ---- Public methods (overrode by us)
     def paste(self, mode=QClipboard.Clipboard):
@@ -1392,10 +1392,8 @@ overrided by the Sympy module (e.g. plot)
         stop_button.setEnabled(False)
 
         if self.is_remote():
-            # Inform that the kernel died to the Remote client plugin so that
-            # it can try to reconnect to it.
             self._kernel_restarted_message(died=True)
-            self.ipyclient.sig_kernel_died.emit()
+            self.ipyclient.reconnect_remote_kernel()
         else:
             super()._handle_kernel_died(since_last_heartbeat)
 
