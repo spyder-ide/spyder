@@ -501,7 +501,7 @@ class UpdateMessageCheckBox(MessageCheckBox):
         if self._parent is not None:
             self.set_checked(parent.get_conf(self.option))
 
-    def accept(self):
+    def on_close(self):
         if self._parent is not None:
             self._parent.set_conf(self.option, self.is_checked())
 
