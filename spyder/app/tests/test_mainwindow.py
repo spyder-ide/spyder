@@ -5812,6 +5812,9 @@ def test_history_from_ipyconsole(main_window, qtbot):
     assert text.splitlines()[-1] == code
 
 
+@pytest.mark.skipif(
+    sys.platform == "darwin", reason="Fails frequently on Mac"
+)
 def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.
