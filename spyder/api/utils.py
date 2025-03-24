@@ -8,7 +8,18 @@
 """
 API utilities.
 """
+
 from abc import ABCMeta as BaseABCMeta
+import sys
+import typing
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec  # noqa: ICN003
+
+_P = ParamSpec('_P')
+_T = typing.TypeVar('_T')
 
 
 def get_class_values(cls):
@@ -74,15 +85,19 @@ class DummyAttribute:
     pass
 
 
-def abstract_attribute(obj=None):
+def abstract_attribute(
+    obj: typing.Optional[
+        typing.Union[typing.Callable[_P, _T], DummyAttribute]
+    ] = None
+) -> _T:
     """
     Decorator to mark abstract attributes. Must be used in conjunction with the
     ABCMeta metaclass.
     """
     if obj is None:
         obj = DummyAttribute()
-    obj.__is_abstract_attribute__ = True
-    return obj
+    setattr(obj, "__is_abstract_attribute__", True)
+    return obj  # type: ignore
 
 
 class ABCMeta(BaseABCMeta):

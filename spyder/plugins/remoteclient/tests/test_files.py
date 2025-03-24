@@ -13,8 +13,10 @@ import pytest
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.plugin import RemoteClient
 from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
+from spyder.plugins.remoteclient.tests.conftest import mark_remote_test
 
 
+@mark_remote_test
 class TestRemoteFilesAPI:
     remote_temp_dir = "/tmp/spyder-remote-tests"
 

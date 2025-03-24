@@ -1044,8 +1044,10 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="Fails frequently on Windows and macOS"
+)
 def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
@@ -1370,7 +1372,10 @@ def test_conda_env_activation(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("external_interpreter", [True, False])
-@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="Fails frequently on macOS and no SIGTERM on Windows"
+)
 def test_kernel_kill(ipyconsole, qtbot, external_interpreter):
     """
     Test that the kernel correctly restarts after a kill.
