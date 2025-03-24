@@ -107,6 +107,7 @@ class RemoteExplorer(QWidget):
         self.root_prefix = directory
         if server_id:
             self.server_id = server_id
+        self.refresh()
         if emit:
             self.sig_dir_opened.emit(directory, self.server_id)
 
@@ -131,3 +132,14 @@ class RemoteExplorer(QWidget):
         logger.info("Go to next directory")
         self.histindex += 1
         self.chdir(browsing_history=True)
+
+    def change_filter_state(self):
+        pass
+
+    def refresh(self, new_path=None, force_current=False):
+        self.previous_action.setEnabled(False)
+        self.next_action.setEnabled(False)
+
+        if self.histindex is not None:
+            self.previous_action.setEnabled(self.histindex > 0)
+            self.next_action.setEnabled(self.histindex < len(self.history) - 1)

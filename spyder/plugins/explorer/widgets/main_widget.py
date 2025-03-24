@@ -22,7 +22,9 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
+    DirViewActions, ExplorerTreeWidget
+)
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 
 logger = logging.getLogger(__name__)
@@ -37,6 +39,15 @@ class ExplorerWidgetOptionsMenuSections:
 
 class ExplorerWidgetMainToolbarSections:
     Main = 'main_section'
+
+class ExplorerWidgetActions:
+    # Toggles
+    ToggleFilter = 'toggle_filter_files_action'
+
+    # Triggers
+    Next = 'next_action'
+    Parent = 'parent_action'
+    Previous = 'previous_action'
 
 
 # ---- Main widget
@@ -174,10 +185,6 @@ class ExplorerWidget(PluginMainWidget):
         self.stackwidget.addWidget(self.remote_treewidget)
         self.stackwidget.addWidget(self.treewidget)
 
-        # Setup widgets
-        self.treewidget.setup()
-        self.chdir(getcwd_or_home())
-
         # Layouts
         layout = QHBoxLayout()
         layout.addWidget(self.stackwidget)
@@ -210,8 +217,54 @@ class ExplorerWidget(PluginMainWidget):
         """Return the title of the plugin tab."""
         return _("Files")
 
+    def _setup(self):
+        super()._setup()
+
     def setup(self):
         """Performs the setup of plugin's menu and actions."""
+        # Actions
+        self.previous_action = self.create_action(
+            ExplorerWidgetActions.Previous,
+            text=_("Previous"),
+            icon=self.create_icon('previous'),
+            triggered=self.go_to_previous_directory,
+        )
+        self.next_action = self.create_action(
+            ExplorerWidgetActions.Next,
+            text=_("Next"),
+            icon=self.create_icon('next'),
+            triggered=self.go_to_next_directory,
+        )
+        self.parent_action = self.create_action(
+            ExplorerWidgetActions.Parent,
+            text=_("Parent"),
+            icon=self.create_icon('up'),
+            triggered=self.go_to_parent_directory
+        )
+
+        # Toolbuttons
+        self.filter_button = self.create_action(
+            ExplorerWidgetActions.ToggleFilter,
+            text="",
+            icon=ima.icon('filter'),
+            toggled=self.change_filter_state
+        )
+        self.filter_button.setCheckable(True)
+
+        # Set actions for tree widgets
+        # A `create_new_treewdiget` method should do this?
+        self.treewidget.previous_action = self.previous_action
+        self.treewidget.next_action = self.next_action
+        self.treewidget.filter_button = self.filter_button
+
+        self.remote_treewidget.previous_action = self.previous_action
+        self.remote_treewidget.next_action = self.next_action
+        self.remote_treewidget.filter_button = self.filter_button
+
+        # Setup widgets
+        self.treewidget.setup()
+        self.chdir(getcwd_or_home())
+        
         # Menu
         menu = self.get_options_menu()
 
@@ -235,10 +288,10 @@ class ExplorerWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.get_action(ExplorerTreeWidgetActions.Previous),
-                     self.get_action(ExplorerTreeWidgetActions.Next),
-                     self.get_action(ExplorerTreeWidgetActions.Parent),
-                     self.get_action(ExplorerTreeWidgetActions.ToggleFilter)]:
+        for item in [self.previous_action,
+                     self.next_action,
+                     self.parent_action,
+                     self.filter_button]:
             self.add_item_to_toolbar(
                 item, toolbar=toolbar,
                 section=ExplorerWidgetMainToolbarSections.Main)
@@ -320,7 +373,10 @@ class ExplorerWidget(PluginMainWidget):
         force_current: bool, optional
             Default is True.
         """
-        self.treewidget.refresh(new_path, force_current)
+        self.stackwidget.currentWidget().refresh(new_path, force_current)
+
+    def change_filter_state(self):
+        self.stackwidget.currentWidget().change_filter_state()
 
     def update_history(self, directory):
         """
