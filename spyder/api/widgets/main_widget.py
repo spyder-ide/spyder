@@ -158,6 +158,18 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     - The Find in files plugin is an example of a core plugin that uses this.
     """
 
+    SET_LAYOUT_WHEN_EMPTY = True
+    """
+    Whether to automatically set a vertical layout for the stacked widget that
+    holds the empty message widget and the content one.
+
+    Notes
+    -----
+    - You need to set this to False if you need to set a more complex layout in
+      your widget.
+    - The Debugger plugin is an example of a core plugin that uses this.
+    """
+
     # ---- Signals
     # -------------------------------------------------------------------------
     sig_free_memory_requested = Signal()
@@ -388,9 +400,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             self._stack = QStackedWidget(self)
             self._stack.addWidget(self._pane_empty)
 
-            layout = QVBoxLayout()
-            layout.addWidget(self._stack)
-            self.setLayout(layout)
+            if self.SET_LAYOUT_WHEN_EMPTY:
+                layout = QVBoxLayout()
+                layout.addWidget(self._stack)
+                self.setLayout(layout)
 
     # ---- Private Methods
     # -------------------------------------------------------------------------
@@ -789,7 +802,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- For widgets with an empty message
     # -------------------------------------------------------------------------
-    def set_content_widget(self, widget):
+    def set_content_widget(self, widget, add_to_stack=True):
         """
         Set the widget that actually displays content when there is an empty
         message.
@@ -798,10 +811,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         ----------
         widget: QWidget
             Widget to set as the widget with content.
+        add_to_stack: bool
+            Whether to add this widget to stacked widget that holds the empty
+            message.
         """
         if self._stack is not None:
             self._content_widget = widget
-            self._stack.addWidget(self._content_widget)
+            if add_to_stack:
+                self._stack.addWidget(self._content_widget)
 
     def show_content_widget(self):
         """

@@ -95,6 +95,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "variable-explorer"
+    MESSAGE_WHEN_EMPTY = _("No variables to show")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Run code in the Editor or IPython console to see any global "
+        "variables listed here for exploration and editing."
+    )
 
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
@@ -513,11 +520,16 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
         nsb = NamespaceBrowser(self)
+
         nsb.sig_hide_finder_requested.connect(self.hide_finder)
         nsb.sig_free_memory_requested.connect(self.free_memory)
         nsb.sig_start_spinner_requested.connect(self.start_spinner)
         nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
         nsb.sig_show_figure_requested.connect(self.sig_show_figure_requested)
+        nsb.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
+
         nsb.set_shellwidget(shellwidget)
         nsb.plots_plugin_enabled = self.plots_plugin_enabled
         nsb.setup()

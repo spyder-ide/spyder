@@ -87,6 +87,16 @@ class DebuggerContextMenuSections:
 # =============================================================================
 class DebuggerWidget(ShellConnectMainWidget):
 
+    # PluginMainWidget class constants
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "debugger"
+    MESSAGE_WHEN_EMPTY = _("Debugging is not active")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Start a debugging session with the ⏯ button, allowing you to step "
+        "through your code and see the functions here that Python has run."
+    )
+    SET_LAYOUT_WHEN_EMPTY = False
+
     # Signals
     sig_edit_goto = Signal(str, int, str)
     """
@@ -181,7 +191,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         # Layout
-        # Create the layout.
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -495,6 +504,9 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget.sig_edit_goto.connect(self.sig_edit_goto)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
+        widget.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
 
         shellwidget.sig_prompt_ready.connect(widget.clear_if_needed)
         shellwidget.sig_pdb_prompt_ready.connect(widget.clear_if_needed)
