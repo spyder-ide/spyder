@@ -369,9 +369,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_group = QGroupBox(_("Multi-Cursor"))
         multicursor_label = QLabel(
             _("Enable adding multiple cursors for simultaneous editing. "
-              "Additional cursors are added and removed using the Ctrl-Alt "
-              "click shortcut. A column of cursors can be added using the "
-              "Ctrl-Alt-Shift click shortcut."))
+              "Additional cursors are added and removed using the \"Add / "
+              "Remove Cursor\" shortcut. A column of cursors can be added "
+              "using the \"Add Column Cursor\" shortcut. Mouse shortcuts "
+              "can be configured in the advanced editor settings.")
+        )
         multicursor_label.setWordWrap(True)
         multicursor_box = newcb(
             _("Enable Multi-Cursor "),
