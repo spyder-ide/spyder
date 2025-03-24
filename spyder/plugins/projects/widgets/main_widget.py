@@ -280,7 +280,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Fixes spyder-ide/spyder#22641
         search_in_switcher_action = self.create_action(
             ProjectsOptionsMenuActions.SearchInSwitcher,
-            text=_("Search files in the switcher"),
+            text=_("Search project files in the switcher"),
             toggled=True,
             option='search_files_in_switcher',
         )
