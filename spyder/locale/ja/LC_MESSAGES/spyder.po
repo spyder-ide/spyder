@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2025-03-20 22:01-0500\n"
+"POT-Creation-Date: 2025-03-24 13:39-0500\n"
 "PO-Revision-Date: 2025-02-05 00:59\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
@@ -5292,7 +5292,7 @@ msgstr "最近開いたプロジェクト"
 
 #: spyder/plugins/projects/widgets/main_widget.py:283
 #, fuzzy
-msgid "Search files in the switcher"
+msgid "Search project files in the switcher"
 msgstr "検索ペインでテキストを検索"
 
 #: spyder/plugins/projects/widgets/main_widget.py:356
@@ -5347,7 +5347,7 @@ msgstr "位置"
 msgid "Project type"
 msgstr "プロジェクトタイプ"
 
-#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:210 spyder/plugins/updatemanager/widgets/update.py:522 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
+#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:210 spyder/plugins/updatemanager/widgets/update.py:523 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -6459,7 +6459,7 @@ msgstr "Spyderは最新の状態です。"
 msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
 msgstr "Spyderインストーラーを使って自動的にダウンロード・インストールしますか？<br><br>Spyderインストーラー <a href='{}'>の使用が推奨されます</a> これはより安定しており、またアップデートも簡単です。これは現在インストールされているSpyderには影響を与えません。"
 
-#: spyder/plugins/updatemanager/widgets/update.py:309 spyder/plugins/updatemanager/widgets/update.py:322 spyder/plugins/updatemanager/widgets/update.py:513
+#: spyder/plugins/updatemanager/widgets/update.py:309 spyder/plugins/updatemanager/widgets/update.py:322 spyder/plugins/updatemanager/widgets/update.py:514
 msgid "Spyder update"
 msgstr "Spyderアップデート"
 
@@ -6491,47 +6491,47 @@ msgstr "Spyder インストール"
 msgid "Check for updates at startup"
 msgstr "起動時に更新をチェック"
 
-#: spyder/plugins/updatemanager/widgets/update.py:523
+#: spyder/plugins/updatemanager/widgets/update.py:524
 msgid "OK"
 msgstr "OK"
 
-#: spyder/plugins/updatemanager/widgets/update.py:541
+#: spyder/plugins/updatemanager/widgets/update.py:542
 msgid "Spyder update error"
 msgstr "Spyder更新エラー"
 
-#: spyder/plugins/updatemanager/widgets/update.py:552
+#: spyder/plugins/updatemanager/widgets/update.py:553
 msgid "New Spyder version"
 msgstr "新しいスパイダーのバージョン"
 
-#: spyder/plugins/updatemanager/widgets/update.py:571
+#: spyder/plugins/updatemanager/widgets/update.py:572
 msgid "After closing"
 msgstr "閉じた後"
 
-#: spyder/plugins/updatemanager/widgets/update.py:580
+#: spyder/plugins/updatemanager/widgets/update.py:581
 msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
 msgstr "Anaconda プロンプトでコマンドを実行し、手動で更新します:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:584
+#: spyder/plugins/updatemanager/widgets/update.py:585
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
 msgstr "cmd プロンプトでコマンドを実行し、手動で更新します:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:588
+#: spyder/plugins/updatemanager/widgets/update.py:589
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
 msgstr "ターミナルで以下のでコマンドを実行し、手動で更新します:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:591
+#: spyder/plugins/updatemanager/widgets/update.py:592
 msgid "Run the following command in a terminal to update manually:<br><br>"
 msgstr "ターミナルで以下のでコマンドを実行し、手動で更新します:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:610
+#: spyder/plugins/updatemanager/widgets/update.py:611
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
 msgstr "<b>重要:</b> SpyderがConda環境のpipコマンドでインストールされていますが、これは良くない方法です。 この詳細には以下の <a href=\"{}\">ビデオ</a> を参照してください。"
 
-#: spyder/plugins/updatemanager/widgets/update.py:628
+#: spyder/plugins/updatemanager/widgets/update.py:629
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
 msgstr "<b>重要:</b> SpyderはAnacondaでインストールされています。Spyder環境が壊れる可能性があるので、更新にpipを使わないでください。"
 
-#: spyder/plugins/updatemanager/widgets/update.py:637
+#: spyder/plugins/updatemanager/widgets/update.py:638
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
 msgstr "<br><br>詳細については<a href=\"{}\">インストールガイド</a>を参照してください。"
 
@@ -7684,15 +7684,15 @@ msgstr "コレクションエディタ"
 msgid "Refresh collections editor?"
 msgstr "コレクションエディターを更新しますか？"
 
-#: spyder/widgets/comboboxes.py:194
+#: spyder/widgets/comboboxes.py:206
 msgid "Press enter to validate this entry"
 msgstr "入力を検証するにはエンターキーを押してください"
 
-#: spyder/widgets/comboboxes.py:195
+#: spyder/widgets/comboboxes.py:207
 msgid "This entry is incorrect"
 msgstr "この入力は不正です"
 
-#: spyder/widgets/comboboxes.py:243
+#: spyder/widgets/comboboxes.py:255
 msgid "Press enter to validate this path"
 msgstr "パスを検証するにはエンターキーを押してください"
 
