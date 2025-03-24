@@ -224,6 +224,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # ---- Public API
     @property
+    def server_id(self):
+        if self.is_remote():
+            return self.ipyclient.jupyter_api.server_id
+
+    @property
     def is_spyder_kernel(self):
         if self.kernel_handler is None:
             return False

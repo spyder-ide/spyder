@@ -309,10 +309,11 @@ class ExplorerWidget(PluginMainWidget):
         self.remote_treewidget.import_data(data)
         self.stop_spinner()
 
-    def _do_remote_sig_dir_opened(self, path, server_id):
+    def _do_remote_sig_dir_opened(self, path, server_id, emit=True):
         self.start_spinner()
         self._plugin._do_remote_ls(path, server_id).connect(self._on_remote_ls)
-        self.sig_dir_opened.emit(path, server_id)
+        if emit:
+            self.sig_dir_opened.emit(path, server_id)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -332,7 +333,8 @@ class ExplorerWidget(PluginMainWidget):
             self.stackwidget.setCurrentWidget(self.treewidget)
         else:
             logger.info(f"Request ls for {server_id} at {directory}")
-            self.remote_treewidget.chdir(directory, server_id=server_id, emit=True)
+            self._do_remote_sig_dir_opened(directory, server_id, emit=False)
+            self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit)
             self.stackwidget.setCurrentWidget(self.remote_treewidget)
 
     def get_current_folder(self):
