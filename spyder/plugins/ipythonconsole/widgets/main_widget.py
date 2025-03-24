@@ -42,7 +42,9 @@ from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetMenus,
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetOptionsMenuSections,
-    IPythonConsoleWidgetTabsContextMenuSections
+    IPythonConsoleWidgetTabsContextMenuSections,
+    RemoteConsolesMenuSections,
+    RemoteConsolesMenus
 )
 from spyder.plugins.ipythonconsole.utils.kernel_handler import KernelHandler
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -58,6 +60,7 @@ from spyder.plugins.ipythonconsole.widgets import (
     ShellWidget,
 )
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
+from spyder.plugins.remoteclient.api import RemoteClientActions
 from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
@@ -327,18 +330,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Info widget
         if self.enable_infowidget:
-            from spyder.widgets.browser import FrameWebView
-
-            self.infowidget = FrameWebView(self)
-            if WEBENGINE:
-                self.infowidget.page().setBackgroundColor(
-                    QColor(MAIN_BG_COLOR))
-            else:
-                self.infowidget.setStyleSheet(
-                    "background:{}".format(MAIN_BG_COLOR))
-            layout.addWidget(self.infowidget)
+            self._infowidget = self._create_info_widget()
+            layout.addWidget(self._infowidget)
         else:
-            self.infowidget = None
+            self._infowidget = None
 
         # Label to inform users how to get out of the pager
         self.pager_label = QLabel(_("Press <b>Q</b> to exit pager"), self)
@@ -398,6 +393,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()
+
+        # Remote Consoles menu
+        self._remote_consoles_menu = None
 
     # ---- PluginMainWidget API and settings handling
     # ------------------------------------------------------------------------
@@ -1093,6 +1091,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- Private methods
     # -------------------------------------------------------------------------
+    def _create_info_widget(self):
+        from spyder.widgets.browser import FrameWebView
+
+        infowidget = FrameWebView(self)
+        if WEBENGINE:
+            infowidget.page().setBackgroundColor(
+                QColor(MAIN_BG_COLOR))
+        else:
+            infowidget.setStyleSheet(
+                "background:{}".format(MAIN_BG_COLOR)
+            )
+        return infowidget
+
     def _change_client_conf(self, client, client_conf_func, value):
         """
         Change a client configuration option, taking into account if it is
@@ -1358,6 +1369,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # Render consoles menu and submenus
         self.console_environment_menu.render()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def find_connection_file(self, connection_file):
         """Fix connection file path."""
         cf_path = osp.dirname(connection_file)
@@ -1382,8 +1395,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         return connection_file
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
+    @property
+    def infowidget(self):
+        """
+        This is necessary to prevent an error when, in some situations, Python
+        garbage collects _infowidget.
+
+        Notes
+        -----
+        * See spyder-ide/spyder#21509 and spyder-ide/spyder#23529
+        """
+        try:
+            # We need to call a method to detect if the object was garbage
+            # collected and trigger the RuntimeError we want to catch here.
+            self._infowidget.isVisible()
+            return self._infowidget
+        except RuntimeError:
+            self._infowidget = self._create_info_widget()
+            return self._infowidget
+        except AttributeError:
+            return None
 
     # ---- General
     # -------------------------------------------------------------------------
@@ -1391,7 +1422,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         self._font = font
         self._app_font = app_font
 
-        if self.enable_infowidget:
+        if self.enable_infowidget and self.infowidget is not None:
             self.infowidget.set_font(app_font)
 
         for client in self.clients:
@@ -1425,18 +1456,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 client.set_info_page()
                 client.shellwidget.hide()
                 client.layout.addWidget(self.infowidget)
-                self.infowidget.show()
+                if self.infowidget is not None:
+                    self.infowidget.show()
             else:
-                if self.enable_infowidget:
-                    try:
-                        self.infowidget.hide()
-                    except RuntimeError:
-                        # Needed to handle the possible scenario where the
-                        # `infowidget` (`FrameWebView`) related C/C++ object
-                        # has been already deleted when trying to hide it.
-                        # See spyder-ider/spyder#21509
-                        self.enable_infowidget = False
-                        self.infowidget = None
+                if self.enable_infowidget and self.infowidget is not None:
+                    self.infowidget.hide()
                 client.shellwidget.show()
 
             # Get reference for the control widget of the selected tab
@@ -1565,15 +1589,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     def rename_remote_clients(self, server_id):
         """Rename all clients connected to a remote server."""
-        auth_method = self.get_conf(
-            f"{server_id}/auth_method", section="remoteclient"
-        )
-        hostname = self.get_conf(
-            f"{server_id}/{auth_method}/name", section="remoteclient"
-        )
+        hostname = self._plugin._remote_client.get_server_name(server_id)
 
         for client in self.clients:
-            if client.server_id == server_id:
+            if client.jupyter_api.server_id == server_id:
                 client.hostname = hostname
                 index = self.get_client_index_from_id(id(client))
                 self.tabwidget.setTabText(index, client.get_name())
@@ -1748,7 +1767,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, server_id=None, give_focus=False,
+                                 password, jupyter_api=None, give_focus=False,
                                  can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
@@ -1794,7 +1813,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             config_options=self.config_options(),
             additional_options=self.additional_options(),
             handlers=self.registered_spyder_kernel_handlers,
-            server_id=server_id,
+            jupyter_api=jupyter_api,
             give_focus=give_focus,
             can_close=can_close,
         )
@@ -1811,7 +1830,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
 
-        if server_id:
+        if jupyter_api is not None:
             # This is a client created by the RemoteClient plugin. So, we only
             # create the client and show it as loading because the kernel
             # connection part will be done by that plugin.
@@ -2042,7 +2061,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close all clients connected to a remote server."""
         open_clients = self.clients.copy()
         for client in self.clients:
-            if client.server_id == server_id:
+            if client.jupyter_api.server_id == server_id:
                 is_last_client = (
                     len(self.get_related_clients(client, open_clients)) == 0
                 )
@@ -2251,7 +2270,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # For remote kernels we need to request the server for a restart
         if client.is_remote():
-            client.sig_restart_kernel_requested.emit()
+            client.restart_remote_kernel()
             return
 
         # Get new kernel
@@ -2564,3 +2583,73 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
         self.sig_render_plain_text_requested.emit(quick_reference)
+
+    # ---- For remote kernels
+    # -------------------------------------------------------------------------
+    def create_ipyclient_for_server(self, server_id):
+        jupyter_api = self._plugin._remote_client.get_jupyter_api(server_id)
+        client = self.create_client_for_kernel(
+            # The connection file will be supplied when connecting a remote
+            # kernel to this client
+            connection_file="",
+            # We use the server name as hostname because for clients it's the
+            # attribute used by the IPython console to set their tab name.
+            hostname=jupyter_api.server_name,
+            # These values are not necessary at this point.
+            sshkey=None,
+            password=None,
+            # We save the jupyter_api in the client to perform on it operations
+            # related to this plugin.
+            jupyter_api=jupyter_api,
+            # This is necessary because it takes a while before getting a
+            # response from the server with the kernel id that will be
+            # associated to this client. So, if users could close it before
+            # that then it'll not be possible to shutdown that kernel unless
+            # the server is stopped as well.
+            can_close=False,
+        )
+        client.start_remote_kernel()
+
+    def setup_remote_consoles_submenu(self, render=True):
+        """Create the remote consoles submenu in the Consoles app one."""
+
+        if self._remote_consoles_menu is None:
+            self._remote_consoles_menu = self.create_menu(
+                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+            )
+
+        self._remote_consoles_menu.clear_actions()
+
+        self.add_item_to_menu(
+            self.get_action(
+                RemoteClientActions.ManageConnections,
+                self._plugin._remote_client.CONTEXT_NAME,
+                self._plugin._remote_client.PLUGIN_NAME
+
+            ),
+            menu=self._remote_consoles_menu,
+            section=RemoteConsolesMenuSections.ManagerSection,
+        )
+
+        for config_id in self._plugin._remote_client.get_config_ids():
+            name = self._plugin._remote_client.get_server_name(config_id)
+
+            action = self.create_action(
+                name=config_id,
+                text=f"New console in {name} server",
+                icon=self.create_icon("ipython_console"),
+                triggered=functools.partial(
+                    self.create_ipyclient_for_server,
+                    config_id,
+                ),
+                overwrite=True,
+            )
+            self.add_item_to_menu(
+                action,
+                menu=self._remote_consoles_menu,
+                section=RemoteConsolesMenuSections.ConsolesSection,
+            )
+
+        # This is necessary to reposition the menu correctly when rebuilt
+        if render:
+            self._remote_consoles_menu.render()

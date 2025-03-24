@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
@@ -37,7 +37,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QTreeWidget.__init__(self, parent)
@@ -58,9 +58,9 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         self.common_actions = self.setup_common_actions()
 
         # Signals
-        self.itemActivated.connect(self.activated)
-        self.itemClicked.connect(self.clicked)
-        self.itemSelectionChanged.connect(self.item_selection_changed)
+        self.itemActivated.connect(self.on_item_activated)
+        self.itemClicked.connect(self.on_item_clicked)
+        self.itemSelectionChanged.connect(self.on_item_selection_changed)
 
         # To use mouseMoveEvent
         self.setMouseTracking(True)
@@ -70,7 +70,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.header().setStretchLastSection(False)
 
-        self.item_selection_changed()
+        self.on_item_selection_changed()
 
     # ---- SpyderWidgetMixin API
     # -------------------------------------------------------------------------
@@ -139,11 +139,11 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event"""
         raise NotImplementedError
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         pass
 
     def set_title(self, title):
@@ -213,7 +213,7 @@ class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
         if items:
             self.scrollToItem(items[0])
 
-    def item_selection_changed(self):
+    def on_item_selection_changed(self):
         """Item selection has changed"""
         is_selection = len(self.selectedItems()) > 0
         self.expand_selection_action.setEnabled(is_selection)

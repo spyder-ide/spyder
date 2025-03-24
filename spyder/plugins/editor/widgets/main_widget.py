@@ -2038,7 +2038,7 @@ class EditorMainWidget(PluginMainWidget):
         else:
             current_es = editorstack
 
-        created_from_here = fname is None
+        created_from_here = fname is None or isinstance(fname, bool)
         if created_from_here:
             if self.untitled_num == 0:
                 for finfo in current_es.data:
@@ -2453,6 +2453,8 @@ class EditorMainWidget(PluginMainWidget):
     @Slot()
     def save(self, index=None, force=False):
         """Save file"""
+        if isinstance(index, bool):
+            index = None
         editorstack = self.get_current_editorstack()
         return editorstack.save(index=index, force=force)
 
@@ -2463,6 +2465,12 @@ class EditorMainWidget(PluginMainWidget):
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
             self.__add_recent_file(fname)
+
+            # We need to call this directly because at least on Windows
+            # editorstack.editor_focus_changed is not emitted after saving the
+            # file (and it's not harmful to do it for other OSes).
+            # Fixes spyder-ide/spyder#23716
+            self.update_run_focus_file()
 
     @Slot()
     def save_copy_as(self):

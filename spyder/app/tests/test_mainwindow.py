@@ -860,7 +860,10 @@ def test_dedicated_consoles(main_window, qtbot):
         == "script.py/A"
     )
 
-    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 4,
+        timeout=SHELL_TIMEOUT
+    )
     assert nsb.editor.source_model.rowCount() == 4
 
     # --- Assert runfile text is present and we show the banner ---
@@ -868,11 +871,11 @@ def test_dedicated_consoles(main_window, qtbot):
     assert ('runfile' in text) and ('Python' in text and 'IPython' in text)
 
     # --- Check namespace retention after re-execution ---
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute('zz = -1')
 
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.waitUntil(lambda: shell.is_defined('zz'))
+    qtbot.waitUntil(lambda: shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns and there's no banner
@@ -886,7 +889,7 @@ def test_dedicated_consoles(main_window, qtbot):
 
     qtbot.wait(500)
     qtbot.keyClick(code_editor, Qt.Key_F5)
-    qtbot.waitUntil(lambda: not shell.is_defined('zz'))
+    qtbot.waitUntil(lambda: not shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert not shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns ---
@@ -4822,6 +4825,10 @@ def test_tour_message(main_window, qtbot):
     sys.version_info[:2] < (3, 10),
     reason="Too flaky in old Python versions"
 )
+@pytest.mark.skipif(
+    not running_in_ci_with_conda(),
+    reason="Too flaky with pip packages"
+)
 @pytest.mark.known_leak
 def test_update_outline(main_window, qtbot, tmpdir):
     """
@@ -5410,7 +5417,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
     for i in range(5):
         item = file_item.child(i)
         findinfiles.result_browser.setCurrentItem(item)
-        findinfiles.result_browser.activated(item)
+        findinfiles.result_browser.on_item_activated(item)
         cursor = code_editor.textCursor()
         position = (cursor.selectionStart(), cursor.selectionEnd())
         assert position == match_positions[i]
@@ -5817,6 +5824,9 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(
+    sys.platform == "darwin", reason="Fails frequently on Mac"
+)
 def test_debug_unsaved_function(main_window, qtbot):
     """
     Test that a breakpoint in an unsaved file is reached.

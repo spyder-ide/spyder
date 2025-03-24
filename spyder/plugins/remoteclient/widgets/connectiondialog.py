@@ -569,6 +569,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
+    MAX_WIDTH = 540 if MAC else 520
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
@@ -618,6 +619,8 @@ class NewConnectionPage(BaseConnectionPage):
 
 class ConnectionPage(BaseConnectionPage):
     """Page to display connection status and info for a remote machine."""
+
+    MAX_WIDTH = 600 if MAC else 580
 
     def __init__(self, parent, host_id):
         super().__init__(parent, host_id)
@@ -727,7 +730,7 @@ class ConnectionDialog(SidebarDialog):
     """
 
     TITLE = _("Remote connections")
-    MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
+    MIN_WIDTH = 900 if MAC else (830 if WIN else 880)
     MIN_HEIGHT = 700 if MAC else (635 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 

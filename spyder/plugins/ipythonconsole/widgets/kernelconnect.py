@@ -12,13 +12,14 @@ External Kernel connection widget
 import os.path as osp
 
 # Third party imports
+from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QRadioButton, QSpacerItem,
-                            QVBoxLayout)
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
+                            QMessageBox, QPushButton, QRadioButton, 
+                            QSpacerItem, QVBoxLayout)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -54,6 +55,9 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
         self.cf.setMinimumWidth(350)
         cf_open_btn = QPushButton(_('Browse'))
         cf_open_btn.clicked.connect(self.select_connection_file)
+
+        # Signals
+        self.cf.textChanged.connect(self.activate_button)
 
         cf_layout = QHBoxLayout()
         cf_layout.addWidget(cf_label)
@@ -142,9 +146,11 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
             Qt.Horizontal,
             self,
         )
+        self.button_ok = self.accept_btns.button(QDialogButtonBox.Ok)
+        self.button_ok.setEnabled(False)
 
         self.accept_btns.accepted.connect(self.save_connection_settings)
-        self.accept_btns.accepted.connect(self.accept)
+        self.accept_btns.accepted.connect(self._validate_connection_file)
         self.accept_btns.rejected.connect(self.reject)
 
         # Save connection settings checkbox
@@ -166,6 +172,12 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
         self.cf.setFocus()
         self.load_connection_settings()
+
+    def activate_button(self):
+        if self.cf.text() == "":
+            self.button_ok.setEnabled(False)
+        else:
+            self.button_ok.setEnabled(True)
 
     def load_connection_settings(self):
         """Load the user's previously-saved kernel connection settings."""
@@ -204,6 +216,32 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
                 self.pw.setText(ssh_password)
         except Exception:
             pass
+
+    def _validate_connection_file(self):
+        cf_path = osp.dirname(self.cf.text())
+        cf_filename = osp.basename(self.cf.text())
+        try:
+            if not cf_filename.endswith(".json"):
+                cf_filename += ".json"
+            connection_file = find_connection_file(
+                filename=cf_filename, path=cf_path
+            )
+        except OSError:
+            connection_file = None
+
+        if connection_file is None:
+            QMessageBox.critical(
+                self,
+                _('Error'),
+                _(
+                    "The connection file you passed doesn't exist or can't be "
+                    "found by Spyder."
+                ),
+                QMessageBox.Ok
+            )
+        else:
+            self.accept()
+
 
     def save_connection_settings(self):
         """Save user's kernel connection settings."""

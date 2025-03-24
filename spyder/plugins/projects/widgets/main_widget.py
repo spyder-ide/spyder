@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QInputDialog, QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -74,6 +75,10 @@ class ProjectsMenuSubmenus:
 class RecentProjectsMenuSections:
     Recent = 'recent_section'
     Extras = 'extras_section'
+
+
+class ProjectsOptionsMenuActions:
+    SearchInSwitcher = "search_in_switcher"
 
 
 # ---- Main widget
@@ -269,16 +274,33 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.recent_project_menu.aboutToShow.connect(self._setup_menu_actions)
         self._setup_menu_actions()
 
+        # We need to give users a way to disable searching files in the
+        # switcher because in some situations it introduces delays in the
+        # switcher or Spyder itself.
+        # Fixes spyder-ide/spyder#22641
+        search_in_switcher_action = self.create_action(
+            ProjectsOptionsMenuActions.SearchInSwitcher,
+            text=_("Search project files in the switcher"),
+            toggled=True,
+            option='search_files_in_switcher',
+        )
+
         # Add some DirView actions to the Options menu for easy access.
-        menu = self.get_options_menu()
         hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
 
-        for action in [hidden_action, single_click_action]:
+        # Options menu
+        menu = self.get_options_menu()
+        for action in [
+            hidden_action,
+            single_click_action,
+            search_in_switcher_action,
+        ]:
             self.add_item_to_menu(
                 action,
                 menu=menu,
-                section=ProjectExplorerOptionsMenuSections.Main)
+                section=ProjectExplorerOptionsMenuSections.Main
+            )
 
     def set_pane_empty(self):
         self.treewidget.hide()
@@ -1034,7 +1056,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             The search text to pass to fzf.
         """
         project_path = self.get_active_project_path()
-        if self._fzf is None or project_path is None:
+        if (
+            not self.get_conf("search_files_in_switcher")
+            or self._fzf is None
+            or project_path is None
+        ):
             return
 
         self._worker_manager.terminate_all()
@@ -1132,6 +1158,18 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Update default paths to be shown in the switcher."""
         self._default_switcher_paths = []
         self._call_fzf()
+
+    @on_conf_change(option="search_files_in_switcher")
+    def _on_search_files_in_switcher_changed(self, value):
+        """
+        Actions to take when users enable/disable searching files in the
+        switcher.
+        """
+        if value:
+            self._update_default_switcher_paths()
+        else:
+            self._clear_switcher_paths()
+
 
 # =============================================================================
 # Tests

@@ -18,6 +18,7 @@ import os
 import os.path as osp
 
 # Third party imports
+from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
@@ -70,6 +71,18 @@ class BaseComboBox(SpyderComboBox):
             self.sig_tab_pressed.emit(True)
             return True
         return super().event(event)
+    
+    def focusOutEvent(self, event):
+        """
+        Qt Override.
+
+        Handle focus out event to prevent changing current text with some other
+        entry in the history that could match the current text in a case
+        insensitive manner.
+        See spyder-ide/spyder#23597
+        """
+        self.add_current_text_if_valid()
+        super().focusOutEvent(event)
 
     def keyPressEvent(self, event):
         """Qt Override.
@@ -108,10 +121,10 @@ class BaseComboBox(SpyderComboBox):
     def add_text(self, text):
         """Add text to combo box: add a new item if text is not found in
         combo box items."""
-        index = self.findText(text)
+        index = self.findText(text, Qt.MatchCaseSensitive)
         while index != -1:
             self.removeItem(index)
-            index = self.findText(text)
+            index = self.findText(text, Qt.MatchCaseSensitive)
         self.insertItem(0, text)
         index = self.findText('')
         if index != -1:
@@ -152,7 +165,10 @@ class PatternComboBox(BaseComboBox):
 
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True, id_=None):
-        BaseComboBox.__init__(self, parent)
+        if not PYSIDE2:
+            super().__init__(parent)
+        else:
+            BaseComboBox.__init__(self, parent)
 
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(
@@ -180,7 +196,11 @@ class EditableComboBox(BaseComboBox):
     """
 
     def __init__(self, parent):
-        BaseComboBox.__init__(self, parent)
+        if not PYSIDE2:
+            super().__init__(parent)
+        else:
+            BaseComboBox.__init__(self, parent)
+
         self.font = QFont()
         self.selected_text = self.currentText()
 
@@ -225,7 +245,10 @@ class PathComboBox(EditableComboBox):
 
     def __init__(self, parent, adjust_to_contents=False, id_=None,
                  elide_text=False, ellipsis_place=Qt.ElideLeft):
-        EditableComboBox.__init__(self, parent)
+        if not PYSIDE2:
+            super().__init__(parent)
+        else:
+            EditableComboBox.__init__(self, parent)
 
         # Replace the default lineedit with a custom one with icon display
         # and elided text
@@ -346,7 +369,11 @@ class UrlComboBox(PathComboBox):
     QComboBox handling urls
     """
     def __init__(self, parent, adjust_to_contents=False, id_=None):
-        PathComboBox.__init__(self, parent, adjust_to_contents)
+        if not PYSIDE2:
+            super().__init__(parent, adjust_to_contents)
+        else:
+            PathComboBox.__init__(self, parent, adjust_to_contents)
+
         line_edit = QLineEdit(self)
         self.setLineEdit(line_edit)
         self.editTextChanged.disconnect(self.validate)
@@ -367,7 +394,10 @@ class FileComboBox(PathComboBox):
     """
     def __init__(self, parent=None, adjust_to_contents=False,
                  default_line_edit=False):
-        PathComboBox.__init__(self, parent, adjust_to_contents)
+        if not PYSIDE2:
+            super().__init__(parent, adjust_to_contents)
+        else:
+            PathComboBox.__init__(self, parent, adjust_to_contents)
 
         if default_line_edit:
             line_edit = QLineEdit(self)
@@ -430,7 +460,11 @@ class PythonModulesComboBox(PathComboBox):
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
     def __init__(self, parent, adjust_to_contents=False, id_=None):
-        PathComboBox.__init__(self, parent, adjust_to_contents)
+        if not PYSIDE2:
+            super().__init__(parent, adjust_to_contents)
+        else:
+            PathComboBox.__init__(self, parent, adjust_to_contents)
+
         if id_ is not None:
             self.ID = id_
 
