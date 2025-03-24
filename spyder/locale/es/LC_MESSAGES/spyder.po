@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2025-03-20 22:01-0500\n"
+"POT-Creation-Date: 2025-03-24 13:39-0500\n"
 "PO-Revision-Date: 2025-02-05 02:21\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
@@ -5317,7 +5317,7 @@ msgstr "Proyectos recientes"
 
 #: spyder/plugins/projects/widgets/main_widget.py:283
 #, fuzzy
-msgid "Search files in the switcher"
+msgid "Search project files in the switcher"
 msgstr "Buscar texto en el panel de Búsqueda"
 
 #: spyder/plugins/projects/widgets/main_widget.py:356
@@ -5372,7 +5372,7 @@ msgstr "Ubicación"
 msgid "Project type"
 msgstr "Tipo del proyecto"
 
-#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:210 spyder/plugins/updatemanager/widgets/update.py:522 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
+#: spyder/plugins/projects/widgets/projectdialog.py:104 spyder/plugins/shortcuts/widgets/table.py:210 spyder/plugins/updatemanager/widgets/update.py:523 spyder/plugins/variableexplorer/widgets/importwizard.py:534 spyder/widgets/arraybuilder.py:254
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -6484,7 +6484,7 @@ msgstr "Spyder está actualizado."
 msgid "Would you like to automatically download and install it using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
 msgstr "¿Desea descargarla e instalarla automáticamente usando el instalador de Spyder?<br><br>Recomendamos <a href='{}'>nuestro propio instalador</a> porque es más estable y hace que la actualización sea más fácil. Esto dejará su instalación actual de Spyder intacta."
 
-#: spyder/plugins/updatemanager/widgets/update.py:309 spyder/plugins/updatemanager/widgets/update.py:322 spyder/plugins/updatemanager/widgets/update.py:513
+#: spyder/plugins/updatemanager/widgets/update.py:309 spyder/plugins/updatemanager/widgets/update.py:322 spyder/plugins/updatemanager/widgets/update.py:514
 msgid "Spyder update"
 msgstr "Actualización de Spyder"
 
@@ -6516,47 +6516,47 @@ msgstr "Instalación de Spyder"
 msgid "Check for updates at startup"
 msgstr "Buscar actualizaciones al inicio"
 
-#: spyder/plugins/updatemanager/widgets/update.py:523
+#: spyder/plugins/updatemanager/widgets/update.py:524
 msgid "OK"
 msgstr "Aceptar"
 
-#: spyder/plugins/updatemanager/widgets/update.py:541
+#: spyder/plugins/updatemanager/widgets/update.py:542
 msgid "Spyder update error"
 msgstr "Error de actualización de Spyder"
 
-#: spyder/plugins/updatemanager/widgets/update.py:552
+#: spyder/plugins/updatemanager/widgets/update.py:553
 msgid "New Spyder version"
 msgstr "Nueva versión de Spyder"
 
-#: spyder/plugins/updatemanager/widgets/update.py:571
+#: spyder/plugins/updatemanager/widgets/update.py:572
 msgid "After closing"
 msgstr "Después de cerrar"
 
-#: spyder/plugins/updatemanager/widgets/update.py:580
+#: spyder/plugins/updatemanager/widgets/update.py:581
 msgid "Run the following command or commands in the Anaconda prompt to update manually:<br><br>"
 msgstr "Ejecute el siguiente comando o comandos en la Anaconda prompt para actualizar manualmente:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:584
+#: spyder/plugins/updatemanager/widgets/update.py:585
 msgid "Run the following command in a cmd prompt to update manually:<br><br>"
 msgstr "Ejecute el siguiente comando o comandos en una instancia de cmd para actualizar manualmente:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:588
+#: spyder/plugins/updatemanager/widgets/update.py:589
 msgid "Run the following command or commands in a terminal to update manually:<br><br>"
 msgstr "Ejecute el siguiente comando o comandos en una terminal para actualizar manualmente:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:591
+#: spyder/plugins/updatemanager/widgets/update.py:592
 msgid "Run the following command in a terminal to update manually:<br><br>"
 msgstr "Ejecute el siguiente comando en una terminal para actualizar manualmente:<br><br>"
 
-#: spyder/plugins/updatemanager/widgets/update.py:610
+#: spyder/plugins/updatemanager/widgets/update.py:611
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
 msgstr "<b>Nota importante:</b> Ha instalado Spyder con pip en un ambiente de Conda, lo cual no es una buena idea. Mire <a href=\"{}\">nuestro video</a> para más detalles al respecto."
 
-#: spyder/plugins/updatemanager/widgets/update.py:628
+#: spyder/plugins/updatemanager/widgets/update.py:629
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
 msgstr "<b>Nota importante:</b> Dado que instaló Spyder con Anaconda, por favor no use pip para actualizarlo ya que esto estropearía su instalación."
 
-#: spyder/plugins/updatemanager/widgets/update.py:637
+#: spyder/plugins/updatemanager/widgets/update.py:638
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
 msgstr "<br><br>Para más información, visite nuestra <a href=\"{}\">guía de instalación</a>."
 
@@ -7709,15 +7709,15 @@ msgstr "Editor de colecciones"
 msgid "Refresh collections editor?"
 msgstr "¿Actualizar el editor de colecciones?"
 
-#: spyder/widgets/comboboxes.py:194
+#: spyder/widgets/comboboxes.py:206
 msgid "Press enter to validate this entry"
 msgstr "Presione Enter para validar esta entrada"
 
-#: spyder/widgets/comboboxes.py:195
+#: spyder/widgets/comboboxes.py:207
 msgid "This entry is incorrect"
 msgstr "Esta entrada es incorrecta"
 
-#: spyder/widgets/comboboxes.py:243
+#: spyder/widgets/comboboxes.py:255
 msgid "Press enter to validate this path"
 msgstr "Presione Enter para validar esta ruta"
 
