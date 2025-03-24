@@ -95,7 +95,9 @@ class TestRemoteFilesAPI:
             ) == {"success": True}
 
         async with file_api_class() as file_api:
-            ls_content = [ls_file async for ls_file in file_api.ls(self.remote_temp_dir)]
+            ls_content = [
+                ls_file async for ls_file in file_api.ls(self.remote_temp_dir)
+            ]
             assert len(ls_content) == 2
             idx = [
                 item["name"] for item in ls_content

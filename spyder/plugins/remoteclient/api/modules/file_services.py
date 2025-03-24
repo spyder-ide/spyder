@@ -401,7 +401,11 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
             return await response.json()
 
     async def mkdir(
-        self, path: Path, *, create_parents: bool = True, exist_ok: bool = False
+        self,
+        path: Path,
+        *,
+        create_parents: bool = True,
+        exist_ok: bool = False
     ):
         async with self.session.post(
             self.api_url / "mkdir" / f"file://{path}",
