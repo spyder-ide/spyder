@@ -9,18 +9,25 @@ Explorer Main Widget.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QStackedWidget, QVBoxLayout, QWidget
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, ExplorerTreeWidget, ExplorerTreeWidgetActions)
+    DirViewActions, ExplorerTreeWidget
+)
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+
+logger = logging.getLogger(__name__)
 
 
 # ---- Constants
@@ -33,6 +40,15 @@ class ExplorerWidgetOptionsMenuSections:
 class ExplorerWidgetMainToolbarSections:
     Main = 'main_section'
 
+class ExplorerWidgetActions:
+    # Toggles
+    ToggleFilter = 'toggle_filter_files_action'
+
+    # Triggers
+    Next = 'next_action'
+    Parent = 'parent_action'
+    Previous = 'previous_action'
+
 
 # ---- Main widget
 class ExplorerWidget(PluginMainWidget):
@@ -40,7 +56,7 @@ class ExplorerWidget(PluginMainWidget):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_dir_opened = Signal(str)
+    sig_dir_opened = Signal(str, str)
     """
     This signal is emitted to indicate a folder has been opened.
 
@@ -145,6 +161,8 @@ class ExplorerWidget(PluginMainWidget):
         Path to use as working directory of interpreter.
     """
 
+    ENABLE_SPINNER = True
+
     def __init__(self, name, plugin, parent=None):
         """
         Initialize the widget.
@@ -161,19 +179,20 @@ class ExplorerWidget(PluginMainWidget):
         super().__init__(name, plugin=plugin, parent=parent)
 
         # Widgets
+        self.stackwidget = QStackedWidget(parent=self)
         self.treewidget = ExplorerTreeWidget(parent=self)
-
-        # Setup widgets
-        self.treewidget.setup()
-        self.chdir(getcwd_or_home())
+        self.remote_treewidget = RemoteExplorer(parent=self)
+        self.stackwidget.addWidget(self.remote_treewidget)
+        self.stackwidget.addWidget(self.treewidget)
 
         # Layouts
         layout = QHBoxLayout()
-        layout.addWidget(self.treewidget)
+        layout.addWidget(self.stackwidget)
         self.setLayout(layout)
 
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        self.remote_treewidget.sig_dir_opened.connect(self._do_remote_sig_dir_opened)
         self.treewidget.sig_file_created.connect(self.sig_file_created)
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
@@ -198,8 +217,54 @@ class ExplorerWidget(PluginMainWidget):
         """Return the title of the plugin tab."""
         return _("Files")
 
+    def _setup(self):
+        super()._setup()
+
     def setup(self):
         """Performs the setup of plugin's menu and actions."""
+        # Actions
+        self.previous_action = self.create_action(
+            ExplorerWidgetActions.Previous,
+            text=_("Previous"),
+            icon=self.create_icon('previous'),
+            triggered=self.go_to_previous_directory,
+        )
+        self.next_action = self.create_action(
+            ExplorerWidgetActions.Next,
+            text=_("Next"),
+            icon=self.create_icon('next'),
+            triggered=self.go_to_next_directory,
+        )
+        self.parent_action = self.create_action(
+            ExplorerWidgetActions.Parent,
+            text=_("Parent"),
+            icon=self.create_icon('up'),
+            triggered=self.go_to_parent_directory
+        )
+
+        # Toolbuttons
+        self.filter_button = self.create_action(
+            ExplorerWidgetActions.ToggleFilter,
+            text="",
+            icon=ima.icon('filter'),
+            toggled=self.change_filter_state
+        )
+        self.filter_button.setCheckable(True)
+
+        # Set actions for tree widgets
+        # A `create_new_treewdiget` method should do this?
+        self.treewidget.previous_action = self.previous_action
+        self.treewidget.next_action = self.next_action
+        self.treewidget.filter_button = self.filter_button
+
+        self.remote_treewidget.previous_action = self.previous_action
+        self.remote_treewidget.next_action = self.next_action
+        self.remote_treewidget.filter_button = self.filter_button
+
+        # Setup widgets
+        self.treewidget.setup()
+        self.chdir(getcwd_or_home())
+        
         # Menu
         menu = self.get_options_menu()
 
@@ -223,10 +288,10 @@ class ExplorerWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.get_action(ExplorerTreeWidgetActions.Previous),
-                     self.get_action(ExplorerTreeWidgetActions.Next),
-                     self.get_action(ExplorerTreeWidgetActions.Parent),
-                     self.get_action(ExplorerTreeWidgetActions.ToggleFilter)]:
+        for item in [self.previous_action,
+                     self.next_action,
+                     self.parent_action,
+                     self.filter_button]:
             self.add_item_to_toolbar(
                 item, toolbar=toolbar,
                 section=ExplorerWidgetMainToolbarSections.Main)
@@ -235,9 +300,24 @@ class ExplorerWidget(PluginMainWidget):
         """Handle the update of actions of the plugin."""
         pass
 
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    @AsyncDispatcher.QtSlot
+    def _on_remote_ls(self, future):
+        data = future.result()
+        logger.info(data)
+        self.remote_treewidget.import_data(data)
+        self.stop_spinner()
+
+    def _do_remote_sig_dir_opened(self, path, server_id, emit=True):
+        self.start_spinner()
+        self._plugin._do_remote_ls(path, server_id).connect(self._on_remote_ls)
+        if emit:
+            self.sig_dir_opened.emit(path, server_id)
+
     # ---- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory, emit=True):
+    def chdir(self, directory, emit=True, server_id=None):
         """
         Set working directory.
 
@@ -248,11 +328,18 @@ class ExplorerWidget(PluginMainWidget):
         emit: bool, optional
             Default is True.
         """
-        self.treewidget.chdir(directory, emit=emit)
+        if not server_id:
+            self.treewidget.chdir(directory, emit=emit)
+            self.stackwidget.setCurrentWidget(self.treewidget)
+        else:
+            logger.info(f"Request ls for {server_id} at {directory}")
+            self._do_remote_sig_dir_opened(directory, server_id, emit=False)
+            self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit)
+            self.stackwidget.setCurrentWidget(self.remote_treewidget)
 
     def get_current_folder(self):
         """Get current folder in the tree widget."""
-        return self.treewidget.get_current_folder()
+        return self.stackwidget.currentWidget().get_current_folder()
 
     def set_current_folder(self, folder):
         """
@@ -263,19 +350,19 @@ class ExplorerWidget(PluginMainWidget):
         folder: str
             Folder path to set as current folder.
         """
-        self.treewidget.set_current_folder(folder)
+        self.stackwidget.currentWidget().set_current_folder(folder)
 
     def go_to_parent_directory(self):
         """Move to parent directory."""
-        self.treewidget.go_to_parent_directory()
+        self.stackwidget.currentWidget().go_to_parent_directory()
 
     def go_to_previous_directory(self):
         """Move to previous directory in history."""
-        self.treewidget.go_to_previous_directory()
+        self.stackwidget.currentWidget().go_to_previous_directory()
 
     def go_to_next_directory(self):
         """Move to next directory in history."""
-        self.treewidget.go_to_next_directory()
+        self.stackwidget.currentWidget().go_to_next_directory()
 
     def refresh(self, new_path=None, force_current=False):
         """
@@ -288,7 +375,10 @@ class ExplorerWidget(PluginMainWidget):
         force_current: bool, optional
             Default is True.
         """
-        self.treewidget.refresh(new_path, force_current)
+        self.stackwidget.currentWidget().refresh(new_path, force_current)
+
+    def change_filter_state(self):
+        self.stackwidget.currentWidget().change_filter_state()
 
     def update_history(self, directory):
         """
