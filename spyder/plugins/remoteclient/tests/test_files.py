@@ -65,19 +65,18 @@ class TestRemoteFilesAPI:
         assert file_api_class is not None
 
         async with file_api_class() as file_api:
-            ls_content = await file_api.ls(self.remote_temp_dir)
-            assert len(ls_content) == 1
-            assert ls_content[0]["name"] == self.remote_temp_dir + "/test.txt"
-            assert ls_content[0]["size"] == 13
-            assert ls_content[0]["type"] == "file"
-            assert not ls_content[0]["islink"]
-            assert ls_content[0]["created"] > 0
-            assert ls_content[0]["mode"] == 0o100644
-            assert ls_content[0]["uid"] > 0
-            assert ls_content[0]["gid"] >= 0
-            assert ls_content[0]["mtime"] > 0
-            assert ls_content[0]["ino"] > 0
-            assert ls_content[0]["nlink"] == 1
+            async for ls_content in file_api.ls(self.remote_temp_dir):
+                assert ls_content["name"] == self.remote_temp_dir + "/test.txt"
+                assert ls_content["size"] == 13
+                assert ls_content["type"] == "file"
+                assert not ls_content["islink"]
+                assert ls_content["created"] > 0
+                assert ls_content["mode"] == 0o100644
+                assert ls_content["uid"] > 0
+                assert ls_content["gid"] >= 0
+                assert ls_content["mtime"] > 0
+                assert ls_content["ino"] > 0
+                assert ls_content["nlink"] == 1
 
     @AsyncDispatcher(early_return=False)
     async def test_copy_file(
@@ -96,7 +95,9 @@ class TestRemoteFilesAPI:
             ) == {"success": True}
 
         async with file_api_class() as file_api:
-            ls_content = await file_api.ls(self.remote_temp_dir)
+            ls_content = [
+                ls_file async for ls_file in file_api.ls(self.remote_temp_dir)
+            ]
             assert len(ls_content) == 2
             idx = [
                 item["name"] for item in ls_content
@@ -152,7 +153,8 @@ class TestRemoteFilesAPI:
 
         async with file_api_class() as file_api:
             with pytest.raises(RemoteOSError) as exc_info:
-                await file_api.ls(self.remote_temp_dir)
+                async for ls_file in file_api.ls(self.remote_temp_dir):
+                    ...
 
         assert exc_info.value.errno == 2  # ENOENT: No such file or directory
 
