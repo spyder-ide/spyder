@@ -407,7 +407,7 @@ class DocstringWriterExtension(object):
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        numpy_doc += '\n{}\n'.format(indent1)
+        numpy_doc += '\n{}SUMMARY.\n'.format(indent1)
 
         if len(arg_names) > 0:
             numpy_doc += '\n{}Parameters'.format(indent1)
@@ -435,14 +435,6 @@ class DocstringWriterExtension(object):
 
         numpy_doc += arg_text
 
-        if func_info.raise_list:
-            numpy_doc += '\n{}Raises'.format(indent1)
-            numpy_doc += '\n{}------'.format(indent1)
-            for raise_type in func_info.raise_list:
-                numpy_doc += '\n{}{}'.format(indent1, raise_type)
-                numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
-            numpy_doc += '\n'
-
         numpy_doc += '\n'
         if func_info.has_yield:
             header = '{0}Yields\n{0}------\n'.format(indent1)
@@ -458,8 +450,12 @@ class DocstringWriterExtension(object):
             return_element_type = indent1 + '{return_type}\n' + indent2 + \
                 'DESCRIPTION.'
             placeholder = return_element_type.format(return_type='TYPE')
-            return_element_name = indent1 + '{return_name} : ' + \
-                placeholder.lstrip()
+            if len([rv for rvs in func_info.return_value_in_body for rv in rvs.split(",")]) == 1:
+                # numpydoc RT02, only include type and not name if it's a single return value
+                return_element_name = indent1 + placeholder.lstrip()
+            else:
+                return_element_name = indent1 + '{return_name} : ' + \
+                    placeholder.lstrip()
 
             try:
                 return_section = self._generate_docstring_return_section(
@@ -470,7 +466,16 @@ class DocstringWriterExtension(object):
                 return_section = '{}{}None.'.format(header, indent1)
 
         numpy_doc += return_section
-        numpy_doc += '\n\n{}{}'.format(indent1, self.quote3)
+
+        if func_info.raise_list:
+            numpy_doc += '\n\n{}Raises'.format(indent1)
+            numpy_doc += '\n{}------'.format(indent1)
+            for raise_type in func_info.raise_list:
+                numpy_doc += '\n{}{}'.format(indent1, raise_type)
+                numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
+
+        numpy_doc = numpy_doc.rstrip('\n')
+        numpy_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return numpy_doc
 
@@ -490,7 +495,7 @@ class DocstringWriterExtension(object):
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        google_doc += '\n{}\n'.format(indent1)
+        google_doc += 'SUMMARY.\n'
 
         if len(arg_names) > 0:
             google_doc += '\n{0}Args:\n'.format(indent1)
@@ -514,18 +519,11 @@ class DocstringWriterExtension(object):
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' Defaults to {}.\n'.format(arg_value)
-            else:
-                arg_text += '\n'
+                arg_text += ' Defaults to {}.'.format(arg_value)
+
+            arg_text += '\n'
 
         google_doc += arg_text
-
-        if func_info.raise_list:
-            google_doc += '\n{0}Raises:'.format(indent1)
-            for raise_type in func_info.raise_list:
-                google_doc += '\n{}{}'.format(indent2, raise_type)
-                google_doc += ': DESCRIPTION.'
-            google_doc += '\n'
 
         google_doc += '\n'
         if func_info.has_yield:
@@ -552,7 +550,15 @@ class DocstringWriterExtension(object):
                 return_section = '{}{}None.'.format(header, indent2)
 
         google_doc += return_section
-        google_doc += '\n\n{}{}'.format(indent1, self.quote3)
+
+        if func_info.raise_list:
+            google_doc += '\n\n{0}Raises:'.format(indent1)
+            for raise_type in func_info.raise_list:
+                google_doc += '\n{}{}'.format(indent2, raise_type)
+                google_doc += ': DESCRIPTION.'
+
+        google_doc = google_doc.rstrip('\n')
+        google_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return google_doc
 
@@ -571,7 +577,7 @@ class DocstringWriterExtension(object):
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
 
-        sphinx_doc += '\n{}\n'.format(indent1)
+        sphinx_doc += 'SUMMARY.\n\n'
 
         arg_text = ''
         for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
@@ -617,7 +623,9 @@ class DocstringWriterExtension(object):
             return_section += '{}:rtype: TYPE'.format(indent1)
 
         sphinx_doc += return_section
-        sphinx_doc += '\n\n{}{}'.format(indent1, self.quote3)
+
+        sphinx_doc = sphinx_doc.rstrip('\n')
+        sphinx_doc += '\n{}{}'.format(indent1, self.quote3)
 
         return sphinx_doc
 
