@@ -463,7 +463,7 @@ class DocstringWriterExtension(object):
                     return_element_name, return_element_type, placeholder,
                     indent1)
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent1)
+                return_section = ''
 
         numpy_doc += return_section
 
@@ -547,7 +547,7 @@ class DocstringWriterExtension(object):
                     return_element_name, return_element_type, placeholder,
                     indent2)
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent2)
+                return_section = ''
 
         google_doc += return_section
 
@@ -614,7 +614,9 @@ class DocstringWriterExtension(object):
             header = '{}:return:'.format(indent1)
 
         return_type_annotated = func_info.return_type_annotated
-        if return_type_annotated:
+        if not func_info.return_value_in_body and not return_type_annotated:
+            return_section = ''
+        elif return_type_annotated:
             return_section = '{} DESCRIPTION\n'.format(header)
             return_section += '{}:rtype: {}'.format(indent1,
                                                     return_type_annotated)
@@ -731,7 +733,7 @@ class DocstringWriterExtension(object):
         non_none_vals = [return_val for return_val in return_vals
                          if return_val and return_val != 'None']
         if not non_none_vals:
-            return header + indent + 'None.'
+            return ''
 
         # Get only values with matching brackets that can be cleaned up
         non_none_vals = [return_val.strip(' ()\t\n').rstrip(',')
