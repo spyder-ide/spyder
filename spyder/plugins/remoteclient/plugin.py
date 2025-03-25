@@ -231,6 +231,9 @@ class RemoteClient(SpyderPluginV2):
         # Default for now
         options["platform"] = "linux"
 
+        # Don't require the host to be known to connect to it
+        options["known_hosts"] = None
+
         return SSHClientOptions(**options)
 
     def get_loaded_servers(self):
