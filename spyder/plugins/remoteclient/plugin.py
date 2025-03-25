@@ -214,12 +214,12 @@ class RemoteClient(SpyderPluginV2):
             return {}
 
         if options["client_keys"]:
-            passpharse = self.get_conf(f"{config_id}/passpharse", secure=True)
+            passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
             options["client_keys"] = [options["client_keys"]]
 
             # Passphrase is optional
-            if passpharse:
-                options["passpharse"] = passpharse
+            if passphrase:
+                options["passphrase"] = passphrase
         elif options["config"]:
             # TODO: Check how this needs to be handled
             pass
