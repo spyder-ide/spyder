@@ -306,7 +306,10 @@ class ExplorerWidget(PluginMainWidget):
 # Tests
 # =============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self, directory=None, file_associations={}):
+    def __init__(self, directory=None, file_associations=None):
+        file_associations = (
+            {} if file_associations is None else file_associations
+        )
         self.CONF_SECTION = 'explorer'
         super().__init__()
 
