@@ -44,7 +44,7 @@
   <url type="help">https://docs.spyder-ide.org</url>
   <url type="faq">https://docs.spyder-ide.org/current/faq.html</url>
   <url type="bugtracker">https://github.com/spyder-ide/spyder/issues</url>
-  <url type="donation">https://opencollective.com/spyder</url>
+  <url type="donation">https://www.spyder-ide.org/donate</url>
   <content_rating type="oars-1.1"/>
   <releases>
       <release version="v6.0.4" date="2025-02-06"/>
