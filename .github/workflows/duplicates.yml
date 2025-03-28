@@ -124,5 +124,11 @@ jobs:
                "reply": "Thanks for reporting. You need to manually update Spyder to fix this problem.<br><br>To do that, please close Spyder, open the Anaconda Prompt (on Windows) or a terminal (on macOS or Linux) and run there<br><br>`conda install spyder=6.0.3`",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "AttributeError: module 'libmambapy' has no attribute 'QueryFormat'",
+               "reply": "Thanks for reporting. This problem is caused by a bug in the update process of our installers.<br><br>The only solution to fix it is for you to uninstall Spyder and manually install 6.0.5. That way Spyder will work again without any issues. You can download that version from:<br><br>https://github.com/spyder-ide/spyder/releases/tag/v6.0.5<br><br>We're really sorry for the inconvenience.",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
