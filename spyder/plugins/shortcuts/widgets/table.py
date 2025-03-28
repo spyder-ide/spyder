@@ -19,7 +19,7 @@ from qtpy.QtGui import QIcon, QKeySequence, QRegularExpressionValidator
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QKeySequenceEdit,
                             QLabel, QLayout, QLineEdit, QMessageBox,
-                            QPushButton, QSpacerItem, QVBoxLayout)
+                            QPushButton, QSpacerItem, QVBoxLayout, QStyle)
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
@@ -98,7 +98,7 @@ class ShortcutLineEdit(QLineEdit):
 
         tw = self.fontMetrics().width(
             "Ctrl+Shift+Alt+Backspace, Ctrl+Shift+Alt+Backspace")
-        fw = self.style().pixelMetric(self.style().PM_DefaultFrameWidth)
+        fw = self.style().pixelMetric(QStyle.PixelMetric.PM_DefaultFrameWidth)
         self.setMinimumWidth(tw + (2 * fw) + 4)
         # We need to add 4 to take into account the horizontalMargin of the
         # line edit, whose value is hardcoded in qt.
