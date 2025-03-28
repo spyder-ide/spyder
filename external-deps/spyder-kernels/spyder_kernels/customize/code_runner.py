@@ -287,6 +287,7 @@ class SpyderCodeRunner(Magics):
             return
 
         # Here the remote filename has been used. It must now be valid locally.
+        original_filename = filename
         filename = canonic_filename
 
         with NamespaceManager(
@@ -313,7 +314,7 @@ class SpyderCodeRunner(Magics):
             if wdir is not None:
                 if wdir is True:
                     # True means use file dir
-                    wdir = os.path.dirname(filename)
+                    wdir = os.path.dirname(original_filename)
                 if os.path.isdir(wdir):
                     os.chdir(wdir)
 
