@@ -42,7 +42,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _(
             "It was not possible to create a copy of the variable in the "
-            "kernel to pass it to Spyder."
+            "kernel to pass it to Spyder. the variable can't be pickled"
         )
         reason_dead = _("The kernel is dead")
         reason_other = _(
