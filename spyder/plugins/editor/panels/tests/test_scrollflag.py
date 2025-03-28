@@ -235,7 +235,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # While the alt key is pressed, click with the mouse in the middle of the
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its middle range position.
-    with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
+    with qtbot.waitSignal(editor.sig_scrollflag_shortcut_click, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
                          Qt.AltModifier, QPoint(w//2, h//2))
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
@@ -243,7 +243,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # While the alt key is pressed, click with the mouse at the top of the
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its minimum position.
-    with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
+    with qtbot.waitSignal(editor.sig_scrollflag_shortcut_click, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
                          Qt.AltModifier, QPoint(w//2, 1))
     assert vsb.value() == vsb.minimum()
@@ -251,7 +251,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # While the alt key is pressed, click with the mouse at the bottom of the
     # editor's height and assert that the editor vertical scrollbar has moved
     # to its maximum position.
-    with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
+    with qtbot.waitSignal(editor.sig_scrollflag_shortcut_click, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
                          Qt.AltModifier, QPoint(w//2, h-1))
     assert vsb.value() == vsb.maximum()
