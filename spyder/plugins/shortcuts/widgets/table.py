@@ -660,7 +660,6 @@ class ShortcutsTable(HoverRowsTableView):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.selectionModel().selectionChanged.connect(self.selection)
 
         self.verticalHeader().hide()
 
@@ -686,11 +685,6 @@ class ShortcutsTable(HoverRowsTableView):
         """Qt Override."""
         super(ShortcutsTable, self).focusInEvent(e)
         self.selectRow(self.currentIndex().row())
-
-    def selection(self, index):
-        """Update selected row."""
-        self.update()
-        self.isActiveWindow()
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -842,7 +836,6 @@ class ShortcutsTable(HoverRowsTableView):
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""
         self.show_editor()
-        self.update()
 
 
 class ShortcutsSortFilterProxy(QSortFilterProxyModel):
