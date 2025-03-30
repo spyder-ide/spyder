@@ -430,7 +430,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             )
 
             widget = self.current_widget()
-            if self.is_current_widget_empty() or widget is None:
+            if self.is_current_widget_error_message() or widget is None:
                 search_action.setEnabled(False)
                 post_mortem = False
                 executing = False
@@ -534,7 +534,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def switch_widget(self, widget, old_widget):
         """Set the current FramesBrowser."""
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             sw = widget.shellwidget
             state = sw.is_waiting_pdb_input()
             self.sig_pdb_state_changed.emit(state)
@@ -598,7 +598,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         next call.
         """
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return False
         widget.shellwidget._pdb_take_focus = take_focus
 
@@ -606,14 +606,14 @@ class DebuggerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Show or hide finder."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return
         widget.toggle_finder(checked)
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return False
         sw = widget.shellwidget
         if sw is not None:
@@ -623,7 +623,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return None, None
         sw = widget.shellwidget
         if sw is not None:

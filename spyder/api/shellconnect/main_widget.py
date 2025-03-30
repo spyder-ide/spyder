@@ -199,7 +199,7 @@ class ShellConnectMainWidget(PluginMainWidget):
             widget = self.current_widget()
             widget.refresh()
 
-    def is_current_widget_empty(self):
+    def is_current_widget_error_message(self):
         """Check if the current widget is showing an error message."""
         return isinstance(self.current_widget(), _ErroredMessageWidget)
 

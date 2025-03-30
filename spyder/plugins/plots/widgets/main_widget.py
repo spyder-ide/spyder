@@ -252,7 +252,7 @@ class PlotsWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         figviewer = None
 
-        if widget and not self.is_current_widget_empty():
+        if widget and not self.is_current_widget_error_message():
             figviewer = widget.figviewer
             value = figviewer.figcanvas.fig is not None
 
@@ -419,7 +419,7 @@ class PlotsWidget(ShellConnectMainWidget):
         Add a plot to the figure browser with the given shellwidget, if any.
         """
         fig_browser = self.get_widget_for_shellwidget(shellwidget)
-        if fig_browser and not self.is_current_widget_empty():
+        if fig_browser and not self.is_current_widget_error_message():
             fig_browser.add_figure(fig, fmt)
 
     def remove_plot(self):

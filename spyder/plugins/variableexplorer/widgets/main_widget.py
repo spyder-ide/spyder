@@ -467,7 +467,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update the actions."""
-        if self.is_current_widget_empty():
+        if self.is_current_widget_error_message():
             self._set_main_toolbar_state(False)
             return
         else:
@@ -562,19 +562,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         Import data in current namespace.
         """
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=filenames)
 
     def save_data(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.save_data()
             self.update_actions()
 
     def reset_namespace(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.reset_namespace()
 
@@ -582,7 +582,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Hide or show the finder."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return
         widget.toggle_finder(checked)
 
@@ -593,7 +593,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         action.setChecked(False)
 
     def refresh_table(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.refresh_table()
 
@@ -657,7 +657,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     @property
     def _current_editor(self):
         editor = None
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             editor = nsb.editor
         return editor
