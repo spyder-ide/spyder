@@ -1075,6 +1075,13 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                 Plugins.Editor,
             ]
 
+        # This is necessary because the visible state of dockable plugins is
+        # not set correctly for all of them at startup. So, we make it False
+        # first for all of them to then set it to True only for those that were
+        # visible during the last session.
+        for plugin in self.get_dockable_plugins():
+            plugin.change_visibility(False)
+
         # Restore visible plugins
         for plugin in visible_plugins:
             plugin_class = self.get_plugin(plugin, error=False)
@@ -1084,7 +1091,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                 and plugin_class.dockwidget is not None
                 and plugin_class.dockwidget.isVisible()
             ):
-                plugin_class.dockwidget.raise_()
+                plugin_class.change_visibility(True, force_focus=False)
 
     def save_visible_plugins(self):
         """Save visible plugins."""
