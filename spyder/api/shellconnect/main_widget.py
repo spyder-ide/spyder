@@ -35,7 +35,8 @@ class _ErroredMessageWidget(PaneEmptyWidget):
             description=_(
                 "The current console has no active kernel, so there is no "
                 "content to show here"
-            )
+            ),
+            adjust_on_resize=True,
         )
 
         # This is necessary to show this widget in case ShellConnectMainWidget
@@ -177,6 +178,10 @@ class ShellConnectMainWidget(PluginMainWidget):
             self._shellwidgets.pop(shellwidget_id)
 
         widget = _ErroredMessageWidget(self, shellwidget)
+        widget.set_visibility(self.is_visible)
+        if self.dockwidget is not None:
+            self.dockwidget.visibilityChanged.connect(widget.set_visibility)
+
         self.set_content_widget(widget)
         self._shellwidgets[shellwidget_id] = widget
         self.set_shellwidget(shellwidget)

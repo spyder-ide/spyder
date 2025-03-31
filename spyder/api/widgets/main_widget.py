@@ -395,6 +395,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 self.IMAGE_WHEN_EMPTY,
                 self.MESSAGE_WHEN_EMPTY,
                 self.DESCRIPTION_WHEN_EMPTY,
+                adjust_on_resize=True,
             )
 
             self._stack = QStackedWidget(self)
@@ -1001,6 +1002,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             pass
 
         self.is_visible = enable
+
+        if self.SHOW_MESSAGE_WHEN_EMPTY:
+            self._pane_empty.set_visibility(self.is_visible)
 
         # TODO: Pending on plugin migration that uses this
         # if getattr(self, 'DISABLE_ACTIONS_WHEN_HIDDEN', None):

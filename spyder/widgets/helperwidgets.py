@@ -58,6 +58,7 @@ from qtpy.QtWidgets import (
     QFrame,
     QItemDelegate,
 )
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
@@ -577,26 +578,37 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         middle_stretch: int = 1,
         bottom_stretch: int = 0,
         spinner: bool = False,
+        adjust_on_resize: bool = False,
     ):
         super().__init__(parent)
 
         # Attributes
+        self._adjust_on_resize = adjust_on_resize
         self._is_shown = False
         self._spin = None
+        self._min_height = None
+        self._is_visible = False
+
+        # This is necessary to make Qt reduce the all widgets size on vertical
+        # resizes
+        if self._adjust_on_resize:
+            self.setMinimumHeight(150)
 
         interface_font_size = self.get_font(
             SpyderFontType.Interface).pointSize()
 
         # Image (icon)
+        self._image_label = None
         if icon_filename:
-            image_label = QLabel(self)
-            image_label.setPixmap(
+            self._image_label = QLabel(self)
+            self._image_label.setPixmap(
                 self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
             )
-            image_label.setAlignment(Qt.AlignCenter)
+            self._image_label.setAlignment(Qt.AlignCenter)
+
             image_label_qss = qstylizer.style.StyleSheet()
             image_label_qss.QLabel.setValues(border="0px")
-            image_label.setStyleSheet(image_label_qss.toString())
+            self._image_label.setStyleSheet(image_label_qss.toString())
 
         # Main text
         if text is not None:
@@ -631,7 +643,7 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
 
         # Add the image_label (icon)
         if icon_filename is not None:
-            pane_empty_layout.addWidget(image_label)
+            pane_empty_layout.addWidget(self._image_label)
 
         # Display spinner if requested
         if spinner:
@@ -661,7 +673,7 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             pane_empty_layout.addWidget(description_label)
 
         pane_empty_layout.addStretch(bottom_stretch)
-        pane_empty_layout.setContentsMargins(20, 0, 20, 20)
+        pane_empty_layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(pane_empty_layout)
 
         # Setup border style
@@ -677,6 +689,20 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         """
         pass
 
+    def set_visibility(self, visible):
+        """Adjustments when the widget's visibility changes."""
+        self._is_visible = visible
+
+        if self._adjust_on_resize and self._image_label is not None:
+            if visible:
+                if (
+                    self._min_height is not None
+                    and self.height() >= self._min_height
+                ):
+                    self._image_label.show()
+            else:
+                self._image_label.hide()
+
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def showEvent(self, event):
@@ -684,6 +710,9 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         if not self._is_shown:
             self._start_spinner()
             self._is_shown = True
+
+            if self._adjust_on_resize and self._min_height is None:
+                self._min_height = self.minimumSizeHint().height()
 
         super().showEvent(event)
 
@@ -700,6 +729,11 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     def focusOutEvent(self, event):
         self._apply_stylesheet(False)
         super().focusOutEvent(event)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self._adjust_on_resize:
+            self._on_resize_event()
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -731,6 +765,22 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         """Stop spinner when requested, in case the widget has one."""
         if self._spin is not None:
             self._spin.stop()
+
+    @qdebounced(timeout=30)
+    def _on_resize_event(self):
+        """Actions to take when widget is resized."""
+        if self._image_label is not None:
+            # We need to do this validations because sometimes minimumSizeHint
+            # doesn't give the right min_height in showEvent (e.g. when adding
+            # an _ErroredMessageWidget to plugins that are not visible).
+            if self._min_height < self.minimumSizeHint().height():
+                self._min_height = self.minimumSizeHint().height()
+
+            if self.height() <= self._min_height:
+                self._image_label.hide()
+            else:
+                if self._is_visible:
+                    self._image_label.show()
 
 
 class HoverRowsTableView(QTableView):
