@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import logging
 import os.path as osp
 
 # Third party imports
@@ -26,6 +27,8 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
+
+logger = logging.getLogger(__name__)
 
 
 class Explorer(SpyderDockablePlugin):
@@ -284,10 +287,14 @@ class Explorer(SpyderDockablePlugin):
         remoteclient = self.get_plugin(Plugins.RemoteClient, error=False)
         if not remoteclient:
             return
+        from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
         if server_id not in self._file_managers:
             self._file_managers[server_id] = remoteclient.get_file_api(server_id)()
             await self._file_managers[server_id].connect()
-        return await self._file_managers[server_id].ls(path)
+        try:
+            return await self._file_managers[server_id].ls(path)
+        except RemoteOSError as error:
+            logger.info(error)
 
     # ---- Public API
     # ------------------------------------------------------------------------

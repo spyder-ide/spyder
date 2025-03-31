@@ -572,7 +572,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         logger.info(f"Caller name: {calframe[1][3]}")
-        logger.info(f"Attempt to change cwd: {dirname}")
         # if self.ipyclient.hostname is not None:
         #     # Only sync for local kernels
         #     return
@@ -587,6 +586,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
+        logger.info(f"Attempt to change cwd: {dirname}")
         self.set_kernel_configuration("cwd", dirname)
 
         if emit_cwd_change:
@@ -696,6 +696,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         * We do it for performance reasons because we call this method when
           switching consoles to update the Working Directory toolbar.
         """
+        # TODO: should an actual call for the kernel cwd be done when no value is available?
         return self._kernel_configuration.get("cwd", '')
 
     def update_state(self, state):
@@ -703,7 +704,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         New state received from kernel.
         """
         cwd = state.pop("cwd", None)
-        if cwd and self.get_cwd() and cwd != self.get_cwd():
+        if cwd and cwd != self.get_cwd():
             # Only set it if self.get_cwd() is already set
             self._kernel_configuration["cwd"] = cwd
             self.sig_working_directory_changed.emit(cwd, self.server_id)
