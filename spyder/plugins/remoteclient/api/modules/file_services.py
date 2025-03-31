@@ -368,12 +368,13 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
             data.get("tracebacks", []),
         )
 
-    async def ls(self, path: Path, detail: bool = True):
+    async def ls(self, path: Path, *, detail: bool = True):
         async with self.session.get(
             self.api_url / "ls" / f"file://{path}",
             params={"detail": str(detail).lower()},
         ) as response:
-            return await response.json()
+            async for line in response.content:
+                yield json.loads(line)
 
     async def info(self, path: Path):
         async with self.session.get(
@@ -400,7 +401,11 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
             return await response.json()
 
     async def mkdir(
-        self, path: Path, create_parents: bool = True, exist_ok: bool = False
+        self,
+        path: Path,
+        *,
+        create_parents: bool = True,
+        exist_ok: bool = False
     ):
         async with self.session.post(
             self.api_url / "mkdir" / f"file://{path}",

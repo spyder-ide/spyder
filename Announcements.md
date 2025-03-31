@@ -1,34 +1,32 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.4 is released!
+**Subject**: [ANN] Spyder 6.0.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.4** has been released and is available for
+I'm pleased to announce that Spyder **6.0.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes eight weeks after version 6.0.3 and it contains the
-following new feature, important fixes and API changes:
+This release comes seven weeks after version 6.0.4 and it contains the
+following new features and important fixes:
 
-* Add command line option to connect to an existing kernel at startup.
-* Display a button to select an entire row when hovering it in the Variable Explorer.
-* Fix error in debugger with Python 3.12.5+ (`_pdbcmd_print_frame_status is not defined` message).
-* Improve messages shown when a variable can't be viewed due to a missing module.
-* Add validations when doing color theme changes.
-* Fix error when executing in a dedicated console with an interpreter without a valid version of `spyder-kernels` installed.
-* Fix setting run configurations per file for multiple runners (e.g. the IPython console and Debugger).
-* Fix errors related to the update logic of our standalone installers.
-* Make shortcuts that control the Debugger global again.
-* Show debugger buttons in the main toolbar while executing code in debugging mode.
-* Restore functionality to select a custom interpreter from the statusbar.
-* Fix thumbnails keyboard navigation in the Plots pane when their order changes.
-* Handle keyring backend not being available.
-* Add `give_focus` kwarg to the `create_client_for_kernel` method of the
-  IPython console plugin.
+* Add option to the Projects options menu to disable file searches in the Switcher.
+* Support displaying environments with the same name in the IPython Console `New console in environment` menu.
+* Fix `Check for updates at startup` option when an update is declined.
+* Remove `mamba` from Spyder installers.
+* Several improvements to the Variable Explorer messages shown when a variable can't be displayed.
+* Prevent error in `Connect to an existing kernel` dialog when the connection file doesn't exist.
+* Several fixes related to the Run plugin and working directory options used to run and debug files.
+* Fix conda executable validation when creating kernels and improve feedback in case it's not found.
+* Add message related to support for Pixi environments when starting kernels.
+* Improve message related to loading the Spyder icon theme not being possible.
+* Prevent Spyder softlock when lossing focus while the tour is being shown.
+* Fixes to better handle errors when trying to load `.spydata` files in the Variable Explorer.
+* Fix Editor code folding and indent guides for cloned editors.
 
-In this release we fixed 24 issues and merged 38 pull requests. For a full
+In this release we fixed 28 issues and merged 43 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
