@@ -439,9 +439,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
-        passpharse = self.create_lineedit(
-            text=_("Passpharse"),
-            option=f"{self.host_id}/passpharse",
+        passphrase = self.create_lineedit(
+            text=_("Passphrase"),
+            option=f"{self.host_id}/passphrase",
             tip=(
                 _("Your passphrase will be saved securely by Spyder")
                 if self.NEW_CONNECTION
@@ -473,7 +473,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
         keyfile_layout.addWidget(keyfile)
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        keyfile_layout.addWidget(passpharse)
+        keyfile_layout.addWidget(passphrase)
         keyfile_layout.addSpacing(7 * AppStyle.MarginSize)
         keyfile_layout.addWidget(validation_label)
         keyfile_layout.addStretch()
@@ -687,7 +687,7 @@ class ConnectionPage(BaseConnectionPage):
             self.remove_option(f"{self.host_id}/{option}")
 
         # Remove secure options
-        for secure_option in ["password", "passpharse"]:
+        for secure_option in ["password", "passphrase"]:
             # One of these options was saved securely and other as empty in our
             # config system, so we try to remove them both.
             for secure in [True, False]:

@@ -38,6 +38,7 @@ AIOHTTP_REQVER = '>=3.9.3'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
+BCRYPT_REQVER = ">=4.3.0"
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
@@ -114,6 +115,10 @@ DESCRIPTIONS = [
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
+    {'modname': "bcrypt",
+     'package_name': "bcrypt",
+     'features': _("Decrypt passphrase of SSH key files"),
+     'required_version': BCRYPT_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
      'features': _("Character encoding auto-detection for the Editor"),
