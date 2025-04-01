@@ -337,9 +337,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             return
         self.max_min_col = []
         for __, col in self.df.items():
-            # This is necessary to catch an error in Pandas when computing
+            # This is necessary to catch some errors in Pandas when computing
             # the maximum of a column.
-            # Fixes spyder-ide/spyder#17145
+            # Fixes spyder-ide/spyder#17145 and spyder-ide/spyder#24094
             try:
                 if (
                     is_any_real_numeric_dtype(col.dtype)
@@ -357,8 +357,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
                         max_min = [vmax, vmin - 1]
                 else:
                     max_min = None
-            except TypeError:
+            except (TypeError, ValueError):
                 max_min = None
+
             self.max_min_col.append(max_min)
 
     def get_format_spec(self) -> str:
