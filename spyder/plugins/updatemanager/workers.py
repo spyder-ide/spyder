@@ -6,6 +6,7 @@
 
 # Standard library imports
 from __future__ import annotations  # noqa; required for typing in Python 3.8
+from hashlib import sha256
 import logging
 import os
 import os.path as osp
@@ -57,6 +58,11 @@ OS_ERROR_MSG = _(
     "<br><br>The error was:<br><br><i>{error}</i>"
 )
 
+GH_HEADERS = {"Accept": "application/vnd.github+json"}
+_token = os.getenv('GITHUB_TOKEN')
+if running_in_ci() and _token:
+    GH_HEADERS.update(Authorization=f"Bearer {_token}")
+
 
 class UpdateType:
     """Enum with the different update types."""
@@ -81,8 +87,11 @@ class AssetInfo(TypedDict):
     # Download URL for the asset.
     url: str
 
-    # File size
-    size: int
+    # Checksum url
+    checksum_url: str
+
+    # File sha256 checksum
+    checksum: str
 
 
 def get_github_releases() -> dict[Version, dict]:
@@ -98,17 +107,42 @@ def get_github_releases() -> dict[Version, dict]:
         "https://api.github.com/repos/spyder-ide/spyder/releases"
         "?per_page=20&page=1"
     )
-    headers = {}
-    token = os.getenv('GITHUB_TOKEN')
-    if running_in_ci() and token:
-        headers.update(Authorization=f"Bearer {token}")
-
     logger.info(f"Getting release info from {url}")
-    page = requests.get(url, headers=headers)
+    page = requests.get(url, headers=GH_HEADERS)
     page.raise_for_status()
     data = page.json()
 
     return {parse(item['tag_name']): item for item in data}
+
+
+def get_asset_checksum(url: str, name: str) -> str | None:
+    """
+    Get the checksum for the provided asset.
+
+    Parameters
+    ----------
+    url : str
+        Url to the checksum asset
+    name : str
+        Name of the asset for which to obtain the checksum
+
+    Returns
+    -------
+    checksum : str | None
+        Checksum for the provided asset. None is returned if the checksum is
+        not available for the provided asset name.
+    """
+    logger.info(f"Getting checksum from {url}")
+    page = requests.get(url, headers=GH_HEADERS)
+    page.raise_for_status()
+
+    digest = page.text.strip().split("\n")
+    data = {k: v for v, k in [item.split() for item in digest]}
+    checksum = data.get(name, None)
+
+    logger.info(f"Checksum for {name}: {checksum}")
+
+    return checksum
 
 
 def get_asset_info(release_info: dict) -> None | AssetInfo:
@@ -119,7 +153,7 @@ def get_asset_info(release_info: dict) -> None | AssetInfo:
     Parameters
     ----------
     release_info: dict
-        Release information on Github
+        Release information from Github for a single release
 
     Returns
     -------
@@ -146,19 +180,37 @@ def get_asset_info(release_info: dict) -> None | AssetInfo:
     else:
         ext = '.zip'
 
-    asset_info = None
+    asset_info = AssetInfo(version=release, update_type=update_type)
     for asset in release_info["assets"]:
         if asset["name"].endswith(ext):
-            asset_info = AssetInfo(
-                version=release,
+            asset_info.update(
                 filename=asset["name"],
-                update_type=update_type,
-                url=asset["browser_download_url"],
-                size=asset["size"]
+                url=asset["browser_download_url"]
             )
+        if asset["name"] == "Spyder-checksums.txt":
+            asset_info.update(
+                checksum_url=asset["browser_download_url"]
+            )
+        if asset_info.get("url") and asset_info.get("checksum_url"):
             break
 
+    if asset_info.get("url") is None or asset_info.get("checksum_url") is None:
+        # Both assets are required
+        asset_info = None
+
     return asset_info
+
+
+def validate_download(file, checksum):
+    with open(file, "rb") as f:
+        _checksum = sha256()
+        while chunk := f.read(8192):
+            _checksum.update(chunk)
+
+    valid = checksum == _checksum.hexdigest()
+    logger.debug(f"Valid {file}: {valid}")
+
+    return valid
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -166,7 +218,7 @@ class UpdateDownloadCancelledException(Exception):
     pass
 
 
-class UpdateDownloadIncompleteError(Exception):
+class UpdateDownloadError(Exception):
     """Error occured while downloading file"""
     pass
 
@@ -232,7 +284,7 @@ class WorkerUpdate(BaseWorker):
             releases = {
                 k: v for k, v in releases.items() if not k.is_prerelease
             }
-        logger.debug(f"Available versions: {sorted(releases)}")
+        logger.debug(f"Available releases: {sorted(releases)}")
 
         latest_release = max(releases) if releases else CURRENT_VERSION
         update_available = CURRENT_VERSION < latest_release
@@ -245,25 +297,30 @@ class WorkerUpdate(BaseWorker):
         # If the asset is not available, then check the next latest
         # release, and so on until either a new asset is available or there
         # is no update available.
-        asset_available = False
-        while update_available and not asset_available:
+        while update_available:
             asset_info = get_asset_info(releases.get(latest_release))
 
             if asset_info is not None:
-                # The asset is available
-                logger.debug(f"Asset available for url: {asset_info['url']}")
-                asset_available = True
-            else:
-                # The asset is not available
-                logger.debug(f"Asset not available: {latest_release}")
-                asset_available = False
-                releases.pop(latest_release)
+                # The asset is available, now get checksum.
+                checksum = get_asset_checksum(
+                    asset_info["checksum_url"], asset_info["filename"]
+                )
+                if checksum is not None:
+                    asset_info.update(checksum=checksum)
+                    logger.debug(f"Asset available: {latest_release}")
+                    break
+                else:
+                    asset_info = None
 
-                latest_release = max(releases) if releases else CURRENT_VERSION
-                update_available = CURRENT_VERSION < latest_release
+            # The asset is not available
+            logger.debug(f"Asset not available: {latest_release}")
+            releases.pop(latest_release)
 
-                logger.debug(f"Latest release: {latest_release}")
-                logger.debug(f"Update available: {update_available}")
+            latest_release = max(releases) if releases else CURRENT_VERSION
+            update_available = CURRENT_VERSION < latest_release
+
+            logger.debug(f"Latest release: {latest_release}")
+            logger.debug(f"Update available: {update_available}")
 
         self.asset_info = asset_info
 
@@ -381,12 +438,6 @@ class WorkerDownloadInstaller(BaseWorker):
             r.raise_for_status()
 
             size = int(r.headers["content-length"])
-            exp_size = self.asset_info["size"]
-            if exp_size != size:
-                raise UpdateDownloadIncompleteError(
-                    f"Download error: size = {size} bytes; "
-                    f"expected {exp_size} bytes"
-                )
             self._progress_reporter(0, size)
 
             with open(self.installer_path, 'wb') as f:
@@ -397,17 +448,14 @@ class WorkerDownloadInstaller(BaseWorker):
                     f.write(chunk)
                     self._progress_reporter(size_read, size)
 
-        if size_read == exp_size:
+        if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
 
             if self.installer_path.endswith('.zip'):
                 with ZipFile(self.installer_path, 'r') as f:
                     f.extractall(dirname)
         else:
-            raise UpdateDownloadIncompleteError(
-                "Download incomplete: retrieved only "
-                f"{size_read} out of {size} bytes."
-            )
+            raise UpdateDownloadError("Download failed!")
 
     def _clean_installer_dir(self):
         """Remove downloaded file"""
