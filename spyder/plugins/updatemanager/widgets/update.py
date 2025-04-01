@@ -26,6 +26,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.updatemanager.workers import (
+    validate_download,
     WorkerUpdate,
     WorkerDownloadInstaller
 )
@@ -258,11 +259,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         logger.info(f"Update type: {self.asset_info['update_type']}")
 
-    def _verify_installer_path(self):
+    def _validate_download(self):
         update_downloaded = False
         if osp.exists(self.installer_path):
-            update_downloaded = (
-                self.asset_info["size"] == osp.getsize(self.installer_path)
+            update_downloaded = validate_download(
+                self.installer_path, self.asset_info["checksum"]
             )
 
         logger.debug(f"Update already downloaded: {update_downloaded}")
@@ -282,7 +283,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self._set_installer_path()
         version = self.asset_info["version"]
 
-        if self._verify_installer_path():
+        if self._validate_download():
             self.set_status(DOWNLOAD_FINISHED)
             self._confirm_install()
         elif not is_conda_based_app():
