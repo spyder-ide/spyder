@@ -22,6 +22,7 @@ from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 logging.basicConfig()
 
 workers.get_github_releases = lru_cache(workers.get_github_releases)
+workers.get_asset_checksum = lru_cache(workers.get_asset_checksum)
 
 
 @pytest.fixture(autouse=True)
@@ -59,7 +60,7 @@ def test_updates(qtbot, mocker, caplog, version, channel):
 
     um = UpdateManagerWidget(None)
     um.start_check_update()
-    qtbot.waitUntil(um.update_thread.isFinished)
+    qtbot.waitUntil(um.update_thread.isFinished, timeout=10000)
 
     if version.split('.')[0] == '1':
         assert um.update_worker.asset_info is not None
