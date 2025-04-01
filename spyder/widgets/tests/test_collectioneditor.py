@@ -25,7 +25,7 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QDateEdit, QMessageBox, QWidget
+from qtpy.QtWidgets import QDateEdit, QLineEdit, QMessageBox, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
@@ -741,6 +741,43 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
                                      editor_tup.model().index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
+
+
+@pytest.mark.parametrize(
+    'exponent, error_expected',
+    [(32_766, False), (32_767, True)]
+)
+def test_edit_large_int(monkeypatch, exponent, error_expected):
+    """
+    Test editing large int values either works or displays an error.
+
+    Regression test for spyder-ide/spyder#21751.
+    """
+    num = 10 ** exponent + 1
+    editor = CollectionsEditorTableView(None, [num])
+    index = editor.model().index(0, 3)
+
+    with patch(
+        'spyder.plugins.variableexplorer.widgets'
+        '.collectionsdelegate.QLineEdit'
+    ) as MockQLineEdit:
+        with patch(
+            'spyder.plugins.variableexplorer.widgets'
+            '.collectionsdelegate.QMessageBox'
+        ) as MockQMessageBox:
+            editor.delegate.createEditor(None, None, index)
+
+    if error_expected:
+        MockQLineEdit.assert_not_called()
+        MockQMessageBox.assert_called_once()
+    else:
+        MockQLineEdit.assert_called_once()
+        MockQMessageBox.assert_not_called()
+
+        line_edit_instance = Mock(spec=QLineEdit)
+        editor.delegate.setEditorData(line_edit_instance, index)
+        expected = '1' + (exponent - 1) * '0' + '1'
+        line_edit_instance.setText.assert_called_once_with(expected)
 
 
 @flaky(max_runs=3)
