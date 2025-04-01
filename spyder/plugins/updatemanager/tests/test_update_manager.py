@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 import os
+from functools import lru_cache
 import logging
 from packaging.version import parse
 
@@ -13,12 +14,14 @@ import pytest
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
 from spyder.plugins.updatemanager.workers import (
-    UpdateType, get_asset_info, WorkerUpdate, HTTP_ERROR_MSG
+    UpdateType, get_asset_info, WorkerUpdate
 )
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 
 logging.basicConfig()
+
+workers.get_github_releases = lru_cache(workers.get_github_releases)
 
 
 @pytest.fixture(autouse=True)
@@ -57,14 +60,6 @@ def test_updates(qtbot, mocker, caplog, version, channel):
     um = UpdateManagerWidget(None)
     um.start_check_update()
     qtbot.waitUntil(um.update_thread.isFinished)
-
-    if um.update_worker.error:
-        # Possible 403 error - rate limit error, was encountered while doing
-        # the tests
-        # Check error message corresponds to the status code and exit early to
-        # prevent failing the test
-        assert um.update_worker.error == HTTP_ERROR_MSG.format(status_code="403")
-        return
 
     if version.split('.')[0] == '1':
         assert um.update_worker.asset_info is not None

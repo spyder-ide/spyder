@@ -6,7 +6,6 @@
 
 # Standard library imports
 from __future__ import annotations  # noqa; required for typing in Python 3.8
-from datetime import datetime as dt
 import logging
 import os
 import os.path as osp
@@ -59,23 +58,6 @@ OS_ERROR_MSG = _(
 )
 
 
-def _rate_limits(page):
-    """Log rate limits for GitHub.com"""
-    if page.headers.get('Server') != 'GitHub.com':
-        return
-
-    xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
-    msg_items = [
-        "Rate Limits:",
-        f"Resource:  {page.headers['X-RateLimit-Resource']}",
-        f"Reset:     {xrlr}",
-        f"Limit:     {page.headers['X-RateLimit-Limit']:>5s}",
-        f"Used:      {page.headers['X-RateLimit-Used']:>5s}",
-        f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
-    ]
-    logger.debug("\n\t".join(msg_items))
-
-
 class UpdateType:
     """Enum with the different update types."""
 
@@ -123,7 +105,6 @@ def get_github_releases() -> dict[Version, dict]:
 
     logger.info(f"Getting release info from {url}")
     page = requests.get(url, headers=headers)
-    _rate_limits(page)
     page.raise_for_status()
     data = page.json()
 
