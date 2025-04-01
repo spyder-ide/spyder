@@ -191,7 +191,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
-        self.treewidget.hide()
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
         self.set_content_widget(self.treewidget)
@@ -860,11 +859,16 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def _clear(self):
         """Show an empty view"""
-        self.show_empty_message()
+        if self.get_conf("show_message_when_panes_are_empty", section="main"):
+            super().show_empty_message()
+        else:
+            # This removes the widget's contents to show an empty pane
+            self.treewidget.set_root_path("")
 
     def _setup_project(self, directory):
         """Setup project"""
-        self.show_content_widget()
+        if self.get_conf("show_message_when_panes_are_empty", section="main"):
+            self.show_content_widget()
 
         # Setup the directory shown by the tree
         self._set_project_dir(directory)

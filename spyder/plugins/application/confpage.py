@@ -109,6 +109,11 @@ class ApplicationConfigPage(PluginConfigPage):
         # --- Panes
         interface_group = QGroupBox(_("Panes"))
 
+        empty_messages_box = newcb(
+            _("Show friendly message when some panes are empty"),
+            'show_message_when_panes_are_empty',
+            restart=True
+        )
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs', restart=True)
         margin_box = newcb(_("Custom margin for panes:"),
@@ -145,6 +150,7 @@ class ApplicationConfigPage(PluginConfigPage):
 
         # Layout interface
         interface_layout = QVBoxLayout()
+        interface_layout.addWidget(empty_messages_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)

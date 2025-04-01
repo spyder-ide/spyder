@@ -383,7 +383,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
 
         # Create a stacked layout when the widget displays an empty message
-        if self.SHOW_MESSAGE_WHEN_EMPTY:
+        if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
+            "show_message_when_panes_are_empty", section="main"
+        ):
             if not self.MESSAGE_WHEN_EMPTY:
                 raise SpyderAPIError(
                     "You need to provide a message to show when the widget is "
@@ -816,10 +818,18 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             Whether to add this widget to stacked widget that holds the empty
             message.
         """
+        self._content_widget = widget
+
         if self._stack is not None:
-            self._content_widget = widget
             if add_to_stack:
                 self._stack.addWidget(self._content_widget)
+        else:
+            # This is necessary to automatically set a layout for Find or the
+            # Profiler when the user disables empty messages in Preferences.
+            if self.SET_LAYOUT_WHEN_EMPTY:
+                layout = QVBoxLayout()
+                layout.addWidget(self._content_widget)
+                self.setLayout(layout)
 
     def show_content_widget(self):
         """
@@ -834,7 +844,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     def show_empty_message(self):
         """Show the empty message widget."""
-        if self.SHOW_MESSAGE_WHEN_EMPTY:
+        if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
+            "show_message_when_panes_are_empty", section="main"
+        ):
             self._stack.setCurrentWidget(self._pane_empty)
 
     # ---- SpyderWindowWidget handling
@@ -1003,7 +1015,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         self.is_visible = enable
 
-        if self.SHOW_MESSAGE_WHEN_EMPTY:
+        if (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+            # We need to do this validation to prevent errors after changing
+            # the option above in Preferences and restarting Spyder.
+            and self._pane_empty is not None
+        ):
             self._pane_empty.set_visibility(self.is_visible)
 
         # TODO: Pending on plugin migration that uses this

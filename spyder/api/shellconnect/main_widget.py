@@ -59,7 +59,12 @@ class ShellConnectMainWidget(PluginMainWidget):
         super().__init__(*args, **kwargs)
 
         # Widgets
-        if not self.SHOW_MESSAGE_WHEN_EMPTY:
+        if not (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+        ):
             self._stack = QStackedWidget(self)
 
             if set_layout:
@@ -153,7 +158,13 @@ class ShellConnectMainWidget(PluginMainWidget):
             return
 
         self.set_content_widget(widget, add_to_stack=False)
-        if self.SHOW_MESSAGE_WHEN_EMPTY and widget.is_empty:
+        if (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+            and widget.is_empty
+        ):
             self.show_empty_message()
         else:
             self.show_content_widget()
