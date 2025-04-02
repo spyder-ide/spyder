@@ -124,9 +124,9 @@ class InAppAppealStatus(BaseTimerStatus):
             if not self._appeal_dialog.isVisible():
                 self._appeal_dialog.show()
         except QtModuleNotInstalledError:
-            # QtWebEngineWidgets is optional
-            # So just open the URL in the default browser
-            # See https://github.com/spyder-ide/spyder/pull/23703
+            # QtWebEngineWidgets is optional, so just open the URL in the
+            # default browser.
+            # See spyder-ide/spyder#24905 for the details.
             import webbrowser
             webbrowser.open("https://opencollective.com/spyder")
             pass
