@@ -9,8 +9,10 @@
 # Standard library imports
 import os.path as osp
 import datetime
+import webbrowser
 
 # Third-party imports
+from qtpy import QtModuleNotInstalledError
 from qtpy.QtCore import Qt, QUrl
 from qtpy.QtWidgets import QDialog, QVBoxLayout
 
@@ -116,7 +118,6 @@ class InAppAppealStatus(BaseTimerStatus):
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_appeal(self):
-        from qtpy import QtModuleNotInstalledError
         try:
             if self._appeal_dialog is None:
                 self._appeal_dialog = InAppAppealDialog(self)
@@ -127,7 +128,6 @@ class InAppAppealStatus(BaseTimerStatus):
             # QtWebEngineWidgets is optional, so just open the URL in the
             # default browser.
             # See spyder-ide/spyder#24905 for the details.
-            import webbrowser
             webbrowser.open("https://opencollective.com/spyder")
             pass
 
