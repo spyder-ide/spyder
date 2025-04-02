@@ -183,3 +183,8 @@ jobs:
         with:
           fail_ci_if_error: false
           verbose: true
+      # Note: This will remove qtwebengine so make sure it's done last!
+      - name: Ensure QtWebEngine is optional
+        run: xvfb-run --auto-servernum .github/scripts/remove_check_qtwebengine.sh
+        shell: bash -l {0}
+        if: matrix.INSTALL_TYPE == 'pip' && matrix.TEST_TYPE == 'fast'
