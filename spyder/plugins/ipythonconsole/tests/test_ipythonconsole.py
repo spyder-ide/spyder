@@ -2516,13 +2516,16 @@ def test_filter_frames_in_tracebacks(ipyconsole, qtbot, tmp_path):
     assert "BdbQuit" not in control.toPlainText()
 
 
-def test_lowercase_wdir(ipyconsole, qtbot, tmp_path):
+def test_case__sensitive_wdir(ipyconsole, qtbot, tmp_path):
+    """Test that we preserve case sensitive working directories."""
 
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
     qtbot.waitUntil(
         lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
     )
+
+    # Create case sensitive directory
     dir_a = tmp_path / 'SensitiveCaseA'
     dir_a.mkdir()
     filename_a = dir_a / 'a.py'
@@ -2536,16 +2539,18 @@ def test_lowercase_wdir(ipyconsole, qtbot, tmp_path):
     with qtbot.waitSignal(shell.executed):
         shell.execute(f"%runfile {fname} --wdir {fdir}")
 
+    # Clear console
     with qtbot.waitSignal(shell.executed):
         shell.execute("%clear")
 
+    empty_console_text = '\n\nIn [3]: ' if os.name == "nt" else '\nIn [3]: '
+    qtbot.waitUntil(lambda: empty_console_text == shell._control.toPlainText())
+    # Check we preserved the case sensitive working directory.
     with qtbot.waitSignal(shell.executed):
         shell.execute("%pwd")
 
-
     assert "SensitiveCaseA" in control.toPlainText()
     assert "sensitivecasea" not in control.toPlainText()
-
 
 
 if __name__ == "__main__":
