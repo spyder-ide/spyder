@@ -95,7 +95,8 @@ class AssetInfo(TypedDict):
 
 
 def get_github_releases(
-    tags: str | tuple[str] | None = None
+    tags: str | tuple[str] | None = None,
+    updater: bool = False
 ) -> dict[Version, dict]:
     """
     Get Github release information
@@ -106,13 +107,17 @@ def get_github_releases(
         If tags is provided, only release information for the requested tags
         is retrieved. Otherwise, the most recent 20 releases are retrieved.
         This is only used to retrieve a known set of releases for unit testing.
+    updater : bool (False)
+        Whether to get Updater releases (True) or Spyder releases (False).
 
     Returns
     -------
     releases : dict[packaging.version.Version, dict]
         Dictionary of release information.
     """
-    url = "https://api.github.com/repos/spyder-ide/spyder/releases"
+    url = "https://api.github.com/repos/{}/releases".format(
+        "spyder-ide/spyder-updater" if updater else "spyder-ide/spyder"
+    )
 
     if tags is None:
         # Get 20 most recent releases
