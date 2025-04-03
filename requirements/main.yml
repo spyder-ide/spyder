@@ -25,6 +25,7 @@ dependencies:
   - keyring >=17.0.0
   - nbconvert >=4.0
   - numpydoc >=0.6.0
+  - packaging >=20.0
   - parso >=0.7.0,<0.9.0
   - pexpect >=4.4.0
   - pickleshare >=0.4
@@ -46,7 +47,6 @@ dependencies:
   - qtconsole >=5.6.1,<5.7.0
   - qtpy >=2.4.0
   - rtree >=0.9.7
-  - setuptools >=49.6.0
   - sphinx >=0.6.6
   - spyder-kernels >=3.0.3,<3.1.0
   - superqt >=0.6.2,<1.0.0
