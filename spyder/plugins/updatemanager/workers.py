@@ -94,23 +94,46 @@ class AssetInfo(TypedDict):
     checksum: str
 
 
-def get_github_releases() -> dict[Version, dict]:
+def get_github_releases(
+    tags: str | tuple[str] | None = None
+) -> dict[Version, dict]:
     """
     Get Github release information
+
+    Parameters
+    ----------
+    tags : str | tuple[str] | (None)
+        If tags is provided, only release information for the requeste tags
+        is retrieved. Otherwise, the most recent 20 releases are retrieved.
+        This is only used to retrieve a known set of releases for unit testing.
 
     Returns
     -------
     releases : dict[packaging.version.Version, dict]
         Dictionary of release information.
     """
-    url = (
-        "https://api.github.com/repos/spyder-ide/spyder/releases"
-        "?per_page=20&page=1"
-    )
-    logger.info(f"Getting release info from {url}")
-    page = requests.get(url, headers=GH_HEADERS)
-    page.raise_for_status()
-    data = page.json()
+    url = "https://api.github.com/repos/spyder-ide/spyder/releases"
+    if tags is None:
+        # Get 20 most recent releases
+        url += "?per_page=20&page=1"
+        logger.info(f"Getting release info from {url}")
+        page = requests.get(url, headers=GH_HEADERS)
+        page.raise_for_status()
+        data = page.json()
+    else:
+        # Get specified releases
+        tags = [tags] if isinstance(tags, str) else tags
+        url += "/tags/"
+
+        data = []
+        with requests.Session() as session:
+            session.headers = GH_HEADERS
+            logger.info(f"Getting release info for {tags}")
+            for tag in tags:
+                _url = url + tag
+                page = session.get(_url)
+                page.raise_for_status()
+                data.append(page.json())
 
     return {parse(item['tag_name']): item for item in data}
 
