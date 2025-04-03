@@ -7,6 +7,7 @@
 """Editor config page."""
 
 from itertools import combinations
+import sys
 
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout, QDialog, QDialogButtonBox, QWidget,
@@ -16,6 +17,7 @@ from qtpy.QtCore import Qt, Signal
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
@@ -473,20 +475,27 @@ class MouseShortcutEditor(QDialog):
         )
         self.column_cursor_shortcut.sig_changed.connect(self.validate)
         layout.addWidget(self.column_cursor_shortcut)
-
-        button_box = QDialogButtonBox(self)
-        apply_b = button_box.addButton(QDialogButtonBox.StandardButton.Apply)
+        
+        buttons = (
+            QDialogButtonBox.StandardButton.Apply |
+            QDialogButtonBox.StandardButton.Ok |
+            QDialogButtonBox.StandardButton.Cancel
+        )
+        button_box = SpyderDialogButtonBox(buttons, parent=self)
+        apply_b = button_box.button(QDialogButtonBox.StandardButton.Apply)
         apply_b.clicked.connect(self.apply_mouse_shortcuts)
         apply_b.setEnabled(False)
         self.apply_button = apply_b
 
-        ok_b = button_box.addButton(QDialogButtonBox.StandardButton.Ok)
+        ok_b = button_box.button(QDialogButtonBox.StandardButton.Ok)
         ok_b.clicked.connect(self.accept)
         self.ok_button = ok_b
 
-        cancel_b = button_box.addButton(QDialogButtonBox.StandardButton.Cancel)
+        cancel_b = button_box.button(QDialogButtonBox.StandardButton.Cancel)
         cancel_b.clicked.connect(self.reject)
         layout.addWidget(button_box)
+        
+        self.setLayout(layout)
 
     def apply_mouse_shortcuts(self):
         """Set new config to CONF"""
@@ -558,7 +567,7 @@ class ShortcutSelector(QWidget):
     def __init__(self, parent, label, modifiers):
         super().__init__(parent)
 
-        layout = QHBoxLayout(self)
+        layout = QHBoxLayout()
 
         label = QLabel(label)
         layout.addWidget(label)
