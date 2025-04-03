@@ -48,6 +48,7 @@ class ExplorerWidgetActions:
     Next = 'next_action'
     Parent = 'parent_action'
     Previous = 'previous_action'
+    Refresh = 'refresh_action'
 
 
 # ---- Main widget
@@ -192,7 +193,8 @@ class ExplorerWidget(PluginMainWidget):
 
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
-        self.remote_treewidget.sig_dir_opened.connect(self._do_remote_sig_dir_opened)
+        self.remote_treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        self.remote_treewidget.sig_stop_spinner_requested.connect(self.stop_spinner)
         self.treewidget.sig_file_created.connect(self.sig_file_created)
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
@@ -240,6 +242,12 @@ class ExplorerWidget(PluginMainWidget):
             text=_("Parent"),
             icon=self.create_icon('up'),
             triggered=self.go_to_parent_directory
+        )
+        self.refresh_action = self.create_action(
+            ExplorerWidgetActions.Refresh,
+            text=_("Refresh"),
+            icon=self.create_icon('refresh'),
+            triggered=lambda: self.refresh(force_current=True)
         )
 
         # Toolbuttons
@@ -291,6 +299,7 @@ class ExplorerWidget(PluginMainWidget):
         for item in [self.previous_action,
                      self.next_action,
                      self.parent_action,
+                     self.refresh_action,
                      self.filter_button]:
             self.add_item_to_toolbar(
                 item, toolbar=toolbar,
@@ -299,21 +308,6 @@ class ExplorerWidget(PluginMainWidget):
     def update_actions(self):
         """Handle the update of actions of the plugin."""
         pass
-
-    # ---- Private API
-    # ------------------------------------------------------------------------
-    @AsyncDispatcher.QtSlot
-    def _on_remote_ls(self, future):
-        data = future.result()
-        logger.info(data)
-        self.remote_treewidget.import_data(data)
-        self.stop_spinner()
-
-    def _do_remote_sig_dir_opened(self, path, server_id, emit=True):
-        self.start_spinner()
-        self._plugin._do_remote_ls(path, server_id).connect(self._on_remote_ls)
-        if emit:
-            self.sig_dir_opened.emit(path, server_id)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -332,9 +326,11 @@ class ExplorerWidget(PluginMainWidget):
             self.treewidget.chdir(directory, emit=emit)
             self.stackwidget.setCurrentWidget(self.treewidget)
         else:
+            self.start_spinner()
             logger.info(f"Request ls for {server_id} at {directory}")
-            self._do_remote_sig_dir_opened(directory, server_id, emit=False)
-            self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit)
+            self._plugin._get_remote_files_manager(server_id).connect(
+                lambda future: self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit, remote_files_manager=future.result())
+            )
             self.stackwidget.setCurrentWidget(self.remote_treewidget)
 
     def get_current_folder(self):

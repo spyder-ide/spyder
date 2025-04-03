@@ -179,6 +179,8 @@ class Explorer(SpyderDockablePlugin):
 
     def on_initialize(self):
         self._file_managers = {}
+        self.extra_files = []
+        self.background_load = set()
         widget = self.get_widget()
 
         # Expose widget signals on the plugin
@@ -283,18 +285,14 @@ class Explorer(SpyderDockablePlugin):
     # ---- Private API
     # ------------------------------------------------------------------------
     @AsyncDispatcher(loop="explorer")
-    async def _do_remote_ls(self, path, server_id):
+    async def _get_remote_files_manager(self, server_id):
         remoteclient = self.get_plugin(Plugins.RemoteClient, error=False)
         if not remoteclient:
             return
-        from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
         if server_id not in self._file_managers:
             self._file_managers[server_id] = remoteclient.get_file_api(server_id)()
             await self._file_managers[server_id].connect()
-        try:
-            return await self._file_managers[server_id].ls(path)
-        except RemoteOSError as error:
-            logger.info(error)
+        return self._file_managers[server_id]
 
     # ---- Public API
     # ------------------------------------------------------------------------
