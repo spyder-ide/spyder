@@ -3147,11 +3147,11 @@ class EditorMainWidget(PluginMainWidget):
             else:
                 text, offsets, line_cols, enc = editorstack.get_selection()
 
-            # Don't advance line if the selection includes multiple lines. That
+            # Don't advance line if there is text selected in the editor. That
             # was the behavior in Spyder 5 and users are accustomed to it.
-            # Fixes spyder-ide/spyder#22060
-            eol = self.get_current_editor().get_line_separator()
-            if extra_action_name == ExtraAction.Advance and not (eol in text):
+            # Fixes spyder-ide/spyder#22060 and spyder-ide/spyder#24091
+            has_selection = self.get_current_editor().has_selected_text()
+            if extra_action_name == ExtraAction.Advance and not has_selection:
                 editorstack.advance_line()
 
             context_name = 'Selection'

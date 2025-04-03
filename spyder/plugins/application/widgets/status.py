@@ -9,8 +9,10 @@
 # Standard library imports
 import os.path as osp
 import datetime
+import webbrowser
 
 # Third-party imports
+from qtpy import QtModuleNotInstalledError
 from qtpy.QtCore import Qt, QUrl
 from qtpy.QtWidgets import QDialog, QVBoxLayout
 
@@ -23,7 +25,6 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
 from spyder.utils.stylesheet import WIN
-from spyder.widgets.browser import WebView
 
 
 class InAppAppealDialog(QDialog, SpyderFontsMixin):
@@ -52,6 +53,7 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
             "index.html",
         )
 
+        from spyder.widgets.browser import WebView
         # Create webview to render the appeal message
         webview = WebView(self, handle_links=True)
 
@@ -116,11 +118,18 @@ class InAppAppealStatus(BaseTimerStatus):
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_appeal(self):
-        if self._appeal_dialog is None:
-            self._appeal_dialog = InAppAppealDialog(self)
+        try:
+            if self._appeal_dialog is None:
+                self._appeal_dialog = InAppAppealDialog(self)
 
-        if not self._appeal_dialog.isVisible():
-            self._appeal_dialog.show()
+            if not self._appeal_dialog.isVisible():
+                self._appeal_dialog.show()
+        except QtModuleNotInstalledError:
+            # QtWebEngineWidgets is optional, so just open the URL in the
+            # default browser.
+            # See spyder-ide/spyder#24905 for the details.
+            webbrowser.open("https://opencollective.com/spyder")
+            pass
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------

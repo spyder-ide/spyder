@@ -358,18 +358,17 @@ class FilesRESTMixin:
         if path.is_file():
             # fsspec.ls of a file often returns a single entry
             if detail:
-                return [self._info_for_path(path)]
-
-            return [str(path)]
+                yield self._info_for_path(path)
+            else:
+                yield str(path)
+            return
 
         # Otherwise, it's a directory
-        results = []
         for p in path.glob("*"):
             if detail:
-                results.append(self._info_for_path(p))
+                yield self._info_for_path(p)
             else:
-                results.append(str(p))
-        return results
+                yield str(p)
 
     def fs_info(self, path_str: str):
         """Get info about a single path, like fsspec.info()."""
