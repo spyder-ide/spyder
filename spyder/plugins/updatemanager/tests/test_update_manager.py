@@ -23,6 +23,14 @@ logging.basicConfig()
 
 workers.get_github_releases = lru_cache(workers.get_github_releases)
 workers.get_asset_checksum = lru_cache(workers.get_asset_checksum)
+_tags = (
+    "v6.0.5", "v6.0.5rc1", "v6.1.0a1", "v6.0.4",
+    "v6.0.4rc1", "v6.0.3", "v6.0.3rc2", "v6.0.3rc1",
+    "v6.0.2", "v6.0.2rc1", "v6.0.1", "v6.0.0",
+    "v5.5.6", "v6.0.0rc2", "v6.0.0rc1", "v6.0.0b3",
+    "v6.0.0b2", "v5.5.5", "v6.0.0b1", "v6.0.0a5"
+)
+workers.get_github_releases(_tags)  # Run once to cache result for tests
 
 
 @pytest.fixture(autouse=True)
