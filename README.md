@@ -25,6 +25,7 @@
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
 [![Nightly conda-based installers](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml/badge.svg)](https://github.com/spyder-ide/spyder/actions/workflows/installers-conda.yml?query=branch%3Amaster)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/spyder-ide/spyder/badge)](https://scorecard.dev/viewer/?uri=github.com/spyder-ide/spyder)
 
 ## Try Spyder online
 
