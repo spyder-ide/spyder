@@ -69,7 +69,7 @@ def test_updates(qtbot, mocker, caplog, version, channel):
 
 
 @pytest.mark.parametrize("version", ["4.0.0a1", "4.0.0"])
-@pytest.mark.parametrize("release", ["6.0.0", "6.0.0b3"])
+@pytest.mark.parametrize("release", ["6.0.0", "6.0.0rc1"])
 @pytest.mark.parametrize("stable_only", [True, False])
 def test_update_non_stable(qtbot, mocker, version, release, stable_only):
     """Test we offer unstable updates."""
