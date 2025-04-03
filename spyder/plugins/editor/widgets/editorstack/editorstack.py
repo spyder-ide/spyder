@@ -355,10 +355,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
-        self.mouse_shortcuts = {'jump_to_position': 'Alt',
-                                'goto_definition': 'Ctrl',
-                                'add_remove_cursor': 'Ctrl+Alt',
-                                'column_cursor': 'Ctrl+Alt+Shift'}
+        self.mouse_shortcuts = {
+            'jump_to_position': 'Alt',
+            'goto_definition': 'Ctrl',
+            'add_remove_cursor': 'Ctrl+Alt',
+            'column_cursor': 'Ctrl+Alt+Shift'
+        }
 
         # Set default color scheme
         color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'

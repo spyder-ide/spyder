@@ -474,8 +474,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.__cursor_changed = False
         self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
+
+        # Init mouse_shortcuts to default values
         self.mouse_shortcuts = None
-        # init mouse_shortcuts to default values
         self.set_mouse_shortcuts(None)
 
         self._bookmarks_blocks = {}
@@ -1146,7 +1147,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def set_mouse_shortcuts(self, shortcuts):
         """Apply mouse_shortcuts from CONF"""
-
         ctrl = Qt.KeyboardModifier.ControlModifier
         alt = Qt.KeyboardModifier.AltModifier
         shift = Qt.KeyboardModifier.ShiftModifier
@@ -1165,6 +1165,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 if not value:
                     self.mouse_shortcuts[key] = None
                     continue
+
                 modifiers = Qt.KeyboardModifier.NoModifier
                 if "ctrl" in value.lower():
                     modifiers |= ctrl
@@ -1174,6 +1175,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                     modifiers |= shift
                 if "meta" in value.lower():
                     modifiers |= meta
+
                 self.mouse_shortcuts[key] = modifiers
 
     def sync_font(self):
@@ -4500,7 +4502,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         pos = event.pos()
         self._last_point = pos
-
         modifiers = event.modifiers()
 
         if modifiers == self.mouse_shortcuts['jump_to_position']:
@@ -4514,8 +4515,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 return
 
         if (
-                self.go_to_definition_enabled and
-                modifiers == self.mouse_shortcuts['goto_definition']
+            self.go_to_definition_enabled and
+            modifiers == self.mouse_shortcuts['goto_definition']
         ):
             if self._handle_goto_definition_event(pos):
                 event.accept()
@@ -4571,29 +4572,32 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         # Handle adding cursors
         if (
-                self.multi_cursor_enabled and left_button and
-                modifiers == self.mouse_shortcuts['add_remove_cursor']
+            self.multi_cursor_enabled and left_button and
+            modifiers == self.mouse_shortcuts['add_remove_cursor']
         ):
             self.add_remove_cursor(event)
 
         elif (
-                self.multi_cursor_enabled and left_button and
-                modifiers == self.mouse_shortcuts['column_cursor']
+            self.multi_cursor_enabled and left_button and
+            modifiers == self.mouse_shortcuts['column_cursor']
         ):
             self.add_column_cursor(event)
 
         # Handle jump (scrollflag click)
-        elif (left_button and
-              modifiers == self.mouse_shortcuts['jump_to_position']):
-
+        elif (
+            left_button
+            and modifiers == self.mouse_shortcuts['jump_to_position']
+        ):
             self.sig_scrollflag_shortcut_click.emit(event)
 
         # Handle goto definition
-        elif (left_button and
-              modifiers == self.mouse_shortcuts['goto_definition']):
-
+        elif (
+            left_button
+            and modifiers == self.mouse_shortcuts['goto_definition']
+        ):
             self.clear_extra_cursors()
             TextEditBaseWidget.mousePressEvent(self, event)
+
             uri = self._last_hover_pattern_text
             if uri:
                 self.go_to_uri_from_cursor(uri)

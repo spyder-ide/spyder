@@ -294,6 +294,7 @@ class ScrollFlagArea(Panel):
                 modifiers |= Qt.KeyboardModifier.ShiftModifier
             if self._meta_key_is_down:
                 modifiers |= Qt.KeyboardModifier.MetaModifier
+
         mouse_modifiers = editor.mouse_shortcuts['jump_to_position']
         modifiers_held = modifiers == mouse_modifiers
 

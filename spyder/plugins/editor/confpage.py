@@ -349,10 +349,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_group = QGroupBox(_("Multi-Cursor"))
         multicursor_label = QLabel(
             _("Enable adding multiple cursors for simultaneous editing. "
-              "Additional cursors are added and removed using the \"Add / "
-              "Remove Cursor\" shortcut. A column of cursors can be added "
-              "using the \"Add Column Cursor\" shortcut. Mouse shortcuts "
-              "can be configured in the advanced editor settings.")
+              "Additional cursors and a column of cursors can be added using "
+              "the mouse shortcuts that can be configured below.")
         )
         multicursor_label.setWordWrap(True)
         multicursor_box = newcb(
@@ -365,10 +363,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_group.setLayout(multicursor_layout)
 
         # -- Mouse Shortcuts
-        mouse_shortcuts_group = QGroupBox(_("Mouse Shortcuts"))
+        mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
         mouse_shortcuts_button = self.create_button(
             lambda: MouseShortcutEditor(self).exec_(),
-            _("Edit Mouse Shortcut Modifiers")
+            _("Edit mouse shortcut modifiers")
         )
 
         mouse_shortcuts_layout = QVBoxLayout()
@@ -431,14 +429,22 @@ class MouseShortcutEditor(QDialog):
         super().__init__(parent)
         self.editor_config_page = parent
         mouse_shortcuts = CONF.get('editor', 'mouse_shortcuts')
-        self.setWindowFlags(self.windowFlags() &
-                            ~Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        )
 
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
+
+        description = QLabel(
+            "Here you can configure shortcuts that are triggered by one or "
+            "more key modifiers and a left mouse click"
+        )
+        description.setWordWrap(True)
+        layout.addWidget(description)
 
         self.scrollflag_shortcut = ShortcutSelector(
             self,
-            _("Jump Within Document"),
+            _("Jump within the document in the scroll flags area"),
             mouse_shortcuts['jump_to_position']
         )
         self.scrollflag_shortcut.sig_changed.connect(self.validate)
@@ -446,7 +452,7 @@ class MouseShortcutEditor(QDialog):
 
         self.goto_def_shortcut = ShortcutSelector(
             self,
-            _("Goto Definition"),
+            _("Go to a code definition"),
             mouse_shortcuts['goto_definition']
         )
         self.goto_def_shortcut.sig_changed.connect(self.validate)
@@ -454,7 +460,7 @@ class MouseShortcutEditor(QDialog):
 
         self.add_cursor_shortcut = ShortcutSelector(
             self,
-            _("Add / Remove Cursor"),
+            _("Add/remove an additional cursor"),
             mouse_shortcuts['add_remove_cursor']
         )
         self.add_cursor_shortcut.sig_changed.connect(self.validate)
@@ -462,7 +468,7 @@ class MouseShortcutEditor(QDialog):
 
         self.column_cursor_shortcut = ShortcutSelector(
             self,
-            _("Add Column Cursor"),
+            _("Add a column of cursors"),
             mouse_shortcuts['column_cursor']
         )
         self.column_cursor_shortcut.sig_changed.connect(self.validate)
@@ -473,18 +479,20 @@ class MouseShortcutEditor(QDialog):
         apply_b.clicked.connect(self.apply_mouse_shortcuts)
         apply_b.setEnabled(False)
         self.apply_button = apply_b
+
         ok_b = button_box.addButton(QDialogButtonBox.StandardButton.Ok)
         ok_b.clicked.connect(self.accept)
         self.ok_button = ok_b
+
         cancel_b = button_box.addButton(QDialogButtonBox.StandardButton.Cancel)
         cancel_b.clicked.connect(self.reject)
         layout.addWidget(button_box)
 
     def apply_mouse_shortcuts(self):
         """Set new config to CONF"""
-
-        self.editor_config_page.set_option('mouse_shortcuts',
-                                           self.mouse_shortcuts)
+        self.editor_config_page.set_option(
+            'mouse_shortcuts', self.mouse_shortcuts
+        )
         self.scrollflag_shortcut.apply_modifiers()
         self.goto_def_shortcut.apply_modifiers()
         self.add_cursor_shortcut.apply_modifiers()
@@ -493,7 +501,6 @@ class MouseShortcutEditor(QDialog):
 
     def accept(self):
         """Apply new settings and close dialog."""
-
         self.apply_mouse_shortcuts()
         super().accept()
 
@@ -535,11 +542,12 @@ class MouseShortcutEditor(QDialog):
     @property
     def mouse_shortcuts(self):
         """Format shortcuts dict for CONF."""
-
-        return {'jump_to_position': self.scrollflag_shortcut.modifiers(),
-                'goto_definition': self.goto_def_shortcut.modifiers(),
-                'add_remove_cursor': self.add_cursor_shortcut.modifiers(),
-                'column_cursor': self.column_cursor_shortcut.modifiers()}
+        return {
+            'jump_to_position': self.scrollflag_shortcut.modifiers(),
+            'goto_definition': self.goto_def_shortcut.modifiers(),
+            'add_remove_cursor': self.add_cursor_shortcut.modifiers(),
+            'column_cursor': self.column_cursor_shortcut.modifiers()
+        }
 
 
 class ShortcutSelector(QWidget):
@@ -556,13 +564,14 @@ class ShortcutSelector(QWidget):
         layout.addWidget(label)
 
         spacer = QWidget(self)
-        spacer.setSizePolicy(QSizePolicy.Policy.Expanding,
-                             QSizePolicy.Policy.Preferred)
+        spacer.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
         layout.addWidget(spacer)
 
-        # TODO _() translate these checkboxes?
-        # TODO rename based on OS? (CONF strings should stay the same)
-        self.ctrl_check = QCheckBox("Ctrl")
+        self.ctrl_check = QCheckBox(
+            "Cmd" if sys.platform == "darwin" else "Ctrl"
+        )
         self.ctrl_check.setChecked("ctrl" in modifiers.lower())
         self.ctrl_check.toggled.connect(self.validate)
         layout.addWidget(self.ctrl_check)
@@ -588,6 +597,7 @@ class ShortcutSelector(QWidget):
             warning_icon,
             warning_icon
         )
+
         # Thanks to https://stackoverflow.com/a/34663079/3220135
         sp_retain = self.warning.sizePolicy()
         sp_retain.setRetainSizeWhenHidden(True)
@@ -606,14 +616,12 @@ class ShortcutSelector(QWidget):
         checkbox accordingly. (Re)Emit a signal to MouseShortcutEditor which
         will perform other validation.
         """
-
         if (
             self.ctrl_check.isChecked() or
             self.alt_check.isChecked() or
             self.meta_check.isChecked()
         ):
             self.shift_check.setEnabled(True)
-
         else:
             self.shift_check.setEnabled(False)
             self.shift_check.setChecked(False)
@@ -622,7 +630,6 @@ class ShortcutSelector(QWidget):
 
     def modifiers(self):
         """Get the current modifiers string."""
-
         modifiers = []
         if self.ctrl_check.isChecked():
             modifiers.append("Ctrl")
