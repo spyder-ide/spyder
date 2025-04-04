@@ -6,12 +6,13 @@
 
 # Standard library imports
 from __future__ import annotations  # noqa; required for typing in Python 3.8
-from datetime import datetime as dt
+from hashlib import sha256
 import logging
 import os
 import os.path as osp
 import platform
 import shutil
+from subprocess import run
 import sys
 from time import sleep
 import traceback
@@ -27,13 +28,18 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_conda_based_app, running_in_ci
-from spyder.utils.conda import get_spyder_conda_channel
+from spyder.config.base import (
+    _, is_conda_based_app, running_in_ci, get_updater_version
+)
+from spyder.utils.conda import get_spyder_conda_channel, find_conda
+from spyder.utils.programs import get_temp_dir
 
 # Logger setup
 logger = logging.getLogger(__name__)
 
 CURRENT_VERSION = parse(__version__)
+
+UPDATER_VERSION = parse(get_updater_version())
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -58,21 +64,10 @@ OS_ERROR_MSG = _(
     "<br><br>The error was:<br><br><i>{error}</i>"
 )
 
-def _rate_limits(page):
-    """Log rate limits for GitHub.com"""
-    if page.headers.get('Server') != 'GitHub.com':
-        return
-
-    xrlr = dt.utcfromtimestamp(int(page.headers['X-RateLimit-Reset']))
-    msg_items = [
-        "Rate Limits:",
-        f"Resource:  {page.headers['X-RateLimit-Resource']}",
-        f"Reset:     {xrlr}",
-        f"Limit:     {page.headers['X-RateLimit-Limit']:>5s}",
-        f"Used:      {page.headers['X-RateLimit-Used']:>5s}",
-        f"Remaining: {page.headers['X-RateLimit-Remaining']:>5s}",
-    ]
-    logger.debug("\n\t".join(msg_items))
+GH_HEADERS = {"Accept": "application/vnd.github+json"}
+_token = os.getenv('GITHUB_TOKEN')
+if running_in_ci() and _token:
+    GH_HEADERS.update(Authorization=f"Bearer {_token}")
 
 
 class UpdateType:
@@ -86,6 +81,9 @@ class UpdateType:
 class AssetInfo(TypedDict):
     """Schema for asset information."""
 
+    # Version
+    version: Version
+
     # Filename with extension of the release asset to download.
     filename: str
 
@@ -95,51 +93,209 @@ class AssetInfo(TypedDict):
     # Download URL for the asset.
     url: str
 
+    # Checksum url
+    checksum_url: str
 
-def get_asset_info(release: str | Version) -> AssetInfo:
+    # File sha256 checksum
+    checksum: str
+
+
+def get_github_releases(
+    tags: str | tuple[str] | None = None,
+    updater: bool = False
+) -> dict[Version, dict]:
     """
-    Get the name, update type, and download URL for the asset of the given
-    release.
+    Get Github release information
 
     Parameters
     ----------
-    release: str | packaging.version.Version
-        Release version
+    tags : str | tuple[str] | (None)
+        If tags is provided, only release information for the requeste tags
+        is retrieved. Otherwise, the most recent 20 releases are retrieved.
+        This is only used to retrieve a known set of releases for unit testing.
+    updater : bool (False)
+        Whether to get Updater releases (True) or Spyder releases (False).
 
     Returns
     -------
-    asset_info: AssetInfo
+    releases : dict[packaging.version.Version, dict]
+        Dictionary of release information.
+    """
+    url = "https://api.github.com/repos/spyder-ide/{}/releases".format(
+        "spyder-updater" if updater else "spyder"
+    )
+
+    if tags is None:
+        # Get 20 most recent releases
+        url += "?per_page=20&page=1"
+        logger.info(f"Getting release info from {url}")
+        page = requests.get(url, headers=GH_HEADERS)
+        page.raise_for_status()
+        data = page.json()
+    else:
+        # Get specified releases
+        tags = [tags] if isinstance(tags, str) else tags
+        url += "/tags/"
+
+        data = []
+        with requests.Session() as session:
+            session.headers = GH_HEADERS
+            logger.info(f"Getting release info for {tags}")
+            for tag in tags:
+                _url = url + tag
+                page = session.get(_url)
+                page.raise_for_status()
+                data.append(page.json())
+
+    return {parse(item['tag_name']): item for item in data}
+
+
+def get_asset_checksum(url: str, name: str) -> str | None:
+    """
+    Get the checksum for the provided asset.
+
+    Parameters
+    ----------
+    url : str
+        Url to the checksum asset
+    name : str
+        Name of the asset for which to obtain the checksum
+
+    Returns
+    -------
+    checksum : str | None
+        Checksum for the provided asset. None is returned if the checksum is
+        not available for the provided asset name.
+    """
+    logger.info(f"Getting checksum from {url}")
+    page = requests.get(url, headers=GH_HEADERS)
+    page.raise_for_status()
+
+    digest = page.text.strip().split("\n")
+    data = {k: v for v, k in [item.split() for item in digest]}
+    checksum = data.get(name, None)
+
+    logger.info(f"Checksum for {name}: {checksum}")
+
+    return checksum
+
+
+def get_asset_info(release_info: dict) -> None | AssetInfo:
+    """
+    Get the version, name, update type, download URL, and size for the asset
+    of the given release.
+
+    Parameters
+    ----------
+    release_info: dict
+        Release information from Github for a single release
+
+    Returns
+    -------
+    asset_info: None | AssetInfo
         Information about the asset.
     """
-    if isinstance(release, str):
-        release = parse(release)
+    current_version = CURRENT_VERSION
+    checksum_name = "Spyder-checksums.txt"
 
-    if CURRENT_VERSION.major < release.major:
+    updater = "spyder-ide/spyder-updater" in release_info["url"]
+    if updater:
+        current_version = UPDATER_VERSION
+        checksum_name = "Spyder-Updater-checksums.txt"
+
+    release = parse(release_info["tag_name"])
+
+    if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
-    elif CURRENT_VERSION.minor < release.minor:
+    elif current_version.minor < release.minor:
         update_type = UpdateType.Minor
     else:
         update_type = UpdateType.Micro
 
-    mach = platform.machine().lower().replace("amd64", "x86_64")
-
-    if update_type == UpdateType.Major or not is_conda_based_app():
-        if os.name == 'nt':
-            plat, ext = 'Windows', 'exe'
-        if sys.platform == 'darwin':
-            plat, ext = 'macOS', 'pkg'
-        if sys.platform.startswith('linux'):
-            plat, ext = 'Linux', 'sh'
-        name = f'Spyder-{plat}-{mach}.{ext}'
+    if updater or update_type != UpdateType.Major:
+        ext = ".zip"
     else:
-        name = 'spyder-conda-lock.zip'
+        ext = platform.machine().lower().replace("amd64", "x86_64")
+        if os.name == 'nt':
+            ext += '.exe'
+        if sys.platform == 'darwin':
+            ext += '.pkg'
+        if sys.platform.startswith('linux'):
+            ext += '.sh'
 
-    url = (
-        'https://github.com/spyder-ide/spyder/releases/download/'
-        f'v{release}/{name}'
-    )
+    asset_info = AssetInfo(version=release, update_type=update_type)
+    for asset in release_info["assets"]:
+        if asset["name"].endswith(ext):
+            asset_info.update(
+                filename=asset["name"],
+                url=asset["browser_download_url"]
+            )
+        if asset["name"] == checksum_name:
+            asset_info.update(
+                checksum_url=asset["browser_download_url"]
+            )
+        if asset_info.get("url") and asset_info.get("checksum_url"):
+            break
 
-    return AssetInfo(filename=name, update_type=update_type, url=url)
+    if asset_info.get("url") is None or asset_info.get("checksum_url") is None:
+        # Both assets are required
+        asset_info = None
+
+    return asset_info
+
+
+def _check_asset_available(
+    releases: dict[Version, dict], updater: bool = False
+) -> AssetInfo | None:
+    current_version = UPDATER_VERSION if updater else CURRENT_VERSION
+
+    latest_release = max(releases) if releases else current_version
+    update_available = current_version < latest_release
+    asset_info = None
+
+    logger.debug(f"Latest release: {latest_release}")
+    logger.debug(f"Update available: {update_available}")
+
+    # Check if the asset is available for download.
+    # If the asset is not available, then check the next latest
+    # release, and so on until either a new asset is available or there
+    # is no update available.
+    while update_available:
+        asset_info = get_asset_info(releases.get(latest_release))
+
+        if asset_info is not None:
+            # The asset is available, now get checksum.
+            checksum = get_asset_checksum(
+                asset_info["checksum_url"], asset_info["filename"]
+            )
+            if checksum is not None:
+                asset_info.update(checksum=checksum)
+                logger.debug(f"Asset available: {latest_release}")
+                break
+            else:
+                asset_info = None
+
+        # The asset is not available
+        logger.debug(f"Asset not available: {latest_release}")
+        releases.pop(latest_release)
+
+        latest_release = max(releases) if releases else current_version
+        update_available = current_version < latest_release
+
+        logger.debug(f"Latest release: {latest_release}")
+        logger.debug(f"Update available: {update_available}")
+
+
+def validate_download(file, checksum):
+    with open(file, "rb") as f:
+        _checksum = sha256()
+        while chunk := f.read(8192):
+            _checksum.update(chunk)
+
+    valid = checksum == _checksum.hexdigest()
+    logger.debug(f"Valid {file}: {valid}")
+
+    return valid
 
 
 class UpdateDownloadCancelledException(Exception):
@@ -147,7 +303,7 @@ class UpdateDownloadCancelledException(Exception):
     pass
 
 
-class UpdateDownloadIncompleteError(Exception):
+class UpdateDownloadError(Exception):
     """Error occured while downloading file"""
     pass
 
@@ -155,8 +311,15 @@ class UpdateDownloadIncompleteError(Exception):
 class BaseWorker(QObject):
     """Base worker class for the updater"""
 
-    sig_ready = Signal()
-    """Signal to inform that the worker has finished."""
+    sig_ready = Signal(bool)
+    """
+    Signal to inform that the worker has finished.
+
+    Parameters
+    ----------
+    success : bool
+        Whether the worker was successful (True) or not (False).
+    """
 
     sig_exception_occurred = Signal(dict)
     """
@@ -193,104 +356,58 @@ class WorkerUpdate(BaseWorker):
     def __init__(self, stable_only):
         super().__init__()
         self.stable_only = stable_only
-        self.latest_release = None
-        self.update_available = False
+        self.asset_info = None
         self.error = None
         self.checkbox = False
         self.channel = None
 
-    def _check_update_available(
-        self,
-        releases: list[Version],
-        github: bool = True
-    ):
-        """Checks if there is an update available from releases."""
+    def _check_asset_available(self, release: None | Version):
+        """Checks if there is an asset available for release."""
+
+        # Get asset info from Github
+        releases = get_github_releases()
+
+        if release is not None:
+            # Only keep Github releases that are also available at channel url
+            releases = {k: v for k, v in releases.items() if k <= release}
+
         if self.stable_only:
             # Only use stable releases
-            releases = [r for r in releases if not r.is_prerelease]
-        logger.debug(f"Available versions: {releases}")
+            releases = {
+                k: v for k, v in releases.items() if not k.is_prerelease
+            }
+        logger.debug(f"Available releases: {sorted(releases)}")
 
-        latest_release = max(releases) if releases else CURRENT_VERSION
-        update_available = CURRENT_VERSION < latest_release
-
-        logger.debug(f"Latest release: {latest_release}")
-        logger.debug(f"Update available: {update_available}")
-
-        # Check if the asset is available for download.
-        # If the asset is not available, then check the next latest
-        # release, and so on until either a new asset is available or there
-        # is no update available.
-        if github:
-            asset_available = False
-            while update_available and not asset_available:
-                asset_info = get_asset_info(latest_release)
-                page = requests.head(asset_info['url'])
-                if page.status_code == 302:
-                    # The asset is found
-                    logger.debug(f"Asset available for url: {page.url}")
-                    asset_available = True
-                else:
-                    # The asset is not available
-                    logger.debug(
-                        "Asset not available: "
-                        f"{page.status_code} Client Error: {page.reason} "
-                        f"for url: {page.url}"
-                    )
-                    asset_available = False
-                    releases.remove(latest_release)
-
-                    latest_release = max(releases) if releases else CURRENT_VERSION
-                    update_available = CURRENT_VERSION < latest_release
-
-                    logger.debug(f"Latest release: {latest_release}")
-                    logger.debug(f"Update available: {update_available}")
-
-        self.latest_release = latest_release
-        self.update_available = update_available
+        self.asset_info = _check_asset_available(releases)
 
     def start(self):
         """Main method of the worker."""
         self.error = None
-        self.latest_release = None
-        self.update_available = False
+        self.asset_info = None
         error_msg = None
-        url = 'https://api.github.com/repos/spyder-ide/spyder/releases'
 
+        url = None
         if not is_conda_based_app():
             self.channel = "pypi"  # Default channel if not conda
             if is_conda_env(sys.prefix):
                 self.channel, channel_url = get_spyder_conda_channel()
-
-            # If Spyder is installed from defaults channel (pkgs/main), then
-            # use that channel to get updates. The defaults channel can be far
-            # behind our latest release.
-            if self.channel == "pkgs/main":
                 url = channel_url + '/channeldata.json'
-        github = "api.github.com" in url
 
-        headers = {}
-        token = os.getenv('GITHUB_TOKEN')
-        if running_in_ci() and token:
-            headers.update(Authorization=f"Bearer {token}")
-
-        logger.info(f"Checking for updates from {url}")
         try:
-            page = requests.get(url, headers=headers)
-            _rate_limits(page)
-            page.raise_for_status()
+            release = None
+            if url is not None:
+                logger.info(f"Getting release from {url}")
+                page = requests.get(url)
+                page.raise_for_status()
+                data = page.json()
 
-            data = page.json()
-            if github:
-                # Github url
-                releases = [parse(item['tag_name']) for item in data]
-            else:
-                # Conda pkgs/main url
+                # Conda pkgs/main or conda-forge url
+                # What about PyPi?
                 spyder_data = data['packages'].get('spyder')
                 if spyder_data:
-                    releases = [parse(spyder_data["version"])]
-            releases.sort()
+                    release = parse(spyder_data["version"])
 
-            self._check_update_available(releases, github)
+            self._check_asset_available(release)
 
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
@@ -299,7 +416,8 @@ class WorkerUpdate(BaseWorker):
             error_msg = CONNECT_ERROR_MSG
             logger.warning(err, exc_info=err)
         except HTTPError as err:
-            error_msg = HTTP_ERROR_MSG.format(status_code=page.status_code)
+            status_code = err.response.status_code
+            error_msg = HTTP_ERROR_MSG.format(status_code=status_code)
             logger.warning(err, exc_info=err)
         except OSError as err:
             error_msg = OS_ERROR_MSG.format(error=err)
@@ -327,6 +445,164 @@ class WorkerUpdate(BaseWorker):
                 pass
 
 
+class WorkerUpdateUpdater(BaseWorker):
+    """
+    Worker that checks and updates the Updater without blocking
+    the Spyder user interface.
+    """
+
+    def __init__(self, stable_only):
+        super().__init__()
+        self.stable_only = stable_only
+        self.asset_info = None
+        self.installer_path = None
+        self.error = None
+
+    def _check_asset_available(self):
+        """Checks if there is an update available for the Updater."""
+
+        # Get release info from Github
+        releases = get_github_releases(updater=True)
+
+        if self.stable_only:
+            # Only use stable releases
+            releases = {
+                k: v for k, v in releases.items() if not k.is_prerelease
+            }
+        logger.debug(f"Available releases: {sorted(releases)}")
+
+        self.asset_info = _check_asset_available(releases, updater=True)
+
+    def _clean_installer_dir(self):
+        """Remove downloaded file"""
+        installer_dir = osp.dirname(self.installer_path)
+        if osp.exists(installer_dir):
+            try:
+                shutil.rmtree(installer_dir)
+            except OSError as err:
+                logger.debug(err, stack_info=True)
+
+    def _download_asset(self):
+        """Download Updater lock file"""
+        self.installer_path = osp.join(
+            get_temp_dir(), "update", "spyder-updater",
+            str(self.asset_info["version"], self.asset_info["filename"])
+        )
+
+        if (
+            osp.exists(self.installer_path)
+            and validate_download(
+                self.installer_path, self.asset_info["checksum"]
+            )
+        ):
+            logger.debug(f"{self.installer_path} already downloaded.")
+            return
+
+        self._clean_installer_dir()
+        dirname = osp.dirname(self.installer_path)
+        os.makedirs(dirname, exist_ok=True)
+
+        url = self.asset_info["url"]
+        logger.info(f"Downloading {url} to {self.installer_path}")
+
+        page = requests.get(url, headers=GH_HEADERS)
+        page.raise_for_status()
+        with open(self.installer_path, 'wb') as f:
+            f.write(page.content)
+
+        if validate_download(self.installer_path, self.asset_info["checksum"]):
+            logger.info('Download successfully completed.')
+            with ZipFile(self.installer_path, 'r') as f:
+                f.extractall(dirname)
+        else:
+            raise UpdateDownloadError("Download failed!")
+
+    def _install_update(self):
+        dirname = osp.dirname(self.installer_path)
+
+        conda_exe = find_conda()
+        spy_updater_env = osp.join(osp.dirname(sys.prefix), "spyder-updater")
+
+        if os.name == "nt":
+            plat = "win-64"
+        if sys.platform == "darwin":
+            plat = "osx"
+        else:
+            plat = "linux"
+        spy_updater_lock = osp.join(dirname, f"conda-updater-{plat}.lock")
+        spy_updater_conda = osp.join(dirname, "spyder-updater*.conda")
+
+        # Check if updater environment is available
+        cmd = [conda_exe, "list", "-p", spy_updater_env]
+        proc = run(" ".join(cmd), shell=True, capture_output=True, text=True)
+
+        if proc.stderr:
+            # Updater environment does not exist; create it
+            logger.debug(proc.stderr)
+            logger.info(f"{spy_updater_env} does not exist")
+            conda_cmd = "create"
+        else:
+            # Updater environment exists; update it
+            logger.info(f"{spy_updater_env} exists")
+            conda_cmd = "update"
+
+        cmd = [
+            # Update spyder-updater environment
+            conda_exe,
+            conda_cmd,
+            "--prefix", spy_updater_env,
+            "--file", spy_updater_lock,
+            "&&",
+            # Update spyder-updater
+            conda_exe,
+            "install",
+            "--prefix", spy_updater_env,
+            "--no-deps",
+            spy_updater_conda
+        ]
+        logger.debug(f"""Conda command: '{" ".join(cmd)}'""")
+        proc = run(" ".join(cmd), shell=True, capture_output=True, text=True)
+        if proc.stderr:
+            logger.error(proc.stderr)
+            proc.check_returncode()
+
+    def start(self):
+        """Main method of the worker."""
+        self.error = None
+        self.asset_info = None
+        error_msg = None
+
+        try:
+            self._check_asset_available()
+            if self.asset_info is not None:
+                self._download_asset()
+                self._install_update()
+        except (SSLError, ConnectionError, HTTPError, OSError) as err:
+            error_msg = str(err)
+            logger.warning(err, exc_info=err)
+        except Exception as err:
+            # Send untracked errors to our error reporter
+            error_msg = str(err)
+            error_data = dict(
+                text=traceback.format_exc(),
+                is_traceback=True,
+                title="Error when checking for updates",
+            )
+            self.sig_exception_occurred.emit(error_data)
+            logger.error(err, exc_info=err)
+        finally:
+            self.error = error_msg
+
+            # At this point we **must** emit the signal below so that the
+            # "Check for updates" action in the Help menu is enabled again
+            # after the check has finished (it's disabled while the check is
+            # running).
+            try:
+                self.sig_ready.emit(error_msg is None)
+            except RuntimeError:
+                pass
+
+
 class WorkerDownloadInstaller(BaseWorker):
     """
     Worker that donwloads standalone installers for Windows, macOS,
@@ -345,11 +621,10 @@ class WorkerDownloadInstaller(BaseWorker):
         Total size of the file expected to be downloaded.
     """
 
-    def __init__(self, latest_release, installer_path, installer_size_path):
+    def __init__(self, asset_info, installer_path):
         super().__init__()
-        self.latest_release = latest_release
+        self.asset_info = asset_info
         self.installer_path = installer_path
-        self.installer_size_path = installer_size_path
         self.error = None
         self.cancelled = False
         self.paused = False
@@ -366,18 +641,17 @@ class WorkerDownloadInstaller(BaseWorker):
 
     def _download_installer(self):
         """Donwload Spyder installer."""
-        asset_info = get_asset_info(self.latest_release)
-        url = asset_info['url']
+        url = self.asset_info["url"]
         logger.info(f"Downloading {url} to {self.installer_path}")
 
+        self._clean_installer_dir()
         dirname = osp.dirname(self.installer_path)
         os.makedirs(dirname, exist_ok=True)
 
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
-            size = -1
-            if "content-length" in r.headers:
-                size = int(r.headers["content-length"])
+
+            size = int(r.headers["content-length"])
             self._progress_reporter(0, size)
 
             with open(self.installer_path, 'wb') as f:
@@ -388,19 +662,14 @@ class WorkerDownloadInstaller(BaseWorker):
                     f.write(chunk)
                     self._progress_reporter(size_read, size)
 
-        if size_read == size:
+        if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
-            with open(self.installer_size_path, "w") as f:
-                f.write(str(size))
 
             if self.installer_path.endswith('.zip'):
                 with ZipFile(self.installer_path, 'r') as f:
                     f.extractall(dirname)
         else:
-            raise UpdateDownloadIncompleteError(
-                "Download incomplete: retrieved only "
-                f"{size_read} out of {size} bytes."
-            )
+            raise UpdateDownloadError("Download failed!")
 
     def _clean_installer_dir(self):
         """Remove downloaded file"""
