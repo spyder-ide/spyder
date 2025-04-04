@@ -1377,6 +1377,12 @@ overrided by the Sympy module (e.g. plot)
                     section=ClientContextMenuSections.Clear
                 )
 
+            self.add_item_to_menu(
+                self.get_action(ClientContextMenuActions.Quit),
+                context_menu,
+                section=ClientContextMenuSections.Quit
+            )
+
         return context_menu
 
     def _banner_default(self):

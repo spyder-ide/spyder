@@ -620,6 +620,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             triggered=self._current_client_save_svg
         )
 
+        self.create_action(
+            ClientContextMenuActions.Quit,
+            _("&Quit"),
+            icon=self.create_icon('exit'),
+            triggered=self._current_client_quit)
+
         # --- Context menu
         self.create_menu(IPythonConsoleWidgetMenus.ClientContextMenu)
 
@@ -2196,6 +2202,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if client:
             action = self.get_action(ClientContextMenuActions.SaveSvg)
             save_svg(action.data(), client.shellwidget._control)
+
+    def _current_client_quit(self):
+        client = self.get_current_client()
+        if client:
+            client.exit_callback()
 
     # ---- For kernels
     # -------------------------------------------------------------------------
