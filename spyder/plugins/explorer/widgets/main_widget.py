@@ -328,8 +328,13 @@ class ExplorerWidget(PluginMainWidget):
         else:
             self.start_spinner()
             logger.info(f"Request ls for {server_id} at {directory}")
+
+            @AsyncDispatcher.QtSlot
+            def remote_ls(future):
+                self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit, remote_files_manager=future.result())
+
             self._plugin._get_remote_files_manager(server_id).connect(
-                lambda future: self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit, remote_files_manager=future.result())
+                remote_ls
             )
             self.stackwidget.setCurrentWidget(self.remote_treewidget)
 
