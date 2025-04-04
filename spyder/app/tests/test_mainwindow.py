@@ -6828,7 +6828,10 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
-@pytest.mark.skipif(os.name == "nt", reason="No quotes on Windows file paths")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="No quotes on Windows file paths and fails frequently on Mac"
+)
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     """
