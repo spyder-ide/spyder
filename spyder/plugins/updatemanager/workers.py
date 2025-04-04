@@ -27,13 +27,18 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_conda_based_app, running_in_ci
+from spyder.config.base import (
+    _, is_conda_based_app, running_in_ci, get_updater_info
+)
 from spyder.utils.conda import get_spyder_conda_channel
 
 # Logger setup
 logger = logging.getLogger(__name__)
 
 CURRENT_VERSION = parse(__version__)
+
+UPDATER_PATH, UPDATER_VERSION = get_updater_info()
+UPDATER_VERSION = parse(UPDATER_VERSION)
 
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
@@ -189,16 +194,26 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
     asset_info: AssetInfo | None
         Information about the asset.
     """
+    current_version = CURRENT_VERSION
+    checksum_name = "Spyder-checksums.txt"
+
+    updater = "spyder-updater" in release_info["url"]
+    if updater:
+        current_version = UPDATER_VERSION
+        checksum_name = "Spyder-Updater-checksums.txt"
+
     release = parse(release_info["tag_name"])
 
-    if CURRENT_VERSION.major < release.major or not is_conda_based_app():
+    if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
-    elif CURRENT_VERSION.minor < release.minor:
+    elif current_version.minor < release.minor:
         update_type = UpdateType.Minor
     else:
         update_type = UpdateType.Micro
 
-    if update_type == UpdateType.Major or not is_conda_based_app():
+    if updater or update_type != UpdateType.Major:
+        ext = ".zip"
+    else:
         ext = platform.machine().lower().replace("amd64", "x86_64")
         if os.name == 'nt':
             ext += '.exe'
@@ -206,8 +221,6 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
             ext += '.pkg'
         if sys.platform.startswith('linux'):
             ext += '.sh'
-    else:
-        ext = '.zip'
 
     asset_info = AssetInfo(version=release, update_type=update_type)
     for asset in release_info["assets"]:
@@ -216,7 +229,7 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
                 filename=asset["name"],
                 url=asset["browser_download_url"]
             )
-        if asset["name"] == "Spyder-checksums.txt":
+        if asset["name"] == checksum_name:
             asset_info.update(
                 checksum_url=asset["browser_download_url"]
             )
