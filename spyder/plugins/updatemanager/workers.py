@@ -561,9 +561,6 @@ class WorkerUpdateUpdater(BaseWorker):
         """Install or update spyder-updater environment"""
         dirname = osp.dirname(self.installer_path)
 
-        conda_exe = find_conda()
-        spy_updater_env = osp.join(osp.dirname(sys.prefix), "spyder-updater")
-
         if os.name == "nt":
             plat = "win-64"
         if sys.platform == "darwin":
@@ -573,47 +570,37 @@ class WorkerUpdateUpdater(BaseWorker):
         spy_updater_lock = osp.join(dirname, f"conda-updater-{plat}.lock")
         spy_updater_conda = osp.join(dirname, "spyder-updater*.conda")
 
-        if UPDATER_VERSION == parse("0.0.0"):
-            # Updater environment does not exist; create it
-            logger.debug(proc.stderr)
-            logger.info(f"{spy_updater_env} does not exist")
-            conda_cmd = "create"
-        else:
-            # Updater environment exists; update it
-            logger.info(f"{spy_updater_env} exists")
-            conda_cmd = "update"
-
+        conda_exe = find_conda()
+        conda_cmd = "update" if UPDATER_VERSION > parse("0.0.0") else "create"
+        env_path = osp.join(osp.dirname(sys.prefix), "spyder-updater")
         cmd = [
             # Update spyder-updater environment
             conda_exe,
             conda_cmd, "--yes",
-            "--prefix", spy_updater_env,
+            "--prefix", env_path,
             "--file", spy_updater_lock,
             "&&",
             # Update spyder-updater
             conda_exe,
             "install", "--yes",
-            "--prefix", spy_updater_env,
+            "--prefix", env_path,
             "--no-deps",
             "--force-reinstall",
             spy_updater_conda
         ]
         logger.debug(f"""Conda command: '{" ".join(cmd)}'""")
         proc = run(" ".join(cmd), shell=True, capture_output=True, text=True)
-        if proc.stderr:
-            logger.error(proc.stderr)
-            proc.check_returncode()
+        proc.check_returncode()
 
     def start(self):
         """Main method of the worker."""
         try:
             self._check_asset_available()
-            if self.asset_info is not None:
+            if self.asset_info is None and UPDATER_VERSION == parse("0.0.0"):
+                proc.check_returncode()
+            elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()
-        except (SSLError, ConnectionError, HTTPError, OSError) as err:
-            error_msg = str(err)
-            logger.warning(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
             self.error = str(err)
