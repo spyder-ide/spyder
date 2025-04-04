@@ -1835,7 +1835,7 @@ class ExplorerTreeWidget(DirView):
     File/directory explorer tree widget.
     """
 
-    sig_dir_opened = Signal(str)
+    sig_dir_opened = Signal(str, str)
     """
     This signal is emitted when the current directory of the explorer tree
     has changed.
@@ -1873,41 +1873,6 @@ class ExplorerTreeWidget(DirView):
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup(self):
-        """
-        Perform the setup of the widget.
-        """
-        super().setup()
-
-        # Actions
-        self.previous_action = self.create_action(
-            ExplorerTreeWidgetActions.Previous,
-            text=_("Previous"),
-            icon=self.create_icon('previous'),
-            triggered=self.go_to_previous_directory,
-        )
-        self.next_action = self.create_action(
-            ExplorerTreeWidgetActions.Next,
-            text=_("Next"),
-            icon=self.create_icon('next'),
-            triggered=self.go_to_next_directory,
-        )
-        self.create_action(
-            ExplorerTreeWidgetActions.Parent,
-            text=_("Parent"),
-            icon=self.create_icon('up'),
-            triggered=self.go_to_parent_directory
-        )
-
-        # Toolbuttons
-        self.filter_button = self.create_action(
-            ExplorerTreeWidgetActions.ToggleFilter,
-            text="",
-            icon=ima.icon('filter'),
-            toggled=self.change_filter_state
-        )
-        self.filter_button.setCheckable(True)
-
     def update_actions(self):
         """Update the widget actions."""
         super().update_actions()
@@ -1957,6 +1922,7 @@ class ExplorerTreeWidget(DirView):
             self.expand(index)
             self.setCurrentIndex(index)
 
+        # TODO: Logic related with actions in the toolbar should be moved to main_widget
         self.previous_action.setEnabled(False)
         self.next_action.setEnabled(False)
 
@@ -2039,7 +2005,7 @@ class ExplorerTreeWidget(DirView):
             os.chdir(directory)
             self.refresh(new_path=directory, force_current=True)
             if emit:
-                self.sig_dir_opened.emit(directory)
+                self.sig_dir_opened.emit(directory, None)
         except PermissionError:
             QMessageBox.critical(self._parent, "Error",
                                  _("You don't have the right permissions to "
