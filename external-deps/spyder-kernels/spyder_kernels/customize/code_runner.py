@@ -286,6 +286,10 @@ class SpyderCodeRunner(Magics):
             self.shell.showtraceback(exception_only=True)
             return
 
+        # We need to keep the original file name to use it when setting the
+        # working directory below.
+        original_filename = filename
+
         # Here the remote filename has been used. It must now be valid locally.
         filename = canonic_filename
 
@@ -311,9 +315,12 @@ class SpyderCodeRunner(Magics):
                     pass
 
             if wdir is not None:
+                # True means use file dir
                 if wdir is True:
-                    # True means use file dir
-                    wdir = os.path.dirname(filename)
+                    # We use the original file name to get the working
+                    # directory in order to preserve its case sensitivity.
+                    # Fixes spyder-ide/spyder#23835
+                    wdir = os.path.dirname(original_filename)
                 if os.path.isdir(wdir):
                     os.chdir(wdir)
 
