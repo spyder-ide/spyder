@@ -8,8 +8,8 @@
 # Standard library imports
 import os
 import os.path as osp
+from pathlib import Path
 import sys
-import tempfile
 import threading
 import traceback
 from unittest.mock import Mock
@@ -19,15 +19,16 @@ import psutil
 from pygments.token import Name
 import pytest
 from qtpy.QtWidgets import QMainWindow
+from spyder_kernels.utils.style import create_style_class
 
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.app.cli_options import get_options
+from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -35,7 +36,6 @@ from spyder.utils.conda import get_list_conda_envs
 # ---- Constants
 # =============================================================================
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
-TEMP_DIRECTORY = tempfile.gettempdir()
 NEW_DIR = 'new_workingdir'
 PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
@@ -58,7 +58,7 @@ def pytest_runtest_makereport(item, call):
 # ---- Utillity Functions
 # =============================================================================
 def get_console_font_color(syntax_style):
-    styles = create_style_class(syntax_style).styles
+    styles = create_style_class(get_color_scheme(syntax_style)).styles
     font_color = styles[Name]
     return font_color
 
@@ -75,7 +75,7 @@ def get_conda_test_env():
     its executable.
     """
     # Get conda env to use
-    test_env_executable = get_list_conda_envs()['conda: spytest-ž'][0]
+    test_env_executable = get_list_conda_envs()['Conda: spytest-ž'][0]
 
     # Get the env prefix
     if os.name == 'nt':
@@ -205,17 +205,45 @@ def ipyconsole(qtbot, request, tmpdir):
 
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
+
+    # Plugin setup
     console.on_initialize()
     console._register()
+    console.get_widget().matplotlib_status.register_ipythonconsole(console)
+
+    # Register handlers to run cells.
+    def get_file_code(fname, save_all=True):
+        """
+        Get code from a file.
+
+        save_all is necessary to keep consistency with the handler registered
+        in the editor.
+        """
+        path = Path(fname)
+        return path.read_text()
+
+    def get_cell(cell_id, fname):
+        """
+        Get cell code from a file.
+
+        For now this only works with unnamed cells and cell separators of the
+        form `# %%`.
+        """
+        path = Path(fname)
+        contents = path.read_text()
+        cells = contents.split("# %%")
+        return cells[int(cell_id)]
+
+    console.register_spyder_kernel_call_handler('get_file_code', get_file_code)
+    console.register_spyder_kernel_call_handler('run_cell', get_cell)
+
+    # Start client and show window
     console.create_new_client(
         special=special,
         given_name=given_name,
         path_to_custom_interpreter=path_to_custom_interpreter
     )
     window.setCentralWidget(console.get_widget())
-
-    # Set exclamation mark to True
-    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
 
     if os.name == 'nt':
         qtbot.addWidget(window)
@@ -224,6 +252,10 @@ def ipyconsole(qtbot, request, tmpdir):
         window.resize(640, 480)
         window.show()
 
+    # Set exclamation mark to True
+    configuration.set('debugger', 'pdb_use_exclamation_mark', True)
+
+    # Create new client for Matplotlb backend tests
     if auto_backend or tk_backend:
         qtbot.wait(SHELL_TIMEOUT)
         console.create_new_client()
@@ -247,8 +279,7 @@ def ipyconsole(qtbot, request, tmpdir):
                 timeout=SHELL_TIMEOUT)
     except Exception:
         # Print content of shellwidget and close window
-        print(console.get_current_shellwidget(
-            )._control.toPlainText())
+        print(console.get_current_shellwidget()._control.toPlainText())
         client = console.get_current_client()
         if client.info_page != client.blank_page:
             print('info_page')
@@ -274,8 +305,7 @@ def ipyconsole(qtbot, request, tmpdir):
     if request.node.rep_setup.passed:
         if request.node.rep_call.failed:
             # Print content of shellwidget and close window
-            print(console.get_current_shellwidget(
-                )._control.toPlainText())
+            print(console.get_current_shellwidget()._control.toPlainText())
             client = console.get_current_client()
             if client.info_page != client.blank_page:
                 print('info_page')
@@ -341,3 +371,23 @@ def ipyconsole(qtbot, request, tmpdir):
         files = [repr(f) for f in proc.open_files()]
         show_diff(init_files, files, "files")
         raise
+
+
+@pytest.fixture
+def mpl_rc_file(tmp_path):
+    """Create matplotlibrc file"""
+    file_contents = """
+figure.dpi: 99
+figure.figsize: 9, 9
+figure.subplot.bottom: 0.9
+font.size: 9
+"""
+    rc_file = str(tmp_path / 'matplotlibrc')
+    with open(rc_file, 'w') as f:
+        f.write(file_contents)
+    os.environ['MATPLOTLIBRC'] = rc_file
+
+    yield
+
+    os.environ.pop('MATPLOTLIBRC')
+    os.remove(rc_file)

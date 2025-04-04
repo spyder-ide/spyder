@@ -4,10 +4,9 @@
 import logging
 import os
 
+import whatthepatch
 from yapf.yapflib import file_resources, style
 from yapf.yapflib.yapf_api import FormatCode
-
-import whatthepatch
 
 from pylsp import hookimpl
 from pylsp._utils import get_eol_chars
@@ -23,7 +22,7 @@ def pylsp_format_document(workspace, document, options):
 
 
 @hookimpl
-def pylsp_format_range(document, range, options):  # pylint: disable=redefined-builtin
+def pylsp_format_range(document, range, options):
     log.info("Formatting document %s in range %s with yapf", document, range)
     # First we 'round' the range up/down to full lines only
     range["start"]["character"] = 0

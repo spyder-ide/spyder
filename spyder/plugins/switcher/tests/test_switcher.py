@@ -22,8 +22,7 @@ def dlg_switcher(qtbot):
     # Local import need to run tests locally
     from spyder.plugins.switcher.widgets.switcher import Switcher
 
-    dlg_switcher = Switcher(None, item_styles=None,
-                            item_separator_styles=None)
+    dlg_switcher = Switcher(None)
     dlg_switcher.add_mode('>', _('Commands'))
     dlg_switcher.add_mode('?', _('Help'))
     dlg_switcher.add_mode(':', _('Go to Line'))

@@ -35,7 +35,12 @@ class FindInFiles(SpyderDockablePlugin):
     """
     NAME = 'find_in_files'
     REQUIRES = []
-    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.MainMenu]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.Projects,
+        Plugins.MainMenu,
+        Plugins.WorkingDirectory,
+    ]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -59,7 +64,7 @@ class FindInFiles(SpyderDockablePlugin):
     def on_initialize(self):
         self.create_action(
             FindInFilesActions.FindInFiles,
-            text=_("Find in files"),
+            text=_("Search text in the Find pane"),
             tip=_("Search text in multiple files"),
             triggered=self.find,
             register_shortcut=True,
@@ -94,6 +99,13 @@ class FindInFiles(SpyderDockablePlugin):
             section=SearchMenuSections.FindInFiles
         )
 
+    @on_plugin_available(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_available(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.connect(
+            self.refresh_search_directory
+        )
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         widget = self.get_widget()
@@ -115,6 +127,13 @@ class FindInFiles(SpyderDockablePlugin):
         mainmenu.remove_item_from_application_menu(
             FindInFilesActions.FindInFiles,
             menu_id=ApplicationMenus.Search,
+        )
+
+    @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
+    def on_working_directory_teardown(self):
+        working_directory = self.get_plugin(Plugins.WorkingDirectory)
+        working_directory.sig_current_directory_changed.disconnect(
+            self.refresh_search_directory
         )
 
     def on_close(self, cancelable=False):

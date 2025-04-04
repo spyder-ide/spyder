@@ -157,6 +157,16 @@ def get_options(argv=None):
         default=None,
         help="Choose a configuration directory to use for Spyder."
     )
+    parser.add_argument(
+        '--connect-to-kernel',
+        type=str,
+        dest="connection_file",
+        default=None,
+        help=(
+            "Connect to an existing kernel whose info is available in a "
+            "kernel-*.json file"
+        )
+    )
 
     parser.add_argument('files', nargs='*')
     options = parser.parse_args(argv)

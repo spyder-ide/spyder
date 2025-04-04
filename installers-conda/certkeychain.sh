@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-CERTFILE=certificate.p12
+SPYTMPDIR=${TMPDIR}spyder
+CERTFILE=$SPYTMPDIR/certificate.p12
 KEY_PASS=keypass
 KEYCHAIN=build.keychain
 KEYCHAINFILE=$HOME/Library/Keychains/$KEYCHAIN-db
 
 help(){ cat <<EOF
-$(basename $0) [-h] [-c] PASS CERT [CERT] ...
+$(basename $0) [-h] [-c] PASS CERT [CERT, ...]
 Create build.keychain and import Developer ID certificate.
 Creating a separate keychain is necessary in order to set properties of the
 keychain that allow it to be accessed without GUI prompt.
@@ -34,9 +35,10 @@ log(){
 }
 
 cleanup(){
-    log "Removing $CERTFILE and $KEYCHAINFILE..."
-    rm -f $CERTFILE
-    rm -f $KEYCHAINFILE
+    [[ ! -e $KEYCHAINFILE ]] && return
+    log "Removing $KEYCHAIN..."
+    security list-keychain -s login.keychain
+    security delete-keychain $KEYCHAIN
 }
 
 while getopts "hc" option; do
@@ -51,14 +53,9 @@ shift $(($OPTIND - 1))
 PASS=$1; shift
 CERTS=($@)
 
-# ---- Remove existing keychain
-if [[ -e $KEYCHAINFILE ]]; then
-    log "Removing existing $KEYCHAINFILE..."
-    security delete-keychain $KEYCHAIN
-fi
-
 # --- Create keychain
-log "Creating keychain $KEYCHAINFILE..."
+cleanup
+log "Creating keychain $KEYCHAIN..."
 security create-keychain -p $KEY_PASS $KEYCHAIN
 security list-keychains -s $KEYCHAIN
 security set-keychain-settings -lut 21600 $KEYCHAIN
@@ -72,6 +69,7 @@ for cert in ${CERTS[@]}; do
         _cert=$cert
     else
         log "Decoding/importing base64 cert..."
+        mkdir -p $SPYTMPDIR
         echo $cert | base64 --decode > $CERTFILE
         _cert=$CERTFILE
     fi

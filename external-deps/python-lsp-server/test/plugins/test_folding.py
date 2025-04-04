@@ -116,7 +116,7 @@ for i in range(0, 3)
 )
 
 
-def test_folding(workspace):
+def test_folding(workspace) -> None:
     doc = Document(DOC_URI, workspace, DOC)
     ranges = pylsp_folding_range(doc)
     expected = [
@@ -160,7 +160,7 @@ def test_folding(workspace):
     assert ranges == expected
 
 
-def test_folding_syntax_error(workspace):
+def test_folding_syntax_error(workspace) -> None:
     doc = Document(DOC_URI, workspace, SYNTAX_ERR)
     ranges = pylsp_folding_range(doc)
     expected = [

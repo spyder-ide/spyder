@@ -81,7 +81,7 @@ def test_sort_by_column(namespacebrowser, qtbot):
     # Check header is clickable
     assert header.sectionsClickable()
 
-    model = browser.editor.model
+    model = browser.editor.model()
 
     # Base check of the model
     assert model.rowCount() == 2
@@ -133,7 +133,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
 
     # Assert we loaded the expected amount of data and that we can fetch
     # more.
-    model = browser.editor.model
+    model = browser.editor.model()
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
 
@@ -170,7 +170,7 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
 
     # Assert we loaded the expected amount of data and that we can fetch
     # more data.
-    model = browser.editor.model
+    model = browser.editor.model()
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
     assert data(model, 49, 0) == 'e49'
@@ -226,9 +226,40 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_true(
 
     mock_axis.plot.assert_called_once_with(my_list)
     mock_print_figure.assert_called_once_with(
-        mock_figure, fmt='png', bbox_inches='tight', dpi=72)
+        mock_figure, fmt='png', bbox_inches='tight', dpi=144)
     expected_args = [mock_png, 'image/png', namespacebrowser.shellwidget]
     assert blocker.args == expected_args
+
+
+def test_namespacebrowser_plot_options(namespacebrowser):
+    """
+    Test that font.size and figure.subplot.bottom in matplotlib.rcParams are
+    set to the values from the Spyder preferences when plotting.
+    """
+    def check_rc(*args):
+        from matplotlib import rcParams
+        assert rcParams['font.size'] == 20.5
+        assert rcParams['figure.subplot.bottom'] == 0.314
+
+    namespacebrowser.set_conf('mute_inline_plotting', True, section='plots')
+    namespacebrowser.plots_plugin_enabled = True
+    namespacebrowser.set_conf(
+        'pylab/inline/fontsize', 20.5, section='ipython_console'
+    )
+    namespacebrowser.set_conf(
+        'pylab/inline/bottom', 0.314, section='ipython_console'
+    )
+
+    mock_figure = Mock()
+    mock_axis = Mock()
+    mock_png = b'fake png'
+
+    with patch('spyder.pyplot.subplots',
+               return_value=(mock_figure, mock_axis)), \
+         patch('IPython.core.pylabtools.print_figure',
+               return_value=mock_png), \
+         patch.object(mock_axis, 'plot', check_rc):
+        namespacebrowser.plot([4, 2], 'plot')
 
 
 def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser):

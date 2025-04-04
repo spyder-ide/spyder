@@ -17,12 +17,13 @@ from qtpy.QtWidgets import (QApplication, QStyle, QStyledItemDelegate,
                             QStyleOptionViewItem, QTreeWidgetItem)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.plugins.findinfiles.widgets.search_thread import (
     ELLIPSIS, MAX_RESULT_LENGTH)
 from spyder.utils import icon_manager as ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
+from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -126,7 +127,7 @@ class ItemDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
         self._margin = None
-        self._background_color = QColor(QStylePalette.COLOR_BACKGROUND_3)
+        self._background_color = QColor(SpyderPalette.COLOR_BACKGROUND_3)
         self.width = 0
 
     def paint(self, painter, option, index):
@@ -185,6 +186,7 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
+
     sig_edit_goto_requested = Signal(str, int, str, int, int)
     sig_max_results_reached = Signal()
 
@@ -221,7 +223,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
@@ -238,7 +240,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
     def sort_section(self, idx):
         self.setSortingEnabled(True)
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         """Click event."""
         if isinstance(item, FileMatchItem):
             if item.isExpanded():
@@ -246,7 +248,7 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
             else:
                 self.expandItem(item)
         else:
-            self.activated(item)
+            self.on_item_activated(item)
 
     def clear_title(self, search_text):
         self.font = self.get_font(SpyderFontType.MonospaceInterface)
@@ -320,6 +322,9 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
 
     def set_width(self):
         """Set widget width according to its longest item."""
+        if not self.data:
+            return
+
         # File item width
         file_item_size = self.fontMetrics().size(
             Qt.TextSingleLine,
@@ -340,5 +345,19 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         else:
             width = line_item_width
 
-        # Increase width a bit to not be too near to the edge
-        self.itemDelegate().width = width + 10
+        # Compare obtained value with the available width (we have two
+        # indentation levels here and the -6 is necessary to avoid showing the
+        # horizontal scrollbar)
+        available_width = self.width() - 2 * self.indentation() - 6
+
+        if width < available_width:
+            width = available_width
+        else:
+            # Increase computed width so that the longest item is not too close
+            # to the right edge
+            if self.verticalScrollBar().isVisible():
+                width = width + self.verticalScrollBar().width()
+            else:
+                width = width + 2 * AppStyle.MarginSize
+
+        self.itemDelegate().width = width

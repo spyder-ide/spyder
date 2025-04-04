@@ -94,22 +94,21 @@ def has_subdirectories(path, include, exclude):
 class IconProvider(QFileIconProvider):
     """Project tree widget icon provider"""
 
-    def __init__(self, treeview):
-        super(IconProvider, self).__init__()
-        self.treeview = treeview
-
     @Slot(int)
     @Slot(QFileInfo)
     def icon(self, icontype_or_qfileinfo):
         """Reimplement Qt method"""
         if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
-            return super(IconProvider, self).icon(icontype_or_qfileinfo)
+            return super().icon(icontype_or_qfileinfo)
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(str(qfileinfo.absoluteFilePath()))
+
             if osp.isfile(fname) or osp.isdir(fname):
-                icon = ima.get_icon_by_extension_or_type(fname,
-                                                         scale_factor=1.0)
+                icon = ima.get_icon_by_extension_or_type(
+                    fname, scale_factor=1.0
+                )
             else:
                 icon = ima.icon('binary')
+
             return icon

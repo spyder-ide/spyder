@@ -16,6 +16,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 
@@ -1022,7 +1023,7 @@ class FunctionInfo(object):
                 line_return_tmp = ''
 
 
-class QMenuOnlyForEnter(QMenu):
+class QMenuOnlyForEnter(SpyderMenu):
     """The class executes the selected action when "enter key" is input.
 
     If a input of keyboard is not the "enter key", the menu is closed and
@@ -1030,7 +1031,7 @@ class QMenuOnlyForEnter(QMenu):
     """
 
     def __init__(self, code_editor):
-        """Init QMenu."""
+        """Init SpyderMenu."""
         super(QMenuOnlyForEnter, self).__init__(code_editor)
         self.code_editor = code_editor
 

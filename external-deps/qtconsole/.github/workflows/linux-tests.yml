@@ -3,10 +3,10 @@ name: Linux tests
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-    - master
+    - main
   workflow_dispatch:
 
 concurrency:
@@ -23,6 +23,7 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUNNER_OS: 'ubuntu'
       COVERALLS_REPO_TOKEN: XWVhJf2AsO7iouBLuCsh0pPhwHy81Uz1v
+      COVERALLS_SERVICE_NAME: 'github-actions'
     strategy:
       fail-fast: false
       matrix:
@@ -76,7 +77,7 @@ jobs:
         env:
           QT_API: ${{ matrix.QT_LIB }}
           PYTEST_QT_API: ${{ matrix.QT_LIB }}
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to coveralls
         if: matrix.PYTHON_VERSION == '3.8'
         shell: bash -l {0}
         run: coveralls

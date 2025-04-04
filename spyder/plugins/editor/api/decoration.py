@@ -23,7 +23,7 @@ from qtpy.QtGui import (QTextCursor, QFont, QPen, QColor, QTextFormat,
                         QTextCharFormat)
 
 # Local imports
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 
 
 # DRAW_ORDERS are used for make some decorations appear in top of others,
@@ -37,9 +37,10 @@ from spyder.utils.palette import QStylePalette, SpyderPalette
 
 DRAW_ORDERS = {'on_bottom': 0,
                'current_cell': 1,
-               'codefolding': 2,
+               'folding_areas': 2,
                'current_line': 3,
-               'on_top': 4}
+               'folded_regions': 4,
+               'on_top': 5}
 
 
 class TextDecoration(QTextEdit.ExtraSelection):
@@ -110,14 +111,23 @@ class TextDecoration(QTextEdit.ExtraSelection):
         if start_pos is not None:
             self.cursor.setPosition(start_pos)
         if end_pos is not None:
-            self.cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+            self.cursor.setPosition(end_pos, QTextCursor.MoveMode.KeepAnchor)
         if start_line is not None:
-            self.cursor.movePosition(self.cursor.Start, self.cursor.MoveAnchor)
-            self.cursor.movePosition(self.cursor.Down, self.cursor.MoveAnchor,
-                                     start_line)
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Start,
+                QTextCursor.MoveMode.MoveAnchor
+            )
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Down,
+                QTextCursor.MoveMode.MoveAnchor,
+                start_line
+            )
         if end_line is not None:
-            self.cursor.movePosition(self.cursor.Down, self.cursor.KeepAnchor,
-                                     end_line - start_line)
+            self.cursor.movePosition(
+                QTextCursor.MoveOperation.Down,
+                QTextCursor.MoveMode.KeepAnchor,
+                end_line - start_line
+            )
         if font is not None:
             self.format.setFont(font)
 
@@ -172,12 +182,14 @@ class TextDecoration(QTextEdit.ExtraSelection):
         and stops at the non-whitespace character.
         :return:
         """
-        self.cursor.movePosition(self.cursor.StartOfBlock)
+        self.cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
         text = self.cursor.block().text()
         lindent = len(text) - len(text.lstrip())
         self.cursor.setPosition(self.cursor.block().position() + lindent)
-        self.cursor.movePosition(self.cursor.EndOfBlock,
-                                 self.cursor.KeepAnchor)
+        self.cursor.movePosition(
+            QTextCursor.MoveOperation.EndOfBlock,
+            QTextCursor.MoveMode.KeepAnchor
+        )
 
     def set_full_width(self, flag=True, clear=True):
         """

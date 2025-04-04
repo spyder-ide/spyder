@@ -2,6 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
+
 from pylsp import hookimpl
 
 log = logging.getLogger(__name__)
@@ -66,12 +67,12 @@ def pylsp_settings():
 
 
 @hookimpl
-def pylsp_initialize(config):
+def pylsp_initialize(config) -> None:
     for mod_name in config.plugin_settings("preload").get("modules", []):
         try:
             __import__(mod_name)
             log.debug("Preloaded module %s", mod_name)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             # Catch any exception since not only ImportError can be raised here
             # For example, old versions of NumPy can cause a ValueError.
             # See spyder-ide/spyder#13985

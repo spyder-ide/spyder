@@ -10,6 +10,8 @@ New API for plugins.
 All plugins in Spyder 5+ must inherit from the classes present in this file.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 from collections import OrderedDict
 import inspect
@@ -23,12 +25,12 @@ import warnings
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMainWindow
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin
@@ -41,7 +43,7 @@ from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Package imports
 from .enum import Plugins
-from .old_api import SpyderPluginWidget
+from ._old_api import SpyderPluginWidget
 
 
 # Logging
@@ -158,6 +160,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     # If False, the plugin is considered "core" and therefore it cannot be
     # disabled. Default: True
     CAN_BE_DISABLED = True
+
+    # Qt Web Widgets may be a heavy dependency for many packagers
+    # (e.g. conda-forge)
+    # We thus ask plugins to declare whether or not they need
+    # web widgets to enhance the distribution of Spyder to users
+    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+    REQUIRE_WEB_WIDGETS = False
 
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -289,8 +298,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         The window state.
     """
 
-    # --- Private attributes -------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private attributes
+    # -------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration
     # among several files. See spyder/config/main.py
     _CONF_NAME_MAP = None
@@ -313,7 +322,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self._actions = {}
         self.is_compatible = None
         self.is_registered = None
-        self.main = parent
+        self.main: QMainWindow = parent
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
@@ -325,6 +334,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 plugin=self,
                 parent=parent
             )
+
+            if hasattr(container, '_setup'):
+                container._setup()
 
             if isinstance(container, SpyderWidgetMixin):
                 container.setup()
@@ -344,16 +356,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
             self.after_container_creation()
 
-            if hasattr(container, '_setup'):
-                container._setup()
-
         # Load the custom images of the plugin
         if self.IMG_PATH:
             plugin_path = osp.join(self.get_path(), self.IMG_PATH)
             IMAGE_PATH_MANAGER.add_image_path(plugin_path)
 
-    # --- Private methods ----------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _register(self, omit_conf=False):
         """
         Setup and register plugin in Spyder's main window and connect it to
@@ -388,8 +397,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         self.is_compatible = None
         self.is_registered = False
 
-    # --- API: available methods ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: available methods
+    # -------------------------------------------------------------------------
     def get_path(self):
         """
         Return the plugin's system path.
@@ -414,7 +423,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         return self._main
 
-    def get_plugin(self, plugin_name, error=True):
+    def get_plugin(self, plugin_name, error=True) -> SpyderPluginV2:
         """
         Get a plugin instance by providing its name.
 
@@ -469,7 +478,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                 dockable_plugins_required.append(plugin_instance)
         return dockable_plugins_required
 
-    def get_conf(self, option, default=NoDefault, section=None):
+    def get_conf(self, option, default=NoDefault, section=None, secure=False):
         """
         Get an option from Spyder configuration system.
 
@@ -482,6 +491,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             Python object.
         section: str
             Section in the configuration system, e.g. `shortcuts`.
+        secure: bool
+            If True, the option will be retrieved securely using the `keyring`
+            Python package.
 
         Returns
         -------
@@ -495,12 +507,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'A spyder plugin must define a `CONF_SECTION` class '
                     'attribute!'
                 )
-            return self._conf.get(section, option, default)
+            return self._conf.get(section, option, default, secure=secure)
 
     @Slot(str, object)
     @Slot(str, object, str)
-    def set_conf(self, option, value, section=None,
-                 recursive_notification=True):
+    def set_conf(
+        self,
+        option,
+        value,
+        section=None,
+        recursive_notification=True,
+        secure=False,
+    ):
         """
         Set an option in Spyder configuration system.
 
@@ -520,6 +538,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            If True, the option will be saved securely using the `keyring`
+            Python package.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -529,11 +550,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'attribute!'
                 )
 
-            self._conf.set(section, option, value,
-                           recursive_notification=recursive_notification)
+            self._conf.set(
+                section,
+                option,
+                value,
+                recursive_notification=recursive_notification,
+                secure=secure,
+            )
             self.apply_conf({option}, False)
 
-    def remove_conf(self, option, section=None):
+    def remove_conf(self, option, section=None, secure=False):
         """
         Delete an option in the Spyder configuration system.
 
@@ -543,6 +569,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             Name of the option, either a string or a tuple of strings.
         section: str
             Section in the configuration system.
+        secure: bool
+            If True, the option will be removed securely using the `keyring`
+            Python package.
         """
         if self._conf is not None:
             section = self.CONF_SECTION if section is None else section
@@ -552,7 +581,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
                     'attribute!'
                 )
 
-            self._conf.remove_option(section, option)
+            self._conf.remove_option(section, option, secure=secure)
             self.apply_conf({option}, False)
 
     def apply_conf(self, options_set, notify=True):
@@ -736,8 +765,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
             return get_options(sys_argv)[0]
 
-    # --- API: Mandatory methods to define -----------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Mandatory methods to define
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         """
@@ -803,8 +832,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             f'The plugin {type(self)} is missing an implementation of '
             'on_initialize')
 
-    # --- API: Optional methods to override ----------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Optional methods to override
+    # -------------------------------------------------------------------------
     @staticmethod
     def check_compatibility():
         """
@@ -923,14 +952,14 @@ class SpyderDockablePlugin(SpyderPluginV2):
     """
     A Spyder plugin to enhance functionality with a dockable widget.
     """
-    # --- API: Mandatory attributes ------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Mandatory attributes
+    # -------------------------------------------------------------------------
     # This is the main widget of the dockable plugin.
     # It needs to be a subclass of PluginMainWidget.
     WIDGET_CLASS = None
 
-    # --- API: Optional attributes -------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Optional attributes
+    # -------------------------------------------------------------------------
     # Define a list of plugins next to which we want to to tabify this plugin.
     # Example: ['Plugins.Editor']
     TABIFY = []
@@ -943,8 +972,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the action to switch is called a second time.
     RAISE_AND_FOCUS = False
 
-    # --- API: Available signals ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: Available signals
+    # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
     """
     This signal is emitted to inform the focus of this plugin has changed.
@@ -981,8 +1010,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
     needs its ancestor to be updated.
     """
 
-    # --- Private methods ----------------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def __init__(self, parent, configuration):
         if not issubclass(self.WIDGET_CLASS, PluginMainWidget):
             raise SpyderAPIError(
@@ -992,8 +1021,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self.CONTAINER_CLASS = self.WIDGET_CLASS
         super().__init__(parent, configuration=configuration)
 
-        # Defined on mainwindow.py
-        self._shortcut = None
+        # Shortcut to switch to the plugin. It's defined on the main window
+        self._switch_to_shortcut = None
 
         # Widget setup
         # --------------------------------------------------------------------
@@ -1024,8 +1053,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.sig_update_ancestor_requested.connect(
             self.sig_update_ancestor_requested)
 
-    # --- API: available methods ---------------------------------------------
-    # ------------------------------------------------------------------------
+    # ---- API: available methods
+    # -------------------------------------------------------------------------
     def before_long_process(self, message):
         """
         Show a message in main window's status bar, change the mouse pointer
@@ -1052,7 +1081,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         super().after_long_process(message)
         self.get_widget().stop_spinner()
 
-    def get_widget(self):
+    def get_widget(self) -> PluginMainWidget:
         """
         Return the plugin main widget.
         """
@@ -1087,8 +1116,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         self.get_widget().set_ancestor(ancestor_widget)
 
-    # --- Convenience methods from the widget exposed on the plugin
-    # ------------------------------------------------------------------------
+    # ---- Convenience methods from the widget exposed on the plugin
+    # -------------------------------------------------------------------------
     @property
     def dockwidget(self):
         return self.get_widget().dockwidget
@@ -1108,7 +1137,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         self.get_widget().create_window()
 
     def close_window(self, save_undocked=False):
-        self.get_widget().close_window(save_undocked=save_undocked)
+        self.get_widget()._close_window(save_undocked=save_undocked)
 
     def change_visibility(self, state, force_focus=False):
         self.get_widget().change_visibility(state, force_focus)

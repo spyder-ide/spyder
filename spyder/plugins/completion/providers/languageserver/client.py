@@ -24,13 +24,13 @@ import time
 from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
 import zmq
 import psutil
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
-    DEV, get_conf_path, get_debug_level, is_conda_based_app,
-    running_under_pytest)
-from spyder.config.utils import is_anaconda
+    DEV, get_conf_path, get_debug_level, running_under_pytest
+)
 from spyder.plugins.completion.api import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
@@ -42,7 +42,6 @@ from spyder.plugins.completion.providers.languageserver.transport import (
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.utils.misc import getcwd_or_home, select_port
-
 
 # Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),
@@ -280,10 +279,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 # is missing and the user has installed their packages on
                 # that directory.
                 # Fixes spyder-ide/spyder#17661
-                if (
-                    not (is_anaconda() or is_conda_based_app())
-                    and "APPDATA" in os.environ
-                ):
+                if not is_conda_env(sys.prefix) and "APPDATA" in os.environ:
                     env.insert("APPDATA", os.environ["APPDATA"])
         else:
             # There's no need to define a cwd for other servers.

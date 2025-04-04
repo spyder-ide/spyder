@@ -16,7 +16,7 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QIcon
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -37,7 +37,7 @@ class Console(SpyderDockablePlugin):
     """
     NAME = 'internal_console'
     WIDGET_CLASS = ConsoleWidget
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Editor]
     CONF_SECTION = NAME
     CONF_FILE = False
     TABIFY = [Plugins.IPythonConsole, Plugins.History]
@@ -134,6 +134,16 @@ class Console(SpyderDockablePlugin):
         mainmenu.remove_item_from_application_menu(
             ConsoleWidgetActions.Quit,
             menu_id=ApplicationMenus.File)
+
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.sig_edit_goto_requested.connect(editor.load)
+
+    @on_plugin_teardown(plugin=Plugins.Editor)
+    def on_editor_teardown(self):
+        editor = self.get_plugin(Plugins.Editor)
+        self.sig_edit_goto_requested.disconnect(editor.load)
 
     def update_font(self):
         font = self.get_font(SpyderFontType.Monospace)

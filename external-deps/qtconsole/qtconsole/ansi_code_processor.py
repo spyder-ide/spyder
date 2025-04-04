@@ -61,7 +61,7 @@ class AnsiCodeProcessor(object):
 
     # Whether to increase intensity or set boldness for SGR code 1.
     # (Different terminals handle this in different ways.)
-    bold_text_enabled = False
+    bold_text_enabled = True
 
     # We provide an empty default color map because subclasses will likely want
     # to use a custom color format.
@@ -92,10 +92,7 @@ class AnsiCodeProcessor(object):
         self.actions = []
         start = 0
 
-        # strings ending with \r are assumed to be ending in \r\n since
-        # \n is appended to output strings automatically.  Accounting
-        # for that, here.
-        last_char = '\n' if len(string) > 0 and string[-1] == '\n' else None
+        last_char = None
         string = string[:-1] if last_char is not None else string
 
         for match in ANSI_OR_SPECIAL_PATTERN.finditer(string):
@@ -122,7 +119,7 @@ class AnsiCodeProcessor(object):
                 self.actions = []
             elif g0 == '\n' or g0 == '\r\n':
                 self.actions.append(NewLineAction('newline'))
-                yield g0
+                yield None
                 self.actions = []
             else:
                 params = [ param for param in groups[1].split(';') if param ]
@@ -147,7 +144,7 @@ class AnsiCodeProcessor(object):
 
         if last_char is not None:
             self.actions.append(NewLineAction('newline'))
-            yield last_char
+            yield None
 
     def set_csi_code(self, command, params=[]):
         """ Set attributes based on CSI (Control Sequence Introducer) code.
@@ -184,6 +181,22 @@ class AnsiCodeProcessor(object):
             dir = 'up' if command == 'S' else 'down'
             count = params[0] if params else 1
             self.actions.append(ScrollAction('scroll', dir, 'line', count))
+
+        elif command == 'A':  # Move N lines Up
+            dir = 'up'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+
+        elif command == 'B':  # Move N lines Down
+            dir = 'down'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+
+        elif command == 'F':  # Goes back to the begining of the n-th previous line
+            dir = 'leftup'
+            count = params[0] if params else 1
+            self.actions.append(MoveAction('move', dir, 'line', count))
+        
 
     def set_osc_code(self, params):
         """ Set attributes based on OSC (Operating System Command) parameters.
@@ -292,6 +305,31 @@ class AnsiCodeProcessor(object):
             self.actions.append(ScrollAction('scroll', 'down', 'page', 1))
         return ''
 
+    def _parse_ansi_color(self, color, intensity):
+        """
+        Map an ANSI color code to color name or a RGB tuple.
+        Based on: https://gist.github.com/MightyPork/1d9bd3a3fd4eb1a661011560f6921b5b
+        """
+        parsed_color = None
+        if color < 16:
+            # Adjust for intensity, if possible.
+            if intensity > 0 and color < 8:
+                color += 8
+            parsed_color = self.color_map.get(color, None)
+        elif (color > 231):
+                s = int((color - 232) * 10 + 8)
+                parsed_color = (s, s, s)
+        else:
+            n = color - 16
+            b = n % 6
+            g = (n - b) / 6 % 6
+            r = (n - b - g * 6) / 36 % 6
+            r = int(r * 40 + 55) if r else 0
+            g = int(g * 40 + 55) if g else 0
+            b = int(b * 40 + 55) if b else 0
+            parsed_color = (r, g, b)
+        return parsed_color
+
 
 class QtAnsiCodeProcessor(AnsiCodeProcessor):
     """ Translates ANSI escape codes into QTextCharFormats.
@@ -302,7 +340,7 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         0  : 'black',       # black
         1  : 'darkred',     # red
         2  : 'darkgreen',   # green
-        3  : 'brown',       # yellow
+        3  : 'gold',       # yellow
         4  : 'darkblue',    # blue
         5  : 'darkviolet',  # magenta
         6  : 'steelblue',   # cyan
@@ -323,12 +361,8 @@ class QtAnsiCodeProcessor(AnsiCodeProcessor):
         """ Returns a QColor for a given color code or rgb list, or None if one
             cannot be constructed.
         """
-
         if isinstance(color, int):
-            # Adjust for intensity, if possible.
-            if color < 8 and intensity > 0:
-                color += 8
-            constructor = self.color_map.get(color, None)
+            constructor = self._parse_ansi_color(color, intensity)
         elif isinstance(color, (tuple, list)):
             constructor = color
         else:

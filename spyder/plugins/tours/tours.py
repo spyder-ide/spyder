@@ -19,9 +19,10 @@ from spyder import __docs_url__
 QTCONSOLE_LINK = "https://qtconsole.readthedocs.io/en/stable/index.html"
 BUTTON_TEXT = ""
 if sys.platform != "darwin":
-    BUTTON_TEXT = ("Please click on the button below to run some simple "
-                   "code in this console. This will be useful to show "
-                   "you other important features.")
+    BUTTON_TEXT = _(
+        "Please click on the button below to run some simple code in this "
+        "console. This will be useful to show you other important features."
+    )
 
 # This test should serve as example of keys to use in the tour frame dicts
 TEST_TOUR = [

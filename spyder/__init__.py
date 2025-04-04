@@ -29,9 +29,11 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (6, 0, 0, "dev0")
+from packaging.version import parse
 
-__version__ = '.'.join(map(str, version_info))
+version_info = (6, 1, 0, "a2", "dev0")
+
+__version__ = str(parse('.'.join(map(str, version_info))))
 __installer_version__ = __version__
 __title__ = 'Spyder'
 __author__ = 'Spyder Project Contributors and others'
@@ -60,8 +62,8 @@ def get_versions(reporev=True):
 
     import qtpy
     import qtpy.QtCore
+    from spyder_kernels.utils.pythonenv import is_conda_env
 
-    from spyder.utils.conda import is_conda_env
     from spyder.config.base import is_conda_based_app
 
     revision = branch = None

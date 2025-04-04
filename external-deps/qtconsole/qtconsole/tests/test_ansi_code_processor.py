@@ -2,13 +2,14 @@
 import unittest
 
 # Local imports
-from qtconsole.ansi_code_processor import AnsiCodeProcessor
+from qtconsole.ansi_code_processor import AnsiCodeProcessor, QtAnsiCodeProcessor
 
 
 class TestAnsiCodeProcessor(unittest.TestCase):
 
     def setUp(self):
         self.processor = AnsiCodeProcessor()
+        self.qt_processor = QtAnsiCodeProcessor()
 
     def test_clear(self):
         """ Do control sequences for clearing the console work?
@@ -37,7 +38,7 @@ class TestAnsiCodeProcessor(unittest.TestCase):
     def test_colors(self):
         """ Do basic controls sequences for colors work?
         """
-        string = 'first\x1b[34mblue\x1b[0mlast'
+        string = 'first\x1b[34mblue\x1b[0mlast\033[33mYellow'
         i = -1
         for i, substring in enumerate(self.processor.split_string(string)):
             if i == 0:
@@ -49,9 +50,14 @@ class TestAnsiCodeProcessor(unittest.TestCase):
             elif i == 2:
                 self.assertEqual(substring, 'last')
                 self.assertEqual(self.processor.foreground_color, None)
+            elif i == 3:
+                foreground_color = self.processor.foreground_color
+                self.assertEqual(substring, 'Yellow')
+                self.assertEqual(foreground_color, 3)
+                self.assertEqual(self.qt_processor.get_color(foreground_color).name(), '#ffd700')
             else:
                 self.fail('Too many substrings.')
-        self.assertEqual(i, 2, 'Too few substrings.')
+        self.assertEqual(i, 3, 'Too few substrings.')
 
     def test_colors_xterm(self):
         """ Do xterm-specific control sequences for colors work?
@@ -133,7 +139,7 @@ class TestAnsiCodeProcessor(unittest.TestCase):
         for split in self.processor.split_string(string):
             splits.append(split)
             actions.append([action.action for action in self.processor.actions])
-        self.assertEqual(splits, ['foo', None, 'bar', '\r\n', 'cat', '\r\n', '\n'])
+        self.assertEqual(splits, ['foo', None, 'bar', None, 'cat', None, None])
         self.assertEqual(actions, [[], ['carriage-return'], [], ['newline'], [], ['newline'], ['newline']])
 
     def test_beep(self):
@@ -175,6 +181,49 @@ class TestAnsiCodeProcessor(unittest.TestCase):
             actions.append([action.action for action in self.processor.actions])
         self.assertEqual(splits, ['abc', None, 'def', None])
         self.assertEqual(actions, [[], ['carriage-return'], [], ['backspace']])
+
+    def test_move_cursor_up(self):
+        """Are the ANSI commands for the cursor movement actions
+        (movement up and to the beginning of the line) processed correctly?
+        """
+        # This line moves the cursor up once, then moves it up five more lines.
+        # Next, it moves the cursor to the beginning of the previous line, and
+        # finally moves it to the beginning of the fifth line above the current 
+        # position
+        string = '\x1b[A\x1b[5A\x1b[F\x1b[5F'
+        i = -1
+        for i, substring in enumerate(self.processor.split_string(string)):
+            if i == 0:
+                self.assertEqual(len(self.processor.actions), 1)
+                action = self.processor.actions[0]
+                self.assertEqual(action.action, 'move')
+                self.assertEqual(action.dir, 'up')
+                self.assertEqual(action.unit, 'line')
+                self.assertEqual(action.count, 1)
+            elif i == 1:
+                self.assertEqual(len(self.processor.actions), 1)
+                action = self.processor.actions[0]
+                self.assertEqual(action.action, 'move')
+                self.assertEqual(action.dir, 'up')
+                self.assertEqual(action.unit, 'line')
+                self.assertEqual(action.count, 5)
+            elif i == 2:
+                self.assertEqual(len(self.processor.actions), 1)
+                action = self.processor.actions[0]
+                self.assertEqual(action.action, 'move')
+                self.assertEqual(action.dir, 'leftup')
+                self.assertEqual(action.unit, 'line')
+                self.assertEqual(action.count, 1)
+            elif i == 3:
+                self.assertEqual(len(self.processor.actions), 1)
+                action = self.processor.actions[0]
+                self.assertEqual(action.action, 'move')
+                self.assertEqual(action.dir, 'leftup')
+                self.assertEqual(action.unit, 'line')
+                self.assertEqual(action.count, 5)
+            else:
+                self.fail('Too many substrings.')
+        self.assertEqual(i, 3, 'Too few substrings.')
 
 
 if __name__ == '__main__':

@@ -16,18 +16,36 @@ import sys
 # Third-party imports
 import qstylizer.style
 from qtpy.QtCore import QSize, Qt, Signal
-from qtpy.QtGui import QColor
+from qtpy.QtGui import QColor, QPainter, QFontMetrics
 from qtpy.QtWidgets import (
     QComboBox,
     QFontComboBox,
     QFrame,
     QLineEdit,
-    QStyledItemDelegate
+    QListView,
+    QProxyStyle,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionFrame,
 )
+from superqt.utils import qdebounced
 
 # Local imports
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, WIN
+
+
+class _SpyderComboBoxProxyStyle(QProxyStyle):
+    """Style proxy to adjust qdarkstyle issues."""
+
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        if hint == QStyle.SH_ComboBox_Popup:
+            # Disable combobox popup top & bottom areas.
+            # See spyder-ide/spyder#9682.
+            # Taken from https://stackoverflow.com/a/21019371
+            return 0
+
+        return QProxyStyle.styleHint(self, hint, option, widget, returnData)
 
 
 class _SpyderComboBoxDelegate(QStyledItemDelegate):
@@ -37,18 +55,26 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
     Adapted from https://stackoverflow.com/a/33464045/438386
     """
 
+    def __init__(self, parent, elide_mode=None):
+        super().__init__(parent)
+        self._elide_mode = elide_mode
+
     def paint(self, painter, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
         if data and data == "separator":
-            painter.setPen(QColor(QStylePalette.COLOR_BACKGROUND_6))
+            painter.setPen(QColor(SpyderPalette.COLOR_BACKGROUND_6))
             painter.drawLine(
                 option.rect.left() + AppStyle.MarginSize,
                 option.rect.center().y(),
                 option.rect.right() - AppStyle.MarginSize,
                 option.rect.center().y()
             )
-        else:
-            super().paint(painter, option, index)
+            return
+
+        if self._elide_mode is not None:
+            option.textElideMode = self._elide_mode
+
+        super().paint(painter, option, index)
 
     def sizeHint(self, option, index):
         data = index.data(Qt.AccessibleDescriptionRole)
@@ -59,12 +85,15 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
 
 
 class _SpyderComboBoxLineEdit(QLineEdit):
-    """Dummy lineedit used for non-editable comboboxes."""
+    """Lineedit used for comboboxes."""
 
     sig_mouse_clicked = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent, editable, elide_mode=None):
         super().__init__(parent)
+        self._editable = editable
+        self._elide_mode = elide_mode
+        self._focus_in = False
 
         # Fix style issues
         css = qstylizer.style.StyleSheet()
@@ -81,16 +110,93 @@ class _SpyderComboBoxLineEdit(QLineEdit):
         self.setStyleSheet(css.toString())
 
     def mouseReleaseEvent(self, event):
-        self.sig_mouse_clicked.emit()
+        if not self._editable:
+            # Emit a signal to display the popup afterwards
+            self.sig_mouse_clicked.emit()
         super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
-        # Avoid selecting the lineedit text with double clicks
-        pass
+        if not self._editable:
+            # Avoid selecting the lineedit text with double clicks
+            pass
+        else:
+            super().mouseDoubleClickEvent(event)
+
+    def focusInEvent(self, event):
+        self._focus_in = True
+        super().focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        self._focus_in = False
+        super().focusOutEvent(event)
+
+    def paintEvent(self, event):
+        if self._elide_mode is not None and not self._focus_in:
+            # This code is taken for the most part from the
+            # AmountEdit.paintEvent method, part of the Electrum project. See
+            # the Electrum entry in our NOTICE.txt file for the details.
+            # Licensed under the MIT license.
+            painter = QPainter(self)
+            option = QStyleOptionFrame()
+            self.initStyleOption(option)
+
+            text_rect = self.style().subElementRect(
+                QStyle.SE_LineEditContents, option, self
+            )
+
+            # Neded so the text is placed correctly according to our style
+            text_rect.adjust(2, 0, 0, 0)
+
+            fm = QFontMetrics(self.font())
+            text = fm.elidedText(
+                self.text(), self._elide_mode, text_rect.width()
+            )
+
+            color = (
+                SpyderPalette.COLOR_TEXT_1
+                if self.isEnabled()
+                else SpyderPalette.COLOR_DISABLED
+            )
+            painter.setPen(QColor(color))
+            painter.drawText(
+                text_rect, int(Qt.AlignLeft | Qt.AlignVCenter), text
+            )
+
+            return
+
+        super().paintEvent(event)
+
+
+class _SpyderComboBoxView(QListView):
+    """Listview used for comboboxes"""
+
+    sig_current_item_changed = Signal(object)
+
+    def currentChanged(self, current, previous):
+        # This covers selecting a different item with the keyboard or when
+        # hovering with the mouse over the list.
+        self.sig_current_item_changed.emit(current)
+        super().currentChanged(current, previous)
 
 
 class _SpyderComboBoxMixin:
     """Mixin with the basic style and functionality for our comboboxes."""
+
+    sig_item_in_popup_changed = Signal(str)
+    """
+    This signal is emitted when an item in the combobox popup (i.e. dropdown)
+    has changed.
+
+    Parameters
+    ----------
+    item: str
+        Item text
+    """
+
+    sig_popup_is_hidden = Signal()
+    """
+    This signal is emitted when the combobox popup (i.e. dropdown) is hidden.
+    """
 
     def __init__(self):
 
@@ -98,11 +204,25 @@ class _SpyderComboBoxMixin:
         self._css = self._generate_stylesheet()
         self.setStyleSheet(self._css.toString())
 
+        style = _SpyderComboBoxProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
+
+        # Report when the current item in the dropdown has changed
+        view = _SpyderComboBoxView(self)
+        view.sig_current_item_changed.connect(self._on_item_changed)
+        self.setView(view)
+
     def contextMenuEvent(self, event):
         # Prevent showing context menu for editable comboboxes because it's
-        # added automatically by Qt. That means that the menu is not built
-        # using our API and it's not localized.
+        # added automatically by Qt. That means the menu is not built using our
+        # API and it's not localized.
         pass
+
+    @qdebounced(timeout=100)
+    def _on_item_changed(self, index):
+        if index.isValid():
+            self.sig_item_in_popup_changed.emit(index.data())
 
     def _generate_stylesheet(self):
         """Base stylesheet for Spyder comboboxes."""
@@ -129,27 +249,39 @@ class _SpyderComboBoxMixin:
         # Make color of hovered combobox items match the one used in other
         # Spyder widgets
         css["QComboBox QAbstractItemView::item:selected:active"].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
         return css
 
 
-class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
-    """Combobox widget for Spyder when its items don't have icons."""
+class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
+    """Default combobox widget for Spyder."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, items_elide_mode=None):
+        """
+        Default combobox widget for Spyder.
+
+        Parameters
+        ----------
+        parent: QWidget, optional
+            The combobox parent.
+        items_elide_mode: Qt.TextElideMode, optional
+            Elide mode for the combobox items.
+        """
+        QComboBox.__init__(self, parent)
+        _SpyderComboBoxMixin.__init__(self)
 
         self.is_editable = None
         self._is_shown = False
         self._is_popup_shown = False
 
-        # This is also necessary to have more fine-grained control over the
-        # style of our comboboxes with css, e.g. to add more padding between
-        # its items.
+        # This is necessary to have more fine-grained control over the style of
+        # our comboboxes with css, e.g. to add more padding between its items.
         # See https://stackoverflow.com/a/33464045/438386 for the details.
-        self.setItemDelegate(_SpyderComboBoxDelegate(self))
+        self.setItemDelegate(
+            _SpyderComboBoxDelegate(self, elide_mode=items_elide_mode)
+        )
 
     def showEvent(self, event):
         """Adjustments when the widget is shown."""
@@ -157,7 +289,7 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
         if not self._is_shown:
             if not self.isEditable():
                 self.is_editable = False
-                self.setLineEdit(_SpyderComboBoxLineEdit(self))
+                self.setLineEdit(_SpyderComboBoxLineEdit(self, editable=False))
 
                 # This is necessary to make Qt position the popup widget below
                 # the combobox for non-editable ones.
@@ -202,13 +334,14 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
     def hidePopup(self):
         """Adjustments when the popup is hidden."""
         super().hidePopup()
+        self.sig_popup_is_hidden.emit()
 
         if not sys.platform == "darwin":
             # Make borders rounded when popup is not visible. This doesn't work
             # reliably on Mac.
             self._css.QComboBox.setValues(
-                borderBottomLeftRadius=QStylePalette.SIZE_BORDER_RADIUS,
-                borderBottomRightRadius=QStylePalette.SIZE_BORDER_RADIUS,
+                borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+                borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             )
 
             self.setStyleSheet(self._css.toString())
@@ -217,8 +350,18 @@ class SpyderComboBox(QComboBox, _SpyderComboBoxMixin):
 class SpyderComboBoxWithIcons(SpyderComboBox):
     """"Combobox widget for Spyder when its items have icons."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, items_elide_mode=None):
+        """"
+        Combobox widget for Spyder when its items have icons.
+
+        Parameters
+        ----------
+        parent: QWidget, optional
+            The combobox parent.
+        items_elide_mode: Qt.TextElideMode, optional
+            Elide mode for the combobox items.
+        """
+        super().__init__(parent, items_elide_mode)
 
         # Padding is not necessary because icons give items enough of it.
         self._css["QComboBox QAbstractItemView::item"].setValues(
@@ -228,13 +371,24 @@ class SpyderComboBoxWithIcons(SpyderComboBox):
         self.setStyleSheet(self._css.toString())
 
 
-class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
+class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        QFontComboBox.__init__(self, parent)
+        _SpyderComboBoxMixin.__init__(self)
 
-        # This is necessary for items to get the style set in our stylesheet.
-        self.setItemDelegate(QStyledItemDelegate(self))
+        # Avoid font name eliding because it confuses users.
+        # Fixes spyder-ide/spyder#22683
+        self.setItemDelegate(
+            _SpyderComboBoxDelegate(self, elide_mode=Qt.ElideNone)
+        )
+
+        # Elide selected font name in case it's too long
+        self.setLineEdit(
+            _SpyderComboBoxLineEdit(
+                self, editable=True, elide_mode=Qt.ElideMiddle
+            )
+        )
 
         # Adjust popup width to contents.
         self.setSizeAdjustPolicy(
@@ -248,3 +402,7 @@ class SpyderFontComboBox(QFontComboBox, _SpyderComboBoxMixin):
         if sys.platform == "darwin":
             popup = self.findChild(QFrame)
             popup.move(popup.x() - 3, popup.y() + 4)
+
+    def hidePopup(self):
+        super().hidePopup()
+        self.sig_popup_is_hidden.emit()

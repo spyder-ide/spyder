@@ -17,21 +17,20 @@ import os.path as osp
 # Third party imports
 from qdarkstyle.colorsystem import Gray
 import qstylizer.style
-from qtpy import PYQT5
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
     QHBoxLayout, QLineEdit, QTabBar, QTabWidget, QToolButton, QWidget)
 
 # Local imports
+from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
-from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
 from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
@@ -68,17 +67,11 @@ class EditTabNamePopup(QLineEdit):
         self.installEventFilter(self)
 
         # Clean borders and no shadow to blend with tab
-        if PYQT5:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint |
-                Qt.NoDropShadowWindowHint
-            )
-        else:
-            self.setWindowFlags(
-                Qt.Popup |
-                Qt.FramelessWindowHint
-            )
+        self.setWindowFlags(
+            Qt.Popup |
+            Qt.FramelessWindowHint |
+            Qt.NoDropShadowWindowHint
+        )
         self.setFrame(False)
 
     def eventFilter(self, widget, event):
@@ -176,16 +169,16 @@ class CloseTabButton(QToolButton):
         self.setIconSize(QSize(size, size))
 
         # Colors for different states
-        self._selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
-        self._not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_4
+        self._selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
+        self._not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_4
 
-        self._hover_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
-        self._hover_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_5
+        self._hover_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
+        self._hover_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
 
         self._clicked_selected_tab_color = (
             Gray.B70 if is_dark_interface() else Gray.B80
         )
-        self._clicked_not_selected_tab_color = QStylePalette.COLOR_BACKGROUND_6
+        self._clicked_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
 
         # To keep track of the tab's current color
         self._tab_color = self._selected_tab_color
@@ -415,6 +408,19 @@ class TabBar(QTabBar):
         # Set close button
         self.setTabButton(index, self.close_btn_side, close_button)
 
+    def tabRemoved(self, index):
+        """Actions to take when a tab is removed."""
+        # A tab removal makes the following ones to change their `index` (`-1`)
+        # Following that, there is a need to update the `index` attribute that
+        # the custom close button instances have. Otherwise, for example on the
+        # Editor, an `IndexError` can be raised.
+        # See spyder-ide/spyder#22033
+        for i in range(index, self.count()):
+            close_btn: CloseTabButton = self.tabButton(i, self.close_btn_side)
+
+            if close_btn:
+                close_btn.index = i
+
 
 class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
@@ -454,7 +460,7 @@ class BaseTabs(QTabWidget):
 
         self.browse_tabs_menu = SpyderMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
-        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
+        self.browse_button.setPopupMode(QToolButton.InstantPopup)
         self.browse_tabs_menu.aboutToShow.connect(self.update_browse_tabs_menu)
         corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
 
@@ -617,8 +623,11 @@ class BaseTabs(QTabWidget):
         self.tabBar().refresh_style()
 
 
-class Tabs(BaseTabs):
+class Tabs(BaseTabs, SpyderShortcutsMixin):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
+    # Dummy CONF_SECTION to avoid a warning
+    CONF_SECTION = ""
+
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
@@ -630,6 +639,7 @@ class Tabs(BaseTabs):
                  split_index=0):
         BaseTabs.__init__(self, parent, actions, menu,
                           corner_widgets, menu_use_tooltips)
+        SpyderShortcutsMixin.__init__(self)
         tab_bar = TabBar(self, parent,
                          rename_tabs=rename_tabs,
                          split_char=split_char,
@@ -639,29 +649,7 @@ class Tabs(BaseTabs):
             self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        CONF.config_shortcut(
-            lambda: self.tab_navigate(1),
-            context='editor',
-            name='go to next file',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.tab_navigate(-1),
-            context='editor',
-            name='go to previous file',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.sig_close_tab.emit(self.currentIndex()),
-            context='editor',
-            name='close file 1',
-            parent=parent)
-
-        CONF.config_shortcut(
-            lambda: self.sig_close_tab.emit(self.currentIndex()),
-            context='editor',
-            name='close file 2',
-            parent=parent)
+        self.register_shortcuts(parent)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):
@@ -690,3 +678,25 @@ class Tabs(BaseTabs):
         # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)
+
+    def register_shortcuts(self, parent):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ("go to next file", lambda: self.tab_navigate(1), "editor"),
+            ("go to previous file", lambda: self.tab_navigate(-1), "editor"),
+            (
+                "close file 1",
+                lambda: self.sig_close_tab.emit(self.currentIndex()),
+                "editor",
+            ),
+            (
+                "close file 2",
+                lambda: self.sig_close_tab.emit(self.currentIndex()),
+                "editor",
+            ),
+        )
+
+        for name, callback, context in shortcuts:
+            self.register_shortcut_for_widget(
+                name=name, triggered=callback, widget=parent, context=context
+            )

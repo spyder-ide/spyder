@@ -25,6 +25,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.config.base import get_home_dir
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import APP_TOOLBAR_STYLESHEET
 from spyder.widgets.comboboxes import PathComboBox
@@ -53,10 +54,6 @@ class WorkingDirectoryToolbarItems:
 
 # ---- Widgets
 # ----------------------------------------------------------------------------
-class WorkingDirectoryToolbar(ApplicationToolbar):
-    ID = 'working_directory_toolbar'
-
-
 class WorkingDirectoryComboBox(PathComboBox):
     """Working directory combo box."""
 
@@ -162,7 +159,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
     Parameters
     ----------
     new_working_directory: str
-        The new new working directory path.
+        The new working directory path.
     """
 
     edit_goto = Signal(str, int, str)
@@ -188,7 +185,11 @@ class WorkingDirectoryContainer(PluginMainContainer):
 
         # Widgets
         title = _('Current working directory')
-        self.toolbar = WorkingDirectoryToolbar(self, title)
+        self.toolbar = ApplicationToolbar(
+            self,
+            ApplicationToolbars.WorkingDirectory,
+            title
+        )
         self.pathedit = WorkingDirectoryComboBox(self)
         spacer = WorkingDirectorySpacer(self)
 
@@ -199,7 +200,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
-        self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.textActivated.connect(self.chdir)
 
@@ -280,7 +280,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         return workdir
 
     @Slot()
-    def _select_directory(self, directory=None):
+    def _select_directory(self):
         """
         Select working directory.
 
@@ -293,14 +293,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
         -----
         If directory is None, a get directory dialog will be used.
         """
-        if directory is None:
-            self.sig_redirect_stdio_requested.emit(False)
-            directory = getexistingdirectory(
-                self,
-                _("Select directory"),
-                getcwd_or_home(),
-            )
-            self.sig_redirect_stdio_requested.emit(True)
+        self.sig_redirect_stdio_requested.emit(False)
+        directory = getexistingdirectory(
+            self,
+            _("Select directory"),
+            getcwd_or_home(),
+        )
+        self.sig_redirect_stdio_requested.emit(True)
 
         if directory:
             self.chdir(directory)

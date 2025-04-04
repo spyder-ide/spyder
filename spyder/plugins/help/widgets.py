@@ -14,10 +14,9 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYQT5
+from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
-from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
                             QMessageBox, QSizePolicy, QStackedWidget,
                             QVBoxLayout, QWidget)
@@ -35,17 +34,22 @@ from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import start_file
-from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
+# In case WebEngine is not available (e.g. in Conda-forge)
+try:
+    from qtpy.QtWebEngineWidgets import WEBENGINE
+except ImportError:
+    WEBENGINE = False
+
 
 # --- Constants
 # ----------------------------------------------------------------------------
-MAIN_BG_COLOR = QStylePalette.COLOR_BACKGROUND_1
+MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
 
 
 class HelpWidgetActions:
@@ -152,11 +156,14 @@ class RichText(QWidget, SpyderWidgetMixin):
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if PYQT5:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
+
+        from qtpy.QtWebEngineWidgets import QWebEnginePage
+        from spyder.widgets.browser import FrameWebView
 
         self.webview = FrameWebView(self)
         self.webview.setup()

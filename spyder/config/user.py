@@ -263,16 +263,37 @@ class UserConfig(DefaultsConfig):
                 assert isinstance(options, dict)
                 for opt, _ in options.items():
                     assert is_text_string(opt)
+
+                    if sec == "shortcuts" and (
+                        "/" not in opt or len(opt.split("/")) > 2
+                    ):
+                        raise ValueError(
+                            f"Error in shortcut option '{opt}'. Shortcut "
+                            f"options need to be of the form context/name, "
+                            f"e.g. editor/run cell (for a shortcut that works "
+                            f"only in the editor) or _/file switcher (for "
+                            f"global shortcuts)"
+                        )
         else:
             raise ValueError('`defaults` must be a dict or a list of tuples!')
 
-        # This attribute is overriding a method from cp.ConfigParser
-        self.defaults = defaults
+        # We need to transform default options to lowercase because
+        # ConfigParser saves options like that (see its optionxform method).
+        # Otherwise, resetting to defaults fails when option names are
+        # capitalized.
+        defaults_with_lowercase_options = []
+        for sec, options in defaults:
+            defaults_with_lowercase_options.append(
+                (sec, {k.lower(): v for k, v in options.items()})
+            )
+
+        # This attribute is overriding a method from ConfigParser
+        self.defaults = defaults_with_lowercase_options
 
         if defaults is not None:
             self.reset_to_defaults(save=False)
 
-        return defaults
+        return self.defaults
 
     @classmethod
     def _check_section_option(cls, section, option):

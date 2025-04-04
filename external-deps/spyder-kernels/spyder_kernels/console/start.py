@@ -16,6 +16,14 @@ import os.path as osp
 import sys
 import site
 
+# Remove current directory from sys.path to prevent kernel crashes when people
+# name Python files or modules with the same name as standard library modules.
+# See spyder-ide/spyder#8007
+# Inject it back into sys.path after all imports in this module but
+# before the kernel is initialized
+while '' in sys.path:
+    sys.path.remove('')
+
 # Third-party imports
 from traitlets import DottedObjectName
 
@@ -29,13 +37,6 @@ def import_spydercustomize():
     parent = osp.dirname(here)
     customize_dir = osp.join(parent, 'customize')
 
-    # Remove current directory from sys.path to prevent kernel
-    # crashes when people name Python files or modules with
-    # the same name as standard library modules.
-    # See spyder-ide/spyder#8007
-    while '' in sys.path:
-        sys.path.remove('')
-
     # Import our customizations
     site.addsitedir(customize_dir)
     import spydercustomize  # noqa
@@ -45,6 +46,7 @@ def import_spydercustomize():
         sys.path.remove(customize_dir)
     except ValueError:
         pass
+
 
 def kernel_config():
     """Create a config object with IPython kernel options."""
@@ -69,9 +71,6 @@ def kernel_config():
         # Don't load nor save history in our IPython consoles.
         spy_cfg.HistoryAccessor.enabled = False
 
-    # Until we implement Issue 1052
-    spy_cfg.InteractiveShell.xmode = 'Plain'
-
     # Jedi completer.
     jedi_o = os.environ.get('SPY_JEDI_O') == 'True'
     spy_cfg.IPCompleter.use_jedi = jedi_o
@@ -92,28 +91,6 @@ def kernel_config():
             "sys.breakpointhook = pdb.set_trace; "
             "del sys; del pdb"
         )
-
-    # Default inline backend configuration.
-    # This is useful to have when people doesn't
-    # use our config system to configure the
-    # inline backend but want to use
-    # '%matplotlib inline' at runtime
-    spy_cfg.InlineBackend.rc = {
-        # The typical default figure size is too large for inline use,
-        # so we shrink the figure size to 6x4, and tweak fonts to
-        # make that fit.
-        'figure.figsize': (6.0, 4.0),
-        # 72 dpi matches SVG/qtconsole.
-        # This only affects PNG export, as SVG has no dpi setting.
-        'figure.dpi': 72,
-        # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
-        'font.size': 10,
-        # 10pt still needs a little more room on the xlabel
-        'figure.subplot.bottom': .125,
-        # Play nicely with any background color.
-        'figure.facecolor': 'white',
-        'figure.edgecolor': 'white'
-    }
 
     if is_module_installed('matplotlib'):
         spy_cfg.IPKernelApp.matplotlib = "inline"
@@ -175,13 +152,6 @@ def main():
     # Import our customizations into the kernel
     import_spydercustomize()
 
-    # Remove current directory from sys.path to prevent kernel
-    # crashes when people name Python files or modules with
-    # the same name as standard library modules.
-    # See spyder-ide/spyder#8007
-    while '' in sys.path:
-        sys.path.remove('')
-
     # Main imports
     from ipykernel.kernelapp import IPKernelApp
     from spyder_kernels.console.kernel import SpyderKernel
@@ -214,6 +184,12 @@ def main():
         kernel.config = kernel_config()
     except:
         pass
+
+    # Re-add current working directory path into sys.path after all of the
+    # import statements, but before initializing the kernel.
+    if '' not in sys.path:
+        sys.path.insert(0, '')
+
     kernel.initialize()
 
     # Set our own magics

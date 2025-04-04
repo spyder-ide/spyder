@@ -20,11 +20,12 @@ from unittest.mock import Mock, patch
 
 # Third party imports
 import numpy
+from packaging.version import parse
 import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QDateEdit, QMessageBox, QWidget
+from qtpy.QtWidgets import QDateEdit, QLineEdit, QMessageBox, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
@@ -32,6 +33,9 @@ from spyder.widgets.collectionseditor import (
     CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
     CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
     ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+    SELECT_ROW_BUTTON_SIZE
+)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
@@ -87,15 +91,15 @@ def test_rename_variable(qtbot):
                  'e': 5}
     editor = CollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
 
     editor.rename_item(new_name='b2')
-    assert editor.model.rowCount() == 5
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'b2'
-    assert data(editor.model, 2, 0) == 'c'
-    assert data(editor.model, 3, 0) == 'd'
-    assert data(editor.model, 4, 0) == 'e'
+    assert editor.model().rowCount() == 5
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'b2'
+    assert data(editor.model(), 2, 0) == 'c'
+    assert data(editor.model(), 3, 0) == 'd'
+    assert data(editor.model(), 4, 0) == 'e'
 
     # Reset variables and try renaming one again
     new_variables = {'a': 1,
@@ -106,15 +110,15 @@ def test_rename_variable(qtbot):
                      'e': 5}
     editor.set_data(new_variables.copy())
     editor.adjust_columns()
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
     editor.rename_item(new_name='b3')
-    assert editor.model.rowCount() == 6
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'b2'
-    assert data(editor.model, 2, 0) == 'b3'
-    assert data(editor.model, 3, 0) == 'c'
-    assert data(editor.model, 4, 0) == 'd'
-    assert data(editor.model, 5, 0) == 'e'
+    assert editor.model().rowCount() == 6
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'b2'
+    assert data(editor.model(), 2, 0) == 'b3'
+    assert data(editor.model(), 3, 0) == 'c'
+    assert data(editor.model(), 4, 0) == 'd'
+    assert data(editor.model(), 5, 0) == 'e'
 
 
 def test_remove_variable(qtbot):
@@ -126,25 +130,25 @@ def test_remove_variable(qtbot):
                  'e': 5}
     editor = CollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
 
     editor.remove_item(force=True)
-    assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert editor.model().rowCount() == 4
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'c'
+    assert data(editor.model(), 2, 0) == 'd'
+    assert data(editor.model(), 3, 0) == 'e'
 
     # Reset variables and try removing one again
     editor.set_data(variables.copy())
     editor.adjust_columns()
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
     editor.remove_item(force=True)
-    assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert editor.model().rowCount() == 4
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'c'
+    assert data(editor.model(), 2, 0) == 'd'
+    assert data(editor.model(), 3, 0) == 'e'
 
 
 def test_remove_remote_variable(qtbot, monkeypatch):
@@ -176,7 +180,7 @@ def test_remove_remote_variable(qtbot, monkeypatch):
                        'numpy_type': 'Unknown'}}
     editor = RemoteCollectionsEditorTableView(None, variables.copy())
     qtbot.addWidget(editor)
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
 
     # Monkey patch remove variables
     def remove_values(ins, names):
@@ -208,22 +212,22 @@ def test_remove_remote_variable(qtbot, monkeypatch):
         remove_values)
 
     editor.remove_item(force=True)
-    assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert editor.model().rowCount() == 4
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'c'
+    assert data(editor.model(), 2, 0) == 'd'
+    assert data(editor.model(), 3, 0) == 'e'
 
     # Reset variables and try removing one again
     editor.set_data(variables.copy())
     editor.adjust_columns()
-    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.setCurrentIndex(editor.model().index(1, 0))
     editor.remove_item(force=True)
-    assert editor.model.rowCount() == 4
-    assert data(editor.model, 0, 0) == 'a'
-    assert data(editor.model, 1, 0) == 'c'
-    assert data(editor.model, 2, 0) == 'd'
-    assert data(editor.model, 3, 0) == 'e'
+    assert editor.model().rowCount() == 4
+    assert data(editor.model(), 0, 0) == 'a'
+    assert data(editor.model(), 1, 0) == 'c'
+    assert data(editor.model(), 2, 0) == 'd'
+    assert data(editor.model(), 3, 0) == 'e'
 
 
 def test_filter_rows(qtbot):
@@ -246,23 +250,23 @@ def test_filter_rows(qtbot):
     qtbot.addWidget(editor)
 
     # Initially two rows
-    assert editor.model.rowCount() == 2
+    assert editor.model().rowCount() == 2
 
     # Match two rows by name
     editor.do_find("df")
-    assert editor.model.rowCount() == 2
+    assert editor.model().rowCount() == 2
 
     # Match two rows by type
     editor.do_find("DataFrame")
-    assert editor.model.rowCount() == 2
+    assert editor.model().rowCount() == 2
 
     # Only one match
     editor.do_find("dfb")
-    assert editor.model.rowCount() == 1
+    assert editor.model().rowCount() == 1
 
     # No match
     editor.do_find("dfbc")
-    assert editor.model.rowCount() == 0
+    assert editor.model().rowCount() == 0
 
 
 def test_remote_make_data_function():
@@ -279,7 +283,7 @@ def test_remote_make_data_function():
     editor = RemoteCollectionsEditorTableView(
         None, variables, mock_shellwidget
     )
-    index = editor.model.index(0, 0)
+    index = editor.model().index(0, 0)
     data_function = editor.delegate.make_data_function(index)
     value = data_function()
     mock_shellwidget.get_value.assert_called_once_with('a')
@@ -291,7 +295,7 @@ def test_create_dataframeeditor_with_correct_format(qtbot):
     editor = CollectionsEditorTableView(None, {'df': df})
     qtbot.addWidget(editor)
     CONF.set('variable_explorer', 'dataframe_format', '10d')
-    editor.delegate.createEditor(None, None, editor.model.index(0, 3))
+    editor.delegate.createEditor(None, None, editor.model().index(0, 3))
     dataframe_editor = next(iter(editor.delegate._editors.values()))['editor']
     qtbot.addWidget(dataframe_editor)
     dataframe_editor.dataModel._format_spec == '10d'
@@ -346,34 +350,71 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
         coll = {'rng': rng}
         editor = CollectionsEditorTableView(None, coll)
         editor.delegate.createEditor(None, None,
-                                     editor.model.index(0, 3))
+                                     editor.model().index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
 def test_sort_numpy_numeric_collectionsmodel():
+    if parse(numpy.__version__) >= parse("2.0.0"):
+        np20 = True
+    else:
+        np20 = False
+
     var_list = [
-        numpy.float64(1e16), numpy.float64(10), numpy.float64(1),
-        numpy.float64(0.1), numpy.float64(1e-6),
-        numpy.float64(0), numpy.float64(-1e-6), numpy.float64(-1),
-        numpy.float64(-10), numpy.float64(-1e16)
-        ]
+        numpy.float64(1e16),
+        numpy.float64(10),
+        numpy.float64(1),
+        numpy.float64(0.1),
+        numpy.float64(1e-6),
+        numpy.float64(0),
+        numpy.float64(-1e-6),
+        numpy.float64(-1),
+        numpy.float64(-10),
+        numpy.float64(-1e16),
+    ]
     cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
     assert cm.columnCount() == 4
-    cm.sort(0)  # sort by index
-    assert data_table(cm, 10, 4) == [list(range(0, 10)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['1e+16', '10.0', '1.0', '0.1',
-                                      '1e-06', '0.0', '-1e-06',
-                                      '-1.0', '-10.0', '-1e+16']]
-    cm.sort(3)  # sort by value
-    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
-                                     [u'float64']*10,
-                                     [1]*10,
-                                     ['-1e+16', '-10.0', '-1.0',
-                                      '-1e-06', '0.0', '1e-06',
-                                      '0.1', '1.0', '10.0', '1e+16']]
+
+    # Sort by index
+    cm.sort(0)
+    assert data_table(cm, 10, 4) == [
+        list(range(0, 10)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "np.float64(1e+16)" if np20 else "1e+16",
+            "np.float64(10.0)" if np20 else "10.0",
+            "np.float64(1.0)" if np20 else "1.0",
+            "np.float64(0.1)" if np20 else "0.1",
+            "np.float64(1e-06)" if np20 else "1e-06",
+            "np.float64(0.0)" if np20 else "0.0",
+            "np.float64(-1e-06)" if np20 else "-1e-06",
+            "np.float64(-1.0)" if np20 else "-1.0",
+            "np.float64(-10.0)" if np20 else "-10.0",
+            "np.float64(-1e+16)" if np20 else "-1e+16",
+        ],
+    ]
+
+    # Sort by value
+    cm.sort(3)
+    assert data_table(cm, 10, 4) == [
+        list(range(9, -1, -1)),
+        ["float64"] * 10,
+        [1] * 10,
+        [
+            "np.float64(-1e+16)" if np20 else "-1e+16",
+            "np.float64(-10.0)" if np20 else "-10.0",
+            "np.float64(-1.0)" if np20 else "-1.0",
+            "np.float64(-1e-06)" if np20 else "-1e-06",
+            "np.float64(0.0)" if np20 else "0.0",
+            "np.float64(1e-06)" if np20 else "1e-06",
+            "np.float64(0.1)" if np20 else "0.1",
+            "np.float64(1.0)" if np20 else "1.0",
+            "np.float64(10.0)" if np20 else "10.0",
+            "np.float64(1e+16)" if np20 else "1e+16",
+        ],
+    ]
 
 
 def test_sort_float_collectionsmodel():
@@ -490,7 +531,7 @@ def test_rename_and_duplicate_item_in_collection_editor():
         editor = CollectionsEditorTableView(None, coll)
         assert editor.rename_action.isEnabled()
         assert editor.duplicate_action.isEnabled()
-        editor.setCurrentIndex(editor.model.index(0, 0))
+        editor.setCurrentIndex(editor.model().index(0, 0))
         editor.refresh_menu()
         assert editor.rename_action.isEnabled() == rename_enabled
         assert editor.duplicate_action.isEnabled() == duplicate_enabled
@@ -577,7 +618,7 @@ def test_collectioneditor_refresh_nested():
     editor = CollectionsEditor(None, data_function=lambda: new_list)
     editor.setup(old_list)
     view = editor.widget.editor
-    view.edit(view.model.index(3, 3))
+    view.edit(view.model().index(3, 3))
     nested_editor = list(view.delegate._editors.values())[0]['editor']
     assert nested_editor.get_value() == (4, 5)
     nested_editor.widget.refresh_action.trigger()
@@ -595,12 +636,12 @@ def test_edit_datetime(monkeypatch):
 
     # Test that the NaT value cannot be edited on the variable explorer
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(0, 3))
+        None, None, editor_list.model().index(0, 3))
     assert editor_list_value is None
 
     # Test that a date can be edited on the variable explorer
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(1, 3))
+        None, None, editor_list.model().index(1, 3))
     assert isinstance(editor_list_value, QDateEdit)
 
 
@@ -640,31 +681,31 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside list
     editor_list_value = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(0, 3))
+        None, None, editor_list.model().index(0, 3))
     assert editor_list_value is not None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(1, 3))
+                                      editor_list.model().index(1, 3))
     assert MockTextEditor.call_count == 2
     assert not MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside list
     editor_list_datetime = editor_list.delegate.createEditor(
-        None, None, editor_list.model.index(2, 3))
+        None, None, editor_list.model().index(2, 3))
     assert editor_list_datetime is not None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(3, 3))
+                                      editor_list.model().index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 1
     assert not mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside list
     editor_list.delegate.createEditor(None, None,
-                                      editor_list.model.index(4, 3))
+                                      editor_list.model().index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 2
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
@@ -673,33 +714,70 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     # Directly editable values inside tuple
     editor_tup_value = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.index(0, 3))
+        None, None, editor_tup.model().index(0, 3))
     assert editor_tup_value is None
     assert MockQLineEdit.call_count == 1
 
     # Text Editor for long text inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(1, 3))
+                                     editor_tup.model().index(1, 3))
     assert MockTextEditor.call_count == 4
     assert MockTextEditor.call_args[1]["readonly"]
 
     # Datetime inside tuple
     editor_tup_datetime = editor_tup.delegate.createEditor(
-        None, None, editor_tup.model.index(2, 3))
+        None, None, editor_tup.model().index(2, 3))
     assert editor_tup_datetime is None
     assert MockQDateTimeEdit.call_count == 1
 
     # List inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(3, 3))
+                                     editor_tup.model().index(3, 3))
     assert mockCollectionsEditor_instance.show.call_count == 3
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
     # Tuple inside tuple
     editor_tup.delegate.createEditor(None, None,
-                                     editor_tup.model.index(4, 3))
+                                     editor_tup.model().index(4, 3))
     assert mockCollectionsEditor_instance.show.call_count == 4
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
+
+
+@pytest.mark.parametrize(
+    'exponent, error_expected',
+    [(32_766, False), (32_767, True)]
+)
+def test_edit_large_int(monkeypatch, exponent, error_expected):
+    """
+    Test editing large int values either works or displays an error.
+
+    Regression test for spyder-ide/spyder#21751.
+    """
+    num = 10 ** exponent + 1
+    editor = CollectionsEditorTableView(None, [num])
+    index = editor.model().index(0, 3)
+
+    with patch(
+        'spyder.plugins.variableexplorer.widgets'
+        '.collectionsdelegate.QLineEdit'
+    ) as MockQLineEdit:
+        with patch(
+            'spyder.plugins.variableexplorer.widgets'
+            '.collectionsdelegate.QMessageBox'
+        ) as MockQMessageBox:
+            editor.delegate.createEditor(None, None, index)
+
+    if error_expected:
+        MockQLineEdit.assert_not_called()
+        MockQMessageBox.assert_called_once()
+    else:
+        MockQLineEdit.assert_called_once()
+        MockQMessageBox.assert_not_called()
+
+        line_edit_instance = Mock(spec=QLineEdit)
+        editor.delegate.setEditorData(line_edit_instance, index)
+        expected = '1' + (exponent - 1) * '0' + '1'
+        line_edit_instance.setText.assert_called_once_with(expected)
 
 
 @flaky(max_runs=3)
@@ -783,7 +861,7 @@ def test_editor_parent_set(monkeypatch):
                                       MockObjectExplorer,
                                       MockTextEditor]):
         col_editor.delegate.createEditor(col_editor.parent(), None,
-                                         col_editor.model.index(idx, 3))
+                                         col_editor.model().index(idx, 3))
         assert mock_class.call_count == 1 + (idx // 4)
         assert mock_class.call_args[1]["parent"] is test_parent
 
@@ -938,7 +1016,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
         qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
 
     # Assert data was sorted correctly.
-    assert data(view.model, 0, 0) == 9999
+    assert data(view.model(), 0, 0) == 9999
 
     editor.accept()
 
@@ -1042,6 +1120,46 @@ def test_collectioneditor_plot(qtbot):
 
     cew.editor.plot('list', 'plot')
     mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
+
+
+def test_collectionseditor_select_row_button(qtbot):
+    """Test that the button to select rows is working as expected."""
+    data = {"a": 10, "b": "This is a string"}
+    editor = CollectionsEditor()
+    editor.setup(data)
+    editor.show()
+
+    # This is necessary so that Qt paints
+    qtbot.wait(300)
+
+    # Coordinates to position the cursor on top of the select row button for
+    # the first row
+    table_view = editor.widget.editor
+    x = (
+        # Left x ccordinate for the first row
+        + table_view.columnViewportPosition(0)
+        + table_view.width()
+        - SELECT_ROW_BUTTON_SIZE // 2
+    )
+
+    y = (
+        # Top y ccordinate for the first row
+        + table_view.rowViewportPosition(0)
+        + table_view.rowHeight(0) // 2
+    )
+
+    # Move cursor
+    qtbot.mouseMove(table_view.viewport(), QPoint(x, y), delay=100)
+
+    # Click on that posiiton and check the first row was selected.
+    # Note: We can't use LeftButton here because it edits the row. However, it
+    # works as exoected in regular usage.
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == {0}
+
+    # Click again and check the row was deselected
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == set()
 
 
 if __name__ == "__main__":

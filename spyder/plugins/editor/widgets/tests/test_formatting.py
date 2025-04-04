@@ -42,8 +42,7 @@ def test_closing_document_formatting(
         formatter
     )
 
-    with qtbot.waitSignal(completion_plugin.sig_editor_rpc):
-        completion_plugin.after_configuration_update([])
+    completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
     # Set text in editor
@@ -91,8 +90,7 @@ def test_formatting_on_save(completions_editor, formatter, qtbot):
         formatter
     )
 
-    with qtbot.waitSignal(completion_plugin.sig_editor_rpc):
-        completion_plugin.after_configuration_update([])
+    completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
     # Set text in editor

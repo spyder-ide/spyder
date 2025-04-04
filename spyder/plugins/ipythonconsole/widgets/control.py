@@ -8,11 +8,11 @@
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtGui import QColor, QTextFrameFormat
+from qtpy.QtGui import QColor, QTextFrameFormat, QTextCursor
 from qtpy.QtWidgets import QTextEdit
 
 # Local imports
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
@@ -50,7 +50,8 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         # To not use Spyder calltips obtained through the monitor
         self.calltips = False
 
-    # ---- Public methods ----------------------------------------------------
+    # ---- Public methods
+    # -------------------------------------------------------------------------
     def insert_horizontal_ruler(self):
         """
         Insert a horizontal ruler with the appropriate color according
@@ -64,12 +65,13 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         ruler = QTextFrameFormat()
         ruler.setHeight(1)
         ruler.setWidth(10000)
-        ruler.setBackground(QColor(QStylePalette.COLOR_TEXT_1))
+        ruler.setBackground(QColor(SpyderPalette.COLOR_TEXT_1))
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
+        cursor.movePosition(QTextCursor.MoveOperation.End)
         cursor.insertFrame(ruler)
 
-    # ---- Private methods ---------------------------------------------------
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _key_paren_left(self, text):
         """ Action for '(' """
         self.current_prompt_pos = self.parentWidget()._prompt_pos
@@ -79,7 +81,8 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
                 self.show_object_info(last_obj)
         self.insert_text(text)
 
-    # ---- Qt methods --------------------------------------------------------
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
     def showEvent(self, event):
         """Reimplement Qt Method"""
         self.sig_visibility_changed.emit(True)

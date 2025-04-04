@@ -24,8 +24,11 @@ from IPython.core.debugger import Pdb as ipyPdb
 from IPython.core.inputtransformer2 import TransformerManager
 
 import spyder_kernels
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
-from spyder_kernels.customize.utils import path_is_library, capture_last_Expr
+from spyder_kernels.customize.utils import (
+    path_is_library, capture_last_Expr, exec_encapsulate_locals
+)
 
 
 logger = logging.getLogger(__name__)
@@ -116,6 +119,10 @@ class SpyderPdb(ipyPdb):
         # Fixes spyder-ide/spyder#20639.
         self._predicates["debuggerskip"] = False
 
+        # Save seen files inodes
+        self._canonic_inode_to_filename = {}
+        self._canonic_filename_to_inode = {}
+
     # --- Methods overriden for code execution
     def print_exclamation_warning(self):
         """Print pdb warning for exclamation mark."""
@@ -142,22 +149,22 @@ class SpyderPdb(ipyPdb):
             if cmd == "debug":
                 return self.do_debug(arg)
 
-        locals = self.curframe_locals
-        globals = self.curframe.f_globals
+        local_ns = self.curframe_locals
+        global_ns = self.curframe.f_globals
 
         if self.pdb_use_exclamation_mark:
             # Find pdb commands executed without !
             cmd, arg, line = self.parseline(line)
             if cmd:
                 cmd_in_namespace = (
-                    cmd in globals
-                    or cmd in locals
+                    cmd in global_ns
+                    or cmd in local_ns
                     or cmd in builtins.__dict__
                 )
                 # Special case for quit and exit
                 if cmd in ("quit", "exit"):
-                    if cmd in globals and isinstance(
-                            globals[cmd], ZMQExitAutocall):
+                    if cmd in global_ns and isinstance(
+                            global_ns[cmd], ZMQExitAutocall):
                         # Use the pdb call
                         cmd_in_namespace = False
                 cmd_func = getattr(self, 'do_' + cmd, None)
@@ -181,6 +188,7 @@ class SpyderPdb(ipyPdb):
                         # The pdb command is masked by something
                         self.print_exclamation_warning()
         try:
+            is_magic = line.startswith("%")
             line = TransformerManager().transform_cell(line)
             save_stdout = sys.stdout
             save_stdin = sys.stdin
@@ -199,82 +207,19 @@ class SpyderPdb(ipyPdb):
                     capture_last_expression = False
                 else:
                     code_ast, capture_last_expression = capture_last_Expr(
-                        code_ast, "_spyderpdb_out")
+                        code_ast, "_spyderpdb_out", global_ns)
 
-                globals["__spyder_builtins__"] = builtins
-
-                if locals is not globals:
-                    # Mitigates a behaviour of CPython that makes it difficult
-                    # to work with exec and the local namespace
-                    # See:
-                    #  - https://bugs.python.org/issue41918
-                    #  - https://bugs.python.org/issue46153
-                    #  - https://bugs.python.org/issue21161
-                    #  - spyder-ide/spyder#13909
-                    #  - spyder-ide/spyder-kernels#345
-                    #
-                    # The idea here is that the best way to emulate being in a
-                    # function is to actually execute the code in a function.
-                    # A function called `_spyderpdb_code` is created and
-                    # called. It will first load the locals, execute the code,
-                    # and then update the locals.
-                    #
-                    # One limitation of this approach is that locals() is only
-                    # a copy of the curframe locals. This means that closures
-                    # for example are early binding instead of late binding.
-
-                    # Create a function
-                    indent = "    "
-                    code = ["def _spyderpdb_code():"]
-
-                    # Add locals in globals
-                    # If the debugger is recursive, the globals could already
-                    # have a _spyderpdb_locals as it might be shared between
-                    # levels
-                    if "_spyderpdb_locals" in globals:
-                        globals["_spyderpdb_locals"].append(locals)
-                    else:
-                        globals["_spyderpdb_locals"] = [locals]
-
-                    # Load locals if they have a valid name
-                    # In comprehensions, locals could contain ".0" for example
-                    code += [indent + "{k} = _spyderpdb_locals[-1]['{k}']".format(
-                        k=k) for k in locals if k.isidentifier()]
-
-                    # The code comes here
-
-                    # Update the locals
-                    code += [indent + "_spyderpdb_locals[-1].update("
-                             "__spyder_builtins__.locals())"]
-
-                    # Run the function
-                    code += ["_spyderpdb_code()"]
-
-                    # Parse the function
-                    fun_ast = ast.parse('\n'.join(code) + '\n')
-
-                    # Inject code_ast in the function before the locals update
-                    fun_ast.body[0].body = (
-                        fun_ast.body[0].body[:-1]  # The locals
-                        + code_ast.body  # Code to run
-                        + fun_ast.body[0].body[-1:]  # Locals update
-                    )
-                    code_ast = fun_ast
-
-                try:
-                    exec(compile(code_ast, "<stdin>", "exec"), globals)
-                finally:
-                    if locals is not globals:
-                        # CLeanup code
-                        globals.pop("_spyderpdb_code", None)
-                        if len(globals["_spyderpdb_locals"]) > 1:
-                            del globals["_spyderpdb_locals"][-1]
-                        else:
-                            del globals["_spyderpdb_locals"]
-                        
+                if is_magic:
+                    # Magics like runcell use and modify local_ns.
+                    # But the locals() dict can not be directly modified when
+                    # encapsulated. Therefore they must encapsulate the locals
+                    # themselves (see code_runner.py).
+                    exec(compile(code_ast, "<stdin>", "exec"), global_ns, local_ns)
+                else:
+                    exec_encapsulate_locals(code_ast, global_ns, local_ns)
 
                 if capture_last_expression:
-                    out = globals.pop("_spyderpdb_out", None)
+                    out = global_ns.pop("_spyderpdb_out", None)
                     if out is not None:
                         sys.stdout.flush()
                         sys.stderr.flush()
@@ -360,7 +305,7 @@ class SpyderPdb(ipyPdb):
             # This is spyder-kernels internals
             return False
         return True
-    
+
     def should_continue(self, frame):
         """
         Jump to first breakpoint if needed.
@@ -406,16 +351,16 @@ class SpyderPdb(ipyPdb):
     do_bt = do_where
 
     # --- Method defined by us to respond to ipython complete protocol
-    def do_complete(self, code, cursor_pos):
+    async def do_complete(self, code, cursor_pos):
         """
         Respond to a complete request.
         """
         if self.pdb_use_exclamation_mark:
-            return self._complete_exclamation(code, cursor_pos)
+            return await self._complete_exclamation(code, cursor_pos)
         else:
-            return self._complete_default(code, cursor_pos)
+            return await self._complete_default(code, cursor_pos)
 
-    def _complete_default(self, code, cursor_pos):
+    async def _complete_default(self, code, cursor_pos):
         """
         Respond to a complete request if not pdb_use_exclamation_mark.
         """
@@ -477,7 +422,7 @@ class SpyderPdb(ipyPdb):
                 else:
                     frame = self.curframe
                 self.shell.set_completer_frame(frame)
-            result = self.shell.kernel._do_complete(code, cursor_pos)
+            result = await self.shell.kernel._do_complete(code, cursor_pos)
             # Reset frame
             self.shell.set_completer_frame()
             # If there is no Pdb results to merge, return the result
@@ -505,7 +450,7 @@ class SpyderPdb(ipyPdb):
                 'metadata': {},
                 'status': 'ok'}
 
-    def _complete_exclamation(self, code, cursor_pos):
+    async def _complete_exclamation(self, code, cursor_pos):
         """
         Respond to a complete request if pdb_use_exclamation_mark.
         """
@@ -584,7 +529,7 @@ class SpyderPdb(ipyPdb):
             else:
                 frame = self.curframe
             self.shell.set_completer_frame(frame)
-        result = self.shell.kernel._do_complete(code, cursor_pos)
+        result = await self.shell.kernel._do_complete(code, cursor_pos)
         # Reset frame
         self.shell.set_completer_frame()
         return result
@@ -617,9 +562,9 @@ class SpyderPdb(ipyPdb):
         with self.recursive_debugger() as debugger:
             self.message("Entering recursive debugger")
             try:
-                globals = self.curframe.f_globals
-                locals = self.curframe_locals
-                return sys.call_tracing(debugger.run, (arg, globals, locals))
+                global_ns = self.curframe.f_globals
+                local_ns = self.curframe_locals
+                return sys.call_tracing(debugger.run, (arg, global_ns, local_ns))
             except Exception:
                 exc_info = sys.exc_info()[:2]
                 self.error(
@@ -681,8 +626,42 @@ class SpyderPdb(ipyPdb):
 
     @lru_cache
     def canonic(self, filename):
-        """Return canonical form of filename."""
-        return super().canonic(filename)
+        """
+        Return canonical form of filename.
+
+        In some case two path can point to the same file. For this reason
+        os.path.samefile uses os.stat. Here we normalise the path with os.stat
+        so a single path is returned for the same file.
+
+        see: https://docs.python.org/3/library/os.path.html#os.path.samefile
+        note: os.stat can be slow on windows so call it once per file.
+        """
+        if filename == "<" + filename[1:-1] + ">":
+            return filename
+
+        filename = super().canonic(filename)
+
+        if filename in self._canonic_filename_to_inode:
+            inode = self._canonic_filename_to_inode[filename]
+        else:
+            try:
+                stat = os.stat(filename)
+            except OSError:
+                self._canonic_filename_to_inode[filename] = None
+                return filename
+
+            inode = (stat.st_dev, stat.st_ino)
+            if stat.st_ino == 0:
+                inode = None
+            self._canonic_filename_to_inode[filename] = inode
+            if inode is not None and inode not in self._canonic_inode_to_filename:
+                # First time this inode is seen
+                self._canonic_inode_to_filename[inode] = filename
+
+        if inode is None:
+            return filename
+        return self._canonic_inode_to_filename[inode]
+
 
     def do_exitdb(self, arg):
         """Exit the debugger"""
@@ -708,7 +687,12 @@ class SpyderPdb(ipyPdb):
         stop = None
         while not stop:
             if self.cmdqueue:
-                line = self.cmdqueue.pop(0)
+                # Anything available in cmdqueue is a Pdb command, so we need
+                # to process it as such.
+                # Fixes spyder-ide/spyder#22500
+                line = (
+                    "!" if self.pdb_use_exclamation_mark else ""
+                ) + self.cmdqueue.pop(0)
             else:
                 try:
                     line = self.cmd_input(self.prompt)
@@ -851,9 +835,10 @@ class SpyderPdb(ipyPdb):
 
         if self.pdb_publish_stack:
             # Publish Pdb stack so we can update the Debugger plugin on Spyder
-            pdb_stack = traceback.StackSummary.extract(self.stack)
+            pdb_stack = stacksummary_to_json(
+                traceback.StackSummary.extract(self.stack)
+            )
             pdb_index = self.curindex
-
             skip_hidden = getattr(self, 'skip_hidden', False)
 
             if skip_hidden:

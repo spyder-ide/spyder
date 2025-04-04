@@ -23,7 +23,7 @@ from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.widgets.menus import SpyderMenu, MENU_SEPARATOR
-from spyder.config.base import (DEV, get_module_path, get_debug_level,
+from spyder.config.base import (get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
@@ -38,7 +38,7 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor, Plugins.StatusBar]
+                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
@@ -100,20 +100,11 @@ class Application(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
-        # Add status widget if created
-        if self.application_update_status:
-            statusbar = self.get_plugin(Plugins.StatusBar)
-            statusbar.add_status_widget(self.application_update_status)
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        inapp_appeal_status = self.get_container().inapp_appeal_status
+        statusbar.add_status_widget(inapp_appeal_status)
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
-
-    @on_plugin_teardown(plugin=Plugins.StatusBar)
-    def on_statusbar_teardown(self):
-        # Remove status widget if created
-        if self.application_update_status:
-            statusbar = self.get_plugin(Plugins.StatusBar)
-            statusbar.remove_status_widget(self.application_update_status.ID)
-
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -136,6 +127,12 @@ class Application(SpyderPluginV2):
         self._depopulate_help_menu()
         self.report_action.setVisible(False)
 
+    @on_plugin_teardown(plugin=Plugins.StatusBar)
+    def on_statusbar_teardown(self):
+        statusbar = self.get_plugin(Plugins.StatusBar)
+        inapp_appeal_status = self.get_container().inapp_appeal_status
+        statusbar.remove_status_widget(inapp_appeal_status.ID)
+
     def on_close(self, _unused=True):
         self.get_container().on_close()
 
@@ -146,11 +143,6 @@ class Application(SpyderPluginV2):
         # Show dialog with missing dependencies
         if not running_under_pytest():
             container.compute_dependencies()
-
-        # Check for updates
-        if DEV is None and self.get_conf('check_updates_on_startup'):
-            container.give_updates_feedback = False
-            container.check_updates(startup=True)
 
         # Handle DPI scale and window changes to show a restart message.
         # Don't activate this functionality on macOS because it's being
@@ -163,6 +155,18 @@ class Application(SpyderPluginV2):
             container.current_dpi = screen.logicalDotsPerInch()
             screen.logicalDotsPerInchChanged.connect(
                 container.show_dpi_change_message)
+
+        # Show appeal the fifth and 25th time Spyder starts
+        spyder_runs = self.get_conf("spyder_runs_for_appeal", default=1)
+        if spyder_runs in [5, 25]:
+            container.inapp_appeal_status.show_appeal()
+
+            # Increase counting in one to not get stuck at this point.
+            # Fixes spyder-ide/spyder#22457
+            self.set_conf("spyder_runs_for_appeal", spyder_runs + 1)
+        else:
+            if spyder_runs < 25:
+                self.set_conf("spyder_runs_for_appeal", spyder_runs + 1)
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -219,14 +223,18 @@ class Application(SpyderPluginV2):
         """Add Spyder base support actions to the Help main menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
         for support_action in [
-                self.trouble_action, self.report_action,
-                self.dependencies_action, self.check_updates_action,
-                self.support_group_action]:
+            self.trouble_action,
+            self.report_action,
+            self.dependencies_action,
+            self.support_group_action,
+            self.get_action(ApplicationActions.HelpSpyderAction),
+        ]:
             mainmenu.add_item_to_application_menu(
                 support_action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Support,
-                before_section=HelpMenuSections.ExternalDocumentation)
+                before_section=HelpMenuSections.ExternalDocumentation
+            )
 
     def _populate_help_menu_about_section(self):
         """Create Spyder base about actions."""
@@ -261,7 +269,6 @@ class Application(SpyderPluginV2):
                 ApplicationActions.SpyderTroubleshootingAction,
                 ConsoleActions.SpyderReportAction,
                 ApplicationActions.SpyderDependenciesAction,
-                ApplicationActions.SpyderCheckUpdatesAction,
                 ApplicationActions.SpyderSupportAction]:
             mainmenu.remove_item_from_application_menu(
                 support_action,
@@ -415,11 +422,6 @@ class Application(SpyderPluginV2):
         return self.get_container().dependencies_action
 
     @property
-    def check_updates_action(self):
-        """Check if a new version of Spyder is available."""
-        return self.get_container().check_updates_action
-
-    @property
     def support_group_action(self):
         """Open Spyder's Google support group in the browser."""
         return self.get_container().support_group_action
@@ -453,7 +455,3 @@ class Application(SpyderPluginV2):
     def debug_logs_menu(self):
         return self.get_container().get_menu(
             ApplicationPluginMenus.DebugLogsMenu)
-
-    @property
-    def application_update_status(self):
-        return self.get_container().application_update_status

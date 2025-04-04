@@ -63,11 +63,15 @@ class CachedKernelMixin:
             self.close_cached_kernel()
             return new_kernel_handler
 
-        # Check cached kernel has the same configuration as is being asked
+        # Check cached kernel has the same configuration as is being asked or
+        # it crashed.
         cached_kernel_handler = None
         if self._cached_kernel_properties is not None:
             cached_kernel_handler = self._cached_kernel_properties[-1]
-            if not self.check_cached_kernel_spec(kernel_spec):
+            if (
+                not self.check_cached_kernel_spec(kernel_spec)
+                or cached_kernel_handler._init_stderr
+            ):
                 # Close the kernel
                 self.close_cached_kernel()
                 cached_kernel_handler = None

@@ -20,12 +20,16 @@ from spyder.utils.encoding import to_unicode_from_fs
 
 # ---- Constants
 # ----------------------------------------------------------------------------
-CWD = 0
-PROJECT = 1
-FILE_PATH = 2
-SELECT_OTHER = 4
-CLEAR_LIST = 5
-EXTERNAL_PATHS = 7
+class SearchInComboBoxItems:
+    Cwd = 0
+    Project = 1
+    File = 2
+    FirstSeparator = 3
+    SelectAnotherDirectory = 4
+    ClearList = 5
+    SecondSeparator = 6
+    ExternalPaths = 7
+
 MAX_PATH_HISTORY = 15
 
 
@@ -43,46 +47,35 @@ class SearchInComboBox(SpyderComboBox):
     def __init__(self, external_path_history=[], parent=None, id_=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setToolTip(_('Search directory'))
         self.setEditable(False)
 
         self.path = ''
-        self.project_path = None
-        self.file_path = None
-        self.external_path = None
+        self.project_path = ''
+        self.file_path = ''
+        self.external_path = ''
 
         if id_ is not None:
             self.ID = id_
 
         self.addItem(_("Current working directory"))
-        ttip = ("Search in all files and directories present on the current"
-                " Spyder path")
-        self.setItemData(0, ttip, Qt.ToolTipRole)
 
         self.addItem(_("Project"))
-        ttip = _("Search in all files and directories present on the"
-                 " current project path (if opened)")
-        self.setItemData(1, ttip, Qt.ToolTipRole)
-        self.model().item(1, 0).setEnabled(False)
+        self.model().item(SearchInComboBoxItems.Project, 0).setEnabled(False)
 
-        self.addItem(_("File").replace('&', ''))
-        ttip = _("Search in current opened file")
-        self.setItemData(2, ttip, Qt.ToolTipRole)
+        self.addItem(_("Current file").replace('&', ''))
 
-        self.insertSeparator(3)
+        self.insertSeparator(SearchInComboBoxItems.FirstSeparator)
 
-        self.addItem(_("Select other directory"))
-        ttip = _("Search in other folder present on the file system")
-        self.setItemData(4, ttip, Qt.ToolTipRole)
+        self.addItem(_("Select another directory"))
+        self.addItem(_("Clear the list of other directories"))
 
-        self.addItem(_("Clear this list"))
-        ttip = _("Clear the list of other directories")
-        self.setItemData(5, ttip, Qt.ToolTipRole)
+        self.insertSeparator(SearchInComboBoxItems.SecondSeparator)
 
-        self.insertSeparator(6)
-
-        for path in external_path_history:
-            self.add_external_path(path)
+        if external_path_history:
+            for path in external_path_history:
+                self.add_external_path(path)
+        else:
+            self.set_state_other_dirs_items(False)
 
         self.currentIndexChanged.connect(self.path_selection_changed)
         self.view().installEventFilter(self)
@@ -96,21 +89,29 @@ class SearchInComboBox(SpyderComboBox):
         """
         if not osp.exists(path):
             return
+        self.set_state_other_dirs_items(True)
         self.removeItem(self.findText(path))
         self.addItem(path)
         self.setItemData(self.count() - 1, path, Qt.ToolTipRole)
-        while self.count() > MAX_PATH_HISTORY + EXTERNAL_PATHS:
-            self.removeItem(EXTERNAL_PATHS)
+
+        while (
+            self.count() >
+            (MAX_PATH_HISTORY + SearchInComboBoxItems.ExternalPaths)
+        ):
+            self.removeItem(SearchInComboBoxItems.ExternalPaths)
 
     def get_external_paths(self):
         """Returns a list of the external paths listed in the combobox."""
-        return [str(self.itemText(i))
-                for i in range(EXTERNAL_PATHS, self.count())]
+        return [
+            str(self.itemText(i))
+            for i in range(SearchInComboBoxItems.ExternalPaths, self.count())
+        ]
 
     def clear_external_paths(self):
         """Remove all the external paths listed in the combobox."""
-        while self.count() > EXTERNAL_PATHS:
-            self.removeItem(EXTERNAL_PATHS)
+        while self.count() > SearchInComboBoxItems.ExternalPaths:
+            self.removeItem(SearchInComboBoxItems.ExternalPaths)
+        self.set_state_other_dirs_items(False)
 
     def get_current_searchpath(self):
         """
@@ -118,11 +119,11 @@ class SearchInComboBox(SpyderComboBox):
         in the combobox.
         """
         idx = self.currentIndex()
-        if idx == CWD:
+        if idx == SearchInComboBoxItems.Cwd:
             return self.path
-        elif idx == PROJECT:
+        elif idx == SearchInComboBoxItems.Project:
             return self.project_path
-        elif idx == FILE_PATH:
+        elif idx == SearchInComboBoxItems.File:
             return self.file_path
         else:
             return self.external_path
@@ -131,15 +132,17 @@ class SearchInComboBox(SpyderComboBox):
         """Set the current index of this combo box."""
         if index is not None:
             index = min(index, self.count() - 1)
-            index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+            if index in [SearchInComboBoxItems.ClearList,
+                         SearchInComboBoxItems.SelectAnotherDirectory]:
+                index = SearchInComboBoxItems.Cwd
         else:
-            index = CWD
+            index = SearchInComboBoxItems.Cwd
 
         self.setCurrentIndex(index)
 
     def is_file_search(self):
         """Returns whether the current search path is a file."""
-        if self.currentIndex() == FILE_PATH:
+        if self.currentIndex() == SearchInComboBoxItems.File:
             return True
         else:
             return False
@@ -148,22 +151,22 @@ class SearchInComboBox(SpyderComboBox):
     def path_selection_changed(self):
         """Handles when the current index of the combobox changes."""
         idx = self.currentIndex()
-        if idx == SELECT_OTHER:
+        if idx == SearchInComboBoxItems.SelectAnotherDirectory:
             external_path = self.select_directory()
             if len(external_path) > 0:
                 self.add_external_path(external_path)
                 self.setCurrentIndex(self.count() - 1)
             else:
-                self.setCurrentIndex(CWD)
-        elif idx == CLEAR_LIST:
+                self.setCurrentIndex(SearchInComboBoxItems.Cwd)
+        elif idx == SearchInComboBoxItems.ClearList:
             reply = QMessageBox.question(
                     self, _("Clear other directories"),
                     _("Do you want to clear the list of other directories?"),
                     QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.clear_external_paths()
-            self.setCurrentIndex(CWD)
-        elif idx >= EXTERNAL_PATHS:
+            self.setCurrentIndex(SearchInComboBoxItems.Cwd)
+        elif idx >= SearchInComboBoxItems.ExternalPaths:
             self.external_path = str(self.itemText(idx))
 
     @Slot()
@@ -187,27 +190,55 @@ class SearchInComboBox(SpyderComboBox):
         if the value of path is None.
         """
         if path is None:
-            self.project_path = None
-            self.model().item(PROJECT, 0).setEnabled(False)
-            if self.currentIndex() == PROJECT:
-                self.setCurrentIndex(CWD)
+            self.project_path = ''
+            self.model().item(
+                SearchInComboBoxItems.Project, 0
+            ).setEnabled(False)
+            if self.currentIndex() == SearchInComboBoxItems.Project:
+                self.setCurrentIndex(SearchInComboBoxItems.Cwd)
         else:
             path = osp.abspath(path)
             self.project_path = path
-            self.model().item(PROJECT, 0).setEnabled(True)
+            self.model().item(
+                SearchInComboBoxItems.Project, 0
+            ).setEnabled(True)
+
+    def set_state_other_dirs_items(self, enabled):
+        """
+        Set the enabled/visible state of items that change when other
+        directories are added/removed to/from the combobox.
+        """
+        # The second separator needs to be visible only when the user has added
+        # other directories.
+        self.view().setRowHidden(
+            SearchInComboBoxItems.SecondSeparator, not enabled
+        )
+
+        # The ClearList item needs to be disabled if the user has not added
+        # other directories
+        self.model().item(
+            SearchInComboBoxItems.ClearList, 0
+        ).setEnabled(enabled)
 
     def eventFilter(self, widget, event):
         """Used to handle key events on the QListView of the combobox."""
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Delete:
             index = self.view().currentIndex().row()
-            if index >= EXTERNAL_PATHS:
+            if index >= SearchInComboBoxItems.ExternalPaths:
                 # Remove item and update the view.
                 self.removeItem(index)
                 self.showPopup()
+
                 # Set the view selection so that it doesn't bounce around.
                 new_index = min(self.count() - 1, index)
-                new_index = 0 if new_index < EXTERNAL_PATHS else new_index
+                if new_index < SearchInComboBoxItems.ExternalPaths:
+                    new_index = SearchInComboBoxItems.Cwd
+                    self.set_state_other_dirs_items(False)
+                    self.hidePopup()
+
                 self.view().setCurrentIndex(self.model().index(new_index, 0))
                 self.setCurrentIndex(new_index)
+
             return True
+
         return super().eventFilter(widget, event)

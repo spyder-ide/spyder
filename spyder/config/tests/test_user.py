@@ -377,6 +377,30 @@ def test_userconfig_cleanup(userconfig):
     assert not os.path.isfile(configpath)
 
 
+@pytest.mark.no_reset_conf
+def test_invalid_shortcuts(tmp_path):
+    name = 'invalid-shortcuts'
+    path = str(tmp_path)
+
+    for defaults in [
+        # Shortcut is not of the form context/name
+        [('shortcuts', {'foo': "Ctrl+I"})],
+        # Shortcut contains more than one slash, which breaks the way we parse
+        # them
+        [('shortcuts', {'editor/foo/bar': "Ctrl+I"})],
+    ]:
+        with pytest.raises(ValueError):
+            UserConfig(
+                name=name,
+                path=path,
+                defaults=defaults,
+                load=False,
+                version="1.0.0",
+                backup=False,
+                raw_mode=True,
+            )
+
+
 # --- SpyderUserConfig tests
 # ============================================================================
 # --- Compatibility API

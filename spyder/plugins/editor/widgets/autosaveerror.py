@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QLabel,
                             QVBoxLayout)
 
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 
 
@@ -59,7 +60,7 @@ class AutosaveErrorDialog(QDialog):
         layout.addWidget(self.dismiss_box)
         layout.addSpacing(15)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
+        button_box = SpyderDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
 

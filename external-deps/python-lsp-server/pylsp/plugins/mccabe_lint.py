@@ -3,7 +3,9 @@
 
 import ast
 import logging
+
 import mccabe
+
 from pylsp import hookimpl, lsp
 
 log = logging.getLogger(__name__)

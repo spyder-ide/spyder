@@ -191,7 +191,7 @@ class JupyterQtConsoleApp(JupyterApp, JupyterConsoleApp):
         # start the kernel
         kwargs = {}
         # FIXME: remove special treatment of IPython kernels
-        if self.kernel_manager.ipykernel:
+        if self.kernel_manager and self.kernel_manager.ipykernel:
             kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
         kernel_manager.client_factory = self.kernel_client_class

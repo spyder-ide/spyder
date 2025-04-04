@@ -14,12 +14,14 @@ from typing import Optional, Union, TypeVar
 
 # Third party imports
 import qstylizer.style
-from qtpy.QtWidgets import QAction, QMenu, QWidget
+from qtpy.QtCore import QTimer
+from qtpy.QtGui import QCursor
+from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 
 
@@ -42,6 +44,24 @@ class PluginMainWidgetMenus:
     Options = 'options_menu'
 
 
+# ---- Style
+# -----------------------------------------------------------------------------
+class SpyderMenuProxyStyle(QProxyStyle):
+    """Style adjustments that can only be done with a proxy style."""
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PM_SmallIconSize:
+            # Change icon size for menus.
+            # Taken from https://stackoverflow.com/a/42145885/438386
+            delta = -1 if MAC else (0 if WIN else 1)
+
+            return (
+                QProxyStyle.pixelMetric(self, metric, option, widget) + delta
+            )
+
+        return QProxyStyle.pixelMetric(self, metric, option, widget)
+
+
 # ---- Widgets
 # -----------------------------------------------------------------------------
 class SpyderMenu(QMenu, SpyderFontsMixin):
@@ -50,6 +70,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     """
     MENUS = []
     APP_MENU = False
+    HORIZONTAL_MARGIN_FOR_ITEMS = 2 * AppStyle.MarginSize
+    HORIZONTAL_PADDING_FOR_ITEMS = 3 * AppStyle.MarginSize
 
     def __init__(
         self,
@@ -119,6 +141,10 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self.css = self._generate_stylesheet()
         self.setStyleSheet(self.css.toString())
 
+        style = SpyderMenuProxyStyle(None)
+        style.setParent(self)
+        self.setStyle(style)
+
     # ---- Public API
     # -------------------------------------------------------------------------
     def clear_actions(self):
@@ -169,6 +195,11 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         item_id = None
         if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
             item_id = action.action_id
+
+            # This is necessary when we set a menu for `action`, e.g. for
+            # todo_list_action in EditorMainWidget.
+            if action.menu() and isinstance(action.menu(), SpyderMenu):
+                action.menu()._is_submenu = True
         elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
             item_id = action.menu_id
             action._is_submenu = True
@@ -267,12 +298,17 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         self._unintroduced_actions = {}
 
-    def render(self):
+    def render(self, force=False):
         """
         Create the menu prior to showing it. This takes into account sections
         and location of menus.
+
+        Parameters
+        ----------
+        force: bool, optional
+            Whether to force rendering the menu.
         """
-        if self._dirty:
+        if self._dirty or force:
             self.clear()
             self._add_missing_actions()
 
@@ -350,24 +386,25 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             else:
                 set_menu_icons(self, True)
 
-    def _generate_stylesheet(self):
+    @classmethod
+    def _generate_stylesheet(cls):
         """Generate base stylesheet for menus."""
         css = qstylizer.style.StyleSheet()
-        font = self.get_font(SpyderFontType.Interface)
+        font = cls.get_font(SpyderFontType.Interface)
 
-        # Add padding and border radius to follow modern standards
+        # Add padding and border to follow modern standards
         css.QMenu.setValues(
             # Only add top and bottom padding so that menu separators can go
             # completely from the left to right border.
             paddingTop=f'{2 * AppStyle.MarginSize}px',
             paddingBottom=f'{2 * AppStyle.MarginSize}px',
             # This uses the same color as the separator
-            border=f"1px solid {QStylePalette.COLOR_BACKGROUND_6}"
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}"
         )
 
-        # Set the right background color This is the only way to do it!
+        # Set the right background color. This is the only way to do it!
         css['QWidget:disabled QMenu'].setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_3,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
         # Add padding around separators to prevent that hovering on items hides
@@ -383,12 +420,12 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         delta_bottom = 0 if MAC else (2 if WIN else 1)
         css["QMenu::item"].setValues(
             height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
-            marginLeft=f'{2 * AppStyle.MarginSize}px',
-            marginRight=f'{2 * AppStyle.MarginSize}px',
+            marginLeft=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
+            marginRight=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
             paddingTop=f'{AppStyle.MarginSize + delta_top}px',
             paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
-            paddingLeft=f'{3 * AppStyle.MarginSize}px',
-            paddingRight=f'{3 * AppStyle.MarginSize}px',
+            paddingLeft=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
+            paddingRight=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
             fontFamily=font.family(),
             fontSize=f'{font.pointSize()}pt',
             backgroundColor='transparent'
@@ -397,19 +434,19 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         # Set hover and pressed state of items
         for state in ['selected', 'pressed']:
             if state == 'selected':
-                bg_color = QStylePalette.COLOR_BACKGROUND_4
+                bg_color = SpyderPalette.COLOR_BACKGROUND_4
             else:
-                bg_color = QStylePalette.COLOR_BACKGROUND_5
+                bg_color = SpyderPalette.COLOR_BACKGROUND_5
 
             css[f"QMenu::item:{state}"].setValues(
                 backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
             )
 
         # Set disabled state of items
         for state in ['disabled', 'selected:disabled']:
             css[f"QMenu::item:{state}"].setValues(
-                color=QStylePalette.COLOR_DISABLED,
+                color=SpyderPalette.COLOR_DISABLED,
                 backgroundColor="transparent"
             )
 
@@ -421,21 +458,45 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     def __repr__(self):
         return f"SpyderMenu('{self.menu_id}')"
 
+    def _adjust_menu_position(self):
+        """Menu position adjustment logic to follow custom style."""
+        if not self._is_shown:
+            # Reposition submenus vertically due to padding and border
+            if self._reposition and self._is_submenu:
+                self.move(
+                    self.pos().x(),
+                    # Current vertical pos - padding - border
+                    self.pos().y() - 2 * AppStyle.MarginSize - 1
+                )
+
+            self._is_shown = True
+
+        # Reposition menus horizontally due to border
+        if self.APP_MENU:
+            delta_x = 0 if MAC else 3
+        else:
+            if QCursor().pos().x() - self.pos().x() < 40:
+                # If the difference between the current cursor x position and
+                # the menu one is small, it means the menu will be shown to the
+                # right, so we need to move it in that direction.
+                delta_x = 1
+            else:
+                # This happens when the menu is shown to the left.
+                delta_x = -1
+
+        self.move(self.pos().x() + delta_x, self.pos().y())
+
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def showEvent(self, event):
-        """Adjustments when the menu is shown."""
-        # Reposition menu vertically due to padding
-        if (
-            not sys.platform == "darwin"
-            and self._reposition
-            and self._is_submenu
-            and not self._is_shown
-        ):
-            self.move(self.pos().x(), self.pos().y() - 2 * AppStyle.MarginSize)
-            self._is_shown = True
-
-        super().showEvent(event)
+        """Call adjustments when the menu is going to be shown."""
+        # To prevent race conditions which can cause partially showing a menu
+        # (as in spyder-ide/spyder#22266), we use a timer to queue the move
+        # related events after the menu is shown.
+        # For more info you can check:
+        #  * https://forum.qt.io/topic/23381/showevent-not-working/3
+        #  * https://stackoverflow.com/a/49351518
+        QTimer.singleShot(0, self._adjust_menu_position)
 
 
 class PluginMainWidgetOptionsMenu(SpyderMenu):

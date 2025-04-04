@@ -14,20 +14,20 @@ import os
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
-# Third-party imports
-import qstylizer.style
-
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.plugins.mainmenu.api import ApplicationMenu, ApplicationMenus
+from spyder.api.widgets.mixins import SpyderMenuMixin
+from spyder.plugins.mainmenu.api import (
+    ApplicationMenu,
+    ApplicationMenus,
+    MENUBAR_STYLESHEET,
+)
 from spyder.utils.qthelpers import SpyderAction
-from spyder.utils.palette import QStylePalette
-from spyder.utils.stylesheet import AppStyle
 
 
 # Extended typing definitions
@@ -37,7 +37,7 @@ ItemSectionBefore = Tuple[
 ItemQueue = Dict[str, List[ItemSectionBefore]]
 
 
-class MainMenu(SpyderPluginV2):
+class MainMenu(SpyderPluginV2, SpyderMenuMixin):
     NAME = 'mainmenu'
     CONF_SECTION = NAME
     CONF_FILE = False
@@ -67,7 +67,7 @@ class MainMenu(SpyderPluginV2):
         if not sys.platform == 'darwin':
             app_font = self.get_font(font_type=SpyderFontType.Interface)
             self.main.menuBar().setFont(app_font)
-            self.main.menuBar().setStyleSheet(self._stylesheet)
+            self.main.menuBar().setStyleSheet(str(MENUBAR_STYLESHEET))
 
         # Create Application menus using plugin public API
         create_app_menu = self.create_application_menu
@@ -106,7 +106,7 @@ class MainMenu(SpyderPluginV2):
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 if plugin_instance.CONF_SECTION == 'editor':
-                    editorstack = self.editor.get_current_editorstack()
+                    editorstack = self._main.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
                     try:
@@ -115,39 +115,6 @@ class MainMenu(SpyderPluginV2):
                     except AttributeError:
                         # Old API
                         plugin_instance._options_menu.hide()
-
-    @property
-    def _stylesheet(self):
-        css = qstylizer.style.StyleSheet()
-
-        # Set the same color as the one used for the app toolbar
-        css.QMenuBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
-        )
-
-        # Give more padding and margin to items
-        css['QMenuBar::item'].setValues(
-            padding=f'{2 * AppStyle.MarginSize}px',
-            margin='0px 2px'
-        )
-
-        # Remove padding when pressing main menus
-        css['QMenuBar::item:pressed'].setValues(
-            padding='0px'
-        )
-
-        # Set hover and pressed state of items in the menu bar
-        for state in ['selected', 'pressed']:
-            # Don't use a different color for the QMenuBar pressed state
-            # because a lighter color has too little contrast with the text.
-            bg_color = QStylePalette.COLOR_BACKGROUND_5
-
-            css[f"QMenuBar::item:{state}"].setValues(
-                backgroundColor=bg_color,
-                borderRadius=QStylePalette.SIZE_BORDER_RADIUS
-            )
-
-        return css.toString()
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -174,17 +141,25 @@ class MainMenu(SpyderPluginV2):
                 'Menu with id "{}" already added!'.format(menu_id)
             )
 
-        menu = ApplicationMenu(
-            self.main,
+        menu = self._create_menu(
             menu_id=menu_id,
+            parent=self.main,
             title=title,
-            min_width=min_width
+            min_width=min_width,
+            MenuClass=ApplicationMenu
         )
         self._APPLICATION_MENUS[menu_id] = menu
         self.main.menuBar().addMenu(menu)
 
         if sys.platform == 'darwin':
             menu.aboutToShow.connect(self._hide_options_menus)
+
+            # This is necessary because for some strange reason the
+            # "Configuration per file" entry disappears after showing other
+            # dialogs and the only way to make it visible again is by
+            # re-rendering the menu.
+            if menu_id == ApplicationMenus.Run:
+                menu.aboutToShow.connect(lambda: menu.render(force=True))
 
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)

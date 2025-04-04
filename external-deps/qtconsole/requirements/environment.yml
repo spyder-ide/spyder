@@ -9,7 +9,6 @@ dependencies:
 - jupyter_client
 - pygments
 - ipykernel
-- pyzmq >=17.1
 
 # For testing
 - coveralls

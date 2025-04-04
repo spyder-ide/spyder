@@ -7,7 +7,7 @@
 # Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
 from spyder.api.plugin_registration.registry import PreferencesAdapter
@@ -35,7 +35,7 @@ class PreferencesContainer(PluginMainContainer):
 
         def _dialog_finished(result_code):
             """Restore preferences dialog instance variable."""
-            if PYSIDE2:
+            if PYSIDE2 or PYSIDE6:
                 self.dialog.disconnect(None, None, None)
             else:
                 self.dialog.disconnect()

@@ -11,6 +11,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
       QtAwesome being called before a QApplication is created.
 """
 
+import concurrent.futures
 import os
 import os.path as osp
 import re
@@ -20,14 +21,25 @@ import sys
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
 
+
+# ---- Tests to skip on the first CI run
+SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
+
+
 # ---- Pytest adjustments
 import pytest
 
 
 def pytest_addoption(parser):
-    """Add option to run slow tests."""
+    """Add extra options for pytest.
+    
+    --run-slow: Run slow tests.
+    --remote-client: Run remote-client tests.
+    """
     parser.addoption("--run-slow", action="store_true",
                      default=False, help="Run slow tests")
+    parser.addoption("--remote-client", action="store_true",
+                     default=False, help="Run remote-client tests")
 
 
 def get_passed_tests():
@@ -49,7 +61,26 @@ def get_passed_tests():
         for line in logfile:
             match = test_re.match(line)
             if match:
-                tests.add(match.group(1))
+                if any(
+                    skipped_first_run in line
+                    for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+                ):
+                    passed_first_run = "passed_tests_skipped_on_first_run.txt"
+                    if "PASSED" in line or "XFAIL" in line:
+                        with open(passed_first_run, "w+") as f:
+                            f.write(match.group(1))
+                            tests.add(match.group(1))
+                            continue
+                    else:
+                        if osp.isfile(passed_first_run):
+                            with open(passed_first_run) as f:
+                                passed_first_run_contents = f.readlines()
+                            if match.group(1) in passed_first_run_contents:
+                                tests.add(match.group(1))
+                            else:
+                                continue
+                else:
+                    tests.add(match.group(1))
 
         return tests
     else:
@@ -63,9 +94,18 @@ def pytest_collection_modifyitems(config, items):
     """
     passed_tests = get_passed_tests()
     slow_option = config.getoption("--run-slow")
+    remote_client_option = config.getoption("--remote-client")
+
     skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
     skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
+    skip_first_run = pytest.mark.skip(reason="Test skipped in first CI run")
+    skip_remote = pytest.mark.skip(
+        reason="Skipping remote test because --remote-client was not set"
+    )
+    skip_non_remote = pytest.mark.skip(
+        reason="Skipping non-remote test because --remote-client was set"
+    )
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
@@ -74,7 +114,9 @@ def pytest_collection_modifyitems(config, items):
     # This provides a more balanced partitioning of our test suite (in terms of
     # necessary time to run it) between the slow and fast slots we have on CIs.
     slow_items = []
-    if os.environ.get('CI'):
+    if os.environ.get("CI") and not os.environ.get(
+        "SPYDER_TEST_REMOTE_CLIENT"
+    ):
         slow_items = [
             item for item in items if 'test_mainwindow' in item.nodeid
         ]
@@ -84,43 +126,65 @@ def pytest_collection_modifyitems(config, items):
         ]
 
         if os.name == 'nt':
-            percentage = 0.5
-        elif sys.platform == 'darwin':
-            percentage = 0.5
-        else:
             percentage = 0.4
+        elif sys.platform == 'darwin':
+            percentage = 0.3
+        else:
+            percentage = 0.3
 
         for i, item in enumerate(ipyconsole_items):
             if i < len(ipyconsole_items) * percentage:
                 slow_items.append(item)
 
-    for item in items:
-        if slow_option:
-            if item not in slow_items:
-                item.add_marker(skip_fast)
-        else:
-            if item in slow_items:
-                item.add_marker(skip_slow)
+    def mark_item(item):
+        if int(os.environ.get("CI_RUN_NUMBER", -1)) == 0 and any(
+            skipped_first_run in item.nodeid
+            for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+        ):
+            item.add_marker(skip_first_run)
+            return
+
+        if remote_client_option and "remote_test" not in item.keywords:
+            item.add_marker(skip_non_remote)
+        elif not remote_client_option and "remote_test" in item.keywords:
+            item.add_marker(skip_remote)
+
+        if slow_option and item not in slow_items:
+            item.add_marker(skip_fast)
+        elif not slow_option and item in slow_items:
+            item.add_marker(skip_slow)
 
         if item.nodeid in passed_tests:
             item.add_marker(skip_passed)
 
+    concurrent.futures.ThreadPoolExecutor().map(mark_item, items)
+
 
 @pytest.fixture(autouse=True)
-def reset_conf_before_test():
+def reset_conf_before_test(request):
+    # To prevent running this fixture for a specific test, you need to use this
+    # marker.
+    if 'no_reset_conf' in request.keywords:
+        return
+
     from spyder.config.manager import CONF
     CONF.reset_to_defaults(notification=False)
 
     from spyder.plugins.completion.api import COMPLETION_ENTRYPOINT
     from spyder.plugins.completion.plugin import CompletionPlugin
 
+    # See compatibility note on `group` keyword:
+    # https://docs.python.org/3/library/importlib.metadata.html#entry-points
+    if sys.version_info < (3, 10):  # pragma: no cover
+        from importlib_metadata import entry_points
+    else:  # pragma: no cover
+        from importlib.metadata import entry_points
+
     # Restore completion clients default settings, since they
     # don't have default values on the configuration.
-    from pkg_resources import iter_entry_points
-
     provider_configurations = {}
-    for entry_point in iter_entry_points(COMPLETION_ENTRYPOINT):
-        Provider = entry_point.resolve()
+    for entry_point in entry_points(group=COMPLETION_ENTRYPOINT):
+        Provider = entry_point.load()
         provider_name = Provider.COMPLETION_PROVIDER_NAME
 
         (provider_conf_version,

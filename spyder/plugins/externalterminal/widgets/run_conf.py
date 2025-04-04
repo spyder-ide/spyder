@@ -10,10 +10,19 @@
 import os.path as osp
 
 # Third-party imports
-from qtpy.compat import getexistingdirectory, getopenfilename
+from qtpy.compat import getopenfilename
+from qtpy.QtCore import QSize
 from qtpy.QtWidgets import (
-    QWidget, QGroupBox, QVBoxLayout, QGridLayout, QCheckBox, QLineEdit,
-    QHBoxLayout, QLabel)
+    QCheckBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.translations import _
@@ -23,11 +32,7 @@ from spyder.plugins.run.api import (
     RunExecutorConfigurationGroupFactory)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
-from spyder.utils.qthelpers import create_toolbutton
-
-
-# Main constants
-INTERACT = _("Interact with the Python terminal after execution")
+from spyder.utils.stylesheet import AppStyle
 
 
 class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
@@ -40,61 +45,55 @@ class ExternalTerminalPyConfiguration(RunExecutorConfigurationGroup):
         self.dir = None
 
         # --- Interpreter ---
-        interpreter_group = QGroupBox(_("Terminal"))
+        interpreter_group = QGroupBox(_("Python interpreter"))
         interpreter_layout = QVBoxLayout(interpreter_group)
 
         # --- System terminal ---
-        external_group = QWidget()
-
+        external_group = QWidget(self)
         external_layout = QGridLayout()
         external_group.setLayout(external_layout)
-        self.interact_cb = QCheckBox(INTERACT)
+
+        self.interact_cb = QCheckBox(
+            _("Interact with the interpreter after execution")
+        )
         external_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
 
-        self.pclo_cb = QCheckBox(_("Command line options:"))
+        self.pclo_cb = QCheckBox(_("Interpreter options:"))
         external_layout.addWidget(self.pclo_cb, 3, 0)
-        self.pclo_edit = QLineEdit()
+        self.pclo_edit = QLineEdit(self)
         self.pclo_cb.toggled.connect(self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
-        self.pclo_edit.setToolTip(_("<b>-u<_b> is added to the "
-                                    "other options you set here"))
+        self.pclo_edit.setToolTip(
+            _("<b>-u</b> is added to the other options you set here")
+        )
         external_layout.addWidget(self.pclo_edit, 3, 1)
 
         interpreter_layout.addWidget(external_group)
 
         # --- General settings ----
-        common_group = QGroupBox(_("Script settings"))
-
+        common_group = QGroupBox(_("Bash/Batch script settings"))
         common_layout = QGridLayout(common_group)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
-        self.clo_edit = QLineEdit()
+        self.clo_edit = QLineEdit(self)
+        self.clo_edit.setMinimumWidth(300)
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addStretch(100)
-
-    def select_directory(self):
-        """Select directory"""
-        basedir = str(self.wd_edit.text())
-        if not osp.isdir(basedir):
-            basedir = getcwd_or_home()
-        directory = getexistingdirectory(self, _("Select directory"), basedir)
-        if directory:
-            self.wd_edit.setText(directory)
-            self.dir = directory
 
     @staticmethod
     def get_default_configuration() -> dict:
         return {
             'args_enabled': False,
             'args': '',
-            'interact': False,
+            'interact': True,
             'python_args_enabled': False,
             'python_args': '',
         }
@@ -135,53 +134,65 @@ class GenericExternalTerminalShConfiguration(RunExecutorConfigurationGroup):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Interpreter"))
-        interpreter_layout = QGridLayout(interpreter_group)
+        interpreter_layout = QVBoxLayout(interpreter_group)
 
         interpreter_label = QLabel(_("Shell interpreter:"))
-        interpreter_layout.addWidget(interpreter_label, 0, 0)
-        edit_layout = QHBoxLayout()
-        self.interpreter_edit = QLineEdit()
-        browse_btn = create_toolbutton(
-            self,
-            triggered=self.select_directory,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
+        self.interpreter_edit = QLineEdit(self)
+        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
+        browse_btn.setToolTip(_("Select interpreter"))
+        browse_btn.clicked.connect(self.select_interpreter)
+        browse_btn.setIconSize(
+            QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
         )
-        edit_layout.addWidget(self.interpreter_edit)
-        edit_layout.addWidget(browse_btn)
-        interpreter_layout.addLayout(edit_layout, 0, 1)
+
+        shell_layout = QHBoxLayout()
+        shell_layout.addWidget(interpreter_label)
+        shell_layout.addWidget(self.interpreter_edit)
+        shell_layout.addWidget(browse_btn)
+        interpreter_layout.addLayout(shell_layout)
 
         self.interpreter_opts_cb = QCheckBox(_("Interpreter arguments:"))
-        interpreter_layout.addWidget(self.interpreter_opts_cb, 1, 0)
-        self.interpreter_opts_edit = QLineEdit()
+        self.interpreter_opts_edit = QLineEdit(self)
+        self.interpreter_opts_edit.setMinimumWidth(250)
         self.interpreter_opts_cb.toggled.connect(
-            self.interpreter_opts_edit.setEnabled)
+            self.interpreter_opts_edit.setEnabled
+        )
         self.interpreter_opts_edit.setEnabled(False)
-        interpreter_layout.addWidget(self.interpreter_opts_edit, 1, 1)
+
+        interpreter_opts_layout = QHBoxLayout()
+        interpreter_opts_layout.addWidget(self.interpreter_opts_cb)
+        interpreter_opts_layout.addWidget(self.interpreter_opts_edit)
+        interpreter_layout.addLayout(interpreter_opts_layout)
 
         # --- Script ---
         script_group = QGroupBox(_('Script'))
-        script_layout = QGridLayout(script_group)
+        script_layout = QVBoxLayout(script_group)
 
         self.script_opts_cb = QCheckBox(_("Script arguments:"))
-        script_layout.addWidget(self.script_opts_cb, 1, 0)
-        self.script_opts_edit = QLineEdit()
+        self.script_opts_edit = QLineEdit(self)
         self.script_opts_cb.toggled.connect(
-            self.script_opts_edit.setEnabled)
+            self.script_opts_edit.setEnabled
+        )
         self.script_opts_edit.setEnabled(False)
-        script_layout.addWidget(self.script_opts_edit, 1, 1)
+
+        script_args_layout = QHBoxLayout()
+        script_args_layout.addWidget(self.script_opts_cb)
+        script_args_layout.addWidget(self.script_opts_edit)
+        script_layout.addLayout(script_args_layout)
 
         self.close_after_exec_cb = QCheckBox(
-            _('Close terminal after execution'))
-        script_layout.addWidget(self.close_after_exec_cb, 2, 0)
+            _("Close terminal after execution")
+        )
+        script_layout.addWidget(self.close_after_exec_cb)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(script_group)
         layout.addStretch(100)
 
-    def select_directory(self):
-        """Select directory"""
+    def select_interpreter(self):
+        """Select an interpreter."""
         basedir = str(self.interpreter_edit.text())
         if not osp.isdir(basedir):
             basedir = getcwd_or_home()

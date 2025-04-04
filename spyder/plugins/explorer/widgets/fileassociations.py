@@ -22,6 +22,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QListWidget, QListWidgetItem, QPushButton,
                             QVBoxLayout, QWidget)
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.utils.encoding import is_text_file
 from spyder.utils.programs import (get_application_icon,
@@ -41,8 +42,9 @@ class InputTextDialog(QDialog):
         # Widgets
         self.label = QLabel()
         self.lineedit = QLineEdit()
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -109,8 +111,9 @@ class ApplicationsDialog(QDialog):
         self.edit_filter = QLineEdit()
         self.list = QListWidget()
         self.button_browse = QPushButton(_('Browse...'))
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok
-                                           | QDialogButtonBox.Cancel)
+        self.button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.button_box.button(QDialogButtonBox.Ok)
         self.button_cancel = self.button_box.button(QDialogButtonBox.Cancel)
 
@@ -335,8 +338,10 @@ class FileAssociationsWidget(QWidget):
         layout.addWidget(self.label)
         layout.addWidget(self.label_extensions)
         layout.addLayout(layout_extensions)
+        layout.addSpacing(9)
         layout.addWidget(self.label_applications)
         layout.addLayout(layout_applications)
+        layout.addSpacing(9)
 
         self.setLayout(layout)
 
@@ -411,7 +416,7 @@ class FileAssociationsWidget(QWidget):
     def _update_extensions(self):
         """Update extensions list."""
         self.list_extensions.clear()
-        for extension, _ in sorted(self._data.items()):
+        for extension, __ in sorted(self._data.items()):
             self._add_association(extension)
 
         # Select first item

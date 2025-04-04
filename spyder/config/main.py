@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
@@ -15,6 +16,7 @@ import os
 import sys
 
 # Local import
+from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
@@ -78,17 +80,28 @@ DEFAULTS = [
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
               'show_internal_errors': True,
-              'check_updates_on_startup': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
               }),
+            ('update_manager',
+             {
+              'check_updates_on_startup': True,
+              'check_stable_only': True,
+              }),
             ('toolbar',
              {
               'enable': True,
               'toolbars_visible': True,
-              'last_visible_toolbars': [],
+              'last_visible_toolbars': [
+                  ApplicationToolbars.File,
+                  ApplicationToolbars.Run,
+                  ApplicationToolbars.Debug,
+                  ApplicationToolbars.Main,
+                  ApplicationToolbars.WorkingDirectory,
+              ],
+              'last_toolbars': [],
              }),
             ('statusbar',
              {
@@ -103,6 +116,9 @@ DEFAULTS = [
             ('pythonpath_manager',
              {
               'spyder_pythonpath': [],
+              'prioritize': False,
+              'system_paths': {},
+              'user_paths': {},
               }),
             ('quick_layouts',
              {
@@ -131,6 +147,7 @@ DEFAULTS = [
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
+              'last_envs': {}
               }),
             ('ipython_console',
              {
@@ -144,9 +161,11 @@ DEFAULTS = [
               'pylab/autoload': False,
               'pylab/backend': 'inline',
               'pylab/inline/figure_format': 'png',
-              'pylab/inline/resolution': 72,
+              'pylab/inline/resolution': 144,
               'pylab/inline/width': 6,
               'pylab/inline/height': 4,
+              'pylab/inline/fontsize': 10.0,
+              'pylab/inline/bottom': 0.11,
               'pylab/inline/bbox_inches': True,
               'startup/run_lines': '',
               'startup/use_run_file': False,
@@ -154,7 +173,7 @@ DEFAULTS = [
               'greedy_completer': False,
               'jedi_completer': False,
               'autocall': 0,
-              'autoreload': not WIN,
+              'autoreload': True,
               'symbolic_math': False,
               'in_prompt': '',
               'out_prompt': '',
@@ -202,7 +221,6 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
-              'auto_fit_plotting': True
              }),
             ('editor',
              {
@@ -230,6 +248,7 @@ DEFAULTS = [
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
+              'multicursor_support': True,
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
@@ -252,6 +271,7 @@ DEFAULTS = [
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': False,
+              'show_outline_in_editor_window': True,
               }),
             ('historylog',
              {
@@ -290,7 +310,8 @@ DEFAULTS = [
               'sort_files_alphabetically': False,
               'show_comments': True,
               'follow_cursor': True,
-              'display_variables': False
+              'display_variables': False,
+              'show_with_maximized_editor': True,
               }),
             ('preferences',
              {
@@ -311,7 +332,8 @@ DEFAULTS = [
               'show_hidden': True,
               'size_column': False,
               'type_column': False,
-              'date_column': False
+              'date_column': False,
+              'search_files_in_switcher': True,
               }),
             ('explorer',
              {
@@ -393,7 +415,7 @@ DEFAULTS = [
               '_/switch to outline_explorer': "Ctrl+Shift+O",
               '_/switch to editor': "Ctrl+Shift+E",
               '_/switch to historylog': "Ctrl+Shift+L",
-              '_/switch to onlinehelp': "Ctrl+Shift+D",
+              '_/switch to onlinehelp': "",
               '_/switch to project_explorer': "Ctrl+Shift+P",
               '_/switch to ipython_console': "Ctrl+Shift+I",
               '_/switch to variable_explorer': "Ctrl+Shift+V",
@@ -402,7 +424,7 @@ DEFAULTS = [
               '_/switch to plots': "Ctrl+Shift+J" if MAC else "Ctrl+Shift+G",
               '_/switch to pylint': "Ctrl+Shift+C",
               '_/switch to profiler': "Ctrl+Shift+R",
-              '_/switch to breakpoints': "Ctrl+Shift+B",
+              '_/switch to debugger': "Ctrl+Shift+D",
               # -- Find/replace --
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "Ctrl+G" if MAC else "F3",
@@ -412,10 +434,8 @@ DEFAULTS = [
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line up': (
-                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
-              'editor/duplicate line down': (
-                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
+              'editor/duplicate line up': CTRL + "+Alt+PgUp",
+              'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -480,7 +500,7 @@ DEFAULTS = [
               'editor/run cell and advance': 'Shift+Return',
               'editor/run selection and advance': "F9",
               'editor/run selection up to line': 'Shift+F9',
-              'editor/run selection from line': CTRL + '+F9',
+              'editor/run selection from line': 'Alt+F9',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run cell': 'Alt+Return',
@@ -492,17 +512,24 @@ DEFAULTS = [
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
+              'editor/enter array inline': "Ctrl+Alt+M",
+              'editor/enter array table': "Ctrl+M",
+              'editor/run cell in debugger': 'Alt+Shift+Return',
+              'editor/run selection in debugger': CTRL + '+F9',
+              'editor/add cursor up': 'Alt+Shift+Up',
+              'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/clear extra cursors': 'Esc',
               # -- Internal console --
-              'console/inspect current object': "Ctrl+I",
-              'console/clear shell': "Ctrl+L",
-              'console/clear line': "Shift+Escape",
+              'internal_console/inspect current object': "Ctrl+I",
+              'internal_console/clear shell': "Ctrl+L",
+              'internal_console/clear line': "Shift+Escape",
               # -- Pylint --
               'pylint/run file in pylint': "F8",
               # -- Profiler --
               'profiler/run file in profiler': "F10",
               # -- Switcher --
-              'switcher/file switcher': 'Ctrl+P',
-              'switcher/symbol finder': 'Ctrl+Alt+P',
+              '_/file switcher': 'Ctrl+P',
+              '_/symbol finder': 'Ctrl+Alt+P',
               # -- IPython console --
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
@@ -512,24 +539,19 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              # -- Array buider --
-              'array_builder/enter array inline': "Ctrl+Alt+M",
-              'array_builder/enter array table': "Ctrl+M",
               # -- Variable explorer --
               'variable_explorer/copy': 'Ctrl+C',
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
               # -- Debugger --
+              '_/run file in debugger': "Ctrl+F5",
+              '_/debug current line': "Ctrl+F10",
+              '_/debug continue': "Ctrl+F12",
+              '_/debug step into': "Ctrl+F11",
+              '_/debug step return': "Ctrl+Shift+F11",
+              '_/debug stop': "Ctrl+Shift+F12",
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/run file in debugger': "Ctrl+F5",
-              'debugger/run cell in debugger': 'Alt+Shift+Return',
-              'debugger/run selection in debugger': '',
-              'debugger/next': "Ctrl+F10",
-              'debugger/continue': "Ctrl+F12",
-              'debugger/step': "Ctrl+F11",
-              'debugger/return': "Ctrl+Shift+F11",
-              'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
               'debugger/show breakpoint table': "",
@@ -538,11 +560,12 @@ DEFAULTS = [
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
               'plots/save': 'Ctrl+S',
-              'plots/save all': 'Ctrl+Alt+S',
+              'plots/save all': 'Alt+Shift+S',
               'plots/close': 'Ctrl+W',
-              'plots/close all': 'Ctrl+Shift+W',
+              'plots/close all': 'Alt+Shift+W',
               'plots/zoom in': "Ctrl++",
               'plots/zoom out': "Ctrl+-",
+              'plots/auto fit': "Ctrl+0",
               # -- Files --
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -578,10 +601,6 @@ NAME_MAP = {
             'window/state',
             ]
          ),
-        ('toolbar', [
-            'last_visible_toolbars',
-            ]
-         ),
         ('editor', [
             'autosave_mapping',
             'bookmarks',
@@ -606,6 +625,7 @@ NAME_MAP = {
             'custom_interpreters_list',
             'custom_interpreter',
             'executable',
+            'last_envs',
              ]
          ),
         ('onlinehelp', [
@@ -634,10 +654,11 @@ NAME_MAP = {
         ('run', [
             'breakpoints',
             'configurations',
-            'defaultconfiguration',
             'default/wdir/fixed_directory',
-            'last_used_parameters',
-            'parameters'
+            'parameters',
+            'last_used_parameters', # Needed for Spyder 6.0.0 to 6.0.3
+            'last_used_parameters_per_executor',
+            'last_configured_executor',
           ]
          ),
         ('workingdir', [
@@ -654,7 +675,7 @@ NAME_MAP = {
 
 
 # =============================================================================
-# Config instance
+# Config version
 # =============================================================================
 # IMPORTANT NOTES:
 # 1. If you want to *change* the default value of a current option, you need to
@@ -663,4 +684,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '81.0.0'
+CONF_VERSION = '86.0.0'

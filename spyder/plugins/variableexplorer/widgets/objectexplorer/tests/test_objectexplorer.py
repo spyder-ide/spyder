@@ -19,7 +19,6 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.manager import CONF
@@ -113,7 +112,7 @@ def test_objectexplorer(objectexplorer):
     ([1, 3, 4, 'kjkj', None], [45, 48]),
     ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 57]),
     (1.2233, [57, 59]),
-    (np.random.rand(10, 10), [166, 162]),
+    (np.random.rand(10, 10), [162, 167]),
     (datetime.date(1945, 5, 8), [43, 48])
 ])
 def test_objectexplorer_collection_types(objectexplorer, params):
@@ -182,13 +181,13 @@ class DataclassForTesting:
     quantity: int
 
 
-def test_objectexplorer_refreshbutton_disabled():
+def test_objectexplorer_refreshaction_disabled():
     """
-    Test that the refresh button is disabled by default.
+    Test that the refresh action is disabled by default.
     """
     data = DataclassForTesting('lemon', 0.15, 5)
     editor = ObjectExplorer(data, name='data')
-    assert not editor.refresh_button.isEnabled()
+    assert not editor.refresh_action.isEnabled()
 
 
 def test_objectexplorer_refresh():
@@ -204,7 +203,7 @@ def test_objectexplorer_refresh():
     root = model.index(0, 0)
     assert model.data(model.index(0, 0, root), Qt.DisplayRole) == 'name'
     assert model.data(model.index(0, 3, root), Qt.DisplayRole) == 'lemon'
-    assert editor.refresh_button.isEnabled()
+    assert editor.refresh_action.isEnabled()
     editor.refresh_editor()
     model = editor.obj_tree.model()
     root = model.index(0, 0)
@@ -226,7 +225,7 @@ def test_objectexplorer_refresh_when_variable_deleted(qtbot):
     with patch('spyder.plugins.variableexplorer.widgets.objectexplorer'
                '.objectexplorer.QMessageBox.critical') as mock_critical:
         with qtbot.waitSignal(editor.rejected, timeout=0):
-            editor.refresh_button.click()
+            editor.refresh_action.trigger()
     mock_critical.assert_called_once()
 
 

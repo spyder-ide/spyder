@@ -9,6 +9,7 @@
 # Standard library imports
 from collections import OrderedDict
 import configparser
+from contextlib import contextmanager
 import logging
 import os
 import os.path as osp
@@ -22,12 +23,13 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QInputDialog, QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
-from spyder.config.utils import get_edit_extensions
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
@@ -73,6 +75,10 @@ class ProjectsMenuSubmenus:
 class RecentProjectsMenuSections:
     Recent = 'recent_section'
     Extras = 'extras_section'
+
+
+class ProjectsOptionsMenuActions:
+    SearchInSwitcher = "search_in_switcher"
 
 
 # ---- Main widget
@@ -195,9 +201,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         # -- Worker manager for calls to fzf
         self._worker_manager = WorkerManager(self)
 
-        # -- List of possible file extensions that can be opened in the Editor
-        self._edit_extensions = get_edit_extensions()
-
         # -- Signals
         self.sig_project_loaded.connect(self._setup_project)
 
@@ -260,6 +263,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.max_recent_action = self.create_action(
             ProjectsActions.MaxRecent,
             text=_("Maximum number of recent projects..."),
+            icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
         self.recent_project_menu = self.create_menu(
@@ -270,16 +274,33 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.recent_project_menu.aboutToShow.connect(self._setup_menu_actions)
         self._setup_menu_actions()
 
+        # We need to give users a way to disable searching files in the
+        # switcher because in some situations it introduces delays in the
+        # switcher or Spyder itself.
+        # Fixes spyder-ide/spyder#22641
+        search_in_switcher_action = self.create_action(
+            ProjectsOptionsMenuActions.SearchInSwitcher,
+            text=_("Search project files in the switcher"),
+            toggled=True,
+            option='search_files_in_switcher',
+        )
+
         # Add some DirView actions to the Options menu for easy access.
-        menu = self.get_options_menu()
         hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
 
-        for action in [hidden_action, single_click_action]:
+        # Options menu
+        menu = self.get_options_menu()
+        for action in [
+            hidden_action,
+            single_click_action,
+            search_in_switcher_action,
+        ]:
             self.add_item_to_menu(
                 action,
                 menu=menu,
-                section=ProjectExplorerOptionsMenuSections.Main)
+                section=ProjectExplorerOptionsMenuSections.Main
+            )
 
     def set_pane_empty(self):
         self.treewidget.hide()
@@ -400,13 +421,13 @@ class ProjectExplorerWidget(PluginMainWidget):
         self._add_to_recent(path)
 
         self.set_conf('current_project_path', self.get_active_project_path())
-
         self._setup_menu_actions()
 
-        if workdir and osp.isdir(workdir):
-            self.sig_project_loaded.emit(workdir)
-        else:
-            self.sig_project_loaded.emit(path)
+        with self._disable_pdb_prevent_closing():
+            if workdir and osp.isdir(workdir):
+                self.sig_project_loaded.emit(workdir)
+            else:
+                self.sig_project_loaded.emit(path)
 
         self.watcher.start(path)
 
@@ -440,8 +461,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.set_conf('current_project_path', None)
             self._setup_menu_actions()
 
-            self.sig_project_closed.emit(path)
-            self.sig_project_closed[bool].emit(True)
+            with self._disable_pdb_prevent_closing():
+                self.sig_project_closed.emit(path)
+                self.sig_project_closed[bool].emit(True)
 
             # Hide pane.
             self.set_conf('visible_if_project_open', self.isVisible())
@@ -518,9 +540,9 @@ class ProjectExplorerWidget(PluginMainWidget):
                 self.recent_projects = self._get_valid_recent_projects(
                     self.recent_projects)[:max_projects]
 
-    def reopen_last_project(self):
+    def reopen_last_project(self, working_directory, restart_console):
         """
-        Reopen the active project when Spyder was closed last time, if any
+        Reopen the active project when Spyder was closed last time, if any.
         """
         current_project_path = self.get_conf('current_project_path',
                                              default=None)
@@ -530,12 +552,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             current_project_path and
             self.is_valid_project(current_project_path)
         ):
-            cli_options = self.get_plugin().get_command_line_options()
             self.open_project(
                 path=current_project_path,
-                restart_console=True,
+                restart_console=restart_console,
                 save_previous_files=False,
-                workdir=cli_options.working_directory
+                workdir=working_directory,
             )
             self._load_config()
 
@@ -1000,6 +1021,28 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         return valid_projects
 
+    @contextmanager
+    def _disable_pdb_prevent_closing(self):
+        """
+        Context manager to disable the pdb_prevent_closing option before
+        opening/closing the previous/current open project files.
+
+        Notes
+        -----
+        * This is necessary to correctly do that when a console was left in
+          debugging mode.
+        """
+        try:
+            pdb_prevent_closing = self.get_conf(
+                "pdb_prevent_closing", section="debugger"
+            )
+            self.set_conf("pdb_prevent_closing", False, section="debugger")
+            yield
+        finally:
+            self.set_conf(
+                "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
+            )
+
     # ---- Private API for the Switcher
     # -------------------------------------------------------------------------
     def _call_fzf(self, search_text=""):
@@ -1013,7 +1056,11 @@ class ProjectExplorerWidget(PluginMainWidget):
             The search text to pass to fzf.
         """
         project_path = self.get_active_project_path()
-        if self._fzf is None or project_path is None:
+        if (
+            not self.get_conf("search_files_in_switcher")
+            or self._fzf is None
+            or project_path is None
+        ):
             return
 
         self._worker_manager.terminate_all()
@@ -1048,7 +1095,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         # Filter files that can be opened in the editor
         result_list = [
             path for path in result_list
-            if osp.splitext(path)[1] in self._edit_extensions
+            if osp.splitext(path)[1] in EDIT_EXTENSIONS
         ]
 
         # Limit the number of results to not introduce lags when displaying
@@ -1111,6 +1158,18 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Update default paths to be shown in the switcher."""
         self._default_switcher_paths = []
         self._call_fzf()
+
+    @on_conf_change(option="search_files_in_switcher")
+    def _on_search_files_in_switcher_changed(self, value):
+        """
+        Actions to take when users enable/disable searching files in the
+        switcher.
+        """
+        if value:
+            self._update_default_switcher_paths()
+        else:
+            self._clear_switcher_paths()
+
 
 # =============================================================================
 # Tests

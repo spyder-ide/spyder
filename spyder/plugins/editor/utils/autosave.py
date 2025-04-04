@@ -72,9 +72,12 @@ class AutosaveForPlugin(object):
         self.editor = editor
         self.name_mapping = {}
         self.file_hashes = {}
+        self.recover_files_to_open = []
+
         self.timer = QTimer(self.editor)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
+
         self._enabled = False  # Can't use setter here
         self._interval = self.DEFAULT_AUTOSAVE_INTERVAL
 
@@ -199,7 +202,10 @@ class AutosaveForPlugin(object):
         the pid files.
         """
         files_to_recover, pidfiles = self.get_files_to_recover()
-        parent = self.editor if running_under_pytest() else self.editor.main
+        parent = (
+            self.editor if running_under_pytest() else
+            self.editor._get_mainwindow()
+        )
         dialog = RecoveryDialog(files_to_recover, parent=parent)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]

@@ -14,8 +14,16 @@ https://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 """
 
 # Third party imports
+import qstylizer.style
 from qtpy.QtCore import QPoint, QRect, QSize, Qt, Signal
-from qtpy.QtGui import QColor, QPainter, QTextCursor, QTextFormat, QTextOption
+from qtpy.QtGui import (
+    QColor,
+    QFont,
+    QPainter,
+    QTextCursor,
+    QTextFormat,
+    QTextOption,
+)
 from qtpy.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 # Local imports
@@ -114,9 +122,11 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         self.linenumberarea = LineNumberArea(self)
 
         # Widget setup
-        self.setObjectName(self.__class__.__name__ + str(id(self)))
         self.update_linenumberarea_width(0)
         self._apply_current_line_highlight()
+
+        # Style
+        self.css = qstylizer.style.StyleSheet()
 
         # Signals
         self.blockCountChanged.connect(self.update_linenumberarea_width)
@@ -136,9 +146,11 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                               foreground=hl.get_foreground_color())
 
     def _set_palette(self, background, foreground):
-        style = ("QPlainTextEdit#%s {background: %s; color: %s;}" %
-                 (self.objectName(), background.name(), foreground.name()))
-        self.setStyleSheet(style)
+        self.css.QPlainTextEdit.setValues(
+            background=background.name(),
+            color=foreground.name(),
+        )
+        self.setStyleSheet(self.css.toString())
         self.rehighlight()
 
     def _apply_current_line_highlight(self):
@@ -181,15 +193,17 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def setup_editor(self,
-                     linenumbers=True,
-                     color_scheme="spyder/dark",
-                     language="py",
-                     font=None,
-                     show_blanks=False,
-                     wrap=False,
-                     highlight_current_line=True,
-                     scroll_past_end=False):
+    def setup_editor(
+        self,
+        linenumbers=True,
+        color_scheme="spyder/dark",
+        language="py",
+        font=None,
+        show_blanks=False,
+        wrap=False,
+        highlight_current_line=True,
+        scroll_past_end=False,
+    ):
         """
         Setup editor options.
 
@@ -388,12 +402,12 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                     number = block_number + 1
 
                     if number == active_line_number:
-                        font.setWeight(font.Bold)
+                        font.setWeight(QFont.Weight.Bold)
                         painter.setFont(font)
                         painter.setPen(
                             self._highlighter.get_foreground_color())
                     else:
-                        font.setWeight(font.Normal)
+                        font.setWeight(QFont.Weight.Normal)
                         painter.setFont(font)
                         painter.setPen(QColor(Qt.darkGray))
                     right_padding = self.linenumberarea._right_padding
@@ -565,6 +579,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         """
         if self._highlighter:
             self._highlighter.rehighlight()
+            self._apply_current_line_highlight()
 
 
 if __name__ == "__main__":

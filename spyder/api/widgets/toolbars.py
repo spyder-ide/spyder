@@ -12,17 +12,18 @@ Spyder API toolbar widgets.
 from collections import OrderedDict
 import os
 import sys
-from typing import Union, Optional, Tuple, List, Dict
+from typing import Dict, List, Optional, Tuple, Union
 import uuid
 
 # Third part imports
-from qtpy.QtCore import QEvent, QObject, QSize, Qt
+from qtpy.QtCore import QEvent, QObject, QSize, Qt, Signal
 from qtpy.QtWidgets import (
     QAction, QProxyStyle, QStyle, QToolBar, QToolButton, QWidget)
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu, SpyderMenuProxyStyle
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import SpyderAction
 from spyder.utils.stylesheet import (
@@ -103,25 +104,50 @@ class SpyderToolbar(QToolBar):
     This class provides toolbars with some predefined functionality.
     """
 
+    sig_is_rendered = Signal()
+    """
+    This signal is emitted to let other objects know that the toolbar is now
+    rendered.
+    """
+
     def __init__(self, parent, title):
         super().__init__(parent=parent)
-        self._section_items = OrderedDict()
-        self._item_map = {}  # type: Dict[str, ToolbarItem]
-        self._pending_items = {}  # type: Dict[str, List[ToolbarItemEntry]]
+
+        # Attributes
         self._title = title
+        self._section_items = OrderedDict()
+        self._item_map: Dict[str, ToolbarItem] = {}
+        self._pending_items: Dict[str, List[ToolbarItemEntry]] = {}
         self._default_section = "default_section"
+        self._filter = None
 
         self.setWindowTitle(title)
 
-        # Set icon for extension button.
+        # Set attributes for extension button.
         # From https://stackoverflow.com/a/55412455/438386
         ext_button = self.findChild(QToolButton, "qt_toolbar_ext_button")
         ext_button.setIcon(ima.icon('toolbar_ext_button'))
         ext_button.setToolTip(_("More"))
 
-    def add_item(self, action_or_widget: ToolbarItem,
-                 section: Optional[str] = None, before: Optional[str] = None,
-                 before_section: Optional[str] = None, omit_id: bool = False):
+        # Set style for extension button menu (not all extension buttons have
+        # it).
+        if ext_button.menu():
+            ext_button.menu().setStyleSheet(
+                SpyderMenu._generate_stylesheet().toString()
+            )
+
+            ext_button_menu_style = SpyderMenuProxyStyle(None)
+            ext_button_menu_style.setParent(self)
+            ext_button.menu().setStyle(ext_button_menu_style)
+
+    def add_item(
+        self,
+        action_or_widget: ToolbarItem,
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        omit_id: bool = False
+    ):
         """
         Add action or widget item to given toolbar `section`.
 
@@ -144,15 +170,17 @@ class SpyderToolbar(QToolBar):
             Spyder 4 plugins. Default: False
         """
         item_id = None
-        if (isinstance(action_or_widget, SpyderAction) or
-                hasattr(action_or_widget, 'action_id')):
+        if (
+            isinstance(action_or_widget, SpyderAction)
+            or hasattr(action_or_widget, 'action_id')
+        ):
             item_id = action_or_widget.action_id
         elif hasattr(action_or_widget, 'ID'):
             item_id = action_or_widget.ID
-
         if not omit_id and item_id is None and action_or_widget is not None:
             raise SpyderAPIError(
-                f'Item {action_or_widget} must declare an ID attribute.')
+                f'Item {action_or_widget} must declare an ID attribute.'
+            )
 
         if before is not None:
             if before not in self._item_map:
@@ -209,22 +237,21 @@ class SpyderToolbar(QToolBar):
 
     def remove_item(self, item_id: str):
         """Remove action or widget from toolbar by id."""
-        item = self._item_map.pop(item_id)
-        for section in list(self._section_items.keys()):
-            section_items = self._section_items[section]
-            if item in section_items:
-                section_items.remove(item)
-            if len(section_items) == 0:
-                self._section_items.pop(section)
-        self.clear()
-        self._render()
+        try:
+            item = self._item_map.pop(item_id)
+            for section in list(self._section_items.keys()):
+                section_items = self._section_items[section]
+                if item in section_items:
+                    section_items.remove(item)
+                if len(section_items) == 0:
+                    self._section_items.pop(section)
+            self.clear()
+            self.render()
+        except KeyError:
+            pass
 
-    def _render(self):
-        """
-        Create the toolbar taking into account sections and locations.
-
-        This method is called once on widget setup.
-        """
+    def render(self):
+        """Create the toolbar taking into account sections and locations."""
         sec_items = []
         for sec, items in self._section_items.items():
             for item in items:
@@ -246,14 +273,19 @@ class SpyderToolbar(QToolBar):
             add_method(item)
 
             if isinstance(item, QAction):
-                text_beside_icon = getattr(item, 'text_beside_icon', False)
                 widget = self.widgetForAction(item)
 
+                if self._filter is not None:
+                    widget.installEventFilter(self._filter)
+
+                text_beside_icon = getattr(item, 'text_beside_icon', False)
                 if text_beside_icon:
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
                 if item.isCheckable():
                     widget.setCheckable(True)
+
+        self.sig_is_rendered.emit()
 
 
 class ApplicationToolbar(SpyderToolbar):
@@ -268,8 +300,9 @@ class ApplicationToolbar(SpyderToolbar):
     This is used by Qt to be able to save and restore the state of widgets.
     """
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, toolbar_id, title):
         super().__init__(parent=parent, title=title)
+        self.ID = toolbar_id
 
         self._style = ToolbarStyle(None)
         self._style.TYPE = 'Application'
@@ -277,6 +310,12 @@ class ApplicationToolbar(SpyderToolbar):
         self.setStyle(self._style)
 
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
+
+    def __str__(self):
+        return f"ApplicationToolbar('{self.ID}')"
+
+    def __repr__(self):
+        return f"ApplicationToolbar('{self.ID}')"
 
 
 class MainWidgetToolbar(SpyderToolbar):
@@ -316,40 +355,3 @@ class MainWidgetToolbar(SpyderToolbar):
     def set_icon_size(self, icon_size):
         self._icon_size = icon_size
         self.setIconSize(icon_size)
-
-    def _render(self):
-        """
-        Create the toolbar taking into account the sections and locations.
-
-        This method is called once on widget setup.
-        """
-        sec_items = []
-        for sec, items in self._section_items.items():
-            for item in items:
-                sec_items.append([sec, item])
-
-            sep = QAction(self)
-            sep.setSeparator(True)
-            sec_items.append((None, sep))
-
-        if sec_items:
-            sec_items.pop()
-
-        for (sec, item) in sec_items:
-            if isinstance(item, QAction):
-                add_method = super().addAction
-            else:
-                add_method = super().addWidget
-
-            add_method(item)
-
-            if isinstance(item, QAction):
-                widget = self.widgetForAction(item)
-                widget.installEventFilter(self._filter)
-
-                text_beside_icon = getattr(item, 'text_beside_icon', False)
-                if text_beside_icon:
-                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-
-                if item.isCheckable():
-                    widget.setCheckable(True)

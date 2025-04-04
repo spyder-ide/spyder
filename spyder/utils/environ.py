@@ -15,12 +15,15 @@ import os
 from pathlib import Path
 import re
 import sys
+from textwrap import dedent
+
 try:
     import winreg
 except Exception:
     pass
 
 # Third party imports
+import psutil
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -48,11 +51,12 @@ def _get_user_env_script():
     user_env_script = Path(get_conf_path()) / 'user-env.sh'
 
     if Path(shell).name in ('bash', 'zsh'):
-        script_text = (
-            f"#!{shell} -i\n"
-            "unset HISTFILE\n"
-            f"{shell} -l -c "
-            f"\"{sys.executable} -c 'import os; print(dict(os.environ))'\"\n"
+        script_text = dedent(
+            f"""\
+            #!{shell} -i
+            unset HISTFILE
+            {shell} -l -c "'{sys.executable}' -c 'import os; print(dict(os.environ))'"
+            """
         )
     else:
         logger.info("Getting user environment variables is not supported "
@@ -92,6 +96,7 @@ def get_user_environment_variables():
         Key-value pairs of environment variables.
     """
     env_var = {}
+
     if os.name == 'nt':
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
         num_values = winreg.QueryInfoKey(key)[1]
@@ -99,21 +104,29 @@ def get_user_environment_variables():
             [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
         )
     elif os.name == 'posix':
-        try:
-            user_env_script = _get_user_env_script()
-            proc = run_shell_command(user_env_script, env={}, text=True)
+        # Detect if the Spyder process was launched from a system terminal.
+        # This is None if that was not the case.
+        launched_from_terminal = psutil.Process(os.getpid()).terminal()
 
-            # Use timeout to fix spyder-ide/spyder#21172
-            stdout, stderr = proc.communicate(
-                timeout=3 if running_in_ci() else 0.5
-            )
+        # We only need to do this if Spyder was **not** launched from a
+        # terminal. Otherwise, it'll inherit the env vars present in it.
+        # Fixes spyder-ide/spyder#22415
+        if not launched_from_terminal or running_in_ci():
+            try:
+                user_env_script = _get_user_env_script()
+                proc = run_shell_command(user_env_script, env={}, text=True)
 
-            if stderr:
-                logger.info(stderr.strip())
-            if stdout:
-                env_var = eval(stdout, None)
-        except Exception as exc:
-            logger.info(exc)
+                # Use timeout to fix spyder-ide/spyder#21172
+                stdout, stderr = proc.communicate(timeout=3)
+
+                if stderr:
+                    logger.info(stderr.strip())
+                if stdout:
+                    env_var = eval(stdout, None)
+            except Exception as exc:
+                logger.info(exc)
+        else:
+            env_var = dict(os.environ)
 
     return env_var
 
@@ -129,7 +142,7 @@ def set_user_env(env, parent=None):
     Set user environment variables via HKCU (Windows) or shell startup file
     (Unix).
     """
-    env_dict = listdict2envdict(env)
+    env_dict = clean_env(listdict2envdict(env))
 
     if os.name == 'nt':
         types = dict()

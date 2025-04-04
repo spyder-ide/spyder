@@ -9,7 +9,7 @@ spyder.api.plugins
 ==================
 
 Here, 'plugins' are Qt objects that can make changes to Spyder's main window
-and call other plugins directly.
+and call/connect to other plugins directly.
 
 There are two types of plugins available:
 
@@ -22,5 +22,4 @@ There are two types of plugins available:
 """
 
 from .enum import Plugins, DockablePlugins  # noqa
-from .old_api import SpyderPlugin, SpyderPluginWidget  # noqa
 from .new_api import SpyderDockablePlugin, SpyderPluginV2  # noqa

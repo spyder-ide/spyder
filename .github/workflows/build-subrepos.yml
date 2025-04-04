@@ -2,16 +2,21 @@ on:
   push:
     branches:
       - 'master'
+      - '6.x'
     paths:
       - '**.gitrepo'
       - '.github/workflows/build-subrepos.yml'
 
   workflow_call:
+    inputs:
+      branch:
+        required: false
+        type: string
 
   workflow_dispatch:
 
 concurrency:
-  group: build-subrepos-${{ github.ref }}
+  group: build-subrepos-${{ inputs.branch || github.ref_name }}
   cancel-in-progress: true
 
 name: Create Subrepo Conda Packages
@@ -26,14 +31,14 @@ jobs:
         os: [ubuntu-latest]
         pkg: [python-lsp-server, qtconsole, spyder-kernels]
         include:
-          - python-version: '3.10'
+          - python-version: '3.11'
           - cache-arch: noarch
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
           - os: windows-latest
             pkg: spyder-kernels
-            python-version: '3.10'
+            python-version: '3.11'
             cache-arch: win-64
     defaults:
       run:
@@ -44,15 +49,16 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.branch }}
 
       - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
           lookup-only: true
           enableCrossOsArchive: true
@@ -61,10 +67,14 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: mamba-org/setup-micromamba@v1
         with:
+          condarc: |
+            conda_build:
+              pkg_format: '2'
+              zstd_compression_level: '19'
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
           create-args: >-
-            --channel-priority=strict
+            --channel-priority=flexible
             python=${{ matrix.python-version }}
           cache-downloads: true
           cache-environment: true
@@ -73,4 +83,5 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           CONDA_BLD_PATH: ${{ github.workspace }}/installers-conda/build/conda-bld
+          python_min: '3.9'
         run: python build_conda_pkgs.py --build $pkg

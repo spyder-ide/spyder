@@ -4,168 +4,164 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
-Status widget for Spyder updates.
-"""
+"""Status bar widgets."""
 
 # Standard library imports
-import logging
-import os
+import os.path as osp
+import datetime
+import webbrowser
 
-# Third party imports
-from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtWidgets import QLabel
+# Third-party imports
+from qtpy import QtModuleNotInstalledError
+from qtpy.QtCore import Qt, QUrl
+from qtpy.QtWidgets import QDialog, QVBoxLayout
 
 # Local imports
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.widgets.status import BaseTimerStatus
 from spyder.api.translations import _
-from spyder.api.widgets.menus import SpyderMenu
-from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import is_conda_based_app
-from spyder.plugins.application.widgets.install import (
-    UpdateInstallerDialog, NO_STATUS, DOWNLOADING_INSTALLER, INSTALLING,
-    PENDING, CHECKING)
+from spyder.config.base import get_module_source_path
+from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.qthelpers import start_file
+from spyder.utils.stylesheet import WIN
 
 
-# Setup logger
-logger = logging.getLogger(__name__)
+class InAppAppealDialog(QDialog, SpyderFontsMixin):
+
+    CONF_SECTION = "main"
+    WIDTH = 530
+    HEIGHT = 620 if WIN else 665
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Attributes
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        )
+        self.setFixedWidth(self.WIDTH)
+        self.setFixedHeight(self.HEIGHT)
+        self.setWindowTitle(_("Help Spyder"))
+        self.setWindowIcon(ima.icon("inapp_appeal"))
+
+        # Path to the appeal page
+        appeal_page_path = osp.join(
+            get_module_source_path("spyder.plugins.application.widgets"),
+            "appeal_page",
+            "dark" if is_dark_interface() else "light",
+            "index.html",
+        )
+
+        from spyder.widgets.browser import WebView
+        # Create webview to render the appeal message
+        webview = WebView(self, handle_links=True)
+
+        # Set font used in the view
+        app_font = self.get_font(SpyderFontType.Interface)
+        webview.set_font(app_font, size_delta=2)
+
+        # Load page
+        webview.load(QUrl.fromLocalFile(appeal_page_path))
+
+        # Open links in external browser
+        webview.page().linkClicked.connect(self._handle_link_clicks)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(webview)
+        self.setLayout(layout)
+
+    def _handle_link_clicks(self, url):
+        url = str(url.toString())
+        if url.startswith('http'):
+            start_file(url)
 
 
-class ApplicationUpdateStatus(StatusBarWidget):
-    """Status bar widget for application update status."""
-    BASE_TOOLTIP = _("Application update status")
-    ID = 'application_update_status'
+class InAppAppealStatus(BaseTimerStatus):
+    """Status bar widget for current file read/write mode."""
 
-    sig_check_for_updates_requested = Signal()
-    """
-    Signal to request checking for updates.
-    """
+    ID = "inapp_appeal_status"
+    CONF_SECTION = "main"
+    INTERACT_ON_CLICK = True
 
-    sig_install_on_close_requested = Signal(str)
-    """
-    Signal to request running the downloaded installer on close.
+    DAYS_TO_SHOW_AGAIN = 15
 
-    Parameters
-    ----------
-    installer_path: str
-        Path to instal
-    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-    CUSTOM_WIDGET_CLASS = QLabel
+        self._is_shown = False
+        self._appeal_dialog = None
 
-    def __init__(self, parent):
+        # We don't need to show a label for this widget
+        self.label_value.setVisible(False)
 
-        self.tooltip = self.BASE_TOOLTIP
-        super().__init__(parent, show_spinner=True)
+        # Update status every hour
+        self.set_interval(60 * 60 * 1000)
 
-        # Installation dialog
-        self.installer = UpdateInstallerDialog(self)
+        # Show appeal on click
+        self.sig_clicked.connect(self._on_click)
 
-        # Check for updates action menu
-        self.menu = SpyderMenu(self)
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _on_click(self):
+        """Handle widget clicks."""
+        if self._appeal_dialog is None:
+            self._appeal_dialog = InAppAppealDialog(self)
 
-        # Set aligment attributes for custom widget to match default label
-        # values
-        self.custom_widget.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-
-        # Signals
-        self.sig_clicked.connect(self.show_installation_dialog_or_menu)
-
-        # Installer widget signals
-        self.installer.sig_download_progress.connect(
-            self.set_download_progress)
-        self.installer.sig_installation_status.connect(
-            self.set_value)
-        self.installer.sig_install_on_close_requested.connect(
-            self.sig_install_on_close_requested)
-
-    def set_value(self, value):
-        """Return update installation state."""
-        if value == DOWNLOADING_INSTALLER or value == INSTALLING:
-            self.tooltip = _("Update installation will continue in the "
-                             "background.\n"
-                             "Click here to show the installation "
-                             "dialog again.")
-            if value == DOWNLOADING_INSTALLER:
-                self.spinner.hide()
-                self.spinner.stop()
-                self.custom_widget.show()
-            else:
-                self.custom_widget.hide()
-                self.spinner.show()
-                self.spinner.start()
-            self.installer.show()
-        elif value == PENDING:
-            self.tooltip = value
-            self.custom_widget.hide()
-            self.spinner.hide()
-            self.spinner.stop()
+        if self._appeal_dialog.isVisible():
+            self._appeal_dialog.hide()
         else:
-            self.tooltip = self.BASE_TOOLTIP
-            if self.custom_widget:
-                self.custom_widget.hide()
-            if self.spinner:
-                self.spinner.hide()
-                self.spinner.stop()
-        self.setVisible(True)
-        self.update_tooltip()
-        value = f"Spyder: {value}"
-        logger.debug(f"Application Update Status: {value}")
-        super().set_value(value)
+            self._appeal_dialog.show()
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def show_appeal(self):
+        try:
+            if self._appeal_dialog is None:
+                self._appeal_dialog = InAppAppealDialog(self)
+
+            if not self._appeal_dialog.isVisible():
+                self._appeal_dialog.show()
+        except QtModuleNotInstalledError:
+            # QtWebEngineWidgets is optional, so just open the URL in the
+            # default browser.
+            # See spyder-ide/spyder#24905 for the details.
+            webbrowser.open("https://opencollective.com/spyder")
+            pass
+
+    # ---- StatusBarWidget API
+    # -------------------------------------------------------------------------
+    def get_icon(self):
+        return self.create_icon("inapp_appeal")
+
+    def update_status(self):
+        """
+        Show widget for a day after a certain number of days, then hide it.
+        """
+        today = datetime.date.today()
+        last_date = self.get_conf("last_inapp_appeal", default="")
+
+        if last_date:
+            delta = today - datetime.date.fromisoformat(last_date)
+            if 0 < delta.days < self.DAYS_TO_SHOW_AGAIN:
+                self.setVisible(False)
+            else:
+                self.setVisible(True)
+                self.set_conf("last_inapp_appeal", str(today))
+        else:
+            self.set_conf("last_inapp_appeal", str(today))
 
     def get_tooltip(self):
-        """Reimplementation to get a dynamic tooltip."""
-        return self.tooltip
+        return _("Help Spyder!")
 
-    def get_icon(self):
-        return ima.icon('spyder_about')
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def showEvent(self, event):
+        super().showEvent(event)
 
-    def start_installation(self, latest_release):
-        self.installer.start_installation(latest_release)
-
-    def set_download_progress(self, current_value, total):
-        percentage_progress = 0
-        if total > 0:
-            percentage_progress = round((current_value/total) * 100)
-        self.custom_widget.setText(f"{percentage_progress}%")
-
-    def set_status_pending(self, latest_release):
-        self.set_value(PENDING)
-        self.installer.save_latest_release(latest_release)
-
-    def set_status_checking(self):
-        self.set_value(CHECKING)
-        self.spinner.show()
-        self.spinner.start()
-
-    def set_no_status(self):
-        self.set_value(NO_STATUS)
-        self.spinner.hide()
-        self.spinner.stop()
-
-    @Slot()
-    def show_installation_dialog_or_menu(self):
-        """Show installation dialog or menu."""
-        value = self.value.split(":")[-1].strip()
-        if (
-            self.tooltip != self.BASE_TOOLTIP
-            and value != PENDING
-            and is_conda_based_app()
-        ):
-            self.installer.show()
-        elif value == PENDING and is_conda_based_app():
-            self.installer.continue_installation()
-        elif value == NO_STATUS:
-            self.menu.clear()
-            check_for_updates_action = create_action(
-                self,
-                text=_("Check for updates..."),
-                triggered=self.sig_check_for_updates_requested.emit
-            )
-            add_actions(self.menu, [check_for_updates_action])
-            rect = self.contentsRect()
-            os_height = 7 if os.name == 'nt' else 12
-            pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-10, -rect.height() - os_height))
-            self.menu.popup(pos)
+        # Hide widget if necessary at startup
+        if not self._is_shown:
+            self.update_status()
+            self._is_shown = True

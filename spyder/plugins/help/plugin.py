@@ -15,8 +15,7 @@ import os
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
-from spyder.api.exceptions import SpyderAPIError
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -45,6 +44,7 @@ class Help(SpyderDockablePlugin):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    REQUIRE_WEB_WIDGETS = True
 
     # Signals
     sig_focus_changed = Signal()  # TODO: What triggers this?
@@ -193,13 +193,6 @@ class Help(SpyderDockablePlugin):
 
     def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
-
-        # To make auto-connection changes take place instantly
-        try:
-            editor = self.get_plugin(Plugins.Editor)
-            editor.apply_plugin_settings({'connect_to_oi'})
-        except SpyderAPIError:
-            pass
 
     # --- Private API
     # ------------------------------------------------------------------------

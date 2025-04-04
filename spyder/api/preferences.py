@@ -16,10 +16,7 @@ from typing import Set
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.api.utils import PrefixedTuple
-from spyder.plugins.preferences.widgets.config_widgets import (
-    SpyderConfigPage,
-    BaseConfigTab
-)
+from spyder.widgets.config import SpyderConfigPage, BaseConfigTab
 
 
 OptionSet = Set[ConfigurationKey]

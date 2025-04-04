@@ -154,16 +154,21 @@ def remove_backslashes(path):
 
 def get_error_match(text):
     """Check if text contains a Python error."""
-    # For regular Python tracebacks and IPython 7 or less.
+    # For regular Python tracebacks and IPython 7 or less (xmode plain).
     match_python = re.match(r'  File "(.*)", line (\d*)', text)
     if match_python is not None:
         return match_python
 
-    # For IPython 8+ tracebacks.
+    # For IPython 8+ tracebacks (xmode plain).
     # Fixes spyder-ide/spyder#20407
-    ipython8_match = re.match(r'  File (.*):(\d*)', text)
-    if ipython8_match is not None:
-        return ipython8_match
+    ipython8_plain_match = re.match(r'  File (.*):(\d*)', text)
+    if ipython8_plain_match is not None:
+        return ipython8_plain_match
+
+    # For IPython 8+ tracebacks (xmode context).
+    ipython8_context_match = re.match(r'File (.*):(\d*)', text)
+    if ipython8_context_match is not None:
+        return ipython8_context_match
 
     return False
 

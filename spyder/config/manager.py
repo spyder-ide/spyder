@@ -12,8 +12,14 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
+import sys
+import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
+
+# Third-party imports
+import keyring
+from keyring.errors import NoKeyringError
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
@@ -22,18 +28,13 @@ from spyder.config.base import (
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.types import ConfigurationKey, ConfigurationObserver
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault, cp
+from spyder.plugins.shortcuts.utils import SHORTCUTS_FOR_WIDGETS_DATA
 from spyder.utils.programs import check_version
 
 
 logger = logging.getLogger(__name__)
 
-EXTRA_VALID_SHORTCUT_CONTEXTS = [
-    '_',
-    'array_builder',
-    'console',
-    'find_replace',
-    'switcher'
-]
+EXTRA_VALID_SHORTCUT_CONTEXTS = ['_', 'find_replace']
 
 
 class ConfigurationManager(object):
@@ -97,24 +98,25 @@ class ConfigurationManager(object):
         # This dict maps from a configuration key (str/tuple) to a set
         # of objects that should be notified on changes to the corresponding
         # subscription key per section. The observer objects must be hashable.
-        #
-        # type: Dict[ConfigurationKey, Dict[str, Set[ConfigurationObserver]]]
-        self._observers = {}
+        self._observers: Dict[
+            ConfigurationKey, Dict[str, Set[ConfigurationObserver]]
+        ] = {}
 
         # Set of suscription keys per observer object
         # This dict maps from a observer object to the set of configuration
         # keys that the object is subscribed to per section.
-        #
-        # type: Dict[ConfigurationObserver, Dict[str, Set[ConfigurationKey]]]
-        self._observer_map_keys = weakref.WeakKeyDictionary()
+        self._observer_map_keys: Dict[
+            ConfigurationObserver, Dict[str, Set[ConfigurationKey]]
+        ] = weakref.WeakKeyDictionary()
 
         # List of options with disabled notifications.
         # This holds a list of (section, option) options that won't be notified
         # to observers. It can be used to temporarily disable notifications for
         # some options.
-        #
-        # type: List[Tuple(str, ConfigurationKey)]
-        self._disabled_options = []
+        self._disabled_options: List[Tuple(str, ConfigurationKey)] = []
+
+        # Mapping for shortcuts that need to be notified
+        self._shortcuts_to_notify: Dict[(str, str), Optional[str]] = {}
 
         # Setup
         self.remove_deprecated_config_locations()
@@ -310,10 +312,13 @@ class ConfigurationManager(object):
         for section in self._observers:
             self.notify_section_all_observers(section)
 
-    def notify_observers(self,
-                         section: str,
-                         option: ConfigurationKey,
-                         recursive_notification: bool = True):
+    def notify_observers(
+        self,
+        section: str,
+        option: ConfigurationKey,
+        recursive_notification: bool = True,
+        secure: bool = False,
+    ):
         """
         Notify observers of a change in the option `option` of configuration
         section `section`.
@@ -331,6 +336,8 @@ class ConfigurationManager(object):
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            Whether this is a secure option or not.
         """
         if recursive_notification:
             # Notify to section listeners
@@ -353,8 +360,11 @@ class ConfigurationManager(object):
             if option == '__section':
                 self._notify_section(section)
             else:
-                value = self.get(section, option)
-                self._notify_option(section, option, value)
+                if section == "shortcuts":
+                    self._notify_shortcut(option)
+                else:
+                    value = self.get(section, option, secure=secure)
+                    self._notify_option(section, option, value)
 
     def _notify_option(self, section: str, option: ConfigurationKey,
                        value: Any):
@@ -383,6 +393,27 @@ class ConfigurationManager(object):
     def _notify_section(self, section: str):
         section_values = dict(self.items(section) or [])
         self._notify_option(section, '__section', section_values)
+
+    def _notify_shortcut(self, option: str):
+        # We need this mapping for two reasons:
+        # 1. We don't need to notify changes for all shortcuts, only for
+        #    widget shortcuts, which are the ones with associated observers
+        #    (see SpyderShortcutsMixin.register_shortcut_for_widget).
+        # 2. Besides context and name, we need the plugin_name to correctly get
+        #    the shortcut value to notify. That's not saved in our config
+        #    system, but it is in SHORTCUTS_FOR_WIDGETS_DATA.
+        if not self._shortcuts_to_notify:
+            # Populate mapping only once
+            self._shortcuts_to_notify = {
+                (data.context, data.name): data.plugin_name
+                for data in SHORTCUTS_FOR_WIDGETS_DATA
+            }
+
+        context, name = option.split("/")
+        if (context, name) in self._shortcuts_to_notify:
+            plugin_name = self._shortcuts_to_notify[(context, name)]
+            value = self.get_shortcut(context, name, plugin_name)
+            self._notify_option("shortcuts", option, value)
 
     def notify_section_all_observers(self, section: str):
         """Notify all the observers subscribed to any option of a section."""
@@ -470,7 +501,7 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         return config.options(section)
 
-    def get(self, section, option, default=NoDefault):
+    def get(self, section, option, default=NoDefault, secure=False):
         """
         Get an `option` on a given `section`.
 
@@ -497,11 +528,25 @@ class ConfigurationManager(object):
                 if default is NoDefault:
                     raise cp.NoOptionError(option, section)
         else:
-            value = config.get(section=section, option=option, default=default)
+            if secure:
+                logger.debug(
+                    f"Retrieving option {option} with keyring because it "
+                    f"was marked as secure."
+                )
+                value = keyring.get_password(section, option)
+
+                # This happens when `option` was not actually saved by keyring
+                if value is None:
+                    value = ""
+            else:
+                value = config.get(
+                    section=section, option=option, default=default
+                )
+
         return value
 
     def set(self, section, option, value, verbose=False, save=True,
-            recursive_notification=True, notification=True):
+            recursive_notification=True, notification=True, secure=False):
         """
         Set an `option` on a given `section`.
 
@@ -525,11 +570,52 @@ class ConfigurationManager(object):
             option = base_option
 
         config = self.get_active_conf(section)
-        config.set(section=section, option=option, value=value,
-                   verbose=verbose, save=save)
+
+        if secure:
+            logger.debug(
+                f"Saving option {option} with keyring because it was marked "
+                f"as secure."
+            )
+
+            # Catch error when there's no keyring backend available.
+            # Fixes spyder-ide/spyder#22623
+            try:
+                keyring.set_password(section, option, value)
+            except NoKeyringError:
+                # This file must not have top-level Qt imports. This also
+                # prevents possible circular imports.
+                from qtpy.QtWidgets import QMessageBox
+                from spyder_kernels.utils.pythonenv import is_conda_env
+
+                pkg_manager = "conda" if is_conda_env(sys.prefix) else "pip"
+                msg = _(
+                    "It was not possible to save a configuration setting "
+                    "securely. A possible solution is to install the "
+                    "<tt>keyrings.alt</tt> package with {}.<br><br>"
+                    "<bb>Note</bb>: That package may have security risks or "
+                    "other implications. Hence, it's not advised to use it in "
+                    "general production or security-sensitive systems."
+                ).format(pkg_manager)
+
+                QMessageBox.critical(
+                    None,
+                    _("Error"),
+                    msg,
+                    QMessageBox.Ok,
+                )
+        else:
+            config.set(
+                section=section,
+                option=option,
+                value=value,
+                verbose=verbose,
+                save=save,
+            )
+
         if notification:
             self.notify_observers(
-                section, original_option, recursive_notification)
+                section, original_option, recursive_notification, secure
+            )
 
     def get_default(self, section, option):
         """
@@ -557,9 +643,10 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.remove_section(section)
 
-    def remove_option(self, section, option):
+    def remove_option(self, section, option, secure=False):
         """Remove `option` from `section`."""
         config = self.get_active_conf(section)
+
         if isinstance(option, tuple):
             # The actual option saved in the config
             base_option = option[0]
@@ -588,7 +675,17 @@ class ConfigurationManager(object):
                 self.set(section, base_option,  base_conf)
                 self.notify_observers(section, base_option)
         else:
-            config.remove_option(section, option)
+            if secure:
+                logger.debug(
+                    f"Deleting option {option} with keyring because it was "
+                    f"marked as secure."
+                )
+                try:
+                    keyring.delete_password(section, option)
+                except Exception:
+                    pass
+            else:
+                config.remove_option(section, option)
 
     def reset_to_defaults(self, section=None, notification=True):
         """Reset config to Default values."""
@@ -599,6 +696,11 @@ class ConfigurationManager(object):
                 self.notify_section_all_observers(section)
             else:
                 self.notify_all_observers()
+
+    def reset_manager(self):
+        for observer in self._observer_map_keys.copy():
+            self.unobserve_configuration(observer)
+        self._plugin_configs = {}
 
     # Shortcut configuration management
     # ------------------------------------------------------------------------
@@ -650,21 +752,12 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         config = self._get_shortcut_config(context, plugin_name)
-        config.set('shortcuts', context + '/' + name, keystr)
+        option = f"{context}/{name}"
+        current_shortcut = config.get("shortcuts", option, default="")
 
-    def config_shortcut(self, action, context, name, parent):
-        """
-        Create a Shortcut namedtuple for a widget.
-
-        The data contained in this tuple will be registered in our shortcuts
-        preferences page.
-        """
-        # We only import on demand to avoid loading Qt modules
-        from spyder.config.gui import _config_shortcut
-
-        keystr = self.get_shortcut(context, name)
-        sc = _config_shortcut(action, context, name, keystr, parent)
-        return sc
+        if current_shortcut != keystr:
+            config.set('shortcuts', option, keystr)
+            self.notify_observers("shortcuts", option)
 
     def iter_shortcuts(self):
         """Iterate over keyboard shortcuts."""
@@ -690,11 +783,17 @@ class ConfigurationManager(object):
             # TODO: check if the section exists?
             plugin_config.reset_to_defaults(section='shortcuts')
 
+        # This necessary to notify the observers of widget shortcuts
+        self.notify_section_all_observers(section="shortcuts")
+
 
 try:
     CONF = ConfigurationManager()
 except Exception:
     from qtpy.QtWidgets import QApplication, QMessageBox
+
+    # Print traceback to show error in the terminal in case it's needed
+    print(traceback.format_exc())  # spyder: test-skip
 
     # Check if there's an app already running
     app = QApplication.instance()

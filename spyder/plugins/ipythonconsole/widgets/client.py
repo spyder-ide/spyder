@@ -14,18 +14,21 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+import functools
 import logging
 import os
 import os.path as osp
 from string import Template
 import time
 import traceback
+import typing
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtWidgets import QVBoxLayout, QWidget
+from qtpy.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import (
@@ -35,14 +38,19 @@ from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import SpyderKernelError
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
-    KernelConnectionState)
+    KernelConnectionState,
+    KernelHandler
+)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
+
+if typing.TYPE_CHECKING:
+    from spyder.plugins.remoteclient.api.modules import JupyterAPI
 
 
 # Logging
@@ -68,6 +76,7 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
+
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
@@ -83,23 +92,32 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
 
+    # Signals for remote kernels
+    sig_restart_kernel_requested = Signal()
+    sig_kernel_died = Signal()
+
     CONF_SECTION = 'ipython_console'
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***', ]
 
-    def __init__(self, parent, id_,
-                 config_options,
-                 additional_options,
-                 interpreter_versions,
-                 menu_actions=None,
-                 given_name=None,
-                 give_focus=True,
-                 options_button=None,
-                 handlers=None,
-                 initial_cwd=None,
-                 forcing_custom_interpreter=False,
-                 special_kernel=None):
+    def __init__(
+        self,
+        parent,
+        id_,
+        config_options,
+        additional_options,
+        menu_actions=None,
+        given_name=None,
+        give_focus=True,
+        options_button=None,
+        handlers=None,
+        initial_cwd=None,
+        forcing_custom_interpreter=False,
+        special_kernel=None,
+        jupyter_api=None,
+        can_close=True,
+    ):
         super(ClientWidget, self).__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
@@ -110,9 +128,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.given_name = given_name
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
+        self._jupyter_api: typing.Optional[JupyterAPI] = jupyter_api
+        self.can_close = can_close
 
         # --- Other attrs
-        self.kernel_handler = None
+        self.kernel_handler: KernelHandler = None
         self.hostname = None
         self.show_elapsed_time = self.get_conf('show_elapsed_time')
         self.reset_warning = self.get_conf('show_reset_namespace_warning')
@@ -121,6 +141,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.allow_rename = True
         self.error_text = None
         self.give_focus = give_focus
+        self.kernel_id = None
+        self.__on_close = lambda: None
 
         css_path = self.get_conf('css_path', section='appearance')
         if css_path is None:
@@ -133,10 +155,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             config=config_options,
             ipyclient=self,
             additional_options=additional_options,
-            interpreter_versions=interpreter_versions,
             handlers=handlers,
             local_kernel=True,
-            special_kernel=special_kernel
+            special_kernel=special_kernel,
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
@@ -163,7 +184,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-    # ----- Private methods ---------------------------------------------------
+        #--- Remote kernels states
+        self.__remote_restart_requested = False
+        self.__remote_reconnect_requested = False
+
+    # ---- Private methods
+    # -------------------------------------------------------------------------
     def _when_kernel_is_ready(self):
         """
         Configuration after the prompt is shown.
@@ -314,7 +340,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if osp.isdir(cwd_path):
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
 
-    # ----- Public API --------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
     @property
     def connection_file(self):
         if self.kernel_handler is None:
@@ -331,14 +358,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_fault.connect(self.print_fault)
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
-        self._show_loading_page()
+
+        if self.is_remote():
+            self._hide_loading_page()
+        else:
+            self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler, first_connect)
 
     def disconnect_kernel(self, shutdown_kernel):
         """Disconnect from current kernel."""
-        kernel_handler = self.kernel_handler
+        kernel_handler = getattr(self, "kernel_handler", None)
         if not kernel_handler:
             return
 
@@ -481,6 +512,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Stop shellwidget
         self.shellwidget.shutdown()
 
+    def show_kernel_connection_error(self):
+        self.show_kernel_error(
+            _(
+                "It was not possible to connect to the kernel associated to "
+                "this console. If you are trying to connect to an existing "
+                "kernel, check that the connection file you selected actually "
+                "corresponds to the kernel you want to connect to."
+            )
+        )
+
     def is_benign_error(self, error):
         """Decide if an error is benign in order to filter it."""
         benign_errors = [
@@ -506,7 +547,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "The following argument was not expected",
             # Avoid showing error for kernel restarts after kernel dies when
             # using an external interpreter
-            "conda.cli.main_run"
+            "conda.cli.main_run",
+            # Warning when debugpy is not available because it's an optional
+            # dependency of IPykernel.
+            # See spyder-ide/spyder#21900
+            "debugpy_stream undefined, debugging will not be enabled",
+            # Harmless warning from OpenCL on Windows.
+            # See spyder-ide/spyder#22551
+            "The system cannot find the path specified",
+            # UNC paths, see spyder-ide/spyder#23726
+            " UNC ",
         ]
 
         return any([err in error for err in benign_errors])
@@ -553,21 +603,58 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except AttributeError:
             pass
 
-    def close_client(self, is_last_client):
+    def close_client(self, is_last_client, close_console=False):
         """Close the client."""
+        self.__on_close = lambda: None
+        debugging = False
+
         # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
-            self.stop_button_click_handler()
+            # This is required after spyder-ide/spyder#21788 to prevent freezes
+            # when closing Spyder. That happens not only when a console is in
+            # debugging mode before closing, but also when a kernel restart is
+            # requested while debugging.
+            if self.shellwidget.is_debugging():
+                debugging = True
+                self.__on_close = functools.partial(
+                    self.finish_close,
+                    is_last_client,
+                    close_console,
+                    debugging
+                )
+                self.shellwidget.sig_prompt_ready.connect(self.__on_close)
+                self.shellwidget.stop_debugging()
+            else:
+                self.interrupt_kernel()
         except RuntimeError:
             pass
 
-        # Disconnect timer needed to update elapsed time
+        if not debugging:
+            self.finish_close(is_last_client, close_console, debugging)
+
+    def finish_close(self, is_last_client, close_console, debugging):
+        """Actions to take to finish closing the client."""
+        # Disconnect timer needed to update elapsed time and this slot in case
+        # it was connected.
         try:
+            self.shellwidget.sig_prompt_ready.disconnect(self.__on_close)
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
 
-        self.shutdown(is_last_client)
+        # This is a hack to prevent segfaults when closing Spyder and the
+        # client was debugging before doing it.
+        # It's a side effect of spyder-ide/spyder#21788
+        if debugging and close_console:
+            for __ in range(3):
+                time.sleep(0.08)
+                QApplication.processEvents()
+
+        self.shutdown(is_last_client, close_console=close_console)
+
+        # Close jupyter api regardless of the kernel state
+        if self.is_remote():
+            AsyncDispatcher(early_return=False)(self._jupyter_api.close)()
 
         # Prevent errors in our tests
         try:
@@ -576,13 +663,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def shutdown(self, is_last_client):
+    def shutdown(self, is_last_client, close_console=False):
         """Shutdown connection and kernel if needed."""
         self.dialog_manager.close_all()
         shutdown_kernel = (
-            is_last_client and not self.shellwidget.is_external_kernel
+            is_last_client
+            and (not self.shellwidget.is_external_kernel or self.is_remote())
             and not self.error_text
         )
+
+        if self.is_remote() and shutdown_kernel and not close_console:
+            self.shutdown_remote_kernel()
+
         self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
@@ -594,7 +686,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel_handler, shutdown_kernel):
+    def replace_kernel(self, kernel_handler, shutdown_kernel, clear=True):
         """
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
@@ -604,8 +696,19 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.connect_kernel(kernel_handler, first_connect=False)
 
         # Reset shellwidget and print restart message
-        self.shellwidget.reset(clear=True)
+        self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(died=False)
+
+    def is_kernel_active(self):
+        """Check if the kernel is active."""
+        return (
+            self.kernel_handler is not None
+            and self.kernel_handler.connection_state
+            in [
+                KernelConnectionState.SpyderKernelReady,
+                KernelConnectionState.IpykernelReady,
+            ]
+        )
 
     def print_fault(self, fault):
         """Print fault text."""
@@ -674,9 +777,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         else:
             fmt = "%H:%M:%S"
         if end:
-            color = QStylePalette.COLOR_TEXT_3
+            color = SpyderPalette.COLOR_TEXT_3
         else:
-            color = QStylePalette.COLOR_ACCENT_4
+            color = SpyderPalette.COLOR_ACCENT_4
         text = "<span style=\'color: %s\'><b>%s" \
                "</b></span>" % (color,
                                 time.strftime(fmt, time.gmtime(elapsed_time)))
@@ -698,3 +801,175 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
                 QUrl.fromLocalFile(self.css_path)
             )
             self.sig_execution_state_changed.emit()
+
+    # ---- For remote clients
+    # -------------------------------------------------------------------------
+    def is_remote(self):
+        """Check if this client is connected to a remote server."""
+        return self._jupyter_api is not None
+
+    @property
+    def jupyter_api(self):
+        return self._jupyter_api
+
+    def remote_kernel_restarted_failure_message(
+        self, error=None, shutdown=False
+    ):
+        """Show message when the kernel failed to be restarted."""
+
+        msg = _("It was not possible to restart the kernel")
+
+        if error is None:
+            error_html = f"<br>{msg}<br>"
+        else:
+            if isinstance(error, SpyderKernelError):
+                error = error.args[0]
+            elif isinstance(error, Exception):
+                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
+
+            # Replace end of line chars with <br>
+            eol = sourcecode.get_eol_chars(error)
+            if eol:
+                error = error.replace(eol, '<br>')
+
+            # Don't break lines in hyphens
+            # From https://stackoverflow.com/q/7691569/438386
+            error = error.replace('-', '&#8209')
+
+            # Create error page
+            kernel_error_template = Template(KERNEL_ERROR)
+            error_html = kernel_error_template.substitute(
+                css_path=self.css_path,
+                message=msg,
+                error=error)
+
+        self.shellwidget._append_html(error_html, before_prompt=False)
+        self.shellwidget.insert_horizontal_ruler()
+
+        if shutdown:
+            self.shutdown(is_last_client=False, close_console=False)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_kernel_restarted(self, future):
+        """Handle restarts for remote kernels."""
+        if future.result():
+            # Reset shellwidget and print restart message
+            self.kernel_handler.reconnect_kernel()
+            self.shellwidget.reset(clear=True)
+        else:
+            self.remote_kernel_restarted_failure_message(shutdown=True)
+            # This will show an error message in the plugins connected to the
+            # IPython console and disable kernel related actions in its Options
+            # menu.
+            sw = self.shellwidget
+            sw.sig_shellwidget_errored.emit(sw)
+        self.__remote_restart_requested = False
+
+    @AsyncDispatcher.QtSlot
+    def _reconnect_on_kernel_info(self, future):
+        if (kernel_info := future.result()):
+            try:
+                kernel_handler = KernelHandler.from_connection_info(
+                    kernel_info["connection_info"],
+                    ssh_connection=self._jupyter_api.manager._ssh_connection,
+                )
+                kernel_handler.set_time_to_dead(1.0)
+            except Exception as err:
+                self.remote_kernel_restarted_failure_message(
+                    err, shutdown=True
+                )
+            else:
+                self.replace_kernel(
+                    kernel_handler, shutdown_kernel=False, clear=False
+                )
+        else:
+            self.remote_kernel_restarted_failure_message(shutdown=True)
+            # This will show an error message in the plugins connected to the
+            # IPython console and disable kernel related actions in its Options
+            # menu.
+            sw = self.shellwidget
+            sw.sig_shellwidget_errored.emit(sw)
+        self.__remote_reconnect_requested = False
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_kernel_started(self, future):
+        """
+        Actions to take when a remote kernel was started for this IPython console
+        client.
+        """
+        # It's only at this point that we can allow users to close the client.
+        self.can_close = True
+
+        # Handle failures to launch a kernel
+        try:
+            kernel_info = future.result()
+        except Exception as err:
+            self.show_kernel_error(err)
+            return
+
+        if not kernel_info:
+            self.show_kernel_error(
+                _(
+                    "There was an error connecting to the server <b>{}</b>. "
+                    "Please check your connection is working."
+                ).format(self._jupyter_api.server_name)
+            )
+            return
+
+        # Connect client's signals
+        self.kernel_id = kernel_info["id"]
+
+        try:
+            kernel_handler = KernelHandler.from_connection_info(
+                kernel_info["connection_info"],
+                ssh_connection=self._jupyter_api.manager._ssh_connection,
+            )
+
+            # Need to be smaller than the usual time it takes for the kernel to
+            # restart
+            kernel_handler.set_time_to_dead(1.0)
+        except Exception as err:
+            self.show_kernel_error(err)
+        else:
+            # Connect client to the kernel
+            self.connect_kernel(kernel_handler)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def shutdown_remote_kernel(self):
+        return await self._jupyter_api.terminate_kernel(self.kernel_id)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def interrupt_remote_kernel(self):
+        return await self._jupyter_api.interrupt_kernel(self.kernel_id)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def _restart_remote_kernel(self):
+        return await self._jupyter_api.restart_kernel(self.kernel_id)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def _get_remote_kernel_info(self):
+        return await self._jupyter_api.get_kernel(self.kernel_id)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def _new_remote_kernel(self):
+        await self.jupyter_api.connect()
+        return await self._jupyter_api.create_kernel()
+
+    def restart_remote_kernel(self):
+        if self.__remote_restart_requested:
+            return
+        self._restart_remote_kernel().connect(
+            self._on_remote_kernel_restarted
+        )
+        self.__remote_restart_requested = True
+
+    def reconnect_remote_kernel(self):
+        if self.__remote_reconnect_requested:
+            return
+        self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
+        self.__remote_reconnect_requested = True
+
+    def start_remote_kernel(self):
+        self._new_remote_kernel().connect(self._on_remote_kernel_started)

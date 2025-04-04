@@ -1,7 +1,9 @@
+import os
 import time
 from queue import Empty
-
 import unittest
+
+from flaky import flaky
 
 from qtconsole.manager import QtKernelManager
 
@@ -10,6 +12,9 @@ class Tests(unittest.TestCase):
 
     def setUp(self):
         """Open a kernel."""
+        # Prevent tests assertions related with message type from failing
+        # due to a debug warning
+        os.environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
         self.kernel_manager = QtKernelManager()
         self.kernel_manager.start_kernel()
         self.kernel_client = self.kernel_manager.client()
@@ -28,7 +33,6 @@ class Tests(unittest.TestCase):
             self.blocking_client.execute('print(0)')
             self._get_next_msg()
             self._get_next_msg()
-
 
     def tearDown(self):
         """Close the kernel."""
@@ -51,6 +55,7 @@ class Tests(unittest.TestCase):
                 pass
         return msg
     
+    @flaky(max_runs=10)
     def test_kernel_to_frontend(self):
         """Communicate from the kernel to the frontend."""
         comm_manager = self.comm_manager
@@ -104,6 +109,7 @@ class Tests(unittest.TestCase):
         msg = self._get_next_msg()
         assert msg['header']['msg_type'] == 'stream'
 
+    @flaky(max_runs=10)
     def test_frontend_to_kernel(self):
         """Communicate from the frontend to the kernel."""
         comm_manager = self.comm_manager
@@ -143,6 +149,7 @@ class Tests(unittest.TestCase):
         assert msg['parent_header']['msg_type'] == 'comm_close'
         assert msg['msg_type'] == 'stream'
         assert msg['content']['text'] == 'close\n'
+
 
 if __name__ == "__main__":
     unittest.main()

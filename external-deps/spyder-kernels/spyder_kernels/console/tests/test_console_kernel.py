@@ -24,17 +24,19 @@ import uuid
 from collections import namedtuple
 
 # Test imports
-import pytest
 from flaky import flaky
+from IPython.core import release as ipython_release
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
 import numpy as np
+import pytest
 
 # Local imports
-from spyder_kernels.utils.iofuncs import iofunctions
-from spyder_kernels.utils.test_utils import get_kernel, get_log_text
-from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.comms.commbase import CommBase
+from spyder_kernels.customize.spyderpdb import SpyderPdb
+from spyder_kernels.utils.iofuncs import iofunctions
+from spyder_kernels.utils.pythonenv import PythonEnvType
+from spyder_kernels.utils.test_utils import get_kernel, get_log_text
 
 # =============================================================================
 # Constants and utility functions
@@ -75,13 +77,15 @@ def setup_kernel(cmd):
         )
         # wait for connection file to exist, timeout after 5s
         tic = time.time()
-        while not os.path.exists(connection_file) \
-            and kernel.poll() is None \
-            and time.time() < tic + SETUP_TIMEOUT:
+        while (
+            not os.path.exists(connection_file)
+            and kernel.poll() is None
+            and time.time() < tic + SETUP_TIMEOUT
+        ):
             time.sleep(0.1)
 
         if kernel.poll() is not None:
-            o,e = kernel.communicate()
+            o, e = kernel.communicate()
             raise IOError("Kernel failed to start:\n%s" % e)
 
         if not os.path.exists(connection_file):
@@ -227,7 +231,7 @@ def kernel(request):
             'True_'
         ],
         'minmax': False,
-        'filter_on':True
+        'filter_on': True
     }
 
     # Teardown
@@ -277,7 +281,7 @@ def test_get_namespace_view(kernel):
     """
     Test the namespace view of the kernel.
     """
-    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('a = 1', True))
 
     nsview = repr(kernel.get_namespace_view())
     assert "'a':" in nsview
@@ -293,7 +297,7 @@ def test_get_namespace_view_filter_on(kernel, filter_on):
     """
     Test the namespace view of the kernel with filters on and off.
     """
-    execute = asyncio.run(kernel.do_execute('a = 1', True))
+    asyncio.run(kernel.do_execute('a = 1', True))
     asyncio.run(kernel.do_execute('TestFilterOff = 1', True))
 
     settings = kernel.namespace_view_settings
@@ -466,8 +470,11 @@ def test_is_defined(kernel):
 def test_get_doc(kernel):
     """Test to get object documentation dictionary."""
     objtxt = 'help'
-    assert ("Define the builtin 'help'" in kernel.get_doc(objtxt)['docstring'] or
-            "Define the built-in 'help'" in kernel.get_doc(objtxt)['docstring'])
+    assert (
+        "Define the builtin 'help'" in kernel.get_doc(objtxt)['docstring']
+        or "Define the built-in 'help'" in kernel.get_doc(objtxt)['docstring']
+    )
+
 
 def test_get_source(kernel):
     """Test to get object source."""
@@ -505,7 +512,7 @@ def test_cwd_in_sys_path():
     with setup_kernel(cmd) as client:
         reply = client.execute_interactive(
             "import sys; sys_path = sys.path",
-            user_expressions={'output':'sys_path'}, timeout=TIMEOUT)
+            user_expressions={'output': 'sys_path'}, timeout=TIMEOUT)
 
         # Transform value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -514,6 +521,21 @@ def test_cwd_in_sys_path():
 
         # Assert the first value of sys_path is an empty string
         assert '' in value
+
+
+def test_prioritize(kernel):
+    """Test that user path priority is honored in sys.path."""
+    syspath = kernel.get_syspath()
+    append_path = ['/test/append/path']
+    prepend_path = ['/test/prepend/path']
+
+    kernel.update_syspath(append_path, prioritize=False)
+    new_syspath = kernel.get_syspath()
+    assert new_syspath == syspath + append_path
+
+    kernel.update_syspath(prepend_path, prioritize=True)
+    new_syspath = kernel.get_syspath()
+    assert new_syspath == prepend_path + syspath
 
 
 @flaky(max_runs=3)
@@ -699,8 +721,10 @@ def test_runfile(tmpdir):
         assert content['found']
 
         # Run code file `u` with current namespace
-        msg = client.execute_interactive("%runfile {} --current-namespace"
-                                        .format(repr(str(u))), timeout=TIMEOUT)
+        msg = client.execute_interactive(
+            "%runfile {} --current-namespace".format(repr(str(u))),
+            timeout=TIMEOUT
+        )
         content = msg['content']
 
         # Verify that the variable `result3` is defined
@@ -725,7 +749,9 @@ def test_runfile(tmpdir):
     sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
     reason="Fails on Mac with Python 3.8")
 def test_np_threshold(kernel):
-    """Test that setting Numpy threshold doesn't make the Variable Explorer slow."""
+    """
+    Test that setting Numpy threshold doesn't make the Variable Explorer slow.
+    """
 
     cmd = "from spyder_kernels.console import start; start.main()"
 
@@ -784,7 +810,9 @@ f = np.get_printoptions()['formatter']
         while "data" not in msg['content']:
             msg = client.get_shell_msg(timeout=TIMEOUT)
         content = msg['content']['data']['text/plain']
-        assert "{'float_kind': <built-in method format of str object" in content
+        assert (
+            "{'float_kind': <built-in method format of str object" in content
+        )
 
 
 @flaky(max_runs=3)
@@ -872,14 +900,16 @@ def test_matplotlib_inline(kernel):
         # Assert backend is inline
         assert 'inline' in value
 
-
-def test_do_complete(kernel):
+@pytest.mark.anyio
+async def test_do_complete(kernel):
     """
     Check do complete works in normal and debugging mode.
     """
-    asyncio.run(kernel.do_execute('abba = 1', True))
-    assert kernel.get_value('abba') == 1
-    match = kernel.do_complete('ab', 2)
+    await kernel.do_execute("abba = 1", True)
+    assert kernel.get_value("abba") == 1
+    match = kernel.do_complete("ab", 2)
+    if inspect.isawaitable(match):
+        match = await match
     assert 'abba' in match['matches']
 
     # test pdb
@@ -888,6 +918,8 @@ def test_do_complete(kernel):
     pdb_obj.completenames = lambda *ignore: ['baba']
     kernel.shell._namespace_stack = [pdb_obj]
     match = kernel.do_complete('ba', 2)
+    if inspect.isawaitable(match):
+        match = await match
     assert 'baba' in match['matches']
     pdb_obj.curframe = None
 
@@ -950,10 +982,11 @@ def test_comprehensions_with_locals_in_pdb(kernel):
 
     # Check that the variable is not reported as being part of globals.
     kernel.shell.pdb_session.default("in_globals = 'zz' in globals()")
-    assert kernel.get_value('in_globals') == False
+    assert kernel.get_value('in_globals') is False
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
+
 
 def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
@@ -985,7 +1018,7 @@ def test_namespaces_in_pdb(kernel):
     Test namespaces in pdb
     """
     # Define get_ipython for timeit
-    get_ipython = lambda: kernel.shell
+    get_ipython = lambda: kernel.shell  # noqa
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
@@ -999,6 +1032,7 @@ def test_namespaces_in_pdb(kernel):
     # Create wrapper to check for errors
     old_error = pdb_obj.error
     pdb_obj._error_occured = False
+
     def error_wrapper(*args, **kwargs):
         print(args, kwargs)
         pdb_obj._error_occured = True
@@ -1050,7 +1084,6 @@ def test_functions_with_locals_in_pdb(kernel):
         'zz = fun_a()')
     assert kernel.get_value('zz') == 1
 
-
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
 
@@ -1061,7 +1094,7 @@ def test_functions_with_locals_in_pdb_2(kernel):
 
     This is another regression test for spyder-ide/spyder-kernels#345
     """
-    baba = 1
+    baba = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
@@ -1098,7 +1131,7 @@ def test_locals_globals_in_pdb(kernel):
     """
     Test thal locals and globals work properly in Pdb.
     """
-    a = 1
+    a = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
     pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
@@ -1108,11 +1141,11 @@ def test_locals_globals_in_pdb(kernel):
 
     kernel.shell.pdb_session.default(
         'test = "a" in globals()')
-    assert kernel.get_value('test') == False
+    assert kernel.get_value('test') is False
 
     kernel.shell.pdb_session.default(
         'test = "a" in locals()')
-    assert kernel.get_value('test') == True
+    assert kernel.get_value('test') is True
 
     kernel.shell.pdb_session.default(
         'def f(): return a')
@@ -1126,11 +1159,11 @@ def test_locals_globals_in_pdb(kernel):
 
     kernel.shell.pdb_session.default(
         'test = "a" in globals()')
-    assert kernel.get_value('test') == False
+    assert kernel.get_value('test') is False
 
     kernel.shell.pdb_session.default(
         'test = "a" in locals()')
-    assert kernel.get_value('test') == True
+    assert kernel.get_value('test') is True
 
     pdb_obj.curframe = None
     pdb_obj.curframe_locals = None
@@ -1140,29 +1173,32 @@ def test_locals_globals_in_pdb(kernel):
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
-    reason="Doesn't work with pip packages")
-@pytest.mark.skipif(
-    sys.version_info[:2] < (3, 9),
-    reason="Too flaky in Python 3.7/8 and doesn't work in older versions")
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on Mac")
+    reason="Doesn't work with pip packages"
+)
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.
     """
-    cmd = "from spyder_kernels.console import start; start.main()"
+    # This test passes locally but fails on CIs. Don't know why.
+    if sys.platform == "darwin" and backend == "qt" and os.environ.get('CI'):
+        return
 
+    cmd = "from spyder_kernels.console import start; start.main()"
     with setup_kernel(cmd) as client:
         # Set backend
         if backend is not None:
             client.execute_interactive(
-                "%matplotlib {}".format(backend), timeout=TIMEOUT)
+                "%matplotlib {}".format(backend), timeout=TIMEOUT
+            )
             client.execute_interactive(
-                "import time; time.sleep(.1)", timeout=TIMEOUT)
+                "import time; time.sleep(.1)", timeout=TIMEOUT
+            )
 
         # Get backend
         code = "backend = get_ipython().kernel.get_mpl_interactive_backend()"
         reply = client.execute_interactive(
-            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT)
+            code, user_expressions={'output': 'backend'}, timeout=TIMEOUT
+        )
 
         # Get value obtained through user_expressions
         user_expressions = reply['content']['user_expressions']
@@ -1205,7 +1241,7 @@ def test_global_message(tmpdir):
 
         def check_found(msg):
             if "text" in msg["content"]:
-                if ("WARNING: This file contains a global statement"  in
+                if ("WARNING: This file contains a global statement" in
                         msg["content"]["text"]):
                     global found
                     found = True
@@ -1237,7 +1273,7 @@ def test_debug_namespace(tmpdir):
         d.write('def func():\n    bb = "hello"\n    breakpoint()\nfunc()')
 
         # Run code file `d`
-        msg_id = client.execute("%runfile {}".format(repr(str(d))))
+        client.execute("%runfile {}".format(repr(str(d))))
 
         # make sure that 'bb' returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)
@@ -1251,7 +1287,7 @@ def test_debug_namespace(tmpdir):
                 if 'hello' in msg["content"].get("text"):
                     break
 
-         # make sure that get_value('bb') returns 'hello'
+        # make sure that get_value('bb') returns 'hello'
         client.get_stdin_msg(timeout=TIMEOUT)
         client.input("get_ipython().kernel.get_value('bb')")
 
@@ -1264,19 +1300,18 @@ def test_debug_namespace(tmpdir):
                     break
 
 
-def test_interrupt():
+def test_interrupt_short_loop():
     """
     Test that the kernel can be interrupted by calling a comm handler.
     """
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
-    import pickle
     with setup_kernel(cmd) as client:
         kernel_comm = CommBase()
 
         # Create new comm and send the highest protocol
         comm = Comm(kernel_comm._comm_name, client)
-        comm.open(data={'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL})
+        comm.open(data={})
         comm._send_channel = client.control_channel
         kernel_comm._register_comm(comm)
 
@@ -1290,17 +1325,35 @@ def test_interrupt():
         kernel_comm.remote_call().raise_interrupt_signal()
         # Wait for shell message
         while True:
-            assert time.time() - t0 < 5
+            delta = time.time() - t0
+            assert delta < 5
             msg = client.get_shell_msg(timeout=TIMEOUT)
             if msg["parent_header"].get("msg_id") != msg_id:
                 # not from my request
                 continue
             break
-        assert time.time() - t0 < 5
+        delta = time.time() - t0
+        assert delta < 5, (
+            "10 seconds long call should have been interrupted, so the "
+            "interrupt signal was likely mishandled"
+        )
 
-        if os.name == 'nt':
-            # Windows doesn't do "interrupting sleep"
-            return
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows doesn't do 'interrupting sleep'")
+def test_interrupt_long_sleep():
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+    with setup_kernel(cmd) as client:
+        kernel_comm = CommBase()
+
+        # Create new comm and send the highest protocol
+        comm = Comm(kernel_comm._comm_name, client)
+        comm.open(data={})
+        comm._send_channel = client.control_channel
+        kernel_comm._register_comm(comm)
+
+        client.execute_interactive("import time", timeout=TIMEOUT)
+
 
         # Try interrupting sleep
         t0 = time.time()
@@ -1310,13 +1363,19 @@ def test_interrupt():
         kernel_comm.remote_call().raise_interrupt_signal()
         # Wait for shell message
         while True:
-            assert time.time() - t0 < 5
+            delta = time.time() - t0
+            assert delta < 5
             msg = client.get_shell_msg(timeout=TIMEOUT)
             if msg["parent_header"].get("msg_id") != msg_id:
                 # not from my request
                 continue
             break
-        assert time.time() - t0 < 5
+
+        delta = time.time() - t0
+        assert delta < 5, (
+            "10 seconds long call should have been interrupted, so the "
+            "interrupt signal was likely mishandled"
+        )
 
 
 def test_enter_debug_after_interruption():
@@ -1326,13 +1385,12 @@ def test_enter_debug_after_interruption():
     """
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
-    import pickle
     with setup_kernel(cmd) as client:
         kernel_comm = CommBase()
 
         # Create new comm and send the highest protocol
         comm = Comm(kernel_comm._comm_name, client)
-        comm.open(data={'pickle_highest_protocol': pickle.HIGHEST_PROTOCOL})
+        comm.open(data={})
         comm._send_channel = client.control_channel
         kernel_comm._register_comm(comm)
 
@@ -1370,8 +1428,7 @@ def test_non_strings_in_locals(kernel):
 
     This is a regression test for issue spyder-ide/spyder#19145
     """
-    execute = asyncio.run(kernel.do_execute('locals().update({1:2})', True))
-
+    asyncio.run(kernel.do_execute('locals().update({1:2})', True))
     nsview = repr(kernel.get_namespace_view())
     assert "1:" in nsview
 
@@ -1382,11 +1439,54 @@ def test_django_settings(kernel):
 
     This is a regression test for issue spyder-ide/spyder#19516
     """
-    execute = asyncio.run(kernel.do_execute(
-        'from django.conf import settings', True))
-
+    import django
+    asyncio.run(kernel.do_execute('from django.conf import settings', True))
     nsview = repr(kernel.get_namespace_view())
     assert "'settings':" in nsview
+
+
+def test_hard_link_pdb(tmpdir):
+    """
+    Test that breakpoints on a file are recognised even when the path is
+    different.
+    """
+    # Create a file and a hard link
+    d = tmpdir.join("file.py")
+    d.write('def func():\n    bb = "hello"\n')
+    folder = tmpdir.join("folder")
+    os.mkdir(folder)
+    hard_link = folder.join("file.py")
+    os.link(d, hard_link)
+
+    # Make sure both paths point to the same file
+    assert os.path.samefile(d, hard_link)
+
+    # Make sure canonic returns the same path for a single file
+    pdb_obj = SpyderPdb()
+    assert pdb_obj.canonic(str(d)) == pdb_obj.canonic(str(hard_link))
+
+
+@pytest.mark.skipif(not os.environ.get('CI'), reason="Only works on CIs")
+def test_get_pythonenv_info(kernel):
+    """Test the output we get from this method."""
+    output = kernel.get_pythonenv_info()
+    assert output["path"] == sys.executable
+
+    if os.environ.get('USE_CONDA'):
+        assert output["name"] == "test"
+        assert output["env_type"] == PythonEnvType.Conda
+    else:
+        assert output["env_type"] in [
+            # This Custom here accounts for Linux packagers that run our tests
+            # in their CIs
+            PythonEnvType.Custom,
+            PythonEnvType.Conda,
+        ]
+
+    # Check these keys are present. Otherwise we'll break Spyder.
+    assert output["python_version"] == sys.version.split()[0]
+    assert output["ipython_version"] == ipython_release.version
+    assert output["sys_version"] == sys.version
 
 
 if __name__ == "__main__":

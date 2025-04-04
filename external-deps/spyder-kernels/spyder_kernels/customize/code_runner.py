@@ -41,7 +41,9 @@ from spyder_kernels.comms.frontendcomm import frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
-from spyder_kernels.customize.utils import capture_last_Expr, canonic
+from spyder_kernels.customize.utils import (
+    capture_last_Expr, canonic, exec_encapsulate_locals
+)
 
 
 # For logging
@@ -141,12 +143,14 @@ class SpyderCodeRunner(Magics):
     Functions and magics related to code execution, debugging, profiling, etc.
     """
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.show_global_msg = True
         self.show_invalid_syntax_msg = True
         self.umr = UserModuleReloader(
-            namelist=os.environ.get("SPY_UMR_NAMELIST", None)
+            namelist=os.environ.get("SPY_UMR_NAMELIST", None),
+            shell=self.shell,
         )
-        super().__init__(*args, **kwargs)
 
     @runfile_arguments
     @needs_local_scope
@@ -245,7 +249,7 @@ class SpyderCodeRunner(Magics):
             debugger.set_remote_filename(filename)
             debugger.continue_if_has_breakpoints = continue_if_has_breakpoints
 
-            def debug_exec(code, glob, loc):
+            def debug_exec(code, glob=None, loc=None):
                 return sys.call_tracing(debugger.run, (code, glob, loc))
 
             # Enter recursive debugger
@@ -496,11 +500,12 @@ class SpyderCodeRunner(Magics):
 
             if capture_last_expression:
                 ast_code, capture_last_expression = capture_last_Expr(
-                    ast_code, "_spyder_out"
+                    ast_code, "_spyder_out", ns_globals
                 )
-                ns_globals["__spyder_builtins__"] = builtins
 
-            exec_fun(compile(ast_code, filename, "exec"), ns_globals, ns_locals)
+            exec_encapsulate_locals(
+                ast_code, ns_globals, ns_locals, exec_fun, filename
+            )
 
             if capture_last_expression:
                 out = ns_globals.pop("_spyder_out", None)

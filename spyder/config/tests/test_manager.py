@@ -11,13 +11,14 @@ import configparser
 import os
 import os.path as osp
 import shutil
-import tempfile
+import sys
 
 # Third party imports
+import keyring
 import pytest
 
 # Local imports
-from spyder.config.base import get_conf_path, get_conf_paths
+from spyder.config.base import get_conf_path, get_conf_paths, running_in_ci
 from spyder.config.manager import ConfigurationManager
 from spyder.plugins.console.plugin import Console
 
@@ -123,6 +124,34 @@ startup/run_lines =
 
     shutil.rmtree(plugin_path)
     Console.CONF_FILE = False
+    clear_site_config()
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CIs",
+)
+def test_secure_options():
+    """Test that we can save and retrieve secure options."""
+    clear_site_config()
+
+    # Set a secure option
+    config = ConfigurationManager()
+    config.set("test_section", "test_option", "secure-option", secure=True)
+
+    # Check the option was not saved directly in our config system
+    with pytest.raises(configparser.NoSectionError):
+        config.get("test_section", "test_option", secure=False)
+
+    # Check the option is retrieved correctly
+    option = config.get("test_section", "test_option", secure=True)
+    assert option == "secure-option"
+
+    # Remove the option with keyring. If the option was not saved with it, this
+    # will give an error.
+    keyring.delete_password("test_section", "test_option")
+    assert keyring.get_password("test_section", "test_option") is None
+
     clear_site_config()
 
 

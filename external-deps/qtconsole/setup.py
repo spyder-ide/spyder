@@ -71,7 +71,6 @@ setup_args = dict(
         'pygments',
         'ipykernel>=4.1', # not a real dependency, but require the reference kernel
         'qtpy>=2.4.0',
-        'pyzmq>=17.1',
         'packaging'
     ],
     extras_require = {

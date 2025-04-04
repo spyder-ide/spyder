@@ -38,8 +38,8 @@ class Toolbar(SpyderPluginV2):
     CONTAINER_CLASS = ToolbarContainer
     CAN_BE_DISABLED = False
 
-    # --- SpyderDocakblePlugin API
-    #  -----------------------------------------------------------------------
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
         return _('Toolbar')
@@ -88,38 +88,21 @@ class Toolbar(SpyderPluginV2):
     def on_mainwindow_visible(self):
         container = self.get_container()
 
-        # TODO: Until all core plugins are migrated, this is needed.
-        ACTION_MAP = {
-            ApplicationToolbars.File: self._main.file_toolbar_actions
-        }
-        for toolbar in container.get_application_toolbars():
-            toolbar_id = toolbar.ID
-            if toolbar_id in ACTION_MAP:
-                section = 0
-                for item in ACTION_MAP[toolbar_id]:
-                    if item is None:
-                        section += 1
-                        continue
+        # Load all toolbars
+        container.load_application_toolbars()
 
-                    self.add_item_to_application_toolbar(
-                        item,
-                        toolbar_id=toolbar_id,
-                        section=str(section),
-                        omit_id=True
-                    )
-
-            toolbar._render()
-
+        # Create toolbars menu and show last visible toolbars
         container.create_toolbars_menu()
         container.load_last_visible_toolbars()
 
     def on_close(self, _unused):
         container = self.get_container()
         container.save_last_visible_toolbars()
+        container.save_last_toolbars()
         for toolbar in container._visible_toolbars:
             toolbar.setVisible(False)
 
-    # --- Public API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def create_application_toolbar(self, toolbar_id, title):
         """
@@ -249,7 +232,8 @@ class Toolbar(SpyderPluginV2):
         for toolbar in self.toolbarslist:
             toolbar.setMovable(not value)
 
-    # --- Convenience properties, while all plugins migrate.
+    # ---- Convenience properties
+    # -------------------------------------------------------------------------
     @property
     def toolbars_menu(self):
         return self.get_container().get_menu("toolbars_menu")

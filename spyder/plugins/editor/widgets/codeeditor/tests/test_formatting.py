@@ -6,15 +6,9 @@
 
 """Tests for code formatting using CodeEditor instances."""
 
-# Standard library imports
-import random
-
 # Third party imports
-from flaky import flaky
 import pytest
-from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.manager import CONF

@@ -4,9 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-# Standard library imports
-import os
-
 # Testing imports
 import pytest
 from qtpy.QtCore import QObject, Signal
@@ -27,8 +24,6 @@ class CompletionManagerMock(QObject):
 
 @pytest.fixture(scope='module')
 def snippets_completions(qtbot_module, request):
-    os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-
     snippets = SnippetsProvider(None, dict(SnippetsProvider.CONF_DEFAULTS))
     completions = CompletionManagerMock(None)
 
@@ -36,7 +31,6 @@ def snippets_completions(qtbot_module, request):
         snippets.start()
 
     def teardown():
-        os.environ.pop('SPY_TEST_USE_INTROSPECTION')
         snippets.shutdown()
 
     request.addfinalizer(teardown)

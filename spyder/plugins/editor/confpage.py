@@ -6,9 +6,6 @@
 
 """Editor config page."""
 
-import os
-import sys
-
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QVBoxLayout)
 
@@ -17,7 +14,6 @@ from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.utils.icon_manager import ima
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -32,6 +28,7 @@ DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
 class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         SpyderConfigurationObserver.__init__(self)
@@ -40,29 +37,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.add_newline_box = None
         self.remove_trail_newline_box = None
 
-        # *********************** IMPORTANT NOTES *****************************
-        # * This value needs to be ajusted if we add new options to the
-        #   "Advanced settings" tab.
-        # * We need to do this so that the text of some options is not clipped.
-        if os.name == "nt":
-            min_height = 620
-        elif sys.platform == "darwin":
-            min_height = 760
-        else:
-            min_height = 670
-
-        self.setMinimumHeight(min_height)
-
-    def get_name(self):
-        return _("Editor")
-
-    def get_icon(self):
-        return ima.icon('edit')
-
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Display tab ---
+        # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
@@ -130,7 +108,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         other_layout.addWidget(scroll_past_end_box)
         other_group.setLayout(other_layout)
 
-        # --- Source code tab ---
+        # ---- Source code tab
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
             'close_parentheses')
@@ -242,11 +220,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
 
-        # --- Advanced tab ---
+        # ---- Advanced tab
         # -- Templates
         templates_group = QGroupBox(_('Templates'))
-        template_btn = self.create_button(_("Edit template for new files"),
-                                          self.plugin.edit_template)
+        template_btn = self.create_button(
+            text=_("Edit template for new files"),
+            callback=self.plugin.edit_template,
+            set_modified_on_click=True
+        )
 
         templates_layout = QVBoxLayout()
         templates_layout.addSpacing(3)
@@ -358,6 +339,23 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
+        # -- Multi-cursor
+        multicursor_group = QGroupBox(_("Multi-Cursor"))
+        multicursor_label = QLabel(
+            _("Enable adding multiple cursors for simultaneous editing. "
+              "Additional cursors are added and removed using the Ctrl-Alt "
+              "click shortcut. A column of cursors can be added using the "
+              "Ctrl-Alt-Shift click shortcut."))
+        multicursor_label.setWordWrap(True)
+        multicursor_box = newcb(
+            _("Enable Multi-Cursor "),
+            'multicursor_support')
+
+        multicursor_layout = QVBoxLayout()
+        multicursor_layout.addWidget(multicursor_label)
+        multicursor_layout.addWidget(multicursor_box)
+        multicursor_group.setLayout(multicursor_layout)
+
         # --- Tabs ---
         self.create_tab(
             _("Interface"),
@@ -369,7 +367,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group]
+             annotations_group, eol_group, multicursor_group]
         )
 
     @on_conf_change(

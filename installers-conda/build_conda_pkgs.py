@@ -43,6 +43,9 @@ REQ_LINUX = REQUIREMENTS / 'linux.yml'
 BUILD.mkdir(exist_ok=True)
 SPYPATCHFILE = BUILD / "installers-conda.patch"
 
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+
 
 class BuildCondaPkg:
     """Base class for building a conda package for conda-based installer"""
@@ -50,6 +53,7 @@ class BuildCondaPkg:
     norm = True
     source = None
     feedstock = None
+    feedstock_branch = None
     shallow_ver = None
 
     def __init__(self, data={}, debug=False, shallow=False):
@@ -62,14 +66,16 @@ class BuildCondaPkg:
 
         self._bld_src = BUILD / self.name
         self._fdstk_path = BUILD / self.feedstock.split("/")[-1]
+        self._patchfile = self._fdstk_path / "recipe" / "version.patch"
 
         self._get_source(shallow=shallow)
         self._get_version()
 
-        self._patch_source()
-
         self.data = {'version': self.version}
         self.data.update(data)
+
+        self.recipe_append = {}
+        self.recipe_clobber = {}
 
         self._recipe_patched = False
 
@@ -104,7 +110,10 @@ class BuildCondaPkg:
 
         # Clone feedstock
         self.logger.info("Cloning feedstock...")
-        Repo.clone_from(self.feedstock, to_path=self._fdstk_path)
+        kwargs = dict(to_path=self._fdstk_path)
+        if self.feedstock_branch:
+            kwargs.update(branch=self.feedstock_branch)
+        Repo.clone_from(self.feedstock, **kwargs)
 
     def _build_cleanup(self):
         """Remove cloned source and feedstock repositories"""
@@ -121,24 +130,23 @@ class BuildCondaPkg:
     def _patch_source(self):
         pass
 
-    def _patch_meta(self, meta):
-        return meta
-
-    def _patch_build_script(self):
-        pass
-
-    def patch_recipe(self):
-        """
-        Patch conda build recipe
-
-        1. Patch meta.yaml
-        2. Patch build script
-        """
-        if self._recipe_patched:
+    def _patch_conda_build_config(self):
+        file = self._fdstk_path / "recipe" / "conda_build_config.yaml"
+        if not file.exists():
             return
 
-        self.logger.info("Patching 'meta.yaml'...")
+        contents = yaml.load(file.read_text())
+        file.rename(file.parent / ("_" + file.name))  # copy of original
 
+        pyver = sys.version_info
+        contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
+        yaml.dump(contents, file)
+
+        self.logger.info(
+            f"Patched 'conda_build_config.yaml' contents:\n{file.read_text()}"
+        )
+
+    def _patch_meta(self):
         file = self._fdstk_path / "recipe" / "meta.yaml"
         meta = file.read_text()
 
@@ -146,19 +154,59 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
-        # Replace source, but keep patches
-        meta = re.sub(r'^(source:\n)(  (url|sha256):.*\n)*',
-                      rf'\g<1>  path: {self._bld_src.as_posix()}\n',
-                      meta, flags=re.MULTILINE)
-
-        meta = self._patch_meta(meta)
-
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(meta)
 
         self.logger.info(f"Patched 'meta.yaml' contents:\n{file.read_text()}")
 
-        self._patch_build_script()
+    def _add_recipe_append(self):
+        if self._patchfile.exists():
+            self.recipe_append.update(
+                {"source": {"patches": [self._patchfile.name]}}
+            )
+
+        if self.recipe_append:
+            file = self._fdstk_path / "recipe" / "recipe_append.yaml"
+            yaml.dump(self.recipe_append, file)
+            self.logger.info(
+                f"'recipe_append.yaml' contents:\n{file.read_text()}"
+            )
+        else:
+            self.logger.info("Skipping 'recipe_append.yaml'.")
+
+    def _add_recipe_clobber(self):
+        self.recipe_clobber.update({
+            "source": {
+                "url": None,
+                "sha256": None,
+                "path": self._bld_src.as_posix()},
+        })
+
+        if self.recipe_clobber:
+            file = self._fdstk_path / "recipe" / "recipe_clobber.yaml"
+            yaml.dump(self.recipe_clobber, file)
+            self.logger.info(
+                f"'recipe_clobber.yaml' contents:\n{file.read_text()}"
+            )
+        else:
+            self.logger.info("Skipping 'recipe_clobber.yaml'.")
+
+    def patch_recipe(self):
+        """
+        Patch conda build recipe
+
+        1. Patch conda_build_config.yaml
+        2. Patch meta.yaml
+        3. Add recipe_append.yaml
+        4. Add recipe_clobber.yaml
+        """
+        if self._recipe_patched:
+            return
+
+        self._patch_conda_build_config()
+        self._patch_meta()
+        self._add_recipe_append()
+        self._add_recipe_clobber()
 
         self._recipe_patched = True
 
@@ -166,19 +214,22 @@ class BuildCondaPkg:
         """
         Build the conda package.
 
-        1. Patch the recipe
-        2. Build the package
-        3. Remove cloned repositories
+        1. Patch source
+        2. Patch the recipe
+        3. Build the package
+        4. Remove cloned repositories
         """
         t0 = time()
         try:
+            self._patch_source()
             self.patch_recipe()
 
             self.logger.info("Building conda package "
                              f"{self.name}={self.version}...")
             check_call([
-                "mamba", "mambabuild",
-                "--no-test", "--skip-existing", "--build-id-pat={n}",
+                "conda", "build",
+                "--skip-existing", "--build-id-pat={n}",
+                "--no-test", "--no-anaconda-upload",
                 str(self._fdstk_path / "recipe")
             ])
         finally:
@@ -197,98 +248,92 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "v5.3.2"
 
     def _patch_source(self):
-        self.logger.info("Creating Spyder menu file...")
-        _menufile = RESOURCES / "spyder-menu.json"
-        self.menufile = BUILD / "spyder-menu.json"
-        commit, branch = self.repo.head.commit.name_rev.split()
-        text = _menufile.read_text()
-        text = text.replace("__PKG_VERSION__", self.version)
-        text = text.replace("__SPY_BRANCH__", branch)
-        text = text.replace("__SPY_COMMIT__", commit[:8])
-        self.menufile.write_text(text)
+        self.logger.info("Patching Spyder source...")
 
-    def _patch_meta(self, meta):
-        # Remove osx_is_app
-        meta = re.sub(r'^(build:\n([ ]{2,}.*\n)*)  osx_is_app:.*\n',
-                      r'\g<1>', meta, flags=re.MULTILINE)
+        file = self._bld_src / "spyder/__init__.py"
+        file_text = file.read_text()
+        ver_str = tuple(self.version.split('.'))
+        file_text = re.sub(
+            r'^(version_info = ).*',
+            rf'\g<1>{ver_str}',
+            file_text,
+            flags=re.MULTILINE
+        )
+        file.write_text(file_text)
 
-        # Remove app node
-        meta = re.sub(r'^app:\n(  .*\n)+', '', meta, flags=re.MULTILINE)
+        # Only write patch if necessary
+        if self.repo.git.diff():
+            self.logger.info(f"Creating {self._patchfile.name}...")
+            self.repo.git.diff(output=self._patchfile.as_posix())
+            self.repo.git.stash()
 
+    def patch_recipe(self):
         # Get current Spyder requirements
-        yaml = YAML()
-        current_requirements = ['python']
-        current_requirements += yaml.load(
+        spyder_base_reqs = ['python']
+        spyder_base_reqs += yaml.load(
             REQ_MAIN.read_text())['dependencies']
         if os.name == 'nt':
             win_requirements =  yaml.load(
                 REQ_WINDOWS.read_text())['dependencies']
-            current_requirements += win_requirements
-            current_requirements.append('ptyprocess >=0.5')
+            spyder_base_reqs += win_requirements
+            spyder_base_reqs.append('ptyprocess >=0.5')
         elif sys.platform == 'darwin':
             mac_requirements =  yaml.load(
                 REQ_MAC.read_text())['dependencies']
             if 'python.app' in mac_requirements:
                 mac_requirements.remove('python.app')
-            current_requirements += mac_requirements
+            spyder_base_reqs += mac_requirements
+            spyder_base_reqs.append('__osx')
         else:
             linux_requirements = yaml.load(
                 REQ_LINUX.read_text())['dependencies']
-            current_requirements += linux_requirements
+            spyder_base_reqs += linux_requirements
+            spyder_base_reqs.append('__linux')
 
-        # Replace run requirements
-        cr_string = '\n    - '.join(current_requirements)
-        meta = re.sub(r'^(requirements:\n(.*\n)+  run:\n)(    .*\n)+',
-                      rf'\g<1>    - {cr_string}\n', meta, flags=re.MULTILINE)
+        spyder_reqs = [f"spyder-base =={self.version}"]
+        for req in spyder_base_reqs.copy():
+            if req.startswith(('pyqt ', 'pyqtwebengine ', 'qtconsole ')):
+                spyder_reqs.append(req)
+                spyder_base_reqs.remove(req)
 
-        return meta
+            if req.startswith('qtconsole '):
+                spyder_base_reqs.append(
+                    req.replace('qtconsole', 'qtconsole-base')
+                )
 
-    def _patch_build_script(self):
-        self.logger.info("Patching build script...")
+        self.recipe_clobber.update({
+            "requirements": {"run": spyder_base_reqs},
+            # Since outputs is a list, the entire list must be reproduced with
+            # the current run requirements
+            "outputs": [
+                {
+                    "name": "spyder-base"
+                },
+                {
+                    "name": "spyder",
+                    "build": {"noarch": "python"},
+                    "requirements": {"run": spyder_reqs},
+                    "test": {
+                        "requires": ["pip"],
+                        "commands": ["spyder -h", "python -m pip check"],
+                        "imports": ["spyder"]
+                    }
+                }
+            ]
+        })
 
-        rel_menufile = self.menufile.relative_to(HERE.parent)
-
-        if os.name == 'posix':
-            logomark = "branding/logo/logomark/spyder-logomark-background.png"
-            file = self._fdstk_path / "recipe" / "build.sh"
-            text = file.read_text()
-            text += dedent(
-                f"""
-                # Create the Menu directory
-                mkdir -p "${{PREFIX}}/Menu"
-
-                # Copy menu.json template
-                cp "${{SRC_DIR}}/{rel_menufile}" "${{PREFIX}}/Menu/spyder-menu.json"
-
-                # Copy application icons
-                if [[ $OSTYPE == "darwin"* ]]; then
-                    cp "${{SRC_DIR}}/img_src/spyder.icns" "${{PREFIX}}/Menu/spyder.icns"
-                else
-                    cp "${{SRC_DIR}}/{logomark}" "${{PREFIX}}/Menu/spyder.png"
-                fi
-                """
-            )
-
-        if os.name == 'nt':
-            file = self._fdstk_path / "recipe" / "bld.bat"
-            text = file.read_text()
-            text = text.replace(
-                r"copy %RECIPE_DIR%\menu-windows.json %MENU_DIR%\spyder_shortcut.json",
-                fr"copy %SRC_DIR%\{rel_menufile} %MENU_DIR%\spyder-menu.json"
-            )
-        file.rename(file.parent / ("_" + file.name))  # keep copy of original
-        file.write_text(text)
-
-        self.logger.info(f"Patched build script contents:\n{file.read_text()}")
+        super().patch_recipe()
 
 
 class PylspCondaPkg(BuildCondaPkg):
     name = "python-lsp-server"
     source = os.environ.get('PYTHON_LSP_SERVER_SOURCE')
     feedstock = "https://github.com/conda-forge/python-lsp-server-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "v1.4.1"
 
 
@@ -296,6 +341,7 @@ class QtconsoleCondaPkg(BuildCondaPkg):
     name = "qtconsole"
     source = os.environ.get('QTCONSOLE_SOURCE')
     feedstock = "https://github.com/conda-forge/qtconsole-feedstock"
+    feedstock_branch = "main"
     shallow_ver = "5.3.1"
 
 
@@ -303,6 +349,7 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
+    feedstock_branch = "rc"
     shallow_ver = "v2.3.1"
 
 
@@ -363,9 +410,6 @@ if __name__ == "__main__":
 
     logger.info(f"Building local conda packages {list(args.build)}...")
     t0 = time()
-
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
 
     if SPECS.exists():
         specs = yaml.load(SPECS.read_text())

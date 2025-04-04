@@ -118,7 +118,13 @@ class VCSStatus(StatusBarWidget):
 
     def process_git_data(self, worker, output, error):
         """Receive data from git and update gui."""
-        branches, branch, files_modified = output
+        # Output can be None under some circumstances, so we need to deal with
+        # it here.
+        # Fixes spyder-ide/spyder#21865
+        if output is None:
+            branch, files_modified = None, []
+        else:
+            __, branch, files_modified = output
 
         text = branch if branch else ''
         if len(files_modified):

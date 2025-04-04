@@ -2,7 +2,8 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
-from pylsp import hookimpl, lsp, _utils
+
+from pylsp import _utils, hookimpl, lsp
 
 log = logging.getLogger(__name__)
 

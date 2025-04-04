@@ -14,7 +14,7 @@ from warnings import warn
 
 from qtpy import QtCore, QtGui
 
-from IPython.lib.lexers import IPythonLexer, IPython3Lexer
+from IPython.lib.lexers import IPython3Lexer
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from qtconsole import __version__
@@ -303,8 +303,6 @@ class JupyterWidget(IPythonWidget):
             # added here by hand.
             if pygments_lexer == 'ipython3':
                 lexer = IPython3Lexer()
-            elif pygments_lexer == 'ipython2':
-                lexer = IPythonLexer()
             else:
                 lexer = get_lexer_by_name(self.language_name)
             self._highlighter._lexer = lexer

@@ -24,10 +24,9 @@ from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
-    QAbstractItemDelegate, QApplication, QDialog, QGridLayout,
-    QHBoxLayout, QInputDialog, QItemDelegate, QLabel, QLineEdit,
-    QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableView,
-    QVBoxLayout, QWidget)
+    QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
+    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox,
+    QStackedWidget, QStyle, QTableView, QToolButton, QVBoxLayout, QWidget)
 from spyder_kernels.utils.nsview import value_to_display
 from spyder_kernels.utils.lazymodules import numpy as np
 
@@ -35,32 +34,44 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.api.widgets.toolbars import SpyderToolbar
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.preferences import (
+    PreferencesDialog
+)
 from spyder.py3compat import (is_binary_string, is_string, is_text_string,
                               to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import (
-    add_actions, create_action, keybinding, safe_disconnect)
-from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.qthelpers import keybinding, safe_disconnect
+from spyder.utils.stylesheet import AppStyle, MAC
 
+
+# =============================================================================
+# ---- Constants
+# =============================================================================
 
 class ArrayEditorActions:
     Copy = 'copy_action'
     Edit = 'edit_action'
-    Format = 'format_action'
+    Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     Resize = 'resize_action'
-    ToggleBackgroundColor = 'toggle_background_color_action'
 
 
-# Note: string and unicode data types will be formatted with 's' (see below)
+class ArrayEditorMenus:
+    Options = 'options_menu'
+
+
+class ArrayEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
+
+
+# Note: string and unicode data types will be formatted with '' (see below)
 SUPPORTED_FORMATS = {
     'single': '.6g',
     'double': '.6g',
@@ -109,10 +120,10 @@ LARGE_SIZE = 5e5
 LARGE_NROWS = 1e5
 LARGE_COLS = 60
 
+#==============================================================================
+# ---- Utility functions
+#==============================================================================
 
-#==============================================================================
-# Utility functions
-#==============================================================================
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
     return ('float' in dtype.name) or dtype.name in ['single', 'double']
@@ -131,10 +142,20 @@ def get_idx_rect(index_list):
 
 
 #==============================================================================
-# Main classes
+# ---- Main classes
 #==============================================================================
+
 class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
-    """Array Editor Table Model"""
+    """
+    Array Editor Table Model
+
+    Attributes
+    ----------
+    bgcolor_enabled : bool
+        If True, vary backgrond color depending on cell value
+    _format_spec : str
+        Format specification for floats
+    """
 
     ROWS_TO_LOAD = 500
     COLS_TO_LOAD = 40
@@ -208,19 +229,23 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             else:
                 self.cols_loaded = self.total_cols
 
-    def get_format_spec(self):
-        """Return current format"""
+    def get_format_spec(self) -> str:
+        """
+        Return current format specification for floats.
+        """
         # Avoid accessing the private attribute _format_spec from outside
         return self._format_spec
+
+    def set_format_spec(self, format_spec: str) -> None:
+        """
+        Set format specification for floats.
+        """
+        self._format_spec = format_spec
+        self.reset()
 
     def get_data(self):
         """Return data"""
         return self._data
-
-    def set_format_spec(self, format_spec):
-        """Change display format"""
-        self._format_spec = format_spec
-        self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
@@ -264,9 +289,11 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             self.cols_loaded += items_to_fetch
             self.endInsertColumns()
 
-    def bgcolor(self, state):
-        """Toggle backgroundcolor"""
-        self.bgcolor_enabled = state > 0
+    def bgcolor(self, value: bool):
+        """
+        Set whether background color varies depending on cell value.
+        """
+        self.bgcolor_enabled = value
         self.reset()
 
     def get_value(self, index):
@@ -445,8 +472,11 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 
 
 #TODO: Implement "Paste" (from clipboard) feature
-class ArrayView(QTableView):
+class ArrayView(QTableView, SpyderWidgetMixin):
     """Array view class"""
+
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
 
@@ -458,13 +488,10 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        CONF.config_shortcut(
-            self.copy,
-            context='variable_explorer',
-            name='copy',
-            parent=self)
+        self.register_shortcut_for_widget(name='copy', triggered=self.copy)
         self.horizontalScrollBar().valueChanged.connect(
-            self._load_more_columns)
+            self._load_more_columns
+        )
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
 
     def _load_more_columns(self, value):
@@ -539,13 +566,28 @@ class ArrayView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self, _('Copy'),
-                                         shortcut=keybinding('Copy'),
-                                         icon=ima.icon('editcopy'),
-                                         triggered=self.copy,
-                                         context=Qt.WidgetShortcut)
-        menu = SpyderMenu(self)
-        add_actions(menu, [self.copy_action, ])
+        self.copy_action = self.create_action(
+            name=ArrayEditorActions.Copy,
+            text=_('Copy'),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy,
+            register_action=False
+        )
+        self.copy_action.setShortcut(keybinding('Copy'))
+        self.copy_action.setShortcutContext(Qt.WidgetShortcut)
+
+        edit_action = self.create_action(
+            name=ArrayEditorActions.Edit,
+            text=_('Edit'),
+            icon=ima.icon('edit'),
+            triggered=self.edit_item,
+            register_action=False
+        )
+
+        menu = self.create_menu('Editor menu', register=False)
+        for action in [self.copy_action, edit_action]:
+            self.add_item_to_menu(action, menu)
+
         return menu
 
     def contextMenuEvent(self, event):
@@ -615,13 +657,17 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, 's')
+        # Use '' as default format specifier, because 's' does not produce
+        # a `str` for arrays with strings, see spyder-ide/spyder#22466
+        format_spec = SUPPORTED_FORMATS.get(data.dtype.name, '')
+
         self.model = ArrayModel(self.data, format_spec=format_spec,
                                 readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
 
         layout = QVBoxLayout()
         layout.addWidget(self.view)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     def accept_changes(self):
@@ -688,7 +734,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.data = None
         self.arraywidget = None
         self.stack = None
-        self.layout = None
         self.btn_save_and_close = None
         self.btn_close = None
         # Values for 3d array editor
@@ -712,13 +757,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         interface of the array editor. Some elements need to be hidden
         depending on the data; this will be done when the data is set.
         """
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
 
-        # ---- Toolbar and actions
-
-        toolbar = SpyderToolbar(parent=self, title='Editor toolbar')
-        toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
+        # ---- Actions
 
         def do_nothing():
             # .create_action() needs a toggled= parameter, but we can only
@@ -726,60 +766,63 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             # function as a placeholder here.
             pass
 
-        self.copy_action = self.create_action(
-            ArrayEditorActions.Copy,
-            text=_('Copy'),
-            icon=self.create_icon('editcopy'),
-            triggered=do_nothing)
-        toolbar.add_item(self.copy_action)
-
-        self.edit_action = self.create_action(
-            ArrayEditorActions.Edit,
-            text=_('Edit'),
-            icon=self.create_icon('edit'),
-            triggered=do_nothing)
-        toolbar.add_item(self.edit_action)
-
-        self.format_action = self.create_action(
-            ArrayEditorActions.Format,
-            text=_('Format'),
-            icon=self.create_icon('format_float'),
-            tip=_('Set format of floating-point numbers'),
-            triggered=do_nothing)
-        toolbar.add_item(self.format_action)
-
-        self.resize_action = self.create_action(
-            ArrayEditorActions.Resize,
-            text=_('Resize'),
-            icon=self.create_icon('collapse_column'),
-            tip=_('Resize columns to contents'),
-            triggered=do_nothing)
-        toolbar.add_item(self.resize_action)
-
-        self.toggle_bgcolor_action = self.create_action(
-            ArrayEditorActions.ToggleBackgroundColor,
-            text=_('Background color'),
-            icon=self.create_icon('background_color'),
-            toggled=do_nothing)
-        toolbar.add_item(self.toggle_bgcolor_action)
-
+        self.preferences_action = self.create_action(
+            name=ArrayEditorActions.Preferences,
+            icon=self.create_icon('configure'),
+            text=_('Display options ...'),
+            triggered=self.show_preferences_dialog,
+            register_action=False
+        )
         self.refresh_action = self.create_action(
             ArrayEditorActions.Refresh,
             text=_('Refresh'),
             icon=self.create_icon('refresh'),
             tip=_('Refresh editor with current value of variable in console'),
-            triggered=self.refresh)
+            triggered=self.refresh,
+            register_action=False
+        )
         self.refresh_action.setDisabled(self.data_function is None)
-        toolbar.add_item(self.refresh_action)
+        self.resize_action = self.create_action(
+            ArrayEditorActions.Resize,
+            text=_('Resize'),
+            icon=self.create_icon('collapse_column'),
+            tip=_('Resize columns to contents'),
+            triggered=do_nothing,
+            register_action=False
+        )
 
-        toolbar._render()
-        self.layout.addWidget(toolbar, 0, 0)
+        # ---- Toolbar and options menu
+
+        options_menu = self.create_menu(
+            ArrayEditorMenus.Options,
+            register=False
+        )
+        options_menu.add_action(self.preferences_action)
+
+        options_button = self.create_toolbutton(
+            name=ArrayEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
+        toolbar = self.create_toolbar(
+            ArrayEditorWidgets.Toolbar,
+            register=False
+        )
+        stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
+        for item in [stretcher, self.resize_action, self.refresh_action,
+                     options_button]:
+            self.add_item_to_toolbar(item, toolbar)
+
+        toolbar.render()
 
         # ---- Stack widget (empty)
 
         self.stack = QStackedWidget(self)
         self.stack.currentChanged.connect(self.current_widget_changed)
-        self.layout.addWidget(self.stack, 1, 0)
 
         # ---- Widgets in bottom left for special arrays
         #
@@ -813,9 +856,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             _('<u>Warning</u>: Changes are applied separately')
         )
         self.masked_label.setToolTip(
-            _("For performance reasons, changes applied to masked arrays won't"
-              "be reflected in array's data (and vice-versa).")
-          )
+            _("For performance reasons, changes applied to masked arrays "
+              "won't be reflected in array's data (and vice-versa).")
+        )
         self.btn_layout.addWidget(self.masked_label)
 
         self.btn_layout.addStretch()
@@ -835,9 +878,18 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Final layout
 
-        # Add bottom row of widgets
-        self.btn_layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.addLayout(self.btn_layout, 2, 0)
+        layout = QVBoxLayout()
+        layout.addWidget(toolbar)
+
+        # Remove vertical space between toolbar and table containing array
+        style = self.style()
+        default_spacing = style.pixelMetric(QStyle.PM_LayoutVerticalSpacing)
+        layout.addSpacing(-default_spacing)
+
+        layout.addWidget(self.stack)
+        layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
+        layout.addLayout(self.btn_layout)
+        self.setLayout(layout)
 
         # Set title
         if title:
@@ -935,27 +987,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # ---- Actions
 
-        safe_disconnect(self.copy_action.triggered)
-        self.copy_action.triggered.connect(self.arraywidget.view.copy)
-
-        safe_disconnect(self.edit_action.triggered)
-        self.edit_action.triggered.connect(self.arraywidget.view.edit_item)
-
-        safe_disconnect(self.format_action.triggered)
-        self.format_action.triggered.connect(self.arraywidget.change_format)
-        self.format_action.setEnabled(is_float(self.arraywidget.data.dtype))
-
         safe_disconnect(self.resize_action.triggered)
         self.resize_action.triggered.connect(
             self.arraywidget.view.resize_to_contents)
-
-        safe_disconnect(self.toggle_bgcolor_action.toggled)
-        self.toggle_bgcolor_action.toggled.connect(
-            lambda state: self.arraywidget.model.bgcolor(state))
-        self.toggle_bgcolor_action.setEnabled(
-            self.arraywidget.model.bgcolor_enabled)
-        self.toggle_bgcolor_action.setChecked(
-            self.arraywidget.model.bgcolor_enabled)
 
         # ---- Widgets in bottom left
 
@@ -1035,9 +1069,6 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             self.arraywidget.model.dataChanged.connect(
                 self.save_and_close_enable
             )
-            self.toggle_bgcolor_action.setChecked(
-                self.arraywidget.model.bgcolor_enabled
-            )
 
     def change_active_widget(self, index):
         """
@@ -1092,6 +1123,38 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             self.change_active_widget(0)
         self.index_spin.setRange(-self.data.shape[index],
                                  self.data.shape[index]-1)
+
+    def show_preferences_dialog(self) -> None:
+        """
+        Show dialog for setting view options and process user choices.
+        """
+        # Create dialog using current options
+        dialog = PreferencesDialog('array', parent=self)
+        dialog.float_format = self.arraywidget.model.get_format_spec()
+        dialog.varying_background = self.arraywidget.model.bgcolor_enabled
+
+        # Show dialog and allow user to interact
+        result = dialog.exec_()
+
+        # If user clicked 'OK' then set new options accordingly
+        if result == QDialog.Accepted:
+            float_format = dialog.float_format
+
+            # This is necessary to handle formatting for integers.
+            # Fixes spyder-ide/spyder#22629
+            if float_format == 'd':
+                float_format = '.0f'
+
+            try:
+                format(1.1, float_format)
+            except:
+                msg = _("Format ({}) is incorrect").format(float_format)
+                QMessageBox.critical(self, _("Error"), msg)
+            else:
+                self.arraywidget.model.set_format_spec(float_format)
+                self.set_conf('dataframe_format', float_format)
+
+            self.arraywidget.model.bgcolor(dialog.varying_background)
 
     def refresh(self) -> None:
         """

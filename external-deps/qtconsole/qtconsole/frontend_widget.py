@@ -189,9 +189,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Configure actions.
         action = self._copy_raw_action
-        key = QtCore.Qt.CTRL | QtCore.Qt.SHIFT | QtCore.Qt.Key_C
         action.setEnabled(False)
-        action.setShortcut(QtGui.QKeySequence(key))
+        action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+C"))
         action.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         action.triggered.connect(self.copy_raw)
         self.copy_available.connect(action.setEnabled)
@@ -729,7 +728,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
     def append_stream(self, text):
         """Appends text to the output stream."""
-        self._append_plain_text(text, before_prompt=True)
+        self._append_plain_text(text, before_prompt = True)
 
     def flush_clearoutput(self):
         """If a clearoutput is pending, execute it."""

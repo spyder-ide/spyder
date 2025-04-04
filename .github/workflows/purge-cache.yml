@@ -1,0 +1,64 @@
+name: Purge caches
+on:
+  schedule:
+    # 4:10 UTC Sunday
+    - cron: "10 4 * * 0"
+
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Purge Cache
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO=${{ github.repository }}
+
+          gh cache list --repo $REPO
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          gh cache delete --repo $REPO --all
+
+          # Last command must be successful so that workflow step does not fail
+          echo Purging cache is complete.
+
+  build-subrepos:
+    name: Build subrepos
+    needs:
+      - cleanup
+    uses: ./.github/workflows/build-subrepos.yml
+
+  run-test-files:
+    name: Run test-files
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-files.yml
+
+  run-test-linux:
+    name: Run test-linux
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-linux.yml
+
+  run-test-mac:
+    name: Run test-mac
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-mac.yml
+
+  run-test-remoteclient:
+    name: Run test-remoteclient
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-remoteclient.yml
+
+  run-test-win:
+    name: Run test-win
+    needs:
+      - cleanup
+    uses: ./.github/workflows/test-win.yml

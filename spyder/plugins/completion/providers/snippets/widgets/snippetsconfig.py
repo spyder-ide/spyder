@@ -22,8 +22,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QDialog,
                             QLineEdit, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.snippets.ast import build_snippet_ast
@@ -275,8 +276,9 @@ class SnippetEditor(QDialog, SpyderFontsMixin):
         self.snippet_input = SimpleCodeEditor(None)
 
         # Dialog buttons
-        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
-                                     QDialogButtonBox.Cancel)
+        self.bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
         self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
 

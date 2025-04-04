@@ -8,12 +8,11 @@
 
 # Standard library imports
 import re
-import sre_constants
 import sys
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5
+from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
@@ -26,7 +25,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (action2button, create_plugin_layout,
                                     create_toolbutton)
 from spyder.widgets.comboboxes import UrlComboBox
@@ -99,7 +98,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
     def __init__(self, parent, handle_links=True, class_parent=None):
         class_parent = parent if class_parent is None else class_parent
-        if PYQT5:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=class_parent)
         else:
             QWebEngineView.__init__(self, parent)
@@ -287,7 +286,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                 regobj = re.compile(pattern, re.MULTILINE)
             else:
                 regobj = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
-        except sre_constants.error:
+        except re.error:
             return
 
         number_matches = 0
@@ -296,20 +295,23 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
         return number_matches
 
-    def set_font(self, font, fixed_font=None):
+    def set_font(self, font, fixed_font=None, size_delta=0):
         font = QFontInfo(font)
         settings = self.page().settings()
+
         for fontfamily in (QWebEngineSettings.FontFamily.StandardFont,
                            QWebEngineSettings.FontFamily.SerifFont,
                            QWebEngineSettings.FontFamily.SansSerifFont,
                            QWebEngineSettings.FontFamily.CursiveFont,
                            QWebEngineSettings.FontFamily.FantasyFont):
             settings.setFontFamily(fontfamily, font.family())
+
         if fixed_font is not None:
             settings.setFontFamily(
                 QWebEngineSettings.FontFamily.FixedFont, fixed_font.family()
             )
-        size = font.pixelSize()
+
+        size = font.pixelSize() + size_delta
         settings.setFontSize(QWebEngineSettings.FontSize.DefaultFontSize, size)
         settings.setFontSize(
             QWebEngineSettings.FontSize.DefaultFixedFontSize, size
@@ -441,13 +443,13 @@ class WebBrowser(QWidget):
                 self.webview.pageAction(prop), parent=self.webview, icon=icon)
 
         refresh_button = pageact2btn(
-            QWebEnginePage.Reload, icon=ima.icon('refresh'))
+            QWebEnginePage.WebAction.Reload, icon=ima.icon('refresh'))
         stop_button = pageact2btn(
-            QWebEnginePage.Stop, icon=ima.icon('stop'))
+            QWebEnginePage.WebAction.Stop, icon=ima.icon('stop'))
         previous_button = pageact2btn(
-            QWebEnginePage.Back, icon=ima.icon('previous'))
+            QWebEnginePage.WebAction.Back, icon=ima.icon('previous'))
         next_button = pageact2btn(
-            QWebEnginePage.Forward, icon=ima.icon('next'))
+            QWebEnginePage.WebAction.Forward, icon=ima.icon('next'))
 
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))
@@ -598,16 +600,16 @@ class FrameWebView(QFrame):
     def _apply_stylesheet(self, focus=False):
         """Apply stylesheet according to the current focus."""
         if focus:
-            border_color = QStylePalette.COLOR_ACCENT_3
+            border_color = SpyderPalette.COLOR_ACCENT_3
         else:
-            border_color = QStylePalette.COLOR_BACKGROUND_4
+            border_color = SpyderPalette.COLOR_BACKGROUND_4
 
         css = qstylizer.style.StyleSheet()
         css.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
-            borderRadius=QStylePalette.SIZE_BORDER_RADIUS
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
         self.setStyleSheet(css.toString())

@@ -13,16 +13,15 @@ import sys
 
 # Third-party imports
 import qdarkstyle
-from qdarkstyle.colorsystem import Gray
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.config.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface
-from spyder.utils.palette import QStylePalette
+from spyder.utils.palette import SpyderPalette
 
 
 # =============================================================================
@@ -45,6 +44,12 @@ class AppStyle(SpyderFontsMixin):
     # To have it for quick access because it's needed a lot in Mac
     MacScrollBarWidth = 16  # px
 
+    # Icon size in config pages
+    ConfigPageIconSize = 20
+
+    # Padding for QPushButton's
+    QPushButtonPadding = f'{MarginSize + 1}px {4 * MarginSize}px'
+
     @classproperty
     def _fs(cls):
         """Interface font size in points."""
@@ -63,6 +68,9 @@ class AppStyle(SpyderFontsMixin):
             min_height = 1.5 if MAC else 1.4
 
         return min_height
+
+    # Padding for content inside an element of higher hierarchy
+    InnerContentPadding = 5 * MarginSize
 
 
 # =============================================================================
@@ -150,7 +158,7 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         This takes the stylesheet from QDarkstyle and applies our
         customizations to it.
         """
-        stylesheet = qdarkstyle.load_stylesheet(palette=QStylePalette)
+        stylesheet = qdarkstyle.load_stylesheet(palette=SpyderPalette)
         self._stylesheet = parse_stylesheet(stylesheet)
 
         # Add our customizations
@@ -183,35 +191,39 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
             spacing='0px',
         )
 
-        # Remove margins around separators
+        # Remove margins around separators and decrease size a bit
         css['QMainWindow::separator:horizontal'].setValues(
             marginTop='0px',
-            marginBottom='0px'
+            marginBottom='0px',
+            # This is summed to the separator padding (2px)
+            width="3px",
+            # Hide image because the default image is not visible at this size
+            image="none"
         )
 
         css['QMainWindow::separator:vertical'].setValues(
             marginLeft='0px',
             marginRight='0px',
-            height='3px'
+            # This is summed to the separator padding (2px)
+            height='3px',
+            # Hide image because the default image is not visible at this size
+            image="none"
         )
 
-        # TODO: Remove when the editor is migrated to the new API!
-        css["QMenu::item"].setValues(
-            height='1.4em',
-            padding='4px 8px 4px 8px',
-            fontFamily=font_family,
-            fontSize=f'{font_size}pt'
-        )
-
-        # Increase padding for QPushButton's
-        css.QPushButton.setValues(
-            padding='3px',
-        )
+        # Increase padding and fix disabled color for QPushButton's
+        css.QPushButton.setValues(padding=AppStyle.QPushButtonPadding)
 
         for state in ['disabled', 'checked', 'checked:disabled']:
             css[f'QPushButton:{state}'].setValues(
-                padding='3px',
+                padding=AppStyle.QPushButtonPadding,
             )
+
+            # This is especially necessary in the light theme because the
+            # contrast between the background and text colors is too small
+            if state in ['disabled', 'checked:disabled']:
+                css[f"QPushButton:{state}"].setValues(
+                    color=SpyderPalette.COLOR_TEXT_3,
+                )
 
         # Adjust QToolButton style to our needs.
         # This affects not only the pane toolbars but also the
@@ -224,20 +236,40 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
             if state == 'hover':
-                color = QStylePalette.COLOR_BACKGROUND_2
+                color = SpyderPalette.COLOR_BACKGROUND_2
             else:
-                color = QStylePalette.COLOR_BACKGROUND_3
+                color = SpyderPalette.COLOR_BACKGROUND_3
             css[f'QToolButton:{state}'].setValues(
                 backgroundColor=color
             )
 
         # Adjust padding of QPushButton's in QDialog's
-        css["QDialog QPushButton"].setValues(
-            padding='3px 15px 3px 15px',
-        )
+        for widget in ["QPushButton", "QPushButton:disabled"]:
+            css[f"QDialogButtonBox {widget}"].setValues(
+                padding=(
+                    AppStyle.QPushButtonPadding
+                    if (MAC or WIN)
+                    else
+                    f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
+                ),
+                # This width comes from QDarkstyle but it's too big on Mac
+                minWidth="50px" if WIN else ("60px" if MAC else "80px"),
+            )
 
         css["QDialogButtonBox QPushButton:!default"].setValues(
-            padding='3px 0px 3px 0px',
+            padding=(
+                AppStyle.QPushButtonPadding
+                if (MAC or WIN)
+                else
+                f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"
+            ),
+            # This width comes from QDarkstyle but it's too big on Mac
+            minWidth="50px" if WIN else ("60px" if MAC else "80px"),
+        )
+
+        # Remove icons in QMessageBoxes
+        css["QDialogButtonBox"]["dialogbuttonbox-buttons-have-icons"].setValue(
+            "0"
         )
 
         # Set font for widgets that don't inherit it from the application
@@ -253,20 +285,62 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # is not perfect because (oddly enough) Qt doesn't set the same height
         # for both when using the same value, but it's close enough.
         css.QLineEdit.setValues(
-            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.2}em'
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
         )
 
-        # Change QGroupBox style to avoid the "boxes within boxes" antipattern
-        # in Preferences
+        # Do the same for spinboxes
+        css.QSpinBox.setValues(
+            minHeight=f'{AppStyle.ComboBoxMinHeight - 0.25}em'
+        )
+
+        # Remove border in QGroupBox to avoid the "boxes within boxes"
+        # antipattern. Also, increase its title font in one point to make it
+        # more relevant.
         css.QGroupBox.setValues(
             border='0px',
-            marginBottom='15px',
             fontSize=f'{font_size + 1}pt',
         )
 
+        # Increase separation between title and content of QGroupBoxes and fix
+        # its alignment.
         css['QGroupBox::title'].setValues(
             paddingTop='-0.3em',
             left='0px',
+        )
+
+        # Decrease splitter handle size to be a bit smaller than QMainWindow
+        # separators.
+        css['QSplitter::handle'].setValues(
+            padding="0px",
+        )
+
+        css['QSplitter::handle:horizontal'].setValues(
+            width="5px",
+            image="none"
+        )
+
+        css['QSplitter::handle:vertical'].setValues(
+            height="5px",
+            image="none"
+        )
+
+        # Make splitter handle color match the one of QMainWindow separators
+        css['QSplitter::handle:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_6,
+        )
+
+        # Add padding to tooltips
+        css.QToolTip.setValues(
+            padding="1px 2px",
+        )
+
+        # Add padding to tree widget items to make them look better
+        css["QTreeWidget::item"].setValues(
+            padding=f"{AppStyle.MarginSize - 1}px 0px",
+        )
+
+        css["QTreeView::item"].setValues(
+            padding=f"{AppStyle.MarginSize - 1}px 0px",
         )
 
 
@@ -288,7 +362,7 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
 
         # Main background color
         css.QToolBar.setValues(
-            backgroundColor=QStylePalette.COLOR_BACKGROUND_4
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
         )
 
         # Adjust QToolButton to follow the main toolbar style.
@@ -304,9 +378,9 @@ class ApplicationToolbarStylesheet(SpyderStyleSheet):
 
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
             if state == 'hover':
-                color = QStylePalette.COLOR_BACKGROUND_5
+                color = SpyderPalette.COLOR_BACKGROUND_5
             else:
-                color = QStylePalette.COLOR_BACKGROUND_6
+                color = SpyderPalette.COLOR_BACKGROUND_6
             css[f'QToolBar QToolButton:{state}'].setValues(
                 backgroundColor=color
             )
@@ -365,7 +439,7 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
 
     def set_stylesheet(self):
         css = self.get_stylesheet()
-        buttons_color = QStylePalette.COLOR_BACKGROUND_1
+        buttons_color = SpyderPalette.COLOR_BACKGROUND_1
 
         # Set style for scroll buttons
         css[f'QTabBar{self.OBJECT_NAME} QToolButton'].setValues(
@@ -389,9 +463,9 @@ class BaseTabBarStyleSheet(SpyderStyleSheet):
         # Hover and pressed state for scroll buttons
         for state in ['hover', 'pressed', 'checked', 'checked:hover']:
             if state == 'hover':
-                color = QStylePalette.COLOR_BACKGROUND_2
+                color = SpyderPalette.COLOR_BACKGROUND_2
             else:
-                color = QStylePalette.COLOR_BACKGROUND_3
+                color = SpyderPalette.COLOR_BACKGROUND_3
             css[f'QTabBar{self.OBJECT_NAME} QToolButton:{state}'].setValues(
                 background=color
             )
@@ -506,12 +580,6 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
 
         # Main constants
         css = self.get_stylesheet()
-        self.color_tabs_separator = f'{Gray.B70}'
-
-        if is_dark_interface():
-            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_2}'
-        else:
-            self.color_selected_tab = f'{QStylePalette.COLOR_ACCENT_5}'
 
         # Center tabs to differentiate them from the regular ones.
         # See spyder-ide/spyder#9763 for details.
@@ -526,10 +594,10 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         # Style for selected tabs
         css['QTabBar::tab:selected'].setValues(
             color=(
-                f'{QStylePalette.COLOR_TEXT_1}' if is_dark_interface() else
-                f'{QStylePalette.COLOR_BACKGROUND_1}'
+                SpyderPalette.COLOR_TEXT_1 if is_dark_interface() else
+                SpyderPalette.COLOR_BACKGROUND_1
             ),
-            backgroundColor=f'{self.color_selected_tab}',
+            backgroundColor=SpyderPalette.SPECIAL_TABS_SELECTED,
         )
 
         # Make scroll button icons smaller on Windows and Mac
@@ -554,11 +622,11 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
 
-        # Main constants
+        # -- Main constants
         css = self.get_stylesheet()
         margin_size = AppStyle.MarginSize
 
-        # Basic style
+        # -- Basic style
         css['QTabBar::tab'].setValues(
             # Only add margin to the bottom
             margin=f'0px 0px {2 * margin_size}px 0px',
@@ -566,50 +634,67 @@ class SpecialTabBarStyleSheet(BaseDockTabBarStyleSheet):
             borderRadius='0px',
             # Remove a colored border added by QDarkStyle
             borderBottom='0px',
-            # Add right border to make it work as our tabs separator
-            borderRight=f'1px solid {self.color_tabs_separator}',
             # Padding for text inside tabs
             padding='4px 10px',
         )
 
-        # Hide tabs separator for the selected tab and the one to its left.
+        # -- Style for not selected tabs
+        css['QTabBar::tab:!selected'].setValues(
+            border='0px',
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+            borderLeft=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}',
+            borderRight=f'1px solid {SpyderPalette.SPECIAL_TABS_SEPARATOR}',
+        )
+
+        css['QTabBar::tab:!selected:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5,
+            borderLeftColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Style for the not selected tabs to the right and left of the
+        # selected one.
         # Note: For some strange reason, Qt uses the `next-selected` state for
         # the left tab.
-        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
-            css[state].setValues(
-                borderRight=f'1px solid {self.color_selected_tab}',
-            )
+        css['QTabBar::tab:next-selected'].setValues(
+            borderRightColor=SpyderPalette.COLOR_BACKGROUND_4,
+        )
 
-        # Style for hovered tabs
-        css['QTabBar::tab:!selected:hover'].setValues(
-            border='0px',
-            borderRight=f'1px solid {self.color_tabs_separator}',
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+        css['QTabBar::tab:next-selected:hover'].setValues(
+            borderRightColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        css['QTabBar::tab:previous-selected'].setValues(
+            borderLeftColor=SpyderPalette.COLOR_BACKGROUND_4,
         )
 
         css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderLeft=f'1px solid {self.color_tabs_separator}',
+            borderLeftColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
         )
 
-        # First and last tabs have rounded borders
+        # -- First and last tabs have rounded borders
         css['QTabBar::tab:first'].setValues(
-            borderTopLeftRadius='4px',
-            borderBottomLeftRadius='4px',
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
         css['QTabBar::tab:last'].setValues(
-            borderTopRightRadius='4px',
-            borderBottomRightRadius='4px',
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
-        # Last tab doesn't need to show the separator
-        for state in ['QTabBar::tab:last:!selected:hover',
-                      'QTabBar::tab:last']:
-            css[state].setValues(
-                borderRightColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
-            )
+        # -- Last tab doesn't need to show the separator
+        css['QTabBar::tab:last:!selected'].setValues(
+            borderRightColor=SpyderPalette.COLOR_BACKGROUND_4
+        )
 
-        # Set bottom margin for scroll buttons.
+        css['QTabBar::tab:last:!selected:hover'].setValues(
+            borderRightColor=SpyderPalette.COLOR_BACKGROUND_5,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Set bottom margin for scroll buttons.
         css['QTabBar QToolButton'].setValues(
             marginBottom=f'{2 * margin_size}px',
         )
@@ -648,7 +733,7 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding='15px',
+            padding=f'{AppStyle.InnerContentPadding}px',
         )
 
 
@@ -703,11 +788,11 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
     def set_stylesheet(self):
         super().set_stylesheet()
 
-        # Main constants
+        # -- Main constants
         css = self.get_stylesheet()
         margin_size = AppStyle.MarginSize
 
-        # Basic style
+        # -- Basic style
         css['QTabBar::tab'].setValues(
             # No margins to top/bottom but left/right to separate tabbar from
             # the dockwidget areas
@@ -717,51 +802,68 @@ class VerticalDockTabBarStyleSheet(BaseDockTabBarStyleSheet):
             # Remove colored borders added by QDarkStyle
             borderLeft='0px',
             borderRight='0px',
-            # Add border to make it work as our tabs separator
-            borderBottom=f'1px solid {self.color_tabs_separator}',
             # Padding for text inside tabs
             padding='10px 4px',
         )
 
-        # Hide tabs separator for the selected tab and the one to its bottom.
-        for state in ['QTabBar::tab:selected', 'QTabBar::tab:next-selected']:
-            css[state].setValues(
-                borderBottom=f'1px solid {self.color_selected_tab}',
-            )
-
-        # Style for hovered tabs
-        css['QTabBar::tab:!selected:hover'].setValues(
+        # -- Style for not selected tabs
+        css['QTabBar::tab:!selected'].setValues(
             border='0px',
-            borderBottom=f'1px solid {self.color_tabs_separator}',
-            backgroundColor=f'{QStylePalette.COLOR_BACKGROUND_5}'
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4,
+            borderTop=f'1px solid {SpyderPalette.COLOR_BACKGROUND_4}',
+            borderBottom=f'1px solid {SpyderPalette.SPECIAL_TABS_SEPARATOR}',
+        )
+
+        css['QTabBar::tab:!selected:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5,
+            borderTopColor=SpyderPalette.COLOR_BACKGROUND_5,
+        )
+
+        # -- Style for the not selected tabs above and below the selected one.
+        css['QTabBar::tab:next-selected'].setValues(
+            borderBottomColor=SpyderPalette.COLOR_BACKGROUND_4,
+        )
+
+        css['QTabBar::tab:next-selected:hover'].setValues(
+            borderBottomColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        css['QTabBar::tab:previous-selected'].setValues(
+            borderTopColor=SpyderPalette.COLOR_BACKGROUND_4,
         )
 
         css['QTabBar::tab:previous-selected:hover'].setValues(
-            borderTop=f'1px solid {self.color_tabs_separator}',
+            borderTopColor=SpyderPalette.SPECIAL_TABS_SEPARATOR,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
         )
 
-        # First and last tabs have rounded borders. Also, add margin to avoid
-        # them touch the top and bottom borders, respectively.
+        # -- First and last tabs have rounded borders.
+        # Also, add margin to avoid them touch the top and bottom borders,
+        # respectively.
         css['QTabBar::tab:first'].setValues(
-            borderTopLeftRadius='4px',
-            borderTopRightRadius='4px',
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             marginTop=f'{2 * margin_size}px',
         )
 
         css['QTabBar::tab:last'].setValues(
-            borderBottomLeftRadius='4px',
-            borderBottomRightRadius='4px',
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             marginBottom=f'{2 * margin_size}px',
         )
 
-        # Last tab doesn't need to show the separator
-        for state in ['QTabBar::tab:last:!selected:hover',
-                      'QTabBar::tab:last']:
-            css[state].setValues(
-                borderBottomColor=f'{QStylePalette.COLOR_BACKGROUND_4}'
-            )
+        # -- Last tab doesn't need to show the separator
+        css['QTabBar::tab:last:!selected'].setValues(
+            borderBottomColor=SpyderPalette.COLOR_BACKGROUND_4
+        )
 
-        # Make style for scroll buttons match the horizontal one
+        css['QTabBar::tab:last:!selected:hover'].setValues(
+            borderBottomColor=SpyderPalette.COLOR_BACKGROUND_5,
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        # -- Make style for scroll buttons match the horizontal one
         css['QTabBar QToolButton'].setValues(
             marginLeft=f'{margin_size}px',
             marginRight=f'{margin_size}px',
@@ -781,7 +883,8 @@ class DialogStyle(SpyderFontsMixin):
     """Style constants for tour and about dialogs."""
 
     IconScaleFactor = 0.5
-    ButtonsPadding = '6px' if MAC else '4px 10px'
+    BackgroundColor = SpyderPalette.COLOR_BACKGROUND_2
+    BorderColor = SpyderPalette.COLOR_BACKGROUND_5
 
     @classproperty
     def _fs(cls):
@@ -813,3 +916,12 @@ class DialogStyle(SpyderFontsMixin):
             return f"{cls._fs + 2}pt"
         else:
             return f"{cls._fs + 3}pt"
+
+    @classproperty
+    def ButtonsPadding(cls):
+        if WIN:
+            return f"{AppStyle.MarginSize + 1}px {5 * AppStyle.MarginSize}px"
+        elif MAC:
+            return f"{2 * AppStyle.MarginSize}px {4 * AppStyle.MarginSize}px"
+        else:
+            return f"{AppStyle.MarginSize + 1}px {AppStyle.MarginSize}px"

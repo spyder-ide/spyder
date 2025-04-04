@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
 @pytest.fixture
 def setup_workingdirectory(qtbot, request, tmpdir):
     """Setup working directory plugin."""
-    CONF.reset_to_defaults()
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
     use_cli_wdir = request.node.get_closest_marker('use_cli_wdir')
 
@@ -98,7 +97,6 @@ def test_get_workingdir_startup(setup_workingdirectory):
 
     # Asert working directory is the expected one
     assert folders[-1] == NEW_DIR + '_startup'
-    CONF.reset_to_defaults()
 
 
 @pytest.mark.use_cli_wdir
@@ -115,7 +113,6 @@ def test_get_workingdir_cli(setup_workingdirectory):
 
     # Asert working directory is the expected one
     assert folders[-1] == NEW_DIR + '_cli'
-    CONF.reset_to_defaults()
 
 
 def test_file_goto(qtbot, setup_workingdirectory):

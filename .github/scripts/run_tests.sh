@@ -11,9 +11,20 @@ else
     export CONDA_EXE=$CONDA/bin/conda
 fi
 
+# To know what's the current run (some tests don't pass on the first one)
+while getopts "n:" option; do
+    case "$option" in
+        (n) export CI_RUN_NUMBER=$OPTARG ;;
+    esac
+done
+
 # Run tests
-if [ "$OS" = "linux" ]; then
-    xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
+if [ "$SPYDER_TEST_REMOTE_CLIENT" = "true" ]; then
+    xvfb-run --auto-servernum python runtests.py --color=yes --remote-client | tee -a pytest_log.txt
 else
-    python runtests.py --color=yes | tee -a pytest_log.txt
+    if [ "$OS" = "linux" ]; then
+        xvfb-run --auto-servernum python runtests.py --color=yes | tee -a pytest_log.txt
+    else
+        python runtests.py --color=yes | tee -a pytest_log.txt
+    fi
 fi

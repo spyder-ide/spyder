@@ -24,7 +24,8 @@ from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderPlugin
+from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins._old_api import SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PreferencesAdapter

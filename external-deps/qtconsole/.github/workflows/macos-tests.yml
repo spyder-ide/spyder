@@ -3,10 +3,10 @@ name: Macos tests
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-    - master
+    - main
 
 concurrency:
   group: macos-tests-${{ github.ref }}

@@ -14,6 +14,7 @@ Spyder shell for Jupyter kernels.
 import bdb
 import logging
 import os
+import re
 import signal
 import sys
 import traceback
@@ -26,6 +27,7 @@ from ipykernel.zmqshell import ZMQInteractiveShell
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.code_runner import SpyderCodeRunner
+from spyder_kernels.comms.commbase import stacksummary_to_json
 from spyder_kernels.comms.decorators import comm_handler
 from spyder_kernels.utils.mpl import automatic_backend
 
@@ -55,6 +57,16 @@ class SpyderShell(ZMQInteractiveShell):
         self._allow_kbdint = False
         self.register_debugger_sigint()
         self.update_gui_frontend = False
+        self._spyder_theme = 'dark'
+
+        # Substrings of the directory where Spyder-kernels is installed
+        self._package_locations = [
+            # When the package is properly installed
+            os.path.join("site-packages", "spyder_kernels"),
+            # When it's installed from the external-deps subrepo. We need this
+            # for our tests
+            os.path.join("external-deps", "spyder-kernels", "spyder_kernels")
+        ]
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
@@ -72,22 +84,99 @@ class SpyderShell(ZMQInteractiveShell):
         super().ask_exit()
 
     def _showtraceback(self, etype, evalue, stb):
-        """
-        Don't show a traceback when exiting our debugger after entering
-        it through a `breakpoint()` call.
-
-        This is because calling `!exit` after `breakpoint()` raises
-        BdbQuit, which throws a long and useless traceback.
-        """
+        """Handle how tracebacks are displayed in the console."""
+        spyder_stb = []
         if etype is bdb.BdbQuit:
-            stb = ['']
-        super(SpyderShell, self)._showtraceback(etype, evalue, stb)
+            # Don't show a traceback when exiting our debugger after entering
+            # it through a `breakpoint()` call. This is because calling `!exit`
+            # after `breakpoint()` raises BdbQuit, which throws a long and
+            # useless traceback.
+            spyder_stb.append('')
+        else:
+            # Skip internal frames from the traceback's string representation
+            for line in stb:
+                if (
+                    # Verbose mode
+                    re.match(r"File (.*)", line)
+                    # Plain mode
+                    or re.match(r"\x1b\[(.*)  File (.*)", line)
+                ) and (
+                    # The file line should not contain a location where
+                    # Spyder-kernels is installed
+                    any(
+                        [
+                            location in line
+                            for location in self._package_locations
+                        ]
+                    )
+                ):
+                    continue
+                else:
+                    spyder_stb.append(line)
+
+        super()._showtraceback(etype, evalue, spyder_stb)
+
+    def set_spyder_theme(self, theme):
+        """Set the theme for the console."""
+        self._spyder_theme = theme
+        if theme == "dark":
+            # Needed to change the colors of tracebacks
+            self.run_line_magic("colors", "linux")
+        elif theme == "light":
+            self.run_line_magic("colors", "lightbg")
+
+    def get_spyder_theme(self):
+        """Get the theme for the console."""
+        return self._spyder_theme
 
     def enable_matplotlib(self, gui=None):
         """Enable matplotlib."""
         if gui is None or gui.lower() == "auto":
             gui = automatic_backend()
-        gui, backend = super(SpyderShell, self).enable_matplotlib(gui)
+
+        # Before activating the backend, restore to file default those
+        # InlineBackend settings that may have been set explicitly.
+        self.kernel.restore_rc_file_defaults()
+
+        enabled_gui, backend = super().enable_matplotlib(gui)
+
+        # This is necessary for IPython 8.24+, which returns None after
+        # enabling the Inline backend.
+        if enabled_gui is None and gui == "inline":
+            enabled_gui = "inline"
+        gui = enabled_gui
+
+        # Check if the inline backend is registered. It should be at this
+        # point, but sometimes that can fail due to a mismatch between
+        # the installed versions of IPython, matplotlib and matplotlib-inline.
+        # Fixes spyder-ide/spyder#22420.
+        if gui == "inline":
+            is_inline_registered = False
+
+            # The flush_figures callback should be listed as a post_execute
+            # event if the backend was registered successfully.
+            for event in self.events.callbacks["post_execute"]:
+                if "matplotlib_inline.backend_inline.flush_figures" in repr(
+                    event
+                ):
+                    is_inline_registered = True
+                    break
+
+            # Manually register the backend in case it wasn't
+            if not is_inline_registered:
+                from IPython.core.pylabtools import activate_matplotlib
+                from matplotlib_inline.backend_inline import (
+                    configure_inline_support
+                )
+
+                backend = "module://matplotlib_inline.backend_inline"
+                activate_matplotlib(backend)
+                configure_inline_support(self, backend)
+
+        # To easily track the current interactive backend
+        if self.kernel.interactive_backend is None:
+            self.kernel.interactive_backend = gui if gui != "inline" else None
+
         if self.update_gui_frontend:
             try:
                 self.kernel.frontend_call(
@@ -95,6 +184,7 @@ class SpyderShell(ZMQInteractiveShell):
                 ).update_matplotlib_gui(gui)
             except Exception:
                 pass
+
         return gui, backend
 
     # --- For Pdb namespace integration
@@ -258,7 +348,9 @@ class SpyderShell(ZMQInteractiveShell):
         if not exception_only:
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
-                stack = traceback.extract_tb(tb.tb_next)
+                etype = etype.__name__
+                value = value.args
+                stack = stacksummary_to_json(traceback.extract_tb(tb.tb_next))
                 self.kernel.frontend_call(blocking=False).show_traceback(
                     etype, value, stack)
             except Exception:

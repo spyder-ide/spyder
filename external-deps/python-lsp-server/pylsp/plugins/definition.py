@@ -1,16 +1,18 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import jedi
 
-from pylsp import hookimpl, uris, _utils
+from pylsp import _utils, hookimpl, uris
 
 if TYPE_CHECKING:
     from jedi.api import Script
     from jedi.api.classes import Name
+
     from pylsp.config.config import Config
     from pylsp.workspace import Document
 

@@ -59,6 +59,16 @@ def running_under_pytest():
     return bool(os.environ.get('SPYDER_PYTEST'))
 
 
+def running_remoteclient_tests():
+    """
+    Return True if currently running the remoteclient tests.
+
+    This function is used to do some adjustment for testing. The environment
+    variable SPYDER_TEST_REMOTE_CLIENT is 'true' in conftest.py.
+    """
+    return bool(os.environ.get("SPYDER_TEST_REMOTE_CLIENT") == "true")
+
+
 def running_in_ci():
     """Return True if currently running under CI."""
     return bool(os.environ.get('CI'))
@@ -67,6 +77,14 @@ def running_in_ci():
 def running_in_ci_with_conda():
     """Return True if currently running under CI with conda packages."""
     return running_in_ci() and os.environ.get('USE_CONDA', None) == 'true'
+
+
+def running_in_binder():
+    """Return True if currently running in Binder."""
+    return (
+        bool(os.environ.get("BINDER_REPO_URL"))
+        and "spyder-ide/binder-environments" in os.environ["BINDER_REPO_URL"]
+    )
 
 
 def is_stable_version(version):
@@ -368,7 +386,7 @@ LANGUAGE_CODES = {
 }
 
 # Disabled languages because their translations are outdated or incomplete
-DISABLED_LANGUAGES = ['fa', 'hr', 'hu', 'pl', 'te', 'uk']
+DISABLED_LANGUAGES = ['fa', 'hr', 'hu', 'pl', 'te', 'uk', 'ru']
 
 
 def get_available_translations():
@@ -557,7 +575,7 @@ def is_conda_based_app(pyexec=sys.executable):
     else:
         env_path = osp.dirname(osp.dirname(real_pyexec))
 
-    menu_rel_path = '/Menu/spyder-menu.json'
+    menu_rel_path = '/Menu/conda-based-app'
     if (
         osp.exists(env_path + menu_rel_path)
         or glob(env_path + '/envs/*' + menu_rel_path)

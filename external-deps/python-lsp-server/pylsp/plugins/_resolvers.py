@@ -1,14 +1,13 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from time import time
 
 from jedi.api.classes import Completion
 
 from pylsp import lsp
-
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ log = logging.getLogger(__name__)
 # ---- Base class
 # -----------------------------------------------------------------------------
 class Resolver:
-    def __init__(self, callback, resolve_on_error, time_to_live=60 * 30):
+    def __init__(self, callback, resolve_on_error, time_to_live=60 * 30) -> None:
         self.callback = callback
         self.resolve_on_error = resolve_on_error
         self._cache = {}
@@ -34,7 +33,7 @@ class Resolver:
     def cached_modules(self, new_value):
         self._cached_modules = set(new_value)
 
-    def clear_outdated(self):
+    def clear_outdated(self) -> None:
         now = self.time_key()
         to_clear = [timestamp for timestamp in self._cache_ttl if timestamp < now]
         for time_key in to_clear:
@@ -77,7 +76,7 @@ class Resolver:
         try:
             sig = completion.get_signatures()
             return self.callback(completion, sig)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             log.warning(
                 f"Something went wrong when resolving label for {completion}: {e}"
             )

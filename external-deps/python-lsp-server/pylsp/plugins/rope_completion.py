@@ -2,10 +2,10 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import logging
+
 from rope.contrib.codeassist import code_assist, sorted_proposals
 
 from pylsp import _utils, hookimpl, lsp
-
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,6 @@ def pylsp_settings():
 
 
 def _resolve_completion(completion, data, markup_kind):
-    # pylint: disable=broad-except
     try:
         doc = _utils.format_docstring(data.get_doc(), markup_kind=markup_kind)
     except Exception as e:
@@ -30,8 +29,6 @@ def _resolve_completion(completion, data, markup_kind):
 
 @hookimpl
 def pylsp_completions(config, workspace, document, position):
-    # pylint: disable=too-many-locals
-
     settings = config.plugin_settings("rope_completion", document_path=document.path)
     resolve_eagerly = settings.get("eager", False)
 
@@ -63,7 +60,7 @@ def pylsp_completions(config, workspace, document, position):
         definitions = code_assist(
             rope_project, document.source, offset, document_rope, maxfixes=3
         )
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:
         log.debug("Failed to run Rope code assist: %s", e)
         return []
 

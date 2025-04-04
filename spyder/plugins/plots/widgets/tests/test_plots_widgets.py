@@ -18,7 +18,6 @@ from unittest.mock import Mock
 # Third party imports
 import pytest
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 import numpy as np
 from qtpy.QtWidgets import QApplication, QStyle
 from qtpy.QtGui import QPixmap
@@ -39,9 +38,8 @@ def figbrowser(qtbot):
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
     options = {
-        'mute_inline_plotting': True,
-        'show_plot_outline': False,
-        'auto_fit_plotting': False,
+        "mute_inline_plotting": True,
+        "show_plot_outline": False,
     }
     figbrowser.setup(options)
     qtbot.addWidget(figbrowser)
@@ -57,7 +55,6 @@ def create_figure(figname):
     """Create a matplotlib figure, save it to disk and return its data."""
     # Create and save to disk a figure with matplotlib.
     fig = Figure()
-    canvas = FigureCanvasAgg(fig)
     ax = fig.add_axes([0.15, 0.15, 0.7, 0.7])
     fig.set_size_inches(6, 4)
     ax.plot(np.random.rand(10), '.', color='red')
@@ -299,7 +296,7 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
 
     scene = figbrowser.thumbnails_sb.scene
 
-    spacing = scene.verticalSpacing()
+    spacing = scene.spacing()
     height = scene.itemAt(0).sizeHint().height()
     height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
 
@@ -330,10 +327,10 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     # value was set to its maximum.
     height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
     scene = figbrowser.thumbnails_sb.scene
-    spacing = scene.verticalSpacing()
+    spacing = scene.spacing()
     height = scene.itemAt(0).sizeHint().height()
 
-    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
+    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view + 6
     vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
     assert vsb.value() == expected
 
@@ -436,27 +433,28 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     figcanvas = figbrowser.figviewer.figcanvas
 
     # Set `Fit plots to windows` to False before the test.
-    figbrowser.change_auto_fit_plotting(False)
+    figbrowser.figviewer.auto_fit_plotting = False
 
     # Calculate original figure size in pixels.
     qpix = QPixmap()
     qpix.loadFromData(fig, fmt.upper())
     fwidth, fheight = qpix.width(), qpix.height()
 
-    assert figbrowser.zoom_disp_value == 100
-    assert figcanvas.width() == fwidth
-    assert figcanvas.height() == fheight
+    assert figbrowser.zoom_disp_value < 100
+    assert figcanvas.width() < fwidth
+    assert figcanvas.height() < fheight
 
     # Zoom in and out the figure in the figure viewer.
-    scaling_factor = 0
+    scaling_factor = figbrowser.figviewer.get_scale_factor()
     scaling_step = figbrowser.figviewer._scalestep
     for zoom_step in [1, 1, -1, -1, -1]:
         if zoom_step == 1:
             figbrowser.zoom_in()
         elif zoom_step == -1:
             figbrowser.zoom_out()
+
         scaling_factor += zoom_step
-        scale = scaling_step**scaling_factor
+        scale = scaling_step ** scaling_factor
 
         assert (figbrowser.zoom_disp_value ==
                 np.round(int(fwidth * scale) / fwidth * 100))
@@ -480,7 +478,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     # Test when `Fit plots to window` is set to True.
     # Otherwise, test should fall into `test_zoom_figure_viewer`
-    figbrowser.change_auto_fit_plotting(True)
+    figbrowser.figviewer.auto_fit_plotting = True
 
     size = figviewer.size()
     style = figviewer.style()

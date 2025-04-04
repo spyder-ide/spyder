@@ -10,6 +10,7 @@ Utilities to define configuration values
 
 import os
 import os.path as osp
+import platform
 import sys
 
 from spyder.config.base import _
@@ -99,7 +100,16 @@ def _get_pygments_extensions():
             lexer_exts = [le for le in lexer_exts if not le.endswith('_*')]
             extensions = extensions + list(lexer_exts) + list(other_exts)
 
-    return sorted(list(set(extensions)))
+    extensions = list(set(extensions))
+
+    # A non-ascii file extension causes issues for macOS
+    # See spyder-ide/spyder#22248
+    try:
+        extensions.remove('.' + chr(128293))
+    except ValueError:
+        pass
+
+    return sorted(extensions)
 
 
 #==============================================================================
@@ -151,16 +161,19 @@ def get_edit_filters():
 
 def get_edit_extensions():
     """
-    Return extensions associated with the file types
-    supported by the Editor
+    Return extensions associated with the file types supported by the Editor.
     """
     edit_filetypes = get_edit_filetypes(ignore_pygments_extensions=False)
-    return _get_extensions(edit_filetypes) + ['']
+    return _get_extensions(edit_filetypes)
+
+
+EDIT_EXTENSIONS = get_edit_extensions()
 
 
 #==============================================================================
 # Detection of OS specific versions
 #==============================================================================
+
 def is_ubuntu():
     """Detect if we are running in an Ubuntu-based distribution"""
     if sys.platform.startswith('linux') and osp.isfile('/etc/lsb-release'):
@@ -204,11 +217,11 @@ def is_kde_desktop():
         return False
 
 
-def is_anaconda():
-    """
-    Detect if we are running under Anaconda.
-
-    Taken from https://stackoverflow.com/a/47610844/438386
-    """
-    is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
-    return is_conda
+def is_wsl():
+    """Detect if we are running in WSL."""
+    if (
+        platform.system() == "Linux"
+        and "microsoft" in platform.release().lower()
+    ):
+        return True
+    return False

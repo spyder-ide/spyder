@@ -14,25 +14,15 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
-# Standard library imports
-from collections import namedtuple
-
 # Third party imports
 from qtconsole.styles import dark_color
 from qtpy import QT_VERSION
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
-from qtpy.QtWidgets import QShortcut
+from qtpy.QtGui import QFont, QFontDatabase
 
 # Local imports
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
-
-
-# To save metadata about widget shortcuts (needed to build our
-# preferences page)
-Shortcut = namedtuple('Shortcut', 'data')
 
 
 def font_is_installed(font):
@@ -78,7 +68,8 @@ def get_font(section='appearance', option='font', font_size_delta=0):
         FONT_CACHE[(section, option, font_size_delta)] = font
 
     size = CONF.get(section, option+'/size', 9) + font_size_delta
-    font.setPointSize(size)
+    if size > 0:
+        font.setPointSize(size)
     return font
 
 
@@ -94,20 +85,6 @@ def set_font(font, section='appearance', option='font'):
     font_size_delta = 0
 
     FONT_CACHE[(section, option, font_size_delta)] = font
-
-
-def _config_shortcut(action, context, name, keystr, parent):
-    """
-    Create a Shortcut namedtuple for a widget.
-
-    The data contained in this tuple will be registered in our shortcuts
-    preferences page.
-    """
-    qsc = QShortcut(QKeySequence(keystr), parent)
-    qsc.activated.connect(action)
-    qsc.setContext(Qt.WidgetWithChildrenShortcut)
-    sc = Shortcut(data=(qsc, context, name))
-    return sc
 
 
 def get_color_scheme(name):

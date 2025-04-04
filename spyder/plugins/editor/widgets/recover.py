@@ -15,10 +15,20 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QLabel, QMessageBox, QPushButton,
-                            QTableWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
 # Local imports
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, running_under_pytest
 
 
@@ -217,7 +227,9 @@ class RecoveryDialog(QDialog):
 
     def add_cancel_button(self):
         """Add a cancel button at the bottom of the dialog window."""
-        button_box = QDialogButtonBox(QDialogButtonBox.Cancel, self)
+        button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Cancel, parent=self
+        )
         button_box.rejected.connect(self.reject)
         self.layout.addWidget(button_box)
 
@@ -352,7 +364,7 @@ def test():  # pragma: no cover
     import tempfile
     from spyder.utils.qthelpers import qapplication
 
-    app = qapplication()
+    app = qapplication()  # noqa
     tempdir = tempfile.mkdtemp()
     unused, unused, autosave_mapping = make_temporary_files(tempdir)
     dialog = RecoveryDialog(autosave_mapping)

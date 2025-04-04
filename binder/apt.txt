@@ -13,3 +13,5 @@ qutebrowser
 htop
 nano
 libgles2
+tigervnc-standalone-server
+tigervnc-xorg-extension

@@ -4,7 +4,6 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-import os
 from unittest.mock import Mock, MagicMock
 
 from qtpy.QtCore import QObject, Signal, Slot
@@ -45,7 +44,6 @@ def lsp_context(is_stdio):
         conf['stdio'] = is_stdio
 
         # Create the manager
-        os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
         provider = LanguageServerProvider(CompletionPluginMock(conf), conf)
 
         # Wait for the client to be started
@@ -60,7 +58,6 @@ def lsp_context(is_stdio):
 
         def teardown():
             provider.shutdown()
-            os.environ['SPY_TEST_USE_INTROSPECTION'] = 'False'
 
         request.addfinalizer(teardown)
         return provider

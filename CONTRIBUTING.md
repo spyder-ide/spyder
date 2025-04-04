@@ -71,6 +71,7 @@ To run Spyder from your clone in its development mode, with extra checks and opt
 ```bash
 $ python bootstrap.py
 ```
+
 Note that if you are running on macOS 10.15 or earlier, you will need to call `pythonw` instead of `python`.
 
 To start Spyder in debug mode, useful for tracking down an issue, you can run:
@@ -80,6 +81,24 @@ $ python bootstrap.py --debug
 ```
 
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
+
+To start Spyder with different Qt bindings (e.g. PySide2 or PyQt6), you can run:
+
+```bash
+$ python bootstrap.py --gui pyqt6
+```
+
+To access Spyder command line options from `bootstrap.py`, you need to run:
+
+```bash
+$ python bootstrap.py -- --help
+```
+
+Note that `bootstrap.py` has its own command line options, which can be listed by running:
+
+```bash
+$ python bootstrap.py --help
+```
 
 
 ###  Running tests
@@ -105,47 +124,18 @@ $ python runtests.py
 
 ## Spyder Branches
 
-When you start to work on a new pull request (PR), you need to be sure that your work is done on top of the correct Spyder branch, and that you base your PR on Github against it.
-
-To guide you, issues on Github are marked with a milestone that indicates the correct branch to use. If not, follow these guidelines:
-
-* Use the `5.x` branch for bugfixes only (*e.g.* milestones `v5.0.1` or `v5.1.2`)
-* Use `master` to introduce new features or break compatibility with previous Spyder versions (*e.g.* milestones `v6.0beta1` or `v6.0beta2`).
-
-You should also submit bugfixes to `5.x` or `master` for errors that are only present in those respective branches.
-
-To start working on a new PR, you need to execute these commands, filling in the branch names where appropriate:
+To start working on a new pull request you need to execute these commands, filling in the branch name where appropriate:
 
 ```bash
-$ git checkout <SPYDER-BASE-BRANCH>
-$ git pull upstream <SPYDER-BASE-BRANCH>
+$ git checkout master
+$ git pull upstream master
 $ git checkout -b <NAME-NEW-BRANCH>
-```
-
-
-### Changing the base branch
-
-If you started your work in the wrong base branch, or want to backport it, you can change the base branch using `git rebase --onto`, like this:
-
-```bash
-$ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
-```
-
-For example, backporting `my_branch` from `master` to `5.x`:
-
-```bash
-$ git rebase --onto 5.x master my_branch
 ```
 
 
 ## Making contributions that depend on pull requests in spyder-kernels
 
-Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console. The way the branches on their respective repos are linked appears in the table below:
-
-| Spyder branch       | Associated spyder-kernels branch  |
-| ------------------- | --------------------------------- |
-| 5.x                 | 2.x                               |
-| master (future 6.x) | master (future 3.x)               |
+Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console.
 
 For this reason, a clone of spyder-kernels is placed in the `external-deps` subfolder of the Spyder repository. The instructions on this section will help you in case you need to make changes that touch both repositories at the same time.
 
@@ -157,7 +147,7 @@ echo 'source /path/to/git-subrepo/.rc' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git repositories placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
+As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git clones placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
 
 * Go to the `~/spyder` folder, checkout your `fix_in_spyder` branch and replace the spyder-kernels clone in the `external-deps` subfolder by a clone of your `fix_in_kernel` branch:
 
@@ -188,10 +178,8 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 * When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch because the clone in Spyder's repo must point out again to the spyder-kernel's repo and not to your own clone. For that, please run:
 
     ```
-    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/spyder-ide/spyder-kernels.git -b <branch> -u -f
+    $ git subrepo pull external-deps/spyder-kernels -r https://github.com/spyder-ide/spyder-kernels.git -b master -u -f
     ```
-
-where `<branch>` needs to be `2.x` if your `fix_in_spyder` branch was done against Spyder's `5.x` branch; and `master`, if you did it against our `master` branch here.
 
 
 ## Making contributions that depend on pull requests in python-lsp-server or qtconsole
@@ -245,8 +233,20 @@ Due to that, a clone of those projects is placed in the `external-deps` director
 
     ```
     $ git checkout fix_in_spyder
-    $ git subrepo pull external-deps/qtconsole -r https://github.com/jupyter/qtconsole.git -b master -u -f
+    $ git subrepo pull external-deps/qtconsole -r https://github.com/jupyter/qtconsole.git -b main -u -f
     ```
+
+
+## Guidelines for Spyder API changes
+
+If your work makes changes to public classes, methods or Qt signals in `spyder.api`, or to the public interface of any plugin (e.g. `plugins/editor/plugin.py`), you must add a note about it in the current Changelog (e.g. `changelogs/Spyder-6.md`).
+If an entry for the version where your PR will be included doesn't exist yet, create one (with `Unreleased` as its date) and a subsection called `API changes`.
+
+Please note that the Spyder API must be changed according to the following guidelines:
+
+* For bugfix versions (e.g. `6.0.3`), you can only add new Qt signals or methods, or kwargs to current methods.
+* For minor versions (e.g. `6.1.0`), you should try to do the same as for bugfix versions, unless it's **strictly** necessary to break the API by removing or changing certain Qt signals, classes or methods in a backwards incompatible way.
+* For major versions (e.g. `7.0.0`), there are no restrictions on API changes.
 
 
 ## Adding Third-Party Content

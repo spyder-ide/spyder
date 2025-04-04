@@ -2,9 +2,8 @@
 # Copyright 2021- Python Language Server Contributors.
 
 from pylsp import lsp, uris
-from pylsp.workspace import Document
 from pylsp.plugins.highlight import pylsp_document_highlight
-
+from pylsp.workspace import Document
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """a = "hello"
@@ -12,7 +11,7 @@ a.startswith("b")
 """
 
 
-def test_highlight(workspace):
+def test_highlight(workspace) -> None:
     # Over 'a' in a.startswith
     cursor_pos = {"line": 1, "character": 0}
 
@@ -42,7 +41,7 @@ print sys.path
 """
 
 
-def test_sys_highlight(workspace):
+def test_sys_highlight(workspace) -> None:
     cursor_pos = {"line": 0, "character": 8}
 
     doc = Document(DOC_URI, workspace, SYS_DOC)

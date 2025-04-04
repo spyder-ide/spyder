@@ -10,14 +10,13 @@ Spyder API helper mixins.
 
 # Standard library imports
 import logging
-from typing import Any, Union, Optional
+from typing import Any, Callable, Optional, Union
 import warnings
 
 # Third-party imports
-from qtpy.QtWidgets import QAction, QWidget
+from qtpy import PYSIDE6
 
 # Local imports
-from spyder.config.gui import Shortcut
 from spyder.config.manager import CONF
 from spyder.config.types import ConfigurationKey
 from spyder.config.user import NoDefault
@@ -38,10 +37,13 @@ class SpyderConfigurationAccessor:
     # config system.
     CONF_SECTION = None
 
-    def get_conf(self,
-                 option: ConfigurationKey,
-                 default: Union[NoDefault, BasicTypes] = NoDefault,
-                 section: Optional[str] = None):
+    def get_conf(
+        self,
+        option: ConfigurationKey,
+        default: Union[NoDefault, BasicTypes] = NoDefault,
+        section: Optional[str] = None,
+        secure: Optional[bool] = False,
+    ):
         """
         Get an option from the Spyder configuration system.
 
@@ -55,6 +57,9 @@ class SpyderConfigurationAccessor:
         section: str
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
+        secure: bool
+            If True, the option will be retrieved securely using the `keyring`
+            Python package.
 
         Returns
         -------
@@ -73,7 +78,7 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
 
-        return CONF.get(section, option, default)
+        return CONF.get(section, option, default, secure)
 
     def get_conf_options(self, section: Optional[str] = None):
         """
@@ -103,11 +108,14 @@ class SpyderConfigurationAccessor:
             )
         return CONF.options(section)
 
-    def set_conf(self,
-                 option: ConfigurationKey,
-                 value: BasicTypes,
-                 section: Optional[str] = None,
-                 recursive_notification: bool = True):
+    def set_conf(
+        self,
+        option: ConfigurationKey,
+        value: BasicTypes,
+        section: Optional[str] = None,
+        recursive_notification: bool = True,
+        secure: Optional[bool] = False,
+    ):
         """
         Set an option in the Spyder configuration system.
 
@@ -127,6 +135,9 @@ class SpyderConfigurationAccessor:
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
+        secure: bool
+            If True, the option will be saved securely using the `keyring`
+            Python package.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -138,12 +149,16 @@ class SpyderConfigurationAccessor:
             section,
             option,
             value,
-            recursive_notification=recursive_notification
+            recursive_notification=recursive_notification,
+            secure=secure,
         )
 
-    def remove_conf(self,
-                    option: ConfigurationKey,
-                    section: Optional[str] = None):
+    def remove_conf(
+        self,
+        option: ConfigurationKey,
+        section: Optional[str] = None,
+        secure: Optional[str] = False,
+    ):
         """
         Remove an option in the Spyder configuration system.
 
@@ -154,6 +169,9 @@ class SpyderConfigurationAccessor:
         section: Optional[str]
             Section in the configuration system, e.g. `shortcuts`. If None,
             then the value of `CONF_SECTION` is used.
+        secure: bool
+            If True, the option will be removed securely using the `keyring`
+            Python package.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -161,7 +179,7 @@ class SpyderConfigurationAccessor:
                 'A SpyderConfigurationAccessor must define a `CONF_SECTION` '
                 'class attribute!'
             )
-        CONF.remove_option(section, option)
+        CONF.remove_option(section, option, secure)
 
     def get_conf_default(self,
                          option: ConfigurationKey,
@@ -184,68 +202,6 @@ class SpyderConfigurationAccessor:
                 'class attribute!'
             )
         return CONF.get_default(section, option)
-
-    def get_shortcut(
-            self, name: str, context: Optional[str] = None,
-            plugin_name: Optional[str] = None) -> str:
-        """
-        Get a shortcut sequence stored under the given name and context.
-
-        Parameters
-        ----------
-        name: str
-            Key identifier under which the shortcut is stored.
-        context: Optional[str]
-            Name of the shortcut context.
-        plugin: Optional[str]
-            Name of the plugin where the shortcut is defined.
-
-        Returns
-        -------
-        shortcut: str
-            Key sequence of the shortcut.
-
-        Raises
-        ------
-        configparser.NoOptionError
-            If the section does not exist in the configuration.
-        """
-        context = self.CONF_SECTION if context is None else context
-        return CONF.get_shortcut(context, name, plugin_name)
-
-    def config_shortcut(
-            self, action: QAction, name: str, parent: QWidget,
-            context: Optional[str] = None) -> Shortcut:
-        """
-        Create a Shortcut namedtuple for a widget.
-
-        The data contained in this tuple will be registered in our shortcuts
-        preferences page.
-
-        Parameters
-        ----------
-        action: QAction
-            Action that will use the shortcut.
-        name: str
-            Key identifier under which the shortcut is stored.
-        parent: QWidget
-            Parent widget for the shortcut.
-        context: Optional[str]
-            Name of the context (plugin) where the shortcut was defined.
-
-        Returns
-        -------
-        shortcut: Shortcut
-            Namedtuple with the information of the shortcut as used for the
-            shortcuts preferences page.
-        """
-        shortcut_context = self.CONF_SECTION if context is None else context
-        return CONF.config_shortcut(
-            action,
-            shortcut_context,
-            name,
-            parent
-        )
 
     @property
     def old_conf_version(self):
@@ -286,8 +242,13 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
             section = self.CONF_SECTION if section is None else section
             observed_options = self._configuration_listeners[section]
             for option in observed_options:
-                logger.debug(f'{self} is observing {option} '
-                             f'in section {section}')
+                # Avoid a crash at startup due to MRO
+                if not PYSIDE6:
+                    logger.debug(
+                        f'{self} is observing option "{option}" in section '
+                        f'"{section}"'
+                    )
+
                 CONF.observe_configuration(self, section, option)
 
     def __del__(self):
@@ -297,6 +258,16 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     def _gather_observers(self):
         """Gather all the methods decorated with `on_conf_change`."""
         for method_name in dir(self):
+            # Avoid crash at startup due to MRO
+            if PYSIDE6 and method_name in {
+                # PySide seems to require that the class is instantiated to
+                # access this method
+                "painters",
+                # Method is debounced
+                "restart_kernel",
+            }:
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, '_conf_listen'):
                 info = method._conf_listen
@@ -304,12 +275,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                     self._multi_option_listeners |= {method_name}
 
                 for section, option in info:
-                    section_listeners = self._configuration_listeners.get(
-                        section, {})
-                    option_listeners = section_listeners.get(option, [])
-                    option_listeners.append(method_name)
-                    section_listeners[option] = option_listeners
-                    self._configuration_listeners[section] = section_listeners
+                    self._add_listener(method_name, option, section)
 
     def _merge_none_observers(self):
         """Replace observers that declared section as None by CONF_SECTION."""
@@ -326,6 +292,27 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
 
         self._configuration_listeners[self.CONF_SECTION] = section_selectors
         self._configuration_listeners.pop(None, None)
+
+    def _add_listener(
+        self, func: Callable, option: ConfigurationKey, section: str
+    ):
+        """
+        Add a callable as listener of the option `option` on section `section`.
+
+        Parameters
+        ----------
+        func: Callable
+            Function/method that will be called when `option` changes.
+        option: ConfigurationKey
+            Configuration option to observe.
+        section: str
+            Name of the section where `option` is contained.
+        """
+        section_listeners = self._configuration_listeners.get(section, {})
+        option_listeners = section_listeners.get(option, [])
+        option_listeners.append(func)
+        section_listeners[option] = option_listeners
+        self._configuration_listeners[section] = section_listeners
 
     def on_configuration_change(self, option: ConfigurationKey, section: str,
                                 value: Any):
@@ -345,8 +332,41 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         section_receivers = self._configuration_listeners.get(section, {})
         option_receivers = section_receivers.get(option, [])
         for receiver in option_receivers:
-            method = getattr(self, receiver)
+            method = (
+                receiver if callable(receiver) else getattr(self, receiver)
+            )
             if receiver in self._multi_option_listeners:
                 method(option, value)
             else:
                 method(value)
+
+    def add_configuration_observer(
+        self, func: Callable, option: str, section: Optional[str] = None
+    ):
+        """
+        Add a callable to observe the option `option` on section `section`.
+
+        Parameters
+        ----------
+        func: Callable
+            Function that will be called when `option` changes.
+        option: ConfigurationKey
+            Configuration option to observe.
+        section: str
+            Name of the section where `option` is contained.
+
+        Notes
+        -----
+        - This is only necessary if you need to add a callable that is not a
+          class method to observe an option. Otherwise, you simply need to
+          decorate your method with
+          :function:`spyder.api.config.decorators.on_conf_change`.
+        """
+        if section is None:
+            section = self.CONF_SECTION
+
+        logger.debug(
+            f'{self} is observing "{option}" option on section "{section}"'
+        )
+        self._add_listener(func, option, section)
+        CONF.observe_configuration(self, section, option)

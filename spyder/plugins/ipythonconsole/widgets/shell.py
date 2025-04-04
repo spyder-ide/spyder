@@ -9,15 +9,19 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+import logging
 import os
 import os.path as osp
 import time
 from textwrap import dedent
+import typing
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
+from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.utils.style import create_style_class
 from traitlets import observe
 
 # Local imports
@@ -26,25 +30,31 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
+    IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
     ClientContextMenuActions,
     ClientContextMenuSections
 )
-from spyder.plugins.ipythonconsole.utils.style import (
-    create_qss_style, create_style_class)
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState)
 from spyder.plugins.ipythonconsole.widgets import (
     ControlWidget, DebuggingWidget, FigureBrowserWidget, HelpWidget,
     NamepaceBrowserWidget, PageControlWidget)
 from spyder.utils import syntaxhighlighters as sh
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
+if typing.TYPE_CHECKING:
+    from spyder.plugins.ipythonconsole.widgets.client import ClientWidget
+
+
+logger = logging.getLogger(__name__)
 
 MODULES_FAQ_URL = (
-    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer")
+    "https://docs.spyder-ide.org/5/faq.html#using-packages-installer"
+)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -143,22 +153,29 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         `SpyderKernel.get_state` method of Spyder-kernels.
     """
 
-    def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 handlers, *args, special_kernel=None, **kw):
+    def __init__(
+        self,
+        ipyclient,
+        additional_options,
+        handlers,
+        *args,
+        special_kernel=None,
+        **kw,
+    ):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
 
-        super(ShellWidget, self).__init__(*args, **kw)
-        self.ipyclient = ipyclient
+        super().__init__(*args, **kw)
+        self.ipyclient: ClientWidget = ipyclient
         self.additional_options = additional_options
-        self.interpreter_versions = interpreter_versions
         self.special_kernel = special_kernel
 
         # Keyboard shortcuts
         # Registered here to use shellwidget as the parent
-        self.shortcuts = self.create_shortcuts()
+        SpyderWidgetMixin.__init__(self)
+        self.regiter_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -172,6 +189,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._kernel_configuration = {}
         self.is_kernel_configured = False
         self._init_kernel_setup = False
+        self._is_banner_shown = False
+
+        # Set bright colors instead of bold formatting for better traceback
+        # readability.
+        self._ansi_processor.bold_text_enabled = False
 
         if handlers is None:
             handlers = {}
@@ -185,6 +207,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         })
         self.kernel_comm_handlers = handlers
 
+        # To keep an execution queue
         self._execute_queue = []
         self.executed.connect(self.pop_execute_queue)
 
@@ -230,6 +253,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.kernel_manager = kernel_handler.kernel_manager
         self.kernel_handler = kernel_handler
+
+        # Register handlers declared here before emitting sig_kernel_is_ready
+        # so that handlers declared elsewhere can't be called first, which can
+        # generate errors.
+        for request_id, handler in self.kernel_comm_handlers.items():
+            self.kernel_handler.kernel_comm.register_call_handler(
+                request_id, handler
+            )
 
         if first_connect:
             # Let plugins know that a new kernel is connected
@@ -295,13 +326,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             KernelConnectionState.SpyderKernelReady
         ):
             self.setup_spyder_kernel()
+            self._show_banner()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
         if self.kernel_handler.connection_state == KernelConnectionState.Error:
             # A wrong version is connected
-            self.append_html_message(
-                self.kernel_handler.kernel_error_message, before_prompt=True)
+            self.ipyclient.show_kernel_error(
+                self.kernel_handler.kernel_error_message,
+            )
 
     def notify_deleted(self):
         """Notify that the shellwidget was deleted."""
@@ -376,15 +409,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Redefine the complete method to work while debugging.
             self._redefine_complete_for_dbg(self.kernel_client)
 
-            for request_id, handler in self.kernel_comm_handlers.items():
-                self.kernel_handler.kernel_comm.register_call_handler(
-                    request_id, handler)
-
         # Setup to do after restart
         # Check for fault and send config
         self.kernel_handler.poll_fault_text()
 
         self.send_spyder_kernel_configuration()
+
+        # Update sys.path
+        paths = self.get_conf(
+            "spyder_pythonpath", section="pythonpath_manager"
+        )
+        prioritize = self.get_conf(
+            "prioritize", section="pythonpath_manager"
+        )
+        self.update_syspath(paths, prioritize)
 
         run_lines = self.get_conf('startup/run_lines')
         if run_lines:
@@ -476,6 +514,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Fixes spyder-ide/spyder#20212
             if self.kernel_manager and self.kernel_manager.has_kernel:
                 self.call_kernel(interrupt=True).raise_interrupt_signal()
+            elif self.is_remote():
+                # Request an interrupt to the server for remote kernels
+                self.ipyclient.interrupt_remote_kernel()
             else:
                 self._append_html(
                     _("<br><br>The kernel appears to be dead, so it can't be "
@@ -564,6 +605,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         resolution_n = 'pylab/inline/resolution'
         width_n = 'pylab/inline/width'
         height_n = 'pylab/inline/height'
+        fontsize_n = 'pylab/inline/fontsize'
+        bottom_n = 'pylab/inline/bottom'
         bbox_inches_n = 'pylab/inline/bbox_inches'
         backend_o = self.get_conf(pylab_backend_n)
 
@@ -591,6 +634,22 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 if height_o is not None:
                     matplotlib_conf[height_n] = height_o
 
+            # Font size
+            fontsize_o = float(self.get_conf(fontsize_n))
+            if (
+                fontsize_o is not None
+                and (option is None or fontsize_n in option)
+            ):
+                matplotlib_conf[fontsize_n] = fontsize_o
+
+            # Bottom part
+            bottom_o = float(self.get_conf(bottom_n))
+            if (
+                bottom_o is not None
+                and (option is None or bottom_n in option)
+            ):
+                matplotlib_conf[bottom_n] = bottom_o
+
             # Print figure kwargs
             bbox_inches_o = self.get_conf(bbox_inches_n)
             if option is None or bbox_inches_n in option:
@@ -611,7 +670,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if option is None or pylab_autoload_n in option:
             matplotlib_conf[pylab_autoload_n] = autoload_pylab_o
 
-        if matplotlib_conf:
+        if matplotlib_conf and pylab_o:
             self.set_kernel_configuration("matplotlib", matplotlib_conf)
 
     def get_cwd(self):
@@ -652,7 +711,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
         self._style_sheet_changed()
-        self._syntax_style_changed()
+        self._syntax_style_changed(changed={})
         if reset:
             self.reset(clear=True)
         if not self.spyder_kernel_ready:
@@ -662,11 +721,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             "color scheme", "dark" if not dark_color else "light"
         )
 
-    def update_syspath(self, path_dict, new_path_dict):
-        """Update sys.path contents on kernel."""
-        self.call_kernel(
-            interrupt=True,
-            blocking=False).update_syspath(path_dict, new_path_dict)
+    def update_syspath(self, new_paths, prioritize):
+        """Update sys.path contents in the kernel."""
+        # Prevent error when the kernel is not available and users open/close
+        # projects or use the Python path manager.
+        # Fixes spyder-ide/spyder#21563
+        if self.kernel_handler is not None:
+            self.call_kernel(interrupt=True, blocking=False).update_syspath(
+                new_paths, prioritize
+            )
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
@@ -732,23 +795,28 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def long_banner(self):
         """Banner for clients with additional content."""
         # Default banner
-        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
+        try:
+            env_info = self.get_pythonenv_info()
+            sys_version = env_info['sys_version'].replace('\n', '')
+            ipython_version = env_info["ipython_version"]
 
-        banner_parts = [
-            'Python %s\n' % py_ver,
-            'Type "copyright", "credits" or "license" for more information.',
-            '\n\n',
-        ]
+            banner_parts = [
+                f"Python {sys_version}\n",
+                'Type "copyright", "credits" or "license" for more '
+                "information.",
+                "\n\n",
+            ]
 
-        if ipy_ver:
             banner_parts.append(
-                'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
+                f"IPython {ipython_version} -- An enhanced Interactive "
+                f"Python. Type '?' for help.\n"
             )
-        else:
-            banner_parts.append('IPython -- An enhanced Interactive Python.\n')
 
-        banner = ''.join(banner_parts)
+            banner = ''.join(banner_parts)
+        except (CommError, TimeoutError, RuntimeError):
+            # RuntimeError happens when the kernel crashes after it starts.
+            # See spyder-ide/spyder#22929
+            banner = ""
 
         # Pylab additions
         pylab_o = self.additional_options['pylab']
@@ -771,9 +839,9 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
-enabled at the same time. Some pylab functions are going to be overrided by
-the sympy module (e.g. plot)
+Warning: Pylab (i.e. Numpy and Matplotlib) and symbolic math (Sympy) are both
+enabled at the same time. Hence, some Matplotlib functions are going to be
+overrided by the Sympy module (e.g. plot)
 """
             banner = banner + lines
 
@@ -781,9 +849,14 @@ the sympy module (e.g. plot)
 
     def short_banner(self):
         """Short banner with Python and IPython versions only."""
-        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
-        ipy_ver = self.interpreter_versions['ipython_version']
-        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
+        try:
+            env_info = self.get_pythonenv_info()
+            py_ver = env_info['python_version']
+            ipy_ver = env_info['ipython_version']
+            banner = f'Python {py_ver} -- IPython {ipy_ver}\n'
+        except (CommError, TimeoutError):
+            banner = ""
+
         return banner
 
     # --- To define additional shortcuts
@@ -896,58 +969,22 @@ the sympy module (e.g. plot)
         )
         self.ipyclient.reset_warning = not message_box.is_checked()
 
-    def create_shortcuts(self):
-        """Create shortcuts for ipyconsole."""
-        inspect = self.config_shortcut(
-            self._control.inspect_current_object,
-            context='ipython_console',
-            name='Inspect current object',
-            parent=self)
+    def regiter_shortcuts(self):
+        """Register shortcuts for this widget."""
 
-        clear_console = self.config_shortcut(
-            self.clear_console,
-            context='ipython_console',
-            name='Clear shell',
-            parent=self)
+        shortcuts = (
+            ('Inspect current object', self._control.inspect_current_object),
+            ('Clear shell', self.clear_console),
+            ('Restart kernel', self.sig_restart_kernel),
+            ('new tab', self.sig_new_client),
+            ('reset namespace', self._reset_namespace),
+            ('enter array inline', self._control.enter_array_inline),
+            ('enter array table', self._control.enter_array_table),
+            ('clear line', self.ipyclient.clear_line),
+        )
 
-        restart_kernel = self.config_shortcut(
-            self.sig_restart_kernel,
-            context='ipython_console',
-            name='Restart kernel',
-            parent=self)
-
-        new_tab = self.config_shortcut(
-            self.sig_new_client,
-            context='ipython_console',
-            name='new tab',
-            parent=self)
-
-        reset_namespace = self.config_shortcut(
-            self._reset_namespace,
-            context='ipython_console',
-            name='reset namespace',
-            parent=self)
-
-        array_inline = self.config_shortcut(
-            self._control.enter_array_inline,
-            context='ipython_console',
-            name='enter array inline',
-            parent=self)
-
-        array_table = self.config_shortcut(
-            self._control.enter_array_table,
-            context='ipython_console',
-            name='enter array table',
-            parent=self)
-
-        clear_line = self.config_shortcut(
-            self.ipyclient.clear_line,
-            context='ipython_console',
-            name='clear line',
-            parent=self)
-
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
@@ -1021,7 +1058,7 @@ the sympy module (e.g. plot)
         # This makes the header text have good contrast against its background
         # for the light theme.
         if is_dark_interface():
-            font_color = QStylePalette.COLOR_TEXT_1
+            font_color = SpyderPalette.COLOR_TEXT_1
         else:
             font_color = 'white'
 
@@ -1050,6 +1087,16 @@ the sympy module (e.g. plot)
         append_html_message.
         """
         self._control.insert_horizontal_ruler()
+
+    def get_pythonenv_info(self):
+        """Call kernel to get the current Python environment info."""
+        return self.call_kernel(
+            interrupt=True, blocking=True
+        ).get_pythonenv_info()
+
+    def is_remote(self):
+        """Check if this shell is connected to a remote server."""
+        return self.ipyclient.is_remote()
 
     # ---- Public methods (overrode by us)
     def paste(self, mode=QClipboard.Clipboard):
@@ -1151,6 +1198,38 @@ the sympy module (e.g. plot)
         Must be called right after copying.
         """
         CLIPBOARD_HELPER.save_indentation(self._get_preceding_text(), 4)
+
+    def _show_banner(self):
+        """Show banner before first prompt."""
+        if (
+            # Don't show banner for external but local kernels
+            self.is_external_kernel and not self.is_remote()
+            # Don't show it if it was already shown
+            or self._is_banner_shown
+        ):
+            return
+
+        logger.debug(f"Showing banner for {self}")
+
+        # Check what kind of banner we want to show
+        show_banner_o = self.additional_options['show_banner']
+        if show_banner_o:
+            banner = self.long_banner()
+        else:
+            banner = self.short_banner()
+
+        # Move cursor to first position and insert banner
+        cursor = self._control.textCursor()
+        cursor.setPosition(0)
+        self._insert_plain_text(cursor, banner)
+
+        # We need to do this so the banner is available to other QtConsole
+        # methods (e.g. console resets).
+        # Fixes spyder-ide/spyder#22593
+        self.banner = banner
+
+        # Only do this once
+        self._is_banner_shown = True
 
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
@@ -1301,18 +1380,22 @@ the sympy module (e.g. plot)
         return context_menu
 
     def _banner_default(self):
-        """
-        Reimplement banner creation to let the user decide if he wants a
-        banner or not
-        """
-        # Don't change banner for external kernels
-        if self.is_external_kernel:
-            return ''
-        show_banner_o = self.additional_options['show_banner']
-        if show_banner_o:
-            return self.long_banner()
+        """Override banner creation to handle it in Spyder."""
+        return ""
+
+    def _handle_kernel_died(self, since_last_heartbeat):
+        """Handle the kernel's death (if we do not own the kernel)."""
+        # Disable stop button
+        stop_button = self.get_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.InterruptButton
+        )
+        stop_button.setEnabled(False)
+
+        if self.is_remote():
+            self._kernel_restarted_message(died=True)
+            self.ipyclient.reconnect_remote_kernel()
         else:
-            return self.short_banner()
+            super()._handle_kernel_died(since_last_heartbeat)
 
     def _kernel_restarted_message(self, died=True):
         msg = (
@@ -1320,12 +1403,20 @@ the sympy module (e.g. plot)
             else _("Restarting kernel...")
         )
 
-        if died and self.kernel_manager is None:
+        if (
+            died
+            and self.kernel_manager is None
+            and not self.is_remote()
+        ):
             # The kernel might never restart, show position of fault file
-            msg += (
-                "\n" + _("Its crash file is located at:") + " "
-                + self.kernel_handler.fault_filename()
-            )
+            # if available else show kernel error
+            if self.kernel_handler.fault_filename():
+                msg += (
+                    "\n" + _("Its crash file is located at:") + " "
+                    + self.kernel_handler.fault_filename()
+                )
+            else:
+                self.ipyclient.show_kernel_connection_error()
 
         self._append_html(f"<br>{msg}<br>", before_prompt=False)
         self.insert_horizontal_ruler()
@@ -1350,8 +1441,15 @@ the sympy module (e.g. plot)
             # ignore premature calls
             return
         if self.syntax_style:
-            self._highlighter._style = create_style_class(self.syntax_style)
+            color_scheme = get_color_scheme(self.syntax_style)
+            self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
+            if changed is None:
+                return
+            self.set_kernel_configuration(
+                "traceback_highlight_style",
+                color_scheme,
+            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
@@ -1406,3 +1504,11 @@ the sympy module (e.g. plot)
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super(ShellWidget, self).focusOutEvent(event)
+
+    # ---- Python methods
+    def __repr__(self):
+        # Handy repr for logging.
+        # Solution from https://stackoverflow.com/a/121508/438386
+        return (
+            "<" + self.__class__.__name__ + " object at " + hex(id(self)) + ">"
+        )

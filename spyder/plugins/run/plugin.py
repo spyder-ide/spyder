@@ -11,11 +11,12 @@ Run Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 from threading import Lock
 from typing import List, Optional
 
 # Third-party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAction
 
@@ -88,20 +89,30 @@ class Run(SpyderPluginV2):
 
         container = self.get_container()
         container.sig_run_action_created.connect(
-            self.register_action_shortcuts)
+            self._register_action_shortcuts
+        )
+        container.sig_open_preferences_requested.connect(
+            self._open_run_preferences
+        )
 
     @on_plugin_available(plugin=Plugins.WorkingDirectory)
     def on_working_directory_available(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.connect(
-            self.switch_working_dir)
-        self.switch_working_dir(working_dir.get_workdir())
+            self._switch_working_dir
+        )
+        self._switch_working_dir(working_dir.get_workdir())
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+        for action in [
+            RunActions.Run,
+            RunActions.ReRun,
+            RunActions.Configure,
+            RunActions.GlobalConfigurations,
+        ]:
             main_menu.add_item_to_application_menu(
                 self.get_action(action),
                 ApplicationMenus.Run,
@@ -128,12 +139,25 @@ class Run(SpyderPluginV2):
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.add_item_to_application_toolbar(
-            self.get_action(RunActions.Run), ApplicationToolbars.Run)
+            self.get_action(RunActions.Run), ApplicationToolbars.Run
+        )
 
         while self.pending_toolbar_actions != []:
-            action, toolbar_id = self.pending_toolbar_actions.pop(0)
+            (
+                action,
+                toolbar_id,
+                section,
+                before,
+                before_section,
+            ) = self.pending_toolbar_actions.pop(0)
+
             toolbar.add_item_to_application_toolbar(
-                action, toolbar_id)
+                action,
+                toolbar_id,
+                section,
+                before,
+                before_section,
+            )
 
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
@@ -141,30 +165,36 @@ class Run(SpyderPluginV2):
         while self.pending_shortcut_actions != []:
             args = self.pending_shortcut_actions.pop(0)
             shortcuts.register_shortcut(*args)
-        shortcuts.apply_shortcuts()
 
     @on_plugin_teardown(plugin=Plugins.WorkingDirectory)
     def on_working_directory_teardown(self):
         working_dir = self.get_plugin(Plugins.WorkingDirectory)
         working_dir.sig_current_directory_changed.disconnect(
-            self.switch_working_dir)
-        self.switch_working_dir(None)
+            self._switch_working_dir
+        )
+        self._switch_working_dir(None)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
 
-        for action in [RunActions.Run, RunActions.ReRun, RunActions.Configure]:
+        for action in [
+            RunActions.Run,
+            RunActions.ReRun,
+            RunActions.Configure,
+            RunActions.GlobalConfigurations,
+        ]:
             main_menu.remove_item_from_application_menu(
                 action,
                 ApplicationMenus.Run
             )
 
         for key in self.menu_actions:
-            (_, _, name) = self.all_run_actions[key]
-            main_menu.remove_item_from_application_menu(
-                name, ApplicationMenus.Run
-            )
+            (_, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                main_menu.remove_item_from_application_menu(
+                    action_id, ApplicationMenus.Run
+                )
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -176,22 +206,23 @@ class Run(SpyderPluginV2):
         toolbar = self.get_plugin(Plugins.Toolbar)
         toolbar.remove_item_from_application_toolbar(
             RunActions.Run, ApplicationToolbars.Run)
-
         for key in self.toolbar_actions:
-            (_, _, name) = self.all_run_actions[key]
-            toolbar.remove_item_from_application_toolbar(
-                name, ApplicationToolbars.Run
-            )
+            (_, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                toolbar.remove_item_from_application_toolbar(
+                    action_id, ApplicationToolbars.Run
+                )
 
     @on_plugin_teardown(plugin=Plugins.Shortcuts)
     def on_shortcuts_teardown(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
         for key in self.shortcut_actions:
-            (action, _, name) = self.all_run_actions[key]
-            shortcut_context = self.shortcut_actions[key]
-            shortcuts.unregister_shortcut(
-                action, shortcut_context, name)
-        shortcuts.apply_shortcuts()
+            (action, count, action_id) = self.all_run_actions[key]
+            if count > 0:
+                shortcut_context = self.shortcut_actions[key]
+                shortcuts.unregister_shortcut(
+                    action, shortcut_context, action_id
+                )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -389,8 +420,8 @@ class Run(SpyderPluginV2):
         register_shortcut: bool = False,
         extra_action_name: Optional[str] = None,
         context_modificator: Optional[str] = None,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False,
+        add_to_toolbar: bool | str | dict = False,
+        add_to_menu: bool | dict = False,
         re_run: bool = False
     ) -> QAction:
         """
@@ -418,10 +449,13 @@ class Run(SpyderPluginV2):
         context_modificator: Optional[str]
             The name of the modification to apply to the action, e.g. run
             selection <up to line>.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str
             If True, then the action will be added to the Run section of the
-            main toolbar. If a string, it must be a toolbar_id
-        add_to_menu: object
+            main toolbar. If a string, it must be a toolbar_id. If dictionary,
+            it corresponds to
+            {'toolbar': ..., 'section': ..., 'before': ...,
+             'before_section': ...}
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
@@ -470,16 +504,39 @@ class Run(SpyderPluginV2):
         )
 
         if add_to_toolbar:
-            toolbar_id = ApplicationToolbars.Run
+            toolbar_id, section, before, before_section = (
+                ApplicationToolbars.Run,
+                None,
+                None,
+                None
+            )
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+            if isinstance(add_to_toolbar, dict):
+                toolbar_id = add_to_toolbar['toolbar']
+                section = add_to_toolbar.get('section')
+                before = add_to_toolbar.get('before')
+                before_section = add_to_toolbar.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
-                    action, toolbar_id)
+                    action,
+                    toolbar_id,
+                    section,
+                    before,
+                    before_section,
+                )
             else:
-                self.pending_toolbar_actions.append((action, toolbar_id))
+                self.pending_toolbar_actions.append(
+                    (
+                        action,
+                        toolbar_id,
+                        section,
+                        before,
+                        before_section,
+                    )
+                )
 
             self.toolbar_actions |= {key}
 
@@ -515,7 +572,7 @@ class Run(SpyderPluginV2):
         with self.action_lock:
             (_, count, _) = self.all_run_actions.get(key, (None, 0, None))
             count += 1
-            self.all_run_actions[key] = (action, count, action.name)
+            self.all_run_actions[key] = (action, count, action.action_id)
 
         return action
 
@@ -558,26 +615,34 @@ class Run(SpyderPluginV2):
                re_run)
 
         with self.action_lock:
-            action, count, name = self.all_run_actions[key]
+            action, count, action_id = self.all_run_actions[key]
 
-            count -= 1
             if count == 0:
                 self.all_run_actions.pop(key)
-                if key in self.menu_actions and main_menu:
-                    main_menu.remove_item_from_application_menu(
-                        name, menu_id=ApplicationMenus.Run)
+                if key in self.menu_actions:
+                    self.menu_actions.pop(key)
+                    if main_menu:
+                        main_menu.remove_item_from_application_menu(
+                            action_id, menu_id=ApplicationMenus.Run
+                        )
 
-                if key in self.toolbar_actions and toolbar:
-                    toolbar.remove_item_from_application_toolbar(
-                        name, toolbar_id=ApplicationToolbars.Run)
+                if key in self.toolbar_actions:
+                    self.toolbar_actions.pop(key)
+                    if toolbar:
+                        toolbar.remove_item_from_application_toolbar(
+                            action_id, toolbar_id=ApplicationToolbars.Run
+                        )
 
-                if key in self.shortcut_actions and shortcuts:
-                    shortcut_context = self.shortcut_actions[key]
-                    shortcuts.unregister_shortcut(
-                        action, shortcut_context, name)
-                    shortcuts.apply_shortcuts()
+                if key in self.shortcut_actions:
+                    shortcut_context = self.shortcut_actions.pop(key)
+                    if shortcuts:
+                        shortcuts.unregister_shortcut(
+                            action, shortcut_context, action_id
+                        )
+                        shortcuts.apply_shortcuts()
             else:
-                self.all_run_actions[key] = (action, count, name)
+                count -= 1
+                self.all_run_actions[key] = (action, count, action_id)
 
     def create_run_in_executor_button(
         self,
@@ -588,8 +653,9 @@ class Run(SpyderPluginV2):
         tip: Optional[str] = None,
         shortcut_context: Optional[str] = None,
         register_shortcut: bool = False,
-        add_to_toolbar: object = False,
-        add_to_menu: object = False
+        add_to_toolbar: bool | str | dict = False,
+        add_to_menu: bool | dict = False,
+        shortcut_widget_context: Qt.ShortcutContext = Qt.WidgetShortcut,
     ) -> QAction:
         """
         Create a "run <context> in <provider>" button for a given run context
@@ -612,13 +678,18 @@ class Run(SpyderPluginV2):
         register_shortcut: bool
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
-        add_to_toolbar: object
+        add_to_toolbar: bool or str or dict
             If True, then the action will be added to the Run section of the
-            main toolbar. If a string, it will be a toolbat id
-        add_to_menu: object
+            main toolbar. If a string, it must be a toolbar_id. If dictionary,
+            it corresponds to
+            {'toolbar': ..., 'section': ..., 'before': ...,
+             'before_section': ...}
+        add_to_menu: bool or dict
             If True, then the action will be added to the Run menu.
             If a dictionnary, it corresponds to 
             {'menu': ..., 'section': ..., 'before_section': ...}
+        shortcut_widget_context: Qt.ShortcutContext
+            Qt context for the shorctut set for this button.
 
         Returns
         -------
@@ -651,20 +722,44 @@ class Run(SpyderPluginV2):
             icon=icon,
             tip=tip,
             shortcut_context=shortcut_context,
-            register_shortcut=register_shortcut
+            register_shortcut=register_shortcut,
+            shortcut_widget_context=shortcut_widget_context,
         )
 
         if add_to_toolbar:
-            toolbar_id = ApplicationToolbars.Run
+            toolbar_id, section, before, before_section = (
+                ApplicationToolbars.Run,
+                None,
+                None,
+                None
+            )
             if isinstance(add_to_toolbar, str):
                 toolbar_id = add_to_toolbar
+            if isinstance(add_to_toolbar, dict):
+                toolbar_id = add_to_toolbar['toolbar']
+                section = add_to_toolbar.get('section')
+                before = add_to_toolbar.get('before')
+                before_section = add_to_toolbar.get('before_section')
 
             toolbar = self.get_plugin(Plugins.Toolbar)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
-                    action, toolbar_id)
+                    action,
+                    toolbar_id,
+                    section,
+                    before,
+                    before_section,
+                )
             else:
-                self.pending_toolbar_actions.append((action, toolbar_id))
+                self.pending_toolbar_actions.append(
+                    (
+                        action,
+                        toolbar_id,
+                        section,
+                        before,
+                        before_section,
+                    )
+                )
 
             self.toolbar_actions |= {key}
 
@@ -697,7 +792,7 @@ class Run(SpyderPluginV2):
         if register_shortcut:
             self.shortcut_actions[key] = shortcut_context
 
-        self.all_run_actions[key] = (action, 1, action.name)
+        self.all_run_actions[key] = (action, 1, action.action_id)
         return action
 
     def destroy_run_in_executor_button(
@@ -766,16 +861,25 @@ class Run(SpyderPluginV2):
         return self.get_container().get_executor_configuration_parameters(
             executor_name, extension, context_id)
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
     def switch_focused_run_configuration(self, uuid: str):
+        """
+        Switch to the last selected run configuration.
+
+        Parameters
+        ----------
+        uuid: str
+            The run configuration identifier.
+        """
         self.get_container().switch_focused_run_configuration(uuid)
 
-    def switch_working_dir(self, path: str):
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _switch_working_dir(self, path: str):
         self.get_container().set_current_working_dir(path)
 
-    def register_action_shortcuts(
-        self, action_name: str,
+    def _register_action_shortcuts(
+        self,
+        action_name: str,
         register_shortcut: bool,
         shortcut_context: str
     ):
@@ -785,7 +889,15 @@ class Run(SpyderPluginV2):
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
-                shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))
+
+    def _open_run_preferences(self):
+        preferences = self.get_plugin(Plugins.Preferences)
+        preferences.open_dialog()
+
+        container = preferences.get_container()
+        dlg = container.dialog
+        index = dlg.get_index_by_name("run")
+        dlg.set_current_index(index)

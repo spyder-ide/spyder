@@ -13,6 +13,8 @@ import os.path as osp
 
 def _load_all_bookmarks(slots):
     """Load all bookmarks from config."""
+    if not slots:
+        slots = {}
     for slot_num in list(slots.keys()):
         if not osp.isfile(slots[slot_num][0]):
             slots.pop(slot_num)

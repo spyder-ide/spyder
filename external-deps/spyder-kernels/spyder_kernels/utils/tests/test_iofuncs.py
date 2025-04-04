@@ -11,9 +11,9 @@ Tests for iofuncs.py.
 """
 
 # Standard library imports
+import copy
 import io
 import os
-import copy
 
 # Third party imports
 from PIL import ImageFile
@@ -342,6 +342,7 @@ def test_spydata_export(input_namespace, expected_namespace,
 
 def test_save_load_hdf5_files(tmp_path):
     """Simple test to check that we can save and load HDF5 files."""
+    import h5py
     h5_file = tmp_path / "test.h5"
     data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
     iofuncs.save_hdf5(data, h5_file)
@@ -350,6 +351,10 @@ def test_save_load_hdf5_files(tmp_path):
     assert repr(iofuncs.load_hdf5(h5_file)) == repr(expected)
 
 
+@pytest.mark.skipif(
+    os.environ.get("USE_CONDA") == "true",
+    reason="Pydicom is not installed correctly in Conda envs"
+)
 def test_load_dicom_files():
     """Check that we can load DICOM files."""
     # This test pass locally but we need to set the variable below for it to

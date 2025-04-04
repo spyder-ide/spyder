@@ -73,7 +73,7 @@ def convert_schema(schema: dict, source: str = None) -> str:
     return "\n".join(lines)
 
 
-def main(argv):
+def main(argv) -> None:
     parser = ArgumentParser()
     parser.add_argument("schema", type=FileType())
     parser.add_argument("markdown", type=FileType("w+"), default=sys.stdout)

@@ -12,7 +12,7 @@ Console History Plugin.
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.config.fonts import SpyderFontType
+from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -36,7 +36,7 @@ class HistoryLog(SpyderDockablePlugin):
     CONF_WIDGET_CLASS = HistoryConfigPage
     CONF_FILE = False
 
-    # --- Signals
+    # ---- Signals
     # ------------------------------------------------------------------------
     sig_focus_changed = Signal()
     """
@@ -49,7 +49,7 @@ class HistoryLog(SpyderDockablePlugin):
         super().__init__(parent, configuration)
         self.add_history(get_conf_path('history.py'))
 
-    # --- SpyderDockablePlugin API
+    # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
@@ -104,7 +104,7 @@ class HistoryLog(SpyderDockablePlugin):
         font = self.get_font(SpyderFontType.Monospace)
         self.get_widget().update_font(font, color_scheme)
 
-    # --- Plubic API
+    # ---- Public API
     # ------------------------------------------------------------------------
     def refresh(self):
         """

@@ -12,10 +12,11 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
+from packaging.version import parse
+from spyder_kernels.utils.pythonenv import get_conda_env_path, is_conda_env
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -25,13 +26,14 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import get_conda_env_path, is_conda_env, find_conda
+from spyder.utils.conda import conda_version, find_conda
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
+    get_module_version,
+    get_temp_dir,
     is_python_interpreter,
     is_module_installed,
-    get_module_version
 )
 
 # Constants
@@ -54,16 +56,6 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
     "<pre>"
     "    <tt>{3}</tt>"
     "</pre>")
-
-
-def is_different_interpreter(pyexec):
-    """Check that pyexec is a different interpreter from sys.executable."""
-    # Paths may be symlinks
-    real_pyexe = osp.realpath(pyexec)
-    real_sys_exe = osp.realpath(sys.executable)
-    executable_validation = osp.basename(real_pyexe).startswith('python')
-    directory_validation = osp.dirname(real_pyexe) != osp.dirname(real_sys_exe)
-    return directory_validation and executable_validation
 
 
 def has_spyder_kernels(pyexec):
@@ -98,6 +90,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         self.language = 'python3'
         self.resource_dir = ''
 
+        self.env = get_user_environment_variables()
+
     @property
     def argv(self):
         """Command to start kernels"""
@@ -127,27 +121,75 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
 
-        # Part of spyder-ide/spyder#11819
-        is_different = is_different_interpreter(pyexec)
-
         # Command used to start kernels
-        kernel_cmd = [
+        kernel_cmd = []
+
+        if is_conda_env(pyexec=pyexec):
+            # If executable is a conda environment, use "run" subcommand to
+            # activate it and run spyder-kernels.
+            conda_exe = find_conda()
+            if not conda_exe:
+                # Raise error since we were unable to determine the path to
+                # the conda executable (e.g when Anaconda/Miniconda was
+                # installed in a non-standard location).
+                # See spyder-ide/spyder#23595
+                not_found_exe_message = _(
+                    "Spyder couldn't find conda or mamba in your system "
+                    "to activate the kernel's environment. Please add the "
+                    "directory where the conda or mamba executable is "
+                    "located to your PATH environment variable for it to "
+                    "be detected."
+                )
+                if ".pixi" in pyexec:
+                    # Validate if the interpreter path contains ".pixi" to
+                    # handle pixi created environments when conda is not
+                    # installed and show proper feedback.
+                    # See spyder-ide/spyder#23558 (issuecomment-2707561132)
+                    not_found_exe_message = _(
+                        "Spyder doesn't support Pixi environments at the "
+                        "moment, but it will in version 6.1.0"
+                    )
+                raise SpyderKernelError(not_found_exe_message)
+            conda_exe_version = conda_version(conda_executable=conda_exe)
+
+            kernel_cmd.extend([
+                conda_exe,
+                'run',
+                '--prefix',
+                get_conda_env_path(pyexec)
+            ])
+
+            # We need to use this flag to prevent conda_exe from capturing the
+            # kernel process stdout/stderr streams. That way we are able to
+            # show them in Spyder.
+            if conda_exe.endswith(('micromamba', 'micromamba.exe')):
+                kernel_cmd.extend(['--attach', '""'])
+            elif conda_exe_version >= parse("4.9"):
+                # Note: We use --no-capture-output instead of --live-stream
+                # here because it works for older Conda versions (conda>=4.9).
+                kernel_cmd.append('--no-capture-output')
+            else:
+                # Raise error since an unsupported conda version is being used
+                # (conda<4.9).
+                # See spyder-ide/spyder#22554
+                raise SpyderKernelError(
+                    _(
+                        "The detected version of Conda is too old and not "
+                        "supported by Spyder. The minimum supported version is "
+                        "4.9 and currently you have {conda_version}.<br><br>."
+                        "<b>Note</b>: You need to restart Spyder after "
+                        "updating Conda for the change to take effect."
+                    ).format(conda_version=conda_exe_version)
+                )
+
+        kernel_cmd.extend([
             pyexec,
             # This is necessary to avoid a spurious message on Windows.
             # Fixes spyder-ide/spyder#20800.
             '-Xfrozen_modules=off',
             '-m', 'spyder_kernels.console',
             '-f', '{connection_file}'
-        ]
-
-        if is_different and is_conda_env(pyexec=pyexec):
-            # If executable is a conda environment and different from Spyder's
-            # runtime environment, we need to activate the environment to run
-            # spyder-kernels
-            kernel_cmd[:0] = [
-                find_conda(), 'run',
-                '-p', get_conda_env_path(pyexec),
-            ]
+        ])
 
         logger.info('Kernel command: {}'.format(kernel_cmd))
 
@@ -161,7 +203,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Ensure that user environment variables are included, but don't
         # override existing environ values
-        env_vars = get_user_environment_variables()
+        env_vars = self._env_vars.copy()
         env_vars.update(os.environ)
 
         # Avoid IPython adding the virtualenv on which Spyder is running
@@ -171,15 +213,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
         env_vars.pop('PYTHONPATH', None)
 
-        # List of paths declared by the user, plus project's path, to
-        # add to PYTHONPATH
-        pathlist = self.get_conf(
-            'spyder_pythonpath', default=[], section='pythonpath_manager')
-        pypath = os.pathsep.join(pathlist)
-
         # List of modules to exclude from our UMR
         umr_namelist = self.get_conf(
             'umr/namelist', section='main_interpreter')
+
+        # Get TMPDIR value, if available
+        tmpdir_var = env_vars.get("TMPDIR", "")
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
@@ -195,7 +234,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             'SPY_JEDI_O': self.get_conf('jedi_completer'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': self.get_conf('hide_cmd_windows'),
-            'SPY_PYTHONPATH': pypath,
+            # This env var avoids polluting the OS default temp directory with
+            # files generated by `conda run`. It's restored/removed in the
+            # kernel after initialization.
+            "TMPDIR": get_temp_dir(),
+            # This is necessary to restore TMPDIR in the kernel, if it exists
+            "SPY_TMPDIR": tmpdir_var,
         })
 
         # App considerations
@@ -215,3 +259,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         clean_env_vars = clean_env(env_vars)
 
         return clean_env_vars
+
+    @env.setter
+    def env(self, env_vars):
+        self._env_vars = dict(env_vars)
+        self._env_vars.pop('PYTEST_CURRENT_TEST', None)

@@ -112,6 +112,47 @@ def get_packages():
     return packages
 
 
+def get_qt_requirements(qt_requirements, default='pyqt5'):
+    """
+    Return a list of requirements for the Qt binding according to the
+    environment variable SPYDER_QT_BINDING. If this variable is not set
+    or has an unsupported value it defaults to 'pyqt5'.
+
+    Parameters
+    ----------
+    qt_requirements : dict
+        A dictionary whose keys are supported Qt bindings and whose values are
+        lists of required packages to install for each binding.
+    default : str
+        Default Qt binding to use if the environment variable is not set.
+        Defaults to 'pyqt5'.
+
+    Raises
+    ------
+    ValueError
+        If the environment variable SPYDER_QT_BINDING has an unsupported value.
+
+    Returns
+    -------
+    install_requires : list
+        A list of required packages to install for the given Qt binding.
+    """
+    install_requires = []
+
+    # Check if a Qt binding is set in the environment and normalizes
+    env_qt_binding = os.environ.get('SPYDER_QT_BINDING', default)
+    env_qt_binding = env_qt_binding.lower()
+    install_requires = qt_requirements.get(env_qt_binding, None)
+
+    if install_requires is None:
+        raise ValueError(
+            f"Unsupported Qt binding: {env_qt_binding}. "
+            f"Supported: "  + ", ".join(qt_requirements.keys())
+        )
+
+    return install_requires
+
+
 # =============================================================================
 # Make Linux detect Spyder desktop file (will not work with wheels)
 # =============================================================================
@@ -201,66 +242,98 @@ setup_args = dict(
     cmdclass=CMDCLASS,
 )
 
+# Qt bindings requirements
+qt_requirements = {
+    'pyqt5': [
+        'pyqt5>=5.15,<5.16',
+        'pyqt5-sip<12.16; python_version=="3.8"',
+        'pyqtwebengine>=5.15,<5.16',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
+    'pyqt6': [
+        'pyqt6>=6.5,<7',
+        'pyqt6-webengine>=6.5,<7',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
+    'pyside6': [
+        'pyside6>=6.5,<7',
+        'qtconsole>=5.6.1,<5.7.0',
+    ],
+    'conda-forge': [
+        'qtconsole>=5.6.1,<5.7.0',
+    ]
+}
 
-install_requires = [
+# Get the proper requirements for the selected Qt binding
+install_requires = get_qt_requirements(qt_requirements, default='pyqt5')
+
+install_requires += [
+    'aiohttp>=3.9.3',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
+    'asyncssh>=2.14.0,<3.0.0',
     'atomicwrites>=1.2.0',
+    'bcrypt>=4.3.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
+    # While this is only required for python <3.10, it is safe enough to
+    # install in all cases and helps the tests to pass.
+    'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
     'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
     'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
+    'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
-    # Required to get SSH connections to remote kernels
-    'paramiko>=2.4.0;platform_system=="Windows"',
+    'packaging>=20.0',
     'parso>=0.7.0,<0.9.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
     'psutil>=5.3',
+    'pygithub>=2.3.0',
     'pygments>=2.0',
-    'pylint>=2.5.0,<3.1',
+    'pylint>=3.1,<4',
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
-    'pyqt5>=5.15,<5.16',
-    'pyqtwebengine>=5.15,<5.16',
-    'python-lsp-black>=1.2.0,<3.0.0',
-    'python-lsp-server[all]>=1.9.0,<1.10.0',
+    'python-lsp-black>=2.0.0,<3.0.0',
+    'python-lsp-server[all]>=1.12.2,<1.13.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq>=22.1.0',
+    'pyzmq>=24.0.0',
     'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
-    'qtawesome>=1.2.1',
-    'qtconsole>=5.5.0,<5.6.0',
+    'qtawesome>=1.4.0,<1.5.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
-    'setuptools>=49.6.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.0.0b2,<3.0.0b3',
-    'superqt>=0.6.1,<1.0.0',
+    'spyder-kernels>=3.1.0a1,<3.2.0',
+    'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
-    'watchdog>=0.10.3'
+    'watchdog>=0.10.3',
+    'yarl>=1.9.4',
 ]
 
 # Loosen constraints to ensure dev versions still work
 if 'dev' in __version__:
-    reqs_to_loosen = {'python-lsp-server[all]', 'qtconsole', 'spyder-kernels'}
+    reqs_to_loosen = {
+        'python-lsp-server[all]',
+        'qtconsole',
+        'qtconsole-base',
+        'spyder-kernels',
+    }
     install_requires = [req for req in install_requires
                         if req.split(">")[0] not in reqs_to_loosen]
-    install_requires.append('python-lsp-server[all]>=1.9.0,<1.11.0')
-    install_requires.append('qtconsole>=5.5.0,<5.7.0')
-    install_requires.append('spyder-kernels>=3.0.0b2,<3.1.0')
+
+    install_requires.append('python-lsp-server[all]>=1.12.2,<1.14.0')
+    install_requires.append('qtconsole>=5.5.1,<5.7.0')
 
 extras_require = {
-    'test:platform_system == "Windows"': ['pywin32'],
     'test': [
         'coverage',
         'cython',
@@ -268,13 +341,14 @@ extras_require = {
         'matplotlib',
         'pandas',
         'pillow',
-        'pytest<7.0',
+        'pytest<8.0',
         'pytest-cov',
         'pytest-lazy-fixture',
         'pytest-mock',
         'pytest-order',
         'pytest-qt',
         'pytest-timeout',
+        'pywin32;platform_system=="Windows"',
         'pyyaml',
         'scipy',
         'sympy',
@@ -306,12 +380,14 @@ spyder_plugins_entry_points = [
     'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
     'pythonpath_manager = spyder.plugins.pythonpath.plugin:PythonpathManager',
+    'remoteclient = spyder.plugins.remoteclient.plugin:RemoteClient',
     'run = spyder.plugins.run.plugin:Run',
     'shortcuts = spyder.plugins.shortcuts.plugin:Shortcuts',
     'statusbar = spyder.plugins.statusbar.plugin:StatusBar',
     'switcher = spyder.plugins.switcher.plugin:Switcher',
     'toolbar = spyder.plugins.toolbar.plugin:Toolbar',
     'tours = spyder.plugins.tours.plugin:Tours',
+    'update_manager = spyder.plugins.updatemanager.plugin:UpdateManager',
     'variable_explorer = spyder.plugins.variableexplorer.plugin:VariableExplorer',
     'workingdir = spyder.plugins.workingdirectory.plugin:WorkingDirectory',
 ]

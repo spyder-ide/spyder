@@ -17,6 +17,7 @@ from unittest.mock import Mock
 # Third party imports
 from flaky import flaky
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -25,6 +26,7 @@ from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
+from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
 
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri)
@@ -34,7 +36,7 @@ from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 # ---- Helpers
 def add_files(editorstack):
-    editorstack.close_action.setEnabled(False)
+    editorstack.close_split_action.setEnabled(False)
     editorstack.set_find_widget(Mock())
     editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
@@ -76,7 +78,8 @@ def editor_bot(base_editor_bot, request):
 @pytest.fixture
 def editor_splitter_bot(qtbot):
     """Create editor splitter."""
-    es = EditorSplitter(None, Mock(), [], first=True)
+    main_widget = Mock(wraps=EditorMainWidgetExample())
+    es = EditorSplitter(None, main_widget, [], first=True)
     qtbot.addWidget(es)
     es.show()
     yield es
@@ -87,7 +90,7 @@ def editor_splitter_bot(qtbot):
 def editor_splitter_layout_bot(editor_splitter_bot):
     """Create editor splitter for testing layouts."""
     es = editor_splitter_bot
-    es.plugin.clone_editorstack.side_effect = add_files
+    es.main_widget.clone_editorstack.side_effect = add_files
 
     # Setup editor info for this EditorStack.
     add_files(es.editorstack)
@@ -209,6 +212,7 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved = save_file_saved
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
     """Test EditorStack.file_saved_in_other_editorstack()."""
     es = editor_splitter_layout_bot
@@ -528,7 +532,7 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     """
     Test that EditorStack.save_as() sends the expected LSP requests.
 
-    Regression test for spyder-ide/spyder#13085 and spyder-ide/spyder#20047
+    Regression test for spyder-ide/spyder#13085 and spyder-ide/spyder#20047.
     """
     file_path, editorstack, code_editor, completion_plugin = completions_editor
 
@@ -572,8 +576,9 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
 
     # Check response by LSP
-    assert code_editor.handle_folding_range.call_args == \
-           mocker.call({'params': [(1, 3)]})
+    assert code_editor.handle_folding_range.call_args == mocker.call(
+        {"params": [{"startLine": 1, "endLine": 3}]}
+    )
 
     symbols = [
         {
@@ -664,8 +669,14 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # responded to the requests).
 
     # Check that LSP responded with updated folding and symbols information
-    assert code_editor.handle_folding_range.call_args == \
-           mocker.call({'params': [(1, 5), (7, 9)]})
+    assert code_editor.handle_folding_range.call_args == mocker.call(
+        {
+            "params": [
+                {"startLine": 1, "endLine": 5},
+                {"startLine": 7, "endLine": 9},
+            ]
+        }
+    )
 
     # There must be 7 symbols (2 functions and 5 variables)
     assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7

@@ -801,6 +801,7 @@ class MainWindow(QtWidgets.QMainWindow):
             colors='nocolor'
         elif styles.dark_style(syntax_style):
             colors='linux'
+            
         else:
             colors='lightbg'
         self.active_frontend.syntax_style = syntax_style
@@ -809,7 +810,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_frontend._syntax_style_changed()
         self.active_frontend._style_sheet_changed()
         self.active_frontend.reset(clear=True)
-        self.active_frontend._execute("%colors linux", True)
+        self.active_frontend._execute(
+f"""
+from IPython.core.ultratb import VerboseTB
+if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
+    VerboseTB.tb_highlight_style = '{syntax_style}'
+elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
+    VerboseTB._tb_highlight_style = '{syntax_style}'
+else:
+    get_ipython().run_line_magic('colors', '{colors}')
+""",
+            True)
+        
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)

@@ -3,7 +3,9 @@
 
 import logging
 import os
+
 from pylsp._utils import find_parents
+
 from .source import ConfigSource
 
 log = logging.getLogger(__name__)
@@ -25,6 +27,7 @@ OPTIONS = [
     # flake8
     ("exclude", "plugins.flake8.exclude", list),
     ("extend-ignore", "plugins.flake8.extendIgnore", list),
+    ("extend-select", "plugins.flake8.extendSelect", list),
     ("filename", "plugins.flake8.filename", list),
     ("hang-closing", "plugins.flake8.hangClosing", bool),
     ("ignore", "plugins.flake8.ignore", list),

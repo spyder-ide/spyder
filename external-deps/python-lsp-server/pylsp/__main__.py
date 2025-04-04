@@ -9,23 +9,23 @@ import time
 
 try:
     import ujson as json
-except Exception:  # pylint: disable=broad-except
+except Exception:
     import json
 
+from ._version import __version__
 from .python_lsp import (
     PythonLSPServer,
     start_io_lang_server,
     start_tcp_lang_server,
     start_ws_lang_server,
 )
-from ._version import __version__
 
 LOG_FORMAT = "%(asctime)s {0} - %(levelname)s - %(name)s - %(message)s".format(
     time.localtime().tm_zone
 )
 
 
-def add_arguments(parser):
+def add_arguments(parser) -> None:
     parser.description = "Python Language Server"
 
     parser.add_argument(
@@ -67,7 +67,7 @@ def add_arguments(parser):
     )
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     add_arguments(parser)
     args = parser.parse_args()
@@ -94,7 +94,7 @@ def _binary_stdio():
     return stdin, stdout
 
 
-def _configure_logger(verbose=0, log_config=None, log_file=None):
+def _configure_logger(verbose=0, log_config=None, log_file=None) -> None:
     root_logger = logging.root
 
     if log_config:

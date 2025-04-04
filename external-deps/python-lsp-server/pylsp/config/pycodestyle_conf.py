@@ -2,9 +2,10 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import pycodestyle
-from pylsp._utils import find_parents
-from .source import ConfigSource
 
+from pylsp._utils import find_parents
+
+from .source import ConfigSource
 
 CONFIG_KEY = "pycodestyle"
 USER_CONFIGS = [pycodestyle.USER_CONFIG] if pycodestyle.USER_CONFIG else []

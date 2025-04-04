@@ -486,42 +486,6 @@ spyder/widgets/github/tests/test_github_backend.py
 
 
 
-Githubpy 1.1.1
---------------
-
-
-Copyright 2014 Michael Liao (askxuefeng@gmail.com)
-
-
-Author: Micheal Liao | askxuefeng@gmail.com | https://www.liaoxuefeng.com/
-Site: https://github.liaoxuefeng.com/githubpy/
-Source: https://github.com/michaelliao/githubpy
-License: Apache License Version 2.0
-https://www.apache.org/licenses/LICENSE-2.0
-
-No modifications made.
-
-
-githubpy is distributed under Apache License 2.0. Enjoy!
-
-
-Also included unmodified as part of QCrash, listed above.
-
-See below for the full text of the Apache License Version 2.0.
-
-The current Githubpy license can be viewed at:
-https://github.com/michaelliao/githubpy/blob/master/LICENSE.txt
-
-
-Files covered:
-
-spyder/utils/external/github.py
-
-
--------------------------------------------------------------------------------
-
-
-
 Sphinxify (from the Sage Project)
 ---------------------------------
 

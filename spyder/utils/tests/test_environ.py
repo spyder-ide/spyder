@@ -18,15 +18,15 @@ import pytest
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.utils.environ import (get_user_environment_variables,
-                                  UserEnvDialog, amend_user_shell_init)
+from spyder.utils.environ import (
+    get_user_environment_variables, UserEnvDialog, amend_user_shell_init
+)
 from spyder.utils.test import close_message_box
-from spyder.app.tests.conftest import restore_user_env
 
 
 @pytest.fixture
 def environ_dialog(qtbot):
-    "Setup the Environment variables Dialog."
+    """Setup the Environment variables Dialog."""
     QTimer.singleShot(1000, lambda: close_message_box(qtbot))
     dialog = UserEnvDialog()
     qtbot.addWidget(dialog)
@@ -44,8 +44,10 @@ def test_get_user_environment_variables():
 
 @pytest.mark.skipif(os.name == "nt", reason="Does not apply to Windows")
 def test_get_user_env_newline(restore_user_env):
-    # Test variable value with newline characters.
-    # Regression test for spyder-ide#20097
+    """
+    Test variable value with newline characters.
+    Regression test for spyder-ide#20097.
+    """
     text = "myfunc() {  echo hello;\n echo world\n}\nexport -f myfunc"
     amend_user_shell_init(text)
     user_env = get_user_environment_variables()

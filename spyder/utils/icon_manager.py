@@ -17,9 +17,9 @@ from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
-from spyder.utils.encoding import is_text_file
-from spyder.utils.palette import QStylePalette, SpyderPalette
+from spyder.utils.palette import SpyderPalette
 import qtawesome as qta
 
 
@@ -49,8 +49,7 @@ class IconManager():
 
         self.ICONS_BY_EXTENSION = {}
 
-        # Magnification factors for attribute icons
-        # per platform
+        # Magnification factors for attribute icons per platform
         if sys.platform.startswith('linux'):
             self.BIG_ATTR_FACTOR = 1.0
             self.SMALL_ATTR_FACTOR = 0.9
@@ -143,12 +142,11 @@ class IconManager():
             'arrow-step-in':           [('mdi.debug-step-into',), {'color': SpyderPalette.ICON_2}],
             'arrow-step-out':          [('mdi.debug-step-out',), {'color': SpyderPalette.ICON_2}],
             'stop_debug':              [('mdi.stop',), {'color': SpyderPalette.ICON_2}],
-            'enter_debug':             [('mdi.location-enter',), {'color': SpyderPalette.ICON_2}],
             'run':                     [('mdi.play',), {'color': SpyderPalette.ICON_3}],
             'todo_list':               [('mdi.check-bold',), {'color': self.MAIN_FG_COLOR}],
-            'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
-            'prev_wng':                [('mdi.arrow-left',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
-            'next_wng':                [('mdi.arrow-right',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': QStylePalette.COLOR_TEXT_4}]}],
+            'wng_list':                [('mdi.alert',), {'options': [{'color': SpyderPalette.COLOR_WARN_2, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
+            'prev_wng':                [('mdi.arrow-left',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
+            'next_wng':                [('mdi.arrow-right',), {'options': [{'color': SpyderPalette.ICON_1, 'color_disabled': SpyderPalette.COLOR_TEXT_4}]}],
             'prev_cursor':             [('mdi.hand-pointing-left',), {'color': self.MAIN_FG_COLOR}],
             'next_cursor':             [('mdi.hand-pointing-right',), {'color': self.MAIN_FG_COLOR}],
             'comment':                 [('mdi.comment-text-outline',), {'color': self.MAIN_FG_COLOR}],
@@ -168,7 +166,10 @@ class IconManager():
             'findf':                   [('mdi.file-find-outline',), {'color': self.MAIN_FG_COLOR}],
             'history':                 [('mdi.history',), {'color': self.MAIN_FG_COLOR}],
             'files':                   [('mdi.file-multiple',), {'color': self.MAIN_FG_COLOR}],
-            'help_gray':               [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_OCCURRENCE_4}],            
+            'question_tip':            [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_BACKGROUND_6}],
+            'question_tip_hover':      [('mdi.help-circle-outline',), {'color': SpyderPalette.COLOR_TEXT_4}],
+            'info_tip':                [('mdi.information-outline',), {'color': SpyderPalette.COLOR_BACKGROUND_6}],
+            'info_tip_hover':          [('mdi.information-outline',), {'color': SpyderPalette.COLOR_TEXT_4}],
             'help':                    [('mdi.help-circle',), {'color': self.MAIN_FG_COLOR}],
             'online_help':             [('mdi.help-rhombus-outline',), {'color': self.MAIN_FG_COLOR}],
             'lock':                    [('mdi.lock',), {'color': self.MAIN_FG_COLOR}],
@@ -202,6 +203,7 @@ class IconManager():
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
+            'plot.fit_to_pane':        [('mdi6.fit-to-screen',), {'color': self.MAIN_FG_COLOR}],
             'hist':                    [('mdi.chart-histogram',), {'color': self.MAIN_FG_COLOR}],
             'imshow':                  [('mdi.image',), {'color': self.MAIN_FG_COLOR}],
             'insert':                  [('mdi.login',), {'color': self.MAIN_FG_COLOR}],
@@ -212,6 +214,8 @@ class IconManager():
             'rename':                  [('mdi.rename-box',), {'color': self.MAIN_FG_COLOR}],
             'move':                    [('mdi.file-move',), {'color': self.MAIN_FG_COLOR}],
             'edit_add':                [('mdi.plus-box',), {'color': self.MAIN_FG_COLOR}],
+            'select_row':              [('mdi.plus-box-outline',), {'color': self.MAIN_FG_COLOR}],
+            'deselect_row':            [('mdi.minus-box-outline',), {'color': self.MAIN_FG_COLOR}],
             'duplicate_row':           [('ph.rows',), {'color': self.MAIN_FG_COLOR}],
             'duplicate_column':        [('ph.columns',), {'color': self.MAIN_FG_COLOR}],
             'collapse_column':         [('mdi.arrow-collapse-horizontal',), {'color': self.MAIN_FG_COLOR}],
@@ -243,9 +247,10 @@ class IconManager():
             'DirClosedIcon':           [('mdi.folder',), {'color': self.MAIN_FG_COLOR}],
             'DialogHelpButton':        [('mdi.lifebuoy',), {'color': self.MAIN_FG_COLOR}],
             'VideoIcon':               [('mdi.video',), {'color': self.MAIN_FG_COLOR}],
-            'MessageBoxInformation':   [('mdi.information',), {'color': self.MAIN_FG_COLOR}],
+            'MessageBoxInformation':   [('mdi.information-outline',), {'color': self.MAIN_FG_COLOR}],
             'DirOpenIcon':             [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
             'FileIcon':                [('mdi.file',), {'color': self.MAIN_FG_COLOR}],
+            'GenericFileIcon':         [('mdi.file-outline',), {'color': self.MAIN_FG_COLOR}],
             'ExcelFileIcon':           [('mdi.file-excel',), {'color': self.MAIN_FG_COLOR}],
             'WordFileIcon':            [('mdi.file-word',), {'color': self.MAIN_FG_COLOR}],
             'PowerpointFileIcon':      [('mdi.file-powerpoint',), {'color': self.MAIN_FG_COLOR}],
@@ -269,8 +274,7 @@ class IconManager():
             'MarkdownFileIcon':        [('mdi.markdown',), {'color': self.MAIN_FG_COLOR}],
             'JsonFileIcon':            [('mdi.json',), {'color': self.MAIN_FG_COLOR}],
             'ExclamationFileIcon':     [('mdi.exclamation',), {'color': self.MAIN_FG_COLOR}],
-            'CodeFileIcon':             [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
-            'project':                 [('mdi.folder-open',), {'color': self.MAIN_FG_COLOR}],
+            'CodeFileIcon':            [('mdi.xml',), {'color': self.MAIN_FG_COLOR}],
             'arrow':                   [('mdi.arrow-right-bold',), {'color': self.MAIN_FG_COLOR}],
             'collapse':                [('mdi.collapse-all',), {'color': self.MAIN_FG_COLOR}],
             'expand':                  [('mdi.expand-all',), {'color': self.MAIN_FG_COLOR}],
@@ -286,9 +290,12 @@ class IconManager():
             '1uparrow':                [('mdi.arrow-up',), {'color': self.MAIN_FG_COLOR}],
             '2downarrow':              [('mdi.arrow-collapse-down',), {'color': self.MAIN_FG_COLOR}],
             '1downarrow':              [('mdi.arrow-down',), {'color': self.MAIN_FG_COLOR}],
+            'prepend':                 [('mdi.arrow-collapse-left',), {'color': self.MAIN_FG_COLOR}],
+            'append':                  [('mdi.arrow-collapse-right',), {'color': self.MAIN_FG_COLOR}],
             'undock':                  [('mdi.open-in-new',), {'color': self.MAIN_FG_COLOR}],
             'close_pane':              [('mdi.window-close',), {'color': self.MAIN_FG_COLOR}],
             'toolbar_ext_button':      [('mdi.dots-horizontal',), {'color': self.MAIN_FG_COLOR}],
+            'inapp_appeal':            [('mdi6.heart',), {'color': SpyderPalette.COLOR_HEART}],
             # --- Autocompletion/document symbol type icons --------------
             'completions':             [('mdi.code-tags-check',), {'color': self.MAIN_FG_COLOR}],
             'keyword':                 [('mdi.alpha-k-box',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.BIG_ATTR_FACTOR}],
@@ -346,13 +353,11 @@ class IconManager():
             'spyder.memory_profiler':  [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.line_profiler':    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'symbol_find':             [('mdi.at',), {'color': self.MAIN_FG_COLOR}],
-            'folding.arrow_right_off': [('mdi.menu-right',), {'color': SpyderPalette.GROUP_3}],
-            'folding.arrow_right_on':  [('mdi.menu-right',), {'color': self.MAIN_FG_COLOR}],
-            'folding.arrow_down_off':  [('mdi.menu-down',), {'color': SpyderPalette.GROUP_3}],
-            'folding.arrow_down_on':   [('mdi.menu-down',), {'color': self.MAIN_FG_COLOR}],
-            'lspserver.down':          [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
+            'folding.arrow_right':     [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
+            'folding.arrow_down':      [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR}],
+            'lspserver.down':          [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'lspserver.ready':         [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
-            'dependency_ok':           [('mdi.check',), {'color': self.MAIN_FG_COLOR}],
+            'dependency_ok':           [('mdi.check',), {'color': SpyderPalette.COLOR_SUCCESS_2}],
             'dependency_warning':      [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],
             'dependency_error':        [('mdi.alert',), {'color': SpyderPalette.COLOR_ERROR_1}],
             'broken_image':            [('mdi.image-broken-variant',), {'color': self.MAIN_FG_COLOR}],
@@ -373,6 +378,12 @@ class IconManager():
             'print.single_page':       [('mdi.file-document-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.all_pages':         [('mdi.file-document-multiple-outline',), {'color': self.MAIN_FG_COLOR}],
             'print.page_setup':        [('mdi.ruler-square',), {'color': self.MAIN_FG_COLOR}],
+            # --- Remote connections ----------------------------------------------
+            'add_server':              [('mdi.server-plus',), {'color': self.MAIN_FG_COLOR}],
+            'remote_server':           [('mdi.server-network',), {'color': self.MAIN_FG_COLOR}],
+            # --- For our collapsed widget
+            'collapsed':               [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.3}],
+            'expanded':                [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.3}],
         }
 
     def get_std_icon(self, name, size=None):
@@ -425,7 +436,7 @@ class IconManager():
 
             # -- Disabled state
             # Taken from https://stackoverflow.com/a/65618075/438386
-            disabled_color = QColor(QStylePalette.COLOR_DISABLED)
+            disabled_color = QColor(SpyderPalette.COLOR_DISABLED)
             disabled_state = wrapping_icon.pixmap(512, 512)
             qp = QPainter(disabled_state)
             qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
@@ -451,7 +462,7 @@ class IconManager():
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:
                     kwargs['scale_factor'] = scale_factor
-                kwargs['color_disabled'] = QStylePalette.COLOR_DISABLED
+                kwargs['color_disabled'] = SpyderPalette.COLOR_DISABLED
                 return qta.icon(*args, **kwargs)
             except KeyError:
                 # Load custom icons
@@ -482,9 +493,9 @@ class IconManager():
             return self.ICONS_BY_EXTENSION[(extension, scale_factor)]
 
         if osp.isdir(fname):
-            icon_by_extension = self.icon('DirOpenIcon', scale_factor)
+            icon_by_extension = self.icon('DirClosedIcon', scale_factor)
         else:
-            icon_by_extension = self.icon('binary')
+            icon_by_extension = self.icon('GenericFileIcon')
 
             if extension in self.OFFICE_FILES:
                 icon_by_extension = self.icon(
@@ -497,7 +508,7 @@ class IconManager():
                     icon_by_extension = self.icon('notebook')
                 elif extension == '.tex':
                     icon_by_extension = self.icon('file_type_tex')
-                elif is_text_file(fname):
+                elif extension in EDIT_EXTENSIONS:
                     icon_by_extension = self.icon('TextFileIcon', scale_factor)
                 elif mime_type is not None:
                     try:

@@ -1,19 +1,19 @@
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 
+import functools
 import io
 import logging
-from contextlib import contextmanager
 import os
 import re
 import uuid
-import functools
-from typing import Literal, Optional, Generator, Callable, List
+from contextlib import contextmanager
 from threading import RLock
+from typing import Callable, Generator, List, Optional
 
 import jedi
 
-from . import lsp, uris, _utils
+from . import _utils, lsp, uris
 
 log = logging.getLogger(__name__)
 
@@ -36,15 +36,14 @@ def lock(method):
 
 
 class Workspace:
-    # pylint: disable=too-many-public-methods
-
     M_PUBLISH_DIAGNOSTICS = "textDocument/publishDiagnostics"
     M_PROGRESS = "$/progress"
     M_INITIALIZE_PROGRESS = "window/workDoneProgress/create"
     M_APPLY_EDIT = "workspace/applyEdit"
     M_SHOW_MESSAGE = "window/showMessage"
+    M_LOG_MESSAGE = "window/logMessage"
 
-    def __init__(self, root_uri, endpoint, config=None):
+    def __init__(self, root_uri, endpoint, config=None) -> None:
         self._config = config
         self._root_uri = root_uri
         self._endpoint = endpoint
@@ -58,33 +57,21 @@ class Workspace:
         # Whilst incubating, keep rope private
         self.__rope = None
         self.__rope_config = None
-
-        # We have a sperate AutoImport object for each feature to avoid sqlite errors
-        # from accessing the same database from multiple threads.
-        # An upstream fix discussion is here: https://github.com/python-rope/rope/issues/713
-        self.__rope_autoimport = (
-            {}
-        )  # Type: Dict[Literal["completions", "code_actions"], rope.contrib.autoimport.sqlite.AutoImport]
+        self.__rope_autoimport = None
 
     def _rope_autoimport(
         self,
         rope_config: Optional,
         memory: bool = False,
-        feature: Literal["completions", "code_actions"] = "completions",
     ):
-        # pylint: disable=import-outside-toplevel
         from rope.contrib.autoimport.sqlite import AutoImport
 
-        if feature not in ["completions", "code_actions"]:
-            raise ValueError(f"Unknown feature {feature}")
-
-        if self.__rope_autoimport.get(feature, None) is None:
+        if self.__rope_autoimport is None:
             project = self._rope_project_builder(rope_config)
-            self.__rope_autoimport[feature] = AutoImport(project, memory=memory)
-        return self.__rope_autoimport[feature]
+            self.__rope_autoimport = AutoImport(project, memory=memory)
+        return self.__rope_autoimport
 
     def _rope_project_builder(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base.project import Project
 
         # TODO: we could keep track of dirty files and validate only those
@@ -132,20 +119,20 @@ class Workspace:
     def get_maybe_document(self, doc_uri):
         return self._docs.get(doc_uri)
 
-    def put_document(self, doc_uri, source, version=None):
+    def put_document(self, doc_uri, source, version=None) -> None:
         self._docs[doc_uri] = self._create_document(
             doc_uri, source=source, version=version
         )
 
     def put_notebook_document(
         self, doc_uri, notebook_type, cells, version=None, metadata=None
-    ):
+    ) -> None:
         self._docs[doc_uri] = self._create_notebook_document(
             doc_uri, notebook_type, cells, version, metadata
         )
 
     @contextmanager
-    def temp_document(self, source, path=None):
+    def temp_document(self, source, path=None) -> None:
         if path is None:
             path = self.root_path
         uri = uris.from_fs_path(os.path.join(path, str(uuid.uuid4())))
@@ -155,26 +142,26 @@ class Workspace:
         finally:
             self.rm_document(uri)
 
-    def add_notebook_cells(self, doc_uri, cells, start):
+    def add_notebook_cells(self, doc_uri, cells, start) -> None:
         self._docs[doc_uri].add_cells(cells, start)
 
-    def remove_notebook_cells(self, doc_uri, start, delete_count):
+    def remove_notebook_cells(self, doc_uri, start, delete_count) -> None:
         self._docs[doc_uri].remove_cells(start, delete_count)
 
-    def update_notebook_metadata(self, doc_uri, metadata):
+    def update_notebook_metadata(self, doc_uri, metadata) -> None:
         self._docs[doc_uri].metadata = metadata
 
     def put_cell_document(
         self, doc_uri, notebook_uri, language_id, source, version=None
-    ):
+    ) -> None:
         self._docs[doc_uri] = self._create_cell_document(
             doc_uri, notebook_uri, language_id, source, version
         )
 
-    def rm_document(self, doc_uri):
+    def rm_document(self, doc_uri) -> None:
         self._docs.pop(doc_uri)
 
-    def update_document(self, doc_uri, change, version=None):
+    def update_document(self, doc_uri, change, version=None) -> None:
         self._docs[doc_uri].apply_change(change)
         self._docs[doc_uri].version = version
 
@@ -190,10 +177,18 @@ class Workspace:
     def apply_edit(self, edit):
         return self._endpoint.request(self.M_APPLY_EDIT, {"edit": edit})
 
-    def publish_diagnostics(self, doc_uri, diagnostics):
+    def publish_diagnostics(self, doc_uri, diagnostics, doc_version=None) -> None:
+        params = {
+            "uri": doc_uri,
+            "diagnostics": diagnostics,
+        }
+
+        if doc_version:
+            params["version"] = doc_version
+
         self._endpoint.notify(
             self.M_PUBLISH_DIAGNOSTICS,
-            params={"uri": doc_uri, "diagnostics": diagnostics},
+            params=params,
         )
 
     @contextmanager
@@ -246,7 +241,6 @@ class Workspace:
         def dummy_progress_message(
             message: str, percentage: Optional[int] = None
         ) -> None:
-            # pylint: disable=unused-argument
             pass
 
         yield dummy_progress_message
@@ -265,7 +259,7 @@ class Workspace:
                 self._endpoint.request(
                     self.M_INITIALIZE_PROGRESS, {"token": token}
                 ).result(timeout=1.0)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:
                 log.warning(
                     "There was an error while trying to initialize progress reporting."
                     "Likely progress reporting was used in a synchronous LSP handler, "
@@ -331,7 +325,12 @@ class Workspace:
             },
         )
 
-    def show_message(self, message, msg_type=lsp.MessageType.Info):
+    def log_message(self, message, msg_type=lsp.MessageType.Info):
+        self._endpoint.notify(
+            self.M_LOG_MESSAGE, params={"type": msg_type, "message": message}
+        )
+
+    def show_message(self, message, msg_type=lsp.MessageType.Info) -> None:
         self._endpoint.notify(
             self.M_SHOW_MESSAGE, params={"type": msg_type, "message": message}
         )
@@ -387,9 +386,9 @@ class Workspace:
             rope_project_builder=self._rope_project_builder,
         )
 
-    def close(self):
-        for _, autoimport in self.__rope_autoimport.items():
-            autoimport.close()
+    def close(self) -> None:
+        if self.__rope_autoimport:
+            self.__rope_autoimport.close()
 
 
 class Document:
@@ -402,7 +401,7 @@ class Document:
         local=True,
         extra_sys_path=None,
         rope_project_builder=None,
-    ):
+    ) -> None:
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
@@ -422,7 +421,6 @@ class Document:
         return str(self.uri)
 
     def _rope_resource(self, rope_config):
-        # pylint: disable=import-outside-toplevel
         from rope.base import libutils
 
         return libutils.path_to_resource(
@@ -442,7 +440,7 @@ class Document:
                 return f.read()
         return self._source
 
-    def update_config(self, settings):
+    def update_config(self, settings) -> None:
         self._config.update((settings or {}).get("pylsp", {}))
 
     @lock
@@ -523,6 +521,7 @@ class Document:
         extra_paths = []
         environment_path = None
         env_vars = None
+        prioritize_extra_paths = False
 
         if self._config:
             jedi_settings = self._config.plugin_settings(
@@ -539,19 +538,19 @@ class Document:
 
             extra_paths = jedi_settings.get("extra_paths") or []
             env_vars = jedi_settings.get("env_vars")
+            prioritize_extra_paths = jedi_settings.get("prioritize_extra_paths")
 
-        # Drop PYTHONPATH from env_vars before creating the environment because that makes
-        # Jedi throw an error.
+        # Drop PYTHONPATH from env_vars before creating the environment to
+        # ensure that Jedi can startup properly without module name collision.
         if env_vars is None:
             env_vars = os.environ.copy()
         env_vars.pop("PYTHONPATH", None)
 
-        environment = (
-            self.get_enviroment(environment_path, env_vars=env_vars)
-            if environment_path
-            else None
+        environment = self.get_enviroment(environment_path, env_vars=env_vars)
+        sys_path = self.sys_path(
+            environment_path, env_vars, prioritize_extra_paths, extra_paths
         )
-        sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
+
         project_path = self._workspace.root_path
 
         # Extend sys_path with document's path if requested
@@ -561,7 +560,7 @@ class Document:
         kwargs = {
             "code": self.source,
             "path": self.path,
-            "environment": environment,
+            "environment": environment if environment_path else None,
             "project": jedi.Project(path=project_path, sys_path=sys_path),
         }
 
@@ -586,14 +585,24 @@ class Document:
 
         return environment
 
-    def sys_path(self, environment_path=None, env_vars=None):
+    def sys_path(
+        self,
+        environment_path=None,
+        env_vars=None,
+        prioritize_extra_paths=False,
+        extra_paths=[],
+    ):
         # Copy our extra sys path
-        # TODO: when safe to break API, use env_vars explicitly to pass to create_environment
         path = list(self._extra_sys_path)
         environment = self.get_enviroment(
             environment_path=environment_path, env_vars=env_vars
         )
         path.extend(environment.get_sys_path())
+        if prioritize_extra_paths:
+            path += extra_paths + path
+        else:
+            path += path + extra_paths
+
         return path
 
 
@@ -602,7 +611,7 @@ class Notebook:
 
     def __init__(
         self, uri, notebook_type, workspace, cells=None, version=None, metadata=None
-    ):
+    ) -> None:
         self.uri = uri
         self.notebook_type = notebook_type
         self.workspace = workspace
@@ -663,7 +672,7 @@ class Notebook:
             names.update(cell_document.jedi_names(all_scopes, definitions, references))
             if cell_uri == up_to_cell_uri:
                 break
-        return set(name.name for name in names)
+        return {name.name for name in names}
 
 
 class Cell(Document):
@@ -687,7 +696,7 @@ class Cell(Document):
         local=True,
         extra_sys_path=None,
         rope_project_builder=None,
-    ):
+    ) -> None:
         super().__init__(
             uri, workspace, source, version, local, extra_sys_path, rope_project_builder
         )

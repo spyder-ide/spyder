@@ -6,113 +6,301 @@
 
 """Status bar widgets."""
 
+# Standard library imports
+import functools
+import logging
+import os
+import sys
+import textwrap
+
+# Third-party imports
+from IPython.core import release as ipython_release
+from qtpy.QtCore import QPoint, Signal
+from qtpy.QtGui import QFontMetrics
+from spyder_kernels.comms.frontendcomm import CommError
+from spyder_kernels.utils.pythonenv import PythonEnvInfo, PythonEnvType
+
 # Local imports
-from spyder.api.shellconnect.mixins import ShellConnectMixin
-from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _
+from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
+from spyder.api.translations import _
+from spyder.api.widgets.menus import SpyderMenu
+from spyder.config.base import running_in_ci
+from spyder.utils.qthelpers import add_actions, create_action
+from spyder.utils.stylesheet import MAC, WIN
 
 
-class MatplotlibStatus(StatusBarWidget, ShellConnectMixin):
+logger = logging.getLogger(__name__)
+
+
+class MatplotlibStatus(ShellConnectStatusBarWidget):
     """Status bar widget for current Matplotlib backend."""
 
     ID = "matplotlib_status"
     CONF_SECTION = 'ipython_console'
+    INTERACT_ON_CLICK = True
 
     def __init__(self, parent):
         super().__init__(parent)
+
         self._gui = None
-        self._shellwidget_dict = {}
-        self._current_id = None
+        self._interactive_gui = None
 
         # Signals
         self.sig_clicked.connect(self.toggle_matplotlib)
 
+    # ---- StatusBarWidget API
+    # -------------------------------------------------------------------------
     def get_tooltip(self):
-        """Return localized tool tip for widget."""
-        return _("Click to toggle between inline and interactive plotting")
+        """Return localized tooltip for widget."""
+        msg = _(
+            "Click to toggle between inline and interactive Matplotlib "
+            "plotting"
+        )
+        msg = '\n'.join(textwrap.wrap(msg, width=40))
+        return msg
 
+    def get_icon(self):
+        return self.create_icon('plot')
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def toggle_matplotlib(self):
         """Toggle matplotlib interactive backend."""
-        if self._current_id is None or self._gui == 'failed':
+        if self.current_shellwidget is None or self._gui is None:
             return
-        backend = "inline" if self._gui != "inline" else "auto"
-        sw = self._shellwidget_dict[self._current_id]["widget"]
+
+        if self._gui != "inline":
+            # Switch to inline for any backend that is not inline
+            backend = "inline"
+            self._interactive_gui = self._gui
+        else:
+            if self._interactive_gui is None:
+                # Use the auto backend in case the interactive backend hasn't
+                # been set yet
+                backend = "auto"
+            else:
+                # Always use the interactive backend otherwise
+                backend = self._interactive_gui
+
+        sw = self.current_shellwidget
         sw.execute("%matplotlib " + backend)
-        is_spyder_kernel = self._shellwidget_dict[self._current_id][
-            "widget"].is_spyder_kernel
+        is_spyder_kernel = sw.is_spyder_kernel
+
         if not is_spyder_kernel:
             self.update_matplotlib_gui(backend)
 
-    def update_matplotlib_gui(self, gui, shellwidget_id=None):
+    def update_matplotlib_gui(self, gui, shellwidget=None):
         """Update matplotlib interactive."""
-        if shellwidget_id is None:
-            shellwidget_id = self._current_id
-            if shellwidget_id is None:
+        if shellwidget is None:
+            shellwidget = self.current_shellwidget
+            if shellwidget is None:
                 return
 
-        if shellwidget_id in self._shellwidget_dict:
-            self._shellwidget_dict[shellwidget_id]["gui"] = gui
-            if shellwidget_id == self._current_id:
-                self.update(gui)
+        if shellwidget in self.shellwidget_to_status:
+            self.shellwidget_to_status[shellwidget] = gui
+            if shellwidget == self.current_shellwidget:
+                self.update_status(gui)
 
-    def update(self, gui):
+    # ---- ShellConnectStatusBarWidget API
+    # -------------------------------------------------------------------------
+    def update_status(self, gui):
         """Update interactive state."""
+        logger.debug(f"Setting Matplotlib backend to {gui}")
+
+        if self._interactive_gui is None and gui != "inline":
+            self._interactive_gui = gui
         self._gui = gui
+
         if gui == "inline":
             text = _("Inline")
-        elif gui == 'failed':
-            text = _('No backend')
+        elif gui == "auto":
+            text = _("Automatic")
+        elif gui == "macosx":
+            text = "macOS"
         else:
-            text = _("Interactive")
+            text = gui.capitalize()
+
         self.set_value(text)
-
-    def add_shellwidget(self, shellwidget):
-        """Add shellwidget."""
-        shellwidget.sig_config_spyder_kernel.connect(
-            lambda sw=shellwidget: self.config_spyder_kernel(sw)
-        )
-
-        backend = self.get_conf('pylab/backend')
-        swid = id(shellwidget)
-        self._shellwidget_dict[swid] = {
-            "gui": backend,
-            "widget": shellwidget,
-        }
-        self.set_shellwidget(shellwidget)
 
     def config_spyder_kernel(self, shellwidget):
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "update_matplotlib_gui",
-            lambda gui, sid=id(shellwidget):
-                self.update_matplotlib_gui(gui, sid)
+            functools.partial(
+                self.update_matplotlib_gui, shellwidget=shellwidget
+            )
         )
         shellwidget.set_kernel_configuration("update_gui", True)
 
-    def set_shellwidget(self, shellwidget):
-        """Set current shellwidget."""
-        self._current_id = None
-        shellwidget_id = id(shellwidget)
-        if shellwidget_id in self._shellwidget_dict:
-            self.update(self._shellwidget_dict[shellwidget_id]["gui"])
-            self._current_id = shellwidget_id
+    def on_kernel_start(self, shellwidget):
+        """Actions to take when the kernel starts."""
+        # Reset value of interactive backend
+        self._interactive_gui = None
+
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
+            mpl_backend = "inline"
+        else:
+            # Needed when the comm is not connected.
+            # Fixes spyder-ide/spyder#22194
+            try:
+                mpl_backend = shellwidget.get_matplotlib_backend()
+            except CommError:
+                mpl_backend = None
+
+        # Associate detected backend to shellwidget
+        self.shellwidget_to_status[shellwidget] = mpl_backend
+
+        # Hide widget if Matplotlib is not available or failed to import in the
+        # kernel
+        if mpl_backend is None:
+            self.hide()
+        else:
+            self.set_shellwidget(shellwidget)
+            self.show()
+
+        # Ask the kernel to update the current backend, in case it has changed
+        shellwidget.set_kernel_configuration("update_gui", True)
 
     def remove_shellwidget(self, shellwidget):
-        """Remove shellwidget."""
+        """
+        Overridden method to remove the call handler registered by this widget.
+        """
         shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
             "update_matplotlib_gui"
         )
-        shellwidget_id = id(shellwidget)
-        if shellwidget_id in self._shellwidget_dict:
-            del self._shellwidget_dict[shellwidget_id]
+        super().remove_shellwidget(shellwidget)
 
-    def add_errored_shellwidget(self, shellwidget):
-        """Add errored shellwidget."""
-        swid = id(shellwidget)
-        self._shellwidget_dict[swid] = {
-            "gui": 'failed',
-            "widget": shellwidget,
-        }
-        self.set_shellwidget(shellwidget)
 
-    def get_icon(self):
-        return self.create_icon('plot')
+class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
+    """
+    Status bar widget for displaying the Python environment used by the current
+    console.
+    """
+
+    ID = 'pythonenv_status'
+    CONF_SECTION = 'ipython_console'
+    INTERACT_ON_CLICK = True
+
+    sig_interpreter_changed = Signal(str)
+
+    sig_open_preferences_requested = Signal()
+    """
+    Signal to open the main interpreter preferences.
+    """
+
+    def __init__(self, parent):
+        self._current_env_info: PythonEnvInfo | None = None
+        super().__init__(parent)
+        self.menu = SpyderMenu(self)
+        self.sig_clicked.connect(self.show_menu)
+
+    # ---- StatusBarWidget API
+    # -------------------------------------------------------------------------
+    def get_tooltip(self):
+        return self._current_env_info["path"] if self._current_env_info else ""
+
+    # ---- ShellConnectStatusBarWidget API
+    # -------------------------------------------------------------------------
+    def update_status(self, env_info: dict):
+        """Update env info."""
+        if (
+            # There's no need to emit this signal for remote consoles because
+            # other plugins can only react to local interpreter changes.
+            not self.current_shellwidget.is_remote()
+            and env_info != self._current_env_info
+        ):
+            new_interpreter = env_info["path"]
+            logger.debug(f"Console interpreter changed to {new_interpreter}")
+            self.sig_interpreter_changed.emit(new_interpreter)
+
+        self._current_env_info = env_info
+
+        if env_info["env_type"] == PythonEnvType.Conda:
+            env_type = "Conda"
+        elif env_info["env_type"] == PythonEnvType.PyEnv:
+            env_type = "Pyenv"
+        else:
+            env_type = _("Custom")
+
+        # The format to display is:
+        # env_type: env_name (Python python_version)
+        text = (
+            env_type
+            + ": "
+            + env_info["name"]
+            + " (Python "
+            + env_info["python_version"]
+            + ")"
+        )
+        self.set_value(text)
+
+    def on_kernel_start(self, shellwidget):
+        """Actions to take when the kernel starts."""
+        # Avoid errors when running our test suite on Mac and Windows.
+        # On Windows the following error appears:
+        # `spyder_kernels.comms.commbase.CommError: The comm is not connected.`
+        if running_in_ci() and not sys.platform.startswith("linux"):
+            env_info = PythonEnvInfo(
+                path=sys.executable,
+                env_type=PythonEnvType.Conda,
+                name="foo",
+                python_version=".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                ),
+                ipython_version=ipython_release.version,
+                sys_version=sys.version,
+            )
+        else:
+            # Handle any possible error.
+            try:
+                env_info = shellwidget.get_pythonenv_info()
+            except Exception:
+                env_info = None
+
+        # Associate env info to shellwidget
+        self.shellwidget_to_status[shellwidget] = env_info
+
+        # Update status
+        if env_info is None:
+            self.hide()
+        else:
+            self.set_shellwidget(shellwidget)
+            self.show()
+
+    def show_menu(self):
+        """Display a menu when clicking on the widget."""
+        self.menu.clear_actions()
+        text = _("Change default environment in Preferences...")
+        change_action = self.create_action(
+            "change_environment",
+            text=text,
+            triggered=self.open_interpreter_preferences,
+            register_action=False,
+        )
+        self.add_item_to_menu(change_action, self.menu)
+
+        x_offset = (
+            # Margin of menu items to left and right
+            2 * SpyderMenu.HORIZONTAL_MARGIN_FOR_ITEMS
+            # Padding of menu items to left and right
+            + 2 * SpyderMenu.HORIZONTAL_PADDING_FOR_ITEMS
+        )
+        y_offset = 4 if MAC else (3 if WIN else 2)
+
+        metrics = QFontMetrics(self.font())
+        rect = self.contentsRect()
+        pos = self.mapToGlobal(
+            rect.topLeft()
+            + QPoint(
+                -metrics.width(text) // 2 + x_offset,
+                -2 * self.parent().height() + y_offset,
+            )
+        )
+
+        self.menu.popup(pos)
+
+    def open_interpreter_preferences(self):
+        """Request to open the main interpreter preferences."""
+        self.sig_open_preferences_requested.emit()

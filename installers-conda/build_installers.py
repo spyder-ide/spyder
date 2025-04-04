@@ -25,15 +25,16 @@ CONSTRUCTOR_SIGNING_CERTIFICATE:
 # Standard library imports
 from argparse import ArgumentParser
 from datetime import timedelta
-from distutils.spawn import find_executable
 from functools import partial
 import json
 from logging import getLogger
 import os
+from packaging.version import parse
 from pathlib import Path
 import platform
 import re
-from subprocess import check_call
+import shutil
+from subprocess import run
 import sys
 from textwrap import dedent, indent
 from time import time
@@ -41,9 +42,10 @@ import zipfile
 
 # Third-party imports
 from ruamel.yaml import YAML
+from setuptools_scm import get_version
 
 # Local imports
-from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h, get_version
+from build_conda_pkgs import HERE, BUILD, RESOURCES, SPECS, h
 
 DIST = HERE / "dist"
 
@@ -56,34 +58,28 @@ SPYREPO = HERE.parent
 WINDOWS = os.name == "nt"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
-TARGET_PLATFORM = os.environ.get("CONSTRUCTOR_TARGET_PLATFORM")
+CONDA_BLD_PATH = os.getenv("CONDA_BLD_PATH", "local")
 PY_VER = "{v.major}.{v.minor}.{v.micro}".format(v=sys.version_info)
+SPYVER = get_version(SPYREPO).split("+")[0]
 
-if TARGET_PLATFORM == "osx-arm64":
-    ARCH = "arm64"
-else:
-    ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
 if WINDOWS:
     OS = "Windows"
+    TARGET_PLATFORM = "win-"
     INSTALL_CHOICES = ["exe"]
 elif LINUX:
     OS = "Linux"
+    TARGET_PLATFORM = "linux-"
     INSTALL_CHOICES = ["sh"]
 elif MACOS:
     OS = "macOS"
+    TARGET_PLATFORM = "osx-"
     INSTALL_CHOICES = ["pkg", "sh"]
 else:
     raise RuntimeError(f"Unrecognized OS: {sys.platform}")
 
-scientific_packages = {
-    "cython": "",
-    "matplotlib": "",
-    "numpy": "",
-    "openpyxl": "",
-    "pandas": "",
-    "scipy": "",
-    "sympy": "",
-}
+ARCH = (platform.machine() or "generic").lower().replace("amd64", "x86_64")
+TARGET_PLATFORM = (TARGET_PLATFORM + ARCH).replace("x86_64", "64")
+TARGET_PLATFORM = os.getenv("CONSTRUCTOR_TARGET_PLATFORM", TARGET_PLATFORM)
 
 # ---- Parse arguments
 p = ArgumentParser()
@@ -109,7 +105,7 @@ p.add_argument(
 )
 p.add_argument(
     "--extra-specs", nargs="+", default=[],
-    help="One or more extra conda specs to add to the installer",
+    help="One or more extra conda specs to add to the installer.",
 )
 p.add_argument(
     "--licenses", action="store_true",
@@ -128,39 +124,112 @@ p.add_argument(
     "--install-type", choices=INSTALL_CHOICES, default=INSTALL_CHOICES[0],
     help="Installer type."
 )
+p.add_argument(
+    "--conda-lock", action="store_true",
+    help="Create conda-lock file and exit."
+)
+p.add_argument(
+    "--version", action="store_true",
+    help="Print Spyder version and exit."
+)
 args = p.parse_args()
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 indent4 = partial(indent, prefix="    ")
 
-SPYVER = get_version(SPYREPO, normalize=False).lstrip('v').split("+")[0]
-
-specs = {
-    "python": "=" + PY_VER,
-    "spyder": "=" + SPYVER,
+base_specs = {
+    "python": "=3.11.9",
+    "conda": "=24.5.0",
+    "menuinst": "=2.1.2",
+    "mamba": "=1.5.8",  # Remove for Spyder 7
 }
-specs.update(scientific_packages)
+rt_specs = {
+    "python": f"={PY_VER}",
+    "spyder": f"={SPYVER}",
+    "cython": "",
+    "matplotlib-base": "",
+    "numpy": "",
+    "openpyxl": "",
+    "pandas": "",
+    "scipy": "",
+    "sympy": "",
+}
 
 if SPECS.exists():
     logger.info(f"Reading specs from {SPECS}...")
-    _specs = yaml.load(SPECS.read_text())
-    specs.update(_specs)
+    _rt_specs = yaml.load(SPECS.read_text())
+    rt_specs.update(_rt_specs)
 else:
     logger.info(f"Did not read specs from {SPECS}")
 
 for spec in args.extra_specs:
-    k, *v = re.split('([<>= ]+)', spec)
-    specs[k] = "".join(v).strip()
-    if k == "spyder":
-        SPYVER = v[-1]
+    k, *v = re.split('([<>=]+)[ ]*', spec)
+    rt_specs[k] = "".join(v).strip()
 
-OUTPUT_FILE = DIST / f"{APP}-{SPYVER}-{OS}-{ARCH}.{args.install_type}"
-INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.split('.')[0]}"
+PY_VER = parse(re.split('([<>=]+)[ ]*', rt_specs['python'])[-1])
+SPYVER = parse(re.split('([<>=]+)[ ]*', rt_specs['spyder'])[-1])
+
+BASE_LOCK_FILE = BUILD / f"conda-base-{TARGET_PLATFORM}.lock"
+RT_LOCK_FILE = BUILD / f"conda-runtime-{TARGET_PLATFORM}.lock"
+OUTPUT_FILE = DIST / f"{APP}-{OS}-{ARCH}.{args.install_type}"
+INSTALLER_DEFAULT_PATH_STEM = f"{APP.lower()}-{SPYVER.major}"
 
 WELCOME_IMG_WIN = BUILD / "welcome_img_win.png"
 HEADER_IMG_WIN = BUILD / "header_img_win.png"
 WELCOME_IMG_MAC = BUILD / "welcome_img_mac.png"
+CONSTRUCTOR_FILE = BUILD / "construct.yaml"
+
+
+def _create_conda_lock(env_type='base'):
+    specs = base_specs
+    lock_file = BASE_LOCK_FILE
+    if env_type == "runtime":
+        specs = rt_specs
+        lock_file = RT_LOCK_FILE
+
+    definitions = {
+        "channels": [
+            "conda-forge",
+            "conda-forge/label/spyder_rc",
+            "conda-forge/label/spyder_dev",
+            "conda-forge/label/spyder_kernels_rc",
+            "conda-forge/label/spyder_kernels_dev",
+            CONDA_BLD_PATH,
+        ],
+        "dependencies": [k + v for k, v in specs.items()],
+        "platforms": [TARGET_PLATFORM]
+    }
+
+    if args.no_local:
+        definitions['channels'].remove(CONDA_BLD_PATH)
+
+    logger.info(f"Conda lock configuration ({env_type}):")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    env_file = BUILD / f"{env_type}_env.yml"
+    yaml.dump(definitions, env_file)
+
+    env = os.environ.copy()
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
+
+    cmd_args = [
+        "conda-lock", "lock",
+        "--kind", "explicit",
+        "--file", str(env_file),
+        "--filename-template", str(BUILD / f"conda-{env_type}-{{platform}}.lock")
+        # Note conda-lock doesn't provide output file option, only template
+    ]
+
+    run(cmd_args, check=True, env=env)
+
+    logger.info(f"Contents of {lock_file}:")
+    if logger.getEffectiveLevel() <= 20:
+        print(lock_file.read_text(), flush=True)
+
+    # Write to dist directory also
+    (DIST / lock_file.name).write_text(lock_file.read_text())
 
 
 def _generate_background_images(installer_type):
@@ -195,20 +264,22 @@ def _generate_background_images(installer_type):
 
 
 def _get_condarc():
-    # we need defaults for tensorflow and others on windows only
-    defaults = "- defaults" if WINDOWS else ""
-    prompt = "[spyder]({default_env}) "
     contents = dedent(
-        f"""
+        """
         channels:  #!final
+          - conda-forge/label/spyder_rc
+          - conda-forge/label/spyder_dev
+          - conda-forge/label/spyder_kernels_rc
+          # TODO: Add this channel when we create it
+          # - conda-forge/label/spyder_kernels_dev
           - conda-forge
-          {defaults}
         repodata_fns:  #!final
           - repodata.json
         auto_update_conda: false  #!final
         notify_outdated_conda: false  #!final
-        channel_priority: strict  #!final
-        env_prompt: '{prompt}'  #! final
+        channel_priority: flexible  #!final
+        env_prompt: '[spyder]({default_env}) '  #! final
+        register_envs: false  #! final
         """
     )
     # the undocumented #!final comment is explained here
@@ -219,41 +290,40 @@ def _get_condarc():
     return str(file)
 
 
+def _get_conda_bld_path_url():
+    bld_path_url = "file://"
+    if WINDOWS:
+        bld_path_url += "/"
+    bld_path_url += Path(os.getenv('CONDA_BLD_PATH')).as_posix()
+    return bld_path_url
+
+
 def _definitions():
     condarc = _get_condarc()
     definitions = {
         "name": APP,
         "company": "Spyder-IDE",
         "reverse_domain_identifier": "org.spyder-ide.Spyder",
-        "version": SPYVER,
-        "channels": [
-            "napari/label/bundle_tools_3",
-            "conda-forge/label/spyder_kernels_rc",
-            "conda-forge",
-        ],
-        "conda_default_channels": ["conda-forge"],
-        "specs": [
-            f"python={PY_VER}",
-            "mamba",
-        ],
+        "version": str(SPYVER),
+        "environment_file": str(BASE_LOCK_FILE),
         "installer_filename": OUTPUT_FILE.name,
         "installer_type": args.install_type,
         "initialize_by_default": False,
         "initialize_conda": False,
         "register_python": False,
+        "register_envs": False,
         "extra_envs": {
             "spyder-runtime": {
-                "specs": [k + v for k, v in specs.items()],
-            },
+                "environment_file": str(RT_LOCK_FILE),
+            }
         },
-        "extra_files": [
-            {str(RESOURCES / "bundle_readme.md"): "README.txt"},
-            {condarc: ".condarc"},
-        ],
+        "channels_remap": [
+            {
+                "src": _get_conda_bld_path_url(),
+                "dest": "https://conda.anaconda.org/conda-forge"
+            }
+        ]
     }
-
-    if not args.no_local:
-        definitions["channels"].insert(0, "local")
 
     definitions["license_file"] = str(RESOURCES / "bundle_license.rtf")
     if args.install_type == "sh":
@@ -265,7 +335,13 @@ def _definitions():
                 "default_prefix": os.path.join(
                     "$HOME", ".local", INSTALLER_DEFAULT_PATH_STEM
                 ),
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -274,10 +350,12 @@ def _definitions():
             (RESOURCES / "osx_pkg_welcome.rtf.tmpl").read_text()
         welcome_file = BUILD / "osx_pkg_welcome.rtf"
         welcome_file.write_text(
-            welcome_text_tmpl.replace("__VERSION__", SPYVER))
+            welcome_text_tmpl.replace("__VERSION__", str(SPYVER)))
 
         definitions.update(
             {
+                "progress_notifications": True,
+                "pre_install": str(RESOURCES / "pre-install.sh"),
                 "post_install": str(RESOURCES / "post-install.sh"),
                 "conclusion_text": "",
                 "readme_text": "",
@@ -290,6 +368,11 @@ def _definitions():
                 "default_location_pkg": "Library",
                 "welcome_image": str(WELCOME_IMG_MAC),
                 "welcome_file": str(welcome_file),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "bin/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -298,9 +381,9 @@ def _definitions():
             definitions["notarization_identity_name"] = args.cert_id
 
     if WINDOWS:
-        definitions["conda_default_channels"].append("defaults")
         definitions.update(
             {
+                "uninstall_name": f"Spyder {SPYVER.major}",
                 "welcome_image": str(WELCOME_IMG_WIN),
                 "header_image": str(HEADER_IMG_WIN),
                 "icon_image": str(SPYREPO / "img_src" / "spyder.ico"),
@@ -314,7 +397,13 @@ def _definitions():
                     "%ALLUSERSPROFILE%", INSTALLER_DEFAULT_PATH_STEM
                 ),
                 "check_path_length": False,
+                "pre_install": str(RESOURCES / "pre-install.bat"),
                 "post_install": str(RESOURCES / "post-install.bat"),
+                "extra_files": [
+                    {str(RESOURCES / "bundle_readme.md"): "README.txt"},
+                    {condarc: ".condarc"},
+                    {str(RESOURCES / "menuinst_cli.py"): "Scripts/menuinst_cli.py"},
+                ],
             }
         )
 
@@ -325,7 +414,11 @@ def _definitions():
     if definitions.get("welcome_image") or definitions.get("header_image"):
         _generate_background_images(definitions.get("installer_type", "all"))
 
-    return definitions
+    logger.info(f"Contents of {CONSTRUCTOR_FILE}:")
+    if logger.getEffectiveLevel() <= 20:
+        yaml.dump(definitions, sys.stdout)
+
+    yaml.dump(definitions, CONSTRUCTOR_FILE)
 
 
 def _constructor():
@@ -333,30 +426,30 @@ def _constructor():
     Create a temporary `construct.yaml` input file and
     run `constructor`.
     """
-    constructor = find_executable("constructor")
+    constructor = shutil.which("constructor")
     if not constructor:
         raise RuntimeError("Constructor must be installed and in PATH.")
 
-    definitions = _definitions()
+    _definitions()
 
-    cmd_args = [constructor, "-v", "--output-dir", str(DIST)]
+    cmd_args = [
+        constructor, "-v",
+        "--output-dir", str(DIST),
+        "--platform", TARGET_PLATFORM,
+        str(CONSTRUCTOR_FILE.parent)
+    ]
     if args.debug:
         cmd_args.append("--debug")
-    conda_exe = os.environ.get("CONSTRUCTOR_CONDA_EXE")
-    if TARGET_PLATFORM and conda_exe:
-        cmd_args += ["--platform", TARGET_PLATFORM, "--conda-exe", conda_exe]
-    cmd_args.append(str(BUILD))
+    conda_exe = os.getenv("CONSTRUCTOR_CONDA_EXE")
+    if conda_exe:
+        cmd_args.extend(["--conda-exe", conda_exe])
 
     env = os.environ.copy()
-    env["CONDA_CHANNEL_PRIORITY"] = "strict"
+    env["CONDA_CHANNEL_PRIORITY"] = "flexible"
 
     logger.info("Command: " + " ".join(cmd_args))
-    logger.info("Configuration:")
-    yaml.dump(definitions, sys.stdout)
 
-    yaml.dump(definitions, BUILD / "construct.yaml")
-
-    check_call(cmd_args, env=env)
+    run(cmd_args, check=True, env=env)
 
 
 def licenses():
@@ -389,8 +482,18 @@ def main():
     t0 = time()
     try:
         DIST.mkdir(exist_ok=True)
+        _create_conda_lock(env_type='base')
+        assert BASE_LOCK_FILE.exists()
+        _create_conda_lock(env_type='runtime')
+        assert RT_LOCK_FILE.exists()
+    finally:
+        elapse = timedelta(seconds=int(time() - t0))
+        logger.info(f"Build time: {elapse}")
+
+    t0 = time()
+    try:
         _constructor()
-        assert Path(OUTPUT_FILE).exists()
+        assert OUTPUT_FILE.exists()
         logger.info(f"Created {OUTPUT_FILE}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
@@ -412,6 +515,13 @@ if __name__ == "__main__":
         sys.exit()
     if args.images:
         _generate_background_images()
+        sys.exit()
+    if args.conda_lock:
+        _create_conda_lock(env_type='base')
+        _create_conda_lock(env_type='runtime')
+        sys.exit()
+    if args.version:
+        print(SPYVER)
         sys.exit()
 
     main()

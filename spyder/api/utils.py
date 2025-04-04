@@ -9,6 +9,18 @@
 API utilities.
 """
 
+from abc import ABCMeta as BaseABCMeta
+import sys
+import typing
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec  # noqa: ICN003
+
+_P = ParamSpec('_P')
+_T = typing.TypeVar('_T')
+
 
 def get_class_values(cls):
     """
@@ -64,3 +76,77 @@ class classproperty(property):
 
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()
+
+
+class DummyAttribute:
+    """
+    Dummy class to mark abstract attributes.
+    """
+    pass
+
+
+def abstract_attribute(
+    obj: typing.Optional[
+        typing.Union[typing.Callable[_P, _T], DummyAttribute]
+    ] = None
+) -> _T:
+    """
+    Decorator to mark abstract attributes. Must be used in conjunction with the
+    ABCMeta metaclass.
+    """
+    if obj is None:
+        obj = DummyAttribute()
+    setattr(obj, "__is_abstract_attribute__", True)
+    return obj  # type: ignore
+
+
+class ABCMeta(BaseABCMeta):
+    """
+    Metaclass to mark abstract classes.
+
+    Adds support for abstract attributes. If a class has abstract attributes
+    and is instantiated, a NotImplementedError is raised.
+
+    Usage
+    -----
+    class MyABC(metaclass=ABCMeta):
+        @abstract_attribute
+        def my_abstract_attribute(self):
+            pass
+
+    class MyClassOK(MyABC):
+        def __init__(self):
+            self.my_abstract_attribute = 1
+
+    class MyClassNotOK(MyABC):
+        pass
+
+    Raises
+    ------
+    NotImplementedError
+        When it's not possible to instantiate an abstract class with abstract
+        attributes.
+    """
+
+    def __call__(cls, *args, **kwargs):
+        # Collect all abstract-attribute names from the entire MRO
+        abstract_attr_names = set()
+        for base in cls.__mro__:
+            for name, value in base.__dict__.items():
+                if getattr(value, '__is_abstract_attribute__', False):
+                    abstract_attr_names.add(name)
+
+        for name, value in cls.__dict__.items():
+            if not getattr(value, '__is_abstract_attribute__', False):
+                abstract_attr_names.discard(name)
+
+        if abstract_attr_names:
+            raise NotImplementedError(
+                "Can't instantiate abstract class "
+                "{} with abstract attributes: {}".format(
+                    cls.__name__,
+                    ", ".join(abstract_attr_names)
+                )
+            )
+
+        return super().__call__(*args, **kwargs)

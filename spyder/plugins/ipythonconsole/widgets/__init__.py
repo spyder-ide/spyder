@@ -18,7 +18,7 @@ from .namespacebrowser import NamepaceBrowserWidget
 from .figurebrowser import FigureBrowserWidget
 from .kernelconnect import KernelConnectionDialog
 from .restartdialog import ConsoleRestartDialog
-from .status import MatplotlibStatus
+from .status import MatplotlibStatus, PythonEnvironmentStatus
 
 # ShellWidget contains the other widgets and ClientWidget
 # contains it

@@ -12,7 +12,7 @@ Profiler Plugin.
 from typing import List
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
@@ -40,7 +40,7 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     NAME = 'profiler'
     REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
     OPTIONAL = []
-    TABIFY = [Plugins.Help]
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = ProfilerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ProfilerConfigPage
@@ -75,10 +75,16 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
 
         self.executor_configuration = [
             {
-                'input_extension': ['py', 'ipy'],
-                'context': {
-                    'name': 'File'
-                },
+                'input_extension': 'py',
+                'context': {'name': 'File'},
+                'output_formats': [],
+                'configuration_widget': ProfilerPyConfigurationGroup,
+                'requires_cwd': True,
+                'priority': 3
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {'name': 'File'},
                 'output_formats': [],
                 'configuration_widget': ProfilerPyConfigurationGroup,
                 'requires_cwd': True,
@@ -114,7 +120,8 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
                 add_to_menu={
                     "menu": ApplicationMenus.Run,
                     "section": RunMenuSections.RunInExecutors
-                }
+                },
+                shortcut_widget_context=Qt.ApplicationShortcut,
             )
 
     @on_plugin_teardown(plugin=Plugins.Editor)

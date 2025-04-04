@@ -19,15 +19,16 @@ import pytest
 import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
+from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from spyder.config.utils import is_anaconda
 from spyder.plugins.completion.api import (
     CompletionRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri)
+    path_as_uri
+)
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -35,16 +36,11 @@ from spyder.utils.conda import get_list_conda_envs
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
-def set_executable_config_helper(completion_plugin, executable=None):
+def set_executable_helper(completion_plugin, executable=None):
     if executable is None:
-        completion_plugin.set_conf('executable', sys.executable,
-                                   'main_interpreter')
-        completion_plugin.set_conf('default', True, 'main_interpreter')
-        completion_plugin.set_conf('custom', False, 'main_interpreter')
+        completion_plugin._sig_interpreter_changed.emit(sys.executable)
     else:
-        completion_plugin.set_conf('executable', executable,
-                                   'main_interpreter')
-        completion_plugin.set_conf('default', False, 'main_interpreter')
+        completion_plugin._sig_interpreter_changed.emit(executable)
 
 
 @pytest.mark.order(1)
@@ -1017,10 +1013,13 @@ def spam():
 
 @pytest.mark.order(1)
 @flaky(max_runs=20)
-@pytest.mark.skipif(not is_anaconda(), reason='Requires conda to work')
+@pytest.mark.skipif(
+    not is_conda_env(sys.prefix), reason='Requires conda to work'
+)
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Works reliably on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'), reason="Works reliably on Linux"
+)
 def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     """
     Exercise code completions when using another Jedi environment, i.e. a
@@ -1032,7 +1031,7 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    py_exe = get_list_conda_envs()['conda: jedi-test-env'][0]
+    py_exe = get_list_conda_envs()['Conda: jedi-test-env'][0]
     assert os.path.isfile(py_exe)
 
     # Check that we can't code complete Flask in the default interpreter
@@ -1045,7 +1044,7 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     # Set interpreter that has Flask and check we can provide completions for
     # it
     code_editor.set_text('')
-    set_executable_config_helper(completion_plugin, py_exe)
+    set_executable_helper(completion_plugin, py_exe)
     completion_plugin.after_configuration_update([])
     qtbot.wait(5000)
 
@@ -1059,7 +1058,7 @@ def test_completions_environment(completions_codeeditor, qtbot, tmpdir):
     assert "flask" in [x['label'] for x in sig.args[0]]
     assert code_editor.toPlainText() == 'import flask'
 
-    set_executable_config_helper(completion_plugin)
+    set_executable_helper(completion_plugin)
     completion_plugin.after_configuration_update([])
     qtbot.wait(5000)
 
@@ -1160,12 +1159,12 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
 @pytest.mark.parametrize(
     "directory",
     [
-         pytest.param(
-             '/home',
-             marks=pytest.mark.skipif(
-                 not sys.platform.startswith('linux'),
-                 reason='Only works on Linux'
-             )
+        pytest.param(
+            '/home',
+            marks=pytest.mark.skipif(
+                not sys.platform.startswith('linux'),
+                reason='Only works on Linux'
+            )
         ),
         pytest.param(
             'C:\\Users',

@@ -22,13 +22,13 @@ jobs:
       OS: 'linux'
     timeout-minutes: 2
     steps:
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: static-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: static-pip-
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           # TODO: check with Python 3, but need to fix the
           # errors first
@@ -38,14 +38,12 @@ jobs:
       # If we don't install pycodestyle, pylint will throw an unused-argument error in pylsp/plugins/pycodestyle_lint.py:72
       # This error cannot be resolved by adding a pylint: disable=unused-argument comment ...
       - run: |
-          pip install -e .[pylint,pycodestyle,pyflakes]
-          pip install black
-      - name: Pylint checks
-        run: pylint pylsp test
-      - name: Code style checks with black
-        run: black --check pylsp test
-      - name: Pyflakes checks
-        run: pyflakes pylsp test
+          pip install -e .[pylint,pycodestyle]
+          pip install ruff
+      - name: ruff linter and code style checks
+        run: ruff check pylsp test
+      - name: ruff code formatter check
+        run: ruff format --check pylsp test
       - name: Validate JSON schema
         run: echo {} | jsonschema pylsp/config/schema.json
       - name: Ensure JSON schema and Markdown docs are in sync

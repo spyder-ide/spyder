@@ -2,7 +2,9 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import os
+
 import pluggy
+
 from . import _version
 from ._version import __version__
 

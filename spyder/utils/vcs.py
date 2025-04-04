@@ -30,7 +30,8 @@ SUPPORTED = [
     'name': 'Git',
     'rootdir': '.git',
     'actions': dict(
-        commit=( ('git', ['gui' if os.name == 'nt' else 'cola']), ),
+        commit=( ('git-cola', []),
+                 ('git', ['gui']), ),
         browse=( ('gitk', []), ))
 }]
 

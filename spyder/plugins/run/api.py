@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import functools
-from enum import IntEnum
 from datetime import datetime
 import logging
 from typing import Any, Callable, Set, List, Union, Optional, Dict, TypedDict
@@ -23,15 +22,11 @@ from typing_extensions import NotRequired # Available from Python 3.11+
 logger = logging.getLogger(__name__)
 
 
-class RunParameterFlags(IntEnum):
-    SetDefaults = 0
-    SwitchValues = 1
-
-
 class RunActions:
     Run = 'run'
     Configure = 'configure'
     ReRun = 're-run last script'
+    GlobalConfigurations = "global configurations"
 
 
 class RunContextType(dict):
@@ -248,6 +243,13 @@ class ExtendedRunExecutionParameters(TypedDict):
     # The run execution parameters.
     params: RunExecutionParameters
 
+    # The unique identifier for the file to which these parameters correspond
+    # to, if any.
+    file_uuid: Optional[str]
+
+    # To identify these parameters as default
+    default: bool
+
 
 class StoredRunExecutorParameters(TypedDict):
     """Per run executor configuration parameters."""
@@ -266,10 +268,6 @@ class StoredRunConfigurationExecutor(TypedDict):
     # Unique identifier for the currently selected parameters. None
     # if using default or transient settings.
     selected: Optional[str]
-
-    # If True, then the run dialog will displayed every time the run
-    # configuration is executed. Otherwise not.
-    display_dialog: bool
 
 
 class RunConfigurationProvider(QObject):
