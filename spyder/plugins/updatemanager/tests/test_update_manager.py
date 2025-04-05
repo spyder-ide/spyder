@@ -85,7 +85,7 @@ def test_update_non_stable(qtbot, mocker, version, release, stable_only):
 
     release = parse(release)
     worker = WorkerUpdate(stable_only)
-    worker._check_asset_available(release)
+    worker._check_update_available(release)
 
     if release.is_prerelease and stable_only:
         assert worker.asset_info is None
@@ -101,7 +101,7 @@ def test_update_no_asset(qtbot, mocker, version, release):
 
     release = parse(release) if release else None
     worker = WorkerUpdate(True)
-    worker._check_asset_available(release)
+    worker._check_update_available(release)
 
     # For both values of version, there should be an update available
     # However, the available version should be 6.0.1, since there is
@@ -126,8 +126,7 @@ def test_get_asset_info(qtbot, mocker, app, version, release, update_type):
     mocker.patch.object(workers, "is_conda_based_app", return_value=app)
 
     worker = WorkerUpdate(False)
-    # import pdb; pdb.set_trace()
-    worker._check_asset_available(parse(release))
+    worker._check_update_available(parse(release))
     info = worker.asset_info
 
     assert info['update_type'] == update_type

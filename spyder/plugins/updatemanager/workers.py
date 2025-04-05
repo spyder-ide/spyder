@@ -103,7 +103,7 @@ def get_github_releases(
     Parameters
     ----------
     tags : str | tuple[str] | (None)
-        If tags is provided, only release information for the requeste tags
+        If tags is provided, only release information for the requested tags
         is retrieved. Otherwise, the most recent 20 releases are retrieved.
         This is only used to retrieve a known set of releases for unit testing.
 
@@ -113,6 +113,7 @@ def get_github_releases(
         Dictionary of release information.
     """
     url = "https://api.github.com/repos/spyder-ide/spyder/releases"
+
     if tags is None:
         # Get 20 most recent releases
         url += "?per_page=20&page=1"
@@ -224,7 +225,24 @@ def get_asset_info(release_info: dict) -> None | AssetInfo:
     return asset_info
 
 
-def validate_download(file, checksum):
+def validate_download(file: str, checksum: str) -> bool:
+    """
+    Compute the sha256 checksum of the provided file and compare against
+    the provided checksum.
+
+    Parameters
+    ----------
+    file : str
+        Full path to the file to be verified.
+    checksum : str
+        sha256 checksum to match against the computed checksum.
+
+    Returns
+    -------
+    valid : bool
+        True if the file's computed checksum matches the provided checksum,
+        False otherwise.
+    """
     with open(file, "rb") as f:
         _checksum = sha256()
         while chunk := f.read(8192):
@@ -290,20 +308,32 @@ class WorkerUpdate(BaseWorker):
         self.asset_info = None
         self.error = None
         self.checkbox = False
-        self.channel = None
 
-    def _check_asset_available(self, release: None | Version):
-        """Checks if there is an asset available for release."""
+    def _check_update_available(self, release: Version | None = None):
+        """
+        Check if there is an update available.
+
+        Releases are obtained from Github and compared to the current Spyder
+        version to determine if an update is available. The Github release
+        asset and checksum must be available in order for the release to be
+        considered.
+
+        Parameters
+        ----------
+        release : packaging.version.Version | (None)
+            If provided, limit possible releases on Github to this release
+            or less.
+        """
 
         # Get asset info from Github
         releases = get_github_releases()
 
         if release is not None:
-            # Only keep Github releases that are also available at channel url
+            # Limit Github releases to consider
             releases = {k: v for k, v in releases.items() if k <= release}
 
         if self.stable_only:
-            # Only use stable releases
+            # Only consider stable releases
             releases = {
                 k: v for k, v in releases.items() if not k.is_prerelease
             }
@@ -355,26 +385,38 @@ class WorkerUpdate(BaseWorker):
 
         url = None
         if not is_conda_based_app():
-            self.channel = "pypi"  # Default channel if not conda
             if is_conda_env(sys.prefix):
-                self.channel, channel_url = get_spyder_conda_channel()
-                url = channel_url + '/channeldata.json'
+                channel, url = get_spyder_conda_channel()
+                url += '/channeldata.json'
+            else:
+                channel = "pypi"
+                url = "https://pypi.python.org/pypi/spyder/json"
 
         try:
             release = None
             if url is not None:
+                # Limit the releases on Github that we consider to those less
+                # than or equal to what is also available on the conda/pypi
+                # channel
+
                 logger.info(f"Getting release from {url}")
                 page = requests.get(url)
                 page.raise_for_status()
                 data = page.json()
 
-                # Conda pkgs/main or conda-forge url
-                # What about PyPi?
-                spyder_data = data['packages'].get('spyder')
-                if spyder_data:
-                    release = parse(spyder_data["version"])
+                if channel == "pypi":
+                    releases = [
+                        parse(k) for k in data["releases"].keys()
+                        if not parse(k).is_prerelease
+                    ]
+                    release = max(releases)
+                else:
+                    # Conda pkgs/main or conda-forge url
+                    spyder_data = data['packages'].get('spyder')
+                    if spyder_data:
+                        release = parse(spyder_data["version"])
 
-            self._check_asset_available(release)
+            self._check_update_available(release)
 
         except SSLError as err:
             error_msg = SSL_ERROR_MSG
