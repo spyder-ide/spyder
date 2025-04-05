@@ -26,7 +26,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.updatemanager.workers import (
-    get_asset_info,
+    validate_download,
     WorkerUpdate,
     WorkerDownloadInstaller
 )
@@ -133,23 +133,22 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.update_thread = None
         self.update_worker = None
         self.update_timer = None
-        self.latest_release = None
+        self.asset_info = None
 
         self.cancelled = False
         self.download_thread = None
         self.download_worker = None
         self.progress_dialog = None
         self.installer_path = None
-        self.installer_size_path = None
-
-        # Type of Spyder update. It can be "major", "minor" or "micro"
-        self.update_type = None
 
     # ---- General
 
     def set_status(self, status=NO_STATUS):
         """Set the update manager status."""
-        self.sig_set_status.emit(status, str(self.latest_release))
+        version = None
+        if self.asset_info is not None:
+            version = self.asset_info["version"]
+        self.sig_set_status.emit(status, str(version))
 
     def cleanup_threads(self):
         """Clean up QThreads"""
@@ -226,7 +225,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
     def _process_check_update(self):
         """Process the results of check update."""
         # Get results from worker
-        update_available = self.update_worker.update_available
+        update_available = self.update_worker.asset_info is not None
         error_msg = self.update_worker.error
         checkbox = self.update_worker.checkbox
 
@@ -250,30 +249,22 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         else:
             info_messagebox(self, _("Spyder is up to date."), checkbox=True)
 
-    def _set_installer_path(self):
-        """Set the temp file path for the downloaded installer."""
-        asset_info = get_asset_info(self.latest_release)
-        self.update_type = asset_info['update_type']
-
-        dirname = osp.join(get_temp_dir(), 'updates', str(self.latest_release))
-        self.installer_path = osp.join(dirname, asset_info['filename'])
-        self.installer_size_path = osp.join(dirname, "size")
-
-        logger.info(f"Update type: {self.update_type}")
-
     # ---- Download Update
 
-    def _verify_installer_path(self):
-        if (
-            osp.exists(self.installer_path)
-            and osp.exists(self.installer_size_path)
-        ):
-            with open(self.installer_size_path, "r") as f:
-                size = int(f.read().strip())
+    def _set_installer_path(self):
+        dirname = osp.join(
+            get_temp_dir(), 'updates', str(self.asset_info["version"])
+        )
+        self.installer_path = osp.join(dirname, self.asset_info['filename'])
 
-            update_downloaded = size == osp.getsize(self.installer_path)
-        else:
-            update_downloaded = False
+        logger.info(f"Update type: {self.asset_info['update_type']}")
+
+    def _validate_download(self):
+        update_downloaded = False
+        if osp.exists(self.installer_path):
+            update_downloaded = validate_download(
+                self.installer_path, self.asset_info["checksum"]
+            )
 
         logger.debug(f"Update already downloaded: {update_downloaded}")
 
@@ -288,10 +279,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         If the installer is already downloaded, proceed to confirm install.
         """
-        self.latest_release = self.update_worker.latest_release
+        self.asset_info = self.update_worker.asset_info
         self._set_installer_path()
+        version = self.asset_info["version"]
 
-        if self._verify_installer_path():
+        if self._validate_download():
             self.set_status(DOWNLOAD_FINISHED)
             self._confirm_install()
         elif not is_conda_based_app():
@@ -306,21 +298,19 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             ).format(URL_I + "#standalone-installers")
 
             box = confirm_messagebox(
-                self, msg, _('Spyder update'),
-                version=self.latest_release, checkbox=True
+                self, msg, _('Spyder update'), version=version, checkbox=True
             )
             if box.result() == QMessageBox.Yes:
                 self._start_download()
             else:
                 manual_update_messagebox(
-                    self, self.latest_release, self.update_worker.channel
+                    self, version, self.update_worker.channel
                 )
         else:
             msg = _("Would you like to automatically download "
                     "and install it?")
             box = confirm_messagebox(
-                self, msg, _('Spyder update'),
-                version=self.latest_release, checkbox=True
+                self, msg, _('Spyder update'), version=version, checkbox=True
             )
             if box.result() == QMessageBox.Yes:
                 self._start_download()
@@ -334,7 +324,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.progress_dialog = None
 
         self.download_worker = WorkerDownloadInstaller(
-            self.latest_release, self.installer_path, self.installer_size_path
+            self.asset_info, self.installer_path
         )
 
         self.sig_disable_actions.emit(True)
@@ -343,7 +333,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         # Only show progress bar for installers
         if not self.installer_path.endswith('zip'):
             self.progress_dialog = ProgressDialog(
-                self, _("Downloading Spyder {} ...").format(self.latest_release)
+                self,
+                _("Downloading Spyder {} ...").format(
+                    self.asset_info["version"]
+                )
             )
             self.progress_dialog.cancel.clicked.connect(self._cancel_download)
 
@@ -422,7 +415,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self,
             msg,
             _('Spyder install'),
-            version=self.latest_release,
+            version=self.asset_info["version"],
             on_close=True
         )
         if box.result() == QMessageBox.Yes:
@@ -444,11 +437,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Sub command
         sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.update_type != 'major':
+        if self.asset_info["update_type"] != 'major':
             # Update with conda
             sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
 
-        if self.update_type == 'minor':
+        if self.asset_info["update_type"] == 'minor':
             # Rebuild runtime environment
             sub_cmd.append('-r')
 
