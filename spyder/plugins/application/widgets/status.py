@@ -128,8 +128,7 @@ class InAppAppealStatus(BaseTimerStatus):
             # QtWebEngineWidgets is optional, so just open the URL in the
             # default browser.
             # See spyder-ide/spyder#24905 for the details.
-            webbrowser.open("https://opencollective.com/spyder")
-            pass
+            webbrowser.open("https://www.spyder-ide.org/donate")
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
