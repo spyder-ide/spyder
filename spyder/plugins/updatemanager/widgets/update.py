@@ -7,6 +7,7 @@
 """Update Manager widgets."""
 
 # Standard library imports
+import json
 import logging
 import os
 import os.path as osp
@@ -26,8 +27,11 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.plugins.updatemanager.workers import (
+    UPDATER_PATH,
+    UpdateType,
     validate_download,
     WorkerUpdate,
+    WorkerUpdateUpdater,
     WorkerDownloadInstaller
 )
 from spyder.utils.conda import find_conda, is_anaconda_pkg
@@ -39,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 # Update manager process statuses
 NO_STATUS = __version__
+UPDATING_UPDATER = _("Updating Updater")
 DOWNLOADING_INSTALLER = _("Downloading update")
 DOWNLOAD_FINISHED = _("Download finished")
 PENDING = _("Update available")
@@ -134,6 +139,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.update_worker = None
         self.update_timer = None
         self.asset_info = None
+
+        self.update_updater_thread = None
+        self.update_updater_worker = None
 
         self.cancelled = False
         self.download_thread = None
@@ -313,7 +321,38 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 self, msg, _('Spyder update'), version=version, checkbox=True
             )
             if box.result() == QMessageBox.Yes:
-                self._start_download()
+                if self.asset_info["update_type"] == UpdateType.Major:
+                    self._start_download()
+                else:
+                    self._start_update_updater()
+
+    def _start_update_updater(self):
+        """Check for and install updates for the Updater"""
+        self.sig_disable_actions.emit(True)
+        self.set_status(UPDATING_UPDATER)
+
+        self.update_updater_thread = QThread(None)
+        self.update_updater_worker = WorkerUpdateUpdater(
+            self.get_conf('check_stable_only')
+        )
+        self.update_updater_worker.sig_exception_occurred.connect(
+            self.sig_exception_occurred
+        )
+
+        self.update_updater_worker.sig_ready.connect(
+            lambda x: self._start_download() if x else None
+        )
+        self.update_updater_worker.sig_ready.connect(
+            self.update_updater_thread.quit
+        )
+        self.update_updater_worker.sig_ready.connect(
+            lambda: self.sig_disable_actions.emit(False)
+        )
+        self.update_updater_worker.moveToThread(self.update_updater_thread)
+        self.update_updater_thread.started.connect(
+            self.update_updater_worker.start
+        )
+        self.update_updater_thread.start()
 
     def _start_download(self):
         """
@@ -427,7 +466,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def start_install(self):
         """Install from downloaded installer or update through conda."""
+        if self.asset_info["update_type"] == UpdateType.Major:
+            self._start_major_install()
+        else:
+            self._start_updater()
 
+    def _start_major_install(self):
+        """Install major update from downloaded installer"""
         # Install script
         # Copy to temp location to be safe
         script_name = 'install.' + ('bat' if os.name == 'nt' else 'sh')
@@ -473,6 +518,49 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
         subprocess.Popen(' '.join(cmd), shell=True)
+
+    def _start_updater(self):
+        """Start updater application."""
+        info = {
+            "install_file": self.installer_path,
+            "conda_exec": find_conda(),
+            "env_path": sys.prefix,
+            "update_type": self.asset_info["update_type"],
+            "window_title": _("Spyder update"),
+            "scale_factor": float(os.getenv("QT_SCALE_FACTOR") or 1),
+            "initial_message": _(
+                "Updating Spyder, this will take a few minutes ..."
+            ),
+            "success_message": _(
+                "The update was succesful!<br>Spyder will be launched shortly"
+            ),
+            "failure_message": _("Unfortunately the update failed"),
+            "error_message": _("There was an error in the update process"),
+            "details_title": _("Show details"),
+            "font_family": self.get_conf(
+                "app_font/family", section="appearance"
+            ),
+            "font_size": int(
+                self.get_conf("app_font/size", section="appearance")
+            ),
+            "monospace_font_family": self.get_conf(
+                "monospace_app_font/family", section="appearance"
+            ),
+            "monospace_font_size": int(
+                self.get_conf("monospace_app_font/size", section="appearance")
+            ),
+            "interface_theme": self.get_conf("ui_theme", section="appearance"),
+            "icon_color": "#FAFAFA",
+        }
+        info_file = osp.join(
+            osp.dirname(self.installer_path), "update-info.json"
+        )
+        with open(info_file, "w") as f:
+            json.dump(info, f)
+
+        # Launch updater
+        cmd = [UPDATER_PATH, "--update-info-file", info_file]
+        subprocess.Popen(" ".join(cmd), shell=True)
 
 
 class UpdateMessageBox(QMessageBox):

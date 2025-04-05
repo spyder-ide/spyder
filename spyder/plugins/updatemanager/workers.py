@@ -480,7 +480,7 @@ class WorkerUpdate(BaseWorker):
             # after the check has finished (it's disabled while the check is
             # running).
             try:
-                self.sig_ready.emit(error_msg is None)
+                self.sig_ready.emit(self.error is None)
             except RuntimeError:
                 pass
 
@@ -606,10 +606,6 @@ class WorkerUpdateUpdater(BaseWorker):
 
     def start(self):
         """Main method of the worker."""
-        self.error = None
-        self.asset_info = None
-        error_msg = None
-
         try:
             self._check_asset_available()
             if self.asset_info is not None:
@@ -620,23 +616,21 @@ class WorkerUpdateUpdater(BaseWorker):
             logger.warning(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
-            error_msg = str(err)
+            self.error = str(err)
             error_data = dict(
                 text=traceback.format_exc(),
                 is_traceback=True,
-                title="Error when checking for updates",
+                title="Error when updating spyder-updater",
             )
             self.sig_exception_occurred.emit(error_data)
             logger.error(err, exc_info=err)
         finally:
-            self.error = error_msg
-
             # At this point we **must** emit the signal below so that the
             # "Check for updates" action in the Help menu is enabled again
             # after the check has finished (it's disabled while the check is
             # running).
             try:
-                self.sig_ready.emit(error_msg is None)
+                self.sig_ready.emit(self.error is None)
             except RuntimeError:
                 pass
 
@@ -720,17 +714,16 @@ class WorkerDownloadInstaller(BaseWorker):
 
     def start(self):
         """Main method of the worker."""
-        error_msg = None
         try:
             self._download_installer()
         except UpdateDownloadCancelledException:
             logger.info("Download cancelled")
             self._clean_installer_dir()
         except SSLError as err:
-            error_msg = SSL_ERROR_MSG
+            self.error = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
         except ConnectionError as err:
-            error_msg = CONNECT_ERROR_MSG
+            self.error = CONNECT_ERROR_MSG
             logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
@@ -739,7 +732,7 @@ class WorkerDownloadInstaller(BaseWorker):
                 .replace(' ', '&nbsp;')
             )
 
-            error_msg = _(
+            self.error = _(
                 'It was not possible to download the installer due to the '
                 'following error:'
                 '<br><br>'
@@ -748,9 +741,7 @@ class WorkerDownloadInstaller(BaseWorker):
             logger.warning(err, exc_info=err)
             self._clean_installer_dir()
         finally:
-            self.error = error_msg
-
             try:
-                self.sig_ready.emit(error_msg is None)
+                self.sig_ready.emit(self.error is None)
             except RuntimeError:
                 pass
