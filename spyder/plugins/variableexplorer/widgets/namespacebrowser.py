@@ -513,7 +513,8 @@ class NamespaceBrowser(
         }
 
         with rc_context(matplotlib_rc):
-            fig, ax = plt.subplots(figsize=(width, height))
+            fig = plt.figure(figsize=(width, height))
+            ax = fig.subplots()
             getattr(ax, funcname)(data)
             image = print_figure(
                 fig,
@@ -532,6 +533,7 @@ class NamespaceBrowser(
         """
         import spyder.pyplot as plt
 
-        plt.figure()
-        getattr(plt, funcname)(data)
-        plt.show()
+        fig = plt.figure()
+        ax = fig.subplots()
+        getattr(ax, funcname)(data)
+        fig.show()
