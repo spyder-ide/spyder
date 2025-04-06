@@ -169,7 +169,7 @@ def get_asset_checksum(url: str, name: str) -> str | None:
     return checksum
 
 
-def get_asset_info(release_info: dict) -> None | AssetInfo:
+def get_asset_info(release_info: dict) -> AssetInfo | None:
     """
     Get the version, name, update type, download URL, and size for the asset
     of the given release.
@@ -181,7 +181,7 @@ def get_asset_info(release_info: dict) -> None | AssetInfo:
 
     Returns
     -------
-    asset_info: None | AssetInfo
+    asset_info: AssetInfo | None
         Information about the asset.
     """
     release = parse(release_info["tag_name"])
@@ -308,6 +308,7 @@ class WorkerUpdate(BaseWorker):
         self.asset_info = None
         self.error = None
         self.checkbox = False
+        self.channel = None
 
     def _check_update_available(self, release: Version | None = None):
         """
@@ -379,18 +380,16 @@ class WorkerUpdate(BaseWorker):
 
     def start(self):
         """Main method of the worker."""
-        self.error = None
-        self.asset_info = None
-        error_msg = None
-
         url = None
         if not is_conda_based_app():
+            self.channel = "pypi"  # Default channel if not conda
             if is_conda_env(sys.prefix):
-                channel, url = get_spyder_conda_channel()
-                url += '/channeldata.json'
-            else:
-                channel = "pypi"
+                self.channel, url = get_spyder_conda_channel()
+
+            if self.channel == "pypi":
                 url = "https://pypi.python.org/pypi/spyder/json"
+            else:
+                url += '/channeldata.json'
 
         try:
             release = None
@@ -398,13 +397,12 @@ class WorkerUpdate(BaseWorker):
                 # Limit the releases on Github that we consider to those less
                 # than or equal to what is also available on the conda/pypi
                 # channel
-
                 logger.info(f"Getting release from {url}")
                 page = requests.get(url)
                 page.raise_for_status()
                 data = page.json()
 
-                if channel == "pypi":
+                if self.channel == "pypi":
                     releases = [
                         parse(k) for k in data["releases"].keys()
                         if not parse(k).is_prerelease
@@ -419,17 +417,17 @@ class WorkerUpdate(BaseWorker):
             self._check_update_available(release)
 
         except SSLError as err:
-            error_msg = SSL_ERROR_MSG
+            self.error = SSL_ERROR_MSG
             logger.warning(err, exc_info=err)
         except ConnectionError as err:
-            error_msg = CONNECT_ERROR_MSG
+            self.error = CONNECT_ERROR_MSG
             logger.warning(err, exc_info=err)
         except HTTPError as err:
             status_code = err.response.status_code
-            error_msg = HTTP_ERROR_MSG.format(status_code=status_code)
+            self.error = HTTP_ERROR_MSG.format(status_code=status_code)
             logger.warning(err, exc_info=err)
         except OSError as err:
-            error_msg = OS_ERROR_MSG.format(error=err)
+            self.error = OS_ERROR_MSG.format(error=err)
             self.checkbox = True
             logger.warning(err, exc_info=err)
         except Exception as err:
@@ -442,8 +440,6 @@ class WorkerUpdate(BaseWorker):
             self.sig_exception_occurred.emit(error_data)
             logger.error(err, exc_info=err)
         finally:
-            self.error = error_msg
-
             # At this point we **must** emit the signal below so that the
             # "Check for updates" action in the Help menu is enabled again
             # after the check has finished (it's disabled while the check is
