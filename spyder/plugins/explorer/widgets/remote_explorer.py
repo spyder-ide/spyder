@@ -34,7 +34,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     FETCH_FILES = 500
     MAX_FILES_DISPLAY = 2000
 
-    def __init__(self, parent=None, class_parent=None, data=None):
+    def __init__(self, parent=None, class_parent=None, files=None):
         super().__init__(parent=parent, class_parent=parent)
         self.remote_files_manager = None
         self.background_load = set()
@@ -60,30 +60,44 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         )
         self.tree.header().setDefaultSectionSize(180)
         self.tree.setModel(self.model)
-        if data:
-            self.set_data(data)
+        if files:
+            self.set_files(files)
         self.tree.expandAll()
-        self.tree.doubleClicked.connect(self._clicked_item)
+        self.tree.entered.connect(self._on_entered_item)
 
-    @on_conf_change(option=['size_column', 'type_column', 'date_column',
-                            'name_filters', 'show_hidden',
-                            'single_click_to_open'])
+    @on_conf_change(
+        option=[
+            "size_column",
+            "type_column",
+            "date_column",
+            "name_filters",
+            "show_hidden",
+            "single_click_to_open",
+        ]
+    )
     def on_conf_update(self, option, value):
-        if option == 'size_column':
+        if option == "size_column":
             self.tree.setColumnHidden(1, not value)
-        elif option == 'type_column':
+        elif option == "type_column":
             self.tree.setColumnHidden(2, not value)
-        elif option == 'date_column':
+        elif option == "date_column":
             self.tree.setColumnHidden(3, not value)
-        elif option == 'name_filters':
+        elif option == "name_filters":
             if self.filter_on:
                 self.filter_files(value)
-        # elif option == 'show_hidden':
-        #     self.set_show_hidden(value)
-        # elif option == 'single_click_to_open':
-        #     self.set_single_click_to_open(value)
+        elif option == "show_hidden":
+            self.refresh(force_current=True)
+        elif option == "single_click_to_open":
+            self.set_single_click_to_open(value)
 
-    def _clicked_item(self, index):
+    def _on_entered_item(self, index):
+        if self.get_conf('single_click_to_open'):
+            self.tree.setCursor(Qt.PointingHandCursor)
+            self.tree.header().setCursor(Qt.ArrowCursor)
+        else:
+            self.tree.setCursor(Qt.ArrowCursor)
+
+    def _on_clicked_item(self, index):
         data_index = self.model.index(index.row(), 0)
         data = self.model.data(data_index, Qt.UserRole + 1)
         if data:
@@ -94,79 +108,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
 
-    def set_data(self, data, reset=True):
-        if reset:
-            self.model.setRowCount(0)
-        if data:
-            root = self.model.invisibleRootItem()
-
-            more_files_items = self.model.match(
-                self.model.index(0, 0), Qt.DisplayRole, _("Show more files")
-            )
-            if len(more_files_items):
-                # Remove more files item
-                self.model.removeRow(more_files_items[-1].row())
-
-            more_files_available = self.model.match(
-                self.model.index(0, 0),
-                Qt.DisplayRole,
-                _("Maximum number of files to display reached!"),
-            )
-            if len(more_files_available):
-                # Remove more items available item
-                self.model.removeRow(more_files_available[-1].row())
-
-            for item in data:
-                path = item["name"]
-                name = os.path.relpath(path, self.root_prefix)
-                item_type = item["type"]
-                icon = ima.icon("FileIcon")
-                if item_type == "directory":
-                    icon = ima.icon("DirClosedIcon")
-                name_item = QStandardItem(icon, name)
-                name_item.setData(item)
-                size_item = QStandardItem(str(item["size"]))
-                type_item = QStandardItem(item_type)
-                date_modified_item = QStandardItem(
-                    datetime.fromtimestamp(item["mtime"]).strftime(
-                        "%d/%m/%Y %I:%M %p"
-                    )
-                )
-                items = [
-                    name_item,
-                    size_item,
-                    type_item,
-                    date_modified_item,
-                ]
-                for standard_item in items:
-                    standard_item.setEditable(False)
-                root.appendRow(items)
-
-            if len(self.extra_files):
-                fetch_more_item = QStandardItem(_("Show more files"))
-                fetch_more_item.setEditable(False)
-                fetch_more_item.setData(
-                    {"name": "FETCH_MORE", "type": "ACTION"}
-                )
-                root.appendRow(fetch_more_item)
-                self.tree.setFirstColumnSpanned(
-                    fetch_more_item.index().row(), root.index(), True
-                )
-            elif len(self.extra_files) == 0 and self.more_files_available:
-                more_items_avaialable = QStandardItem(
-                    _("Maximum number of files to display reached!")
-                )
-                more_items_avaialable.setEditable(False)
-                root.appendRow(more_items_avaialable)
-                self.tree.setFirstColumnSpanned(
-                    more_items_avaialable.index().row(), root.index(), True
-                )
-
     @AsyncDispatcher.QtSlot
     def _on_remote_ls(self, future):
         data = future.result()
         logger.info(data)
-        self.set_data(data)
+        self.set_files(data)
 
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_ls(self, path, server_id):
@@ -176,15 +122,21 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             files = []
             generator = self.remote_files_manager.ls(path)
             async for file in generator:
+                file_name = os.path.relpath(file["name"], self.root_prefix)
+                file_type = file["type"]
                 if len(files) <= self.INIT_FILES_DISPLAY:
+                    if not self.get_conf(
+                        "show_hidden"
+                    ) and file_name.startswith("."):
+                        continue
                     if (
                         self.name_filters
                         and len(self.name_filters)
-                        and file["type"] == "file"
+                        and file_type == "file"
                     ):
                         for name_filter in self.name_filters:
-                            if file["type"] == "file" and fnmatch.fnmatch(
-                                file["name"], name_filter
+                            if file_type == "file" and fnmatch.fnmatch(
+                                file_name, name_filter
                             ):
                                 files.append(file)
                                 break
@@ -193,7 +145,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                     continue
                 break
             if len(files) > self.INIT_FILES_DISPLAY:
-                task = asyncio.create_task(self._extra_files(generator))
+                task = asyncio.create_task(self._get_extra_files(generator))
                 self.background_load.add(task)
                 task.add_done_callback(self.background_load.discard)
             else:
@@ -205,10 +157,27 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         except RemoteOSError as error:
             logger.info(error)
 
-    async def _extra_files(self, generator):
+    async def _get_extra_files(self, generator):
         self.extra_files = []
         self.more_files_available = False
         async for file in generator:
+            file_name = os.path.relpath(file["name"], self.root_prefix)
+            file_type = file["type"]
+            if not self.get_conf("show_hidden") and file_name.startswith("."):
+                continue
+            if (
+                self.name_filters
+                and len(self.name_filters)
+                and file_type == "file"
+            ):
+                for name_filter in self.name_filters:
+                    if file_type == "file" and fnmatch.fnmatch(
+                        file_name, name_filter
+                    ):
+                        self.extra_files.append(file)
+                        break
+            else:
+                self.extra_files.append(file)
             self.extra_files.append(file)
             if (
                 len(self.extra_files) + len(self.model.rowCount())
@@ -253,6 +222,82 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if emit:
             self.sig_dir_opened.emit(directory, self.server_id)
 
+    def set_files(self, files, reset=True):
+        if reset:
+            self.model.setRowCount(0)
+        if files:
+            root = self.model.invisibleRootItem()
+
+            more_files_items = self.model.match(
+                self.model.index(0, 0), Qt.DisplayRole, _("Show more files")
+            )
+            if len(more_files_items):
+                # Remove more files item
+                self.model.removeRow(more_files_items[-1].row())
+
+            more_files_available = self.model.match(
+                self.model.index(0, 0),
+                Qt.DisplayRole,
+                _("Maximum number of files to display reached!"),
+            )
+            if len(more_files_available):
+                # Remove more items available item
+                self.model.removeRow(more_files_available[-1].row())
+
+            for file in files:
+                path = file["name"]
+                name = os.path.relpath(path, self.root_prefix)
+                file_type = file["type"]
+                icon = ima.icon("FileIcon")
+                if file_type == "directory":
+                    icon = ima.icon("DirClosedIcon")
+                file_name = QStandardItem(icon, name)
+                file_name.setData(file)
+                file_name.setToolTip(file["name"])
+                file_size = QStandardItem(str(file["size"]))
+                file_type = QStandardItem(file_type)
+                file_date_modified = QStandardItem(
+                    datetime.fromtimestamp(file["mtime"]).strftime(
+                        "%d/%m/%Y %I:%M %p"
+                    )
+                )
+                items = [
+                    file_name,
+                    file_size,
+                    file_type,
+                    file_date_modified,
+                ]
+                for standard_item in items:
+                    standard_item.setEditable(False)
+                root.appendRow(items)
+
+            if len(self.extra_files):
+                fetch_more_item = QStandardItem(_("Show more files"))
+                fetch_more_item.setEditable(False)
+                fetch_more_item.setData(
+                    {"name": "FETCH_MORE", "type": "ACTION"}
+                )
+                root.appendRow(fetch_more_item)
+                self.tree.setFirstColumnSpanned(
+                    fetch_more_item.index().row(), root.index(), True
+                )
+            elif len(self.extra_files) == 0 and self.more_files_available:
+                more_items_avaialable = QStandardItem(
+                    _("Maximum number of files to display reached!")
+                )
+                more_items_avaialable.setEditable(False)
+                root.appendRow(more_items_avaialable)
+                self.tree.setFirstColumnSpanned(
+                    more_items_avaialable.index().row(), root.index(), True
+                )
+
+    def fetch_more_files(self):
+        new_files = self.extra_files[: self.FETCH_FILES]
+        del self.extra_files[: self.FETCH_FILES]
+        self.set_files(new_files, reset=False)
+        logger.info("New extra_files")
+        logger.info(self.extra_files)
+
     def set_current_folder(self, folder):
         self.root_prefix = folder
         return self.model.invisibleRootItem()
@@ -275,28 +320,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.histindex += 1
         self.chdir(browsing_history=True)
 
-    def filter_files(self, name_filters=None):
-        """Filter files given the defined list of filters."""
-        if name_filters is None:
-            name_filters = self.get_conf("name_filters")
-        self.name_filters = []
-        if self.filter_on:
-            self.name_filters = name_filters
-        self.refresh(force_current=True)
-
-    def change_filter_state(self):
-        self.filter_on = not self.filter_on
-        self.filter_button.setChecked(self.filter_on)
-        self.filter_button.setToolTip(_("Filter filenames"))
-        self.filter_files()
-
-    def fetch_more_files(self):
-        new_files = self.extra_files[: self.FETCH_FILES]
-        del self.extra_files[: self.FETCH_FILES]
-        self.set_data(new_files, reset=False)
-        logger.info("New extra_files")
-        logger.info(self.extra_files)
-
     def refresh(self, new_path=None, force_current=False):
         if force_current:
             if new_path is None:
@@ -312,3 +335,32 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.previous_action.setEnabled(self.histindex > 0)
             self.next_action.setEnabled(self.histindex < len(self.history) - 1)
         self.sig_stop_spinner_requested.emit()
+
+    def set_single_click_to_open(self, value):
+        if value:
+            try:
+                self.tree.doubleClicked.disconnect(self._on_clicked_item)
+            except TypeError:
+                pass
+            self.tree.clicked.connect(self._on_clicked_item)
+        else:
+            try:
+                self.tree.clicked.disconnect(self._on_clicked_item)
+            except TypeError:
+                pass
+            self.tree.doubleClicked.connect(self._on_clicked_item)
+
+    def filter_files(self, name_filters=None):
+        """Filter files given the defined list of filters."""
+        if name_filters is None:
+            name_filters = self.get_conf("name_filters")
+        self.name_filters = []
+        if self.filter_on:
+            self.name_filters = name_filters
+        self.refresh(force_current=True)
+
+    def change_filter_state(self):
+        self.filter_on = not self.filter_on
+        self.filter_button.setChecked(self.filter_on)
+        self.filter_button.setToolTip(_("Filter filenames"))
+        self.filter_files()

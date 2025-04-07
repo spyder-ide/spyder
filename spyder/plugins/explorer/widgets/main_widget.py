@@ -11,15 +11,27 @@ Explorer Main Widget.
 # Standard library imports
 import logging
 import os.path as osp
+import sys
 
 # Third-party imports
-from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QStackedWidget, QVBoxLayout, QWidget
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QStackedWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions, ExplorerTreeWidget
@@ -40,6 +52,7 @@ class ExplorerWidgetOptionsMenuSections:
 class ExplorerWidgetMainToolbarSections:
     Main = 'main_section'
 
+
 class ExplorerWidgetActions:
     # Toggles
     ToggleFilter = 'toggle_filter_files_action'
@@ -49,6 +62,7 @@ class ExplorerWidgetActions:
     Parent = 'parent_action'
     Previous = 'previous_action'
     Refresh = 'refresh_action'
+    EditNameFilters = 'edit_name_filters_action'
 
 
 # ---- Main widget
@@ -219,12 +233,9 @@ class ExplorerWidget(PluginMainWidget):
         """Return the title of the plugin tab."""
         return _("Files")
 
-    def _setup(self):
-        super()._setup()
-
     def setup(self):
-        """Performs the setup of plugin's menu and actions."""
-        # Actions
+        """Perform the setup of plugin's menu and actions."""
+        # Common actions
         self.previous_action = self.create_action(
             ExplorerWidgetActions.Previous,
             text=_("Previous"),
@@ -249,8 +260,14 @@ class ExplorerWidget(PluginMainWidget):
             icon=self.create_icon('refresh'),
             triggered=lambda: self.refresh(force_current=True)
         )
+        filters_action = self.create_action(
+            ExplorerWidgetActions.EditNameFilters,
+            text=_("Edit filter settings..."),
+            icon=self.create_icon('filter'),
+            triggered=self.edit_filter,
+        )
 
-        # Toolbuttons
+        # Common toolbuttons
         self.filter_button = self.create_action(
             ExplorerWidgetActions.ToggleFilter,
             text="",
@@ -260,11 +277,12 @@ class ExplorerWidget(PluginMainWidget):
         self.filter_button.setCheckable(True)
 
         # Set actions for tree widgets
-        # A `create_new_treewdiget` method should do this?
         self.treewidget.previous_action = self.previous_action
         self.treewidget.next_action = self.next_action
         self.treewidget.filter_button = self.filter_button
 
+        # TODO: A `create_new_treewdiget` method should do this for remote the
+        # connections?
         self.remote_treewidget.previous_action = self.previous_action
         self.remote_treewidget.next_action = self.next_action
         self.remote_treewidget.filter_button = self.filter_button
@@ -272,22 +290,33 @@ class ExplorerWidget(PluginMainWidget):
         # Setup widgets
         self.treewidget.setup()
         self.chdir(getcwd_or_home())
-        
+
         # Menu
         menu = self.get_options_menu()
 
-        for item in [self.get_action(DirViewActions.ToggleHiddenFiles),
-                     self.get_action(DirViewActions.EditNameFilters)]:
+        hidden_action = self.get_action(DirViewActions.ToggleHiddenFiles)
+        for item in [hidden_action, filters_action]:
             self.add_item_to_menu(
-                item, menu=menu,
-                section=ExplorerWidgetOptionsMenuSections.Common)
+                item,
+                menu=menu,
+                section=ExplorerWidgetOptionsMenuSections.Common,
+            )
 
-        for item in [self.get_action(DirViewActions.ToggleSizeColumn),
-                     self.get_action(DirViewActions.ToggleTypeColumn),
-                     self.get_action(DirViewActions.ToggleDateColumn)]:
+        # Header actions
+        size_column_action = self.get_action(DirViewActions.ToggleSizeColumn)
+        type_column_action = self.get_action(DirViewActions.ToggleTypeColumn)
+        date_column_action = self.get_action(DirViewActions.ToggleDateColumn)
+
+        for item in [
+            size_column_action,
+            type_column_action,
+            date_column_action,
+        ]:
             self.add_item_to_menu(
-                item, menu=menu,
-                section=ExplorerWidgetOptionsMenuSections.Header)
+                item,
+                menu=menu,
+                section=ExplorerWidgetOptionsMenuSections.Header,
+            )
 
         single_click_action = self.get_action(DirViewActions.ToggleSingleClick)
         self.add_item_to_menu(
@@ -296,14 +325,18 @@ class ExplorerWidget(PluginMainWidget):
 
         # Toolbar
         toolbar = self.get_main_toolbar()
-        for item in [self.previous_action,
-                     self.next_action,
-                     self.parent_action,
-                     self.refresh_action,
-                     self.filter_button]:
+        for item in [
+            self.previous_action,
+            self.next_action,
+            self.parent_action,
+            self.refresh_action,
+            self.filter_button,
+        ]:
             self.add_item_to_toolbar(
-                item, toolbar=toolbar,
-                section=ExplorerWidgetMainToolbarSections.Main)
+                item,
+                toolbar=toolbar,
+                section=ExplorerWidgetMainToolbarSections.Main,
+            )
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""
@@ -377,6 +410,51 @@ class ExplorerWidget(PluginMainWidget):
             Default is True.
         """
         self.stackwidget.currentWidget().refresh(new_path, force_current)
+
+    @Slot()
+    def edit_filter(self):
+        """Edit name filters."""
+        # Create Dialog
+        dialog = QDialog(self)
+        dialog.resize(500, 300)
+        dialog.setWindowTitle(_('Edit filter settings'))
+
+        # Create dialog contents
+        description_label = QLabel(
+            _('Filter files by name, extension, or more using '
+              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob'
+              ' patterns.</a> Please enter the glob patterns of the files you '
+              'want to show, separated by commas.'))
+        description_label.setOpenExternalLinks(True)
+        description_label.setWordWrap(True)
+        filters = QTextEdit(", ".join(self.get_conf('name_filters')),
+                            parent=self)
+        layout = QVBoxLayout()
+        layout.addWidget(description_label)
+        layout.addWidget(filters)
+
+        def handle_ok():
+            filter_text = filters.toPlainText()
+            filter_text = [f.strip() for f in str(filter_text).split(',')]
+            self.set_name_filters(filter_text)
+            dialog.accept()
+
+        def handle_reset():
+            self.set_name_filters(NAME_FILTERS)
+            filters.setPlainText(", ".join(self.get_conf('name_filters')))
+
+        # Dialog buttons
+        button_box = SpyderDialogButtonBox(
+            QDialogButtonBox.Reset
+            | QDialogButtonBox.Ok
+            | QDialogButtonBox.Cancel
+        )
+        button_box.accepted.connect(handle_ok)
+        button_box.rejected.connect(dialog.reject)
+        button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)
+        layout.addWidget(button_box)
+        dialog.setLayout(layout)
+        dialog.show()
 
     def change_filter_state(self):
         self.stackwidget.currentWidget().change_filter_state()
