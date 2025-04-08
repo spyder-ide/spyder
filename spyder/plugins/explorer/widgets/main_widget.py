@@ -411,6 +411,9 @@ class ExplorerWidget(PluginMainWidget):
         """
         self.stackwidget.currentWidget().refresh(new_path, force_current)
 
+    def get_current_widget(self):
+        return self.stackwidget.currentWidget()
+
     @Slot()
     def edit_filter(self):
         """Edit name filters."""
@@ -436,11 +439,11 @@ class ExplorerWidget(PluginMainWidget):
         def handle_ok():
             filter_text = filters.toPlainText()
             filter_text = [f.strip() for f in str(filter_text).split(',')]
-            self.set_name_filters(filter_text)
+            self.get_current_widget().set_name_filters(filter_text)
             dialog.accept()
 
         def handle_reset():
-            self.set_name_filters(NAME_FILTERS)
+            self.get_current_widget().set_name_filters(NAME_FILTERS)
             filters.setPlainText(", ".join(self.get_conf('name_filters')))
 
         # Dialog buttons
