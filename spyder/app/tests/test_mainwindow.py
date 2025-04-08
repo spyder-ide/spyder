@@ -805,7 +805,11 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 )
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
-
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT,
+    )
     # ---- Load test file ----
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
@@ -836,10 +840,12 @@ def test_dedicated_consoles(main_window, qtbot):
         ('py', RunContext.File): {'params': {exec_uuid: ext_exec_conf}}
     }}
     CONF.set('run', 'parameters', ipy_dict)
+    qtbot.wait(500)
 
     # --- Set run options for this file ---
     run_parameters = generate_run_parameters(main_window, test_file, exec_uuid)
     CONF.set('run', 'last_used_parameters_per_executor', run_parameters)
+    qtbot.wait(500)
 
     # --- Run test file and assert that we get a dedicated console ---
     qtbot.keyClick(code_editor, Qt.Key_F5)
@@ -875,20 +881,21 @@ def test_dedicated_consoles(main_window, qtbot):
         shell.execute('zz = -1')
 
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
     qtbot.waitUntil(lambda: shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert shell.is_defined('zz')
 
     # --- Assert runfile text is present after reruns and there's no banner
-    qtbot.wait(500)
     text = control.toPlainText()
     assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
 
     # --- Clean namespace after re-execution with clear_namespace ---
     ipy_conf['clear_namespace'] = True
     CONF.set('run', 'parameters', ipy_dict)
-
     qtbot.wait(500)
+
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
     qtbot.waitUntil(lambda: not shell.is_defined('zz'), timeout=SHELL_TIMEOUT)
     assert not shell.is_defined('zz')
 
@@ -899,6 +906,7 @@ def test_dedicated_consoles(main_window, qtbot):
     main_window.editor.close_file()
     CONF.set('run', 'configurations', {})
     CONF.set('run', 'last_used_parameters_per_executor', {})
+    qtbot.wait(500)
 
 
 @flaky(max_runs=3)
