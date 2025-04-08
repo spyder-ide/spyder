@@ -11,6 +11,9 @@ Tests for tour.py
 # Test library imports
 import pytest
 
+# Third party imports
+from qtpy import PYSIDE6
+
 # Local imports
 from spyder.plugins.tours.widgets import TourTestWindow
 
@@ -23,6 +26,7 @@ def tour(qtbot):
     return tour
 
 
+@pytest.mark.skipif(PYSIDE6, reason="Segfaults with PySide6")
 def test_tour(tour, qtbot):
     """Test tour."""
     tour.show()
