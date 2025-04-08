@@ -18,8 +18,11 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 class MainWindowMock(QMainWindow):
-    register_shortcut = MagicMock()
-    editor = MagicMock()
+
+    def __init__(self, *args, **kwargs):
+        self.register_shortcut = MagicMock()
+        self.editor = MagicMock()
+        super().__init__(*args, **kwargs)
 
     def __getattr__(self, attr):
         return MagicMock()
