@@ -129,6 +129,7 @@ class ClientContextMenuActions:
     CopySvg = 'copy_svg'
     SaveSvg = 'save_svg'
 
+    # Quit section
     Quit = 'exit'
 
 
