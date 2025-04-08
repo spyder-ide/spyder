@@ -29,6 +29,7 @@ from spyder.utils.icon_manager import ima
 
 
 class MainWindowMock(QMainWindow):
+    register_shortcut = Mock()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -38,7 +39,6 @@ class MainWindowMock(QMainWindow):
         self.shortcut_data = []
         self.prefs_dialog_instance = None
         self._APPLICATION_TOOLBARS = MagicMock()
-        self.register_shortcut = Mock()
 
         self.console = Mock()
 

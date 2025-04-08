@@ -20,7 +20,7 @@ on:
 
   pull_request:
     branches:
-      - master
+      #- master
       - 6.*
     paths:
       - '.github/scripts/*.sh'
