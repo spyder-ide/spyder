@@ -557,7 +557,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             "The system cannot find the path specified",
             # UNC paths, see spyder-ide/spyder#23726
             " UNC ",
-            # Matplotlib error, see spyder-ide/spyder#23726
+            # Matplotlib spurious message, see spyder-ide/spyder#24153
             "Matplotlib is building the font cache",
         ]
 
