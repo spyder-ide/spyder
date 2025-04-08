@@ -95,6 +95,7 @@ class ClientContextMenuSections:
     Clear = 'clear'
     Image = 'image'
     SVG = 'svg'
+    Quit = 'exit'
 
 
 class ClientContextMenuActions:
@@ -127,6 +128,9 @@ class ClientContextMenuActions:
     # Svg section
     CopySvg = 'copy_svg'
     SaveSvg = 'save_svg'
+
+    # Quit section
+    Quit = 'exit'
 
 
 class IPythonConsoleWidgetCornerWidgets:
