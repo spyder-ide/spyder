@@ -26,6 +26,7 @@ from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
+from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
     UPDATER_PATH,
     UpdateType,
@@ -35,6 +36,7 @@ from spyder.plugins.updatemanager.workers import (
     WorkerDownloadInstaller
 )
 from spyder.utils.conda import find_conda, is_anaconda_pkg
+from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import get_temp_dir, is_program_installed
 from spyder.widgets.helperwidgets import MessageCheckBox
 
@@ -43,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 # Update manager process statuses
 NO_STATUS = __version__
-UPDATING_UPDATER = _("Updating Updater")
+UPDATING_UPDATER = _("Updating Spyder-updater")
 DOWNLOADING_INSTALLER = _("Downloading update")
 DOWNLOAD_FINISHED = _("Download finished")
 PENDING = _("Update available")
@@ -327,7 +329,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                     self._start_update_updater()
 
     def _start_update_updater(self):
-        """Check for and install updates for the Updater"""
+        """Check for and install updates for Spyder-updater."""
         self.sig_disable_actions.emit(True)
         self.set_status(UPDATING_UPDATER)
 
@@ -521,13 +523,22 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _start_updater(self):
         """Start updater application."""
+        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+            scale_factors = self.get_conf(
+                'high_dpi_custom_scale_factors',
+                section='main'
+            )
+            scale_factor = float(scale_factors.split(";")[0])
+        else:
+            scale_factor = 1
+
         info = {
             "install_file": self.installer_path,
             "conda_exec": find_conda(),
             "env_path": sys.prefix,
             "update_type": self.asset_info["update_type"],
             "window_title": _("Spyder update"),
-            "scale_factor": float(os.getenv("QT_SCALE_FACTOR") or 1),
+            "scale_factor": scale_factor,
             "initial_message": _(
                 "Updating Spyder, this will take a few minutes ..."
             ),
@@ -549,9 +560,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             "monospace_font_size": int(
                 self.get_conf("monospace_app_font/size", section="appearance")
             ),
-            "interface_theme": self.get_conf("ui_theme", section="appearance"),
-            "icon_color": "#FAFAFA",
+            "interface_theme": "dark" if is_dark_interface() else "light",
+            "icon_color": SpyderPalette.ICON_1,
         }
+
         info_file = osp.join(
             osp.dirname(self.installer_path), "update-info.json"
         )

@@ -12,7 +12,7 @@ import os
 import os.path as osp
 import platform
 import shutil
-from subprocess import run
+import subprocess
 import sys
 from time import sleep
 import traceback
@@ -28,9 +28,8 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (
-    _, is_conda_based_app, running_in_ci, get_updater_info
-)
+from spyder.config.base import _, is_conda_based_app, running_in_ci
+from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
 from spyder.utils.programs import get_temp_dir
 
@@ -115,7 +114,8 @@ def get_github_releases(
         is retrieved. Otherwise, the most recent 20 releases are retrieved.
         This is only used to retrieve a known set of releases for unit testing.
     updater : bool (False)
-        Whether to get Updater releases (True) or Spyder releases (False).
+        Whether to get Spyder-updater releases (True) or Spyder releases
+        (False).
 
     Returns
     -------
@@ -487,7 +487,7 @@ class WorkerUpdate(BaseWorker):
 
 class WorkerUpdateUpdater(BaseWorker):
     """
-    Worker that checks and updates the Updater without blocking
+    Worker that checks and updates Spyder-updater without blocking
     the Spyder user interface.
     """
 
@@ -525,8 +525,11 @@ class WorkerUpdateUpdater(BaseWorker):
     def _download_asset(self):
         """Download Updater lock file"""
         self.installer_path = osp.join(
-            get_temp_dir(), "updates", "spyder-updater",
-            str(self.asset_info["version"]), self.asset_info["filename"]
+            get_temp_dir(),
+            "updates",
+            "spyder-updater",
+            str(self.asset_info["version"]),
+            self.asset_info["filename"],
         )
 
         if (
@@ -558,7 +561,7 @@ class WorkerUpdateUpdater(BaseWorker):
             raise UpdateDownloadError("Download failed!")
 
     def _install_update(self):
-        """Install or update spyder-updater environment"""
+        """Install or update Spyder-updater environment."""
         dirname = osp.dirname(self.installer_path)
 
         if os.name == "nt":
@@ -588,8 +591,11 @@ class WorkerUpdateUpdater(BaseWorker):
             "--force-reinstall",
             spy_updater_conda
         ]
-        logger.debug(f"""Conda command: '{" ".join(cmd)}'""")
-        proc = run(" ".join(cmd), shell=True, capture_output=True, text=True)
+
+        logger.debug(f"""Conda command for the updater: '{" ".join(cmd)}'""")
+        proc = subprocess.run(
+            " ".join(cmd), shell=True, capture_output=True, text=True
+        )
         proc.check_returncode()
 
     def start(self):
@@ -607,7 +613,7 @@ class WorkerUpdateUpdater(BaseWorker):
             error_data = dict(
                 text=traceback.format_exc(),
                 is_traceback=True,
-                title="Error when updating spyder-updater",
+                title=_("Error when updating Spyder-updater"),
             )
             self.sig_exception_occurred.emit(error_data)
             logger.error(err, exc_info=err)

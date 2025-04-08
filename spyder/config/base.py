@@ -18,7 +18,6 @@ import os
 import os.path as osp
 import re
 import shutil
-import subprocess as sp
 import sys
 import tempfile
 import uuid
@@ -584,39 +583,6 @@ def is_conda_based_app(pyexec=sys.executable):
         return True
     else:
         return False
-
-
-def get_updater_info() -> (str, str):
-    """
-    Get spyder-updater info
-
-    Returns
-    -------
-    updater_exe : str
-        Full path to the spyder-updater executable. This may not exist.
-    version : str
-        Version of spyder-updater. If not installed, defaults to "0.0.0"
-    """
-    real_pyexec = osp.realpath(sys.executable)
-    if os.name == 'nt':
-        env_dir = osp.dirname(osp.dirname(real_pyexec))
-        updater_exe = osp.join(
-            env_dir, "spyder-updater", "Scripts", "spyder-updater.bat"
-        )
-    else:
-        env_dir = osp.dirname(osp.dirname(osp.dirname(real_pyexec)))
-        updater_exe = osp.join(
-            env_dir, "spyder-updater", "bin", "spyder-updater"
-        )
-
-    version = "0.0.0"  # Not installed
-    if is_conda_based_app() and osp.isfile(updater_exe):
-        cmd = " ".join([updater_exe, "--version"])
-        proc = sp.run(cmd, shell=True, text=True, capture_output=True)
-        if proc.returncode == 0:
-            version = proc.stdout
-
-    return updater_exe, version
 
 
 #==============================================================================
