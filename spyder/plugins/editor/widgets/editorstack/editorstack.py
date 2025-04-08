@@ -124,6 +124,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
     refresh_save_all_action = Signal()
+    sig_refresh_file = Signal()
     text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
@@ -2548,6 +2549,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
         editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
+        editor.sig_refresh_file.connect(self.sig_refresh_file)
         editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)
         editor.setup_editor(

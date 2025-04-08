@@ -987,6 +987,7 @@ class LSPMixin:
             self.format_document_range()
         else:
             self.format_document()
+        self.sig_refresh_file.emit()
 
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):

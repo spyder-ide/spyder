@@ -170,6 +170,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
     sig_refresh_formatting = Signal(bool)
+    sig_refresh_file = Signal()
 
     #: Signal emitted when the editor loses focus
     sig_focus_changed = Signal()
