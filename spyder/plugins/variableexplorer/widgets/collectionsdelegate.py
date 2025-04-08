@@ -11,7 +11,9 @@
 import copy
 import datetime
 import functools
+import math
 import operator
+import sys
 from typing import Any, Callable, Optional
 
 # Third party imports
@@ -59,6 +61,13 @@ LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
 SELECT_ROW_BUTTON_SIZE = 22
 
+# The maximum length of the text in a QLineEdit is 32_767, so do not allow
+# the user to edit an `int` with more than 32_767 digits
+MAX_INT_DIGITS_FOR_EDITING = 32_767
+MAX_INT_BIT_LENGTH_FOR_EDITING = (
+    int(MAX_INT_DIGITS_FOR_EDITING * math.log(10) / math.log(2))
+)
+
 
 class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
     """CollectionsEditor Item Delegate"""
@@ -76,6 +85,13 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self._editors = {}  # keep references on opened editors
+
+        try:
+            if sys.get_int_max_str_digits() < MAX_INT_DIGITS_FOR_EDITING:
+                sys.set_int_max_str_digits(MAX_INT_DIGITS_FOR_EDITING)
+        except AttributeError:
+            # There was no limit in Python 3.10 and earlier
+            pass
 
     def get_value(self, index):
         if index.isValid():
@@ -304,6 +320,18 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         elif is_editable_type(value) and not object_explorer:
             if readonly:
                 self.sig_editor_shown.emit()
+                return None
+            elif (
+                isinstance(value, int)
+                and value.bit_length() >= MAX_INT_BIT_LENGTH_FOR_EDITING
+            ):
+                self.sig_editor_shown.emit()
+                msg_box = QMessageBox(self.parent())
+                msg_box.critical(
+                    self.parent(),
+                    _("Error"),
+                    _("The value of this variable is too large to be edited.")
+                )
                 return None
             else:
                 editor = QLineEdit(parent=parent)
