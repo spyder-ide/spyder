@@ -82,7 +82,7 @@ $ python bootstrap.py --debug
 
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
 
-To start Spyder with different Qt bindings (e.g. PySide2 or PyQt6), you can run:
+To start Spyder with different Qt bindings (e.g. PySide6 or PyQt6), you can run:
 
 ```bash
 $ python bootstrap.py --gui pyqt6
