@@ -1,4 +1,4 @@
-name: Linux tests with PyQt6
+name: Linux tests with Qt6
 
 on:
   push:
