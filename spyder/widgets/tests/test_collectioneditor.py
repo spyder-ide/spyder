@@ -755,7 +755,7 @@ def test_edit_large_int(monkeypatch, exponent, error_expected):
     """
     num = 10 ** exponent + 1
     editor = CollectionsEditorTableView(None, [num])
-    index = editor.model().index(0, 3)
+    index = editor.source_model.index(0, 3)
 
     with patch(
         'spyder.plugins.variableexplorer.widgets'
