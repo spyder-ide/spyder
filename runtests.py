@@ -36,7 +36,7 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
     # Be sure to ignore subrepos and remoteclient plugin
     pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
                    '-W ignore::UserWarning', '--timeout=120',
-                   '--timeout_method=thread']
+                   '--timeout_method=thread', '-x']  # TODO: REMOVE -x!
 
     if CI:
         # Show coverage
