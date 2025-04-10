@@ -566,7 +566,7 @@ class WorkerUpdateUpdater(BaseWorker):
 
         if os.name == "nt":
             plat = "win-64"
-        if sys.platform == "darwin":
+        elif sys.platform == "darwin":
             plat = "osx-arm64" if platform.machine() == "arm64" else "osx-64"
         else:
             plat = "linux-64"
@@ -603,7 +603,10 @@ class WorkerUpdateUpdater(BaseWorker):
         try:
             self._check_asset_available()
             if self.asset_info is None and UPDATER_VERSION == parse("0.0.0"):
-                proc.check_returncode()
+                raise RuntimeError(
+                    "Spyder-updater is not installed and "
+                    "not available for download!"
+                )
             elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()

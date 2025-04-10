@@ -33,7 +33,7 @@ def get_updater_info() -> (str, str):
         )
     else:
         env_dir = env_dir.parent
-        updater_exe = env_dir, "spyder-updater", "bin", "spyder-updater"
+        updater_exe = env_dir / "spyder-updater" / "bin" / "spyder-updater"
 
     version = "0.0.0"  # Not installed
     if is_conda_based_app() and updater_exe.exists():
