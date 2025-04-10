@@ -21,6 +21,7 @@ from qtpy import PYQT5
 from qtpy.QtCore import (
     QEvent,
     QPoint,
+    QRect,
     QRegularExpression,
     QSize,
     QSortFilterProxyModel,
@@ -584,13 +585,14 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
 
         # Attributes
         self._adjust_on_resize = adjust_on_resize
+        self._description = description
         self._is_shown = False
         self._spin = None
         self._min_height = None
         self._is_visible = False
 
-        # This is necessary to make Qt reduce the all widgets size on vertical
-        # resizes
+        # This is necessary to make Qt reduce the size of all widgets on
+        # vertical resizes
         if self._adjust_on_resize:
             self.setMinimumHeight(150)
 
@@ -622,10 +624,13 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             text_label.setStyleSheet(text_label_qss.toString())
 
         # Description text
-        if description is not None:
-            description_label = QLabel(description, parent=self)
-            description_label.setAlignment(Qt.AlignCenter)
-            description_label.setWordWrap(True)
+        self._description_label = None
+        if self._description is not None:
+            self._description_label = QLabel(self._description, parent=self)
+            self._description_label.setAlignment(Qt.AlignCenter)
+            self._description_label.setWordWrap(True)
+            self._description_label.setScaledContents(True)
+
             description_label_qss = qstylizer.style.StyleSheet()
             description_label_qss.QLabel.setValues(
                 fontSize=f"{interface_font_size}pt",
@@ -633,7 +638,9 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
                 border="0px",
                 padding="20px",
             )
-            description_label.setStyleSheet(description_label_qss.toString())
+            self._description_label.setStyleSheet(
+                description_label_qss.toString()
+            )
 
         # Setup layout
         pane_empty_layout = QVBoxLayout()
@@ -669,8 +676,8 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             pane_empty_layout.addStretch(middle_stretch)
 
         # If description, display description
-        if description is not None:
-            pane_empty_layout.addWidget(description_label)
+        if self._description is not None:
+            pane_empty_layout.addWidget(self._description_label)
 
         pane_empty_layout.addStretch(bottom_stretch)
         pane_empty_layout.setContentsMargins(20, 20, 20, 20)
@@ -769,8 +776,9 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     @qdebounced(timeout=30)
     def _on_resize_event(self):
         """Actions to take when widget is resized."""
+        # Hide/show image label when necessary
         if self._image_label is not None:
-            # We need to do this validations because sometimes minimumSizeHint
+            # We need to do this validation because sometimes minimumSizeHint
             # doesn't give the right min_height in showEvent (e.g. when adding
             # an _ErroredMessageWidget to plugins that are not visible).
             if self._min_height < self.minimumSizeHint().height():
@@ -781,6 +789,64 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             else:
                 if self._is_visible:
                     self._image_label.show()
+
+        # Elide description when necessary
+        if self._description is not None:
+            metrics = QFontMetrics(self._description_label.font())
+
+            # All margins are the same, so we only take the left one
+            margin = self._description_label.contentsMargins().left()
+
+            # Height of a single line of text
+            text_line_height = metrics.height()
+
+            # Allow a max of two lines of text in the description
+            max_height = 2 * text_line_height + 2 * margin
+
+            # Compute the width and height of the description text according to
+            # max_height and the width of its label.
+            # Solution taken from https://forum.qt.io/post/313343
+            rect = metrics.boundingRect(
+                # Rectangle in which the text needs to fit
+                QRect(
+                    0,
+                    0,
+                    self._description_label.width() - 2 * margin,
+                    max_height,
+                ),
+                self._description_label.alignment() | Qt.TextWordWrap,
+                self._description
+            )
+
+            # Elide text if it were to occupy more than two lines
+            if rect.height() > 2 * text_line_height:
+                # Replace description with elided text
+                elided_text = metrics.elidedText(
+                    self._description, Qt.ElideRight, rect.width()
+                )
+                self._description_label.setText(elided_text)
+
+                # Show full description in tooltip
+                self._description_label.setToolTip(
+                    '\n'.join(textwrap.wrap(self._description, 50))
+                )
+
+                # This prevents flickering when the widget's width is
+                # continuously reduced because Qt wraps the elided text
+                self._description_label.setMaximumHeight(
+                    text_line_height + 2 * margin
+                )
+            else:
+                # Restore full description if there's enough space
+                if "…" in self._description_label.text():
+                    # Restore description
+                    self._description_label.setText(self._description)
+
+                    # No tooltip is necessary in this case
+                    self._description_label.setToolTip("")
+
+                    # Restore max height
+                    self._description_label.setMaximumHeight(max_height)
 
 
 class HoverRowsTableView(QTableView):
