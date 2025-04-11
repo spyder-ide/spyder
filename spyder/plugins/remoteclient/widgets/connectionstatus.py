@@ -301,8 +301,14 @@ class ConnectionStatusWidget(
         )
 
     def _set_icon(self, status):
+        icon_colors = {
+            'active':     STATUS_TO_COLOR[ConnectionStatus.Active],
+            'inactive':   STATUS_TO_COLOR[ConnectionStatus.Inactive],
+            'connecting': STATUS_TO_COLOR[ConnectionStatus.Connecting],
+            'error':      STATUS_TO_COLOR[ConnectionStatus.Error],
+        }
         self._image_label.setPixmap(
-            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
+            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1, icon_colors=icon_colors)
         )
 
     @property

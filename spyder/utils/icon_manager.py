@@ -9,6 +9,7 @@ import os
 import os.path as osp
 import mimetypes as mime
 import sys
+import logging
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray, QSize, Qt
@@ -20,8 +21,10 @@ from spyder.config.manager import CONF
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.svg_colorizer import SVGColorize
+
 import qtawesome as qta
-import logging
+
 
 log = logging.getLogger(__name__)
 
@@ -452,17 +455,12 @@ class IconManager():
     def _process_svg_icon(self, icon_path, resample):
         """Process an SVG icon with colorization."""
         try:
-            from spyder.utils.svg_colorizer import SVGColorize
-            
             # Create a theme colors dictionary from SpyderPalette
             icon_colors = {
                 'main-color':             SpyderPalette.ICON_1,
                 'action-color':           SpyderPalette.ICON_2,
                 'cell-color':             SpyderPalette.ICON_3,
                 'stop-color':             SpyderPalette.ICON_4,
-                'disconnected-color':     SpyderPalette.ICON_6,
-                'waiting-color':          SpyderPalette.COLOR_WARN_4,
-                'connected-color':        SpyderPalette.COLOR_SUCCESS_3,
                 'brand-main-color':       SpyderPalette.SPYDER_LOGO_WEB,
                 'brand-secondary-color':  SpyderPalette.SPYDER_LOGO_SNAKE
             }
@@ -475,18 +473,15 @@ class IconManager():
             
             # Create QIcon from the SVG data
             if svg_data:
-                # Debug
-                log.debug(f"SVG icon: {icon_path} loaded with colors: {icon_colors}")
-                
                 # Create a QByteArray with the SVG data
                 svg_bytes = QByteArray(svg_data.encode())
                 
-                # Create a QIcon from the SVG data
+                # Create a QIcon from the QByteArray
                 svg_image = QImage.fromData(svg_bytes, "SVG")
                 wrapping_icon = QIcon()
                 wrapping_icon.addPixmap(QPixmap.fromImage(svg_image))
                 
-                # Store the SVG data for high-resolution rendering
+                # Store the SVG as a QByteArray for high-resolution rendering
                 setattr(wrapping_icon, '_svg_data', svg_bytes)
                 
                 return self._apply_icon_states(wrapping_icon, resample)
