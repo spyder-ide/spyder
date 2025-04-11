@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-# This probably should be implemented in
-# spyder/utils/icon_manager.py
-# but I'm not sure how to do it.
-
 # Import the lxml library for XML parsing.
 try:
     from lxml import etree
-    print("running with lxml.etree")
+    print("running svg_colorizer with lxml.etree")
 except ImportError:
     import xml.etree.ElementTree as etree
-    print("running with Python's xml.etree.ElementTree")
+    print("running svg_colorizer with Python's xml.etree.ElementTree")
 
 # Methods for colorization.
 class SVGColorize:
@@ -140,3 +136,42 @@ class SVGColorize:
         """
         icon = cls(icon_path)
         return icon.colorize(color_primary, color_secondary, color_tertiary)
+
+    def colorize_from_theme(self, theme_colors):
+        """
+        Apply colors from theme configuration to SVG elements.
+        
+        Parameters
+        ----------
+        theme_colors : dict
+            Dictionary mapping semantic color names to hex color values
+            
+        Returns
+        -------
+        str or None
+            The colorized SVG as a string, or None if there was an error
+        """
+        for color_name, color_value in theme_colors.items():
+            self.change_fill_color_by_class(color_name, color_value)
+            
+        return self.save_to_string()
+        
+    @classmethod
+    def colorize_icon_from_theme(cls, icon_path, theme_colors):
+        """
+        Class method to colorize an SVG icon using theme colors.
+        
+        Parameters
+        ----------
+        icon_path : str
+            Path to the SVG file
+        theme_colors : dict
+            Dictionary mapping semantic color names to hex color values
+            
+        Returns
+        -------
+        str or None
+            The colorized SVG as a string, or None if there was an error
+        """
+        icon = cls(icon_path)
+        return icon.colorize_from_theme(theme_colors)

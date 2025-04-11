@@ -11,7 +11,7 @@ import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray
+from qtpy.QtCore import QBuffer, QByteArray, QSize
 from qtpy.QtGui import QColor, QIcon, QImage, QPainter
 from qtpy.QtWidgets import QStyle, QWidget
 
@@ -398,7 +398,7 @@ class IconManager():
 
     def get_icon(self, name, resample=False):
         """Return image inside a QIcon object.
-
+        
         Parameters
         ----------
         name: str
@@ -408,15 +408,70 @@ class IconManager():
             (16, 24, 32, 48, 96, 128, 256). This is recommended for
             QMainWindow icons created from SVG images on non-Windows
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
+            
+        Returns
+        -------
+        QIcon
+            Icon object with the requested image.
+            
+        Notes
+        -----
+        For SVG files, this method will automatically apply theme-based
+        colorization if the SVG contains elements with semantic class names
+        like 'main-color', 'action-color', 'stop-color', etc. These classes
+        correspond to color definitions in SpyderPalette.
+        
+        This allows icons to automatically adapt to the current theme's
+        color scheme, supporting both dark and light themes as well as
+        custom user themes.
         """
-        # Icon image path
+        
+        # Get the icon's file path
         icon_path = get_image_path(name)
+        
+        # Check if this is an SVG that needs colorization
+        if icon_path.endswith('.svg'):
+            from spyder.utils.svg_colorizer import SVGColorize
+            
+            # Create a theme colors dictionary from SpyderPalette
+            theme_colors = {
+                'main-color': '#FF0000',  # Testing with red to see change
+                'brand-main-color': SpyderPalette.ICON_BRAND_MAIN_COLOR,
+                'brand-secondary-color': SpyderPalette.ICON_BRAND_SECONDARY_COLOR,
+                'stop-color': SpyderPalette.ICON_STOP_COLOR,
+                'action-color': SpyderPalette.ICON_ACTION_COLOR,
+                'cell-color': SpyderPalette.ICON_CELL_COLOR,
+                'connected-color': SpyderPalette.ICON_CONNECTED_COLOR,
+                'disconnected-color': SpyderPalette.ICON_DISCONNECTED_COLOR,
+                'waiting-color': SpyderPalette.ICON_WAITING_COLOR
+            }
+            
+            # Apply colorization
+            svg_data = SVGColorize.colorize_icon_from_theme(
+                icon_path,
+                theme_colors
+            )
+            
+            # Create QIcon from the SVG data
+            if svg_data:
+                # Debug
+                print(f"SVG path: {icon_path}")
+                print(f"Theme colors: {theme_colors}")
+                print(f"SVG data generated: {bool(svg_data)}")
 
-        # This is used to wrap the image into a QIcon container so we can get
-        # pixmaps for it.
-        wrapping_icon = QIcon(icon_path)
-
-        # This is the icon object that will be returned by this method.
+                buffer = QBuffer()
+                buffer.open(QBuffer.ReadWrite)
+                buffer.write(svg_data.encode())
+                buffer.seek(0)
+                wrapping_icon = QIcon(buffer)
+                buffer.close()
+            else:
+                # Fallback to original if colorization fails
+                wrapping_icon = QIcon(icon_path)
+        else:
+            # Non-SVG icon, load directly
+            wrapping_icon = QIcon(icon_path)
+        
         icon = QIcon()
 
         if resample:
@@ -553,6 +608,11 @@ class IconManager():
         buffer = QBuffer(byte_array)
         image.save(buffer, "PNG")
         return byte_array.toBase64().data().decode()
+
+    def clear_icon_cache(self):
+        """Clear the icon cache when the theme changes."""
+        self.ICONS_BY_EXTENSION = {}
+        # Any other caches that need clearing
 
 
 ima = IconManager()
