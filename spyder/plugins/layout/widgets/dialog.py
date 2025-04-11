@@ -273,29 +273,33 @@ class LayoutSettingsDialog(QDialog):
     def delete_layout(self):
         """Delete layout from the config."""
         names, ui_names, order, active, read_only = (
-            self.names, self.ui_names, self.order, self.active, self.read_only)
+            self.names, self.ui_names, self.order, self.active, self.read_only
+        )
         row = self.table.selectionModel().currentIndex().row()
         ui_name, name, state = self.table.model().row(row)
 
         if name not in read_only:
-            name = from_qvariant(
-                self.table.selectionModel().currentIndex().data(),
-                to_text_string)
             if ui_name in ui_names:
                 index = ui_names.index(ui_name)
             else:
                 # In case nothing has focus in the table
                 return
+
             if index != -1:
-                order.remove(ui_name)
-                names.remove(ui_name)
+                order.remove(name)
+                names.remove(name)
                 ui_names.remove(ui_name)
+
                 if name in active:
-                    active.remove(ui_name)
+                    active.remove(name)
+
                 self.names, self.ui_names, self.order, self.active = (
-                    names, ui_names, order, active)
+                    names, ui_names, order, active
+                )
                 self.table.model().set_data(
-                    names, ui_names, order, active, read_only)
+                    names, ui_names, order, active, read_only
+                )
+
                 index = self.table.model().index(0, 0)
                 self.table.setCurrentIndex(index)
                 self.table.setFocus()
