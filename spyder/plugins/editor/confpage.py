@@ -45,6 +45,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
+        showtoptoolbar_box = newcb(_("Show top toolbar"), 'show_top_tool_bar')
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
@@ -90,6 +91,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         display_group = QGroupBox(_("Display"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
+        display_layout.addWidget(showtoptoolbar_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(showcodefolding_box)
