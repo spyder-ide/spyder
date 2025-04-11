@@ -1013,7 +1013,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         elif force_focus is False:
             pass
 
-        self.is_visible = enable
+        # If the widget is undocked, it's always visible
+        self.is_visible = enable or (self.windowwidget is not None)
 
         if (
             self.SHOW_MESSAGE_WHEN_EMPTY
