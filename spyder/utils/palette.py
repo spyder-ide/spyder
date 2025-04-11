@@ -46,17 +46,6 @@ class SpyderPaletteDark(DarkPalette):
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
 
-    # Icon semantic colors
-    ICON_MAIN_COLOR = Gray.B140          # #fafafa
-    ICON_BRAND_MAIN_COLOR = Gray.B140    # #fafafa
-    ICON_BRAND_SECONDARY_COLOR = Gray.B140  # #fafafa
-    ICON_STOP_COLOR = Red.B70            # #e74c3c
-    ICON_ACTION_COLOR = Blue.B80         # #37aefe
-    ICON_CELL_COLOR = Green.B80          # #44deb0
-    ICON_CONNECTED_COLOR = Green.B90     # #3bebb7
-    ICON_DISCONNECTED_COLOR = Gray.B70   # #9da9b5
-    ICON_WAITING_COLOR = Orange.B100     # #ffcf84
-
     # Colors for icons and variable explorer in dark mode
     GROUP_1 = GroupDark.B10
     GROUP_2 = GroupDark.B20
@@ -89,7 +78,7 @@ class SpyderPaletteDark(DarkPalette):
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
-    SPYDER_LOGO_SNAKE = Logos.B50
+    SPYDER_LOGO_SNAKE = Logos.B40
 
     # For special tabs
     SPECIAL_TABS_SEPARATOR = Gray.B70
@@ -127,17 +116,6 @@ class SpyderPaletteLight(LightPalette):
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B140
-
-    # Icon semantic colors
-    ICON_MAIN_COLOR = Gray.B30           # #37414f
-    ICON_BRAND_MAIN_COLOR = Red.B20      # #8c0000
-    ICON_BRAND_SECONDARY_COLOR = Gray.B30  # #303030
-    ICON_STOP_COLOR = Red.B70            # #e74c3c
-    ICON_ACTION_COLOR = Blue.B50         # #1a72bb
-    ICON_CELL_COLOR = Green.B30          # #007a5e
-    ICON_CONNECTED_COLOR = Green.B90     # #3bebb7
-    ICON_DISCONNECTED_COLOR = Gray.B60   # #60798b
-    ICON_WAITING_COLOR = Orange.B40      # #ce4b01
 
     # Colors for icons and variable explorer in light mode
     GROUP_1 = GroupLight.B10
