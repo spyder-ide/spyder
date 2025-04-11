@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+import logging
+
+log = logging.getLogger(__name__)
+
 # Import the lxml library for XML parsing.
 try:
     from lxml import etree
-    print("running svg_colorizer with lxml.etree")
+    log.debug("running svg_colorizer with lxml.etree")
 except ImportError:
     import xml.etree.ElementTree as etree
-    print("running svg_colorizer with Python's xml.etree.ElementTree")
+    log.debug("running svg_colorizer with Python's xml.etree.ElementTree")
 
 # Methods for colorization.
 class SVGColorize:

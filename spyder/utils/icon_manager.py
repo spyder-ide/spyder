@@ -389,6 +389,9 @@ class IconManager():
             'expanded':                [('mdi.chevron-down',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.3}],
         }
 
+        # Add a cache for processed icons
+        self._icon_cache = {}
+
     def get_std_icon(self, name, size=None):
         """Get standard platform icon."""
         if not name.startswith('SP_'):
@@ -428,16 +431,31 @@ class IconManager():
         color scheme, supporting both dark and light themes as well as
         custom user themes.
         """
-
+        # Check cache first
+        cache_key = f"{name}_{resample}"
+        if cache_key in self._icon_cache:
+            return self._icon_cache[cache_key]
+        
         # Get the icon's file path
         icon_path = get_image_path(name)
-
-        # Check if this is an SVG that needs colorization
+        
+        # Process the icon
         if icon_path.endswith('.svg'):
-            from spyder.utils.svg_colorizer import SVGColorize
+            icon = self._process_svg_icon(icon_path, resample)
+        else:
+            icon = self._process_regular_icon(icon_path, resample)
+        
+        # Cache the result
+        self._icon_cache[cache_key] = icon
+        return icon
 
+    def _process_svg_icon(self, icon_path, resample):
+        """Process an SVG icon with colorization."""
+        try:
+            from spyder.utils.svg_colorizer import SVGColorize
+            
             # Create a theme colors dictionary from SpyderPalette
-            theme_colors = {
+            icon_colors = {
                 'main-color':             SpyderPalette.ICON_1,
                 'action-color':           SpyderPalette.ICON_2,
                 'cell-color':             SpyderPalette.ICON_3,
@@ -448,36 +466,48 @@ class IconManager():
                 'brand-main-color':       SpyderPalette.SPYDER_LOGO_WEB,
                 'brand-secondary-color':  SpyderPalette.SPYDER_LOGO_SNAKE
             }
-
+            
             # Apply colorization
             svg_data = SVGColorize.colorize_icon_from_theme(
                 icon_path,
-                theme_colors
+                icon_colors
             )
-
+            
             # Create QIcon from the SVG data
             if svg_data:
                 # Debug
-                log.debug(f"SVG icon: {icon_path} loaded with colors: {theme_colors}")
-
+                log.debug(f"SVG icon: {icon_path} loaded with colors: {icon_colors}")
+                
                 # Create a QByteArray with the SVG data
                 svg_bytes = QByteArray(svg_data.encode())
-
+                
                 # Create a QIcon from the SVG data
                 svg_image = QImage.fromData(svg_bytes, "SVG")
                 wrapping_icon = QIcon()
                 wrapping_icon.addPixmap(QPixmap.fromImage(svg_image))
-
-                # Store the SVG data so we can generate high-resolution pixmaps later
-                # Using a custom attribute to store the data
+                
+                # Store the SVG data for high-resolution rendering
                 setattr(wrapping_icon, '_svg_data', svg_bytes)
+                
+                return self._apply_icon_states(wrapping_icon, resample)
             else:
-                # Fallback to original if colorization fails
+                # Debug
+                log.warning(f"SVG colorization failed for {icon_path}, using original")
                 wrapping_icon = QIcon(icon_path)
-        else:
-            # Non-SVG icon, load directly
-            wrapping_icon = QIcon(icon_path)
 
+                return self._apply_icon_states(wrapping_icon, resample)
+            
+        except Exception as e:
+            log.error(f"Error processing SVG icon {icon_path}: {str(e)}")
+            return QIcon(icon_path)
+    
+    def _process_regular_icon(self, icon_path, resample):
+        """Process a regular (non-SVG) icon."""
+        wrapping_icon = QIcon(icon_path)
+        return self._apply_icon_states(wrapping_icon, resample)
+    
+    def _apply_icon_states(self, wrapping_icon, resample):
+        """Apply different states (normal, disabled, selected) to the icon."""
         icon = QIcon()
 
         if resample:
@@ -490,7 +520,7 @@ class IconManager():
 
             # Check if we have SVG data stored for high-quality rendering
             has_svg_data = hasattr(wrapping_icon, '_svg_data') and wrapping_icon._svg_data
-
+            
             # -- Normal state
             # NOTE: We take pixmaps as large as the ones below to not have
             # pixelated icons on high dpi screens.
@@ -507,7 +537,7 @@ class IconManager():
                 normal_state = QPixmap.fromImage(svg_image)
             else:
                 normal_state = wrapping_icon.pixmap(512, 512)
-
+                
             icon.addPixmap(normal_state, QIcon.Normal)
 
             # -- Disabled state
@@ -525,6 +555,11 @@ class IconManager():
             icon.addPixmap(normal_state, QIcon.Selected)
 
             return icon
+            
+    def clear_icon_cache(self):
+        """Clear the icon cache when the theme changes."""
+        self.ICONS_BY_EXTENSION = {}
+        self._icon_cache = {}  # Clear the icon cache too
 
     def icon(self, name, scale_factor=None, resample=False):
         theme = CONF.get('appearance', 'icon_theme')
@@ -629,11 +664,6 @@ class IconManager():
         buffer = QBuffer(byte_array)
         image.save(buffer, "PNG")
         return byte_array.toBase64().data().decode()
-
-    def clear_icon_cache(self):
-        """Clear the icon cache when the theme changes."""
-        self.ICONS_BY_EXTENSION = {}
-        # Any other caches that need clearing
 
 
 ima = IconManager()
