@@ -350,6 +350,9 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.update_combobox()
         self.update_editor_preview()
+        plugins = self.main.widgetlist + self.main.thirdparty_plugins
+        for plugin in plugins:
+            plugin.update_font()
 
         return set(self.changed_options)
 
