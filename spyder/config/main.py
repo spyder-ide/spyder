@@ -349,7 +349,10 @@ DEFAULTS = [
               'single_click_to_open': False,
               'size_column': False,
               'type_column': False,
-              'date_column': True
+              'date_column': True,
+              'init_files_display': 500,
+              'fetch_files_display': 500,
+              'max_files_display': 2000,
               }),
             ('find_in_files',
              {
