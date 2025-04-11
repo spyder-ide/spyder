@@ -1243,3 +1243,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for plugin in self.get_dockable_plugins():
             if plugin.get_conf('first_time', True):
                 self.tabify_plugin(plugin, Plugins.Console)
+
+                # This is necessary in case the plugin doesn't set its TABIFY
+                # constant
+                plugin.set_conf("enable", True)
+                plugin.set_conf("first_time", False)
