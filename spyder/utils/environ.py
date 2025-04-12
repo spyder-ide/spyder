@@ -25,7 +25,6 @@ except Exception:
 # Third party imports
 import psutil
 from qtpy.QtWidgets import QMessageBox
-from requests.structures import CaseInsensitiveDict
 
 # Local imports
 from spyder.config.base import _, running_in_ci, get_conf_path
@@ -87,76 +86,23 @@ def listdict2envdict(listdict):
     return listdict
 
 
-def get_windows_env_variables(hkcu: bool = True) -> CaseInsensitiveDict:
+def get_user_environment_variables():
     """
-    Get environment variables from Windows registry
-
-    Parameters
-    ----------
-    hkcu : bool (True)
-        Get environment variables from HKEY_CURRENT_USER (True) or from
-        HKEY_LOCAL_MACHINE (False).
+    Get user environment variables from a subprocess.
 
     Returns
     -------
-    env_vars : CaseInsensitiveDict[str, str]
-        Environment variables
-    """
-    hkey = winreg.HKEY_LOCAL_MACHINE
-    subkey = r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-    if hkcu:
-        hkey = winreg.HKEY_CURRENT_USER
-        subkey = "Environment"
-
-    key = winreg.OpenKey(hkey, subkey)
-    num_values = winreg.QueryInfoKey(key)[1]
-
-    return CaseInsensitiveDict(
-        [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
-    )
-
-
-def get_user_environment_variables() -> dict:
-    """
-    Get user environment variables from Windows registry or subprocess.
-
-    Returns
-    -------
-    env_vars : dict
+    env_var : dict
         Key-value pairs of environment variables.
     """
-    env_vars = {}
+    env_var = {}
 
     if os.name == 'nt':
-        # System variables
-        env_vars = get_windows_env_variables(hkcu=False)
-
-        # User variables
-        user_env_vars = get_windows_env_variables(hkcu=True)
-
-        # Remove PATH and PYTHONPATH for special treatment
-        path = user_env_vars.pop("PATH", None)
-        pythonpath = user_env_vars.pop("PYTHONPATH", None)
-
-        # Merge system and user variables, user takes precedent
-        env_vars.update(user_env_vars)
-
-        # Append user PATH to system PATH
-        if path is not None:
-            path = ";".join([
-                env_vars.get("PATH", "").strip(";"), path.strip(";")
-            ]).strip(";")
-            env_vars.update({"PATH": path})
-
-        # Append user PYTHONPATH to system PYTHONPATH
-        if pythonpath is not None:
-            pythonpath = ";".join([
-                env_vars.pop("PYTHONPATH", "").strip(";"), pythonpath.strip(";")
-            ]).strip(";")
-            env_vars.update({"PYTHONPATH": pythonpath})
-
-        env_vars = dict(env_vars)  # Remove CaseInsensitiveDict type
-
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
+        num_values = winreg.QueryInfoKey(key)[1]
+        env_var = dict(
+            [winreg.EnumValue(key, k)[:2] for k in range(num_values)]
+        )
     elif os.name == 'posix':
         # Detect if the Spyder process was launched from a system terminal.
         # This is None if that was not the case.
@@ -176,22 +122,22 @@ def get_user_environment_variables() -> dict:
                 if stderr:
                     logger.info(stderr.strip())
                 if stdout:
-                    env_vars = eval(stdout, None)
+                    env_var = eval(stdout, None)
             except Exception as exc:
                 logger.info(exc)
         else:
-            env_vars = dict(os.environ)
+            env_var = dict(os.environ)
 
-    return env_vars
+    return env_var
 
 
-def get_user_env() -> dict:
+def get_user_env():
     """Return current user environment variables with parsed values"""
     env_dict = get_user_environment_variables()
     return envdict2listdict(env_dict)
 
 
-def set_user_env(env: dict, parent=None):
+def set_user_env(env, parent=None):
     """
     Set user environment variables via HKCU (Windows) or shell startup file
     (Unix).
@@ -199,30 +145,6 @@ def set_user_env(env: dict, parent=None):
     env_dict = clean_env(listdict2envdict(env))
 
     if os.name == 'nt':
-        env_dict = CaseInsensitiveDict(env_dict)
-
-        # First extract identical system variables from env_dict
-        sys_env_dict = get_windows_env_variables(hkcu=False)
-        for k, v in env_dict.copy().items():
-            if v == sys_env_dict.get(k, None):
-                env_dict.pop(k)  # Remove identical variable
-
-        def _remove_sys_paths(name):
-            # Extract system paths from env_dict[name]
-            s_path = sys_env_dict.get(name, None)
-            e_path = env_dict.get(name, None)
-            if s_path is not None and e_path is not None:
-                s_path = s_path.strip(";").split(";")
-                e_path = e_path.strip(";").split(";")
-                [e_path.remove(p) for p in s_path if p in e_path]
-                e_path = ";".join(e_path)
-                env_dict.update({name: e_path}) if e_path else None
-
-        # Extract system [PYTHON]PATHs from user [PYTHON]PATHs
-        _remove_sys_paths("PATH")
-        _remove_sys_paths("PYTHONPATH")
-
-        # Write to user variables
         types = dict()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment")
         for name in env_dict:
