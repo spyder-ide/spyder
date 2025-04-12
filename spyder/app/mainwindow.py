@@ -154,7 +154,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
     sig_focused_plugin_changed = Signal(object)
     """
-    This signal is emitted when the another plugin received keyboard focus.
+    This signal is emitted when another plugin received keyboard focus.
 
     Parameters
     ----------
@@ -433,7 +433,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.sig_window_state_changed.connect(
             plugin.sig_mainwindow_state_changed)
         self.sig_focused_plugin_changed.connect(
-            plugin.sig_focused_plugin_changed)
+            plugin.sig_focused_plugin_changed
+        )
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -1080,7 +1081,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """
         Keep track of widget and plugin that has keyboard focus.
 
-        This function is connected to the `focusChanged` signal. It keeps
+        This function is connected to the app `focusChanged` signal. It keeps
         track of the widget and plugin that currently has keyboard focus, so
         that we can give focus to the last focused widget when restoring it
         after minimization. It also emits `sig_focused_plugin_changed` if the

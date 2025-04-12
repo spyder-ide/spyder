@@ -38,8 +38,10 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Open binary data files in this plugin
-    FILE_EXTENSIONS = [ext for ext in iofunctions.load_funcs
-                       if ext not in ['.csv', '.txt', '.json']]
+    FILE_EXTENSIONS = [
+        ext for ext in iofunctions.load_funcs
+        if ext not in ['.csv', '.txt', '.json']
+    ]
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------

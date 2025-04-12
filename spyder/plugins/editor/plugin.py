@@ -1246,7 +1246,8 @@ class Editor(SpyderDockablePlugin):
             return True
         return debugger.can_close_file(filename)
 
-    # ---- Methods related to Application plugin
+    # ---- Methods related to the Application plugin
+    # ------------------------------------------------------------------------
     def _enable_file_action(self, action_name: str, enabled: bool) -> None:
         """
         Enable or disable file action for this plugin.

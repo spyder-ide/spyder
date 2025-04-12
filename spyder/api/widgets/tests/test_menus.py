@@ -30,6 +30,14 @@ def test_add_action_with_before_section(qtbot):
     menu.add_action(action3, section='section3', before_section='section4')
 
     result = menu.get_actions()
-    expected = [action1, MENU_SEPARATOR, action2, MENU_SEPARATOR,
-                action3, MENU_SEPARATOR, action4, MENU_SEPARATOR]
+    expected = [
+        action1,
+        MENU_SEPARATOR,
+        action2,
+        MENU_SEPARATOR,
+        action3,
+        MENU_SEPARATOR,
+        action4,
+        MENU_SEPARATOR
+    ]
     assert result == expected

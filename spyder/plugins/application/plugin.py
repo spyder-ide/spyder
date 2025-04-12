@@ -31,6 +31,7 @@ from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
     ApplicationActions, ApplicationContainer, ApplicationPluginMenus)
 from spyder.plugins.console.api import ConsoleActions
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
 from spyder.plugins.toolbar.api import ApplicationToolbars
@@ -146,7 +147,8 @@ class Application(SpyderPluginV2):
         ]:
             toolbar.add_item_to_application_toolbar(
                 action,
-                toolbar_id=ApplicationToolbars.File
+                toolbar_id=ApplicationToolbars.File,
+                before=EditorWidgetActions.NewCell
             )
 
     # -------------------------- PLUGIN TEARDOWN ------------------------------
@@ -589,8 +591,7 @@ class Application(SpyderPluginV2):
 
         Try asking the plugin that currently has focus for the name of the
         displayed file and whether it is a temporary file. If that does not
-        work, ask the Editor plugin. Finally, call the function with the same
-        name in the container widget to do the actual work.
+        work, ask the Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin:
@@ -725,7 +726,7 @@ class Application(SpyderPluginV2):
 
     def revert_file(self) -> None:
         """
-        Revert current file to version on disk.
+        Revert current file to the version on disk.
 
         If the plugin that currently has focus, has its
         `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
@@ -744,9 +745,9 @@ class Application(SpyderPluginV2):
         Close the current file.
 
         If the plugin that currently has focus, has its
-        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
-        current file in that plugin to the version stored on disk. Otherwise,
-        revert the current file in the Editor plugin.
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then close the
+        current file in that plugin. Otherwise, close the current file in the
+        Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
@@ -760,9 +761,8 @@ class Application(SpyderPluginV2):
         Close all opened files in the current plugin.
 
         If the plugin that currently has focus, has its
-        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
-        current file in that plugin to the version stored on disk. Otherwise,
-        revert the current file in the Editor plugin.
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then close all
+        files in that plugin. Otherwise, close all files in the Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
@@ -778,7 +778,7 @@ class Application(SpyderPluginV2):
         plugin: SpyderDockablePlugin
     ) -> None:
         """
-        Enable or disable file actions for given plugin.
+        Enable or disable file actions for a given plugin.
 
         Parameters
         ----------

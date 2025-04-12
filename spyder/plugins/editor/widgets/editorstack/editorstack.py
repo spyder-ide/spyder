@@ -142,6 +142,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+
     sig_trigger_action = Signal(str, str)
     """
     This signal is emitted to request that an action be triggered.
@@ -523,7 +524,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 context=Plugins.Debugger,
             )
 
-        # Register shortcuts for file actions defined in Applications plugin
+        # Register shortcuts for file actions defined in the Application plugin
         for shortcut_name in [
             "New file",
             "Open file",

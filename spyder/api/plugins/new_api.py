@@ -1084,9 +1084,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
         """
         Create a new file inside the plugin.
 
-        This function will be called if the user create a new file using
-        the `File > New` menu item or the "New file" button in the toolbar,
-        and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        This function will be called if the user creates a new file using
+        the `File > New` menu item or the "New file" button in the main
+        toolbar, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
         """
         raise NotImplementedError
 
@@ -1110,8 +1110,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Return file name of the file that is currently displayed.
 
         This is meant for plugins like the Editor or Notebook plugin which
-        editor display files. Return `None` if no file is displayed or if this
-        does not display files.
+        can edit or display files. Return `None` if no file is displayed or if
+        this does not display files.
 
         This function is used in the `Open file` action to initialize the
         "Open file" dialog.
@@ -1120,7 +1120,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def current_file_is_temporary(self) -> bool:
         """
-        Return whether currently displayed file is a temporary file.
+        Return whether the currently displayed file is a temporary file.
 
         This function should only be called if a file is displayed, that is,
         if `self.get_current_filename()` does not return `None`.
@@ -1142,8 +1142,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Save the current file.
 
         This function will be called if the user saves the current file using
-        the `File > Save` menu item or the "Save file" button in the toolbar,
-        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        the `File > Save` menu item or the "Save file" button in the main
+        toolbar, the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to
+        `True`.
         """
         raise NotImplementedError
 
@@ -1172,8 +1173,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Save all files that are opened in the plugin.
 
         This function will be called if the user saves all files using the
-        `File > Save all` menu item or the "Save all" button in the toolbar,
-        the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to `True`.
+        `File > Save all` menu item or the "Save all" button in the main
+        toolbar, the plugin has focus, and `CAN_HANDLE_FILE_ACTIONS` is set to
+        `True`.
         """
         raise NotImplementedError
 

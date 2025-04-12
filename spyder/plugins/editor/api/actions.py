@@ -70,4 +70,3 @@ class EditorWidgetActions:
     Paste = "Paste"
     SelectAll = "Select All"
 
-

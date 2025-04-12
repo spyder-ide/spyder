@@ -23,7 +23,12 @@ from qtpy.compat import getopenfilenames
 from qtpy.QtCore import QDir, Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
 from qtpy.QtWidgets import (
-    QAction, QFileDialog, QInputDialog, QMessageBox, QPushButton)
+    QAction,
+    QFileDialog,
+    QInputDialog,
+    QMessageBox,
+    QPushButton,
+)
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
@@ -31,9 +36,15 @@ from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import (
-    get_conf_path, get_debug_level, running_under_pytest)
+    get_conf_path,
+    get_debug_level,
+    running_under_pytest,
+)
 from spyder.config.utils import (
-    get_edit_filetypes, get_edit_filters, get_filter)
+    get_edit_filetypes,
+    get_edit_filters,
+    get_filter,
+)
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.icon_manager import ima
@@ -280,7 +291,6 @@ class ApplicationContainer(PluginMainContainer):
             shortcut_context="main",
             register_shortcut=True
         )
-
         self.open_action = self.create_action(
             ApplicationActions.OpenFile,
             text=_("&Open..."),
@@ -544,8 +554,9 @@ class ApplicationContainer(PluginMainContainer):
 
         self.sig_redirect_stdio_requested.emit(False)
         if filename is not None:
-            selectedfilter = get_filter(self.edit_filetypes,
-                                        osp.splitext(filename)[1])
+            selectedfilter = get_filter(
+                self.edit_filetypes, osp.splitext(filename)[1]
+            )
         else:
             selectedfilter = ''
 
@@ -559,8 +570,9 @@ class ApplicationContainer(PluginMainContainer):
                 )
                 dialog.setNameFilters(self.edit_filters.split(';;'))
                 dialog.setOption(QFileDialog.HideNameFilterDetails, True)
-                dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
-                                 | QDir.Hidden)
+                dialog.setFilter(
+                    QDir.AllDirs | QDir.Files | QDir.Drives | QDir.Hidden
+                )
                 dialog.setFileMode(QFileDialog.ExistingFiles)
 
                 if dialog.exec_():
@@ -576,8 +588,9 @@ class ApplicationContainer(PluginMainContainer):
                 )
         else:
             # Use a Qt (i.e. scriptable) dialog for pytest
-            dialog = QFileDialog(self, _("Open file"),
-                                 options=QFileDialog.DontUseNativeDialog)
+            dialog = QFileDialog(
+                self, _("Open file"), options=QFileDialog.DontUseNativeDialog
+            )
             if dialog.exec_():
                 filenames = dialog.selectedFiles()
 
@@ -589,7 +602,7 @@ class ApplicationContainer(PluginMainContainer):
 
     def add_recent_file(self, fname: str) -> None:
         """
-        Add file to list of recent files.
+        Add file to the list of recent files.
 
         This function adds the given file name to the list of recent files,
         which is used in the `File > Open recent` menu. The function ensures
@@ -618,8 +631,10 @@ class ApplicationContainer(PluginMainContainer):
         This function is called before the menu is about to be shown.
         """
         self.recent_files_menu.clear_actions()
-        recent_files = [fname for fname in self.recent_files
-                        if osp.isfile(fname)]
+        recent_files = [
+            fname for fname in self.recent_files
+            if osp.isfile(fname)
+        ]
         for fname in recent_files:
             icon = ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
             action = self.create_action(

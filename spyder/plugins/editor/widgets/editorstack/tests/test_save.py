@@ -515,13 +515,14 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     assert "some" in [x['label'] for x in sig.args[0]]
     assert "something" in [x['label'] for x in sig.args[0]]
 
-    # Check that pressing Ctrl-S emits the signal for saving the file
+    # Check that pressing Ctrl+S emits the signal for saving the file
     with qtbot.waitSignal(
         editorstack.sig_trigger_action, timeout=5_000
     ) as blocker:
         # Press keyboard shortcut corresponding to save
         qtbot.keyPress(
-            completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300)
+            completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300
+        )
 
     # Assert the signal had the correct arguments
     assert blocker.args == ['Save file', Plugins.Application]
