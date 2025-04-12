@@ -12,7 +12,7 @@ import sys
 import logging
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray, QSize, Qt
+from qtpy.QtCore import QBuffer, QByteArray, Qt
 from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
@@ -31,6 +31,7 @@ log = logging.getLogger(__name__)
 
 class IconManager():
     """Class that manages all the icons."""
+
     def __init__(self):
         self.MAIN_FG_COLOR = SpyderPalette.ICON_1
         self.BIN_FILES = {x: 'ArchiveFileIcon' for x in [
@@ -107,6 +108,15 @@ class IconManager():
             '.xml': 'CodeFileIcon'
         }
 
+        self.ICON_COLORS = {
+            'main-color':             SpyderPalette.ICON_1,
+            'action-color':           SpyderPalette.ICON_2,
+            'cell-color':             SpyderPalette.ICON_3,
+            'stop-color':             SpyderPalette.ICON_4,
+            'brand-main-color':       SpyderPalette.SPYDER_LOGO_WEB,
+            'brand-secondary-color':  SpyderPalette.SPYDER_LOGO_SNAKE
+        }
+
         self._resource = {
             'directory': osp.join(
                 osp.dirname(osp.realpath(__file__)), '../fonts'),
@@ -139,7 +149,7 @@ class IconManager():
             'print':                   [('mdi.printer',), {'color': self.MAIN_FG_COLOR}],
             'fileclose':               [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'breakpoint_transparent':  [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.COLOR_ERROR_1, 'opacity': 0.75, 'scale_factor': 0.9}],
-            'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9} ],
+            'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9}],
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],
             'breakpoints':             [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
             'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 1.5}],
@@ -341,7 +351,7 @@ class IconManager():
             'constructor':             [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'function':                [('mdi.alpha-f-box',), {'color': SpyderPalette.COLOR_WARN_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'blockcomment':            [('mdi.pound',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.SMALL_ATTR_FACTOR}],
-            'cell':                    [('mdi.percent',), {'color':SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
+            'cell':                    [('mdi.percent',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
@@ -407,7 +417,7 @@ class IconManager():
 
     def get_icon(self, name, resample=False):
         """Return image inside a QIcon object.
-        
+
         Parameters
         ----------
         name: str
@@ -417,19 +427,19 @@ class IconManager():
             (16, 24, 32, 48, 96, 128, 256). This is recommended for
             QMainWindow icons created from SVG images on non-Windows
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
-            
+
         Returns
         -------
         QIcon
             Icon object with the requested image.
-            
+
         Notes
         -----
         For SVG files, this method will automatically apply theme-based
         colorization if the SVG contains elements with semantic class names
         like 'main-color', 'action-color', 'stop-color', etc. These classes
         correspond to color definitions in SpyderPalette.
-        
+
         This allows icons to automatically adapt to the current theme's
         color scheme, supporting both dark and light themes as well as
         custom user themes.
@@ -438,16 +448,16 @@ class IconManager():
         cache_key = f"{name}_{resample}"
         if cache_key in self._icon_cache:
             return self._icon_cache[cache_key]
-        
+
         # Get the icon's file path
         icon_path = get_image_path(name)
-        
+
         # Process the icon
         if icon_path.endswith('.svg'):
             icon = self._process_svg_icon(icon_path, resample)
         else:
             icon = self._process_regular_icon(icon_path, resample)
-        
+
         # Cache the result
         self._icon_cache[cache_key] = icon
         return icon
@@ -455,52 +465,43 @@ class IconManager():
     def _process_svg_icon(self, icon_path, resample):
         """Process an SVG icon with colorization."""
         try:
-            # Create a theme colors dictionary from SpyderPalette
-            icon_colors = {
-                'main-color':             SpyderPalette.ICON_1,
-                'action-color':           SpyderPalette.ICON_2,
-                'cell-color':             SpyderPalette.ICON_3,
-                'stop-color':             SpyderPalette.ICON_4,
-                'brand-main-color':       SpyderPalette.SPYDER_LOGO_WEB,
-                'brand-secondary-color':  SpyderPalette.SPYDER_LOGO_SNAKE
-            }
-            
             # Apply colorization
             svg_data = SVGColorize.colorize_icon_from_theme(
                 icon_path,
-                icon_colors
+                self.ICON_COLORS
             )
-            
+
             # Create QIcon from the SVG data
             if svg_data:
                 # Create a QByteArray with the SVG data
                 svg_bytes = QByteArray(svg_data.encode())
-                
+
                 # Create a QIcon from the QByteArray
                 svg_image = QImage.fromData(svg_bytes, "SVG")
                 wrapping_icon = QIcon()
                 wrapping_icon.addPixmap(QPixmap.fromImage(svg_image))
-                
+
                 # Store the SVG as a QByteArray for high-resolution rendering
                 setattr(wrapping_icon, '_svg_data', svg_bytes)
-                
+
                 return self._apply_icon_states(wrapping_icon, resample)
             else:
                 # Debug
-                log.warning(f"SVG colorization failed for {icon_path}, using original")
+                log.warning(
+                    f"SVG colorization failed for {icon_path}, using original")
                 wrapping_icon = QIcon(icon_path)
 
                 return self._apply_icon_states(wrapping_icon, resample)
-            
+
         except Exception as e:
             log.error(f"Error processing SVG icon {icon_path}: {str(e)}")
             return QIcon(icon_path)
-    
+
     def _process_regular_icon(self, icon_path, resample):
         """Process a regular (non-SVG) icon."""
         wrapping_icon = QIcon(icon_path)
         return self._apply_icon_states(wrapping_icon, resample)
-    
+
     def _apply_icon_states(self, wrapping_icon, resample):
         """Apply different states (normal, disabled, selected) to the icon."""
         icon = QIcon()
@@ -514,8 +515,9 @@ class IconManager():
             # These are the necessary adjustments for our SVG icons.
 
             # Check if we have SVG data stored for high-quality rendering
-            has_svg_data = hasattr(wrapping_icon, '_svg_data') and wrapping_icon._svg_data
-            
+            has_svg_data = hasattr(
+                wrapping_icon, '_svg_data') and wrapping_icon._svg_data
+
             # -- Normal state
             # NOTE: We take pixmaps as large as the ones below to not have
             # pixelated icons on high dpi screens.
@@ -532,7 +534,7 @@ class IconManager():
                 normal_state = QPixmap.fromImage(svg_image)
             else:
                 normal_state = wrapping_icon.pixmap(512, 512)
-                
+
             icon.addPixmap(normal_state, QIcon.Normal)
 
             # -- Disabled state
@@ -550,20 +552,20 @@ class IconManager():
             icon.addPixmap(normal_state, QIcon.Selected)
 
             return icon
-            
+
     def clear_icon_cache(self):
         """Clear the icon cache when the theme changes."""
         self.ICONS_BY_EXTENSION = {}
         self._icon_cache = {}  # Clear the icon cache too
 
-    def icon(self, name, scale_factor=None, resample=False):
+    def icon(self, name, scale_factor=None):
         theme = CONF.get('appearance', 'icon_theme')
         if theme == 'spyder 3':
             try:
                 # Try to load the icons from QtAwesome
                 if not self._resource['loaded']:
                     qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                                directory=self._resource['directory'])
+                                  directory=self._resource['directory'])
                     self._resource['loaded'] = True
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:

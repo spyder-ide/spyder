@@ -124,7 +124,7 @@ class ConnectionStatusWidget(
 
         self._log_widget.setMaximumBlockCount(MAX_CLIENT_MESSAGES)
         self._log_widget.setReadOnly(True)
-        self._log_widget.setMinimumHeight(210 if MAC else 230)
+        self._log_widget.setMinimumHeight(200 if MAC else 210)
         self._log_widget.setPlaceholderText(_("No logs to show"))
 
         self._copy_logs_button.setEnabled(False)
