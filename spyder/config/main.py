@@ -84,6 +84,7 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
+              'show_message_when_panes_are_empty': True,
               }),
             ('update_manager',
              {

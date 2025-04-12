@@ -28,6 +28,18 @@
 
 * **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
 
+#### PluginMainWidget
+
+* Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
+  and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in
+  the Variable Explorer).
+
+#### Shellconnect
+
+* **Breaking** Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
+* Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.
+* Add `ShellConnectWidgetForStackMixin` class for widgets that will be added to the stacked widget part of `ShellConnectMainWidget`.
+
 #### AsyncDispatcher
 
 * **Breaking** - Remove `dispatch` method to use it directly as decorator.

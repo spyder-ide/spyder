@@ -6,9 +6,12 @@
 
 """Editor config page."""
 
-
 from qtpy.QtWidgets import (
-    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QVBoxLayout
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
 )
 
 from spyder.api.config.decorators import on_conf_change

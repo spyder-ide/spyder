@@ -307,7 +307,7 @@ class Projects(SpyderDockablePlugin):
                 restart_console=restart_console
             )
         else:
-            self.get_widget().set_pane_empty()
+            self.get_widget().show_empty_message()
             logger.debug('Reopening project from last session')
             self.get_widget().reopen_last_project(
                 working_directory=cli_options.working_directory,
