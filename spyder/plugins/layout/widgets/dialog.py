@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QHBoxLayout,
+    QMessageBox,
     QLabel,
     QTableView,
     QVBoxLayout,
@@ -320,6 +321,16 @@ class LayoutSettingsDialog(QDialog, SpyderWidgetMixin):
         )
         row = self.table.selectionModel().currentIndex().row()
         ui_name, name, state = self.table.model().row(row)
+
+        answer = QMessageBox.question(
+            self,
+            _("Remove layout"),
+            _("Do you want to remove the layout '<b>{}</b>'?").format(ui_name),
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if not answer:
+            return
 
         if name not in read_only:
             if ui_name in ui_names:
