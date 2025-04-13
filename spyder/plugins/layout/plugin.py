@@ -636,11 +636,12 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             return
 
         self.main.setUpdatesEnabled(False)
+
+        # Restore window properties
         self.window_size = QSize(
             window_size[0], window_size[1] # width, height
         )
         self.window_position = QPoint(pos[0], pos[1]) # x, y
-        self.main.setWindowState(Qt.WindowNoState)
         self.main.resize(self.window_size)
         self.main.move(self.window_position)
 
