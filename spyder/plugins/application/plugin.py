@@ -54,9 +54,7 @@ class Application(SpyderPluginV2):
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
         self.focused_plugin: Optional[SpyderDockablePlugin] = None
-
-        FileActionEnabledKey = Tuple[SpyderDockablePlugin, str]
-        self.file_action_enabled: Dict[FileActionEnabledKey, bool] = {}
+        self.file_action_enabled: Dict[Tuple[str, str], bool] = {}
 
     @staticmethod
     def get_name():
@@ -465,7 +463,7 @@ class Application(SpyderPluginV2):
                 ApplicationActions.CloseAll,
             ]:
                 action = self.get_action(action_name)
-                key = (plugin, action_name)
+                key = (plugin.NAME, action_name)
                 state = self.file_action_enabled.get(key, True)
                 action.setEnabled(state)
 
@@ -775,7 +773,7 @@ class Application(SpyderPluginV2):
         self,
         action_name: str,
         enabled: bool,
-        plugin: SpyderDockablePlugin
+        plugin: str
     ) -> None:
         """
         Enable or disable file actions for a given plugin.
@@ -787,8 +785,9 @@ class Application(SpyderPluginV2):
             are listed in ApplicationActions, for instance "New file"
         enabled : bool
             True to enable the action, False to disable it.
-        plugin : SpyderDockablePlugin
-            The plugin for which the save action is enabled or disabled.
+        plugin : str
+            The name of the plugin for which the save action needs to be
+            enabled or disabled.
         """
         self.file_action_enabled[(plugin, action_name)] = enabled
         self._update_file_actions()

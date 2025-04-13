@@ -1254,4 +1254,4 @@ class Editor(SpyderDockablePlugin):
         """
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
-            application.enable_file_action(action_name, enabled, self)
+            application.enable_file_action(action_name, enabled, self.NAME)

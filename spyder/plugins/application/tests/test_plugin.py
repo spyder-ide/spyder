@@ -154,7 +154,7 @@ def test_enable_file_action(application_plugin):
 
     # Disabling the Save action in the active plugin works
     application_plugin.enable_file_action(
-        ApplicationActions.SaveFile, False, mock_plugin1
+        ApplicationActions.SaveFile, False, mock_plugin1.NAME
     )
     assert container.save_action.isEnabled() is False
 
@@ -164,13 +164,13 @@ def test_enable_file_action(application_plugin):
 
     # Disabling the Save action in the second plugin (which has focus) works
     application_plugin.enable_file_action(
-        ApplicationActions.SaveFile, False, mock_plugin2
+        ApplicationActions.SaveFile, False, mock_plugin2.NAME
     )
     assert container.save_action.isEnabled() is False
 
     # Enabling the Save action in the first plugin has no immediate effect
     application_plugin.enable_file_action(
-        ApplicationActions.SaveFile, True, mock_plugin1
+        ApplicationActions.SaveFile, True, mock_plugin1.NAME
     )
     assert container.save_action.isEnabled() is False
 
