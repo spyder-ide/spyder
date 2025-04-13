@@ -105,6 +105,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         self._saved_normal_geometry = None
         self._state_before_maximizing = None
         self._interface_locked = self.get_conf('panes_locked', section='main')
+        # The following flag is used to apply the window settings only once
+        # during the first run
+        self._window_settings_applied_on_first_run = False
 
         # If Spyder has already been run once, this option needs to be False.
         # Note: _first_spyder_run needs to be accessed at least once in this
@@ -619,16 +622,27 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     def set_window_settings(self, hexstate, window_size, pos, is_maximized,
                             is_fullscreen):
         """
-        Set window settings Symetric to the 'get_window_settings' accessor.
+        Set window settings.
+
+        Symetric to the 'get_window_settings' accessor.
         """
-        main = self.main
-        main.setUpdatesEnabled(False)
-        self.window_size = QSize(window_size[0],
-                                 window_size[1])  # width, height
-        self.window_position = QPoint(pos[0], pos[1])  # x,y
-        main.setWindowState(Qt.WindowNoState)
-        main.resize(self.window_size)
-        main.move(self.window_position)
+        # Prevent calling this method multiple times on first run because it
+        # causes main window flickering on Windows and Mac.
+        # Fixes spyder-ide/spyder#15074
+        if (
+            self._window_settings_applied_on_first_run
+            and self._first_spyder_run
+        ):
+            return
+
+        self.main.setUpdatesEnabled(False)
+        self.window_size = QSize(
+            window_size[0], window_size[1] # width, height
+        )
+        self.window_position = QPoint(pos[0], pos[1]) # x, y
+        self.main.setWindowState(Qt.WindowNoState)
+        self.main.resize(self.window_size)
+        self.main.move(self.window_position)
 
         # Window layout
         if hexstate:
@@ -656,6 +670,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             self._maximized_flag = is_maximized
         elif is_maximized:
             self.main.setWindowState(Qt.WindowMaximized)
+
+        # Settings applied at startup
+        self._window_settings_applied_on_first_run = True
 
         self.main.setUpdatesEnabled(True)
 
