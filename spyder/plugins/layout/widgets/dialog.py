@@ -150,7 +150,8 @@ class LayoutModel(QAbstractTableModel):
 
 
 class LayoutSaveDialog(QDialog):
-    """ """
+    """Dialog to save a custom layout with a given name."""
+
     def __init__(self, parent, order):
         super(LayoutSaveDialog, self).__init__(parent)
 
@@ -162,6 +163,10 @@ class LayoutSaveDialog(QDialog):
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
         self.combo_box.clearEditText()
+        self.combo_box.lineEdit().setPlaceholderText(
+            _("Give a name to your layout")
+        )
+
         self.button_box = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
         )
@@ -170,7 +175,7 @@ class LayoutSaveDialog(QDialog):
 
         # widget setup
         self.button_ok.setEnabled(False)
-        self.dialog_size = QSize(300, 100)
+        self.dialog_size = QSize(350, 100)
         self.setWindowTitle(_('Save layout as'))
         self.setModal(True)
         self.setMinimumSize(self.dialog_size)
