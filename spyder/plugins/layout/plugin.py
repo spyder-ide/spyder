@@ -9,6 +9,7 @@ Layout Plugin.
 """
 # Standard library imports
 import configparser as cp
+from functools import lru_cache
 import logging
 import os
 
@@ -95,7 +96,6 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
     def on_initialize(self):
         self._last_plugin = None
-        self._first_spyder_run = False
         self._fullscreen_flag = None
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
@@ -105,6 +105,12 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         self._saved_normal_geometry = None
         self._state_before_maximizing = None
         self._interface_locked = self.get_conf('panes_locked', section='main')
+
+        # If Spyder has already been run once, this option needs to be False.
+        # Note: _first_spyder_run needs to be accessed at least once in this
+        # method to be computed at startup.
+        if not self._first_spyder_run:
+            self.set_conf("first_time", False)
 
         # Register default layouts
         self.register_layout(self, SpyderLayout)
@@ -234,6 +240,25 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    @property
+    @lru_cache
+    def _first_spyder_run(self):
+        """
+        Check if Spyder is run for the first time.
+
+        Notes
+        -----
+        * We declare this as a property to prevent reassignments in other
+          places of this class.
+        * It only needs to be computed once at startup (i.e. it needs to be
+          accessed in on_initialize).
+        """
+        # We need to do this double check because we were not using the
+        # "first_time" option in 6.0 and older versions.
+        return (
+            self.get_conf("first_time", True) and self.get_conf("names") == []
+        )
+
     def _get_internal_dockable_plugins(self):
         """Get the list of internal dockable plugins"""
         return get_class_values(DockablePlugins)
@@ -383,11 +408,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         settings = self.load_window_settings(prefix, default)
         hexstate = settings[0]
 
-        self._first_spyder_run = False
         if hexstate is None:
             # First Spyder execution:
             self.main.setWindowState(Qt.WindowMaximized)
-            self._first_spyder_run = True
             self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
             # Restore the original defaults. This is necessary, for instance,
@@ -428,9 +451,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         main = self.main
         main.setUpdatesEnabled(False)
 
-        first_spyder_run = bool(self._first_spyder_run)  # Store copy
-
-        if first_spyder_run:
+        if self._first_spyder_run:
             self.set_window_settings(*settings)
         else:
             if self._last_plugin:
@@ -451,8 +472,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         # Apply selected layout
         layout.set_main_window_layout(self.main, self.get_dockable_plugins())
 
-        if first_spyder_run:
-            self._first_spyder_run = False
+        if self._first_spyder_run:
+            self.set_conf("first_time", False)
         else:
             self.main.setMinimumWidth(min_width)
             self.main.setMaximumWidth(max_width)
