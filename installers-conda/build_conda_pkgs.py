@@ -230,7 +230,12 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
-    feedstock_branch = "main"
+
+    parent_branch = os.getenv("MATRIX_BRANCH", os.getenv("GITHUB_BASE_REF"))
+
+    feedstock_branch = "dev"  # Default branch, or if Spyder branch is master
+    if parent_branch == "6.x":
+        feedstock_branch = "main"
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
@@ -328,7 +333,7 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
-    feedstock_branch = "rc"
+    feedstock_branch = "main"
 
 
 PKGS = {
