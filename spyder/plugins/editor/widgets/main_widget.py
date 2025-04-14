@@ -1534,7 +1534,7 @@ class EditorMainWidget(PluginMainWidget):
             ('set_occurrence_highlighting_timeout', 'occurrence_highlighting/timeout'),  # noqa
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_tabbar_visible',                  'show_tab_bar'),
-            ('set_toptoolbar_visible',              'show_top_tool_bar'),
+            ('set_toptoolbar_visible',              'show_filename_toolbar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),  # noqa
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),  # noqa
             ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),  # noqa

@@ -264,7 +264,7 @@ DEFAULTS = [
               'add_newline': False,
               'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
-              'show_top_tool_bar': True,
+              'show_filename_toolbar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
               'onsave_analysis': False,

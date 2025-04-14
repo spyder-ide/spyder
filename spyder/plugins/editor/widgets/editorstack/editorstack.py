@@ -1143,7 +1143,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)
 
-    @on_conf_change(option='show_top_tool_bar')
+    @on_conf_change(option='show_filename_toolbar')
     def set_toptoolbar_visible(self, state):
         self.top_toolbar.setVisible(state)
 
