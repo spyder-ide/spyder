@@ -644,7 +644,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         width = self.figcanvas.width()
         fwidth = self.figcanvas.fwidth
         if fwidth != 0:
-            return round(width / fwidth * 100)
+            return max(round(width / fwidth * 100), 1)
         else:
             return 100
 
