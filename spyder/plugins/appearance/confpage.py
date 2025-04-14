@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
 )
 
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
 from spyder.config.gui import get_font, is_dark_font_color, set_font
