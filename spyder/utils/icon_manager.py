@@ -109,12 +109,12 @@ class IconManager():
         }
 
         self.ICON_COLORS = {
-            'main-color':             SpyderPalette.ICON_1,
-            'action-color':           SpyderPalette.ICON_2,
-            'cell-color':             SpyderPalette.ICON_3,
-            'stop-color':             SpyderPalette.ICON_4,
-            'brand-main-color':       SpyderPalette.SPYDER_LOGO_WEB,
-            'brand-secondary-color':  SpyderPalette.SPYDER_LOGO_SNAKE
+            'ICON_1':            SpyderPalette.ICON_1,
+            'ICON_2':            SpyderPalette.ICON_2,
+            'ICON_3':            SpyderPalette.ICON_3,
+            'ICON_4':            SpyderPalette.ICON_4,
+            'SPYDER_LOGO_WEB':   SpyderPalette.SPYDER_LOGO_WEB,
+            'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE
         }
 
         self._resource = {
