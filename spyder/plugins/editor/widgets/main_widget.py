@@ -1614,9 +1614,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.refresh_save_all_action.connect(
             self.refresh_save_all_action
         )
-        editorstack.sig_refresh_file.connect(
-            self.refresh
-        )
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.text_changed_at.connect(self.text_changed_at)

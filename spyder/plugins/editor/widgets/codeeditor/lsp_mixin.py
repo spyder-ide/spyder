@@ -987,7 +987,6 @@ class LSPMixin:
             self.format_document_range()
         else:
             self.format_document()
-        self.sig_refresh_file.emit()
 
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
@@ -1188,6 +1187,8 @@ class LSPMixin:
             merged_text = merged_text.replace("\n", self.get_line_separator())
             cursor = self.textCursor()
 
+            breakpoints = self.breakpoints_manager.get_breakpoints()
+
             # Begin text insertion
             cursor.beginEditBlock()
 
@@ -1200,6 +1201,8 @@ class LSPMixin:
 
             # End text insertion
             cursor.endEditBlock()
+
+            self.breakpoints_manager.set_breakpoints(breakpoints)
 
             # Restore previous cursor position and center it.
             # Fixes spyder-ide/spyder#19958
