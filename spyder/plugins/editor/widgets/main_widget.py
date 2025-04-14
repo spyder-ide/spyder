@@ -24,21 +24,17 @@ from typing import Dict, Optional
 import uuid
 
 # Third party imports
-from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
+from qtpy.compat import from_qvariant
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QFileDialog, QInputDialog, QSplitter,
-                            QVBoxLayout, QWidget)
+                            QSplitter, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
-from spyder.api.plugins import Plugins
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
-                                 get_filter)
+from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
 from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
@@ -46,6 +42,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
+from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
     SelectionContextModificator, ExtraAction)
@@ -71,87 +69,11 @@ from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 logger = logging.getLogger(__name__)
 
 
-class EditorWidgetActions:
-    # File operations
-    NewFile = "New file"
-    OpenLastClosed = "Open last closed"
-    OpenFile = "Open file"
-    RevertFileFromDisk = "Revert file from disk"
-    SaveFile = "Save file"
-    SaveAll = "Save all"
-    SaveAs = "Save As"
-    SaveCopyAs = "save_copy_as_action"
-    PrintPreview = "print_preview_action"
-    Print = "print_action"
-    CloseFile = "Close current file"
-    CloseAll = "Close all"
-    MaxRecentFiles = "max_recent_files_action"
-    ClearRecentFiles = "clear_recent_files_action"
-
-    # Navigation
-    GoToNextFile = "Go to next file"
-    GoToPreviousFile = "Go to previous file"
-
-    # Find/Search operations
-    FindText = "Find text"
-    FindNext = "Find next"
-    FindPrevious = "Find previous"
-    ReplaceText = "Replace text"
-
-    # Source code operations
-    ShowTodoList = "show_todo_list_action"
-    ShowCodeAnalysisList = "show_code_analaysis_action"
-    GoToPreviousWarning = "Previous warning"
-    GoToNextWarning = "Next warning"
-    GoToLastEditLocation = "Last edit location"
-    GoToPreviousCursorPosition = "Previous cursor position"
-    GoToNextCursorPosition = "Next cursor position"
-    WinEOL = "win_eol_action"
-    LinuxEOL = "linux_eol_action"
-    MacEOL = "mac_eol_action"
-    RemoveTrailingSpaces = "remove_trailing_spaces_action"
-    FormatCode = "autoformating"
-    FixIndentation = "fix_indentation_action"
-
-    # Checkable operations
-    ShowBlanks = "blank_spaces_action"
-    ScrollPastEnd = "scroll_past_end_action"
-    ShowIndentGuides = "show_indent_guides_action"
-    ShowCodeFolding = "show_code_folding_action"
-    ShowClassFuncDropdown = "show_class_func_dropdown_action"
-    ShowCodeStyleWarnings = "pycodestyle_action"
-    ShowDoctringWarnings = "pydocstyle_action"
-    UnderlineErrors = "underline_errors_action"
-
-    # Stack menu
-    GoToLine = "Go to line"
-    SetWorkingDirectory = "set_working_directory_action"
-
-    # Edit operations
-    NewCell = "create_new_cell"
-    ToggleComment = "Toggle comment"
-    Blockcomment = "Blockcomment"
-    Unblockcomment = "Unblockcomment"
-
-    Indent = "indent_action"
-    Unindent = "unindent_action"
-    TransformToUppercase = "transform to uppercase"
-    TransformToLowercase = "transform to lowercase"
-
-    Undo = "Undo"
-    Redo = "Redo"
-    Copy = "Copy"
-    Cut = "Cut"
-    Paste = "Paste"
-    SelectAll = "Select All"
-
-
 class EditorWidgetMenus:
 
     TodoList = "todo_list_menu"
     WarningErrorList = "warning_error_list_menu"
     EOL = "eol_menu"
-    RecentFiles = "recent_files_menu"
 
 
 class EditorMainWidget(PluginMainWidget):
@@ -271,6 +193,29 @@ class EditorMainWidget(PluginMainWidget):
     This signal will request to change the focus to the plugin.
     """
 
+    sig_new_recent_file = Signal(str)
+    """
+    This signal is emitted when a file is opened or got a new name.
+
+    Parameters
+    ----------
+    filename: str
+        The name of the opened file. If the file is renamed, then this should
+        be the new name.
+    """
+
+    sig_file_action_enabled = Signal(str, bool)
+    """
+    This signal is emitted to enable or disable a file action.
+
+    Parameters
+    ----------
+    action_name: str
+        Name of the file action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
+    """
+
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
         super().__init__(name, plugin, parent)
 
@@ -369,72 +314,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def setup(self):
         # ---- File operations ----
-        self.new_action = self.create_action(
-            EditorWidgetActions.NewFile,
-            text=_("&New file..."),
-            icon=self.create_icon('filenew'),
-            tip=_("New file"),
-            triggered=self.new,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.open_last_closed_action = self.create_action(
-            EditorWidgetActions.OpenLastClosed,
-            text=_("O&pen last closed"),
-            tip=_("Open last closed"),
-            triggered=self.open_last_closed,
-            register_shortcut=True
-        )
-        self.open_action = self.create_action(
-            EditorWidgetActions.OpenFile,
-            text=_("&Open..."),
-            icon=self.create_icon('fileopen'),
-            tip=_("Open file"),
-            triggered=self.load,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.revert_action = self.create_action(
-            EditorWidgetActions.RevertFileFromDisk,
-            text=_("&Revert"),
-            icon=self.create_icon('revert'),
-            tip=_("Revert file from disk"),
-            triggered=self.revert
-        )
-        self.save_action = self.create_action(
-            EditorWidgetActions.SaveFile,
-            text=_("&Save"),
-            icon=self.create_icon('filesave'),
-            tip=_("Save file"),
-            triggered=self.save,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.save_all_action = self.create_action(
-            EditorWidgetActions.SaveAll,
-            text=_("Sav&e all"),
-            icon=self.create_icon('save_all'),
-            tip=_("Save all files"),
-            triggered=self.save_all,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.save_as_action = self.create_action(
-            EditorWidgetActions.SaveAs,
-            text=_("Save &as..."),
-            icon=self.create_icon('filesaveas'),
-            tip=_("Save current file as..."),
-            triggered=self.save_as,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.save_copy_as_action = self.create_action(
-            EditorWidgetActions.SaveCopyAs,
-            text=_("Save copy as..."),
-            icon=self.create_icon('filesaveas'),
-            tip=_("Save copy of current file as..."),
-            triggered=self.save_copy_as
-        )
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
             text=_("Print preview..."),
@@ -447,37 +326,6 @@ class EditorMainWidget(PluginMainWidget):
             icon=self.create_icon('print'),
             tip=_("Print current file..."),
             triggered=self.print_file
-        )
-        self.close_file_action = self.create_action(
-            EditorWidgetActions.CloseFile,
-            text=_("&Close"),
-            icon=self.create_icon('fileclose'),
-            tip=_("Close current file"),
-            triggered=self.close_file
-        )
-        self.close_all_action = self.create_action(
-            EditorWidgetActions.CloseAll,
-            text=_("C&lose all"),
-            icon=ima.icon('filecloseall'),
-            tip=_("Close all opened files"),
-            triggered=self.close_all_files,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        self.recent_file_menu = self.create_menu(
-            EditorWidgetMenus.RecentFiles,
-            title=_("Open &recent")
-        )
-        self.recent_file_menu.aboutToShow.connect(self.update_recent_file_menu)
-        self.max_recent_action = self.create_action(
-            EditorWidgetActions.MaxRecentFiles,
-            text=_("Maximum number of recent files..."),
-            triggered=self.change_max_recent_files
-        )
-        self.clear_recent_action = self.create_action(
-            EditorWidgetActions.ClearRecentFiles,
-            text=_("Clear this list"), tip=_("Clear recent files list"),
-            triggered=self.clear_recent_files
         )
         self.workdir_action = self.create_action(
             EditorWidgetActions.SetWorkingDirectory,
@@ -884,18 +732,11 @@ class EditorMainWidget(PluginMainWidget):
         self.file_dependent_actions = (
             self.pythonfile_dependent_actions +
             [
-                self.save_action,
-                self.save_as_action,
-                self.save_copy_as_action,
                 self.print_preview_action,
                 self.print_action,
-                self.save_all_action,
                 self.gotoline_action,
                 self.workdir_action,
-                self.close_file_action,
-                self.close_all_action,
                 self.toggle_comment_action,
-                self.revert_action,
                 self.indent_action,
                 self.unindent_action
             ]
@@ -938,16 +779,11 @@ class EditorMainWidget(PluginMainWidget):
                 QByteArray().fromHex(str(state).encode('utf-8'))
             )
 
-        self.recent_files = self.get_conf('recent_files', [])
         self.untitled_num = 0
 
         # Parameters of last file execution:
         self.__last_ic_exec = None  # internal console
         self.__last_ec_exec = None  # external console
-
-        # File types and filters used by the Open dialog
-        self.edit_filetypes = None
-        self.edit_filters = None
 
         self.__ignore_cursor_history = False
         current_editor = self.get_current_editor()
@@ -1014,7 +850,6 @@ class EditorMainWidget(PluginMainWidget):
         )
         for window in self.editorwindows:
             window.close()
-        self.set_conf('recent_files', self.recent_files)
         self.autosave.stop_autosave_timer()
 
     # ---- Private API
@@ -1206,7 +1041,7 @@ class EditorMainWidget(PluginMainWidget):
         """Refresh editor widgets"""
         editorstack = self.get_current_editorstack()
         editorstack.refresh()
-        self.refresh_save_all_action()
+        self.refresh_save_actions()
 
     # ---- Update menus
     # -------------------------------------------------------------------------
@@ -1492,8 +1327,6 @@ class EditorMainWidget(PluginMainWidget):
                 self.vcs_status.update_vcs_state)
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
-        editorstack.set_io_actions(self.new_action, self.open_action,
-                                   self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
 
         # *********************************************************************
@@ -1612,8 +1445,8 @@ class EditorMainWidget(PluginMainWidget):
             self.update_todo_actions)
         editorstack.refresh_file_dependent_actions.connect(
             self.refresh_file_dependent_actions)
-        editorstack.refresh_save_all_action.connect(
-            self.refresh_save_all_action
+        editorstack.refresh_save_actions.connect(
+            self.refresh_save_actions
         )
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
         editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
@@ -1622,7 +1455,6 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
-        editorstack.sig_save_as.connect(self.save_as)
         editorstack.sig_prev_edit_pos.connect(self.go_to_last_edit_location)
         editorstack.sig_prev_cursor.connect(
             self.go_to_previous_cursor_position
@@ -1637,10 +1469,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack.sig_codeeditor_created.connect(self.sig_codeeditor_created)
         editorstack.sig_codeeditor_changed.connect(self.sig_codeeditor_changed)
         editorstack.sig_codeeditor_deleted.connect(self.sig_codeeditor_deleted)
-        editorstack.sig_trigger_run_action.connect(self.trigger_run_action)
-        editorstack.sig_trigger_debugger_action.connect(
-            self.trigger_debugger_action
-        )
+        editorstack.sig_trigger_action.connect(self.trigger_action)
 
         # Register editorstack's autosave component with plugin's autosave
         # component
@@ -1801,15 +1630,30 @@ class EditorMainWidget(PluginMainWidget):
             for action in self.file_dependent_actions:
                 action.setEnabled(enable)
 
-    def refresh_save_all_action(self):
-        """Enable 'Save All' if there are files to be saved"""
+    def refresh_save_actions(self):
+        """
+        Enable or disable 'Save' and 'Save All' actions.
+
+        The 'Save' action is enabled if the current document is either modified
+        or newly created. The 'Save all' action is enabled if any document is
+        either modified or newly created.
+        """
         editorstack = self.get_current_editorstack()
-        if editorstack:
-            state = any(
-                finfo.editor.document().isModified() or finfo.newly_created
-                for finfo in editorstack.data
-            )
-            self.save_all_action.setEnabled(state)
+        if not editorstack:
+            return
+
+        finfo = editorstack.get_current_finfo()
+        if finfo:
+            state = finfo.editor.document().isModified() or finfo.newly_created
+        else:
+            state = False
+        self.sig_file_action_enabled.emit(ApplicationActions.SaveFile, state)
+
+        state = any(
+            finfo.editor.document().isModified() or finfo.newly_created
+            for finfo in editorstack.data
+        )
+        self.sig_file_action_enabled.emit(ApplicationActions.SaveAll, state)
 
     def update_warning_menu(self):
         """Update warning list menu"""
@@ -1968,16 +1812,6 @@ class EditorMainWidget(PluginMainWidget):
             directory = osp.dirname(osp.abspath(fname))
             self.sig_dir_opened.emit(directory)
 
-    def __add_recent_file(self, fname):
-        """Add to recent file list"""
-        if fname is None:
-            return
-        if fname in self.recent_files:
-            self.recent_files.remove(fname)
-        self.recent_files.insert(0, fname)
-        if len(self.recent_files) > self.get_conf('max_recent_files'):
-            self.recent_files.pop(-1)
-
     def _clone_file_everywhere(self, finfo):
         """
         Clone file (*src_editor* widget) in all editorstacks.
@@ -2107,59 +1941,6 @@ class EditorMainWidget(PluginMainWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
-    def update_recent_file_menu(self):
-        """Update recent file menu"""
-        recent_files = []
-        for fname in self.recent_files:
-            if osp.isfile(fname):
-                recent_files.append(fname)
-
-        self.recent_file_menu.clear_actions()
-        if recent_files:
-            for fname in recent_files:
-                action = create_action(
-                    self, fname,
-                    icon=ima.get_icon_by_extension_or_type(
-                        fname, scale_factor=1.0))
-                action.triggered[bool].connect(self.load)
-                action.setData(to_qvariant(fname))
-
-                self.recent_file_menu.add_action(
-                    action,
-                    section="recent_files_section",
-                    omit_id=True,
-                    before_section="recent_files_actions_section"
-                )
-
-        self.clear_recent_action.setEnabled(len(recent_files) > 0)
-        for menu_action in (self.max_recent_action, self.clear_recent_action):
-            self.recent_file_menu.add_action(
-                menu_action, section="recent_files_actions_section"
-            )
-
-        self.recent_file_menu.render()
-
-    @Slot()
-    def clear_recent_files(self):
-        """Clear recent files list"""
-        self.recent_files = []
-
-    @Slot()
-    def change_max_recent_files(self):
-        """Change max recent files entries"""
-        editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInt(
-            editorstack,
-            _('Editor'),
-            _('Maximum number of recent files'),
-            self.get_conf('max_recent_files'),
-            1,
-            35
-        )
-
-        if valid:
-            self.set_conf('max_recent_files', mrf)
-
     @Slot()
     @Slot(str)
     @Slot(str, int, str)
@@ -2191,76 +1972,11 @@ class EditorMainWidget(PluginMainWidget):
         except (AttributeError, RuntimeError):
             pass
 
-        editor0 = self.get_current_editor()
-        if editor0 is not None:
-            filename0 = self.get_current_filename()
-        else:
-            filename0 = None
-
         if not filenames:
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
                 filenames = from_qvariant(action.data(), to_text_string)
-
-        if not filenames:
-            basedir = getcwd_or_home()
-            if self.edit_filetypes is None:
-                self.edit_filetypes = get_edit_filetypes()
-            if self.edit_filters is None:
-                self.edit_filters = get_edit_filters()
-
-            c_fname = self.get_current_filename()
-            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
-                basedir = osp.dirname(c_fname)
-
-            self.sig_redirect_stdio_requested.emit(False)
-            parent_widget = self.get_current_editorstack()
-            if filename0 is not None:
-                selectedfilter = get_filter(self.edit_filetypes,
-                                            osp.splitext(filename0)[1])
-            else:
-                selectedfilter = ''
-
-            if not running_under_pytest():
-                # See: spyder-ide/spyder#3291
-                if sys.platform == 'darwin':
-                    dialog = QFileDialog(
-                        parent=parent_widget,
-                        caption=_("Open file"),
-                        directory=basedir,
-                    )
-                    dialog.setNameFilters(self.edit_filters.split(';;'))
-                    dialog.setOption(QFileDialog.HideNameFilterDetails, True)
-                    dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
-                                     | QDir.Hidden)
-                    dialog.setFileMode(QFileDialog.ExistingFiles)
-
-                    if dialog.exec_():
-                        filenames = dialog.selectedFiles()
-                else:
-                    filenames, _sf = getopenfilenames(
-                        parent_widget,
-                        _("Open file"),
-                        basedir,
-                        self.edit_filters,
-                        selectedfilter=selectedfilter,
-                        options=QFileDialog.HideNameFilterDetails,
-                    )
-            else:
-                # Use a Qt (i.e. scriptable) dialog for pytest
-                dialog = QFileDialog(parent_widget, _("Open file"),
-                                     options=QFileDialog.DontUseNativeDialog)
-                if dialog.exec_():
-                    filenames = dialog.selectedFiles()
-
-            self.sig_redirect_stdio_requested.emit(True)
-
-            if filenames:
-                filenames = [osp.normpath(fname) for fname in filenames]
-            else:
-                self.__ignore_cursor_history = cursor_history_state
-                return
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():
@@ -2339,7 +2055,7 @@ class EditorMainWidget(PluginMainWidget):
                 slots = self.get_conf('bookmarks', default={})
                 current_editor.set_bookmarks(load_bookmarks(filename, slots))
                 current_es.analyze_script()
-                self.__add_recent_file(filename)
+                self.sig_new_recent_file.emit(filename)
 
             if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
@@ -2465,7 +2181,7 @@ class EditorMainWidget(PluginMainWidget):
         editorstack = self.get_current_editorstack()
         if editorstack.save_as():
             fname = editorstack.get_current_filename()
-            self.__add_recent_file(fname)
+            self.sig_new_recent_file.emit(fname)
 
             # We need to call this directly because at least on Windows
             # editorstack.editor_focus_changed is not emitted after saving the
@@ -3204,14 +2920,9 @@ class EditorMainWidget(PluginMainWidget):
         if current_fname != fname:
             editorstack.set_current_filename(fname)
 
-    def trigger_run_action(self, action_id):
-        """Trigger a run action according to its id."""
-        action = self.get_action(action_id, plugin=Plugins.Run)
-        action.trigger()
-
-    def trigger_debugger_action(self, action_id):
-        """Trigger a run action according to its id."""
-        action = self.get_action(action_id, plugin=Plugins.Debugger)
+    def trigger_action(self, action_id, plugin):
+        """Trigger an action according to its id and plugin."""
+        action = self.get_action(action_id, plugin=plugin)
         action.trigger()
 
     # ---- Code bookmarks

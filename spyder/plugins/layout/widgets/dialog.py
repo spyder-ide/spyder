@@ -12,15 +12,30 @@ import sys
 # Third party imports
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, QSize, Qt
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtWidgets import (QAbstractItemView, QDialog,
-                            QDialogButtonBox, QGroupBox, QHBoxLayout,
-                            QPushButton, QTableView, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QMessageBox,
+    QLabel,
+    QTableView,
+    QVBoxLayout,
+)
 
 # Local imports
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
+from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
+
+
+class LayoutSettingsToolButtons:
+    MoveUp = 'move_up'
+    MoveDown = 'move_down'
+    Remove = 'remove'
 
 
 class LayoutModel(QAbstractTableModel):
@@ -135,7 +150,8 @@ class LayoutModel(QAbstractTableModel):
 
 
 class LayoutSaveDialog(QDialog):
-    """ """
+    """Dialog to save a custom layout with a given name."""
+
     def __init__(self, parent, order):
         super(LayoutSaveDialog, self).__init__(parent)
 
@@ -147,6 +163,10 @@ class LayoutSaveDialog(QDialog):
         self.combo_box.addItems(order)
         self.combo_box.setEditable(True)
         self.combo_box.clearEditText()
+        self.combo_box.lineEdit().setPlaceholderText(
+            _("Give a name to your layout")
+        )
+
         self.button_box = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
         )
@@ -155,8 +175,8 @@ class LayoutSaveDialog(QDialog):
 
         # widget setup
         self.button_ok.setEnabled(False)
-        self.dialog_size = QSize(300, 100)
-        self.setWindowTitle('Save layout as')
+        self.dialog_size = QSize(350, 100)
+        self.setWindowTitle(_('Save layout as'))
         self.setModal(True)
         self.setMinimumSize(self.dialog_size)
         self.setFixedSize(self.dialog_size)
@@ -180,8 +200,12 @@ class LayoutSaveDialog(QDialog):
             self.button_ok.setEnabled(True)
 
 
-class LayoutSettingsDialog(QDialog):
+class LayoutSettingsDialog(QDialog, SpyderWidgetMixin):
     """Layout settings dialog"""
+
+    # Dummy variable to avoid a warning
+    CONF_SECTION = ""
+
     def __init__(self, parent, names, ui_names, order, active, read_only):
         super(LayoutSettingsDialog, self).__init__(parent)
         # variables
@@ -193,25 +217,51 @@ class LayoutSettingsDialog(QDialog):
         self.active = active
         self.read_only = read_only
 
+        # To style the tool buttons
+        self.setStyleSheet(PANES_TOOLBAR_STYLESHEET.to_string())
+
         # widgets
-        self.button_move_up = QPushButton(_('Move up'))
-        self.button_move_down = QPushButton(_('Move down'))
-        self.button_delete = QPushButton(_('Delete layout'))
+        description_label = QLabel(_("Reorder or delete your saved layouts"))
+        description_label.setAlignment(Qt.AlignCenter)
+        description_label.setWordWrap(True)
+
+        self.button_move_up = self.create_toolbutton(
+            LayoutSettingsToolButtons.MoveUp,
+            tip=_('Move up'),
+            icon=self.create_icon('1uparrow'),
+            triggered=lambda: self.move_layout(True),
+            register=False,
+        )
+        self.button_move_down = self.create_toolbutton(
+            LayoutSettingsToolButtons.MoveDown,
+            tip=_('Move down'),
+            icon=self.create_icon('1downarrow'),
+            triggered=lambda: self.move_layout(False),
+            register=False,
+        )
+        self.button_delete = self.create_toolbutton(
+            LayoutSettingsToolButtons.Remove,
+            tip=_('Delete layout'),
+            icon=self.create_icon('editclear'),
+            triggered=self.delete_layout,
+            register=False,
+        )
+
         self.button_box = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
         )
-        self.group_box = QGroupBox(_("Layout display and order"))
+
         self.table = QTableView(self)
-        self.ok_button = self.button_box.button(QDialogButtonBox.Ok)
-        self.cancel_button = self.button_box.button(QDialogButtonBox.Cancel)
-        self.cancel_button.setDefault(True)
-        self.cancel_button.setAutoDefault(True)
 
         # widget setup
-        self.dialog_size = QSize(300, 200)
+        self.dialog_size = QSize(320, 350)
         self.setMinimumSize(self.dialog_size)
         self.setFixedSize(self.dialog_size)
-        self.setWindowTitle('Layout Settings')
+        self.setWindowTitle(_("Layouts display and order"))
+
+        cancel_button = self.button_box.button(QDialogButtonBox.Cancel)
+        cancel_button.setDefault(True)
+        cancel_button.setAutoDefault(True)
 
         self.table.setModel(
             LayoutModel(self.table, names, ui_names, order, active, read_only))
@@ -235,13 +285,15 @@ class LayoutSettingsDialog(QDialog):
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.button_delete)
 
-        group_layout = QHBoxLayout()
-        group_layout.addWidget(self.table)
-        group_layout.addLayout(buttons_layout)
-        self.group_box.setLayout(group_layout)
+        order_layout = QHBoxLayout()
+        order_layout.addWidget(self.table)
+        order_layout.addLayout(buttons_layout)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.group_box)
+        layout.addWidget(description_label)
+        layout.addSpacing(2 * AppStyle.MarginSize)
+        layout.addLayout(order_layout)
+        layout.addSpacing(2 * AppStyle.MarginSize)
         layout.addWidget(self.button_box)
 
         self.setLayout(layout)
@@ -249,9 +301,6 @@ class LayoutSettingsDialog(QDialog):
         # signals and slots
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.close)
-        self.button_delete.clicked.connect(self.delete_layout)
-        self.button_move_up.clicked.connect(lambda: self.move_layout(True))
-        self.button_move_down.clicked.connect(lambda: self.move_layout(False))
         self.table.model().dataChanged.connect(
            lambda: self.selection_changed(None, None))
         self._selection_model.selectionChanged.connect(
@@ -273,29 +322,43 @@ class LayoutSettingsDialog(QDialog):
     def delete_layout(self):
         """Delete layout from the config."""
         names, ui_names, order, active, read_only = (
-            self.names, self.ui_names, self.order, self.active, self.read_only)
+            self.names, self.ui_names, self.order, self.active, self.read_only
+        )
         row = self.table.selectionModel().currentIndex().row()
         ui_name, name, state = self.table.model().row(row)
 
+        answer = QMessageBox.question(
+            self,
+            _("Remove layout"),
+            _("Do you want to remove the layout '<b>{}</b>'?").format(ui_name),
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if not answer:
+            return
+
         if name not in read_only:
-            name = from_qvariant(
-                self.table.selectionModel().currentIndex().data(),
-                to_text_string)
             if ui_name in ui_names:
                 index = ui_names.index(ui_name)
             else:
                 # In case nothing has focus in the table
                 return
+
             if index != -1:
-                order.remove(ui_name)
-                names.remove(ui_name)
+                order.remove(name)
+                names.remove(name)
                 ui_names.remove(ui_name)
+
                 if name in active:
-                    active.remove(ui_name)
+                    active.remove(name)
+
                 self.names, self.ui_names, self.order, self.active = (
-                    names, ui_names, order, active)
+                    names, ui_names, order, active
+                )
                 self.table.model().set_data(
-                    names, ui_names, order, active, read_only)
+                    names, ui_names, order, active, read_only
+                )
+
                 index = self.table.model().index(0, 0)
                 self.table.setCurrentIndex(index)
                 self.table.setFocus()

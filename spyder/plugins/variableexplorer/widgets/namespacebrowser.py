@@ -22,7 +22,7 @@ from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QInputDialog, QMessageBox,
-                            QVBoxLayout, QStackedLayout, QWidget)
+                            QVBoxLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -30,13 +30,14 @@ from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
 from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
+from spyder.widgets.helperwidgets import FinderWidget
 
 
 # Constants
@@ -46,7 +47,9 @@ VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 CALL_KERNEL_TIMEOUT = 30
 
 
-class NamespaceBrowser(QWidget, SpyderWidgetMixin):
+class NamespaceBrowser(
+    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+):
     """
     Namespace browser (global variables explorer widget).
     """
@@ -88,13 +91,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "variable-explorer",
-            _("No variables to show"),
-            _("Run code in the Editor or IPython console to see any "
-              "global variables listed here for exploration and editing.")
-        )
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
@@ -149,33 +145,29 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_start_spinner_requested)
             self.editor.sig_editor_shown.connect(
                 self.sig_stop_spinner_requested)
+            self.editor.source_model.sig_setting_data.connect(
+                self.set_pane_empty
+            )
 
             self.finder.sig_find_text.connect(self.do_find)
             self.finder.sig_hide_finder_requested.connect(
                 self.sig_hide_finder_requested)
 
             # Layout
-            self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(0)
             layout.addWidget(self.editor)
             layout.addWidget(self.finder)
-
-            self.table_widget = QWidget(self)
-            self.table_widget.setLayout(layout)
-            self.stack_layout.addWidget(self.table_widget)
-            self.stack_layout.addWidget(self.pane_empty)
-            self.setLayout(self.stack_layout)
-            self.set_pane_empty()
-            self.editor.source_model.sig_setting_data.connect(
-                self.set_pane_empty)
+            self.setLayout(layout)
 
     def set_pane_empty(self):
         if not self.editor.source_model.get_data():
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.is_empty = True
+            self.sig_show_empty_message_requested.emit(True)
         else:
-            self.stack_layout.setCurrentWidget(self.table_widget)
+            self.is_empty = False
+            self.sig_show_empty_message_requested.emit(False)
 
     def get_view_settings(self):
         """Return dict editor view settings"""

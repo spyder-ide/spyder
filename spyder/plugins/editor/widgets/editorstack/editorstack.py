@@ -39,6 +39,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -123,7 +124,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
-    refresh_save_all_action = Signal()
+    refresh_save_actions = Signal()
     text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
@@ -131,7 +132,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_split_vertically = Signal()
     sig_split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
-    sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
@@ -142,8 +142,18 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
-    sig_trigger_run_action = Signal(str)
-    sig_trigger_debugger_action = Signal(str)
+
+    sig_trigger_action = Signal(str, str)
+    """
+    This signal is emitted to request that an action be triggered.
+
+    Parameters
+    ----------
+    id: str
+        The id of the action.
+    plugin: str
+        The plugin in which the action is registered.
+    """
 
     sig_open_last_closed = Signal()
     """
@@ -305,10 +315,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
         self._given_actions = actions
         self.outlineexplorer = None
-        self.new_action = None
-        self.open_action = None
-        self.save_action = None
-        self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
         self.todolist_enabled = True
@@ -460,13 +466,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('New file', self.sig_new_file[()]),
-            ('Open file', self.plugin_load[()]),
-            ('Open last closed', self.sig_open_last_closed),
-            ('Save file', self.save),
-            ('Save all', self.save_all),
-            ('Save As', self.sig_save_as),
-            ('Close all', self.close_all_files),
             ("Last edit location", self.sig_prev_edit_pos),
             ("Previous cursor position", self.sig_prev_cursor),
             ("Next cursor position", self.sig_next_cursor),
@@ -474,8 +473,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ("zoom in 2", self.zoom_in),
             ("zoom out", self.zoom_out),
             ("zoom reset", self.zoom_reset),
-            ("close file 1", self.close_file),
-            ("close file 2", self.close_file),
             ("go to next cell", self.advance_cell),
             ("go to previous cell", lambda: self.advance_cell(reverse=True)),
             ("Previous warning", self.sig_prev_warning),
@@ -506,8 +503,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_run_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Run
                 ),
             )
 
@@ -519,10 +517,40 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_debugger_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Debugger
                 ),
                 context=Plugins.Debugger,
+            )
+
+        # Register shortcuts for file actions defined in the Application plugin
+        for shortcut_name in [
+            "New file",
+            "Open file",
+            "Open last closed",
+            "Save file",
+            "Save all",
+            "Save as",
+            "Close file 1",
+            "Close file 2",
+            "Close all"
+        ]:
+            # The shortcut has the same name as the action, except for
+            # "Close file" which has two shortcuts associated to it
+            if shortcut_name.startswith('Close file'):
+                action_id = 'Close file'
+            else:
+                action_id = shortcut_name
+
+            self.register_shortcut_for_widget(
+                name=shortcut_name,
+                triggered=functools.partial(
+                    self.sig_trigger_action.emit,
+                    action_id,
+                    Plugins.Application
+                ),
+                context='main',
             )
 
     def update_switcher_actions(self, switcher_available):
@@ -757,13 +785,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
-
-    def set_io_actions(self, new_action, open_action,
-                       save_action, revert_action):
-        self.new_action = new_action
-        self.open_action = open_action
-        self.save_action = save_action
-        self.revert_action = revert_action
 
     def set_find_widget(self, find_widget):
         self.find_widget = find_widget
@@ -1315,9 +1336,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     section=EditorStackMenuSections.CloseOrderSection
                 )
         else:
-            actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-            for menu_action in actions:
+            new_action = self.get_action(
+                ApplicationActions.NewFile,
+                plugin=Plugins.Application
+            )
+            open_action = self.get_action(
+                ApplicationActions.OpenFile,
+                plugin=Plugins.Application
+            )
+            for menu_action in (new_action, open_action):
                 self.menu.add_action(menu_action)
 
         for split_actions in self.__get_split_actions():
@@ -2471,8 +2499,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.set_stack_title(index, state)
 
         # Toggle save/save all actions state
-        self.save_action.setEnabled(state)
-        self.refresh_save_all_action.emit()
+        self.refresh_save_actions.emit()
 
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()

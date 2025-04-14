@@ -13,15 +13,17 @@ import os
 import os.path as osp
 import subprocess
 import sys
+from typing import Dict, Optional, Tuple
 
 # Third party imports
 from qtpy.QtCore import Slot
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.widgets.menus import SpyderMenu, MENU_SEPARATOR
 from spyder.config.base import (get_module_path, get_debug_level,
                                 running_under_pytest)
@@ -29,8 +31,11 @@ from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
     ApplicationActions, ApplicationContainer, ApplicationPluginMenus)
 from spyder.plugins.console.api import ConsoleActions
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
+from spyder.plugins.toolbar.api import ApplicationToolbars
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions
 
 
@@ -38,12 +43,18 @@ class Application(SpyderPluginV2):
     NAME = 'application'
     REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [Plugins.Help, Plugins.MainMenu, Plugins.Shortcuts,
-                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager]
+                Plugins.Editor, Plugins.StatusBar, Plugins.UpdateManager,
+                Plugins.Toolbar]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
     CONF_FILE = False
     CONF_WIDGET_CLASS = ApplicationConfigPage
     CAN_BE_DISABLED = False
+
+    def __init__(self, parent, configuration=None):
+        super().__init__(parent, configuration)
+        self.focused_plugin: Optional[SpyderDockablePlugin] = None
+        self.file_action_enabled: Dict[Tuple[str, str], bool] = {}
 
     @staticmethod
     def get_name():
@@ -60,7 +71,25 @@ class Application(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
         container.sig_report_issue_requested.connect(self.report_issue)
+        container.sig_new_file_requested.connect(self.create_new_file)
+        container.sig_open_file_in_plugin_requested.connect(
+            self.open_file_in_plugin
+        )
+        container.sig_open_file_using_dialog_requested.connect(
+            self.open_file_using_dialog
+        )
+        container.sig_open_last_closed_requested.connect(
+            self.open_last_closed_file
+        )
+        container.sig_save_file_requested.connect(self.save_file)
+        container.sig_save_all_requested.connect(self.save_all)
+        container.sig_save_file_as_requested.connect(self.save_file_as)
+        container.sig_save_copy_as_requested.connect(self.save_copy_as)
+        container.sig_revert_file_requested.connect(self.revert_file)
+        container.sig_close_file_requested.connect(self.close_file)
+        container.sig_close_all_requested.connect(self.close_all)
         container.set_window(self._window)
+        self.sig_focused_plugin_changed.connect(self._update_focused_plugin)
 
     # --------------------- PLUGIN INITIALIZATION -----------------------------
     @on_plugin_available(plugin=Plugins.Shortcuts)
@@ -104,6 +133,22 @@ class Application(SpyderPluginV2):
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.add_status_widget(inapp_appeal_status)
 
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        container = self.get_container()
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        for action in [
+            container.new_action,
+            container.open_action,
+            container.save_action,
+            container.save_all_action
+        ]:
+            toolbar.add_item_to_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File,
+                before=EditorWidgetActions.NewCell
+            )
+
     # -------------------------- PLUGIN TEARDOWN ------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -132,6 +177,20 @@ class Application(SpyderPluginV2):
         statusbar = self.get_plugin(Plugins.StatusBar)
         inapp_appeal_status = self.get_container().inapp_appeal_status
         statusbar.remove_status_widget(inapp_appeal_status.ID)
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        for action in [
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll
+        ]:
+            toolbar.remove_item_from_application_toolbar(
+                action,
+                toolbar_id=ApplicationToolbars.File
+            )
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -171,15 +230,71 @@ class Application(SpyderPluginV2):
     # ---- Private API
     # ------------------------------------------------------------------------
     def _populate_file_menu(self):
+        container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # New section
+        mainmenu.add_item_to_application_menu(
+            container.new_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.New,
+            before_section=FileMenuSections.Open
+        )
+
+        # Open section
+        open_actions = [
+            container.open_action,
+            container.open_last_closed_action,
+            container.recent_files_menu,
+        ]
+        for open_action in open_actions:
+            mainmenu.add_item_to_application_menu(
+                open_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Open,
+                before_section=FileMenuSections.Save
+            )
+
+        # Save section
+        save_actions = [
+            container.save_action,
+            container.save_all_action,
+            container.save_as_action,
+            container.save_copy_as_action,
+            container.revert_action
+        ]
+        for save_action in save_actions:
+            mainmenu.add_item_to_application_menu(
+                save_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Save,
+                before_section=FileMenuSections.Print
+            )
+
+        # Close section
+        close_actions = [
+            container.close_file_action,
+            container.close_all_action
+        ]
+        for close_action in close_actions:
+            mainmenu.add_item_to_application_menu(
+                close_action,
+                menu_id=ApplicationMenus.File,
+                section=FileMenuSections.Close,
+                before_section=FileMenuSections.Restart
+            )
+
+        # Restart section
         mainmenu.add_item_to_application_menu(
             self.restart_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
         mainmenu.add_item_to_application_menu(
             self.restart_debug_action,
             menu_id=ApplicationMenus.File,
-            section=FileMenuSections.Restart)
+            section=FileMenuSections.Restart
+        )
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -281,9 +396,23 @@ class Application(SpyderPluginV2):
             menu_id=ApplicationMenus.Help)
 
     def _depopulate_file_menu(self):
+        container = self.get_container()
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for action_id in [ApplicationActions.SpyderRestart,
-                          ApplicationActions.SpyderRestartDebug]:
+        for action_id in [
+            ApplicationActions.NewFile,
+            ApplicationActions.OpenFile,
+            ApplicationActions.OpenLastClosed,
+            container.recent_file_menu,
+            ApplicationActions.SaveFile,
+            ApplicationActions.SaveAll,
+            ApplicationActions.SaveAs,
+            ApplicationActions.SaveCopyAs,
+            ApplicationActions.RevertFile,
+            ApplicationActions.CloseFile,
+            ApplicationActions.CloseAll,
+            ApplicationActions.SpyderRestart,
+            ApplicationActions.SpyderRestartDebug
+        ]:
             mainmenu.remove_item_from_application_menu(
                 action_id,
                 menu_id=ApplicationMenus.File)
@@ -299,6 +428,44 @@ class Application(SpyderPluginV2):
             mainmenu.remove_item_from_application_menu(
                 ApplicationPluginMenus.DebugLogsMenu,
                 menu_id=ApplicationMenus.Tools)
+
+    def _update_focused_plugin(
+        self, plugin: Optional[SpyderDockablePlugin]
+    ) -> None:
+        """
+        Update which plugin has currently focus.
+
+        This function is called if another plugin gets keyboard focus.
+        """
+        self.focused_plugin = plugin
+        self._update_file_actions()
+
+    def _update_file_actions(self) -> None:
+        """
+        Update which file actions are enabled.
+
+        File actions are enabled depending on whether the plugin that would
+        currently process the file action has enabled it or not.
+        """
+        plugin = self.focused_plugin
+        if not plugin or not getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin = self.get_plugin(Plugins.Editor, error=False)
+        if plugin:
+            for action_name in [
+                ApplicationActions.NewFile,
+                ApplicationActions.OpenLastClosed,
+                ApplicationActions.SaveFile,
+                ApplicationActions.SaveAll,
+                ApplicationActions.SaveAs,
+                ApplicationActions.SaveCopyAs,
+                ApplicationActions.RevertFile,
+                ApplicationActions.CloseFile,
+                ApplicationActions.CloseAll,
+            ]:
+                action = self.get_action(action_name)
+                key = (plugin.NAME, action_name)
+                state = self.file_action_enabled.get(key, True)
+                action.setEnabled(state)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -400,6 +567,230 @@ class Application(SpyderPluginV2):
             # the error can be inspected in the internal console
             print(error)  # spyder: test-skip
             print(command)  # spyder: test-skip
+
+    def create_new_file(self) -> None:
+        """
+        Create new file in a suitable plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then create a new
+        file in that plugin. Otherwise, create a new file in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.create_new_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.new()
+
+    def open_file_using_dialog(self) -> None:
+        """
+        Show Open File dialog and open the selected file.
+
+        Try asking the plugin that currently has focus for the name of the
+        displayed file and whether it is a temporary file. If that does not
+        work, ask the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin:
+            filename = plugin.get_current_filename()
+        else:
+            filename = None
+
+        if filename is None and self.is_plugin_available(Plugins.Editor):
+            plugin = self.get_plugin(Plugins.Editor)
+            filename = plugin.get_current_filename()
+
+        if filename is not None and not plugin.current_file_is_temporary():
+            basedir = osp.dirname(filename)
+        else:
+            basedir = getcwd_or_home()
+
+        self.get_container().open_file_using_dialog(filename, basedir)
+
+    def open_file_in_plugin(self, filename: str) -> None:
+        """
+        Open given file in a suitable plugin.
+
+        Go through all plugins and open the file in the first plugin that
+        registered the extension of the given file name. If none is found,
+        then open the file in the Editor plugin.
+        """
+        ext = osp.splitext(filename)[1]
+        for plugin_name in PLUGIN_REGISTRY:
+            if PLUGIN_REGISTRY.is_plugin_available(plugin_name):
+                plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+                if (
+                    isinstance(plugin, SpyderDockablePlugin)
+                    and ext in plugin.FILE_EXTENSIONS
+                ):
+                    plugin.switch_to_plugin()
+                    plugin.open_file(filename)
+                    return
+
+        if self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.load(filename)
+
+    def open_last_closed_file(self) -> None:
+        """
+        Open the last closed file again.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then open the
+        last closed file in that plugin. Otherwise, open the last closed file
+        in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.open_last_closed_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.open_last_closed()
+
+    def add_recent_file(self, fname: str) -> None:
+        """
+        Add file to list of recent files.
+
+        This function adds the given file name to the list of recent files,
+        which is used in the `File > Open recent` menu. The function ensures
+        that the list has no duplicates and it is no longer than the maximum
+        length.
+        """
+        self.get_container().add_recent_file(fname)
+
+    def save_file(self) -> None:
+        """
+        Save current file.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin. Otherwise, save the current file in the
+        Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save()
+
+    def save_file_as(self) -> None:
+        """
+        Save current file under a different name.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save the
+        current file in that plugin under a different name. Otherwise, save
+        the current file in the Editor plugin under a different name.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_file_as()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_as()
+
+    def save_copy_as(self) -> None:
+        """
+        Save copy of current file under a different name.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save a copy of
+        the current file in that plugin under a different name. Otherwise, save
+        a copy of the current file in the Editor plugin under a different name.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_copy_as()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_copy_as()
+
+    def save_all(self) -> None:
+        """
+        Save all files.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then save all files
+        in that plugin. Otherwise, save all files in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.save_all()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.save_all()
+
+    def revert_file(self) -> None:
+        """
+        Revert current file to the version on disk.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then revert the
+        current file in that plugin to the version stored on disk. Otherwise,
+        revert the current file in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.revert_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.revert_file()
+
+    def close_file(self) -> None:
+        """
+        Close the current file.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then close the
+        current file in that plugin. Otherwise, close the current file in the
+        Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.close_file()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.close_file()
+
+    def close_all(self) -> None:
+        """
+        Close all opened files in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_FILE_ACTIONS` attribute set to `True`, then close all
+        files in that plugin. Otherwise, close all files in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_FILE_ACTIONS', False):
+            plugin.close_all()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.close_all_files()
+
+    def enable_file_action(
+        self,
+        action_name: str,
+        enabled: bool,
+        plugin: str
+    ) -> None:
+        """
+        Enable or disable file actions for a given plugin.
+
+        Parameters
+        ----------
+        action_name : str
+            The name of the action to be enabled or disabled. These names
+            are listed in ApplicationActions, for instance "New file"
+        enabled : bool
+            True to enable the action, False to disable it.
+        plugin : str
+            The name of the plugin for which the save action needs to be
+            enabled or disabled.
+        """
+        self.file_action_enabled[(plugin, action_name)] = enabled
+        self._update_file_actions()
 
     @property
     def documentation_action(self):
