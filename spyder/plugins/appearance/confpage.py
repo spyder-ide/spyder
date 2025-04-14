@@ -350,8 +350,11 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.update_combobox()
         self.update_editor_preview()
-        plugins = self.main.widgetlist + self.main.thirdparty_plugins
-        for plugin in plugins:
+
+        # This applies changes to a custom color scheme to all open editors.
+        # Fixes spyder-ide/spyder#22693
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
             plugin.update_font()
 
         return set(self.changed_options)
