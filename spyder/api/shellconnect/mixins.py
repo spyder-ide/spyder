@@ -5,8 +5,10 @@
 # (see spyder/__init__.py for details)
 
 """
-Mixin to connect a plugin to the IPython console.
+Mixins for plugins/widgets that are connected to the IPython console.
 """
+
+from qtpy.QtCore import Signal
 
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -54,6 +56,27 @@ class ShellConnectMixin:
     def add_errored_shellwidget(self, shellwidget):
         """Register a new shellwidget whose kernel failed to start."""
         raise NotImplementedError
+
+
+class ShellConnectWidgetForStackMixin:
+    """
+    Mixin for widgets that will be added to the stacked widget part of
+    ShellConnectMainWidget.
+    """
+
+    sig_show_empty_message_requested = Signal(bool)
+    """
+    Signal to request that the empty message will be shown/hidden.
+
+    Parameters
+    show_empty_message: bool
+        Whether show the empty message or this widget must be shown.
+    """
+
+    def __init__(self):
+        # This attribute is necessary to track if this widget has content to
+        # display or not.
+        self.is_empty = True
 
 
 class ShellConnectPluginMixin(ShellConnectMixin):

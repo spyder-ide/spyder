@@ -95,6 +95,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     # PluginMainWidget class constants
     ENABLE_SPINNER = True
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "variable-explorer"
+    MESSAGE_WHEN_EMPTY = _("No variables to show")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Run code in the Editor or IPython console to see any global "
+        "variables listed here for exploration and editing."
+    )
 
     # Other class constants
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
@@ -460,7 +467,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
     def update_actions(self):
         """Update the actions."""
-        if self.is_current_widget_empty():
+        if self.is_current_widget_error_message():
             self._set_main_toolbar_state(False)
             return
         else:
@@ -513,11 +520,16 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def create_new_widget(self, shellwidget):
         """Create new NamespaceBrowser."""
         nsb = NamespaceBrowser(self)
+
         nsb.sig_hide_finder_requested.connect(self.hide_finder)
         nsb.sig_free_memory_requested.connect(self.free_memory)
         nsb.sig_start_spinner_requested.connect(self.start_spinner)
         nsb.sig_stop_spinner_requested.connect(self.stop_spinner)
         nsb.sig_show_figure_requested.connect(self.sig_show_figure_requested)
+        nsb.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
+
         nsb.set_shellwidget(shellwidget)
         nsb.plots_plugin_enabled = self.plots_plugin_enabled
         nsb.setup()
@@ -550,19 +562,19 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         """
         Import data in current namespace.
         """
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=filenames)
 
     def save_data(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.save_data()
             self.update_actions()
 
     def reset_namespace(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.reset_namespace()
 
@@ -570,7 +582,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Hide or show the finder."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return
         widget.toggle_finder(checked)
 
@@ -581,7 +593,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
         action.setChecked(False)
 
     def refresh_table(self):
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             nsb.refresh_table()
 
@@ -645,7 +657,7 @@ class VariableExplorerWidget(ShellConnectMainWidget):
     @property
     def _current_editor(self):
         editor = None
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             nsb = self.current_widget()
             editor = nsb.editor
         return editor

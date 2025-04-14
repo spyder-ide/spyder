@@ -11,24 +11,44 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
-import os
-import sys
+import functools
 import glob
+import os
+import os.path as osp
+import sys
+from typing import Optional
 
 # Third party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Signal, Slot
+from qtpy.compat import getopenfilenames
+from qtpy.QtCore import QDir, Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
-from qtpy.QtWidgets import QAction, QMessageBox, QPushButton
+from qtpy.QtWidgets import (
+    QAction,
+    QFileDialog,
+    QInputDialog,
+    QMessageBox,
+    QPushButton,
+)
 
 # Local imports
 from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder import dependencies
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
-from spyder.utils.installers import InstallerMissingDependencies
-from spyder.config.base import get_conf_path, get_debug_level
+from spyder.config.base import (
+    get_conf_path,
+    get_debug_level,
+    running_under_pytest,
+)
+from spyder.config.utils import (
+    get_edit_filetypes,
+    get_edit_filters,
+    get_filter,
+)
 from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
+from spyder.utils.icon_manager import ima
+from spyder.utils.installers import InstallerMissingDependencies
 from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.dependencies import DependenciesDialog
@@ -37,6 +57,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 
 class ApplicationPluginMenus:
     DebugLogsMenu = "debug_logs_menu"
+    RecentFilesMenu = "recent_files_menu"
 
 
 class LogsMenuSections:
@@ -46,10 +67,11 @@ class LogsMenuSections:
 
 # Actions
 class ApplicationActions:
+    # For actions with shortcuts, the name of the action needs to match the
+    # name of the shortcut so 'spyder documentation' is used instead of
+    # something like 'spyder_documentation'
+
     # Help
-    # The name of the action needs to match the name of the shortcut so
-    # 'spyder documentation' is used instead of something
-    # like 'spyder_documentation'
     SpyderDocumentationAction = "spyder documentation"
     SpyderDocumentationVideoAction = "spyder_documentation_video_action"
     SpyderTroubleshootingAction = "spyder_troubleshooting_action"
@@ -62,8 +84,18 @@ class ApplicationActions:
     SpyderUserEnvVariables = "spyder_user_env_variables_action"
 
     # File
-    # The name of the action needs to match the name of the shortcut
-    # so 'Restart' is used instead of something like 'restart_action'
+    NewFile = "New file"
+    OpenFile = "Open file"
+    OpenLastClosed = "Open last closed"
+    MaxRecentFiles = "max_recent_files_action"
+    ClearRecentFiles = "clear_recent_files_action"
+    SaveFile = "Save file"
+    SaveAll = "Save all"
+    SaveAs = "Save as"
+    SaveCopyAs = "save_copy_as_action"
+    RevertFile = "Revert file"
+    CloseFile = "Close file"
+    CloseAll = "Close all"
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
@@ -80,12 +112,74 @@ class ApplicationContainer(PluginMainContainer):
     Signal to load a log file
     """
 
+    sig_new_file_requested = Signal()
+    """
+    Signal to request that a new file be created in a suitable plugin.
+    """
+
+    sig_open_file_in_plugin_requested = Signal(str)
+    """
+    Signal to request that given file is opened in a suitable plugin.
+
+    Arguments
+    ---------
+    filename : str
+    """
+
+    sig_open_file_using_dialog_requested = Signal()
+    """
+    Signal to request that the Open File dialog is shown to open a file.
+    """
+
+    sig_open_last_closed_requested = Signal()
+    """
+    Signal to request that the last closed file be opened again.
+    """
+
+    sig_save_file_requested = Signal()
+    """
+    Signal to request that the current file be saved.
+    """
+
+    sig_save_all_requested = Signal()
+    """
+    Signal to request that all files in the current plugin be saved.
+    """
+
+    sig_save_file_as_requested = Signal()
+    """
+    Signal to request that the current file be saved under a different name.
+    """
+
+    sig_save_copy_as_requested = Signal()
+    """
+    Signal to request that copy of current file be saved under a new name.
+    """
+
+    sig_revert_file_requested = Signal()
+    """
+    Signal to request that the current file be reverted from disk.
+    """
+
+    sig_close_file_requested = Signal()
+    """
+    Signal to request that the current file be closed.
+    """
+
+    sig_close_all_requested = Signal()
+    """
+    Signal to request that all open files be closed.
+    """
+
     def __init__(self, name, plugin, parent=None):
         super().__init__(name, plugin, parent)
 
         # Keep track of dpi message
         self.current_dpi = None
         self.dpi_messagebox = None
+
+        # Keep track of list of recent files
+        self.recent_files = self.get_conf('recent_files', [])
 
     # ---- PluginMainContainer API
     # -------------------------------------------------------------------------
@@ -187,6 +281,109 @@ class ApplicationContainer(PluginMainContainer):
             shortcut_context="_",
             register_shortcut=True)
 
+        # File actions
+        self.new_action = self.create_action(
+            ApplicationActions.NewFile,
+            text=_("&New file..."),
+            icon=self.create_icon('filenew'),
+            tip=_("New file"),
+            triggered=self.sig_new_file_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.open_action = self.create_action(
+            ApplicationActions.OpenFile,
+            text=_("&Open..."),
+            icon=self.create_icon('fileopen'),
+            tip=_("Open file"),
+            triggered=self.sig_open_file_using_dialog_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.open_last_closed_action = self.create_action(
+            ApplicationActions.OpenLastClosed,
+            text=_("O&pen last closed"),
+            tip=_("Open last closed"),
+            triggered=self.sig_open_last_closed_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.recent_files_menu = self.create_menu(
+            ApplicationPluginMenus.RecentFilesMenu,
+            title=_("Open &recent")
+        )
+        self.recent_files_menu.aboutToShow.connect(
+            self.update_recent_files_menu
+        )
+        self.max_recent_action = self.create_action(
+            ApplicationActions.MaxRecentFiles,
+            text=_("Maximum number of recent files..."),
+            triggered=self.change_max_recent_files
+        )
+        self.clear_recent_action = self.create_action(
+            ApplicationActions.ClearRecentFiles,
+            text=_("Clear this list"),
+            tip=_("Clear recent files list"),
+            triggered=self.clear_recent_files
+        )
+        self.save_action = self.create_action(
+            ApplicationActions.SaveFile,
+            text=_("&Save"),
+            icon=self.create_icon('filesave'),
+            tip=_("Save file"),
+            triggered=self.sig_save_file_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.save_all_action = self.create_action(
+            ApplicationActions.SaveAll,
+            text=_("Sav&e all"),
+            icon=self.create_icon('save_all'),
+            tip=_("Save all files"),
+            triggered=self.sig_save_all_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.save_as_action = self.create_action(
+            ApplicationActions.SaveAs,
+            text=_("Save &as"),
+            icon=self.create_icon('filesaveas'),
+            tip=_("Save current file as..."),
+            triggered=self.sig_save_file_as_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.save_copy_as_action = self.create_action(
+            ApplicationActions.SaveCopyAs,
+            text=_("Save copy as..."),
+            icon=self.create_icon('filesaveas'),
+            tip=_("Save copy of current file as..."),
+            triggered=self.sig_save_copy_as_requested.emit
+        )
+        self.revert_action = self.create_action(
+            ApplicationActions.RevertFile,
+            text=_("&Revert"),
+            icon=self.create_icon('revert'),
+            tip=_("Revert file from disk"),
+            triggered=self.sig_revert_file_requested.emit
+        )
+        self.close_file_action = self.create_action(
+            ApplicationActions.CloseFile,
+            text=_("&Close"),
+            icon=self.create_icon('fileclose'),
+            tip=_("Close current file"),
+            triggered=self.sig_close_file_requested.emit
+        )
+        self.close_all_action = self.create_action(
+            ApplicationActions.CloseAll,
+            text=_("C&lose all"),
+            icon=ima.icon('filecloseall'),
+            tip=_("Close all opened files"),
+            triggered=self.sig_close_all_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+
         # Debug logs
         if get_debug_level() >= 2:
             self.menu_debug_logs = self.create_menu(
@@ -199,6 +396,10 @@ class ApplicationContainer(PluginMainContainer):
             self.menu_debug_logs.aboutToShow.connect(
                 self.create_debug_log_actions)
 
+        # File types and filters used by the Open dialog
+        self.edit_filetypes = None
+        self.edit_filters = None
+
     def update_actions(self):
         pass
 
@@ -207,6 +408,7 @@ class ApplicationContainer(PluginMainContainer):
     def on_close(self):
         """To call from Spyder when the plugin is closed."""
         self.dialog_manager.close_all()
+        self.set_conf('recent_files', self.recent_files)
         if self.dependencies_thread is not None:
             self.dependencies_thread.quit()
             self.dependencies_thread.wait()
@@ -330,6 +532,151 @@ class ApplicationContainer(PluginMainContainer):
             return
 
         self.sig_restart_requested.emit()
+
+    # ---- File actions
+    # -------------------------------------------------------------------------
+    def open_file_using_dialog(self, filename: Optional[str], basedir: str):
+        """
+        Show Open File dialog and open the selected file.
+
+        Parameters
+        ----------
+        filename : Optional[str]
+            Name of currently active file. This is used to set the selected
+            name filter for the Open File dialog.
+        basedir : str
+            Directory initially displayed in the Open File dialog.
+        """
+        if self.edit_filetypes is None:
+            self.edit_filetypes = get_edit_filetypes()
+        if self.edit_filters is None:
+            self.edit_filters = get_edit_filters()
+
+        self.sig_redirect_stdio_requested.emit(False)
+        if filename is not None:
+            selectedfilter = get_filter(
+                self.edit_filetypes, osp.splitext(filename)[1]
+            )
+        else:
+            selectedfilter = ''
+
+        if not running_under_pytest():
+            # See: spyder-ide/spyder#3291
+            if sys.platform == 'darwin':
+                dialog = QFileDialog(
+                    parent=self,
+                    caption=_("Open file"),
+                    directory=basedir,
+                )
+                dialog.setNameFilters(self.edit_filters.split(';;'))
+                dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                dialog.setFilter(
+                    QDir.AllDirs | QDir.Files | QDir.Drives | QDir.Hidden
+                )
+                dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
+            else:
+                filenames, _sf = getopenfilenames(
+                    self,
+                    _("Open file"),
+                    basedir,
+                    self.edit_filters,
+                    selectedfilter=selectedfilter,
+                    options=QFileDialog.HideNameFilterDetails,
+                )
+        else:
+            # Use a Qt (i.e. scriptable) dialog for pytest
+            dialog = QFileDialog(
+                self, _("Open file"), options=QFileDialog.DontUseNativeDialog
+            )
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
+
+        self.sig_redirect_stdio_requested.emit(True)
+
+        for filename in filenames:
+            filename = osp.normpath(filename)
+            self.sig_open_file_in_plugin_requested.emit(filename)
+
+    def add_recent_file(self, fname: str) -> None:
+        """
+        Add file to the list of recent files.
+
+        This function adds the given file name to the list of recent files,
+        which is used in the `File > Open recent` menu. The function ensures
+        that the list has no duplicates and it is no longer than the maximum
+        length.
+        """
+        if fname in self.recent_files:
+            self.recent_files.remove(fname)
+        self.recent_files.insert(0, fname)
+        if len(self.recent_files) > self.get_conf('max_recent_files'):
+            self.recent_files.pop(-1)
+
+    def clear_recent_files(self) -> None:
+        """
+        Clear list of recent files.
+        """
+        self.recent_files = []
+
+    def update_recent_files_menu(self):
+        """
+        Update recent files menu
+
+        Add menu items for all the recent files to the menu. Also add items
+        for setting the maximum number and for clearing the list.
+
+        This function is called before the menu is about to be shown.
+        """
+        self.recent_files_menu.clear_actions()
+        recent_files = [
+            fname for fname in self.recent_files
+            if osp.isfile(fname)
+        ]
+        for fname in recent_files:
+            icon = ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            action = self.create_action(
+                name=f'Recent file {fname}',
+                text=fname,
+                icon=icon,
+                triggered=functools.partial(
+                    self.sig_open_file_in_plugin_requested.emit,
+                    fname
+                )
+            )
+            self.recent_files_menu.add_action(
+                action,
+                section='recent_files_section',
+                omit_id=True,
+                before_section='recent_files_actions_section'
+            )
+
+        self.clear_recent_action.setEnabled(len(recent_files) > 0)
+        for menu_action in (self.max_recent_action, self.clear_recent_action):
+            self.recent_files_menu.add_action(
+                menu_action,
+                section='recent_files_actions_section'
+            )
+
+        self.recent_files_menu.render()
+
+    def change_max_recent_files(self) -> None:
+        """
+        Change the maximum length of the list of recent files.
+        """
+        mrf, valid = QInputDialog.getInt(
+            self,
+            _('Editor'),
+            _('Maximum number of recent files'),
+            self.get_conf('max_recent_files'),
+            1,
+            35
+        )
+
+        if valid:
+            self.set_conf('max_recent_files', mrf)
 
     # ---- Log files
     # -------------------------------------------------------------------------

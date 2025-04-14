@@ -41,6 +41,7 @@ class Explorer(SpyderDockablePlugin):
         Plugins.Editor,
         Plugins.WorkingDirectory,
         Plugins.RemoteClient,
+        Plugins.Application,
     ]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = ExplorerWidget
@@ -207,7 +208,6 @@ class Explorer(SpyderDockablePlugin):
         self.sig_folder_removed.connect(editor.removed_tree)
         self.sig_folder_renamed.connect(editor.renamed_tree)
         self.sig_module_created.connect(editor.new)
-        self.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -237,6 +237,11 @@ class Explorer(SpyderDockablePlugin):
             self._chdir_from_working_directory
         )
 
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        application = self.get_plugin(Plugins.Application)
+        self.sig_open_file_requested.connect(application.open_file_in_plugin)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -248,7 +253,6 @@ class Explorer(SpyderDockablePlugin):
         self.sig_folder_removed.disconnect(editor.removed_tree)
         self.sig_folder_renamed.disconnect(editor.renamed_tree)
         self.sig_module_created.disconnect(editor.new)
-        self.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -267,6 +271,13 @@ class Explorer(SpyderDockablePlugin):
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
         working_directory.sig_current_directory_changed.disconnect(
             self._chdir_from_working_directory
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self):
+        application = self.get_plugin(Plugins.Application)
+        self.sig_open_file_requested.disconnect(
+            application.open_file_in_plugin
         )
 
     @on_plugin_teardown(plugin=Plugins.RemoteClient)

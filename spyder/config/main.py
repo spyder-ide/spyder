@@ -84,6 +84,8 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
+              'show_message_when_panes_are_empty': True,
+              'max_recent_files': 20,
               }),
             ('update_manager',
              {
@@ -265,7 +267,6 @@ DEFAULTS = [
               'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
-              'max_recent_files': 20,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
@@ -419,6 +420,17 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
+              # -- File menu --
+              # (intended context for these is plugins that support them)
+              'main/new file': "Ctrl+N",
+              'main/open file': "Ctrl+O",
+              'main/open last closed': "Ctrl+Shift+T",
+              'main/save file': "Ctrl+S",
+              'main/save all': "Ctrl+Alt+S",
+              'main/save as': 'Ctrl+Shift+S',
+              'main/close file 1': "Ctrl+W",
+              'main/close file 2': "Ctrl+F4",
+              'main/close all': "Ctrl+Shift+W",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -487,13 +499,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/new file': "Ctrl+N",
-              'editor/open last closed':"Ctrl+Shift+T",
-              'editor/open file': "Ctrl+O",
-              'editor/save file': "Ctrl+S",
-              'editor/save all': "Ctrl+Alt+S",
-              'editor/save as': 'Ctrl+Shift+S',
-              'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Alt+Left",
               'editor/next cursor position': "Alt+Right",
@@ -503,8 +508,6 @@ DEFAULTS = [
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
               'editor/zoom reset': "Ctrl+0",
-              'editor/close file 1': "Ctrl+W",
-              'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
               'editor/run selection and advance': "F9",
@@ -605,6 +608,7 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
+            'recent_files',
             'window/position',
             'window/size',
             'window/state',
@@ -615,7 +619,6 @@ NAME_MAP = {
             'bookmarks',
             'filenames',
             'layout_settings',
-            'recent_files',
             'splitter_state',
             'file_uuids'
             ]
@@ -693,4 +696,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '86.0.0'
+CONF_VERSION = '87.0.0'

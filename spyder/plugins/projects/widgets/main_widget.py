@@ -46,7 +46,6 @@ from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.programs import find_program
 from spyder.utils.workers import WorkerManager
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # For logging
@@ -86,6 +85,15 @@ class ProjectsOptionsMenuActions:
 @class_register
 class ProjectExplorerWidget(PluginMainWidget):
     """Project explorer main widget."""
+
+    # ---- PluginMainWidget API
+    # -------------------------------------------------------------------------
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "projects"
+    MESSAGE_WHEN_EMPTY = _("No project opened")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Create one using the menu entry Projects > New project."
+    )
 
     # ---- Constants
     # -------------------------------------------------------------------------
@@ -183,16 +191,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget = ProjectExplorerTreeWidget(self, self.show_hscrollbar)
         self.treewidget.setup()
         self.treewidget.setup_view()
-        self.treewidget.hide()
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
-
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "projects",
-            _("No project opened"),
-            _("Create one using the menu entry Projects > New project.")
-        )
+        self.set_content_widget(self.treewidget)
 
         # -- Watcher
         self.watcher = WorkspaceWatcher(self)
@@ -214,10 +215,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.sig_project_closed.connect(lambda p: self._clear_switcher_paths())
 
         # -- Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.pane_empty)
-        layout.addWidget(self.treewidget)
-        self.setLayout(layout)
         self.setMinimumWidth(200)
 
         # Initial setup
@@ -301,10 +298,6 @@ class ProjectExplorerWidget(PluginMainWidget):
                 menu=menu,
                 section=ProjectExplorerOptionsMenuSections.Main
             )
-
-    def set_pane_empty(self):
-        self.treewidget.hide()
-        self.pane_empty.show()
 
     def update_actions(self):
         pass
@@ -866,13 +859,16 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def _clear(self):
         """Show an empty view"""
-        self.treewidget.hide()
-        self.pane_empty.show()
+        if self.get_conf("show_message_when_panes_are_empty", section="main"):
+            super().show_empty_message()
+        else:
+            # This removes the widget's contents to show an empty pane
+            self.treewidget.set_root_path("")
 
     def _setup_project(self, directory):
         """Setup project"""
-        self.pane_empty.hide()
-        self.treewidget.show()
+        if self.get_conf("show_message_when_panes_are_empty", section="main"):
+            self.show_content_widget()
 
         # Setup the directory shown by the tree
         self._set_project_dir(directory)
