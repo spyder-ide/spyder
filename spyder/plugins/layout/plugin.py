@@ -9,6 +9,7 @@ Layout Plugin.
 """
 # Standard library imports
 import configparser as cp
+from functools import lru_cache
 import logging
 import os
 
@@ -95,7 +96,6 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
     def on_initialize(self):
         self._last_plugin = None
-        self._first_spyder_run = False
         self._fullscreen_flag = None
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
@@ -105,6 +105,15 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         self._saved_normal_geometry = None
         self._state_before_maximizing = None
         self._interface_locked = self.get_conf('panes_locked', section='main')
+        # The following flag is used to apply the window settings only once
+        # during the first run
+        self._window_settings_applied_on_first_run = False
+
+        # If Spyder has already been run once, this option needs to be False.
+        # Note: _first_spyder_run needs to be accessed at least once in this
+        # method to be computed at startup.
+        if not self._first_spyder_run:
+            self.set_conf("first_time", False)
 
         # Register default layouts
         self.register_layout(self, SpyderLayout)
@@ -234,6 +243,25 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    @property
+    @lru_cache
+    def _first_spyder_run(self):
+        """
+        Check if Spyder is run for the first time.
+
+        Notes
+        -----
+        * We declare this as a property to prevent reassignments in other
+          places of this class.
+        * It only needs to be computed once at startup (i.e. it needs to be
+          accessed in on_initialize).
+        """
+        # We need to do this double check because we were not using the
+        # "first_time" option in 6.0 and older versions.
+        return (
+            self.get_conf("first_time", True) and self.get_conf("names") == []
+        )
+
     def _get_internal_dockable_plugins(self):
         """Get the list of internal dockable plugins"""
         return get_class_values(DockablePlugins)
@@ -383,11 +411,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         settings = self.load_window_settings(prefix, default)
         hexstate = settings[0]
 
-        self._first_spyder_run = False
         if hexstate is None:
             # First Spyder execution:
             self.main.setWindowState(Qt.WindowMaximized)
-            self._first_spyder_run = True
             self.setup_default_layouts(DefaultLayouts.SpyderLayout, settings)
 
             # Restore the original defaults. This is necessary, for instance,
@@ -428,9 +454,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         main = self.main
         main.setUpdatesEnabled(False)
 
-        first_spyder_run = bool(self._first_spyder_run)  # Store copy
-
-        if first_spyder_run:
+        if self._first_spyder_run:
             self.set_window_settings(*settings)
         else:
             if self._last_plugin:
@@ -451,8 +475,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         # Apply selected layout
         layout.set_main_window_layout(self.main, self.get_dockable_plugins())
 
-        if first_spyder_run:
-            self._first_spyder_run = False
+        if self._first_spyder_run:
+            self.set_conf("first_time", False)
         else:
             self.main.setMinimumWidth(min_width)
             self.main.setMaximumWidth(max_width)
@@ -598,16 +622,28 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     def set_window_settings(self, hexstate, window_size, pos, is_maximized,
                             is_fullscreen):
         """
-        Set window settings Symetric to the 'get_window_settings' accessor.
+        Set window settings.
+
+        Symetric to the 'get_window_settings' accessor.
         """
-        main = self.main
-        main.setUpdatesEnabled(False)
-        self.window_size = QSize(window_size[0],
-                                 window_size[1])  # width, height
-        self.window_position = QPoint(pos[0], pos[1])  # x,y
-        main.setWindowState(Qt.WindowNoState)
-        main.resize(self.window_size)
-        main.move(self.window_position)
+        # Prevent calling this method multiple times on first run because it
+        # causes main window flickering on Windows and Mac.
+        # Fixes spyder-ide/spyder#15074
+        if (
+            self._window_settings_applied_on_first_run
+            and self._first_spyder_run
+        ):
+            return
+
+        self.main.setUpdatesEnabled(False)
+
+        # Restore window properties
+        self.window_size = QSize(
+            window_size[0], window_size[1] # width, height
+        )
+        self.window_position = QPoint(pos[0], pos[1]) # x, y
+        self.main.resize(self.window_size)
+        self.main.move(self.window_position)
 
         # Window layout
         if hexstate:
@@ -635,6 +671,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             self._maximized_flag = is_maximized
         elif is_maximized:
             self.main.setWindowState(Qt.WindowMaximized)
+
+        # Settings applied at startup
+        self._window_settings_applied_on_first_run = True
 
         self.main.setUpdatesEnabled(True)
 
@@ -1243,3 +1282,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for plugin in self.get_dockable_plugins():
             if plugin.get_conf('first_time', True):
                 self.tabify_plugin(plugin, Plugins.Console)
+
+                # This is necessary in case the plugin doesn't set its TABIFY
+                # constant
+                plugin.set_conf("enable", True)
+                plugin.set_conf("first_time", False)
