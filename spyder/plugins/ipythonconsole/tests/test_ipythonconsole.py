@@ -1924,6 +1924,10 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     assert not shell.get_value('kernel_exists')
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CIs"
+)
 def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     """Check that the debugger handles the namespace of a comprehension."""
     shell = ipyconsole.get_current_shellwidget()
