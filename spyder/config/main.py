@@ -266,6 +266,7 @@ DEFAULTS = [
               'add_newline': False,
               'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
+              'show_filename_toolbar': True,
               'show_class_func_dropdown': False,
               'onsave_analysis': False,
               'autosave_enabled': True,

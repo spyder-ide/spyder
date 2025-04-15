@@ -115,6 +115,7 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
             # To make tests pass
             'indent_chars': '*    *',
             'show_tab_bar': True,
+            'show_filename_toolbar': True,
             'code_folding': True,
             'edge_line': True,
             'indent_guides': False,
