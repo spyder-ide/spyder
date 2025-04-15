@@ -48,7 +48,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
-        show_filename_box = newcb(_("Show file name"), 'show_filename_toolbar')
+        show_filename_box = newcb(
+            _("Show full file name on top of tab bar"),
+            'show_filename_toolbar'
+        )
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
