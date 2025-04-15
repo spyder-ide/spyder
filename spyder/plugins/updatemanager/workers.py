@@ -6,6 +6,7 @@
 
 # Standard library imports
 from __future__ import annotations  # noqa; required for typing in Python 3.8
+from glob import glob
 from hashlib import sha256
 import logging
 import os
@@ -571,7 +572,7 @@ class WorkerUpdateUpdater(BaseWorker):
         else:
             plat = "linux-64"
         spy_updater_lock = osp.join(dirname, f"conda-updater-{plat}.lock")
-        spy_updater_conda = osp.join(dirname, "spyder-updater*.conda")
+        spy_updater_conda = glob(osp.join(dirname, "spyder-updater*.conda"))[0]
 
         conda_exe = find_conda()
         conda_cmd = "update" if UPDATER_VERSION > parse("0.0.0") else "create"
