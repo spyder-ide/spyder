@@ -20,6 +20,7 @@ from qtpy.QtGui import (
 from qtpy.QtWidgets import QApplication
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.utils.palette import SpyderPalette
 
@@ -528,8 +529,8 @@ class MultiCursorMixin:
 
     def multi_cursor_paste(self, clip_text):
         """
-        Split clipboard by lines, and paste one line per cursor in position
-        sorted order.
+        Paste one line per cursor or entire clipboard per cursor depending on
+        settings.
         """
         main_cursor = self.textCursor()
         main_cursor.beginEditBlock()
@@ -538,9 +539,15 @@ class MultiCursorMixin:
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(clip_text)
         lines = clip_text.splitlines()
-
-        if len(lines) == 1:
-            lines = itertools.repeat(lines[0])
+        
+        if CONF.get('editor', 'multicursor_paste/always_full'):
+            lines = itertools.repeat(clip_text)
+        elif CONF.get('editor', 'multicursor_paste/conditional_spread'):
+            if len(lines) != len(cursors):
+                lines = itertools.repeat(clip_text)
+        elif CONF.get('editor', 'multicursor_paste/always_spread'):
+            if len(lines) == 1:
+                lines = itertools.repeat(lines[0])
 
         self.multi_cursor_ignore_history = True
         for cursor, text in zip(cursors, lines):
