@@ -27,8 +27,13 @@ from qtpy import PYSIDE2
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
-from qtpy.QtWidgets import (QApplication, QLabel, QMessageBox, QTreeWidget,
-                            QTreeWidgetItem, QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QApplication,
+    QLabel,
+    QMessageBox,
+    QTreeWidget,
+    QTreeWidgetItem,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -43,7 +48,6 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import shell_split
 from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
 from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # Logging
@@ -130,7 +134,17 @@ class ProfilerWidget(PluginMainWidget):
     """
     Profiler widget.
     """
+    # PluginMainWidget API
     ENABLE_SPINNER = True
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "code-profiler"
+    MESSAGE_WHEN_EMPTY = _("Code not profiled yet")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Profile your code to explore which functions and methods took the "
+        "longest to run and were called the most, and find out where to "
+        "optimize it."
+    )
+
     DATAPATH = get_conf_path('profiler.results')
 
     # --- Signals
@@ -173,26 +187,12 @@ class ProfilerWidget(PluginMainWidget):
         self.process = None
         self.filecombo = PythonModulesComboBox(
             self, id_=ProfilerWidgetMainToolbarItems.FileCombo)
+
         self.datatree = ProfilerDataTree(self)
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "code-profiler",
-            _("Code not profiled yet"),
-            _("Profile your code to explore which functions and methods "
-              "took the longest to run and were called the most, "
-              "and find out where to optimize it.")
-        )
+        self.set_content_widget(self.datatree)
+
         self.datelabel = QLabel()
         self.datelabel.ID = ProfilerWidgetInformationToolbarItems.DateLabel
-
-        # Layout
-        self.stacked_widget = QStackedWidget(self)
-        self.stacked_widget.addWidget(self.pane_empty)
-        self.stacked_widget.addWidget(self.datatree)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.stacked_widget)
-        self.setLayout(layout)
 
         # Signals
         self.datatree.sig_edit_goto_requested.connect(
@@ -618,7 +618,7 @@ class ProfilerWidget(PluginMainWidget):
         self.datelabel.setText(_('Sorting data, please wait...'))
         QApplication.processEvents()
 
-        self.stacked_widget.setCurrentWidget(self.datatree)
+        self.show_content_widget()
         self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
 
