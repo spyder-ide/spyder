@@ -12,7 +12,7 @@ import re
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel
 
@@ -171,7 +171,8 @@ class FindInFilesWidget(PluginMainWidget):
             self,
             items=search_text,
             adjust_to_minimum=False,
-            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
+            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo,
+            items_elide_mode=Qt.ElideMiddle
         )
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
