@@ -43,7 +43,7 @@ class Projects(SpyderDockablePlugin):
     CONF_FILE = False
     REQUIRES = []
     OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
-                Plugins.MainMenu, Plugins.Switcher]
+                Plugins.MainMenu, Plugins.Switcher, Plugins.Application]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
@@ -116,7 +116,6 @@ class Projects(SpyderDockablePlugin):
             lambda plugin, check: self._show_main_widget())
 
         if self.main:
-            widget.sig_open_file_requested.connect(self.main.open_file)
             widget.sig_project_loaded.connect(
                 lambda v: self.main.set_window_title())
             widget.sig_project_closed.connect(
@@ -132,7 +131,6 @@ class Projects(SpyderDockablePlugin):
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        treewidget.sig_open_file_requested.connect(editor.load)
         treewidget.sig_removed.connect(editor.removed)
         treewidget.sig_tree_removed.connect(editor.removed_tree)
         treewidget.sig_renamed.connect(editor.renamed)
@@ -145,8 +143,6 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].connect(self._setup_editor_files)
         widget.sig_project_loaded.connect(self._set_path_in_editor)
         widget.sig_project_closed.connect(self._unset_path_in_editor)
-        # To handle switcher open request
-        widget.sig_open_file_requested.connect(editor.load)
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -215,13 +211,18 @@ class Projects(SpyderDockablePlugin):
         self._switcher.sig_search_text_available.connect(
             self._handle_switcher_search)
 
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_open_file_requested.connect(application.open_file_in_plugin)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
         widget = self.get_widget()
         treewidget = widget.treewidget
 
-        treewidget.sig_open_file_requested.disconnect(editor.load)
         treewidget.sig_removed.disconnect(editor.removed)
         treewidget.sig_tree_removed.disconnect(editor.removed_tree)
         treewidget.sig_renamed.disconnect(editor.renamed)
@@ -234,8 +235,6 @@ class Projects(SpyderDockablePlugin):
         widget.sig_project_closed[bool].disconnect(self._setup_editor_files)
         widget.sig_project_loaded.disconnect(self._set_path_in_editor)
         widget.sig_project_closed.disconnect(self._unset_path_in_editor)
-        # To handle switcher open request
-        widget.sig_open_file_requested.disconnect(editor.load)
 
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
@@ -280,6 +279,14 @@ class Projects(SpyderDockablePlugin):
             self._handle_switcher_search)
         self._switcher = None
 
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_open_file_requested.disconnect(
+            application.open_file_in_plugin
+        )
+
     def on_close(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.get_widget().save_config()
@@ -307,7 +314,7 @@ class Projects(SpyderDockablePlugin):
                 restart_console=restart_console
             )
         else:
-            self.get_widget().set_pane_empty()
+            self.get_widget().show_empty_message()
             logger.debug('Reopening project from last session')
             self.get_widget().reopen_last_project(
                 working_directory=cli_options.working_directory,

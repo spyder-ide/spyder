@@ -21,7 +21,6 @@ from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 MAIN_BG_COLOR = SpyderPalette.COLOR_BACKGROUND_1
@@ -60,6 +59,18 @@ class PlotsWidgetToolbarItems:
 # --- Widgets
 # ----------------------------------------------------------------------------
 class PlotsWidget(ShellConnectMainWidget):
+
+    # PluginMainWidget API
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "plots"
+    MESSAGE_WHEN_EMPTY = _("No plots to show")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Run plot-generating code in the Editor or IPython console to see "
+        "your figures appear here. This pane only supports static images, so "
+        "it can't display interactive plots like Bokeh, Plotly or Altair."
+    )
+
+    # Signals
     sig_figure_loaded = Signal()
     """This signal is emitted when a figure is loaded succesfully"""
 
@@ -241,7 +252,7 @@ class PlotsWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         figviewer = None
 
-        if widget and not self.is_current_widget_empty():
+        if widget and not self.is_current_widget_error_message():
             figviewer = widget.figviewer
             value = figviewer.figcanvas.fig is not None
 
@@ -297,9 +308,9 @@ class PlotsWidget(ShellConnectMainWidget):
         fig_browser = FigureBrowser(parent=self,
                                     background_color=MAIN_BG_COLOR)
         fig_browser.set_shellwidget(shellwidget)
+
         fig_browser.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
-
         fig_browser.sig_figure_menu_requested.connect(
             self.show_figure_menu)
         fig_browser.sig_thumbnail_menu_requested.connect(
@@ -308,6 +319,10 @@ class PlotsWidget(ShellConnectMainWidget):
         fig_browser.sig_save_dir_changed.connect(
             lambda val: self.set_conf('save_dir', val))
         fig_browser.sig_zoom_changed.connect(self.zoom_disp.setValue)
+        fig_browser.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
+
         return fig_browser
 
     def close_widget(self, fig_browser):
@@ -404,7 +419,7 @@ class PlotsWidget(ShellConnectMainWidget):
         Add a plot to the figure browser with the given shellwidget, if any.
         """
         fig_browser = self.get_widget_for_shellwidget(shellwidget)
-        if fig_browser and not isinstance(fig_browser, PaneEmptyWidget):
+        if fig_browser and not self.is_current_widget_error_message():
             fig_browser.add_figure(fig, fmt)
 
     def remove_plot(self):

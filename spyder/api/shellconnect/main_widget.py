@@ -18,6 +18,32 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
+class _ErroredMessageWidget(PaneEmptyWidget):
+    """Widget to show when the kernel's shell failed to start."""
+
+    def __init__(self, parent, shellwidget):
+        # Initialize PaneEmptyWidget with the content we want to show for
+        # errors
+        super().__init__(
+            parent,
+            icon_filename=(
+                "console-remote-off"
+                if shellwidget.is_remote()
+                else "console-off"
+            ),
+            text=_("No connected console"),
+            description=_(
+                "The current console has no active kernel, so there is no "
+                "content to show here"
+            ),
+            adjust_on_resize=True,
+        )
+
+        # This is necessary to show this widget in case ShellConnectMainWidget
+        # shows an empty message.
+        self.is_empty = False
+
+
 class ShellConnectMainWidget(PluginMainWidget):
     """
     Main widget to use in a plugin that shows console-specific content.
@@ -33,14 +59,20 @@ class ShellConnectMainWidget(PluginMainWidget):
         super().__init__(*args, **kwargs)
 
         # Widgets
-        self._stack = QStackedWidget(self)
-        self._shellwidgets = {}
+        if not (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+        ):
+            self._stack = QStackedWidget(self)
 
-        if set_layout:
-            # Layout
-            layout = QVBoxLayout()
-            layout.addWidget(self._stack)
-            self.setLayout(layout)
+            if set_layout:
+                layout = QVBoxLayout()
+                layout.addWidget(self._stack)
+                self.setLayout(layout)
+
+        self._shellwidgets = {}
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -53,10 +85,10 @@ class ShellConnectMainWidget(PluginMainWidget):
         QWidget
             The current widget.
         """
-        return self._stack.currentWidget()
+        return self._content_widget
 
     def get_focus_widget(self):
-        return self.current_widget()
+        return self._stack.currentWidget()
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
@@ -125,13 +157,23 @@ class ShellConnectMainWidget(PluginMainWidget):
         if widget is None:
             return
 
-        self._stack.setCurrentWidget(widget)
-        self.switch_widget(widget, old_widget)
+        self.set_content_widget(widget, add_to_stack=False)
+        if (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+            and widget.is_empty
+        ):
+            self.show_empty_message()
+        else:
+            self.show_content_widget()
+            self.switch_widget(widget, old_widget)
         self.update_actions()
 
     def add_errored_shellwidget(self, shellwidget):
         """
-        Create a new PaneEmptyWidget in the stack and associate it to
+        Create a new _ErroredMessageWidget in the stack and associate it to
         shellwidget.
 
         This is necessary to show a meaningful message when switching to
@@ -146,16 +188,12 @@ class ShellConnectMainWidget(PluginMainWidget):
         if shellwidget_id in self._shellwidgets:
             self._shellwidgets.pop(shellwidget_id)
 
-        widget = PaneEmptyWidget(
-            self,
-            "console-remote-off" if shellwidget.is_remote() else "console-off",
-            _("No connected console"),
-            _(
-                "The current console has no active kernel, so there is no "
-                "content to show here"
-            ),
-        )
-        self._stack.addWidget(widget)
+        widget = _ErroredMessageWidget(self, shellwidget)
+        widget.set_visibility(self.is_visible)
+        if self.dockwidget is not None:
+            self.dockwidget.visibilityChanged.connect(widget.set_visibility)
+
+        self.set_content_widget(widget)
         self._shellwidgets[shellwidget_id] = widget
         self.set_shellwidget(shellwidget)
 
@@ -177,6 +215,13 @@ class ShellConnectMainWidget(PluginMainWidget):
             widget = self.current_widget()
             widget.refresh()
 
-    def is_current_widget_empty(self):
-        """Check if the current widget is a PaneEmptyWidget."""
-        return isinstance(self.current_widget(), PaneEmptyWidget)
+    def is_current_widget_error_message(self):
+        """Check if the current widget is showing an error message."""
+        return isinstance(self.current_widget(), _ErroredMessageWidget)
+
+    def switch_empty_message(self, value: bool):
+        """Switch between the empty message widget or the one with content."""
+        if value:
+            self.show_empty_message()
+        else:
+            self.show_content_widget()

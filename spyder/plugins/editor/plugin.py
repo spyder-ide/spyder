@@ -18,15 +18,13 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown,
 )
 from spyder.api.translations import _
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
 )
 from spyder.plugins.editor.confpage import EditorConfigPage
-from spyder.plugins.editor.widgets.main_widget import (
-    EditorMainWidget,
-    EditorWidgetActions
-)
+from spyder.plugins.editor.widgets.main_widget import EditorMainWidget
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
     EditMenuSections,
@@ -47,7 +45,7 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,
@@ -366,19 +364,6 @@ class Editor(SpyderDockablePlugin):
                 before_section=FileMenuSections.Close
             )
 
-        # Close
-        close_actions = [
-            widget.close_action,
-            widget.close_all_action
-        ]
-        for close_action in close_actions:
-            mainmenu.add_item_to_application_menu(
-                close_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Close,
-                before_section=FileMenuSections.Restart
-            )
-
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -392,44 +377,6 @@ class Editor(SpyderDockablePlugin):
                     section=FileMenuSections.Navigation,
                     before_section=FileMenuSections.Restart
                 )
-
-        # Open section
-        open_actions = [
-            widget.open_action,
-            widget.open_last_closed_action,
-            widget.recent_file_menu,
-        ]
-        for open_action in open_actions:
-            mainmenu.add_item_to_application_menu(
-                open_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Open,
-                before_section=FileMenuSections.Save
-            )
-
-        # Save section
-        save_actions = [
-            widget.save_action,
-            widget.save_all_action,
-            widget.save_as_action,
-            widget.save_copy_as_action,
-            widget.revert_action,
-        ]
-        for save_action in save_actions:
-            mainmenu.add_item_to_application_menu(
-                save_action,
-                menu_id=ApplicationMenus.File,
-                section=FileMenuSections.Save,
-                before_section=FileMenuSections.Print
-            )
-
-        # New Section
-        mainmenu.add_item_to_application_menu(
-            widget.new_action,
-            menu_id=ApplicationMenus.File,
-            section=FileMenuSections.New,
-            before_section=FileMenuSections.Open
-        )
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
@@ -551,17 +498,6 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.File
             )
 
-        # Close
-        close_actions = [
-            widget.close_action,
-            widget.close_all_action
-        ]
-        for close_action in close_actions:
-            mainmenu.remove_item_from_application_menu(
-                close_action,
-                menu_id=ApplicationMenus.File
-            )
-
         # Navigation
         if sys.platform == 'darwin':
             tab_navigation_actions = [
@@ -573,38 +509,6 @@ class Editor(SpyderDockablePlugin):
                     tab_navigation_action,
                     menu_id=ApplicationMenus.File
                 )
-
-        # Open section
-        open_actions = [
-            widget.open_action,
-            widget.open_last_closed_action,
-            widget.recent_file_menu,
-        ]
-        for open_action in open_actions:
-            mainmenu.remove_item_from_application_menu(
-                open_action,
-                menu_id=ApplicationMenus.File
-            )
-
-        # Save section
-        save_actions = [
-            widget.save_action,
-            widget.save_all_action,
-            widget.save_as_action,
-            widget.save_copy_as_action,
-            widget.revert_action,
-        ]
-        for save_action in save_actions:
-            mainmenu.remove_item_from_application_menu(
-                save_action,
-                menu_id=ApplicationMenus.File
-            )
-
-        # New Section
-        mainmenu.remove_item_from_application_menu(
-            widget.new_action,
-            menu_id=ApplicationMenus.File
-        )
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
@@ -699,34 +603,18 @@ class Editor(SpyderDockablePlugin):
     def on_toolbar_available(self):
         widget = self.get_widget()
         toolbar = self.get_plugin(Plugins.Toolbar)
-        file_toolbar_actions = [
-            widget.new_action,
-            widget.open_action,
-            widget.save_action,
-            widget.save_all_action,
-            widget.create_new_cell
-        ]
-        for file_toolbar_action in file_toolbar_actions:
-            toolbar.add_item_to_application_toolbar(
-                file_toolbar_action,
-                toolbar_id=ApplicationToolbars.File,
-            )
+        toolbar.add_item_to_application_toolbar(
+            widget.create_new_cell,
+            toolbar_id=ApplicationToolbars.File,
+        )
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
-        file_toolbar_actions = [
-            EditorWidgetActions.NewFile,
-            EditorWidgetActions.OpenFile,
-            EditorWidgetActions.SaveFile,
-            EditorWidgetActions.SaveAll,
-            EditorWidgetActions.NewCell
-        ]
-        for file_toolbar_action_id in file_toolbar_actions:
-            toolbar.remove_item_from_application_toolbar(
-                file_toolbar_action_id,
-                toolbar_id=ApplicationToolbars.File,
-            )
+        toolbar.remove_item_from_application_toolbar(
+            EditorWidgetActions.NewCell,
+            toolbar_id=ApplicationToolbars.File,
+        )
 
     @on_plugin_available(plugin=Plugins.Completions)
     def on_completions_available(self):
@@ -823,6 +711,20 @@ class Editor(SpyderDockablePlugin):
         projects = self.get_plugin(Plugins.Projects)
         projects.sig_project_loaded.disconnect(self._on_project_loaded)
         projects.sig_project_closed.disconnect(self._on_project_closed)
+
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_new_recent_file.connect(application.add_recent_file)
+        widget.sig_file_action_enabled.connect(self._enable_file_action)
+
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self):
+        application = self.get_plugin(Plugins.Application)
+        widget = self.get_widget()
+        widget.sig_new_recent_file.disconnect(application.add_recent_file)
+        widget.sig_file_action_enabled.disconnect(self._enable_file_action)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -944,6 +846,12 @@ class Editor(SpyderDockablePlugin):
         return widget.load(
             filenames=filename, goto=goto, word=word, editorwindow=widget
         )
+
+    def open_last_closed(self) -> None:
+        """
+        Open the last closed tab again.
+        """
+        return self.get_widget().open_last_closed()
 
     def new(self, *args, **kwargs):
         """
@@ -1141,6 +1049,30 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().save(index=None, force=False)
 
+    def save_all(self) -> None:
+        """
+        Save all files.
+        """
+        return self.get_widget().save_all()
+
+    def save_as(self) -> None:
+        """
+        Save all files.
+        """
+        self.get_widget().save_as()
+
+    def save_copy_as(self) -> None:
+        """
+        Save copy of file under a different name.
+        """
+        self.get_widget().save_copy_as()
+
+    def revert_file(self) -> None:
+        """
+        Revert the currently edited file from disk.
+        """
+        self.get_widget().revert()
+
     def save_bookmark(self, slot_num):
         """
         Save current line and position as bookmark.
@@ -1168,6 +1100,10 @@ class Editor(SpyderDockablePlugin):
     def get_current_filename(self):
         """Get current editor 'filename'."""
         return self.get_widget().get_current_filename()
+
+    def current_file_is_temporary(self) -> bool:
+        """Return whether file in current editor is a temporary file."""
+        return self.get_current_editor() == self.get_widget().TEMPFILE_PATH
 
     def get_filenames(self):
         """
@@ -1309,3 +1245,13 @@ class Editor(SpyderDockablePlugin):
         if debugger is None:
             return True
         return debugger.can_close_file(filename)
+
+    # ---- Methods related to the Application plugin
+    # ------------------------------------------------------------------------
+    def _enable_file_action(self, action_name: str, enabled: bool) -> None:
+        """
+        Enable or disable file action for this plugin.
+        """
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_file_action(action_name, enabled, self.NAME)

@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 import os
+from functools import lru_cache
 import logging
 from packaging.version import parse
 
@@ -13,22 +14,30 @@ import pytest
 from spyder.config.base import running_in_ci
 from spyder.plugins.updatemanager import workers
 from spyder.plugins.updatemanager.workers import (
-    UpdateType, get_asset_info, WorkerUpdate, HTTP_ERROR_MSG
+    UpdateType, get_asset_info, WorkerUpdate
 )
 from spyder.plugins.updatemanager.widgets import update
 from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 
 logging.basicConfig()
 
+workers.get_github_releases = lru_cache(workers.get_github_releases)
+workers.get_asset_checksum = lru_cache(workers.get_asset_checksum)
+_tags = (
+    "v6.0.5", "v6.0.5rc1", "v6.1.0a1", "v6.0.4",
+    "v6.0.4rc1", "v6.0.3", "v6.0.3rc2", "v6.0.3rc1",
+    "v6.0.2", "v6.0.2rc1", "v6.0.1", "v6.0.0",
+    "v5.5.6", "v6.0.0rc2", "v6.0.0rc1", "v6.0.0b3",
+    "v6.0.0b2", "v5.5.5", "v6.0.0b1", "v6.0.0a5"
+)
+workers.get_github_releases(_tags)  # Run once to cache result for tests
+
 
 @pytest.fixture(autouse=True)
 def capture_logging(caplog):
+    # Capture >=DEBUG logging messages for spyder.plugins.updatemanager.
+    # Messages will be reported at the end of the pytest run for failed tests.
     caplog.set_level(10, "spyder.plugins.updatemanager")
-
-
-@pytest.fixture
-def worker():
-    return WorkerUpdate(None)
 
 
 # ---- Test WorkerUpdate
@@ -57,33 +66,18 @@ def test_updates(qtbot, mocker, caplog, version, channel):
         workers, "get_spyder_conda_channel", return_value=channel
     )
 
-    with caplog.at_level(logging.DEBUG, logger='spyder.plugins.updatemanager'):
-        # Capture >=DEBUG logging messages for spyder.plugins.updatemanager
-        # while checking for updates. Messages will be reported at the end
-        # of the pytest run, and only if this test fails.
-        um = UpdateManagerWidget(None)
-        um.start_check_update()
-        qtbot.waitUntil(um.update_thread.isFinished)
+    um = UpdateManagerWidget(None)
+    um.start_check_update()
+    qtbot.waitUntil(um.update_thread.isFinished, timeout=10000)
 
-    if um.update_worker.error:
-        # Possible 403 error - rate limit error, was encountered while doing
-        # the tests
-        # Check error message corresponds to the status code and exit early to
-        # prevent failing the test
-        assert um.update_worker.error == HTTP_ERROR_MSG.format(status_code="403")
-        return
-
-    assert not um.update_worker.error
-
-    update_available = um.update_worker.update_available
     if version.split('.')[0] == '1':
-        assert update_available
+        assert um.update_worker.asset_info is not None
     else:
-        assert not update_available
+        assert um.update_worker.asset_info is None
 
 
-@pytest.mark.parametrize("release", ["6.0.0", "6.0.0b3"])
 @pytest.mark.parametrize("version", ["4.0.0a1", "4.0.0"])
+@pytest.mark.parametrize("release", ["6.0.0", "6.0.0rc1"])
 @pytest.mark.parametrize("stable_only", [True, False])
 def test_update_non_stable(qtbot, mocker, version, release, stable_only):
     """Test we offer unstable updates."""
@@ -91,44 +85,50 @@ def test_update_non_stable(qtbot, mocker, version, release, stable_only):
 
     release = parse(release)
     worker = WorkerUpdate(stable_only)
-    worker._check_update_available([release])
+    worker._check_update_available(release)
 
     if release.is_prerelease and stable_only:
-        assert not worker.update_available
+        assert worker.asset_info is None
     else:
-        assert worker.update_available
+        assert worker.asset_info is not None
 
 
 @pytest.mark.parametrize("version", ["4.0.0", "6.0.0"])
-def test_update_no_asset(qtbot, mocker, version):
+@pytest.mark.parametrize("release", [None, "6.0.1", "6.100.0"])
+def test_update_no_asset(qtbot, mocker, version, release):
     """Test update availability when asset is not available"""
     mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
 
-    releases = [parse("6.0.1"), parse("6.100.0")]
+    release = parse(release) if release else None
     worker = WorkerUpdate(True)
-    worker._check_update_available(releases)
+    worker._check_update_available(release)
 
     # For both values of version, there should be an update available
     # However, the available version should be 6.0.1, since there is
     # no asset for 6.100.0
-    assert worker.update_available
-    assert worker.latest_release == releases[0]
+    assert worker.asset_info is not None
+    assert worker.asset_info["version"] >= parse("6.0.1")
 
 
 @pytest.mark.parametrize(
-    "release,update_type",
+    "app,version,release,update_type",
     [
-        ("6.0.1", UpdateType.Micro),
-        ("6.1.0", UpdateType.Minor),
-        ("7.0.0", UpdateType.Major)
+        (True, "6.0.0", "6.0.1", UpdateType.Micro),
+        (True, "6.0.0", "6.1.0a1", UpdateType.Minor),
+        (True, "5.0.0", "6.0.0", UpdateType.Major),
+        (False, "6.0.0", "6.0.1", UpdateType.Major),
+        (False, "6.0.0", "6.1.0a1", UpdateType.Major),
+        (False, "5.0.0", "6.0.0", UpdateType.Major)
     ]
 )
-@pytest.mark.parametrize("app", [True, False])
-def test_get_asset_info(qtbot, mocker, release, update_type, app):
-    mocker.patch.object(workers, "CURRENT_VERSION", new=parse("6.0.0"))
+def test_get_asset_info(qtbot, mocker, app, version, release, update_type):
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
     mocker.patch.object(workers, "is_conda_based_app", return_value=app)
 
-    info = get_asset_info(release)
+    worker = WorkerUpdate(False)
+    worker._check_update_available(parse(release))
+    info = worker.asset_info
+
     assert info['update_type'] == update_type
 
     if update_type == "major" or not app:
@@ -149,8 +149,11 @@ def test_download(qtbot, mocker):
 
     Uses UpdateManagerWidget in order to also test QThread.
     """
+    releases = workers.get_github_releases()
+    release_info = releases[parse("6.0.0a2")]
+
     um = UpdateManagerWidget(None)
-    um.latest_release = "6.0.0a2"
+    um.asset_info = get_asset_info(release_info)
     um._set_installer_path()
 
     # Do not execute _start_install after download completes.

@@ -20,10 +20,18 @@ from typing import Optional
 from qtpy import PYSIDE2
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFocusEvent, QIcon
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy,
-                            QToolButton, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QSizePolicy,
+    QStackedWidget,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets import PluginMainWidgetActions, PluginMainWidgetWidgets
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
@@ -42,6 +50,7 @@ from spyder.utils.stylesheet import (
     AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
     PANES_TOOLBAR_STYLESHEET)
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
+from spyder.widgets.helperwidgets import PaneEmptyWidget
 from spyder.widgets.tabs import Tabs
 
 
@@ -103,6 +112,62 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     MARGIN_TOP = 0
     """
     Use this attribute to adjust the widget's top margin in pixels.
+    """
+
+    SHOW_MESSAGE_WHEN_EMPTY = False
+    """
+    This attribute enables/disables showing a message when the widget is empty.
+
+    Notes
+    -----
+    - If True, at least you need to set the MESSAGE_WHEN_EMPTY attribute as
+      well.
+    - The Find in files plugin is an example of a core plugin that uses it.
+    """
+
+    MESSAGE_WHEN_EMPTY = None
+    """
+    This is the main message that will be shown when the widget is empty.
+
+    Notes
+    -----
+    - This must be a string
+    - The Find in files plugin is an example of a core plugin that uses it.
+    """
+
+    IMAGE_WHEN_EMPTY = None
+    """
+    Name of or path to the svg image to show when the widget is empty
+    (optional).
+
+    Notes
+    -----
+    - This needs to be an svg file so that it can be rendered correctly in high
+      resolution screens.
+    - The Find in files plugin is an example of a core plugin that uses it.
+    """
+
+    DESCRIPTION_WHEN_EMPTY = None
+    """
+    This is the description (i.e. additional text) that will be shown when the
+    widget is empty (optional).
+
+    Notes
+    -----
+    - This must be a string.
+    - The Find in files plugin is an example of a core plugin that uses this.
+    """
+
+    SET_LAYOUT_WHEN_EMPTY = True
+    """
+    Whether to automatically set a vertical layout for the stacked widget that
+    holds the empty message widget and the content one.
+
+    Notes
+    -----
+    - You need to set this to False if you need to set a more complex layout in
+      your widget.
+    - The Debugger plugin is an example of a core plugin that uses this.
     """
 
     # ---- Signals
@@ -242,6 +307,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.dockwidget = None
         self._icon = QIcon()
         self._spinner = None
+        self._stack = None
+        self._content_widget = None
+        self._pane_empty = None
 
         if self.ENABLE_SPINNER:
             self._spinner = create_waitspinner(
@@ -313,6 +381,32 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
         self._toolbars_layout.addLayout(self._main_toolbar_layout)
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
+
+        # Create a stacked layout when the widget displays an empty message
+        if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
+            "show_message_when_panes_are_empty", section="main"
+        ):
+            if not self.MESSAGE_WHEN_EMPTY:
+                raise SpyderAPIError(
+                    "You need to provide a message to show when the widget is "
+                    "empty"
+                )
+
+            self._pane_empty = PaneEmptyWidget(
+                self,
+                self.IMAGE_WHEN_EMPTY,
+                self.MESSAGE_WHEN_EMPTY,
+                self.DESCRIPTION_WHEN_EMPTY,
+                adjust_on_resize=True,
+            )
+
+            self._stack = QStackedWidget(self)
+            self._stack.addWidget(self._pane_empty)
+
+            if self.SET_LAYOUT_WHEN_EMPTY:
+                layout = QVBoxLayout()
+                layout.addWidget(self._stack)
+                self.setLayout(layout)
 
     # ---- Private Methods
     # -------------------------------------------------------------------------
@@ -709,6 +803,52 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
             # self._toolbars_already_rendered = True
 
+    # ---- For widgets with an empty message
+    # -------------------------------------------------------------------------
+    def set_content_widget(self, widget, add_to_stack=True):
+        """
+        Set the widget that actually displays content when there is an empty
+        message.
+
+        Parameters
+        ----------
+        widget: QWidget
+            Widget to set as the widget with content.
+        add_to_stack: bool
+            Whether to add this widget to stacked widget that holds the empty
+            message.
+        """
+        self._content_widget = widget
+
+        if self._stack is not None:
+            if add_to_stack:
+                self._stack.addWidget(self._content_widget)
+        else:
+            # This is necessary to automatically set a layout for Find or the
+            # Profiler when the user disables empty messages in Preferences.
+            if self.SET_LAYOUT_WHEN_EMPTY:
+                layout = QVBoxLayout()
+                layout.addWidget(self._content_widget)
+                self.setLayout(layout)
+
+    def show_content_widget(self):
+        """
+        Show the widget that actually displays content when there is an empty
+        message.
+        """
+        if (
+            self._stack is not None
+            and self._content_widget is not None
+        ):
+            self._stack.setCurrentWidget(self._content_widget)
+
+    def show_empty_message(self):
+        """Show the empty message widget."""
+        if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
+            "show_message_when_panes_are_empty", section="main"
+        ):
+            self._stack.setCurrentWidget(self._pane_empty)
+
     # ---- SpyderWindowWidget handling
     # -------------------------------------------------------------------------
     @Slot()
@@ -873,7 +1013,19 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         elif force_focus is False:
             pass
 
-        self.is_visible = enable
+        # If the widget is undocked, it's always visible
+        self.is_visible = enable or (self.windowwidget is not None)
+
+        if (
+            self.SHOW_MESSAGE_WHEN_EMPTY
+            and self.get_conf(
+                "show_message_when_panes_are_empty", section="main"
+            )
+            # We need to do this validation to prevent errors after changing
+            # the option above in Preferences and restarting Spyder.
+            and self._pane_empty is not None
+        ):
+            self._pane_empty.set_visibility(self.is_visible)
 
         # TODO: Pending on plugin migration that uses this
         # if getattr(self, 'DISABLE_ACTIONS_WHEN_HIDDEN', None):

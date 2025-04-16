@@ -103,10 +103,12 @@ class LayoutContainer(PluginMainContainer):
             context=Qt.ApplicationShortcut,
             register_shortcut=True,
             shortcut_context='_')
+
         if sys.platform == 'darwin':
             self._fullscreen_action.setEnabled(False)
             self._fullscreen_action.setToolTip(_("For fullscreen mode use the "
                                                  "macOS built-in feature"))
+
         if is_wsl():
             self._fullscreen_action.setEnabled(False)
             self._fullscreen_action.setToolTip(

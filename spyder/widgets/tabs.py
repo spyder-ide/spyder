@@ -687,12 +687,12 @@ class Tabs(BaseTabs, SpyderShortcutsMixin):
             (
                 "close file 1",
                 lambda: self.sig_close_tab.emit(self.currentIndex()),
-                "editor",
+                "main",
             ),
             (
                 "close file 2",
                 lambda: self.sig_close_tab.emit(self.currentIndex()),
-                "editor",
+                "main",
             ),
         )
 

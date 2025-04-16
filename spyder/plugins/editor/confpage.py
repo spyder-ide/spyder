@@ -6,14 +6,20 @@
 
 """Editor config page."""
 
-from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+)
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
+from spyder.plugins.editor.widgets.mouse_shortcuts import MouseShortcutEditor
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -42,6 +48,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
+        show_filename_box = newcb(
+            _("Show full file name on top of tab bar"),
+            'show_filename_toolbar'
+        )
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
@@ -87,6 +97,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         display_group = QGroupBox(_("Display"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
+        display_layout.addWidget(show_filename_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(showcodefolding_box)
@@ -343,9 +354,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_group = QGroupBox(_("Multi-Cursor"))
         multicursor_label = QLabel(
             _("Enable adding multiple cursors for simultaneous editing. "
-              "Additional cursors are added and removed using the Ctrl-Alt "
-              "click shortcut. A column of cursors can be added using the "
-              "Ctrl-Alt-Shift click shortcut."))
+              "Additional cursors and a column of cursors can be added using "
+              "the mouse shortcuts that can be configured below.")
+        )
         multicursor_label.setWordWrap(True)
         multicursor_box = newcb(
             _("Enable Multi-Cursor "),
@@ -355,6 +366,17 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_layout.addWidget(multicursor_label)
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
+
+        # -- Mouse Shortcuts
+        mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
+        mouse_shortcuts_button = self.create_button(
+            lambda: MouseShortcutEditor(self).exec_(),
+            _("Edit mouse shortcut modifiers")
+        )
+
+        mouse_shortcuts_layout = QVBoxLayout()
+        mouse_shortcuts_layout.addWidget(mouse_shortcuts_button)
+        mouse_shortcuts_group.setLayout(mouse_shortcuts_layout)
 
         # --- Tabs ---
         self.create_tab(
@@ -367,7 +389,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group, multicursor_group]
+             annotations_group, eol_group, multicursor_group,
+             mouse_shortcuts_group]
         )
 
     @on_conf_change(

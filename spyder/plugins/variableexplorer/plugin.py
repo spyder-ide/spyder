@@ -8,6 +8,9 @@
 Variable Explorer Plugin.
 """
 
+# Third-party imports
+from spyder_kernels.utils.iofuncs import iofunctions
+
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
@@ -33,6 +36,12 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     CONF_FILE = False
     CONF_WIDGET_CLASS = VariableExplorerConfigPage
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+
+    # Open binary data files in this plugin
+    FILE_EXTENSIONS = [
+        ext for ext in iofunctions.load_funcs
+        if ext not in ['.csv', '.txt', '.json']
+    ]
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -71,6 +80,12 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    def open_file(self, filename: str):
+        """
+        Load data file in variable explorer.
+        """
+        self.get_widget().import_data([filename])
 
     # ---- Private API
     # -------------------------------------------------------------------------

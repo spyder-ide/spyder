@@ -355,15 +355,10 @@ jobs:
 
           EXIT /B %ERRORLEVEL%
 
-      - name: Notarize or Compute Checksum
-        if: env.NOTARIZE == 'true'
+      - name: Notarize
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
         run: |
-          if [[ $RUNNER_OS == "macOS" ]]; then
-              ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
-          else
-              cd $DISTDIR
-              echo $(sha256sum $PKG_NAME) > "${ARTIFACT_NAME}-sha256sum.txt"
-          fi
+          ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -390,11 +385,21 @@ jobs:
       - name: Zip Lock Files
         run: zip -mT spyder-conda-lock *.lock
 
-      - name: Upload Artifact
+      - name: Create Checksums
+        run: |
+          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt
+
+      - name: Upload Lock Files
         uses: actions/upload-artifact@v4
         with:
           path: spyder-conda-lock.zip
-          name: spyder-conda-lock
+          name: spyder-conda-lock-artifact
+
+      - name: Upload Checksums
+        uses: actions/upload-artifact@v4
+        with:
+          path: Spyder-checksums.txt
+          name: Spyder-checksums
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'

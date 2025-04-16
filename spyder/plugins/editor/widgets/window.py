@@ -618,8 +618,6 @@ class EditorMainWidgetExample(QSplitter):
             oe_btn = create_toolbutton(self)
             editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
-        action = QAction(self)
-        editorstack.set_io_actions(action, action, action, action)
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
