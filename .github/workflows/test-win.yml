@@ -164,3 +164,7 @@ jobs:
         with:
           fail_ci_if_error: false
           verbose: true
+      - name: What is running
+        shell: bash -l {0}
+        run: |
+          ps aux | grep python
