@@ -1,0 +1,21 @@
+channels:
+  - conda-forge
+  - conda-forge/label/spyder_rc
+  - conda-forge/label/spyder_dev
+  - conda-forge/label/spyder_kernels_rc
+  - conda-forge/label/spyder_kernels_dev
+dependencies:
+  - python=3.11
+  - spyder
+  - cython
+  - matplotlib-base
+  - numpy
+  - openpyxl
+  - pandas
+  - scipy
+  - sympy
+platforms:
+  - linux-64
+  - win-64
+  - osx-64
+  - osx-arm64

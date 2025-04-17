@@ -1,0 +1,75 @@
+{% set OS = environ["OS"] or "Windows" %}
+{% set ARCH = environ["ARCH"] or "x86_64" %}
+{% set INSTALL_TYPE = environ["INSTALL_TYPE"] or "exe" %}
+{% set INSTALL_VER = environ["INSTALL_VER"] %}
+{% set RESOURCE_PATH = environ["REPO_PATH"] + '/installers-conda/resources' %}
+{% set BUILD_PATH = environ["REPO_PATH"] + '/installers-conda/build' %}
+{% set CERT_ID = environ["CERT_ID"] %}  # [osx]
+{% set WIN_SIGN_CERT = environ["WIN_SIGN_CERT"] or "" %}  # [win]
+
+# ---- Installer parameters
+
+name: Spyder
+company: Spyder-IDE
+reverse_domain_identifier: org.spyder-ide.Spyder
+version: {{ INSTALL_VER }}
+
+installer_filename: Spyder-{{ OS }}-{{ ARCH }}.{{ INSTALL_TYPE }}
+installer_type: {{ INSTALL_TYPE }}
+
+license_file: {{ environ["REPO_PATH"] }}/LICENSE.txt  # [linux]
+license_file: {{ RESOURCE_PATH }}/bundle_license.rtf  # [win or osx]
+
+uninstall_name: Spyder 6  # [win]
+welcome_image: {{ BUILD_PATH }}/welcome_img_win.png  # [win]
+header_image: {{ BUILD_PATH }}/header_img_win.png  # [win]
+icon_image: {{ environ["REPO_PATH"] }}\img_src\spyder.ico  # [win]
+check_path_length: false  # [win]
+
+conclusion_text: ''  # [osx]
+readme_text: ''  # [osx]
+pkg_name: spyder-6  # [osx]
+default_location_pkg: Library  # [osx]
+welcome_image: {{ BUILD_PATH }}/welcome_img_mac.png  # [osx]
+welcome_file: {{ BUILD_PATH }}/osx_pkg_welcome.rtf  # [osx]
+progress_notifications: true  # [osx]
+
+signing_identity_name: {{ CERT_ID }}  # [osx]
+notarization_identity_name: {{ CERT_ID }}  # [osx]
+signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
+
+# ---- Payload parameters
+
+default_prefix: $HOME/.local/spyder-6  # [linux or osx]
+default_prefix: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix_domain_user: '%LOCALAPPDATA%\spyder-6'  # [win]
+default_prefix_all_users: '%ALLUSERSPROFILE%\spyder-6'  # [win]
+
+pre_install: {{ RESOURCE_PATH }}/pre-install.sh  # [linux or osx]
+pre_install: {{ RESOURCE_PATH }}/pre-install.bat  # [win]
+
+post_install: {{ RESOURCE_PATH }}/post-install.sh  # [linux or osx]
+post_install: {{ RESOURCE_PATH }}/post-install.bat  # [win]
+
+extra_files:
+  - {{ RESOURCE_PATH }}/bundle_readme.md: README.txt
+  - {{ RESOURCE_PATH }}/condarc: .condarc
+  - {{ RESOURCE_PATH }}/menuinst_cli.py: bin/menuinst_cli.py  # [linux or osx]
+  - {{ RESOURCE_PATH }}/menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
+
+initialize_by_default: false
+initialize_conda: false
+register_python: false
+register_envs: false
+
+environment_file: {{ BUILD_PATH }}/conda-base-linux-64.lock  # [linux]
+environment_file: {{ BUILD_PATH }}/conda-base-win-64.lock  # [win]
+environment_file: {{ BUILD_PATH }}/conda-base-osx-arm64.lock  # [osx and arm64]
+environment_file: {{ BUILD_PATH }}/conda-base-osx-64.lock  # [osx and not arm64]
+
+extra_envs:
+  spyder-runtime:
+    environment_file: {{ BUILD_PATH }}/conda-runtime-linux-64.lock  # [linux]
+    environment_file: {{ BUILD_PATH }}/conda-runtime-win-64.lock  # [win]
+    environment_file: {{ BUILD_PATH }}/conda-runtime-osx-arm64.lock  # [osx and arm64]
+    environment_file: {{ BUILD_PATH }}/conda-runtime-osx-64.lock  # [osx and not arm64]
