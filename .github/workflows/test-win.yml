@@ -162,3 +162,9 @@ jobs:
         with:
           fail_ci_if_error: false
           verbose: true
+      - name: Kill Python
+        shell: bash -l {0}
+        run: |
+          # Avoid EPERM: operation not permitted
+          tasklist | grep python
+          taskkill //im python.exe //f || true
