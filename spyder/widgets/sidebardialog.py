@@ -103,13 +103,14 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
     )
     CONTENTS_WIDTH = 230 if MAC else (200 if WIN else 240)
     ICON_SIZE = 20
-    PAGES_MINIMUM_WIDTH = 600
 
     # To be set by childs
     TITLE = ""
     ICON = QIcon()
     MIN_WIDTH = 800
     MIN_HEIGHT = 600
+    FIXED_SIZE = False
+    PAGES_MINIMUM_WIDTH = 600
     PAGE_CLASSES: List[Type[SidebarPage]] = []
 
     def __init__(self, parent=None):
@@ -124,8 +125,12 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
         self._active_pages = {}
 
         # ---- Size
-        self.setMinimumWidth(self.MIN_WIDTH)
-        self.setMinimumHeight(self.MIN_HEIGHT)
+        if self.FIXED_SIZE:
+            self.setFixedWidth(self.MIN_WIDTH)
+            self.setFixedHeight(self.MIN_HEIGHT)
+        else:
+            self.setMinimumWidth(self.MIN_WIDTH)
+            self.setMinimumHeight(self.MIN_HEIGHT)
 
         # ---- Widgets
         self.pages_widget = QStackedWidget(self)
