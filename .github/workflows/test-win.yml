@@ -113,7 +113,6 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.10-0'
-          post-cleanup: none  # Avoid EPERM: operation not permitted
           environment-file: requirements/main.yml
           environment-name: test
           cache-downloads: true
@@ -123,7 +122,6 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.10-0'
-          post-cleanup: none  # Avoid EPERM: operation not permitted
           environment-name: test
           cache-downloads: true
           create-args: python=${{ matrix.PYTHON_VERSION }}
