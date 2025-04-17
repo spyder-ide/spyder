@@ -369,23 +369,27 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_group.setLayout(multicursor_layout)
 
         # -- Multicursor Paste
-        multicursor_paste_group = QGroupBox(_("Multi-Cursor Paste Behavior"))
+        multicursor_paste_group = QGroupBox(_("Multi-Cursor paste behavior"))
         multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
 
         entire_clip_radio = self.create_radiobutton(
-            _("Always paste the entire clipboard for each cursor."),
+            _("Always paste the entire clipboard for each cursor"),
             "multicursor_paste/always_full",
             button_group=multicursor_paste_bg
         )
         conditional_spread_radio = self.create_radiobutton(
-            _("Paste one line per cursor if the "
-              "number of lines and cursors match."),
+            _(
+                "Paste one line per cursor if the number of of lines and cursors "
+                "match"
+            ),
             "multicursor_paste/conditional_spread",
             button_group=multicursor_paste_bg
         )
         always_spread_radio = self.create_radiobutton(
-            _("Always paste one line per cursor if there "
-              "is more than one line in the clipboard."),
+            _(
+                "Always paste one line per cursor if there is more than one "
+                "line in the clipboard"
+            ),
             "multicursor_paste/always_spread",
             button_group=multicursor_paste_bg
         )

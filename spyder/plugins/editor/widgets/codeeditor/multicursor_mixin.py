@@ -20,7 +20,6 @@ from qtpy.QtGui import (
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.utils.palette import SpyderPalette
 
@@ -540,12 +539,12 @@ class MultiCursorMixin:
         self.sig_will_paste_text.emit(clip_text)
         lines = clip_text.splitlines()
         
-        if CONF.get('editor', 'multicursor_paste/always_full'):
+        if self.get_conf('multicursor_paste/always_full'):
             lines = itertools.repeat(clip_text)
-        elif CONF.get('editor', 'multicursor_paste/conditional_spread'):
+        elif self.get_conf('multicursor_paste/conditional_spread'):
             if len(lines) != len(cursors):
                 lines = itertools.repeat(clip_text)
-        elif CONF.get('editor', 'multicursor_paste/always_spread'):
+        elif self.get_conf('editor', 'multicursor_paste/always_spread'):
             if len(lines) == 1:
                 lines = itertools.repeat(lines[0])
 
