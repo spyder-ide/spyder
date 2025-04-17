@@ -37,9 +37,9 @@ def get_updater_info() -> (str, str):
 
     version = "0.0.0"  # Not installed
     if is_conda_based_app() and updater_exe.exists():
-        cmd = " ".join([updater_exe, "--version"])
+        cmd = " ".join([str(updater_exe), "--version"])
         proc = sp.run(cmd, shell=True, text=True, capture_output=True)
         if proc.returncode == 0:
             version = proc.stdout
 
-    return updater_exe, version
+    return str(updater_exe), version
