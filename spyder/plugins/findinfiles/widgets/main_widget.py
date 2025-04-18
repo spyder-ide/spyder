@@ -176,6 +176,12 @@ class FindInFilesWidget(PluginMainWidget):
         )
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
+        
+        self.search_text_edit.setMinimumSize(
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
+        )        
+        
+        self.search_text_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
