@@ -544,7 +544,7 @@ class MultiCursorMixin:
         elif self.get_conf('multicursor_paste/conditional_spread'):
             if len(lines) != len(cursors):
                 lines = itertools.repeat(clip_text)
-        elif self.get_conf('editor', 'multicursor_paste/always_spread'):
+        elif self.get_conf('multicursor_paste/always_spread'):
             if len(lines) == 1:
                 lines = itertools.repeat(lines[0])
 
