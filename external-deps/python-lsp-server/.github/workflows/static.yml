@@ -39,7 +39,7 @@ jobs:
       # This error cannot be resolved by adding a pylint: disable=unused-argument comment ...
       - run: |
           pip install -e .[pylint,pycodestyle]
-          pip install ruff
+          pip install ruff==0.9.4
       - name: ruff linter and code style checks
         run: ruff check pylsp test
       - name: ruff code formatter check

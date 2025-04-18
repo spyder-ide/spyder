@@ -77,7 +77,7 @@ class Workspace:
         # TODO: we could keep track of dirty files and validate only those
         if self.__rope is None or self.__rope_config != rope_config:
             rope_folder = rope_config.get("ropeFolder")
-            if rope_folder:
+            if "ropeFolder" in rope_config:
                 self.__rope = Project(self._root_path, ropefolder=rope_folder)
             else:
                 self.__rope = Project(self._root_path)
@@ -460,7 +460,8 @@ class Document:
         end_col = change_range["end"]["character"]
 
         # Check for an edit occuring at the very end of the file
-        if start_line == len(self.lines):
+        lines = self.lines
+        if start_line == len(lines):
             self._source = self.source + text
             return
 
@@ -469,7 +470,7 @@ class Document:
         # Iterate over the existing document until we hit the edit range,
         # at which point we write the new text, then loop until we hit
         # the end of the range and continue writing.
-        for i, line in enumerate(self.lines):
+        for i, line in enumerate(lines):
             if i < start_line:
                 new.write(line)
                 continue
@@ -493,10 +494,11 @@ class Document:
 
     def word_at_position(self, position):
         """Get the word under the cursor returning the start and end positions."""
-        if position["line"] >= len(self.lines):
+        lines = self.lines
+        if position["line"] >= len(lines):
             return ""
 
-        line = self.lines[position["line"]]
+        line = lines[position["line"]]
         i = position["character"]
         # Split word in two
         start = line[:i]
@@ -599,9 +601,9 @@ class Document:
         )
         path.extend(environment.get_sys_path())
         if prioritize_extra_paths:
-            path += extra_paths + path
+            path = extra_paths + path
         else:
-            path += path + extra_paths
+            path = path + extra_paths
 
         return path
 
