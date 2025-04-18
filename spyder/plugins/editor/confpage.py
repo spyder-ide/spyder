@@ -7,6 +7,7 @@
 """Editor config page."""
 
 from qtpy.QtWidgets import (
+    QButtonGroup,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -367,6 +368,44 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 
+        # -- Multicursor Paste
+        multicursor_paste_group = QGroupBox(_("Multi-Cursor paste behavior"))
+        multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
+
+        entire_clip_radio = self.create_radiobutton(
+            _("Always paste the entire clipboard for each cursor"),
+            "multicursor_paste/always_full",
+            button_group=multicursor_paste_bg
+        )
+        conditional_spread_radio = self.create_radiobutton(
+            _(
+                "Paste one line per cursor if the number of of lines and cursors "
+                "match"
+            ),
+            "multicursor_paste/conditional_spread",
+            button_group=multicursor_paste_bg
+        )
+        always_spread_radio = self.create_radiobutton(
+            _(
+                "Always paste one line per cursor if there is more than one "
+                "line in the clipboard"
+            ),
+            "multicursor_paste/always_spread",
+            button_group=multicursor_paste_bg
+        )
+
+        multicursor_box.checkbox.toggled.connect(
+            multicursor_paste_group.setEnabled
+        )
+        multicursor_paste_group.setEnabled(
+            self.get_option("multicursor_support")
+        )
+        multicursor_paste_layout = QVBoxLayout()
+        multicursor_paste_layout.addWidget(entire_clip_radio)
+        multicursor_paste_layout.addWidget(conditional_spread_radio)
+        multicursor_paste_layout.addWidget(always_spread_radio)
+        multicursor_paste_group.setLayout(multicursor_paste_layout)
+
         # -- Mouse Shortcuts
         mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
         mouse_shortcuts_button = self.create_button(
@@ -390,7 +429,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
              annotations_group, eol_group, multicursor_group,
-             mouse_shortcuts_group]
+             multicursor_paste_group, mouse_shortcuts_group]
         )
 
     @on_conf_change(
