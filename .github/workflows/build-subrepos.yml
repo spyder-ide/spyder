@@ -65,7 +65,7 @@ jobs:
 
       - name: Setup Build Environment
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:

@@ -190,7 +190,7 @@ jobs:
 
       - name: Setup Build Environment (Windows)
         if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
@@ -213,7 +213,7 @@ jobs:
 
       - name: Setup Build Environment (macOS & Linux)
         if: runner.os != 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
