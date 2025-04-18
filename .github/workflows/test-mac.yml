@@ -103,6 +103,7 @@ jobs:
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          conda-remove-defaults: "true"
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Create conda test environment
