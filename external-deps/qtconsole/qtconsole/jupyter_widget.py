@@ -14,7 +14,7 @@ from warnings import warn
 
 from qtpy import QtCore, QtGui
 
-from IPython.lib.lexers import IPython3Lexer
+from ipython_pygments_lexers import IPython3Lexer
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from qtconsole import __version__

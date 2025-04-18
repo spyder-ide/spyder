@@ -9,6 +9,7 @@ dependencies:
 - jupyter_client
 - pygments
 - ipykernel
+- ipython_pygments_lexers
 
 # For testing
 - coveralls

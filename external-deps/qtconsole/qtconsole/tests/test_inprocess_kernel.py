@@ -3,29 +3,28 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import unittest
-
 from qtconsole.inprocess import QtInProcessKernelManager
+from inspect import iscoroutinefunction
+import pytest
 
 
-class InProcessTests(unittest.TestCase):
+@pytest.mark.asyncio
+async def test_execute():
+    kernel_manager = QtInProcessKernelManager()
+    if iscoroutinefunction(kernel_manager.start_kernel):
+        await kernel_manager.start_kernel()
+    else:
+        kernel_manager.start_kernel()
+    kernel_client = kernel_manager.client()
 
-    def setUp(self):
-        """Open an in-process kernel."""
-        self.kernel_manager = QtInProcessKernelManager()
-        self.kernel_manager.start_kernel()
-        self.kernel_client = self.kernel_manager.client()
+    """Test execution of shell commands."""
+    # check that closed works as expected
+    assert not kernel_client.iopub_channel.closed()
 
-    def tearDown(self):
-        """Shutdown the in-process kernel. """
-        self.kernel_client.stop_channels()
-        self.kernel_manager.shutdown_kernel()
+    # check that running code works
+    kernel_client.execute("a=1")
+    assert kernel_manager.kernel is not None, "kernel has likely not started"
+    assert kernel_manager.kernel.shell.user_ns.get("a") == 1
 
-    def test_execute(self):
-        """Test execution of shell commands."""
-        # check that closed works as expected
-        assert not self.kernel_client.iopub_channel.closed()
-        
-        # check that running code works
-        self.kernel_client.execute('a=1')
-        assert self.kernel_manager.kernel.shell.user_ns.get('a') == 1
+    kernel_client.stop_channels()
+    kernel_manager.shutdown_kernel()
