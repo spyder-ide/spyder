@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
 )
 
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
 from spyder.config.gui import get_font, is_dark_font_color, set_font
@@ -350,6 +351,12 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.update_combobox()
         self.update_editor_preview()
+
+        # This applies changes to a custom color scheme to all open editors.
+        # Fixes spyder-ide/spyder#22693
+        for plugin_name in PLUGIN_REGISTRY:
+            plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+            plugin.update_font()
 
         return set(self.changed_options)
 

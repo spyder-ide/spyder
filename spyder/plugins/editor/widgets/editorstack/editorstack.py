@@ -1164,6 +1164,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)
 
+    @on_conf_change(option='show_filename_toolbar')
+    def set_toptoolbar_visible(self, state):
+        self.top_toolbar.setVisible(state)
+
     def remove_from_data(self, index):
         self.tabs.blockSignals(True)
         self.tabs.removeTab(index)
