@@ -437,6 +437,8 @@ class FindInFilesWidget(PluginMainWidget):
         """Adjustments when the widget is resized."""
         super().resizeEvent(event)
 
+        self.search_text_edit.setMaximumWidth(self.width())
+
         # This recomputes the result items width according to this widget's
         # width, which makes the UI be rendered as expected.
         # NOTE: Don't debounce or throttle `set_width` because then it wouldn't
