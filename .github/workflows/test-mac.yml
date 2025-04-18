@@ -106,7 +106,7 @@ jobs:
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml

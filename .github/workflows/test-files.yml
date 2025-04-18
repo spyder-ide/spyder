@@ -86,7 +86,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml

@@ -102,7 +102,7 @@ jobs:
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
@@ -111,7 +111,7 @@ jobs:
           create-args: python=${{ matrix.PYTHON_VERSION }}
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-name: test
