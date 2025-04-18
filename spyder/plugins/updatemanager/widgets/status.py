@@ -23,6 +23,7 @@ from spyder.plugins.updatemanager.widgets.update import (
     CHECKING,
     DOWNLOAD_FINISHED,
     DOWNLOADING_INSTALLER,
+    UPDATING_UPDATER,
     INSTALL_ON_CLOSE,
     NO_STATUS,
     PENDING
@@ -85,6 +86,10 @@ class UpdateManagerStatus(StatusBarWidget):
             self.custom_widget.hide()
             self.hide()
         elif value == PENDING:
+            self.tooltip = value
+            self.custom_widget.hide()
+            self.show()
+        elif value == UPDATING_UPDATER:
             self.tooltip = value
             self.custom_widget.hide()
             self.show()
