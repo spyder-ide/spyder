@@ -568,7 +568,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             osp.dirname(self.installer_path), "update-info.json"
         )
         with open(info_file, "w") as f:
-            json.dump(info, f)
+            json.dump(info, f, indent=4)
 
         # Launch updater
         cmd = [UPDATER_PATH, "--update-info-file", info_file]
