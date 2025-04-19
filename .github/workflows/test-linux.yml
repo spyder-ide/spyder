@@ -5,37 +5,33 @@ on:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/remove_check_qtwebengine.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-linux.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/scripts/installer_test.sh'
 
   pull_request:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/remove_check_qtwebengine.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-linux.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/scripts/installer_test.sh'
 
   workflow_dispatch:
     inputs:
