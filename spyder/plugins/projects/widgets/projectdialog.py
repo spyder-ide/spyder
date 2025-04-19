@@ -239,13 +239,16 @@ class NewDirectoryPage(BaseProjectPage):
 
     @property
     def project_location(self):
-        return osp.join(
-            self._location.textbox.text(), self._name.textbox.text()
+        return osp.normpath(
+            osp.join(self._location.textbox.text(), self._name.textbox.text())
         )
 
     def validate_page(self):
         name = self._name.textbox.text()
-        location = self._location.textbox.text()
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
 
         # Clear validation state
         self._validation_label.setVisible(False)
@@ -296,14 +299,16 @@ class ExistingDirectoryPage(BaseProjectPage):
 
     @property
     def project_location(self):
-        return self._location.textbox.text()
+        return osp.normpath(self._location.textbox.text())
 
     def validate_page(self):
-        location = self._location.textbox.text()
-
         # Clear validation state
         self._validation_label.setVisible(False)
         self._location.status_action.setVisible(False)
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
 
         # Perform validation
         reasons = self._validate_location(location)
