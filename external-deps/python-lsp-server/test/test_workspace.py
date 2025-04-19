@@ -238,7 +238,7 @@ def test_workspace_loads_pycodestyle_config(pylsp, tmpdir) -> None:
     # Test that project settings are loaded
     workspace2_dir = tmpdir.mkdir("NewTest456")
     cfg = workspace2_dir.join("pycodestyle.cfg")
-    cfg.write("[pycodestyle]\n" "max-line-length = 1000")
+    cfg.write("[pycodestyle]\nmax-line-length = 1000")
 
     workspace1 = {"uri": str(workspace1_dir)}
     workspace2 = {"uri": str(workspace2_dir)}
@@ -257,7 +257,7 @@ def test_workspace_loads_pycodestyle_config(pylsp, tmpdir) -> None:
     # Test switching to another workspace with different settings
     workspace3_dir = tmpdir.mkdir("NewTest789")
     cfg1 = workspace3_dir.join("pycodestyle.cfg")
-    cfg1.write("[pycodestyle]\n" "max-line-length = 20")
+    cfg1.write("[pycodestyle]\nmax-line-length = 20")
 
     workspace3 = {"uri": str(workspace3_dir)}
 
@@ -310,9 +310,9 @@ def test_progress_simple(workspace, consumer) -> None:
     assert init_call[0][0]["method"] == "window/workDoneProgress/create"
 
     # same method for all calls
-    assert all(
-        call[0][0]["method"] == "$/progress" for call in progress_calls
-    ), consumer.call_args_list
+    assert all(call[0][0]["method"] == "$/progress" for call in progress_calls), (
+        consumer.call_args_list
+    )
 
     # same token used in all calls
     assert (

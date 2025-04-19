@@ -1,5 +1,33 @@
 # History of changes
 
+## Version 1.12.2 (2025/02/07)
+
+### Pull Requests Merged
+
+* [PR 608](https://github.com/python-lsp/python-lsp-server/pull/608) - Fix putting `extra_paths` in front of `sys.path`, by [@cmashinho](https://github.com/cmashinho)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 1.12.1 (2025/02/06)
+
+### Issues Closed
+
+* [Issue 602](https://github.com/python-lsp/python-lsp-server/issues/602) - `test_jedi_completion_with_fuzzy_enabled` fails with jedi 0.19.2
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 616](https://github.com/python-lsp/python-lsp-server/pull/616) - Fix formatting issues reported by the latest Ruff version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 609](https://github.com/python-lsp/python-lsp-server/pull/609) - Fix test for Jedi 0.19.2, by [@cmashinho](https://github.com/cmashinho)
+* [PR 604](https://github.com/python-lsp/python-lsp-server/pull/604) - Correctly handle null value for `ropeFolder` config, by [@osiewicz](https://github.com/osiewicz)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 1.12.0 (2024/08/25)
 
 ### New features
