@@ -31,6 +31,8 @@ REQ_MAC = REQUIREMENTS / 'macos.yml'
 REQ_LINUX = REQUIREMENTS / 'linux.yml'
 
 SPYPATCHFILE = BUILD / "installers-conda.patch"
+PARENT_BRANCH = os.getenv("MATRIX_BRANCH", os.getenv("GITHUB_BASE_REF"))
+
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -234,10 +236,8 @@ class SpyderCondaPkg(BuildCondaPkg):
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
 
-    parent_branch = os.getenv("MATRIX_BRANCH", os.getenv("GITHUB_BASE_REF"))
-
     feedstock_branch = "dev"  # Default branch, or if Spyder branch is master
-    if parent_branch == "6.x":
+    if PARENT_BRANCH == "6.x":
         feedstock_branch = "main"
 
     def _patch_source(self):
@@ -336,7 +336,10 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
-    feedstock_branch = "main"
+
+    feedstock_branch = "dev"  # Default branch, or if Spyder branch is master
+    if PARENT_BRANCH == "6.x":
+        feedstock_branch = "main"
 
 
 PKGS = {
