@@ -24,20 +24,22 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
-from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import TipWidget
 
 
-class MouseShortcutEditor(QDialog):
+class MouseShortcutEditor(QDialog, SpyderConfigurationAccessor):
     """A dialog to edit the modifier keys for CodeEditor mouse interactions."""
+
+    CONF_SECTION = "editor"
 
     def __init__(self, parent):
         super().__init__(parent)
         self.editor_config_page = parent
-        mouse_shortcuts = CONF.get('editor', 'mouse_shortcuts')
+        mouse_shortcuts = self.get_conf('mouse_shortcuts')
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
