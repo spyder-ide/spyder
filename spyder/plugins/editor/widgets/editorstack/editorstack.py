@@ -400,14 +400,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         try:
             show_in_external_file_explorer(fnames)
         except FileNotFoundError as error:
-            file = str(error).split("'")[1]
-            if "xdg-open" in file:
-                msg_title = _("Warning")
+            if "xdg-open" in str(error):
+                msg_title = _("Error")
                 msg = _("Spyder can't show this file in the external file "
                         "explorer because the <tt>xdg-utils</tt> package is "
                         "not available on your system.")
-                QMessageBox.information(self, msg_title, msg,
-                                        QMessageBox.Ok)
+                QMessageBox.critical(
+                    self, msg_title, msg, QMessageBox.Ok
+                )
 
     def copy_absolute_path(self):
         """Copy current filename absolute path to the clipboard."""

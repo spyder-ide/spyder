@@ -1255,7 +1255,20 @@ class DirView(QTreeView, SpyderWidgetMixin):
         """Show file in external file explorer"""
         if fnames is None or isinstance(fnames, bool):
             fnames = self.get_selected_filenames()
-        show_in_external_file_explorer(fnames)
+
+        try:
+            show_in_external_file_explorer(fnames)
+        except FileNotFoundError as error:
+            if "xdg-open" in str(error):
+                msg_title = _("Error")
+                msg = _(
+                    "Spyder can't show this file in the external file "
+                    "explorer because the <tt>xdg-utils</tt> package is not "
+                    "available on your system."
+                )
+                QMessageBox.critical(
+                    self._parent, msg_title, msg, QMessageBox.Ok
+                )
 
     @Slot()
     def rename(self, fnames=None):
