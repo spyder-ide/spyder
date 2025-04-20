@@ -65,7 +65,7 @@ class BuildCondaPkg:
         self._recipe_patched = False
 
     def _get_source(self):
-        """Clone source and feedstock to distribution directory for building"""
+        """Clone source and feedstock for building"""
         BUILD.mkdir(exist_ok=True)
         self._cleanup_build()
 
@@ -94,7 +94,10 @@ class BuildCondaPkg:
         kwargs = dict(to_path=self._fdstk_path)
         if self.feedstock_branch:
             kwargs.update(branch=self.feedstock_branch)
-        Repo.clone_from(self.feedstock, **kwargs)
+        feedstock_repo = Repo.clone_from(self.feedstock, **kwargs)
+        self.logger.info(
+            f"Feedstock branch: {feedstock_repo.active_branch.name}"
+        )
 
     def _cleanup_build(self, debug=False):
         """Remove cloned source and feedstock repositories"""
