@@ -38,7 +38,6 @@ class MouseShortcutEditor(QDialog, SpyderConfigurationAccessor):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.editor_config_page = parent
         mouse_shortcuts = self.get_conf('mouse_shortcuts')
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
@@ -108,9 +107,7 @@ class MouseShortcutEditor(QDialog, SpyderConfigurationAccessor):
 
     def apply_mouse_shortcuts(self):
         """Set new config to CONF"""
-        self.editor_config_page.set_option(
-            'mouse_shortcuts', self.mouse_shortcuts
-        )
+        self.set_conf('mouse_shortcuts', self.mouse_shortcuts)
         self.scrollflag_shortcut.apply_modifiers()
         self.goto_def_shortcut.apply_modifiers()
         self.add_cursor_shortcut.apply_modifiers()
