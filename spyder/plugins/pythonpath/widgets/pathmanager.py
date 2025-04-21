@@ -13,6 +13,7 @@ import os.path as osp
 import sys
 
 # Third party imports
+import qtawesome as qta
 from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
@@ -95,6 +96,20 @@ class PathManager(QDialog, SpyderWidgetMixin):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+
+        # Spinner
+        self._spin_widget = qta.IconWidget(parent=self.listwidget)
+        self._spin = qta.Spin(self._spin_widget, interval=3)
+        spin_icon = qta.icon(
+            "mdi.loading",
+            animation=self._spin
+        )
+
+        self._spin_widget.setIconSize(QSize(36, 36))
+        self._spin_widget.setIcon(spin_icon)
+        self._spin_widget.move(self.frameGeometry().center())
+        self._spin.stop()
+        self._spin_widget.hide()
 
         # Widget setup
         self.setWindowTitle(_("PYTHONPATH manager"))
@@ -636,6 +651,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     @Slot()
     def import_pythonpath(self):
+        self._spin.start()
+        self._spin_widget.show()
         future = get_user_environment_variables()
         future.connect(self._import_pythonpath)
 
@@ -663,6 +680,9 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 self.system_header = None
 
         self._setup_system_paths(system_paths)
+
+        self._spin.stop()
+        self._spin_widget.hide()
 
         self.refresh()
 
