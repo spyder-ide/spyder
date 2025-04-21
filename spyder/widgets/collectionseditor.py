@@ -29,10 +29,12 @@ from typing import Any, Callable, Optional
 import warnings
 
 # Third party imports
+import qtawesome as qta
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer, Signal,
-    Slot)
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, QSize, Qt, QTimer,
+    Signal, Slot
+)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication,
@@ -927,7 +929,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 action,
                 menu,
                 section=CollectionsEditorContextMenuSections.Edit
-        )
+            )
 
         for action in [self.insert_action, self.insert_action_above,
                        self.insert_action_below, self.duplicate_action,
@@ -1083,7 +1085,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             is_dataframe = self.is_data_frame(key) and self.get_len(key) != 0
             condition_plot = (
                 is_array and len(self.get_array_shape(key)) <= 2
-                ) or is_dataframe
+            ) or is_dataframe
             condition_hist = (is_array and self.get_array_ndim(key) == 1)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
@@ -1974,7 +1976,7 @@ class CollectionsEditor(BaseDialog):
 
         # If the copy has a different type, then do not allow editing, because
         # this would change the type after saving; cf. spyder-ide/spyder#6936.
-        if type(self.data_copy) != type(data):
+        if not isinstance(self.data_copy, type(data)):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
@@ -2000,6 +2002,20 @@ class CollectionsEditor(BaseDialog):
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
+
+        # Spinner
+        self._spin_widget = qta.IconWidget(parent=self.widget)
+        self._spin = qta.Spin(self._spin_widget, interval=3)
+        spin_icon = qta.icon(
+            "mdi.loading",
+            animation=self._spin
+        )
+
+        self._spin_widget.setIconSize(QSize(36, 36))
+        self._spin_widget.setIcon(spin_icon)
+        self._spin_widget.move(self.frameGeometry().center())
+        self._spin.stop()
+        self._spin_widget.hide()
 
         # CollectionEditor widget layout
         layout = QVBoxLayout()
