@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-03-24 13:39-0500\n"
-"PO-Revision-Date: 2025-03-24 19:09\n"
+"PO-Revision-Date: 2025-04-21 09:25\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1907,7 +1907,7 @@ msgstr "Ausführung unterbrechen und den Debugger starten"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:260
 msgid "Debug current line"
-msgstr ""
+msgstr "Aktuelle Zeile debuggen"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:270
 msgid "Continue execution until next breakpoint"
@@ -4500,7 +4500,7 @@ msgstr "Klicken Sie, um zwischen Inline- und interaktiver Matplotlib-Darstellung
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:275
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Standardumgebung in den Einstellungen ändern..."
 
 #: spyder/plugins/layout/container.py:79
 msgid "Close current pane"
