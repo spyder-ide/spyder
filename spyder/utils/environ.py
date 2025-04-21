@@ -254,6 +254,8 @@ class RemoteEnvDialog(CollectionsEditor):
 
         if environ is None:
             # Get system environment variables
+            self._spin.start()
+            self._spin_widget.show()
             future = get_user_environment_variables()
             future.connect(self.set_data_from_future)
         else:
@@ -261,6 +263,8 @@ class RemoteEnvDialog(CollectionsEditor):
 
     @AsyncDispatcher.QtSlot
     def set_data_from_future(self, future):
+        self._spin.stop()
+        self._spin_widget.hide()
         self.set_data(future.result())
 
     def set_data(self, data):
