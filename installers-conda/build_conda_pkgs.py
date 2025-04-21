@@ -154,6 +154,9 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
+        # TODO: Revert for 6.0.6
+        meta = re.sub("\s+- 24095_24156_qtwebengine_optional.patch", "", meta)
+
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(meta)
 
