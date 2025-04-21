@@ -198,7 +198,7 @@ class RemoteClient(SpyderPluginV2):
     # --- Configuration Methods
     def load_client_from_id(self, config_id):
         """Load remote server from configuration id."""
-        client_type = self.get_conf(f"{config_id}/client_type")
+        client_type = self.get_conf(f"{config_id}/client_type", default="ssh")
         if client_type == "ssh":
             options = self._load_ssh_client_options(config_id)
             self.load_ssh_client(config_id, options)
