@@ -5,22 +5,26 @@
 # (see spyder/__init__.py for details)
 
 from __future__ import annotations
+
 import base64
+import json
+import typing
 from http import HTTPStatus
 from io import RawIOBase
-import json
-from pathlib import Path
 
 import aiohttp
 
+from spyder.plugins.remoteclient import SPYDER_PLUGIN_NAME
+from spyder.plugins.remoteclient.api.manager.base import (
+    SpyderRemoteAPIManagerBase,
+)
 from spyder.plugins.remoteclient.api.modules.base import (
     SpyderBaseJupyterAPI,
     SpyderRemoteAPIError,
 )
-from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager
 
-# jupyter server's extension name for spyder-remote-services
-SPYDER_PLUGIN_NAME = "spyder-services"
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
 
 class RemoteFileServicesError(SpyderRemoteAPIError):
@@ -44,7 +48,7 @@ class RemoteOSError(OSError, RemoteFileServicesError):
     Exception for OSErrors raised on the remote server.
     """
     def __init__(self, errno, strerror, filename, url):
-        super().__init__(errno, strerror, filename)
+        super().__init__(errno, strerror, filename, None)
         super(OSError, self).__init__(OSError, super().__str__(), url, [])
 
     @classmethod
@@ -55,7 +59,7 @@ class RemoteOSError(OSError, RemoteFileServicesError):
         return super(OSError, self).__str__()
 
 
-@SpyderRemoteAPIManager.register_api
+@SpyderRemoteAPIManagerBase.register_api
 class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     """
     API for remote file I/O.
@@ -324,7 +328,7 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         return await self._get_response()
 
 
-@SpyderRemoteAPIManager.register_api
+@SpyderRemoteAPIManagerBase.register_api
 class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     """
     API for remote file services.
