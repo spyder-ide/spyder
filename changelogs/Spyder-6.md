@@ -2,7 +2,30 @@
 
 ## Version 6.1.0 (Unreleased)
 
+### New features
+
+* Add support to work with multiple cursors to the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
+* Add a graphical interface to the update process of our standalone installers.
+* Paths can be added to the front of `sys.path` in the Pythonpath manager.
+* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+V`, respectively.
+* Add option to show/hide the Editor's file name toolbar to `Preferences > Editor > Interface`.
+* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
+
+### Important fixes
+
+* Much better support for PyQt6 and PySide6.
+
+### UX/UI improvements
+
+* Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+
 ### API changes
+
+#### Editor
+
+* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
+* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
+* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
 
 #### IPython console
 
@@ -28,6 +51,16 @@
 
 * **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
 
+#### Application plugin
+
+* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
+* Add `focused_plugin` attribute.
+
+#### SpyderPluginV2
+
+* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
+* Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
+
 #### PluginMainWidget
 
 * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
@@ -36,7 +69,7 @@
 
 #### Shellconnect
 
-* **Breaking** Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
+* **Breaking** - Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
 * Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.
 * Add `ShellConnectWidgetForStackMixin` class for widgets that will be added to the stacked widget part of `ShellConnectMainWidget`.
 
@@ -45,22 +78,6 @@
 * **Breaking** - Remove `dispatch` method to use it directly as decorator.
 * Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
 * Add `early_return` and `return_awaitable` kwargs its constructor.
-
-#### Application plugin
-
-* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
-* Add `focused_plugin` attribute.
-
-#### Editor
-
-* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
-* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
-* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
-
-#### SpyderPluginV2 
-
-* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
-* Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
 
 ----
 
