@@ -239,47 +239,53 @@ def clean_env(env_vars):
     return new_env_vars
 
 
+def remote_env_dialog_warning(parent, err):
+    QMessageBox.warning(
+        parent,
+        _("Warning"),
+        _("An error occurred while trying to show your "
+          "environment variables. The error was<br><br>"
+          "<tt>{0}</tt>").format(err),
+        QMessageBox.Ok
+    )
+
+
 class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 
     def __init__(self, environ=None, parent=None,
                  title=_("Environment variables"), readonly=True):
         super().__init__(parent)
-        self.setup(
-            {},  # Initially empty while waiting for data
-            title=title,
-            readonly=readonly,
-            icon=ima.icon('environ')
-        )
+
+        def setup(data):
+            self.setup(
+                data, title=title, readonly=readonly, icon=ima.icon('environ')
+            )
 
         if environ is None:
+            setup({})  # Initially empty while waiting for data
+
             # Get system environment variables
             self._spin.start()
             self._spin_widget.show()
             future = get_user_environment_variables()
-            future.connect(self.set_data_from_future)
+            future.connect(self._set_data_from_future)
         else:
-            self.set_data(environ)
+            try:
+                setup(environ)
+            except Exception as err:
+                remote_env_dialog_warning(parent, err)
 
     @AsyncDispatcher.QtSlot
-    def set_data_from_future(self, future):
+    def _set_data_from_future(self, future):
         self._spin.stop()
         self._spin_widget.hide()
-        self.set_data(future.result())
 
-    def set_data(self, data):
         try:
-            data = envdict2listdict(data)
-            self.widget.set_data(data)
-        except Exception as e:
-            QMessageBox.warning(
-                self.parent(),
-                _("Warning"),
-                _("An error occurred while trying to show your "
-                  "environment variables. The error was<br><br>"
-                  "<tt>{0}</tt>").format(e),
-                QMessageBox.Ok
-            )
+            self.data_copy = envdict2listdict(future.result())
+            self.widget.set_data(self.data_copy)
+        except Exception as err:
+            remote_env_dialog_warning(self.parent(), err)
 
 
 class EnvDialog(RemoteEnvDialog):
