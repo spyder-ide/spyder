@@ -31,9 +31,6 @@ from spyder.utils import encoding
 logger = logging.getLogger(__name__)
 
 
-logger = logging.getLogger(__name__)
-
-
 class WorkingDirectory(SpyderPluginV2):
     """
     Working directory changer plugin.
