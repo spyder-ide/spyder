@@ -193,7 +193,7 @@ class NewDirectoryPage(BaseProjectPage):
     """New directory project page."""
 
     PROJECTS_DOCS_URL = (
-        "http://docs.spyder-ide.org/current/panes/projects.html"
+        "https://docs.spyder-ide.org/current/panes/projects.html"
     )
 
     def get_name(self):
@@ -205,7 +205,6 @@ class NewDirectoryPage(BaseProjectPage):
     def setup_page(self):
         description = QLabel(_("Start a project in a new directory"))
         description.setWordWrap(True)
-        description.setOpenExternalLinks(True)
         description.setFont(self._description_font)
 
         docs_reference = QLabel(
@@ -214,6 +213,7 @@ class NewDirectoryPage(BaseProjectPage):
                 '<a href="{0}">documentation</a>.'
             ).format(self.PROJECTS_DOCS_URL)
         )
+        docs_reference.setOpenExternalLinks(True)
 
         self._name = self.create_lineedit(
             text=_("Project name"),
