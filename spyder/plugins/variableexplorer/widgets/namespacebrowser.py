@@ -29,8 +29,6 @@ from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
-if TYPE_CHECKING:
-    from matplotlib.figure import Figure
 
 # Local imports
 from spyder.api.translations import _
@@ -52,6 +50,7 @@ CALL_KERNEL_TIMEOUT = 30
 
 # Types
 if TYPE_CHECKING:
+    from matplotlib.figure import Figure
     PlotFunction = Callable(Figure, None)
 
 class NamespaceBrowser(

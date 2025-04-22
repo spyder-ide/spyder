@@ -46,13 +46,27 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QDialog, QFrame, QGridLayout, QHBoxLayout, QHeaderView,
-    QInputDialog, QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton,
-    QScrollBar, QStyle, QTableView, QTableWidget, QToolButton, QVBoxLayout,
-    QWidget)
+    QApplication,
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QItemDelegate,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollBar,
+    QStyle,
+    QTableView,
+    QTableWidget,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
-if TYPE_CHECKING:
-    from matplotlib.figure import Figure
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
@@ -69,7 +83,9 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
+
 if TYPE_CHECKING:
+    from matplotlib.figure import Figure
     from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser
     )
@@ -926,6 +942,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.histogram_action = self.create_action(
             name=DataframeEditorActions.Histogram,
             text=_("Histogram"),
+            tip=_("Plot a histogram of the selected columns"),
             icon=ima.icon('hist'),
             triggered=self.plot_hist,
             register_action=False
@@ -2094,11 +2111,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
-        self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll,
-                                       self.namespacebrowser,
-                                       self.data_function)
+        self.dataTable = DataFrameView(
+            self,
+            self.dataModel,
+            self.table_header.horizontalHeader(),
+            self.hscroll,
+            self.vscroll,
+            self.namespacebrowser,
+            self.data_function
+        )
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
