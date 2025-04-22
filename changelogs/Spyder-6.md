@@ -81,6 +81,42 @@
 
 ----
 
+## Version 6.1.0a2 (2025/04/22)
+
+### Issues Closed
+
+* [Issue 23951](https://github.com/spyder-ide/spyder/issues/23951) - Multi-Cursor editing uses non-standard mouse shortcuts which cannot be configured ([PR 23463](https://github.com/spyder-ide/spyder/pull/23463) by [@athompson673](https://github.com/athompson673))
+* [Issue 23691](https://github.com/spyder-ide/spyder/issues/23691) - Multi-Cursor paste does not paste entire clipboard, or pastes nothing for some cursors ([PR 24223](https://github.com/spyder-ide/spyder/pull/24223) by [@athompson673](https://github.com/athompson673))
+* [Issue 23607](https://github.com/spyder-ide/spyder/issues/23607) - Remove Editor top bar showing file path ([PR 24194](https://github.com/spyder-ide/spyder/pull/24194) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 22354](https://github.com/spyder-ide/spyder/issues/22354) - Provide custom editor widget for given file extension via plugin ([PR 22564](https://github.com/spyder-ide/spyder/pull/22564) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 21197](https://github.com/spyder-ide/spyder/issues/21197) - Minimum size of empty pane is fairly big ([PR 24181](https://github.com/spyder-ide/spyder/pull/24181) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 7794](https://github.com/spyder-ide/spyder/issues/7794) - Allow plugins to hook into File > Open ([PR 22564](https://github.com/spyder-ide/spyder/pull/22564) by [@jitseniesen](https://github.com/jitseniesen))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 24276](https://github.com/spyder-ide/spyder/pull/24276) - PR: Add new features and improvements for 6.1.0 to our Changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24257](https://github.com/spyder-ide/spyder/pull/24257) - PR: Follow-up to removing `CONF` from `mouse_shortcuts` (Editor), by [@athompson673](https://github.com/athompson673)
+* [PR 24250](https://github.com/spyder-ide/spyder/pull/24250) - PR: Remove `CONF` usage in `MouseShortcutEditor` (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24223](https://github.com/spyder-ide/spyder/pull/24223) - PR: Add multicursor paste behavior configuration to Preferences (Editor), by [@athompson673](https://github.com/athompson673) ([23691](https://github.com/spyder-ide/spyder/issues/23691))
+* [PR 24213](https://github.com/spyder-ide/spyder/pull/24213) - PR: Update `python-lsp-server` and `qtconsole` subrepos, by [@mrclary](https://github.com/mrclary)
+* [PR 24204](https://github.com/spyder-ide/spyder/pull/24204) - PR: Fix several issues in the Layout plugin, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24194](https://github.com/spyder-ide/spyder/pull/24194) - PR: Add option to show/hide file name toolbar (Editor), by [@jsbautista](https://github.com/jsbautista) ([23607](https://github.com/spyder-ide/spyder/issues/23607))
+* [PR 24181](https://github.com/spyder-ide/spyder/pull/24181) - PR: Add API to display an empty message in any dockable plugin (API), by [@ccordoba12](https://github.com/ccordoba12) ([21197](https://github.com/spyder-ide/spyder/issues/21197))
+* [PR 24144](https://github.com/spyder-ide/spyder/pull/24144) - PR: Use `spyder-updater` to handle updates (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 24131](https://github.com/spyder-ide/spyder/pull/24131) - PR: Use checksum to verify downloaded asset for updating Spyder (Update manager), by [@mrclary](https://github.com/mrclary)
+* [PR 24014](https://github.com/spyder-ide/spyder/pull/24014) - PR: Return an iterable from `ls` method of `SpyderRemoteFileServicesAPI` (Remote client), by [@hlouzada](https://github.com/hlouzada)
+* [PR 23732](https://github.com/spyder-ide/spyder/pull/23732) - PR: Fixes to make the app work with PySide6, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23720](https://github.com/spyder-ide/spyder/pull/23720) - PR: Refactor Remote Client kernel management, by [@hlouzada](https://github.com/hlouzada)
+* [PR 23463](https://github.com/spyder-ide/spyder/pull/23463) - PR: Make `CodeEditor` mouse shortcuts configurable (Editor), by [@athompson673](https://github.com/athompson673) ([23951](https://github.com/spyder-ide/spyder/issues/23951))
+* [PR 23287](https://github.com/spyder-ide/spyder/pull/23287) - PR: Refactor how the installers are built, by [@mrclary](https://github.com/mrclary)
+* [PR 22564](https://github.com/spyder-ide/spyder/pull/22564) - PR: Allow plugins to hook into file actions (API), by [@jitseniesen](https://github.com/jitseniesen) ([7794](https://github.com/spyder-ide/spyder/issues/7794), [22354](https://github.com/spyder-ide/spyder/issues/22354))
+
+In this release 16 pull requests were closed.
+
+----
+
 ## Version 6.1.0a1 (2025/03/13)
 
 ### Issues Closed
