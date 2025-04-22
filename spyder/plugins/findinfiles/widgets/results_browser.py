@@ -322,6 +322,13 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
 
     def set_width(self):
         """Set widget width according to its longest item."""
+        if self.search_text :
+            metrics = QFontMetrics(self.font)
+            searchTextWidth = len(self.search_text)* metrics.width('W')
+            if searchTextWidth >= self.width()-40:
+                maxWidth = int(self.width()/metrics.width('W'))
+                search_text_to_show = self.search_text[:maxWidth] + '...'
+                self.set_title(search_text_to_show)
         if not self.data:
             return
 
