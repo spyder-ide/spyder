@@ -180,12 +180,14 @@ class WorkingDirectory(SpyderPluginV2):
 
         if container.server_id != server_id:
             # Remove previous paths history in case we are changing not only cwd
-            # but also server_id while saving the history for local paths
+            # but also `server_id` while saving the history for local paths
             logger.info(f"Clearing path combobox: {container.server_id} - {server_id}")
             container.pathedit.clear()
             if not server_id:
                 logger.info("Loading paths")
-                container.set_history(self.load_history())
+                history = self.load_history()
+                self.set_conf("history", history)
+                container.pathedit.addItems(history)
 
         if sender_plugin is None:
             sender_plugin = self.NAME

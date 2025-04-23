@@ -375,7 +375,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # with entry from a dict that contains all hosts histories depending
         # on server_id value passed:
         #       {"<server_id>": {"history": []}}
-        if server_id is None:
+        if not server_id:
             if browsing_history:
                 directory = self.history[self.histindex]
             elif directory in self.history:
