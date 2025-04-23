@@ -263,6 +263,18 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         text = _('String not found')
         self.set_title(title + text)
 
+    def set_title(self, title):
+        metrics = QFontMetrics(self.font)
+        searchTextWidth = len(title)* metrics.width('W')
+        maxWidth = self.width()
+        if searchTextWidth >= maxWidth:
+            elided_title = metrics.elidedText(
+                title, Qt.ElideMiddle, maxWidth
+            )
+        else:
+            elided_title = title
+        self.setHeaderLabels([elided_title])
+
     @Slot(object)
     def append_file_result(self, filename):
         """Real-time update of file items."""
@@ -322,13 +334,6 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
 
     def set_width(self):
         """Set widget width according to its longest item."""
-        if self.search_text :
-            metrics = QFontMetrics(self.font)
-            searchTextWidth = len(self.search_text)* metrics.width('W')
-            if searchTextWidth >= self.width()-40:
-                maxWidth = int(self.width()/metrics.width('W'))
-                search_text_to_show = self.search_text[:maxWidth] + '...'
-                self.set_title(search_text_to_show)
         if not self.data:
             return
 
