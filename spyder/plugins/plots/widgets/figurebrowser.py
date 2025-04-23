@@ -1007,7 +1007,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
-        if not is_first and not stick_at_end:
+        if not is_first and (not stick_at_end or not select_last):
             self._scroll_to_last_thumbnail = False
 
     def remove_current_thumbnail(self):
