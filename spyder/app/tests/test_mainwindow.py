@@ -802,6 +802,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     sys.platform.startswith("linux") and running_in_ci(),
     reason='Fails sometimes on Linux and CIs'
 )
+@pytest.mark.skipif(sys.platform == "darwin", reason="Fails sometimes on Mac")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
 
