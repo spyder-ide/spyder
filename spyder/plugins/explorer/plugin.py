@@ -180,8 +180,6 @@ class Explorer(SpyderDockablePlugin):
 
     def on_initialize(self):
         self._file_managers = {}
-        self.extra_files = []
-        self.background_load = set()
         widget = self.get_widget()
 
         # Expose widget signals on the plugin

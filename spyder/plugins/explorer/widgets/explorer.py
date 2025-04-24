@@ -142,16 +142,6 @@ class DirViewContextMenuSections:
     VersionControl = 'version_control_section'
 
 
-class ExplorerTreeWidgetActions:
-    # Toggles
-    ToggleFilter = 'toggle_filter_files_action'
-
-    # Triggers
-    Next = 'next_action'
-    Parent = 'parent_action'
-    Previous = 'previous_action'
-
-
 # ---- Styles
 # ----------------------------------------------------------------------------
 class DirViewStyle(QProxyStyle):
@@ -1870,7 +1860,6 @@ class ExplorerTreeWidget(DirView):
             self.expand(index)
             self.setCurrentIndex(index)
 
-        # TODO: Logic related with actions in the toolbar should be moved to main_widget
         self.previous_action.setEnabled(False)
         self.next_action.setEnabled(False)
 
