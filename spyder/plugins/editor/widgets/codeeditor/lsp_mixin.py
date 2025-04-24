@@ -1187,6 +1187,13 @@ class LSPMixin:
             merged_text = merged_text.replace("\n", self.get_line_separator())
             cursor = self.textCursor()
 
+            # Save breakpoints here to restore them after inserting merged_text
+            # Fixes spyder-ide/spyder#16549
+            if getattr(self, "breakpoints_manager", False):
+                breakpoints = self.breakpoints_manager.get_breakpoints()
+            else:
+                breakpoints = None
+
             # Begin text insertion
             cursor.beginEditBlock()
 
@@ -1199,6 +1206,10 @@ class LSPMixin:
 
             # End text insertion
             cursor.endEditBlock()
+            
+            # Restore breakpoints
+            if breakpoints:
+                self.breakpoints_manager.set_breakpoints(breakpoints)
 
             # Restore previous cursor position and center it.
             # Fixes spyder-ide/spyder#19958

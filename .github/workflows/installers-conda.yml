@@ -190,7 +190,7 @@ jobs:
 
       - name: Setup Build Environment (Windows)
         if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
@@ -213,7 +213,7 @@ jobs:
 
       - name: Setup Build Environment (macOS & Linux)
         if: runner.os != 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
@@ -275,8 +275,8 @@ jobs:
           fi
 
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CNAME=$CNAME" >> $GITHUB_ENV
+          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
 
       - name: Load signing certificate (Windows)
         if: runner.os == 'Windows' && env.NOTARIZE == 'true'
@@ -292,11 +292,10 @@ jobs:
         run: |
           export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
 
-          [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
-          python build_installers.py ${args[@]}
+          python build_installers.py
 
           SPYVER=$(python build_installers.py --version)
-          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_PATH=$(python build_installers.py --installer-path)
           PKG_NAME=$(basename $PKG_PATH)
           ARTIFACT_NAME=${PKG_NAME%.*}
           [[ "$GITHUB_EVENT_NAME" == "schedule" ]] && ARTIFACT_NAME=$ARTIFACT_NAME-$MATRIX_BRANCH

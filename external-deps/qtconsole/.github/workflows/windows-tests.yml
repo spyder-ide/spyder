@@ -24,29 +24,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11']
+        PYTHON_VERSION: ['3.9', '3.10', '3.11']
     timeout-minutes: 15
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
-      - name: Install Conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda and install package dependencies
+        uses: conda-incubator/setup-miniconda@v3
         with:
            activate-environment: test
            auto-update-conda: false
            auto-activate-base: false
-           python-version: ${{ matrix.PYTHON_VERSION }}
-           miniforge-variant: Mambaforge
+           miniforge-version: latest
+           mamba-version: "*"
            channels: conda-forge
-           channel-priority: strict
-      - name: Install package dependencies
-        shell: bash -l {0}
-        run: mamba env update --file requirements/environment.yml
+           channel-priority: true
+           python-version: ${{ matrix.PYTHON_VERSION }}
+           environment-file: requirements/environment.yml # Need to set up dependencies in the same step due to https://github.com/conda-incubator/setup-miniconda/issues/371
       - name: Show environment information
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
           conda info
           conda list
       - name: Run tests
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: pytest -vv --color=yes --cov=qtconsole qtconsole

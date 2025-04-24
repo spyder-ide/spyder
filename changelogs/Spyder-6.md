@@ -2,7 +2,30 @@
 
 ## Version 6.1.0 (Unreleased)
 
+### New features
+
+* Add support to work with multiple cursors to the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
+* Add a graphical interface to the update process of our standalone installers.
+* Paths can be added to the front of `sys.path` in the Pythonpath manager.
+* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+V`, respectively.
+* Add option to show/hide the Editor's file name toolbar to `Preferences > Editor > Interface`.
+* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
+
+### Important fixes
+
+* Much better support for PyQt6 and PySide6.
+
+### UX/UI improvements
+
+* Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+
 ### API changes
+
+#### Editor
+
+* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
+* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
+* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
 
 #### IPython console
 
@@ -28,6 +51,16 @@
 
 * **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
 
+#### Application plugin
+
+* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
+* Add `focused_plugin` attribute.
+
+#### SpyderPluginV2
+
+* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
+* Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
+
 #### PluginMainWidget
 
 * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
@@ -36,7 +69,7 @@
 
 #### Shellconnect
 
-* **Breaking** Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
+* **Breaking** - Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
 * Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.
 * Add `ShellConnectWidgetForStackMixin` class for widgets that will be added to the stacked widget part of `ShellConnectMainWidget`.
 
@@ -46,21 +79,41 @@
 * Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
 * Add `early_return` and `return_awaitable` kwargs its constructor.
 
-#### Application plugin
+----
 
-* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
-* Add `focused_plugin` attribute.
+## Version 6.1.0a2 (2025/04/22)
 
-#### Editor
+### Issues Closed
 
-* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
-* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
-* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
+* [Issue 23951](https://github.com/spyder-ide/spyder/issues/23951) - Multi-Cursor editing uses non-standard mouse shortcuts which cannot be configured ([PR 23463](https://github.com/spyder-ide/spyder/pull/23463) by [@athompson673](https://github.com/athompson673))
+* [Issue 23691](https://github.com/spyder-ide/spyder/issues/23691) - Multi-Cursor paste does not paste entire clipboard, or pastes nothing for some cursors ([PR 24223](https://github.com/spyder-ide/spyder/pull/24223) by [@athompson673](https://github.com/athompson673))
+* [Issue 23607](https://github.com/spyder-ide/spyder/issues/23607) - Remove Editor top bar showing file path ([PR 24194](https://github.com/spyder-ide/spyder/pull/24194) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 22354](https://github.com/spyder-ide/spyder/issues/22354) - Provide custom editor widget for given file extension via plugin ([PR 22564](https://github.com/spyder-ide/spyder/pull/22564) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 21197](https://github.com/spyder-ide/spyder/issues/21197) - Minimum size of empty pane is fairly big ([PR 24181](https://github.com/spyder-ide/spyder/pull/24181) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 7794](https://github.com/spyder-ide/spyder/issues/7794) - Allow plugins to hook into File > Open ([PR 22564](https://github.com/spyder-ide/spyder/pull/22564) by [@jitseniesen](https://github.com/jitseniesen))
 
-#### SpyderPluginV2 
+In this release 6 issues were closed.
 
-* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
-* Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
+### Pull Requests Merged
+
+* [PR 24276](https://github.com/spyder-ide/spyder/pull/24276) - PR: Add new features and improvements for 6.1.0 to our Changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24257](https://github.com/spyder-ide/spyder/pull/24257) - PR: Follow-up to removing `CONF` from `mouse_shortcuts` (Editor), by [@athompson673](https://github.com/athompson673)
+* [PR 24250](https://github.com/spyder-ide/spyder/pull/24250) - PR: Remove `CONF` usage in `MouseShortcutEditor` (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24223](https://github.com/spyder-ide/spyder/pull/24223) - PR: Add multicursor paste behavior configuration to Preferences (Editor), by [@athompson673](https://github.com/athompson673) ([23691](https://github.com/spyder-ide/spyder/issues/23691))
+* [PR 24213](https://github.com/spyder-ide/spyder/pull/24213) - PR: Update `python-lsp-server` and `qtconsole` subrepos, by [@mrclary](https://github.com/mrclary)
+* [PR 24204](https://github.com/spyder-ide/spyder/pull/24204) - PR: Fix several issues in the Layout plugin, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24194](https://github.com/spyder-ide/spyder/pull/24194) - PR: Add option to show/hide file name toolbar (Editor), by [@jsbautista](https://github.com/jsbautista) ([23607](https://github.com/spyder-ide/spyder/issues/23607))
+* [PR 24181](https://github.com/spyder-ide/spyder/pull/24181) - PR: Add API to display an empty message in any dockable plugin (API), by [@ccordoba12](https://github.com/ccordoba12) ([21197](https://github.com/spyder-ide/spyder/issues/21197))
+* [PR 24144](https://github.com/spyder-ide/spyder/pull/24144) - PR: Use `spyder-updater` to handle updates (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 24131](https://github.com/spyder-ide/spyder/pull/24131) - PR: Use checksum to verify downloaded asset for updating Spyder (Update manager), by [@mrclary](https://github.com/mrclary)
+* [PR 24014](https://github.com/spyder-ide/spyder/pull/24014) - PR: Return an iterable from `ls` method of `SpyderRemoteFileServicesAPI` (Remote client), by [@hlouzada](https://github.com/hlouzada)
+* [PR 23732](https://github.com/spyder-ide/spyder/pull/23732) - PR: Fixes to make the app work with PySide6, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 23720](https://github.com/spyder-ide/spyder/pull/23720) - PR: Refactor Remote Client kernel management, by [@hlouzada](https://github.com/hlouzada)
+* [PR 23463](https://github.com/spyder-ide/spyder/pull/23463) - PR: Make `CodeEditor` mouse shortcuts configurable (Editor), by [@athompson673](https://github.com/athompson673) ([23951](https://github.com/spyder-ide/spyder/issues/23951))
+* [PR 23287](https://github.com/spyder-ide/spyder/pull/23287) - PR: Refactor how the installers are built, by [@mrclary](https://github.com/mrclary)
+* [PR 22564](https://github.com/spyder-ide/spyder/pull/22564) - PR: Allow plugins to hook into file actions (API), by [@jitseniesen](https://github.com/jitseniesen) ([7794](https://github.com/spyder-ide/spyder/issues/7794), [22354](https://github.com/spyder-ide/spyder/issues/22354))
+
+In this release 16 pull requests were closed.
 
 ----
 
