@@ -9,13 +9,19 @@ Tests for projectdialog.py
 """
 
 # Standard library imports
+from contextlib import contextmanager
 import os
+import subprocess
 
 # Third party imports
 import pytest
 
 # Local imports
-from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
+from spyder.config.base import running_in_ci
+from spyder.plugins.projects.widgets.projectdialog import (
+    is_writable,
+    ProjectDialog,
+)
 
 
 @pytest.fixture
@@ -96,6 +102,47 @@ def test_directory_validations(projects_dialog, tmp_path, qtbot):
         page._validation_label.text()
         == "This directory is already a Spyder project."
     )
+
+
+def test_directory_is_writable(tmp_path):
+    """Test if we can correctly detect of a directory is writable."""
+    read_only_dir = tmp_path / "read_only_dir"
+    read_only_dir.mkdir()
+
+    # Make the directory read-only.
+    if os.name == "nt":
+        # From https://stackoverflow.com/a/66130551
+        @contextmanager
+        def set_access_right(path, access):
+            def cmd(access_right):
+                return [
+                    "icacls",
+                    str(path),
+                    "/inheritance:r",
+                    "/grant:r",
+                    f"Everyone:{access_right}",
+                ]
+
+            try:
+                subprocess.check_output(cmd(access))
+                yield path
+            finally:
+                subprocess.check_output(cmd("F")) # F -> full access again
+
+        # This doesn't work on CIs but passes locally
+        if not running_in_ci():
+            with set_access_right(read_only_dir, "R") as path: # R -> Read-only
+                assert not is_writable(str(path))
+
+        # Also check that is_writable can deal with UNC paths.
+        assert not is_writable("\\Users")
+    else:
+        # From https://stackoverflow.com/a/70933772
+        read_only_dir.chmod(0o444)
+        assert not is_writable(str(read_only_dir))
+
+        # Make it read-write again to delete it
+        read_only_dir.chmod(0o644)
 
 
 if __name__ == "__main__":

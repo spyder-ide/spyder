@@ -9,10 +9,9 @@
 
 # Standard library imports
 from __future__ import annotations
-import errno
+import os
 import os.path as osp
 import sys
-import tempfile
 from typing import TypedDict
 
 # Third party imports
@@ -41,13 +40,20 @@ from spyder.widgets.helperwidgets import MessageLabel
 # ---- Auxiliary functions and classes
 # =============================================================================
 def is_writable(path):
-    """Check if path has write access"""
+    """
+    Check if path has write access.
+
+    Solution taken from https://stackoverflow.com/a/11170037
+    """
+    filepath = osp.join(path, "__spyder_write_test__.txt")
+
     try:
-        testfile = tempfile.TemporaryFile(dir=path)
-        testfile.close()
-    except OSError as e:
-        if e.errno == errno.EACCES:  # 13
-            return False
+        filehandle = open(filepath, 'w')
+        filehandle.close()
+        os.remove(filepath)
+    except (FileNotFoundError, PermissionError):
+        return False
+
     return True
 
 
