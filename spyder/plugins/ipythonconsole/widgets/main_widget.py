@@ -32,6 +32,7 @@ from superqt.utils import qdebounced
 from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -62,6 +63,7 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
 from spyder.plugins.remoteclient.api import RemoteClientActions
 from spyder.utils import encoding, sourcecode
+from spyder.utils.environ import get_user_environment_variables
 from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
@@ -1732,10 +1734,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     @Slot(bool, str, str)
     @Slot(bool, bool)
     @Slot(bool, str, bool)
-    def create_new_client(self, give_focus=True, filename='', special=None,
-                          given_name=None, cache=True, initial_cwd=None,
-                          path_to_custom_interpreter=None):
-        """Create a new client"""
+    def create_new_client(
+        self, give_focus=True, filename='', special=None,
+        given_name=None, cache=True, initial_cwd=None,
+        path_to_custom_interpreter=None
+    ):
+        """
+        Create a new client.
+
+        Uses asynchronous get_user_environment_variables and connects to kernel
+        upon future completion.
+        """
         self.master_clients += 1
         client_id = dict(int_id=str(self.master_clients),
                          str_id='A')
@@ -1759,16 +1768,32 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             special_kernel=special
         )
 
+        cnctk_partial = functools.partial(
+            self._connect_new_client_to_kernel,
+            cache,
+            path_to_custom_interpreter,
+            client
+        )
+        future = get_user_environment_variables()
+        future.connect(AsyncDispatcher.QtSlot(cnctk_partial))
+
         # Add client to widget
         self.add_tab(
             client, name=client.get_name(), filename=filename,
             give_focus=give_focus)
 
+        return client
+
+    def _connect_new_client_to_kernel(
+        self, cache, path_to_custom_interpreter, client, future
+    ):
+        """Connect kernel to client after environment variables are obtained"""
         try:
             # Create new kernel
             kernel_spec = SpyderKernelSpec(
                 path_to_custom_interpreter=path_to_custom_interpreter
             )
+            kernel_spec.env = future.result()
             kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
         except Exception as e:
             client.show_kernel_error(e)
@@ -1776,7 +1801,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Connect kernel to client
         client.connect_kernel(kernel_handler)
-        return client
 
     def create_client_for_kernel(
         self,
@@ -2387,7 +2411,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def run_script(self, filename, wdir, args, post_mortem, current_client,
                    clear_variables, console_namespace, method=None):
         """Run script in current or dedicated client."""
-        norm = lambda text: remove_backslashes(str(text))
+        def norm(text):
+            return remove_backslashes(str(text))
 
         # Run Cython files in a dedicated console
         is_cython = osp.splitext(filename)[1] == '.pyx'
