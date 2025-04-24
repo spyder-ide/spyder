@@ -778,10 +778,17 @@ class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         """Actions to take when widget is resized."""
         # Hide/show image label when necessary
         if self._image_label is not None:
-            # We need to do this validation because sometimes minimumSizeHint
-            # doesn't give the right min_height in showEvent (e.g. when adding
-            # an _ErroredMessageWidget to plugins that are not visible).
-            if self._min_height < self.minimumSizeHint().height():
+            if (
+                # This is necessary to prevent and error when the widget hasn't
+                # been made visible yet.
+                # Fixes spyder-ide/spyder#24280
+                self._min_height is None
+                # We need to do this validation because sometimes
+                # minimumSizeHint doesn't give the right min_height in
+                # showEvent (e.g. when adding an _ErroredMessageWidget to
+                # plugins that are not visible).
+                or self._min_height < self.minimumSizeHint().height()
+            ):
                 self._min_height = self.minimumSizeHint().height()
 
             if self.height() <= self._min_height:
