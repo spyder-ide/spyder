@@ -27,10 +27,11 @@ import psutil
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.config.base import _, running_in_ci, get_conf_path
-from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
+from spyder.widgets.collectionseditor import CollectionsEditor
 
 logger = logging.getLogger(__name__)
 
@@ -86,14 +87,15 @@ def listdict2envdict(listdict):
     return listdict
 
 
-def get_user_environment_variables():
+@AsyncDispatcher(loop="get_user_env")
+async def get_user_environment_variables() -> dict:
     """
     Get user environment variables from a subprocess.
 
     Returns
     -------
     env_var : dict
-        Key-value pairs of environment variables.
+        Key-value pairs of environment variables. All values are strings.
     """
     env_var = {}
 
@@ -117,7 +119,7 @@ def get_user_environment_variables():
                 proc = run_shell_command(user_env_script, env={}, text=True)
 
                 # Use timeout to fix spyder-ide/spyder#21172
-                stdout, stderr = proc.communicate(timeout=3)
+                stdout, stderr = proc.communicate(timeout=10)
 
                 if stderr:
                     logger.info(stderr.strip())
@@ -132,9 +134,17 @@ def get_user_environment_variables():
     return env_var
 
 
-def get_user_env():
-    """Return current user environment variables with parsed values"""
-    env_dict = get_user_environment_variables()
+def get_user_env() -> dict:
+    """
+    Return current user environment variables with parsed values.
+    Note that this function invokes a blocking call to a DispatchFuture.
+
+    Returns
+    -------
+    env : dict
+        Dictionary where item value may be list of strings.
+    """
+    env_dict = get_user_environment_variables().result()
     return envdict2listdict(env_dict)
 
 
@@ -232,19 +242,34 @@ def clean_env(env_vars):
 class RemoteEnvDialog(CollectionsEditor):
     """Remote process environment variables dialog."""
 
-    def __init__(self, environ, parent=None,
+    def __init__(self, environ=None, parent=None,
                  title=_("Environment variables"), readonly=True):
         super().__init__(parent)
+        self.setup(
+            {},  # Initially empty while waiting for data
+            title=title,
+            readonly=readonly,
+            icon=ima.icon('environ')
+        )
+
+        if environ is None:
+            # Get system environment variables
+            future = get_user_environment_variables()
+            future.connect(self.set_data_from_future)
+        else:
+            self.set_data(environ)
+
+    @AsyncDispatcher.QtSlot
+    def set_data_from_future(self, future):
+        self.set_data(future.result())
+
+    def set_data(self, data):
         try:
-            self.setup(
-                envdict2listdict(environ),
-                title=title,
-                readonly=readonly,
-                icon=ima.icon('environ')
-            )
+            data = envdict2listdict(data)
+            self.widget.set_data(data)
         except Exception as e:
             QMessageBox.warning(
-                parent,
+                self.parent(),
                 _("Warning"),
                 _("An error occurred while trying to show your "
                   "environment variables. The error was<br><br>"
@@ -269,8 +294,7 @@ class UserEnvDialog(RemoteEnvDialog):
         if os.name == 'nt':
             title = _(r"User environment variables in Windows registry")
             readonly = False
-
-        super().__init__(get_user_env(), parent, title, readonly)
+        super().__init__(parent=parent, title=title, readonly=readonly)
 
         if os.name == 'nt':
             if parent is None:
@@ -307,4 +331,7 @@ def test():
 
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig()
+    logger.setLevel(10)
     test()
