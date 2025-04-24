@@ -22,11 +22,15 @@ from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QVBoxLayout, QLabel)
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
-from spyder.utils.environ import get_user_env, set_user_env
+from spyder.utils.environ import (
+    get_user_environment_variables, get_user_env, set_user_env,
+    envdict2listdict
+)
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
     AppStyle,
@@ -181,7 +185,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             PathManagerToolbuttons.ImportPaths,
             tip=_('Import from PYTHONPATH environment variable'),
             icon=self.create_icon('fileimport'),
-            triggered=lambda x: self.import_pythonpath())
+            triggered=self.import_pythonpath)
         self.export_button = self.create_toolbutton(
             PathManagerToolbuttons.ExportPaths,
             icon=self.create_icon('fileexport'),
@@ -507,10 +511,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         if self.prioritize_button.isChecked():
             self.prioritize_button.setIcon(self.create_icon('prepend'))
-            self.prioritize_button.setToolTip(_("Paths are prepended to sys.path"))
+            self.prioritize_button.setToolTip(
+                _("Paths are prepended to sys.path")
+            )
         else:
             self.prioritize_button.setIcon(self.create_icon('append'))
-            self.prioritize_button.setToolTip(_("Paths are appended to sys.path"))
+            self.prioritize_button.setToolTip(
+                _("Paths are appended to sys.path")
+            )
 
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
@@ -628,9 +636,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     @Slot()
     def import_pythonpath(self):
+        future = get_user_environment_variables()
+        future.connect(self._import_pythonpath)
+
+    @AsyncDispatcher.QtSlot
+    def _import_pythonpath(self, future):
         """Import PYTHONPATH from environment."""
         current_system_paths = self.get_system_paths()
-        system_paths = get_system_pythonpath()
+        system_paths = get_system_pythonpath(future.result())
 
         # Inherit active state from current system paths
         system_paths = OrderedDict(
