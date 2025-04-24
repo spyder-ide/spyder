@@ -206,25 +206,23 @@ def test_filtering_with_large_rows(namespacebrowser, qtbot):
 def test_namespacebrowser_plot_with_mute_inline_plotting_true(
         namespacebrowser, qtbot):
     """
-    Test that plotting a list from the namespace browser sends a signal
+    Test that plotting from the namespace browser sends a signal
     with the plot if `mute_inline_plotting` is set to `True`.
     """
     namespacebrowser.set_conf('mute_inline_plotting', True, section='plots')
     namespacebrowser.plots_plugin_enabled = True
-    my_list = [4, 2]
     mock_figure = Mock()
-    mock_axis = Mock()
+    mock_plot_function = Mock()
     mock_png = b'fake png'
 
-    with patch('spyder.pyplot.subplots',
-               return_value=(mock_figure, mock_axis)), \
+    with patch('spyder.pyplot.figure', return_value=mock_figure), \
          patch('IPython.core.pylabtools.print_figure',
                return_value=mock_png) as mock_print_figure, \
          qtbot.waitSignal(namespacebrowser.sig_show_figure_requested) \
              as blocker:
-        namespacebrowser.plot(my_list, 'plot')
+        namespacebrowser.plot(mock_plot_function)
 
-    mock_axis.plot.assert_called_once_with(my_list)
+    mock_plot_function.assert_called_once_with(mock_figure)
     mock_print_figure.assert_called_once_with(
         mock_figure, fmt='png', bbox_inches='tight', dpi=144)
     expected_args = [mock_png, 'image/png', namespacebrowser.shellwidget]
@@ -236,7 +234,7 @@ def test_namespacebrowser_plot_options(namespacebrowser):
     Test that font.size and figure.subplot.bottom in matplotlib.rcParams are
     set to the values from the Spyder preferences when plotting.
     """
-    def check_rc(*args):
+    def plot_function(figure):
         from matplotlib import rcParams
         assert rcParams['font.size'] == 20.5
         assert rcParams['figure.subplot.bottom'] == 0.314
@@ -251,15 +249,12 @@ def test_namespacebrowser_plot_options(namespacebrowser):
     )
 
     mock_figure = Mock()
-    mock_axis = Mock()
     mock_png = b'fake png'
 
-    with patch('spyder.pyplot.subplots',
-               return_value=(mock_figure, mock_axis)), \
+    with patch('spyder.pyplot.figure', return_value=mock_figure), \
          patch('IPython.core.pylabtools.print_figure',
-               return_value=mock_png), \
-         patch.object(mock_axis, 'plot', check_rc):
-        namespacebrowser.plot([4, 2], 'plot')
+               return_value=mock_png):
+        namespacebrowser.plot(plot_function)
 
 
 def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser):
@@ -268,16 +263,14 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser)
     `mute_inline_plotting` is set to `False`.
     """
     namespacebrowser.set_conf('mute_inline_plotting', False, section='plots')
-    my_list = [4, 2]
+    mock_plot_function = Mock()
 
-    with patch('spyder.pyplot.figure') as mock_figure, \
-         patch('spyder.pyplot.plot') as mock_plot, \
-         patch('spyder.pyplot.show') as mock_show:
-        namespacebrowser.plot(my_list, 'plot')
+    with patch('spyder.pyplot.figure') as mock_figure:
+        namespacebrowser.plot(mock_plot_function)
 
     mock_figure.assert_called_once_with()
-    mock_plot.assert_called_once_with(my_list)
-    mock_show.assert_called_once_with()
+    mock_plot_function.assert_called_once_with(mock_figure())
+    mock_figure().show.assert_called_once()
 
 
 if __name__ == "__main__":

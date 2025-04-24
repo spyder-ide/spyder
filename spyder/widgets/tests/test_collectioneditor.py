@@ -1110,7 +1110,8 @@ def test_dicts_natural_sorting_mixed_types():
 def test_collectioneditor_plot(qtbot):
     """
     Test that plotting a list from the collection editor calls the .plot()
-    function in the associated namespace browser.
+    function in the associated namespace browser and that the executing
+    `plot_function` plots the list.
     """
     my_list = [4, 2]
     mock_namespacebrowser = Mock()
@@ -1119,7 +1120,13 @@ def test_collectioneditor_plot(qtbot):
     qtbot.addWidget(cew)
 
     cew.editor.plot('list', 'plot')
-    mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
+    mock_namespacebrowser.plot.assert_called_once()
+
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    mock_figure = Mock()
+    plot_function(mock_figure)
+
+    mock_figure.subplots.return_value.plot.assert_called_once_with(my_list)
 
 
 def test_collectionseditor_select_row_button(qtbot):
