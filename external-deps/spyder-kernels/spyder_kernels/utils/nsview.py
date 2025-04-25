@@ -321,7 +321,7 @@ def value_to_display(value, minmax=False, level=0):
     """Convert value for display purpose"""
     # To save current Numpy printoptions
     np_printoptions = FakeObject
-    numeric_numpy_types = get_numeric_numpy_types()
+    printable_numpy_types = get_numeric_numpy_types() + (np.str_,)
 
     try:
         if np.ndarray is not FakeObject:
@@ -344,11 +344,11 @@ def value_to_display(value, minmax=False, level=0):
                     try:
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                     except (TypeError, ValueError):
-                        if value.dtype.type in numeric_numpy_types:
+                        if value.dtype.type in printable_numpy_types:
                             display = str(value)
                         else:
                             display = default_display(value)
-                elif value.dtype.type in numeric_numpy_types:
+                elif value.dtype.type in printable_numpy_types:
                     display = str(value)
                 else:
                     display = default_display(value)
@@ -410,7 +410,7 @@ def value_to_display(value, minmax=False, level=0):
             display = str(value)
         elif (isinstance(value, (int, float, complex)) or
               isinstance(value, bool) or
-              isinstance(value, numeric_numpy_types)):
+              isinstance(value, printable_numpy_types)):
             display = repr(value)
         else:
             if level == 0:
