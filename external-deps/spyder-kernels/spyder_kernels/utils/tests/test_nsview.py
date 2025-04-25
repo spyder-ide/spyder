@@ -284,6 +284,12 @@ def test_str_in_container_display():
     assert value_to_display([b'a', u'b']) == "['a', 'b']"
 
 
+def test_string_array_display():
+    """Test that an array of strings is displayed correctly."""
+    arr = np.array(['a', 'b'])
+    assert value_to_display(arr) == "['a' 'b']"
+
+
 def test_ellipses(tmpdir):
     """
     Test that we're adding a binary ellipses when value_to_display of
