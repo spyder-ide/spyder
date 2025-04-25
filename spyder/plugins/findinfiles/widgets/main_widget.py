@@ -181,6 +181,9 @@ class FindInFilesWidget(PluginMainWidget):
             MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )        
         
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
         self.search_text_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.search_in_label = QLabel(_('Search in:'))
@@ -437,6 +440,9 @@ class FindInFilesWidget(PluginMainWidget):
         """Adjustments when the widget is resized."""
         super().resizeEvent(event)
 
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
         self.search_text_edit.setMaximumWidth(self.width())
 
         # This recomputes the result items width according to this widget's

@@ -264,15 +264,15 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         self.set_title(title + text)
 
     def set_title(self, title):
+        # Prevent the title's width to be bigger than the widget's one.
         metrics = QFontMetrics(self.font)
-        searchTextWidth = len(title)* metrics.width('W')
-        maxWidth = self.width()
-        if searchTextWidth >= maxWidth:
-            elided_title = metrics.elidedText(
-                title, Qt.ElideMiddle, maxWidth
-            )
+        search_text_width = len(title) * metrics.width('W')
+        max_width = self.width()
+        if search_text_width >= max_width:
+            elided_title = metrics.elidedText(title, Qt.ElideMiddle, max_width)
         else:
             elided_title = title
+
         self.setHeaderLabels([elided_title])
 
     @Slot(object)

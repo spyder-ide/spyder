@@ -163,8 +163,15 @@ class BaseComboBox(SpyderComboBox):
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
 
-    def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True, id_=None, items_elide_mode=None):
+    def __init__(
+        self,
+        parent,
+        items=None,
+        tip=None,
+        adjust_to_minimum=True,
+        id_=None,
+        items_elide_mode=None,
+    ):
         if not PYSIDE2:
             super().__init__(parent)
         else:
