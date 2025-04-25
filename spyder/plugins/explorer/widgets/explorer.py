@@ -844,9 +844,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         # Needed to handle not initialized menu.
         # See spyder-ide/spyder#6975
         try:
-            fnames = self.get_selected_filenames()
-            if len(fnames) != 0:
-                self.context_menu.popup(event.globalPos())
+            self.context_menu.popup(event.globalPos())
         except AttributeError:
             pass
 
@@ -979,6 +977,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         """Return filename associated with *index*"""
         if index:
             return osp.normpath(str(self.fsmodel.filePath(index)))
+        else:
+            return osp.normpath(str(self.fsmodel.rootPath()))
 
     def get_index(self, filename):
         """Return index associated with filename"""
@@ -995,6 +995,9 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 fnames = [self.get_filename(idx) for idx in
                           self.selectionModel().selectedRows()]
         else:
+            fnames = [self.get_filename(self.currentIndex())]
+
+        if fnames == []:
             fnames = [self.get_filename(self.currentIndex())]
 
         return fnames
