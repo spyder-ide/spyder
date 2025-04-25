@@ -222,7 +222,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             self.sig_editor_shown.emit()
             return None
         # CollectionsEditor for a list, tuple, dict, etc.
-        elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
+        elif (
+            isinstance(value, (list, set, frozenset, tuple, dict))
+            and not object_explorer
+        ):
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
                 parent=parent,
@@ -688,7 +691,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                     or not is_known_type(value))
 
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)):
+        if isinstance(value, (list, set, frozenset, tuple, dict)):
             from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(
                 parent=parent,

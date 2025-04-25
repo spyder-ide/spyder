@@ -354,6 +354,17 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
+def test_shows_collectioneditor_when_editing_frozenset():
+    fs = frozenset('Spyder')
+    editor = CollectionsEditorTableView(None, {'fs': fs})
+    name_to_patch = 'spyder.widgets.collectionseditor.CollectionsEditor'
+    with patch(name_to_patch) as MockCollectionsEditor:
+        editor.delegate.createEditor(
+            None, None, editor.model().index(0, 3)
+        )
+    MockCollectionsEditor.return_value.show.assert_called_once_with()
+
+
 def test_sort_numpy_numeric_collectionsmodel():
     if parse(numpy.__version__) >= parse("2.0.0"):
         np20 = True
