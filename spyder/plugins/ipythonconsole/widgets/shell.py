@@ -262,20 +262,20 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 request_id, handler
             )
 
-        if first_connect:
-            # Let plugins know that a new kernel is connected
-            self.sig_shellwidget_created.emit(self)
-        else:
-            # Set _starting to False to avoid reset at first prompt
-            self._starting = False
-
         # Connect signals
         kernel_handler.sig_kernel_is_ready.connect(
             self.handle_kernel_is_ready)
         kernel_handler.sig_kernel_connection_error.connect(
             self.handle_kernel_connection_error)
 
-        kernel_handler.connect_()
+        kernel_handler.connect_()  # May emit sig_kernel_is_ready
+
+        if first_connect:
+            # Let plugins know that a new kernel is connected
+            self.sig_shellwidget_created.emit(self)
+        else:
+            # Set _starting to False to avoid reset at first prompt
+            self._starting = False
 
     def disconnect_kernel(self, shutdown_kernel=True, will_reconnect=True):
         """
@@ -321,10 +321,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
-        if (
-            self.kernel_handler.connection_state ==
-            KernelConnectionState.SpyderKernelReady
-        ):
+        if self.spyder_kernel_ready:
             self.setup_spyder_kernel()
             self._show_banner()
 
