@@ -38,7 +38,7 @@ def test_get_user_environment_variables():
     """Test get_user_environment_variables function"""
     # All platforms should have a path environment variable, but
     # Windows may have mixed case.
-    keys = {k.lower() for k in get_user_environment_variables()}
+    keys = {k.lower() for k in get_user_environment_variables().result()}
     assert "path" in keys or "shlvl" in keys
 
 
@@ -50,7 +50,7 @@ def test_get_user_env_newline(restore_user_env):
     """
     text = "myfunc() {  echo hello;\n echo world\n}\nexport -f myfunc"
     amend_user_shell_init(text)
-    user_env = get_user_environment_variables()
+    user_env = get_user_environment_variables().result()
 
     assert user_env['BASH_FUNC_myfunc%%'] in text
 
@@ -59,6 +59,9 @@ def test_environ(environ_dialog, qtbot):
     """Test the environment variables dialog."""
     environ_dialog.show()
     assert environ_dialog
+
+    # Wait for data to arrive
+    qtbot.waitUntil(lambda: not environ_dialog.get_value() == {})
 
     # All platforms should have a path environment variable, but
     # Windows may have mixed case.
