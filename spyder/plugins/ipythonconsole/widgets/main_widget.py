@@ -2411,93 +2411,49 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     def run_script(self, filename, wdir, args, post_mortem, current_client,
                    clear_variables, console_namespace, method=None):
         """Run script in current or dedicated client."""
-        def norm(text):
-            return remove_backslashes(str(text))
-
         # Run Cython files in a dedicated console
         is_cython = osp.splitext(filename)[1] == '.pyx'
         if is_cython:
             current_client = False
 
+        if method is None:
+            method = "runfile"
+
         # Select client to execute code on it
         is_new_client = False
+        clear_console = True
         if current_client:
             client = self.get_current_client()
+            clear_console = False
         else:
             client = self.get_client_for_file(filename)
             if client is None:
+                # Create new client before running script
                 client = self.create_client_for_file(
-                    filename, is_cython=is_cython)
-                is_new_client = True
-
-        if client is not None:
-            if method is None:
-                method = "runfile"
-            # If spyder-kernels, use runfile
-            if client.shellwidget.is_spyder_kernel:
-
-                magic_arguments = [norm(filename)]
-                if args:
-                    magic_arguments.append("--args")
-                    magic_arguments.append(norm(args))
-                if wdir:
-                    if wdir == os.path.dirname(filename):
-                        # No working directory for external kernels
-                        # if it has not been explicitly given.
-                        if not client.shellwidget.is_external_kernel:
-                            magic_arguments.append("--wdir")
-                    else:
-                        magic_arguments.append("--wdir")
-                        magic_arguments.append(norm(wdir))
-                if post_mortem:
-                    magic_arguments.append("--post-mortem")
-                if console_namespace:
-                    magic_arguments.append("--current-namespace")
-
-                line = "%{} {}".format(method, shlex.join(magic_arguments))
-
-            elif method in ["runfile", "debugfile"]:
-                # External, non spyder-kernels, use %run
-                magic_arguments = []
-
-                if method == "debugfile":
-                    magic_arguments.append("-d")
-                magic_arguments.append(filename)
-                if args:
-                    magic_arguments.append(norm(args))
-                line = "%run " + shlex.join(magic_arguments)
-            else:
-                client.shellwidget.append_html_message(
-                    _("The console is not running a Spyder-kernel, so it "
-                      "can't execute <b>{}</b>.<br><br>"
-                      "Please use a Spyder-kernel for this.").format(method),
-                    before_prompt=True
+                    filename, is_cython=is_cython
                 )
-                return
+                is_new_client = True
+                clear_console = False
 
-            try:
-                if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
-                elif current_client:
-                    self.execute_code(line, current_client, clear_variables)
-                else:
-                    if is_new_client:
-                        client.shellwidget.silent_execute('%clear')
-                    else:
-                        client.shellwidget.execute('%clear')
-                    client.shellwidget.sig_prompt_ready.connect(
-                        lambda: self.execute_code(
-                            line, current_client, clear_variables,
-                            shellwidget=client.shellwidget
-                        )
-                    )
-            except AttributeError:
-                pass
+        def _rs():
+            # Freeze parameters for use in signal connect
+            self._run_script(
+                filename, wdir, args, post_mortem, clear_variables,
+                console_namespace, method, client, clear_console
+            )
 
+        if is_new_client:
+            # Create new client; wait until kernel is connected before
+            # running the script
+            client.shellwidget.sig_prompt_ready.connect(_rs)
         else:
+            _rs()
+
+    def _run_script(
+        self, filename, wdir, args, post_mortem, clear_variables,
+        console_namespace, method, client, clear_console
+    ):
+        if client is None:
             # XXX: not sure it can really happen
             QMessageBox.warning(
                 self,
@@ -2507,6 +2463,72 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                   ) % osp.basename(filename),
                 QMessageBox.Ok
             )
+            return
+
+        if client.shellwidget._executing:
+            # Don't allow multiple executions when there's
+            # still an execution taking place
+            # Fixes spyder-ide/spyder#7293.
+            return
+
+        # The kernel must be connected before the following condition is
+        # tested. This is why self._run_script must wait for sig_prompt_ready
+        # if a new client was created.
+        if client.shellwidget.is_spyder_kernel:
+            # If spyder-kernels, use runfile
+            magic_arguments = [remove_backslashes(filename)]
+            if args:
+                magic_arguments.append("--args")
+                magic_arguments.append(remove_backslashes(str(args)))
+            if wdir:
+                if wdir == os.path.dirname(filename):
+                    # No working directory for external kernels
+                    # if it has not been explicitly given.
+                    if not client.shellwidget.is_external_kernel:
+                        magic_arguments.append("--wdir")
+                else:
+                    magic_arguments.append("--wdir")
+                    magic_arguments.append(remove_backslashes(wdir))
+            if post_mortem:
+                magic_arguments.append("--post-mortem")
+            if console_namespace:
+                magic_arguments.append("--current-namespace")
+
+            line = "%{} {}".format(method, shlex.join(magic_arguments))
+
+        elif method in ["runfile", "debugfile"]:
+            # External, non spyder-kernels, use %run
+            magic_arguments = []
+
+            if method == "debugfile":
+                magic_arguments.append("-d")
+            magic_arguments.append(filename)
+            if args:
+                magic_arguments.append(remove_backslashes(str(args)))
+            line = "%run " + shlex.join(magic_arguments)
+        else:
+            client.shellwidget.append_html_message(
+                _("The console is not running a Spyder-kernel, so it "
+                  "can't execute <b>{}</b>.<br><br>"
+                  "Please use a Spyder-kernel for this.").format(method),
+                before_prompt=True
+            )
+            return
+
+        def _exec():
+            self.execute_code(
+                line, current_client=False, clear_variables=clear_variables,
+                shellwidget=client.shellwidget
+            )
+
+        try:
+            if clear_console:
+                client.shellwidget.execute('%clear')
+                client.shellwidget.sig_prompt_ready.connect(_exec)
+            else:
+                _exec()
+        except AttributeError:
+            pass
 
     # ---- For working directory and path management
     def save_working_directory(self, dirname):
@@ -2571,6 +2593,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             sw = self.get_current_shellwidget()
         else:
             sw = shellwidget
+
         if sw is not None:
             if not current_client:
                 # Clear console and reset namespace for
@@ -2580,9 +2603,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     sw.sig_prompt_ready.disconnect()
                 except TypeError:
                     pass
-                if clear_variables:
-                    sw.reset_namespace(warning=False)
-            elif current_client and clear_variables:
+
+            if clear_variables:
                 sw.reset_namespace(warning=False)
 
             # Needed to handle an error when kernel_client is none.
@@ -2672,7 +2694,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         if self._remote_consoles_menu is None:
             self._remote_consoles_menu = self.create_menu(
-                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+                RemoteConsolesMenus.RemoteConsoles,
+                _("New console in remote server")
             )
 
         self._remote_consoles_menu.clear_actions()
