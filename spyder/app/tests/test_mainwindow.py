@@ -813,6 +813,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     reason='Fails sometimes on Linux and CIs'
 )
 @pytest.mark.skipif(sys.platform == "darwin", reason="Fails sometimes on Mac")
+@pytest.mark.close_main_window
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1006,6 +1007,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     reason="Fails frequently on Mac and CI",
 )
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1070,13 +1072,13 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('q')
 
     # Try quitting the kernels
-    shell.execute('quit()')
-    python_shell.execute('quit()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
+    with qtbot.waitSignal(python_shell.executed):
+        python_shell.execute('quit()')
 
     # Make sure everything quit properly
-    qtbot.waitUntil(lambda: not km.is_alive())
     assert not km.is_alive()
-    qtbot.waitUntil(lambda: not spykm.is_alive())
     assert not spykm.is_alive()
 
     # Close the channels
