@@ -1200,6 +1200,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
      parse(ipy_release.version) == parse('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # Wait until the window is fully up
@@ -1219,6 +1220,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(1500)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1242,6 +1244,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
