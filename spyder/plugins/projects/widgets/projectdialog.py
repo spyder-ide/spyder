@@ -71,18 +71,25 @@ class ValidationReasons(TypedDict):
 class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
     """Base project page."""
 
-    LOAD_FROM_CONFIG = False
+    # SidebarPage API
     MIN_HEIGHT = 300
     MAX_WIDTH = 430 if MAC else (400 if WIN else 420)
+
+    # SpyderConfigPage API
+    LOAD_FROM_CONFIG = False
+
+    # Own API
+    LOCATION_TEXT = _("Location")
+    LOCATION_TIP = None
 
     def __init__(self, parent):
         super().__init__(parent)
 
         self._location = self.create_browsedir(
-            text=_("Location"),
+            text=self.LOCATION_TEXT,
             option=None,
             alignment=Qt.Vertical,
-            tip=_("Select the location where your project will be created"),
+            tip=self.LOCATION_TIP,
             status_icon=ima.icon("error"),
         )
 
@@ -145,6 +152,10 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         else:
             spyproject_path = osp.join(location, '.spyproject')
             if osp.isdir(spyproject_path):
+                self._location.status_action.setVisible(True)
+                self._location.status_action.setToolTip(
+                    _("You selected a Spyder project")
+                )
                 reasons["spyder_project_exists"] = True
 
         return reasons
@@ -198,6 +209,9 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
 class NewDirectoryPage(BaseProjectPage):
     """New directory project page."""
 
+    LOCATION_TIP = _(
+        "Select the location where the project directory will be created"
+    )
     PROJECTS_DOCS_URL = (
         "https://docs.spyder-ide.org/current/panes/projects.html"
     )
@@ -222,7 +236,7 @@ class NewDirectoryPage(BaseProjectPage):
         docs_reference.setOpenExternalLinks(True)
 
         self._name = self.create_lineedit(
-            text=_("Project name"),
+            text=_("Project directory"),
             option=None,
             tip=_(
                 "A directory with this name will be created in the location "
@@ -270,6 +284,12 @@ class NewDirectoryPage(BaseProjectPage):
 
         reasons = self._validate_location(location, reasons, name)
         if reasons:
+            if reasons.get("location_exists"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("A directory with this name already exists")
+                )
+
             self._validation_label.set_text(
                 self._compose_failed_validation_text(reasons)
             )
@@ -281,6 +301,9 @@ class NewDirectoryPage(BaseProjectPage):
 class ExistingDirectoryPage(BaseProjectPage):
     """Existing directory project page."""
 
+    LOCATION_TEXT = _("Project path")
+    LOCATION_TIP = _("Select the directory to use for the project")
+
     def get_name(self):
         return _("Existing directory")
 
@@ -289,7 +312,7 @@ class ExistingDirectoryPage(BaseProjectPage):
 
     def setup_page(self):
         description = QLabel(
-            _("Associate a project with an existing directory")
+            _("Create a Spyder project in an existing directory")
         )
         description.setWordWrap(True)
         description.setFont(self._description_font)
