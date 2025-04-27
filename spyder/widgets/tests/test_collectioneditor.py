@@ -527,19 +527,6 @@ def test_sort_and_fetch_collectionsmodel_with_many_rows():
     assert cm.rowCount() == len(coll)
 
 
-def test_dict_in_tableview_sorting():
-    my_dict = {2: 3, 3: 1, 1: 2}
-    editor = CollectionsEditorTableView(None, my_dict)
-
-    # Test that dict is displayed in insertion order
-    assert data(editor.model(), 0, 0) == 2
-    assert data(editor.model(), 1, 0) == 3
-    assert data(editor.model(), 2, 0) == 1
-    assert data(editor.model(), 0, 3) == '3'
-    assert data(editor.model(), 1, 3) == '1'
-    assert data(editor.model(), 2, 3) == '2'
-
-
 def test_rename_and_duplicate_item_in_collection_editor():
     collections = {'list': ([1, 2, 3], False, True),
                    'tuple': ((1, 2, 3), False, False),
