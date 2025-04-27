@@ -257,33 +257,29 @@ class RemoteEnvDialog(CollectionsEditor):
                  title=_("Environment variables"), readonly=True):
         super().__init__(parent)
 
-        def setup(data):
-            self.setup(
-                data, title=title, readonly=readonly, icon=ima.icon('environ')
-            )
+        kwargs = dict(title=title, readonly=readonly, icon=ima.icon('environ'))
 
         if environ is None:
-            setup({})  # Initially empty while waiting for data
+            self.setup(
+                {}, **kwargs, loading_img="dependencies",
+                loading_msg=_("Retrieving environment variables...")
+            )
 
             # Get system environment variables
-            self._spin.start()
-            self._spin_widget.show()
             future = get_user_environment_variables()
             future.connect(self._set_data_from_future)
         else:
             try:
-                setup(environ)
+                self.setup(environ, **kwargs)
             except Exception as err:
                 remote_env_dialog_warning(parent, err)
 
     @AsyncDispatcher.QtSlot
     def _set_data_from_future(self, future):
-        self._spin.stop()
-        self._spin_widget.hide()
-
         try:
             self.data_copy = envdict2listdict(future.result())
             self.widget.set_data(self.data_copy)
+            self.stacked_widget.setCurrentWidget(self.widget)
         except Exception as err:
             remote_env_dialog_warning(self.parent(), err)
 

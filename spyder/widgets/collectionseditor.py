@@ -29,10 +29,9 @@ from typing import Any, Callable, Optional
 import warnings
 
 # Third party imports
-import qtawesome as qta
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, QSize, Qt, QTimer,
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer,
     Signal, Slot
 )
 from qtpy.QtGui import QColor, QKeySequence
@@ -44,6 +43,7 @@ from qtpy.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QStackedWidget,
     QTableView,
     QToolButton,
     QVBoxLayout,
@@ -71,6 +71,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     SELECT_ROW_BUTTON_SIZE,
 )
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.widgets.emptymessage import EmptyMessageWidget
 from spyder.widgets.helperwidgets import CustomSortFilterProxy, MessageCheckBox
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
@@ -235,7 +236,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
 
         if (
             coll_filter is not None
-            and not self.remote 
+            and not self.remote
             and isinstance(data, (tuple, list, dict, set, frozenset))
         ):
             data = coll_filter(data)
@@ -1928,7 +1929,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     def get_title(self):
         """Get model title"""
         return self.editor.source_model.title
-    
+
     def close_window(self):
         if self.parent():
             self.parent().reject()
@@ -1937,8 +1938,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None, namespacebrowser=None,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self, parent=None, namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None,
+    ):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1953,9 +1956,13 @@ class CollectionsEditor(BaseDialog):
         self.widget = None
         self.btn_save_and_close = None
         self.btn_close = None
+        self.stacked_widget = None
+        self.loading_pane = None
 
-    def setup(self, data, title='', readonly=False, remote=False,
-              icon=None, parent=None):
+    def setup(
+        self, data, title='', readonly=False, remote=False,
+        icon=None, parent=None, loading_msg=None, loading_img=None
+    ):
         """Setup editor."""
         if isinstance(data, (dict, set, frozenset)):
             # dictionary, set
@@ -2003,23 +2010,30 @@ class CollectionsEditor(BaseDialog):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
-        # Spinner
-        self._spin_widget = qta.IconWidget(parent=self.widget)
-        self._spin = qta.Spin(self._spin_widget, interval=3)
-        spin_icon = qta.icon(
-            "mdi.loading",
-            animation=self._spin
-        )
+        # Create a QStackedWidget
+        self.stacked_widget = QStackedWidget()
 
-        self._spin_widget.setIconSize(QSize(36, 36))
-        self._spin_widget.setIcon(spin_icon)
-        self._spin_widget.move(self.frameGeometry().center())
-        self._spin.stop()
-        self._spin_widget.hide()
+        self.stacked_widget.addWidget(self.widget)
+
+        # Create a loading message
+        if loading_msg and loading_img:
+            self.loading_pane = EmptyMessageWidget(
+                parent=self,
+                icon_filename=loading_img,
+                text=loading_msg,
+                bottom_stretch=1,
+                spinner=True,
+            )
+            self.stacked_widget.addWidget(self.loading_pane)
+
+            # Make sure the loading label is the one shown initially
+            self.stacked_widget.setCurrentWidget(self.loading_pane)
+        else:
+            self.stacked_widget.setCurrentWidget(self.widget)
 
         # CollectionEditor widget layout
         layout = QVBoxLayout()
-        layout.addWidget(self.widget)
+        layout.addWidget(self.stacked_widget)
         layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
         layout.addLayout(btn_layout)
         self.setLayout(layout)
