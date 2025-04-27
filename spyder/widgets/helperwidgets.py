@@ -12,7 +12,7 @@ Helper widgets.
 from __future__ import annotations
 import re
 import textwrap
-from typing import Callable
+from typing import Callable, Dict
 
 # Third party imports
 import qtawesome as qta
@@ -436,9 +436,16 @@ class FinderLineEdit(ClearLineEdit):
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
-    def __init__(self, parent, regex_base=None, key_filter_dict=None):
+    def __init__(
+        self,
+        parent: QWidget,
+        regex_base: str | None = None,
+        key_filter_dict: Dict[Qt.Key, Callable] | None = None,
+        set_min_width: bool = True,
+    ):
         super().__init__(parent)
         self.key_filter_dict = key_filter_dict
+        self._set_min_width = set_min_width
 
         self._combobox = SpyderComboBox(self)
         self._is_shown = False
@@ -467,7 +474,8 @@ class FinderLineEdit(ClearLineEdit):
             self._combobox.hide()
 
             # Only set a min width so it grows with the parent's width.
-            self.setMinimumWidth(AppStyle.FindMinWidth)
+            if self._set_min_width:
+                self.setMinimumWidth(AppStyle.FindMinWidth)
 
             # Set a fixed height so that it looks the same as our comboboxes.
             self.setMinimumHeight(height)
@@ -483,39 +491,53 @@ class FinderWidget(QWidget):
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 
-    def __init__(self, parent, regex_base=None, key_filter_dict=None,
-                 find_on_change=False):
+    def __init__(
+        self,
+        parent: QWidget,
+        regex_base: str | None = None,
+        key_filter_dict: Dict[Qt.Key, Callable] | None = None,
+        find_on_change: bool = False,
+        show_close_button: bool = True,
+        set_min_width: bool = True,
+    ):
         super().__init__(parent)
 
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
             regex_base=regex_base,
-            key_filter_dict=key_filter_dict
+            key_filter_dict=key_filter_dict,
+            set_min_width=set_min_width,
         )
         self.text_finder.sig_find_requested.connect(self.do_find)
         if find_on_change:
             self.text_finder.textChanged.connect(self.do_find)
+            self.text_finder.setPlaceholderText(_("Type to search"))
+        else:
+            self.text_finder.setPlaceholderText(
+                _("Type and press Enter to search")
+            )
         self.text_finder.sig_hide_requested.connect(
             self.sig_hide_finder_requested)
 
-        self.finder_close_button = QToolButton(self)
-        self.finder_close_button.setIcon(ima.icon('DialogCloseButton'))
-        self.finder_close_button.clicked.connect(
-            self.sig_hide_finder_requested)
+        if show_close_button:
+            finder_close_button = QToolButton(self)
+            finder_close_button.setIcon(ima.icon('DialogCloseButton'))
+            finder_close_button.clicked.connect(self.sig_hide_finder_requested)
 
         finder_layout = QHBoxLayout()
-        finder_layout.addWidget(self.finder_close_button)
+        if show_close_button:
+            finder_layout.addWidget(finder_close_button)
         finder_layout.addWidget(self.text_finder)
-        finder_layout.addStretch()
+        if set_min_width:
+            finder_layout.addStretch()
         finder_layout.setContentsMargins(
-            2 * AppStyle.MarginSize,
+            2 * AppStyle.MarginSize if show_close_button else 0,
             AppStyle.MarginSize,
-            2 * AppStyle.MarginSize,
+            0,
             0
         )
         self.setLayout(finder_layout)
-        self.setVisible(False)
 
     def do_find(self):
         """Send text."""
@@ -535,35 +557,36 @@ class FinderWidget(QWidget):
 
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
-    """Custom column filter based on regex."""
+    """Custom row filter based on regex."""
+
+    FUZZY = True
 
     def __init__(self, parent=None):
-        super(CustomSortFilterProxy, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self.pattern = re.compile(r'')
 
     def set_filter(self, text):
         """Set regular expression for filter."""
-        self.pattern = get_search_regex(text)
+        if self.FUZZY:
+            self.pattern = get_search_regex(text, ignore_case=True)
+        else:
+            self.pattern = re.compile(f".*{text}.*", re.IGNORECASE)
+
         if self.pattern and text:
             self._parent.setSortingEnabled(False)
         else:
             self._parent.setSortingEnabled(True)
+
         self.invalidateFilter()
 
     def filterAcceptsRow(self, row_num, parent):
-        """Qt override.
-
-        Reimplemented from base class to allow the use of custom filtering.
         """
-        model = self.sourceModel()
-        name = model.row(row_num).name
-        r = re.search(self.pattern, name)
+        Qt override.
 
-        if r is None:
-            return False
-        else:
-            return True
+        You need to reimplement this to allow the use of custom filtering.
+        """
+        raise NotImplementedError
 
 
 class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
