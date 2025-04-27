@@ -1056,7 +1056,9 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
             self.source_model.reset()
-            self.sortByColumn(0, Qt.AscendingOrder)
+
+            # Sort table using current sort column and order
+            self.setSortingEnabled(True)
 
     def _edit_value(self):
         self.edit(self.__index_clicked)
