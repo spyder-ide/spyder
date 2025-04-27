@@ -246,13 +246,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             self.title += _("Frozenset")
             self._data = list(data)
         elif isinstance(data, dict):
-            try:
-                self.keys = sorted(list(data.keys()), key=natsort)
-            except TypeError:
-                # This is necessary to display dictionaries with mixed
-                # types as keys.
-                # Fixes spyder-ide/spyder#13481
-                self.keys = list(data.keys())
+            self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")

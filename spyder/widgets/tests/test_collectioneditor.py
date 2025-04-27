@@ -302,27 +302,21 @@ def test_create_dataframeeditor_with_correct_format(qtbot):
 
 
 def test_collectionsmodel_with_two_ints():
-    coll = {'x': 1, 'y': 2}
+    coll = {'y': 2, 'x': 1}
     cm = CollectionsModel(MockParent(), coll)
 
     assert cm.rowCount() == 2
     assert cm.columnCount() == 4
-    # dict is unordered, so first row might be x or y
-    assert data(cm, 0, 0) in {'x',
-                              'y'}
-    if data(cm, 0, 0) == 'x':
-        row_with_x = 0
-        row_with_y = 1
-    else:
-        row_with_x = 1
-        row_with_y = 0
-    assert data(cm, row_with_x, 1) == 'int'
-    assert data(cm, row_with_x, 2) == 1
-    assert data(cm, row_with_x, 3) == '1'
-    assert data(cm, row_with_y, 0) == 'y'
-    assert data(cm, row_with_y, 1) == 'int'
-    assert data(cm, row_with_y, 2) == 1
-    assert data(cm, row_with_y, 3) == '2'
+
+    # dict is sorted by insertion order
+    assert data(cm, 0, 0) == 'y'
+    assert data(cm, 0, 1) == 'int'
+    assert data(cm, 0, 2) == 1
+    assert data(cm, 0, 3) == '2'
+    assert data(cm, 1, 0) == 'x'
+    assert data(cm, 1, 1) == 'int'
+    assert data(cm, 1, 2) == 1
+    assert data(cm, 1, 3) == '1'
 
 
 def test_collectionsmodel_with_index():
@@ -531,6 +525,19 @@ def test_sort_and_fetch_collectionsmodel_with_many_rows():
     for _ in range(3):
         cm.fetchMore()
     assert cm.rowCount() == len(coll)
+
+
+def test_dict_in_tableview_sorting():
+    my_dict = {2: 3, 3: 1, 1: 2}
+    editor = CollectionsEditorTableView(None, my_dict)
+
+    # Test that dict is displayed in insertion order
+    assert data(editor.model(), 0, 0) == 2
+    assert data(editor.model(), 1, 0) == 3
+    assert data(editor.model(), 2, 0) == 1
+    assert data(editor.model(), 0, 3) == '3'
+    assert data(editor.model(), 1, 3) == '1'
+    assert data(editor.model(), 2, 3) == '2'
 
 
 def test_rename_and_duplicate_item_in_collection_editor():
