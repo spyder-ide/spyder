@@ -502,9 +502,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         )
 
         # Common actions
-        # TODO: Check if they is a way to move them, if they will need to be
-        # duplicated or if leaving them as they are is okay (widgets will need
-        # to only use the conf value and no trigger method could be registered)
         self.hidden_action = self.create_action(
             DirViewActions.ToggleHiddenFiles,
             text=_("Show hidden files"),

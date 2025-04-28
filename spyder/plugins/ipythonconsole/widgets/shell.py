@@ -568,21 +568,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             Whether to emit a Qt signal that informs other panes in Spyder that
             the current working directory has changed.
         """
-        import inspect
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        logger.info(f"Caller name: {calframe[1][3]}")
-        # if self.ipyclient.hostname is not None:
-        #     # Only sync for local kernels
-        #     return
-
         if dirname is None:
             if not self.get_cwd():
                 return
             dirname = self.get_cwd()
         elif os.name == 'nt' and self.server_id is None:
-            # TODO: Is there a way to check remote server OS?
-            # This only should apply on Windows (local and remote kernels)
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
@@ -696,7 +686,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         * We do it for performance reasons because we call this method when
           switching consoles to update the Working Directory toolbar.
         """
-        # TODO: should an actual call for the kernel cwd be done when no value is available?
         return self._kernel_configuration.get("cwd", '')
 
     def update_state(self, state):

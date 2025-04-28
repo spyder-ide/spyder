@@ -18,6 +18,7 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.plugins.remoteclient.api.modules.base import SpyderRemoteSessionClosed
 from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
 from spyder.utils.icon_manager import ima
 
@@ -160,8 +161,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 pass
         self.extra_files = []
         self.more_files_available = False
+        files = []
         try:
-            files = []
             init_files_display = self.get_conf("init_files_display")
             generator = self.remote_files_manager.ls(path)
             async for file in generator:
@@ -187,6 +188,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         files.append(file)
                 else:
                     break
+
             if len(files) == init_files_display:
                 task = asyncio.create_task(
                     self._get_extra_files(generator, len(files))
@@ -194,9 +196,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.background_files_load.add(task)
                 task.add_done_callback(self.background_files_load.discard)
 
-            return files
         except RemoteOSError as error:
             logger.info(error)
+        except SpyderRemoteSessionClosed:
+            self.remote_files_manager = None
+
+        return files
 
     async def _get_extra_files(self, generator, already_added):
         self.extra_files = []
@@ -411,10 +416,3 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
-
-    def closeEvent(self, event):
-        # TODO: Handle any background task cancellation
-        # for task in self.background_files_load:
-        #     task.cancel()
-
-        super().closeEvent(event)

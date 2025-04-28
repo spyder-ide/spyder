@@ -301,7 +301,7 @@ class Explorer(SpyderDockablePlugin):
         if server_id not in self._file_managers:
             self._file_managers[server_id] = remoteclient.get_file_api(server_id)()
             await self._file_managers[server_id].connect()
-        return self._file_managers[server_id]
+        return self._file_managers.get(server_id, None)
 
     # ---- Public API
     # ------------------------------------------------------------------------

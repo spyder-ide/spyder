@@ -281,8 +281,6 @@ class ExplorerWidget(PluginMainWidget):
         self.treewidget.next_action = self.next_action
         self.treewidget.filter_button = self.filter_button
 
-        # TODO: A `create_new_treewdiget` method should do this for remote the
-        # connections?
         self.remote_treewidget.previous_action = self.previous_action
         self.remote_treewidget.next_action = self.next_action
         self.remote_treewidget.filter_button = self.filter_button
