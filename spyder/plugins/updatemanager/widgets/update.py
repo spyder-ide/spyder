@@ -333,6 +333,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.sig_disable_actions.emit(True)
         self.set_status(UPDATING_UPDATER)
 
+        self.progress_dialog = ProgressDialog(
+            self, _("Updating Spyder's updater..."),
+            cancel_btn=False
+        )
+        # Show progress bar as busy
+        self.progress_dialog.update_progress(0, 0)
+
         self.update_updater_thread = QThread(None)
         self.update_updater_worker = WorkerUpdateUpdater(
             self.get_conf('check_stable_only')
@@ -362,7 +369,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         and set downloading status.
         """
         self.cancelled = False
-        self.progress_dialog = None
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+            self.progress_dialog = None
 
         self.download_worker = WorkerDownloadInstaller(
             self.asset_info, self.installer_path
@@ -399,18 +408,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def show_progress_dialog(self, show=True):
         """Show download progress if previously hidden"""
-        if self.progress_dialog is not None:
-            if show:
-                self.progress_dialog.show()
-            else:
-                self.progress_dialog.hide()
+        if self.progress_dialog is not None and show:
+            self.progress_dialog.show()
 
     def _update_download_progress(self, progress, total):
         """Update download progress in dialog and status bar"""
         if self.progress_dialog is not None:
             self.progress_dialog.update_progress(progress, total)
-            if progress == total:
-                self.progress_dialog.accept()
 
         percent_progress = 0
         if total > 0:
@@ -437,6 +441,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         Ask users if they want to proceed with the install immediately
         or on close.
         """
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+
         if self.cancelled:
             return
 
@@ -602,7 +609,7 @@ class UpdateMessageCheckBox(MessageCheckBox):
 class ProgressDialog(UpdateMessageBox):
     """Update progress installation dialog."""
 
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, cancel_btn=True):
         super().__init__(icon=QMessageBox.NoIcon, text=text, parent=parent)
         self.setWindowTitle(_("Spyder update"))
 
@@ -613,10 +620,11 @@ class ProgressDialog(UpdateMessageBox):
         layout = self.layout()
         layout.addWidget(self._progress_bar, 1, 1)
 
-        self.cancel = QPushButton(_("Cancel"))
         self.okay = QPushButton(_("OK"))
         self.addButton(self.okay, QMessageBox.YesRole)
-        self.addButton(self.cancel, QMessageBox.NoRole)
+        if cancel_btn:
+            self.cancel = QPushButton(_("Cancel"))
+            self.addButton(self.cancel, QMessageBox.NoRole)
         self.setDefaultButton(self.okay)
 
         self.show()
