@@ -1700,8 +1700,12 @@ class CollectionsEditorTableView(BaseTableView):
 
     def plot(self, key, funcname):
         """Plot item"""
-        data = self.source_model.get_data()
-        self.namespacebrowser.plot(data[key], funcname)
+        def plot_function(figure):
+            ax = figure.subplots()
+            getattr(ax, funcname)(data)
+
+        data = self.source_model.get_data()[key]
+        self.namespacebrowser.plot(plot_function)
 
     def imshow(self, key):
         """Show item's image"""

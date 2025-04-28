@@ -275,6 +275,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(
                 parent=parent,
+                namespacebrowser=self.namespacebrowser,
                 data_function=self.make_data_function(index)
             )
             if not editor.setup_and_check(value, title=key):
@@ -728,6 +729,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 and pd.DataFrame is not FakeObject):
             editor = DataFrameEditor(
                 parent=parent,
+                namespacebrowser=self.namespacebrowser,
                 data_function=self.make_data_function(index)
             )
             if not editor.setup_and_check(value, title=key):

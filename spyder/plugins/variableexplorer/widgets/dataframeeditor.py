@@ -33,9 +33,10 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
+from __future__ import annotations
 import io
 from time import perf_counter
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from packaging.version import parse
@@ -45,9 +46,26 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
-    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollBar,
-    QStyle, QTableView, QTableWidget, QToolButton, QVBoxLayout, QWidget)
+    QApplication,
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QItemDelegate,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollBar,
+    QStyle,
+    QTableView,
+    QTableWidget,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -66,6 +84,12 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+        NamespaceBrowser
+    )
+
 
 # =============================================================================
 # ---- Constants
@@ -83,6 +107,7 @@ class DataframeEditorActions:
     Edit = 'edit_action'
     EditHeader = 'edit_header_action'
     EditIndex = 'edit_index_action'
+    Histogram = 'histogram'
     InsertAbove = 'insert_above_action'
     InsertAfter = 'insert_after_action'
     InsertBefore = 'insert_before_action'
@@ -660,8 +685,16 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent, model, header, hscroll, vscroll,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self,
+        parent: Optional[QWidget],
+        model: DataFrameModel,
+        header: QHeaderView,
+        hscroll: QScrollBar,
+        vscroll: QScrollBar,
+        namespacebrowser: Optional[NamespaceBrowser] = None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         """Constructor."""
         QTableView.__init__(self, parent)
 
@@ -682,6 +715,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.convert_to_menu = None
         self.resize_action = None
         self.resize_columns_action = None
+        self.histogram_action = None
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
@@ -699,6 +733,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.header_class.customContextMenuRequested.connect(
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
+        self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
@@ -804,14 +839,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                        self.duplicate_col_action]:
             action.setEnabled(condition_edit)
 
-        # Enable/disable actions for remove col/row and copy
+        # Enable/disable actions for remove col/row, copy and plot
         condition_copy_remove = (
             index.isValid() and
             (len(self.selectedIndexes()) > 0)
         )
 
         for action in [self.copy_action, self.remove_row_action,
-                       self.remove_col_action]:
+                       self.remove_col_action, self.histogram_action]:
             action.setEnabled(condition_copy_remove)
 
     def setup_menu(self):
@@ -904,6 +939,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         )
         self.copy_action.setShortcut(keybinding('Copy'))
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
+        self.histogram_action = self.create_action(
+            name=DataframeEditorActions.Histogram,
+            text=_("Histogram"),
+            tip=_("Plot a histogram of the selected columns"),
+            icon=ima.icon('hist'),
+            triggered=self.plot_hist,
+            register_action=False
+        )
 
         # ---- Create "Convert to" submenu and actions
 
@@ -1002,7 +1045,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             if rows:
                 self.resizeRowsToContents()
                 self.parent().table_index.resizeRowsToContents()
-            else:                
+            else:
                 self.parent().table_index.resizeColumnsToContents()
                 self.parent().resize_to_contents()
 
@@ -1424,6 +1467,20 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             self.model().dataChanged.emit(index, index)
             self.setCurrentIndex(self.model().index(focus_row, focus_col))
 
+    def plot_hist(self) -> None:
+        """
+        Plot histogram of selected columns
+        """
+        def plot_function(figure: Figure) -> None:
+            ax = figure.subplots()
+            model.df.hist(column=col_labels, ax=ax)
+
+        cols = list(index.column() for index in self.selectedIndexes())
+        cols = list(set(cols))  # Remove duplicates
+        model = self.model()
+        col_labels = [model.header(0, col) for col in cols]
+        self.namespacebrowser.plot(plot_function)
+
 
 class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
     """
@@ -1722,10 +1779,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def __init__(
         self,
-        parent: QWidget = None,
+        parent: Optional[QWidget] = None,
+        namespacebrowser: Optional[NamespaceBrowser] = None,
         data_function: Optional[Callable[[], Any]] = None
     ):
         super().__init__(parent)
+        self.namespacebrowser = namespacebrowser
         self.data_function = data_function
 
         self.refresh_action = self.create_action(
@@ -1941,6 +2000,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.dataTable.duplicate_col_action,
             self.dataTable.remove_col_action,
             stretcher,
+            self.dataTable.histogram_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
             self.refresh_action,
@@ -2051,10 +2111,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
-        self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll,
-                                       self.data_function)
+        self.dataTable = DataFrameView(
+            self,
+            self.dataModel,
+            self.table_header.horizontalHeader(),
+            self.hscroll,
+            self.vscroll,
+            self.namespacebrowser,
+            self.data_function
+        )
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

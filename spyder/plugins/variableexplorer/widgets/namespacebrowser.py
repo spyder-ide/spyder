@@ -11,10 +11,12 @@ This is the main widget used in the Variable Explorer plugin
 """
 
 # Standard library imports
+from __future__ import annotations
 import os
 import os.path as osp
 from pickle import UnpicklingError
 import tarfile
+from typing import Callable, TYPE_CHECKING
 
 # Third library imports
 from qtpy import PYSIDE2
@@ -46,6 +48,10 @@ VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 # Max time before giving up when making a blocking call to the kernel
 CALL_KERNEL_TIMEOUT = 30
 
+# Types
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    PlotFunction = Callable(Figure, None)
 
 class NamespaceBrowser(
     QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
@@ -446,9 +452,9 @@ class NamespaceBrowser(
         except (UnpicklingError, RuntimeError, CommError):
             return None
 
-    def plot(self, data, funcname):
+    def plot(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data.
+        Make a plot.
 
         If all the following conditions are met:
         * the Plots plugin is enabled, and
@@ -465,16 +471,16 @@ class NamespaceBrowser(
                 == 'inline'
             )
         ):
-            self.plot_in_plots_plugin(data, funcname)
+            self.plot_in_plots_plugin(plot_function)
         else:
-            self.plot_in_window(data, funcname)
+            self.plot_in_window(plot_function)
 
-    def plot_in_plots_plugin(self, data, funcname):
+    def plot_in_plots_plugin(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data in Plots plugin.
+        Make a plot and display it in the Plots plugin.
 
-        Plot the given data to a PNG or SVG image and show the plot in the
-        Plots plugin.
+        Construct an empty figure, call `plot_function` on it, convert the
+        plot to a PNG or SVG image and show this plot in the Plots plugin.
         """
         import spyder.pyplot as plt
         from IPython.core.pylabtools import print_figure
@@ -513,8 +519,8 @@ class NamespaceBrowser(
         }
 
         with rc_context(matplotlib_rc):
-            fig, ax = plt.subplots(figsize=(width, height))
-            getattr(ax, funcname)(data)
+            fig = plt.figure(figsize=(width, height))
+            plot_function(fig)
             image = print_figure(
                 fig,
                 fmt=figure_format,
@@ -526,12 +532,12 @@ class NamespaceBrowser(
             image = image.encode()
         self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)
 
-    def plot_in_window(self, data, funcname):
+    def plot_in_window(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data in new Qt window.
+        Make a plot and display it in a new Qt window.
         """
         import spyder.pyplot as plt
 
-        plt.figure()
-        getattr(plt, funcname)(data)
-        plt.show()
+        fig = plt.figure()
+        plot_function(fig)
+        fig.show()
