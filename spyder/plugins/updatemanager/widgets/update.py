@@ -11,7 +11,6 @@ import json
 import logging
 import os
 import os.path as osp
-import shutil
 import subprocess
 import sys
 from sysconfig import get_path
@@ -482,36 +481,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _start_major_install(self):
         """Install major update from downloaded installer"""
-        # Install script
-        # Copy to temp location to be safe
-        script_name = 'install.' + ('bat' if os.name == 'nt' else 'sh')
-        script_path = osp.abspath(__file__ + '/../../scripts/' + script_name)
-        tmpscript_path = osp.join(get_temp_dir(), script_name)
-        shutil.copy2(script_path, tmpscript_path)
-
-        # Sub command
-        sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.asset_info["update_type"] != 'major':
-            # Update with conda
-            sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
-
-        if self.asset_info["update_type"] == 'minor':
-            # Rebuild runtime environment
-            sub_cmd.append('-r')
-
-        # Final command assembly
         if os.name == 'nt':
-            cmd = ['start', '"Update Spyder"'] + sub_cmd
+            cmd = ['start', '"Update Spyder"']
         elif sys.platform == 'darwin':
-            # Terminal cannot accept a command with arguments. Creating a
-            # wrapper script pollutes the shell history. Best option is to
-            # use osascript
-            sub_cmd_str = ' '.join(sub_cmd)
-            cmd = [
-                "osascript", "-e",
-                ("""'tell application "Terminal" to do script"""
-                 f""" "unset HISTFILE; {sub_cmd_str}; exit;"'"""),
-            ]
+            cmd = ["open"]
         else:
             programs = [
                 {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
@@ -521,8 +494,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             ]
             for program in programs:
                 if is_program_installed(program['cmd']):
-                    cmd = [program['cmd'], program['exe-opt']] + sub_cmd
+                    cmd = [program['cmd'], program['exe-opt']]
                     break
+        cmd.append(self.installer_path)
 
         logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
