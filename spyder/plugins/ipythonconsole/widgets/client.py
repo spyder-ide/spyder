@@ -51,6 +51,7 @@ from spyder.widgets.mixins import SaveHistoryMixin
 
 if typing.TYPE_CHECKING:
     from spyder.plugins.remoteclient.api.modules import JupyterAPI
+    from spyder.plugins.remoteclient.api.modules.file_services import SpyderRemoteFileServicesAPI
 
 
 # Logging
@@ -116,6 +117,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         forcing_custom_interpreter=False,
         special_kernel=None,
         jupyter_api=None,
+        files_api=None,
         can_close=True,
     ):
         super(ClientWidget, self).__init__(parent)
@@ -129,6 +131,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
         self._jupyter_api: typing.Optional[JupyterAPI] = jupyter_api
+        self._files_api: typing.Optional[SpyderRemoteFileServicesAPI] = files_api
         self.can_close = can_close
 
         # --- Other attrs
@@ -340,8 +343,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if osp.isdir(cwd_path) and not self.shellwidget.is_remote():
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
         else:
-            # TODO: Check handling for remote kernels for now force inital cwd to be `/home`
-            self.shellwidget.set_cwd("/home", emit_cwd_change=True)
+            # Use remote machines files API to get home directory (`~`)
+            # absolute path.
+            self._get_remote_home_directory().connect(
+                self._on_remote_home_directory
+            )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -660,6 +666,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         # Close jupyter api regardless of the kernel state
         if self.is_remote():
             AsyncDispatcher(early_return=False)(self._jupyter_api.close)()
+            AsyncDispatcher(early_return=False)(self._files_api.close)()
 
         # Prevent errors in our tests
         try:
@@ -961,6 +968,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     async def _new_remote_kernel(self):
         await self.jupyter_api.connect()
         return await self._jupyter_api.create_kernel()
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_home_directory(self, future):
+        result = future.result()
+        home_directory = result.get("name", "/")
+        logger.info(f"Retrieved home directory: {home_directory}")
+        self.shellwidget.set_cwd(home_directory, emit_cwd_change=True)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def _get_remote_home_directory(self):
+        await self._files_api.connect()
+        return await self._files_api.info("~")
 
     def restart_remote_kernel(self):
         if self.__remote_restart_requested:

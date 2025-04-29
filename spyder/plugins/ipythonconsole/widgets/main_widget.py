@@ -1777,8 +1777,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         return client
 
     def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, jupyter_api=None, give_focus=False,
-                                 can_close=True):
+                                 password, jupyter_api=None, files_api=None,
+                                 give_focus=False, can_close=True):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1824,6 +1824,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(),
             handlers=self.registered_spyder_kernel_handlers,
             jupyter_api=jupyter_api,
+            files_api=files_api,
             give_focus=give_focus,
             can_close=can_close,
         )
@@ -2604,6 +2605,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     # -------------------------------------------------------------------------
     def create_ipyclient_for_server(self, server_id):
         jupyter_api = self._plugin._remote_client.get_jupyter_api(server_id)
+        files_api = self._plugin._remote_client.get_file_api(server_id)()
         client = self.create_client_for_kernel(
             # The connection file will be supplied when connecting a remote
             # kernel to this client
@@ -2617,6 +2619,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # We save the jupyter_api in the client to perform on it operations
             # related to this plugin.
             jupyter_api=jupyter_api,
+            # We save the files_api in the client to get the remote machine
+            # home directoryabsolute path.
+            files_api=files_api,
             # This is necessary because it takes a while before getting a
             # response from the server with the kernel id that will be
             # associated to this client. So, if users could close it before
