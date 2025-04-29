@@ -15,14 +15,14 @@ from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.widgets.helperwidgets import PaneEmptyWidget
+from spyder.widgets.emptymessage import EmptyMessageWidget
 
 
-class _ErroredMessageWidget(PaneEmptyWidget):
+class _ErroredMessageWidget(EmptyMessageWidget):
     """Widget to show when the kernel's shell failed to start."""
 
     def __init__(self, parent, shellwidget):
-        # Initialize PaneEmptyWidget with the content we want to show for
+        # Initialize EmptyMessageWidget with the content we want to show for
         # errors
         super().__init__(
             parent,
@@ -144,7 +144,7 @@ class ShellConnectMainWidget(PluginMainWidget):
             # stack (because it's the one we need to show since the console is
             # showing an error) nor try to close it (because it makes no
             # sense).
-            if not isinstance(widget, PaneEmptyWidget):
+            if not isinstance(widget, EmptyMessageWidget):
                 self._stack.removeWidget(widget)
                 self.close_widget(widget)
 
