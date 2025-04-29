@@ -150,6 +150,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.progress_dialog = None
         self.installer_path = None
 
+        self.restart_spyder = True
+
     # ---- General
 
     def set_status(self, status=NO_STATUS):
@@ -466,9 +468,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             on_close=True
         )
         if box.result() == QMessageBox.Yes:
+            self.restart_spyder = True
             self.sig_install_on_close.emit(True)
             self.sig_quit_requested.emit()
         elif box.result() == 0:  # 0 is result of 3rd push-button
+            self.restart_spyder = False
             self.sig_install_on_close.emit(True)
             self.set_status(INSTALL_ON_CLOSE)
 
@@ -498,9 +502,26 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                     break
         cmd.append(self.installer_path)
 
+        env = os.environ.copy()
+        if sys.platform == "darwin":
+            # PKG installers will not pass environment variables in the GUI.
+            # To communicate whether to start Spyder, create dummy file.
+            no_start_file = osp.join(
+                osp.dirname(self.installer_path), "no-start-spyder"
+            )
+            if self.restart_spyder and osp.exists(no_start_file):
+                os.remove(no_start_file)
+            if not self.restart_spyder:
+                open(no_start_file, 'w').close()
+        else:
+            # EXE and SH installers will pass environment variables
+            env.update({"START_SPYDER": str(self.restart_spyder)})
+
+        logger.debug(f"Restart Spyder after install: {self.restart_spyder}")
+
         logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
-        subprocess.Popen(' '.join(cmd), shell=True)
+        subprocess.Popen(' '.join(cmd), shell=True, env=env)
 
     def _start_updater(self):
         """Start updater application."""
@@ -553,6 +574,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Launch updater
         cmd = [UPDATER_PATH, "--update-info-file", info_file]
+        if self.restart_spyder:
+            cmd.append("--start-spyder")
         subprocess.Popen(" ".join(cmd), shell=True)
 
 
