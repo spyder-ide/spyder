@@ -173,7 +173,7 @@ class PatternComboBox(BaseComboBox):
         items_elide_mode=None,
     ):
         if not PYSIDE2:
-            super().__init__(parent)
+            super().__init__(parent, items_elide_mode)
         else:
             BaseComboBox.__init__(self, parent, items_elide_mode)
 
