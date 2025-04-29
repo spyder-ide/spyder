@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QFontMetrics, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
@@ -653,7 +653,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
-            shorten_filename = filename[:50] + u'...' + filename[-50:]
+            metrics = QFontMetrics(self.default_font)
+            max_width = 100 * metrics.width('W')
+            elided_filename = metrics.elidedText(
+                filename, Qt.ElideMiddle, max_width)
+            shorten_filename = elided_filename
         else:
             shorten_filename = filename
         self.fname_label.setText(shorten_filename)
