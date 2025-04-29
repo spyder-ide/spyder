@@ -10,6 +10,7 @@ associated widget.
 """
 
 # Standard library imports
+import re
 import sys
 from typing import List, Optional, TypedDict
 
@@ -25,7 +26,11 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
-from spyder.widgets.helperwidgets import HoverRowsTableView, HTMLDelegate
+from spyder.widgets.helperwidgets import (
+    CustomSortFilterProxy,
+    HoverRowsTableView,
+    HTMLDelegate,
+)
 
 
 class Element(TypedDict):
@@ -151,6 +156,73 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         )
 
 
+class SortElementsFilterProxy(CustomSortFilterProxy):
+
+    FUZZY = False
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def filter_row(self, row_num, text=None):
+        # Use the pattern set by set_filter if no text is passed. Otherwise
+        # use `text` as pattern
+        if text is None:
+            pattern = self.pattern
+        else:
+            pattern = re.compile(f".*{text}.*", re.IGNORECASE)
+
+        element = self.sourceModel().elements[row_num]
+
+        # A title is always available
+        r_title = re.search(pattern, element["title"])
+
+        # Description and additional info are optional
+        if element.get("description"):
+            r_description = re.search(pattern, element["description"])
+        else:
+            r_description = None
+
+        if element.get("additional_info"):
+            r_addtional_info = re.search(
+                pattern, element["additional_info"]
+            )
+        else:
+            r_addtional_info = None
+
+        if (
+            r_title is None
+            and r_description is None
+            and r_addtional_info is None
+        ):
+            return False
+        else:
+            return True
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def sourceModel(self) -> ElementsModel:
+        # To get better code completions
+        return super().sourceModel()
+
+    def filterAcceptsRow(self, row_num: int, parent: QModelIndex) -> bool:
+        if self.parent()._with_widgets:
+            # We don't filter rows using this method when the table has widgets
+            # because they are deleted by Qt.
+            return True
+        else:
+            return self.filter_row(row_num)
+
+    def lessThan(self, left: QModelIndex, right: QModelIndex) -> bool:
+        # left and right are indexes from the source model. So this simply
+        # preserves its ordering
+        row_left = left.row()
+        row_right = right.row()
+
+        if row_left > row_right:
+            return True
+        else:
+            return False
+
+
 class ElementsTable(HoverRowsTableView):
 
     def __init__(
@@ -185,7 +257,7 @@ class ElementsTable(HoverRowsTableView):
         if self._highlight_hovered_row:
             self.sig_hover_index_changed.connect(self._on_hover_index_changed)
 
-        # Set model
+        # Set models
         self.model = ElementsModel(
             self,
             self.elements,
@@ -193,7 +265,14 @@ class ElementsTable(HoverRowsTableView):
             self._with_addtional_info,
             self._with_widgets
         )
-        self.setModel(self.model)
+
+        self.proxy_model = SortElementsFilterProxy(self)
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.setFilterKeyColumn(0)
+        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setSortRole(Qt.UserRole)
+        self.setModel(self.proxy_model)
 
         # Adjustments for the title column
         title_delegate = HTMLDelegate(self, margin=9, wrap_text=True)
@@ -248,7 +327,7 @@ class ElementsTable(HoverRowsTableView):
                 self.elements[i]['row_widget'] = container_widget
 
                 self.setIndexWidget(
-                    self.model.index(i, self.model.columns['widgets']),
+                    self.proxy_model.index(i, self.model.columns['widgets']),
                     container_widget
                 )
 
@@ -272,11 +351,30 @@ class ElementsTable(HoverRowsTableView):
         # Set stylesheet
         self._set_stylesheet()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    @qdebounced(timeout=200)
+    def do_find(self, text):
+        if self._with_widgets:
+            # We need to do this when the table has widgets because it seems Qt
+            # deletes all filtered rows, which deletes their widgets too. So,
+            # they are unavailable to be displayed again when the filter is
+            # reset.
+            for i in range(len(self.elements)):
+                filter_row = self.proxy_model.filter_row(i, text)
+                self.setRowHidden(i, not filter_row)
+        else:
+            # This is probably more efficient, so we use it if there are no
+            # widgets
+            self.proxy_model.set_filter(text)
+
+        self._set_layout()
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _on_hover_index_changed(self, index):
         """Actions to take when the index that is hovered has changed."""
-        row = index.row()
+        row = self.proxy_model.mapToSource(index).row()
 
         if row != self._current_row:
             self._current_row = row
