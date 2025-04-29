@@ -653,7 +653,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
-            shorten_filename = u'...' + filename[-100:]
+            shorten_filename = filename[:50] + u'...' + filename[-50:]
         else:
             shorten_filename = filename
         self.fname_label.setText(shorten_filename)

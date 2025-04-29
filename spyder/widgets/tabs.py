@@ -433,7 +433,7 @@ class BaseTabs(QTabWidget):
 
         # Needed to prevent eliding tabs text on MacOS
         # See spyder-ide/spyder#18817
-        self.setElideMode(Qt.ElideNone)
+        self.setElideMode(Qt.ElideMiddle)
         self.tabBar().setObjectName('pane-tabbar')
 
         self.corner_widgets = {}
