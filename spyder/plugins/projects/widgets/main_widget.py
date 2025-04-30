@@ -312,7 +312,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Create new project."""
         self._unmaximize()
 
-        dlg = ProjectDialog(self, project_types=self.get_project_types())
+        dlg = ProjectDialog(self)
         result = dlg.exec_()
         data = dlg.project_data
         root_path = data.get("root_path", None)
@@ -321,7 +321,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         if result:
             logger.debug(f'Creating a project at {root_path}')
             self.create_project(root_path, project_type_id=project_type)
-            dlg.close()
 
     def create_project(self, root_path, project_type_id=EmptyProject.ID):
         """Create a new project."""

@@ -1051,6 +1051,46 @@ class ValidationLineEdit(QLineEdit):
             self.error_action.setToolTip(self._validate_reason)
 
 
+class MessageLabel(QLabel):
+    """Label to report a message to users."""
+
+    def __init__(self, parent):
+        super().__init__("", parent)
+
+        # Set main attributes
+        self.setWordWrap(True)
+        self.setVisible(False)
+
+        # Set style
+        css = qstylizer.style.StyleSheet()
+        css.QLabel.setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
+            # Top margin is set by the layout
+            marginTop="0px",
+            marginRight=f"{9 * AppStyle.MarginSize}px",
+            # We don't need bottom margin because there are no other elements
+            # below this one.
+            marginBottom="0px",
+            # The extra 5px are necessary because we need to add them to all
+            # lineedits in this dialog to align them to the labels on top of
+            # them (see SpyderConfigPage.create_lineedit).
+            marginLeft=f"{9 * AppStyle.MarginSize + 5}px",
+            padding=f"{3 * AppStyle.MarginSize}px {6 * AppStyle.MarginSize}px",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        self.setStyleSheet(css.toString())
+
+    def set_text(self, text: str):
+        n_reasons = 1
+        if "<br>" in text or "\n" in text:
+            # There are two or more reasons in the text.
+            n_reasons = 2
+
+        self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
+        self.setText(text)
+
+
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()  # noqa
