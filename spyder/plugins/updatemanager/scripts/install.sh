@@ -84,7 +84,7 @@ while [[ $(pgrep spyder 2> /dev/null) ]]; do
     sleep 1
 done
 
-echo "Spyder quit."
+echo "Spyder has quit."
 
 if [[ -e "$conda" && -d "$prefix" ]]; then
     update_spyder
