@@ -97,7 +97,7 @@ jobs:
         fi
 
         if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then
-            branch="'master', '6.x'"
+            branch="'master'"
         else
             branch="''"
         fi
