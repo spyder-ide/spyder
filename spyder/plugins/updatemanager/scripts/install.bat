@@ -50,7 +50,7 @@ exit %ERRORLEVEL%
         timeout /t 1 /nobreak > nul
         goto loop
     )
-    echo Spyder is quit.
+    echo Spyder has quit.
     goto :EOF
 
 :update_subroutine
