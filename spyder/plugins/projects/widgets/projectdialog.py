@@ -386,6 +386,7 @@ class ProjectDialog(SidebarDialog):
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
         self.setWindowTitle(_('Create new project'))
+        self.setWindowIcon(ima.icon("project_new"))
 
     def create_buttons(self):
         bbox = SpyderDialogButtonBox(
