@@ -407,10 +407,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.download_thread.started.connect(self.download_worker.start)
         self.download_thread.start()
 
-    def show_progress_dialog(self, show=True):
+    def show_progress_dialog(self):
         """Show download progress if previously hidden"""
-        if self.progress_dialog is not None and show:
-            self.progress_dialog.show()
+        if self.progress_dialog is not None:
+            if not self.progress_dialog.isVisible():
+                self.progress_dialog.show()
+            else:
+                self.progress_dialog.hide()
 
     def _update_download_progress(self, progress, total):
         """Update download progress in dialog and status bar"""
@@ -484,7 +487,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self._start_updater()
 
     def _start_major_install(self):
-        """Install major update from downloaded installer"""
+        """
+        Install major update from downloaded installer.
+
+        Major updates are performed using the installers directly.
+        macOS and Windows installers have GUI interfaces; Linux requires
+        a terminal for the GUI.
+        """
         if os.name == 'nt':
             cmd = ['start', '"Update Spyder"']
         elif sys.platform == 'darwin':
@@ -500,6 +509,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 if is_program_installed(program['cmd']):
                     cmd = [program['cmd'], program['exe-opt']]
                     break
+
         cmd.append(self.installer_path)
 
         env = os.environ.copy()
@@ -524,7 +534,12 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         subprocess.Popen(' '.join(cmd), shell=True, env=env)
 
     def _start_updater(self):
-        """Start updater application."""
+        """
+        Start updater application.
+        
+        For minor/micro updates, Spyder Updater provides the GUI showing
+        progress for updating the runtime environment.
+        """
         if self.get_conf('high_dpi_custom_scale_factor', section='main'):
             scale_factors = self.get_conf(
                 'high_dpi_custom_scale_factors',
