@@ -576,7 +576,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
             dirname = osp.normpath(dirname)
-        logger.info(f"Attempt to change cwd: {dirname}")
+        logger.debug(f"Attempt to change cwd to {dirname}")
         self.set_kernel_configuration("cwd", dirname)
 
         if emit_cwd_change:

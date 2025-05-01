@@ -358,7 +358,7 @@ class ExplorerWidget(PluginMainWidget):
             self.stackwidget.setCurrentWidget(self.treewidget)
         else:
             self.start_spinner()
-            logger.info(f"Request ls for {server_id} at {directory}")
+            logger.debug(f"Request ls for {server_id} at {directory}")
 
             @AsyncDispatcher.QtSlot
             def remote_ls(future):

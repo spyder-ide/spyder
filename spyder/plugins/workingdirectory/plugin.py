@@ -181,10 +181,8 @@ class WorkingDirectory(SpyderPluginV2):
         if container.server_id != server_id:
             # Remove previous paths history in case we are changing not only cwd
             # but also `server_id` while saving the history for local paths
-            logger.info(f"Clearing path combobox: {container.server_id} - {server_id}")
             container.pathedit.clear()
             if not server_id:
-                logger.info("Loading paths")
                 history = self.load_history()
                 self.set_conf("history", history)
                 container.pathedit.addItems(history)
@@ -228,7 +226,6 @@ class WorkingDirectory(SpyderPluginV2):
         Save history to a text file located in Spyder configuration folder.
         """
         history = self.get_container().get_history()
-        logger.info(f"Save history: {history}")
         try:
             encoding.writelines(history, self.LOG_PATH)
         except EnvironmentError:

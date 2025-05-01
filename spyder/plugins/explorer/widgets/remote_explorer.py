@@ -18,7 +18,9 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.plugins.remoteclient.api.modules.base import SpyderRemoteSessionClosed
+from spyder.plugins.remoteclient.api.modules.base import (
+    SpyderRemoteSessionClosed,
+)
 from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
 from spyder.utils.icon_manager import ima
 
@@ -146,7 +148,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     @AsyncDispatcher.QtSlot
     def _on_remote_ls(self, future):
         data = future.result()
-        logger.info(data)
         self.set_files(data)
 
     @AsyncDispatcher(loop="explorer")
@@ -197,7 +198,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 task.add_done_callback(self.background_files_load.discard)
 
         except RemoteOSError as error:
-            logger.info(error)
+            # TODO: Should the error be shown in some way?
+            logger.error(error)
         except SpyderRemoteSessionClosed:
             self.remote_files_manager = None
 
@@ -230,8 +232,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         break
             else:
                 self.extra_files.append(file)
-        logger.info("extra_files")
-        logger.info(self.extra_files)
+        logger.debug(
+            f"{len(self.extra_files)} available extra files to be shown"
+        )
 
     @AsyncDispatcher.QtSlot
     def chdir(
@@ -271,6 +274,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if reset:
             self.model.setRowCount(0)
         if files:
+            logger.debug(f"Setting {len(files)} files")
             root = self.model.invisibleRootItem()
 
             more_files_items = self.model.match(
@@ -347,8 +351,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         new_files = self.extra_files[:fetch_files_display]
         del self.extra_files[:fetch_files_display]
         self.set_files(new_files, reset=False)
-        logger.info("New extra_files")
-        logger.info(self.extra_files)
+        logger.debug(
+            f"{len(self.extra_files)} extra files remaining to be shown"
+        )
 
     def set_current_folder(self, folder):
         self.root_prefix = folder
@@ -358,18 +363,24 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return self.root_prefix
 
     def go_to_parent_directory(self):
-        logger.info(f"Go to parent directory: {self.root_prefix}")
         parent_directory = os.path.dirname(self.root_prefix)
+        logger.debug(
+            f"Going to parent directory of {self.root_prefix}: {parent_directory}"
+        )
         self.chdir(parent_directory)
 
     def go_to_previous_directory(self):
-        logger.info("Go to previous directory")
         self.histindex -= 1
+        logger.debug(
+            f"Going to previous directory in history with index {self.histindex}"
+        )
         self.chdir(browsing_history=True)
 
     def go_to_next_directory(self):
-        logger.info("Go to next directory")
         self.histindex += 1
+        logger.debug(
+            f"Going to next directory in history with index {self.histindex}"
+        )
         self.chdir(browsing_history=True)
 
     def refresh(self, new_path=None, force_current=False):

@@ -973,7 +973,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     def _on_remote_home_directory(self, future):
         result = future.result()
         home_directory = result.get("name", "/")
-        logger.info(f"Retrieved home directory: {home_directory}")
+        logger.debug(f"Retrieved remote home directory: {home_directory}")
         self.shellwidget.set_cwd(home_directory, emit_cwd_change=True)
 
     @AsyncDispatcher(loop="ipythonconsole")

@@ -2496,7 +2496,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        logger.info(f"Working directory being changed: {server_id} - {dirname}")
+        logger.debug(f"Changing working directory: {server_id} - {dirname}")
         if dirname:
             self.sig_current_directory_changed.emit(dirname, server_id)
 
