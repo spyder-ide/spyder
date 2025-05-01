@@ -9,6 +9,7 @@ Environment variable utilities.
 """
 
 # Standard library imports
+import asyncio
 from functools import lru_cache
 import logging
 import os
@@ -87,7 +88,7 @@ def listdict2envdict(listdict):
     return listdict
 
 
-@AsyncDispatcher(loop="get_user_env")
+@AsyncDispatcher()
 async def get_user_environment_variables() -> dict:
     """
     Get user environment variables from a subprocess.
@@ -116,10 +117,14 @@ async def get_user_environment_variables() -> dict:
         if not launched_from_terminal or running_in_ci():
             try:
                 user_env_script = _get_user_env_script()
-                proc = run_shell_command(user_env_script, env={}, text=True)
+                proc = await run_shell_command(
+                    user_env_script, asynchronous=True, env={}, text=True
+                )
 
                 # Use timeout to fix spyder-ide/spyder#21172
-                stdout, stderr = proc.communicate(timeout=10)
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(), timeout=10
+                )
 
                 if stderr:
                     logger.info(stderr.strip())
