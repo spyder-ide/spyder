@@ -203,10 +203,26 @@ def is_editable_type(value):
         return False
     else:
         supported_types = [
-            'bool', 'int', 'long', 'float', 'complex', 'list', 'set', 'dict',
-            'tuple', 'str', 'unicode', 'NDArray', 'MaskedArray', 'Matrix',
-            'DataFrame', 'Series', 'PIL.Image.Image', 'datetime.date',
-            'datetime.timedelta'
+            'bool',
+            'int',
+            'long',
+            'float',
+            'complex',
+            'list',
+            'set',
+            'frozenset',
+            'dict',
+            'tuple',
+            'str',
+            'unicode',
+            'NDArray',
+            'MaskedArray',
+            'Matrix',
+            'DataFrame',
+            'Series',
+            'PIL.Image.Image',
+            'datetime.date',
+            'datetime.timedelta',
         ]
 
         if (get_type_string(value) not in supported_types and
@@ -272,7 +288,7 @@ def default_display(value, with_module=True):
 def collections_display(value, level):
     """Display for collections (i.e. list, set, tuple and dict)."""
     is_dict = isinstance(value, dict)
-    is_set = isinstance(value, set)
+    is_set = isinstance(value, (set, frozenset))
 
     # Get elements
     if is_dict:
@@ -311,6 +327,8 @@ def collections_display(value, level):
         display = '[' + display + ']'
     elif isinstance(value, set):
         display = '{' + display + '}'
+    elif isinstance(value, frozenset):
+        display = 'frozenset({' + display + '})'
     else:
         display = '(' + display + ')'
 
@@ -354,7 +372,7 @@ def value_to_display(value, minmax=False, level=0):
                     display = default_display(value)
             else:
                 display = 'Numpy array'
-        elif any([type(value) == t for t in [list, set, tuple, dict]]):
+        elif type(value) in [list, set, frozenset, tuple, dict]:
             display = collections_display(value, level+1)
         elif isinstance(value, PIL.Image.Image):
             if level == 0:
@@ -558,7 +576,7 @@ def is_supported(value, check_all=False, filters=None, iterate=False):
     elif not isinstance(value, filters):
         return False
     elif iterate:
-        if isinstance(value, (list, tuple, set)):
+        if isinstance(value, (list, tuple, set, frozenset)):
             valid_count = 0
             for val in value:
                 if is_supported(val, filters=filters, iterate=check_all):
@@ -632,8 +650,19 @@ def get_supported_types():
     in spyder-docs
     """
     from datetime import date, timedelta
-    editable_types = [int, float, complex, list, set, dict, tuple, date,
-                      timedelta, str]
+    editable_types = [
+        int,
+        float,
+        complex,
+        list,
+        set,
+        frozenset,
+        dict,
+        tuple,
+        date,
+        timedelta,
+        str,
+    ]
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]

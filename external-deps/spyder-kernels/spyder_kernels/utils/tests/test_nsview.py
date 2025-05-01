@@ -55,8 +55,14 @@ def test_get_size():
                 return super(object, self).__getattribute__(name)
 
 
-    length = [list([1,2,3]), tuple([1,2,3]), set([1,2,3]), '123',
-              {1:1, 2:2, 3:3}]
+    length = [
+        list([1, 2, 3]),
+        tuple([1, 2, 3]),
+        set([1, 2, 3]),
+        '123',
+        {1:1, 2:2, 3:3},
+        frozenset([1, 2, 3]),
+    ]
     for obj in length:
         assert get_size(obj) == 3
 
@@ -243,6 +249,11 @@ def test_set_display():
     assert value_to_display([long_set] * 10) == disp[:70] + ' ...'
 
 
+def test_frozenset_display():
+    """Test for display of a frozenset."""
+    assert value_to_display(frozenset({1, 2, 3})) == 'frozenset({1, 2, 3})'
+
+
 def test_datetime_display():
     """Simple tests that dates, datetimes and timedeltas display correctly."""
     test_date = datetime.date(2017, 12, 18)
@@ -323,6 +334,9 @@ def test_get_type_string():
     # Sets
     assert get_type_string({1, 2, 3}) == 'set'
 
+    # Frozensets
+    assert get_type_string(frozenset({1, 2, 3})) == 'frozenset'
+
     # Dictionaries
     assert get_type_string({'a': 1, 'b': 2}) == 'dict'
 
@@ -377,6 +391,9 @@ def test_is_editable_type():
 
     # Sets
     assert is_editable_type({1, 2, 3})
+
+    # Frozensets
+    assert is_editable_type(frozenset({1, 2, 3}))
 
     # Dictionaries
     assert is_editable_type({'a': 1, 'b': 2})
