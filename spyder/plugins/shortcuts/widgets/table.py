@@ -31,6 +31,7 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stringmatching import get_search_regex, get_search_scores
 from spyder.widgets.helperwidgets import (
+    ClearLineEdit,
     HTMLDelegate,
     HoverRowsTableView,
     VALID_FINDER_CHARS,
@@ -116,7 +117,7 @@ class ShortcutLineEdit(QLineEdit):
         super(ShortcutLineEdit, self).setText(sequence)
 
 
-class ShortcutFinder(QLineEdit):
+class ShortcutFinder(ClearLineEdit):
     """Textbox for filtering listed shortcuts in the table."""
 
     def __init__(self, parent, callback=None, main=None,

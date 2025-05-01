@@ -137,6 +137,7 @@ class FramesBrowser(
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
 
         self.finder = FinderWidget(self)
+        self.finder.setVisible(False)
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)

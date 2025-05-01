@@ -142,6 +142,7 @@ class NamespaceBrowser(
                 regex_base=VALID_VARIABLE_CHARS,
                 key_filter_dict=key_filter_dict
             )
+            self.finder.setVisible(False)
 
             # Signals
             self.editor.sig_files_dropped.connect(self.import_data)
