@@ -87,7 +87,7 @@ def listdict2envdict(listdict):
     return listdict
 
 
-@AsyncDispatcher(loop="get_user_env")
+@AsyncDispatcher()
 async def get_user_environment_variables() -> dict:
     """
     Get user environment variables from a subprocess.
