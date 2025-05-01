@@ -11,6 +11,7 @@ Utilities to build a namespace view.
 """
 from itertools import islice
 import inspect
+import pathlib
 import re
 
 from spyder_kernels.utils.lazymodules import (
@@ -422,13 +423,15 @@ def value_to_display(value, minmax=False, level=0):
                     display = "'" + display + "'"
             else:
                 display = default_display(value)
-
-        elif (isinstance(value, datetime.date) or
-              isinstance(value, datetime.timedelta)):
+        elif isinstance(value, pathlib.PurePath):
             display = str(value)
-        elif (isinstance(value, (int, float, complex)) or
-              isinstance(value, bool) or
-              isinstance(value, printable_numpy_types)):
+        elif isinstance(value, (datetime.date, datetime.timedelta)):
+            display = str(value)
+        elif (
+            isinstance(value, (int, float, complex, bool))
+            or isinstance(value, printable_numpy_types)
+            or value is None
+        ):
             display = repr(value)
         else:
             if level == 0:
