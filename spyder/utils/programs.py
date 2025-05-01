@@ -8,6 +8,7 @@
 
 # Standard library imports
 from ast import literal_eval
+import asyncio
 import glob
 from getpass import getuser
 import importlib
@@ -202,9 +203,59 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
     return kwargs
 
 
-def run_shell_command(cmdstr, **subprocess_kwargs):
+def run_shell_command(cmdstr, asynchronous=False, **subprocess_kwargs):
     """
     Execute the given shell command.
+
+    Note that *args and **kwargs will be passed to the subprocess call.
+
+    If 'shell' is given in subprocess_kwargs it must be True,
+    otherwise ProgramError will be raised.
+
+    If 'executable' is not given in subprocess_kwargs, it will
+    be set to the value of the SHELL environment variable.
+
+    Note that stdin, stdout and stderr will be set by default
+    to PIPE unless specified in subprocess_kwargs.
+
+    Parameters
+    ----------
+    cmdstr : str
+        The string run as a shell command.
+    asynchronous : bool (False)
+        Whether to return a subprocess.Popen or asyncio.subprocess.Process.
+    **subprocess_kwargs : keyword arguments
+        These will be passed to subprocess.Popen.
+    """
+    popen = subprocess.Popen
+    pipe = subprocess.PIPE
+    if asynchronous:
+        popen = asyncio.subprocess.create_subprocess_shell
+        pipe = asyncio.subprocess.PIPE
+
+    if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
+        raise ProgramError('The "shell" kwarg may be omitted, but if '
+                           'provided it must be True.')
+    else:
+        subprocess_kwargs['shell'] = True
+
+    # Don't pass SHELL to subprocess on Windows because it makes this
+    # fumction fail in Git Bash (where SHELL is declared; other Windows
+    # shells don't set it).
+    if not os.name == 'nt':
+        if 'executable' not in subprocess_kwargs:
+            subprocess_kwargs['executable'] = os.getenv('SHELL')
+
+    for stream in ['stdin', 'stdout', 'stderr']:
+        subprocess_kwargs.setdefault(stream, pipe)
+    subprocess_kwargs = alter_subprocess_kwargs_by_platform(
+        **subprocess_kwargs)
+    return popen(cmdstr, **subprocess_kwargs)
+
+
+def async_run_shell_command(cmdstr, **subprocess_kwargs):
+    """
+    Execute the given shell command asynchronously in the main thread.
 
     Note that *args and **kwargs will be passed to the subprocess call.
 
@@ -234,10 +285,10 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
             subprocess_kwargs['executable'] = os.getenv('SHELL')
 
     for stream in ['stdin', 'stdout', 'stderr']:
-        subprocess_kwargs.setdefault(stream, subprocess.PIPE)
+        subprocess_kwargs.setdefault(stream, asyncio.subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
         **subprocess_kwargs)
-    return subprocess.Popen(cmdstr, **subprocess_kwargs)
+    return asyncio.create_subprocess_shell(cmdstr, **subprocess_kwargs)
 
 
 def run_program(program, args=None, **subprocess_kwargs):
@@ -989,7 +1040,8 @@ def check_version(actver, version, cmp_op):
 def get_module_version(module_name, interpreter=None):
     """Return module version or None if version can't be retrieved."""
     if interpreter:
-        cmd = dedent("""
+        cmd = dedent(
+            """
             try:
                 import {} as mod
             except Exception:
