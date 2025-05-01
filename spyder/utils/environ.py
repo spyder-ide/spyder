@@ -30,7 +30,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.config.base import _, running_in_ci, get_conf_path
 from spyder.utils.icon_manager import ima
-from spyder.utils.programs import run_shell_command
+from spyder.utils.programs import async_run_shell_command
 from spyder.widgets.collectionseditor import CollectionsEditor
 
 logger = logging.getLogger(__name__)
