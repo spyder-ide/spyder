@@ -220,8 +220,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         """Set model data"""
         self._data = data
 
-        if (coll_filter is not None and not self.remote and
-                isinstance(data, (tuple, list, dict, set, frozenset))):
+        if (
+            coll_filter is not None
+            and not self.remote 
+            and isinstance(data, (tuple, list, dict, set, frozenset))
+        ):
             data = coll_filter(data)
         self.showndata = data
 
