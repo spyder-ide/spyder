@@ -666,6 +666,7 @@ def run_python_script(package=None, module=None, args=None, p_args=None):
     """
     args = [] if args is None else args
     p_args = [] if p_args is None else p_args
+
     assert module is not None
     assert isinstance(args, (tuple, list)) and isinstance(p_args, (tuple, list))
     path = python_script_exists(package, module)
