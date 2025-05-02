@@ -191,7 +191,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         methods = (
             (_('Password'), AuthenticationMethod.Password),
             (_('Key file'), AuthenticationMethod.KeyFile),
-            # (_('Configuration file'), AuthenticationMethod.ConfigFile),
+            (_('Configuration file'), AuthenticationMethod.ConfigFile),
         )
 
         self._auth_methods = self.create_combobox(
@@ -423,6 +423,17 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
+        host = self.create_lineedit(
+            text=_("Host *"),
+            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
+            default="",
+            tip=_(
+                "This is the host/profile name of your remote machine "
+                "as defined in the configuration file"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
         configfile = self.create_browsefile(
             text=_("Configuration file *"),
             option=f"{self.host_id}/configfile",
@@ -436,6 +447,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._name_widgets[AuthenticationMethod.ConfigFile] = name
         self._widgets_for_validation[AuthenticationMethod.ConfigFile] = [
             name,
+            host,
             configfile,
         ]
         self._validation_labels[
@@ -446,6 +458,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         configfile_layout = QVBoxLayout()
         configfile_layout.setContentsMargins(0, 0, 0, 0)
         configfile_layout.addWidget(name)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addWidget(host)
         configfile_layout.addSpacing(5 * AppStyle.MarginSize)
         configfile_layout.addWidget(configfile)
         configfile_layout.addSpacing(7 * AppStyle.MarginSize)
@@ -619,12 +633,16 @@ class ConnectionPage(BaseConnectionPage):
             host=self.get_option(
                 f"{self.host_id}/{self.auth_method()}/address"
             ),
-            port=self.get_option(f"{self.host_id}/{self.auth_method()}/port"),
-            username=self.get_option(
-                f"{self.host_id}/{self.auth_method()}/username"
+            port=self.get_option(
+                f"{self.host_id}/{self.auth_method()}/port",
+                default=""
             ),
-            client_keys=self.get_option(f"{self.host_id}/keyfile"),
-            config=self.get_option(f"{self.host_id}/configfile"),
+            username=self.get_option(
+                f"{self.host_id}/{self.auth_method()}/username",
+                default=""
+            ),
+            client_keys=self.get_option(f"{self.host_id}/keyfile", default=""),
+            config=[self.get_option(f"{self.host_id}/configfile")],
         )
 
         servers = self.get_option("servers", default={})
@@ -650,6 +668,8 @@ class ConnectionPage(BaseConnectionPage):
             "keyfile_login/port",
             "keyfile_login/username",
             "keyfile",
+            "configfile_login/name",
+            "configfile_login/address",
             "configfile",
         ]
         for option in options:

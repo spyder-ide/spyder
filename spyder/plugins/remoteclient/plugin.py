@@ -221,8 +221,11 @@ class RemoteClient(SpyderPluginV2):
             if passphrase:
                 options["passphrase"] = passphrase
         elif options["config"]:
-            # TODO: Check how this needs to be handled
-            pass
+            # Should have only `host` and list with path to config file as
+            # `config`
+            options.pop("port")
+            options.pop("username")
+            options.pop("client_keys")
         else:
             # Password is mandatory in this case
             password = self.get_conf(f"{config_id}/password", secure=True)
