@@ -997,7 +997,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         else:
             fnames = [self.get_filename(self.currentIndex())]
 
-        if fnames == []:
+        if not fnames:
             fnames = [self.get_filename(self.currentIndex())]
 
         return fnames
