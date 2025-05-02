@@ -428,8 +428,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
             default="",
             tip=_(
-                "This is the host/profile name of your remote machine "
-                "as defined in the configuration file"
+                "This is the host (<b>Host</b> configuration keyword) that encapsulates the options "
+                "to use for the connection"
             ),
             status_icon=ima.icon("error"),
         )
@@ -437,6 +437,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         configfile = self.create_browsefile(
             text=_("Configuration file *"),
             option=f"{self.host_id}/configfile",
+            tip=_("File with the OpenSSH client configuration to use"),
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
         )
