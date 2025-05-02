@@ -50,7 +50,7 @@ from spyder.utils.stylesheet import (
     AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
     PANES_TOOLBAR_STYLESHEET)
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
-from spyder.widgets.helperwidgets import PaneEmptyWidget
+from spyder.widgets.emptymessage import EmptyMessageWidget
 from spyder.widgets.tabs import Tabs
 
 
@@ -392,7 +392,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                     "empty"
                 )
 
-            self._pane_empty = PaneEmptyWidget(
+            self._pane_empty = EmptyMessageWidget(
                 self,
                 self.IMAGE_WHEN_EMPTY,
                 self.MESSAGE_WHEN_EMPTY,

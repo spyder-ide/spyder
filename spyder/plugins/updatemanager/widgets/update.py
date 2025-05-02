@@ -11,7 +11,6 @@ import json
 import logging
 import os
 import os.path as osp
-import shutil
 import subprocess
 import sys
 from sysconfig import get_path
@@ -150,6 +149,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.download_worker = None
         self.progress_dialog = None
         self.installer_path = None
+
+        self.restart_spyder = True
 
     # ---- General
 
@@ -333,6 +334,13 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.sig_disable_actions.emit(True)
         self.set_status(UPDATING_UPDATER)
 
+        self.progress_dialog = ProgressDialog(
+            self, _("Updating Spyder's updater..."),
+            cancel_btn=False
+        )
+        # Show progress bar as busy
+        self.progress_dialog.update_progress(0, 0)
+
         self.update_updater_thread = QThread(None)
         self.update_updater_worker = WorkerUpdateUpdater(
             self.get_conf('check_stable_only')
@@ -362,7 +370,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         and set downloading status.
         """
         self.cancelled = False
-        self.progress_dialog = None
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+            self.progress_dialog = None
 
         self.download_worker = WorkerDownloadInstaller(
             self.asset_info, self.installer_path
@@ -397,10 +407,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.download_thread.started.connect(self.download_worker.start)
         self.download_thread.start()
 
-    def show_progress_dialog(self, show=True):
+    def show_progress_dialog(self):
         """Show download progress if previously hidden"""
         if self.progress_dialog is not None:
-            if show:
+            if not self.progress_dialog.isVisible():
                 self.progress_dialog.show()
             else:
                 self.progress_dialog.hide()
@@ -409,8 +419,6 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """Update download progress in dialog and status bar"""
         if self.progress_dialog is not None:
             self.progress_dialog.update_progress(progress, total)
-            if progress == total:
-                self.progress_dialog.accept()
 
         percent_progress = 0
         if total > 0:
@@ -437,6 +445,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         Ask users if they want to proceed with the install immediately
         or on close.
         """
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+
         if self.cancelled:
             return
 
@@ -460,9 +471,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             on_close=True
         )
         if box.result() == QMessageBox.Yes:
+            self.restart_spyder = True
             self.sig_install_on_close.emit(True)
             self.sig_quit_requested.emit()
         elif box.result() == 0:  # 0 is result of 3rd push-button
+            self.restart_spyder = False
             self.sig_install_on_close.emit(True)
             self.set_status(INSTALL_ON_CLOSE)
 
@@ -474,37 +487,17 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self._start_updater()
 
     def _start_major_install(self):
-        """Install major update from downloaded installer"""
-        # Install script
-        # Copy to temp location to be safe
-        script_name = 'install.' + ('bat' if os.name == 'nt' else 'sh')
-        script_path = osp.abspath(__file__ + '/../../scripts/' + script_name)
-        tmpscript_path = osp.join(get_temp_dir(), script_name)
-        shutil.copy2(script_path, tmpscript_path)
+        """
+        Install major update from downloaded installer.
 
-        # Sub command
-        sub_cmd = [tmpscript_path, '-i', self.installer_path]
-        if self.asset_info["update_type"] != 'major':
-            # Update with conda
-            sub_cmd.extend(['-c', find_conda(), '-p', sys.prefix])
-
-        if self.asset_info["update_type"] == 'minor':
-            # Rebuild runtime environment
-            sub_cmd.append('-r')
-
-        # Final command assembly
+        Major updates are performed using the installers directly.
+        macOS and Windows installers have GUI interfaces; Linux requires
+        a terminal for the GUI.
+        """
         if os.name == 'nt':
-            cmd = ['start', '"Update Spyder"'] + sub_cmd
+            cmd = ['start', '"Update Spyder"']
         elif sys.platform == 'darwin':
-            # Terminal cannot accept a command with arguments. Creating a
-            # wrapper script pollutes the shell history. Best option is to
-            # use osascript
-            sub_cmd_str = ' '.join(sub_cmd)
-            cmd = [
-                "osascript", "-e",
-                ("""'tell application "Terminal" to do script"""
-                 f""" "unset HISTFILE; {sub_cmd_str}; exit;"'"""),
-            ]
+            cmd = ["open"]
         else:
             programs = [
                 {'cmd': 'gnome-terminal', 'exe-opt': '--window --'},
@@ -514,15 +507,39 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             ]
             for program in programs:
                 if is_program_installed(program['cmd']):
-                    cmd = [program['cmd'], program['exe-opt']] + sub_cmd
+                    cmd = [program['cmd'], program['exe-opt']]
                     break
+
+        cmd.append(self.installer_path)
+
+        env = os.environ.copy()
+        if sys.platform == "darwin":
+            # PKG installers will not pass environment variables in the GUI.
+            # To communicate whether to start Spyder, create dummy file.
+            no_start_file = osp.join(
+                osp.dirname(self.installer_path), "no-start-spyder"
+            )
+            if self.restart_spyder and osp.exists(no_start_file):
+                os.remove(no_start_file)
+            if not self.restart_spyder:
+                open(no_start_file, 'w').close()
+        else:
+            # EXE and SH installers will pass environment variables
+            env.update({"START_SPYDER": str(self.restart_spyder)})
+
+        logger.debug(f"Restart Spyder after install: {self.restart_spyder}")
 
         logger.debug(f"""Update command: "{' '.join(cmd)}" """)
 
-        subprocess.Popen(' '.join(cmd), shell=True)
+        subprocess.Popen(' '.join(cmd), shell=True, env=env)
 
     def _start_updater(self):
-        """Start updater application."""
+        """
+        Start updater application.
+        
+        For minor/micro updates, Spyder Updater provides the GUI showing
+        progress for updating the runtime environment.
+        """
         if self.get_conf('high_dpi_custom_scale_factor', section='main'):
             scale_factors = self.get_conf(
                 'high_dpi_custom_scale_factors',
@@ -572,6 +589,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         # Launch updater
         cmd = [UPDATER_PATH, "--update-info-file", info_file]
+        if self.restart_spyder:
+            cmd.append("--start-spyder")
         subprocess.Popen(" ".join(cmd), shell=True)
 
 
@@ -602,7 +621,7 @@ class UpdateMessageCheckBox(MessageCheckBox):
 class ProgressDialog(UpdateMessageBox):
     """Update progress installation dialog."""
 
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, cancel_btn=True):
         super().__init__(icon=QMessageBox.NoIcon, text=text, parent=parent)
         self.setWindowTitle(_("Spyder update"))
 
@@ -613,10 +632,11 @@ class ProgressDialog(UpdateMessageBox):
         layout = self.layout()
         layout.addWidget(self._progress_bar, 1, 1)
 
-        self.cancel = QPushButton(_("Cancel"))
         self.okay = QPushButton(_("OK"))
         self.addButton(self.okay, QMessageBox.YesRole)
-        self.addButton(self.cancel, QMessageBox.NoRole)
+        if cancel_btn:
+            self.cancel = QPushButton(_("Cancel"))
+            self.addButton(self.cancel, QMessageBox.NoRole)
         self.setDefaultButton(self.okay)
 
         self.show()

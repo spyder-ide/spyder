@@ -12,16 +12,14 @@ Helper widgets.
 from __future__ import annotations
 import re
 import textwrap
-from typing import Callable
+from typing import Callable, Dict
 
 # Third party imports
-import qtawesome as qta
 import qstylizer.style
 from qtpy import PYQT5
 from qtpy.QtCore import (
     QEvent,
     QPoint,
-    QRect,
     QRegularExpression,
     QSize,
     QSortFilterProxyModel,
@@ -56,14 +54,10 @@ from qtpy.QtWidgets import (
     QWidget,
     QHBoxLayout,
     QLabel,
-    QFrame,
     QItemDelegate,
 )
-from superqt.utils import qdebounced
 
 # Local imports
-from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
-from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.utils.icon_manager import ima
@@ -436,9 +430,16 @@ class FinderLineEdit(ClearLineEdit):
     sig_hide_requested = Signal()
     sig_find_requested = Signal()
 
-    def __init__(self, parent, regex_base=None, key_filter_dict=None):
+    def __init__(
+        self,
+        parent: QWidget,
+        regex_base: str | None = None,
+        key_filter_dict: Dict[Qt.Key, Callable] | None = None,
+        set_min_width: bool = True,
+    ):
         super().__init__(parent)
         self.key_filter_dict = key_filter_dict
+        self._set_min_width = set_min_width
 
         self._combobox = SpyderComboBox(self)
         self._is_shown = False
@@ -467,7 +468,8 @@ class FinderLineEdit(ClearLineEdit):
             self._combobox.hide()
 
             # Only set a min width so it grows with the parent's width.
-            self.setMinimumWidth(AppStyle.FindMinWidth)
+            if self._set_min_width:
+                self.setMinimumWidth(AppStyle.FindMinWidth)
 
             # Set a fixed height so that it looks the same as our comboboxes.
             self.setMinimumHeight(height)
@@ -483,39 +485,53 @@ class FinderWidget(QWidget):
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
 
-    def __init__(self, parent, regex_base=None, key_filter_dict=None,
-                 find_on_change=False):
+    def __init__(
+        self,
+        parent: QWidget,
+        regex_base: str | None = None,
+        key_filter_dict: Dict[Qt.Key, Callable] | None = None,
+        find_on_change: bool = False,
+        show_close_button: bool = True,
+        set_min_width: bool = True,
+    ):
         super().__init__(parent)
 
         # Parent is assumed to be a spyder widget
         self.text_finder = FinderLineEdit(
             self,
             regex_base=regex_base,
-            key_filter_dict=key_filter_dict
+            key_filter_dict=key_filter_dict,
+            set_min_width=set_min_width,
         )
         self.text_finder.sig_find_requested.connect(self.do_find)
         if find_on_change:
             self.text_finder.textChanged.connect(self.do_find)
+            self.text_finder.setPlaceholderText(_("Type to search"))
+        else:
+            self.text_finder.setPlaceholderText(
+                _("Type and press Enter to search")
+            )
         self.text_finder.sig_hide_requested.connect(
             self.sig_hide_finder_requested)
 
-        self.finder_close_button = QToolButton(self)
-        self.finder_close_button.setIcon(ima.icon('DialogCloseButton'))
-        self.finder_close_button.clicked.connect(
-            self.sig_hide_finder_requested)
+        if show_close_button:
+            finder_close_button = QToolButton(self)
+            finder_close_button.setIcon(ima.icon('DialogCloseButton'))
+            finder_close_button.clicked.connect(self.sig_hide_finder_requested)
 
         finder_layout = QHBoxLayout()
-        finder_layout.addWidget(self.finder_close_button)
+        if show_close_button:
+            finder_layout.addWidget(finder_close_button)
         finder_layout.addWidget(self.text_finder)
-        finder_layout.addStretch()
+        if set_min_width:
+            finder_layout.addStretch()
         finder_layout.setContentsMargins(
-            2 * AppStyle.MarginSize,
+            2 * AppStyle.MarginSize if show_close_button else 0,
             AppStyle.MarginSize,
-            2 * AppStyle.MarginSize,
+            0,
             0
         )
         self.setLayout(finder_layout)
-        self.setVisible(False)
 
     def do_find(self):
         """Send text."""
@@ -535,325 +551,36 @@ class FinderWidget(QWidget):
 
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
-    """Custom column filter based on regex."""
+    """Custom row filter based on regex."""
+
+    FUZZY = True
 
     def __init__(self, parent=None):
-        super(CustomSortFilterProxy, self).__init__(parent)
+        super().__init__(parent)
         self._parent = parent
         self.pattern = re.compile(r'')
 
     def set_filter(self, text):
         """Set regular expression for filter."""
-        self.pattern = get_search_regex(text)
+        if self.FUZZY:
+            self.pattern = get_search_regex(text, ignore_case=True)
+        else:
+            self.pattern = re.compile(f".*{text}.*", re.IGNORECASE)
+
         if self.pattern and text:
             self._parent.setSortingEnabled(False)
         else:
             self._parent.setSortingEnabled(True)
+
         self.invalidateFilter()
 
     def filterAcceptsRow(self, row_num, parent):
-        """Qt override.
-
-        Reimplemented from base class to allow the use of custom filtering.
         """
-        model = self.sourceModel()
-        name = model.row(row_num).name
-        r = re.search(self.pattern, name)
+        Qt override.
 
-        if r is None:
-            return False
-        else:
-            return True
-
-
-class PaneEmptyWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
-    """Widget to show a pane/plugin functionality description."""
-
-    def __init__(
-        self,
-        parent,
-        icon_filename=None,
-        text=None,
-        description=None,
-        top_stretch: int = 1,
-        middle_stretch: int = 1,
-        bottom_stretch: int = 0,
-        spinner: bool = False,
-        adjust_on_resize: bool = False,
-    ):
-        super().__init__(parent)
-
-        # Attributes
-        self._adjust_on_resize = adjust_on_resize
-        self._description = description
-        self._is_shown = False
-        self._spin = None
-        self._min_height = None
-        self._is_visible = False
-
-        # This is necessary to make Qt reduce the size of all widgets on
-        # vertical resizes
-        if self._adjust_on_resize:
-            self.setMinimumHeight(150)
-
-        interface_font_size = self.get_font(
-            SpyderFontType.Interface).pointSize()
-
-        # Image (icon)
-        self._image_label = None
-        if icon_filename:
-            self._image_label = QLabel(self)
-            self._image_label.setPixmap(
-                self.svg_to_scaled_pixmap(icon_filename, rescale=0.8)
-            )
-            self._image_label.setAlignment(Qt.AlignCenter)
-
-            image_label_qss = qstylizer.style.StyleSheet()
-            image_label_qss.QLabel.setValues(border="0px")
-            self._image_label.setStyleSheet(image_label_qss.toString())
-
-        # Main text
-        if text is not None:
-            text_label = QLabel(text, parent=self)
-            text_label.setAlignment(Qt.AlignCenter)
-            text_label.setWordWrap(True)
-            text_label_qss = qstylizer.style.StyleSheet()
-            text_label_qss.QLabel.setValues(
-                fontSize=f"{interface_font_size + 5}pt", border="0px"
-            )
-            text_label.setStyleSheet(text_label_qss.toString())
-
-        # Description text
-        self._description_label = None
-        if self._description is not None:
-            self._description_label = QLabel(self._description, parent=self)
-            self._description_label.setAlignment(Qt.AlignCenter)
-            self._description_label.setWordWrap(True)
-            self._description_label.setScaledContents(True)
-
-            description_label_qss = qstylizer.style.StyleSheet()
-            description_label_qss.QLabel.setValues(
-                fontSize=f"{interface_font_size}pt",
-                backgroundColor=SpyderPalette.COLOR_OCCURRENCE_3,
-                border="0px",
-                padding="20px",
-            )
-            self._description_label.setStyleSheet(
-                description_label_qss.toString()
-            )
-
-        # Setup layout
-        pane_empty_layout = QVBoxLayout()
-
-        # Add the top stretch
-        pane_empty_layout.addStretch(top_stretch)
-
-        # Add the image_label (icon)
-        if icon_filename is not None:
-            pane_empty_layout.addWidget(self._image_label)
-
-        # Display spinner if requested
-        if spinner:
-            spin_widget = qta.IconWidget()
-            self._spin = qta.Spin(spin_widget, interval=3, autostart=False)
-            spin_icon = qta.icon(
-                "mdi.loading",
-                color=ima.MAIN_FG_COLOR,
-                animation=self._spin
-            )
-
-            spin_widget.setIconSize(QSize(32, 32))
-            spin_widget.setIcon(spin_icon)
-            spin_widget.setStyleSheet(image_label_qss.toString())
-            spin_widget.setAlignment(Qt.AlignCenter)
-
-            pane_empty_layout.addWidget(spin_widget)
-            pane_empty_layout.addItem(QSpacerItem(20, 20))
-
-        # If text, display text and stretch
-        if text is not None:
-            pane_empty_layout.addWidget(text_label)
-            pane_empty_layout.addStretch(middle_stretch)
-
-        # If description, display description
-        if self._description is not None:
-            pane_empty_layout.addWidget(self._description_label)
-
-        pane_empty_layout.addStretch(bottom_stretch)
-        pane_empty_layout.setContentsMargins(20, 20, 20, 20)
-        self.setLayout(pane_empty_layout)
-
-        # Setup border style
-        self.setFocusPolicy(Qt.StrongFocus)
-        self._apply_stylesheet(False)
-
-    # ---- Public methods
-    # -------------------------------------------------------------------------
-    def setup(self, *args, **kwargs):
+        You need to reimplement this to allow the use of custom filtering.
         """
-        This method is needed when using this widget to show a "no connected
-        console" message in plugins that inherit from ShellConnectMainWidget.
-        """
-        pass
-
-    def set_visibility(self, visible):
-        """Adjustments when the widget's visibility changes."""
-        self._is_visible = visible
-
-        if self._adjust_on_resize and self._image_label is not None:
-            if visible:
-                if (
-                    self._min_height is not None
-                    and self.height() >= self._min_height
-                ):
-                    self._image_label.show()
-            else:
-                self._image_label.hide()
-
-    # ---- Qt methods
-    # -------------------------------------------------------------------------
-    def showEvent(self, event):
-        """Adjustments when the widget is shown."""
-        if not self._is_shown:
-            self._start_spinner()
-            self._is_shown = True
-
-            if self._adjust_on_resize and self._min_height is None:
-                self._min_height = self.minimumSizeHint().height()
-
-        super().showEvent(event)
-
-    def hideEvent(self, event):
-        """Adjustments when the widget is hidden."""
-        self._stop_spinner()
-        self._is_shown = False
-        super().hideEvent(event)
-
-    def focusInEvent(self, event):
-        self._apply_stylesheet(True)
-        super().focusOutEvent(event)
-
-    def focusOutEvent(self, event):
-        self._apply_stylesheet(False)
-        super().focusOutEvent(event)
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        if self._adjust_on_resize:
-            self._on_resize_event()
-
-    # ---- Private methods
-    # -------------------------------------------------------------------------
-    def _apply_stylesheet(self, focus):
-        if focus:
-            border_color = SpyderPalette.COLOR_ACCENT_3
-        else:
-            border_color = SpyderPalette.COLOR_BACKGROUND_4
-
-        qss = qstylizer.style.StyleSheet()
-        qss.QFrame.setValues(
-            border=f'1px solid {border_color}',
-            margin='0px',
-            padding='0px',
-            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
-        )
-
-        self.setStyleSheet(qss.toString())
-
-    def _start_spinner(self):
-        """
-        Start spinner when requested, in case the widget has one (it's stopped
-        by default).
-        """
-        if self._spin is not None:
-            self._spin.start()
-
-    def _stop_spinner(self):
-        """Stop spinner when requested, in case the widget has one."""
-        if self._spin is not None:
-            self._spin.stop()
-
-    @qdebounced(timeout=30)
-    def _on_resize_event(self):
-        """Actions to take when widget is resized."""
-        # Hide/show image label when necessary
-        if self._image_label is not None:
-            if (
-                # This is necessary to prevent and error when the widget hasn't
-                # been made visible yet.
-                # Fixes spyder-ide/spyder#24280
-                self._min_height is None
-                # We need to do this validation because sometimes
-                # minimumSizeHint doesn't give the right min_height in
-                # showEvent (e.g. when adding an _ErroredMessageWidget to
-                # plugins that are not visible).
-                or self._min_height < self.minimumSizeHint().height()
-            ):
-                self._min_height = self.minimumSizeHint().height()
-
-            if self.height() <= self._min_height:
-                self._image_label.hide()
-            else:
-                if self._is_visible:
-                    self._image_label.show()
-
-        # Elide description when necessary
-        if self._description is not None:
-            metrics = QFontMetrics(self._description_label.font())
-
-            # All margins are the same, so we only take the left one
-            margin = self._description_label.contentsMargins().left()
-
-            # Height of a single line of text
-            text_line_height = metrics.height()
-
-            # Allow a max of two lines of text in the description
-            max_height = 2 * text_line_height + 2 * margin
-
-            # Compute the width and height of the description text according to
-            # max_height and the width of its label.
-            # Solution taken from https://forum.qt.io/post/313343
-            rect = metrics.boundingRect(
-                # Rectangle in which the text needs to fit
-                QRect(
-                    0,
-                    0,
-                    self._description_label.width() - 2 * margin,
-                    max_height,
-                ),
-                self._description_label.alignment() | Qt.TextWordWrap,
-                self._description
-            )
-
-            # Elide text if it were to occupy more than two lines
-            if rect.height() > 2 * text_line_height:
-                # Replace description with elided text
-                elided_text = metrics.elidedText(
-                    self._description, Qt.ElideRight, rect.width()
-                )
-                self._description_label.setText(elided_text)
-
-                # Show full description in tooltip
-                self._description_label.setToolTip(
-                    '\n'.join(textwrap.wrap(self._description, 50))
-                )
-
-                # This prevents flickering when the widget's width is
-                # continuously reduced because Qt wraps the elided text
-                self._description_label.setMaximumHeight(
-                    text_line_height + 2 * margin
-                )
-            else:
-                # Restore full description if there's enough space
-                if "…" in self._description_label.text():
-                    # Restore description
-                    self._description_label.setText(self._description)
-
-                    # No tooltip is necessary in this case
-                    self._description_label.setToolTip("")
-
-                    # Restore max height
-                    self._description_label.setMaximumHeight(max_height)
+        raise NotImplementedError
 
 
 class HoverRowsTableView(QTableView):
@@ -1049,6 +776,46 @@ class ValidationLineEdit(QLineEdit):
         if not self._validate_callback(text):
             self.error_action.setVisible(True)
             self.error_action.setToolTip(self._validate_reason)
+
+
+class MessageLabel(QLabel):
+    """Label to report a message to users."""
+
+    def __init__(self, parent):
+        super().__init__("", parent)
+
+        # Set main attributes
+        self.setWordWrap(True)
+        self.setVisible(False)
+
+        # Set style
+        css = qstylizer.style.StyleSheet()
+        css.QLabel.setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
+            # Top margin is set by the layout
+            marginTop="0px",
+            marginRight=f"{9 * AppStyle.MarginSize}px",
+            # We don't need bottom margin because there are no other elements
+            # below this one.
+            marginBottom="0px",
+            # The extra 5px are necessary because we need to add them to all
+            # lineedits in this dialog to align them to the labels on top of
+            # them (see SpyderConfigPage.create_lineedit).
+            marginLeft=f"{9 * AppStyle.MarginSize + 5}px",
+            padding=f"{3 * AppStyle.MarginSize}px {6 * AppStyle.MarginSize}px",
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        self.setStyleSheet(css.toString())
+
+    def set_text(self, text: str):
+        n_reasons = 1
+        if "<br>" in text or "\n" in text:
+            # There are two or more reasons in the text.
+            n_reasons = 2
+
+        self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
+        self.setText(text)
 
 
 def test_msgcheckbox():

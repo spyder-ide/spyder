@@ -263,6 +263,18 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         text = _('String not found')
         self.set_title(title + text)
 
+    def set_title(self, title):
+        # Prevent the title's width to be bigger than the widget's one.
+        metrics = QFontMetrics(self.font)
+        search_text_width = len(title) * metrics.width('W')
+        max_width = self.width()
+        if search_text_width >= max_width:
+            elided_title = metrics.elidedText(title, Qt.ElideMiddle, max_width)
+        else:
+            elided_title = title
+
+        self.setHeaderLabels([elided_title])
+
     @Slot(object)
     def append_file_result(self, filename):
         """Real-time update of file items."""

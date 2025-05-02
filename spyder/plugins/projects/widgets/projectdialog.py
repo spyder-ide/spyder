@@ -8,39 +8,359 @@
 """Project creation dialog."""
 
 # Standard library imports
-import errno
+from __future__ import annotations
+import os
 import os.path as osp
 import sys
-import tempfile
+from typing import TypedDict
 
 # Third party imports
-from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLayout, QLineEdit,
-                            QPushButton, QRadioButton, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+)
 
 # Local imports
-from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, get_home_dir
+from spyder.plugins.projects.api import EmptyProject
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
+from spyder.widgets.config import SpyderConfigPage
+from spyder.widgets.sidebardialog import SidebarDialog
+from spyder.widgets.helperwidgets import MessageLabel
 
 
+# =============================================================================
+# ---- Auxiliary functions and classes
+# =============================================================================
 def is_writable(path):
-    """Check if path has write access"""
+    """
+    Check if path has write access.
+
+    Solution taken from https://stackoverflow.com/a/11170037
+    """
+    filepath = osp.join(path, "__spyder_write_test__.txt")
+
     try:
-        testfile = tempfile.TemporaryFile(dir=path)
-        testfile.close()
-    except OSError as e:
-        if e.errno == errno.EACCES:  # 13
-            return False
+        filehandle = open(filepath, 'w')
+        filehandle.close()
+        os.remove(filepath)
+    except (FileNotFoundError, PermissionError):
+        return False
+
     return True
 
 
-class ProjectDialog(QDialog):
+class ValidationReasons(TypedDict):
+    missing_info: bool | None
+    no_location: bool | None
+    location_exists: bool | None
+    location_not_writable: bool | None
+    spyder_project_exists: bool | None
+
+
+# =============================================================================
+# ---- Pages
+# =============================================================================
+class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
+    """Base project page."""
+
+    # SidebarPage API
+    MIN_HEIGHT = 300
+    MAX_WIDTH = 430 if MAC else (400 if WIN else 420)
+
+    # SpyderConfigPage API
+    LOAD_FROM_CONFIG = False
+
+    # Own API
+    LOCATION_TEXT = _("Location")
+    LOCATION_TIP = None
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self._location = self.create_browsedir(
+            text=self.LOCATION_TEXT,
+            option=None,
+            alignment=Qt.Vertical,
+            tip=self.LOCATION_TIP,
+            status_icon=ima.icon("error"),
+        )
+
+        self._validation_label = MessageLabel(self)
+        self._validation_label.setVisible(False)
+
+        self._description_font = self.get_font(SpyderFontType.Interface)
+        self._description_font.setPointSize(
+            self._description_font.pointSize() + 1
+        )
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    @property
+    def project_location(self):
+        """Where the project is going to be created."""
+        raise NotImplementedError
+
+    def validate_page(self):
+        """Actions to take to validate the page contents."""
+        raise NotImplementedError
+
+    @property
+    def project_type(self):
+        """Project type associated to this page."""
+        return EmptyProject
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _validate_location(
+        self,
+        location: str,
+        reasons: ValidationReasons | None = None,
+        name: str | None = None
+    ) -> ValidationReasons:
+
+        if reasons is None:
+            reasons: ValidationReasons = {}
+
+        if not location:
+            self._location.status_action.setVisible(True)
+            self._location.status_action.setToolTip(_("This is empty"))
+            reasons["missing_info"] = True
+        elif not osp.isdir(location):
+            self._location.status_action.setVisible(True)
+            self._location.status_action.setToolTip(
+                _("This directory doesn't exist")
+            )
+            reasons["no_location"] = True
+        elif not is_writable(location):
+            self._location.status_action.setVisible(True)
+            self._location.status_action.setToolTip(
+                _("This directory is not writable")
+            )
+            reasons["location_not_writable"] = True
+        elif name is not None:
+            project_path = osp.join(location, name)
+            if osp.isdir(project_path):
+                reasons["location_exists"] = True
+        else:
+            spyproject_path = osp.join(location, '.spyproject')
+            if osp.isdir(spyproject_path):
+                self._location.status_action.setVisible(True)
+                self._location.status_action.setToolTip(
+                    _("You selected a Spyder project")
+                )
+                reasons["spyder_project_exists"] = True
+
+        return reasons
+
+    def _compose_failed_validation_text(self, reasons: ValidationReasons):
+        n_reasons = list(reasons.values()).count(True)
+        prefix = "- " if n_reasons > 1 else ""
+        suffix = "<br>" if n_reasons > 1 else ""
+
+        text = ""
+        if reasons.get("location_exists"):
+            text += (
+                prefix
+                + _(
+                    "The directory you selected for this project already "
+                    "exists."
+                )
+                + suffix
+            )
+        elif reasons.get("spyder_project_exists"):
+            text += (
+                prefix
+                + _("This directory is already a Spyder project.")
+                + suffix
+            )
+        elif reasons.get("location_not_writable"):
+            text += (
+                prefix
+                + _(
+                    "You don't have write permissions in the location you "
+                    "selected."
+                )
+                + suffix
+            )
+        elif reasons.get("no_location"):
+            text += (
+                prefix
+                + _("The location you selected doesn't exist.")
+                + suffix
+            )
+
+        if reasons.get("missing_info"):
+            text += (
+                prefix
+                + _("There are missing fields on this page.")
+            )
+
+        return text
+
+
+class NewDirectoryPage(BaseProjectPage):
+    """New directory project page."""
+
+    LOCATION_TIP = _(
+        "Select the location where the project directory will be created"
+    )
+    PROJECTS_DOCS_URL = (
+        "https://docs.spyder-ide.org/current/panes/projects.html"
+    )
+
+    def get_name(self):
+        return _("New directory")
+
+    def get_icon(self):
+        return self.create_icon("folder_new")
+
+    def setup_page(self):
+        description = QLabel(_("Start a project in a new directory"))
+        description.setWordWrap(True)
+        description.setFont(self._description_font)
+
+        docs_reference = QLabel(
+            _(
+                "To learn more about projects, see our "
+                '<a href="{0}">documentation</a>.'
+            ).format(self.PROJECTS_DOCS_URL)
+        )
+        docs_reference.setOpenExternalLinks(True)
+
+        self._name = self.create_lineedit(
+            text=_("Project directory"),
+            option=None,
+            tip=_(
+                "A directory with this name will be created in the location "
+                "below"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
+        layout = QVBoxLayout()
+        layout.addWidget(description)
+        layout.addWidget(docs_reference)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._name)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._location)
+        layout.addSpacing(7 * AppStyle.MarginSize)
+        layout.addWidget(self._validation_label)
+        layout.addStretch()
+        self.setLayout(layout)
+
+    @property
+    def project_location(self):
+        return osp.normpath(
+            osp.join(self._location.textbox.text(), self._name.textbox.text())
+        )
+
+    def validate_page(self):
+        name = self._name.textbox.text()
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
+
+        # Clear validation state
+        self._validation_label.setVisible(False)
+        for widget in [self._name, self._location]:
+            widget.status_action.setVisible(False)
+
+        # Perform validation
+        reasons: ValidationReasons = {}
+        if not name:
+            self._name.status_action.setVisible(True)
+            self._name.status_action.setToolTip(_("This is empty"))
+            reasons["missing_info"] = True
+
+        reasons = self._validate_location(location, reasons, name)
+        if reasons:
+            if reasons.get("location_exists"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("A directory with this name already exists")
+                )
+
+            self._validation_label.set_text(
+                self._compose_failed_validation_text(reasons)
+            )
+            self._validation_label.setVisible(True)
+
+        return False if reasons else True
+
+
+class ExistingDirectoryPage(BaseProjectPage):
+    """Existing directory project page."""
+
+    LOCATION_TEXT = _("Project path")
+    LOCATION_TIP = _("Select the directory to use for the project")
+
+    def get_name(self):
+        return _("Existing directory")
+
+    def get_icon(self):
+        return self.create_icon("DirClosedIcon")
+
+    def setup_page(self):
+        description = QLabel(
+            _("Create a Spyder project in an existing directory")
+        )
+        description.setWordWrap(True)
+        description.setFont(self._description_font)
+
+        layout = QVBoxLayout()
+        layout.addWidget(description)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._location)
+        layout.addSpacing(7 * AppStyle.MarginSize)
+        layout.addWidget(self._validation_label)
+        layout.addStretch()
+        self.setLayout(layout)
+
+    @property
+    def project_location(self):
+        return osp.normpath(self._location.textbox.text())
+
+    def validate_page(self):
+        # Clear validation state
+        self._validation_label.setVisible(False)
+        self._location.status_action.setVisible(False)
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
+
+        # Perform validation
+        reasons = self._validate_location(location)
+        if reasons:
+            self._validation_label.set_text(
+                self._compose_failed_validation_text(reasons)
+            )
+            self._validation_label.setVisible(True)
+
+        return False if reasons else True
+
+
+# =============================================================================
+# ---- Dialog
+# =============================================================================
+class ProjectDialog(SidebarDialog):
     """Project creation dialog."""
+
+    FIXED_SIZE = True
+    MIN_WIDTH = 740 if MAC else (670 if WIN else 730)
+    MIN_HEIGHT = 470 if MAC else (420 if WIN else 450)
+    PAGES_MINIMUM_WIDTH = 450
+    PAGE_CLASSES = [NewDirectoryPage, ExistingDirectoryPage]
 
     sig_project_creation_requested = Signal(str, str, object)
     """
@@ -57,190 +377,45 @@ class ProjectDialog(QDialog):
         Package to install. Currently not in use.
     """
 
-    def __init__(self, parent, project_types):
+    def __init__(self, parent):
         """Project creation dialog."""
-        super(ProjectDialog, self).__init__(parent=parent)
-        self.plugin = parent
-        self._project_types = project_types
+        super().__init__(parent=parent)
         self.project_data = {}
 
         self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-
-        self.project_name = None
-        self.location = get_home_dir()
-
-        # Widgets
-        projects_url = "http://docs.spyder-ide.org/current/panes/projects.html"
-        self.description_label = QLabel(
-            _("Select a new or existing directory to create a new Spyder "
-              "project in it. To learn more about projects, take a look at "
-              "our <a href=\"{0}\">documentation</a>.").format(projects_url)
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
         )
-        self.description_label.setOpenExternalLinks(True)
-        self.description_label.setWordWrap(True)
-
-        self.groupbox = QGroupBox()
-        self.radio_new_dir = QRadioButton(_("New directory"))
-        self.radio_from_dir = QRadioButton(_("Existing directory"))
-
-        self.label_project_name = QLabel(_('Project name'))
-        self.label_location = QLabel(_('Location'))
-        self.label_project_type = QLabel(_('Project type'))
-
-        self.text_project_name = QLineEdit()
-        self.text_location = QLineEdit(get_home_dir())
-        self.combo_project_type = SpyderComboBox()
-
-        self.label_information = QLabel("")
-        self.label_information.hide()
-
-        self.button_select_location = create_toolbutton(
-            self,
-            triggered=self.select_location,
-            icon=ima.icon('DirOpenIcon'),
-            tip=_("Select directory")
-        )
-        self.button_cancel = QPushButton(_('Cancel'))
-        self.button_create = QPushButton(_('Create'))
-
-        self.bbox = SpyderDialogButtonBox(orientation=Qt.Horizontal)
-        self.bbox.addButton(self.button_cancel, QDialogButtonBox.ActionRole)
-        self.bbox.addButton(self.button_create, QDialogButtonBox.ActionRole)
-
-        # Widget setup
-        self.radio_new_dir.setChecked(True)
-        self.text_location.setEnabled(True)
-        self.text_location.setReadOnly(True)
-        self.button_cancel.setDefault(True)
-        self.button_cancel.setAutoDefault(True)
-        self.button_create.setEnabled(False)
-        for (id_, name) in [(pt_id, pt.get_name()) for pt_id, pt
-                            in project_types.items()]:
-            self.combo_project_type.addItem(name, id_)
-
         self.setWindowTitle(_('Create new project'))
+        self.setWindowIcon(ima.icon("project_new"))
 
-        # Layouts
-        layout_top = QHBoxLayout()
-        layout_top.addWidget(self.radio_new_dir)
-        layout_top.addSpacing(15)
-        layout_top.addWidget(self.radio_from_dir)
-        layout_top.addSpacing(200)
-        self.groupbox.setLayout(layout_top)
-
-        layout_grid = QGridLayout()
-        layout_grid.addWidget(self.label_project_name, 0, 0)
-        layout_grid.addWidget(self.text_project_name, 0, 1, 1, 2)
-        layout_grid.addWidget(self.label_location, 1, 0)
-        layout_grid.addWidget(self.text_location, 1, 1)
-        layout_grid.addWidget(self.button_select_location, 1, 2)
-        layout_grid.addWidget(self.label_project_type, 2, 0)
-        layout_grid.addWidget(self.combo_project_type, 2, 1, 1, 2)
-        layout_grid.addWidget(self.label_information, 3, 0, 1, 3)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.description_label)
-        layout.addSpacing(3)
-        layout.addWidget(self.groupbox)
-        layout.addSpacing(8)
-        layout.addLayout(layout_grid)
-        layout.addSpacing(8)
-        layout.addWidget(self.bbox)
-        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-
-        self.setLayout(layout)
-
-        # Signals and slots
-        self.button_create.clicked.connect(self.create_project)
-        self.button_cancel.clicked.connect(self.close)
-        self.radio_from_dir.clicked.connect(self.update_location)
-        self.radio_new_dir.clicked.connect(self.update_location)
-        self.text_project_name.textChanged.connect(self.update_location)
-
-    def select_location(self):
-        """Select directory."""
-        location = osp.normpath(
-            getexistingdirectory(
-                self,
-                _("Select directory"),
-                self.location,
-            )
+    def create_buttons(self):
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Cancel, orientation=Qt.Horizontal
         )
 
-        if location and location != '.':
-            if is_writable(location):
-                self.location = location
-                self.text_project_name.setText(osp.basename(location))
-                self.update_location()
+        self.button_create = QPushButton(_('Create'))
+        self.button_create.clicked.connect(self.create_project)
+        bbox.addButton(self.button_create, QDialogButtonBox.ActionRole)
 
-    def update_location(self, text=''):
-        """Update text of location and validate it."""
-        msg = ''
-        path_validation = False
-        path = self.location
-        name = self.text_project_name.text().strip()
-
-        # Setup
-        self.text_project_name.setEnabled(self.radio_new_dir.isChecked())
-        self.label_information.setText('')
-        self.label_information.hide()
-
-        if name and self.radio_new_dir.isChecked():
-            # Allow to create projects only on new directories.
-            path = osp.join(self.location, name)
-            path_validation = not osp.isdir(path)
-            if not path_validation:
-                msg = _("This directory already exists!")
-        elif self.radio_from_dir.isChecked():
-            # Allow to create projects in current directories that are not
-            # Spyder projects.
-            path = self.location
-            path_validation = not osp.isdir(osp.join(path, '.spyproject'))
-            if not path_validation:
-                msg = _("This directory is already a Spyder project!")
-
-        # Set path in text_location
-        self.text_location.setText(path)
-
-        # Validate project name with the method from the currently selected
-        # project.
-        project_type_id = self.combo_project_type.currentData()
-        validate_func = self._project_types[project_type_id].validate_name
-        project_name_validation, project_msg = validate_func(path, name)
-        if not project_name_validation:
-            if msg:
-                msg = msg + '\n\n' + project_msg
-            else:
-                msg = project_msg
-
-        # Set message
-        if msg:
-            self.label_information.show()
-            self.label_information.setText('\n' + msg)
-
-        # Allow to create project if validation was successful
-        validated = path_validation and project_name_validation
-        self.button_create.setEnabled(validated)
-
-        # Set default state of buttons according to validation
-        # Fixes spyder-ide/spyder#16745
-        if validated:
-            self.button_create.setDefault(True)
-            self.button_create.setAutoDefault(True)
-        else:
-            self.button_cancel.setDefault(True)
-            self.button_cancel.setAutoDefault(True)
+        layout = QHBoxLayout()
+        layout.addWidget(bbox)
+        return bbox, layout
 
     def create_project(self):
         """Create project."""
+        page = self.get_page()
+
+        # Validate info
+        if not page.validate_page():
+            return
+
         self.project_data = {
-            "root_path": self.text_location.text(),
-            "project_type": self.combo_project_type.currentData(),
+            "root_path": osp.normpath(page.project_location),
+            "project_type": page.project_type.ID,
         }
         self.sig_project_creation_requested.emit(
-            self.text_location.text(),
-            self.combo_project_type.currentData(),
+            page.project_location,
+            page.project_type.ID,
             [],
         )
         self.accept()
@@ -249,20 +424,16 @@ class ProjectDialog(QDialog):
 def test():
     """Local test."""
     from spyder.utils.qthelpers import qapplication
-    from spyder.plugins.projects.api import BaseProjectType
-
-    class MockProjectType(BaseProjectType):
-
-        @staticmethod
-        def get_name():
-            return "Boo"
-
-        @staticmethod
-        def validate_name(path, name):
-            return False, "BOOM!"
+    from spyder.config.base import running_in_ci
 
     app = qapplication()
-    dlg = ProjectDialog(None, {"empty": MockProjectType})
+
+    dlg = ProjectDialog(None)
+
+    if not running_in_ci():
+        from spyder.utils.stylesheet import APP_STYLESHEET
+        app.setStyleSheet(str(APP_STYLESHEET))
+
     dlg.show()
     sys.exit(app.exec_())
 
