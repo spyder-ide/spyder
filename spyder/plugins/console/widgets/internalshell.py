@@ -148,7 +148,6 @@ class InternalShell(PythonShellWidget):
     def __init__(self, parent=None, commands=None, message=None,
                  max_line_count=300, exitfunc=None, profile=False,
                  multithreaded=True):
-        commands = [] if commands is None else commands
         super().__init__(parent, get_conf_path('history_internal.py'),
                          profile=profile)
 
@@ -169,6 +168,7 @@ class InternalShell(PythonShellWidget):
 
         # Init interpreter
         self.exitfunc = exitfunc
+        commands = [] if commands is None else commands
         self.commands = commands
         self.message = message
         self.interpreter = None
