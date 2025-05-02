@@ -160,7 +160,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             text=_("&Debug file"),
             tip=_("Debug file"),
             icon=self.create_icon('debug'),
-            shortcut_context=self.NAME,
+            shortcut_context="_",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Debug,

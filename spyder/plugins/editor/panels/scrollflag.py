@@ -51,6 +51,9 @@ class ScrollFlagArea(Panel):
         self._unit_testing = False
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
+        self._ctrl_key_is_down = False
+        self._shift_key_is_down = False
+        self._meta_key_is_down = False
 
         self._slider_range_color = QColor(Qt.gray)
         self._slider_range_color.setAlphaF(.85)
@@ -85,8 +88,8 @@ class ScrollFlagArea(Panel):
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
         editor.sig_key_released.connect(self.keyReleaseEvent)
-        editor.sig_alt_left_mouse_pressed.connect(self.mousePressEvent)
-        editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
+        editor.sig_scrollflag_shortcut_click.connect(self.mousePressEvent)
+        editor.sig_scrollflag_shortcut_move.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
         editor.sig_flags_changed.connect(self.update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
@@ -130,7 +133,7 @@ class ScrollFlagArea(Panel):
             'breakpoint': [],
         }
 
-        # Run this computation in a different thread to prevent freezing 
+        # Run this computation in a different thread to prevent freezing
         # the interface
         if not self._update_flags_thread.isRunning():
             self._update_flags_thread.start()
@@ -280,9 +283,20 @@ class ScrollFlagArea(Panel):
 
         # Paint the slider range
         if not self._unit_testing:
-            alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
+            modifiers = QApplication.queryKeyboardModifiers()
         else:
-            alt = self._alt_key_is_down
+            modifiers = Qt.KeyboardModifier.NoModifier
+            if self._alt_key_is_down:
+                modifiers |= Qt.KeyboardModifier.AltModifier
+            if self._ctrl_key_is_down:
+                modifiers |= Qt.KeyboardModifier.ControlModifier
+            if self._shift_key_is_down:
+                modifiers |= Qt.KeyboardModifier.ShiftModifier
+            if self._meta_key_is_down:
+                modifiers |= Qt.KeyboardModifier.MetaModifier
+
+        mouse_modifiers = editor.mouse_shortcuts['jump_to_position']
+        modifiers_held = modifiers == mouse_modifiers
 
         if self.slider:
             cursor_pos = self.mapFromGlobal(QCursor().pos())
@@ -293,7 +307,7 @@ class ScrollFlagArea(Panel):
             # determined if the cursor is over the editor or the flag scrollbar
             # because the later gives a wrong result when a mouse button
             # is pressed.
-            if is_over_self or (alt and is_over_editor):
+            if is_over_self or (modifiers_held and is_over_editor):
                 painter.setPen(self._slider_range_color)
                 painter.setBrush(self._slider_range_brush)
                 x, y, width, height = self.make_slider_range(
@@ -324,14 +338,32 @@ class ScrollFlagArea(Panel):
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._alt_key_is_down = False
+            self.update()
+        elif event.key() == Qt.Key.Key_Control:
+            self._ctrl_key_is_down = False
+            self.update()
+        elif event.key() == Qt.Key.Key_Shift:
+            self._shift_key_is_down = False
+            self.update()
+        elif event.key() == Qt.Key.Key_Meta:
+            self._meta_key_is_down = False
             self.update()
 
     def keyPressEvent(self, event):
         """Override Qt method"""
         if event.key() == Qt.Key_Alt:
             self._alt_key_is_down = True
+            self.update()
+        elif event.key() == Qt.Key.Key_Control:
+            self._ctrl_key_is_down = True
+            self.update()
+        elif event.key() == Qt.Key.Key_Shift:
+            self._shift_key_is_down = True
+            self.update()
+        elif event.key() == Qt.Key.Key_Meta:
+            self._meta_key_is_down = True
             self.update()
 
     def get_vertical_offset(self):

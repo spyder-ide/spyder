@@ -226,8 +226,13 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
 # The mock_RecoveryDialog fixture needs to be called before setup_editor, so
 # it needs to be mentioned first
 def test_editor_calls_recoverydialog_exec_if_nonempty(
-        mock_RecoveryDialog, editor_plugin):
-    """Check that editor tries to exec a recovery dialog on construction."""
+    mock_RecoveryDialog, editor_plugin
+):
+    """
+    Check that the editor tries to exec a recovery dialog before the main
+    window is visible.
+    """
+    editor_plugin.before_mainwindow_visible()
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
@@ -294,7 +299,9 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        # history[1] is a tuple of editor.all_cursor(s)
+        # only a single cursor is expected for this test
+        assert history[1][0].position() == expected_history[1]
 
     # Navigate to previous and next cursor positions.
 
@@ -318,11 +325,11 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history[:1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     for history, expected_history in zip(main_widget.cursor_redo_history,
                                          expected_cursor_undo_history[:0:-1]):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
 
     # So we are now expected to be at index 0 in the cursor position history.
     # From there, we go to the fourth file.
@@ -337,7 +344,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     for history, expected_history in zip(main_widget.cursor_undo_history,
                                          expected_cursor_undo_history):
         assert history[0] == expected_history[0]
-        assert history[1].position() == expected_history[1]
+        assert history[1][0].position() == expected_history[1]
     assert main_widget.cursor_redo_history == []
 
 
@@ -367,7 +374,7 @@ def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
     assert codeeditor.is_cloned
 
     # Assert the number of calls to document_did_open is exactly the
-    # same as before
+    # same as before.
     assert CodeEditor.document_did_open.call_count == 5
 
     # Close cloned editor to verify that notify_close is called from it.

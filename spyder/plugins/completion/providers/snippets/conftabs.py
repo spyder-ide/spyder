@@ -14,17 +14,26 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import getsavefilename, getopenfilename
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel,
-                            QMessageBox, QPushButton, QVBoxLayout, QFileDialog)
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QFileDialog,
+)
 
 # Local imports
+from spyder.api.preferences import SpyderPreferencesTab
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets import (
     SnippetModelsProxy, SnippetTable, SUPPORTED_LANGUAGES_PY, PYTHON_POS)
-from spyder.api.preferences import SpyderPreferencesTab
+from spyder.utils.icon_manager import ima
+from spyder.utils.stylesheet import AppStyle
+
 
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
@@ -51,35 +60,43 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         self.snippets_language_cb = SpyderComboBox(self)
         self.snippets_language_cb.setToolTip(
             _('Programming language provided by the LSP server'))
+        self.snippets_language_cb.setMinimumWidth(250)
         self.snippets_language_cb.addItems(SUPPORTED_LANGUAGES_PY)
         self.snippets_language_cb.setCurrentIndex(PYTHON_POS)
         self.snippets_language_cb.currentTextChanged.connect(
             self.change_language_snippets)
 
-        snippet_lang_group = QGroupBox(_('Language'))
-        snippet_lang_group.setStyleSheet('margin-bottom: 3px')
-        snippet_lang_layout = QVBoxLayout()
+        snippet_lang_label = QLabel(_('Language:'))
+        snippet_lang_layout = QHBoxLayout()
+        snippet_lang_layout.addWidget(snippet_lang_label)
         snippet_lang_layout.addWidget(self.snippets_language_cb)
-        snippet_lang_group.setLayout(snippet_lang_layout)
+        snippet_lang_layout.addStretch()
 
+        snippet_table_label = QLabel(_('Available snippets:'))
         self.snippets_proxy = SnippetModelsProxy(self)
         self.snippets_table = SnippetTable(
             self, self.snippets_proxy, language=self.snippets_language)
-        self.snippets_table.setMaximumHeight(180)
+        self.snippets_table.setMaximumHeight(200)
 
-        snippet_table_group = QGroupBox(_('Available snippets'))
-        snippet_table_layout = QVBoxLayout()
-        snippet_table_layout.addWidget(self.snippets_table)
-        snippet_table_group.setLayout(snippet_table_layout)
+        snippets_table_layout = QHBoxLayout()
+        snippets_table_layout.addSpacing(2 * AppStyle.MarginSize)
+        snippets_table_layout.addWidget(self.snippets_table)
+        snippets_table_layout.addSpacing(2 * AppStyle.MarginSize)
 
         # Buttons
-        self.reset_snippets_btn = QPushButton(_("Reset to default values"))
-        self.new_snippet_btn = QPushButton(_("Create a new snippet"))
-        self.delete_snippet_btn = QPushButton(
-            _("Delete currently selected snippet"))
+        self.new_snippet_btn = QPushButton(icon=ima.icon("edit_add"))
+        self.new_snippet_btn.setToolTip(_("Create a new snippet"))
+        self.delete_snippet_btn = QPushButton(icon=ima.icon("editclear"))
+        self.delete_snippet_btn.setToolTip(
+            _("Delete currently selected snippet")
+        )
         self.delete_snippet_btn.setEnabled(False)
-        self.export_snippets_btn = QPushButton(_("Export snippets to JSON"))
-        self.import_snippets_btn = QPushButton(_("Import snippets from JSON"))
+        self.reset_snippets_btn = QPushButton(icon=ima.icon("restart"))
+        self.reset_snippets_btn.setToolTip(_("Reset to default values"))
+        self.export_snippets_btn = QPushButton(icon=ima.icon("fileexport"))
+        self.export_snippets_btn.setToolTip(_("Export snippets to JSON"))
+        self.import_snippets_btn = QPushButton(icon=ima.icon("fileimport"))
+        self.import_snippets_btn.setToolTip(_("Import snippets from JSON"))
 
         # Slots connected to buttons
         self.new_snippet_btn.clicked.connect(self.create_new_snippet)
@@ -89,24 +106,31 @@ class SnippetsConfigTab(SpyderPreferencesTab):
         self.import_snippets_btn.clicked.connect(self.import_snippets)
 
         # Buttons layout
-        btns = [self.new_snippet_btn,
-                self.delete_snippet_btn,
-                self.reset_snippets_btn,
-                self.export_snippets_btn,
-                self.import_snippets_btn]
-        sn_buttons_layout = QGridLayout()
-        for i, btn in enumerate(btns):
-            sn_buttons_layout.addWidget(btn, i, 1)
-        sn_buttons_layout.setColumnStretch(0, 1)
-        sn_buttons_layout.setColumnStretch(1, 2)
-        sn_buttons_layout.setColumnStretch(2, 1)
+        btns = [
+            self.new_snippet_btn,
+            self.delete_snippet_btn,
+            self.reset_snippets_btn,
+            self.export_snippets_btn,
+            self.import_snippets_btn
+        ]
+        sn_buttons_layout = QHBoxLayout()
+        sn_buttons_layout.addStretch()
+        for btn in btns:
+            btn.setIconSize(
+                QSize(AppStyle.ConfigPageIconSize, AppStyle.ConfigPageIconSize)
+            )
+            sn_buttons_layout.addWidget(btn)
+        sn_buttons_layout.addStretch()
 
         # Snippets layout
         snippets_layout = QVBoxLayout()
         snippets_layout.addWidget(snippets_info_label)
-        snippets_layout.addSpacing(9)
-        snippets_layout.addWidget(snippet_lang_group)
-        snippets_layout.addWidget(snippet_table_group)
+        snippets_layout.addSpacing(3 * AppStyle.MarginSize)
+        snippets_layout.addLayout(snippet_lang_layout)
+        snippets_layout.addSpacing(3 * AppStyle.MarginSize)
+        snippets_layout.addWidget(snippet_table_label)
+        snippets_layout.addLayout(snippets_table_layout)
+        snippets_layout.addSpacing(AppStyle.MarginSize)
         snippets_layout.addLayout(sn_buttons_layout)
 
         self.setLayout(snippets_layout)

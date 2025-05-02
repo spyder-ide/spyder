@@ -5,39 +5,31 @@ on:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-mac.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/purge-cache.yml'
-      - '!.github/scripts/installer_test.sh'
 
   pull_request:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-mac.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/purge-cache.yml'
-      - '!.github/scripts/installer_test.sh'
 
   workflow_call:
 
@@ -111,10 +103,11 @@ jobs:
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          conda-remove-defaults: "true"
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
@@ -138,10 +131,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -f pytest_log.txt  # Must remove any log file from a previous run
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh || \
-          .github/scripts/run_tests.sh
+          .github/scripts/run_tests.sh -n 0 || \
+          .github/scripts/run_tests.sh -n 1 || \
+          .github/scripts/run_tests.sh -n 2 || \
+          .github/scripts/run_tests.sh -n 3
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:

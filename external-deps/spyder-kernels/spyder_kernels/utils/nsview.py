@@ -11,6 +11,7 @@ Utilities to build a namespace view.
 """
 from itertools import islice
 import inspect
+import pathlib
 import re
 
 from spyder_kernels.utils.lazymodules import (
@@ -203,10 +204,26 @@ def is_editable_type(value):
         return False
     else:
         supported_types = [
-            'bool', 'int', 'long', 'float', 'complex', 'list', 'set', 'dict',
-            'tuple', 'str', 'unicode', 'NDArray', 'MaskedArray', 'Matrix',
-            'DataFrame', 'Series', 'PIL.Image.Image', 'datetime.date',
-            'datetime.timedelta'
+            'bool',
+            'int',
+            'long',
+            'float',
+            'complex',
+            'list',
+            'set',
+            'frozenset',
+            'dict',
+            'tuple',
+            'str',
+            'unicode',
+            'NDArray',
+            'MaskedArray',
+            'Matrix',
+            'DataFrame',
+            'Series',
+            'PIL.Image.Image',
+            'datetime.date',
+            'datetime.timedelta',
         ]
 
         if (get_type_string(value) not in supported_types and
@@ -272,7 +289,7 @@ def default_display(value, with_module=True):
 def collections_display(value, level):
     """Display for collections (i.e. list, set, tuple and dict)."""
     is_dict = isinstance(value, dict)
-    is_set = isinstance(value, set)
+    is_set = isinstance(value, (set, frozenset))
 
     # Get elements
     if is_dict:
@@ -311,6 +328,8 @@ def collections_display(value, level):
         display = '[' + display + ']'
     elif isinstance(value, set):
         display = '{' + display + '}'
+    elif isinstance(value, frozenset):
+        display = 'frozenset({' + display + '})'
     else:
         display = '(' + display + ')'
 
@@ -321,7 +340,7 @@ def value_to_display(value, minmax=False, level=0):
     """Convert value for display purpose"""
     # To save current Numpy printoptions
     np_printoptions = FakeObject
-    numeric_numpy_types = get_numeric_numpy_types()
+    printable_numpy_types = get_numeric_numpy_types() + (np.str_,)
 
     try:
         if np.ndarray is not FakeObject:
@@ -344,17 +363,17 @@ def value_to_display(value, minmax=False, level=0):
                     try:
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                     except (TypeError, ValueError):
-                        if value.dtype.type in numeric_numpy_types:
+                        if value.dtype.type in printable_numpy_types:
                             display = str(value)
                         else:
                             display = default_display(value)
-                elif value.dtype.type in numeric_numpy_types:
+                elif value.dtype.type in printable_numpy_types:
                     display = str(value)
                 else:
                     display = default_display(value)
             else:
                 display = 'Numpy array'
-        elif any([type(value) == t for t in [list, set, tuple, dict]]):
+        elif type(value) in [list, set, frozenset, tuple, dict]:
             display = collections_display(value, level+1)
         elif isinstance(value, PIL.Image.Image):
             if level == 0:
@@ -404,13 +423,15 @@ def value_to_display(value, minmax=False, level=0):
                     display = "'" + display + "'"
             else:
                 display = default_display(value)
-
-        elif (isinstance(value, datetime.date) or
-              isinstance(value, datetime.timedelta)):
+        elif isinstance(value, pathlib.PurePath):
             display = str(value)
-        elif (isinstance(value, (int, float, complex)) or
-              isinstance(value, bool) or
-              isinstance(value, numeric_numpy_types)):
+        elif isinstance(value, (datetime.date, datetime.timedelta)):
+            display = str(value)
+        elif (
+            isinstance(value, (int, float, complex, bool))
+            or isinstance(value, printable_numpy_types)
+            or value is None
+        ):
             display = repr(value)
         else:
             if level == 0:
@@ -558,7 +579,7 @@ def is_supported(value, check_all=False, filters=None, iterate=False):
     elif not isinstance(value, filters):
         return False
     elif iterate:
-        if isinstance(value, (list, tuple, set)):
+        if isinstance(value, (list, tuple, set, frozenset)):
             valid_count = 0
             for val in value:
                 if is_supported(val, filters=filters, iterate=check_all):
@@ -632,8 +653,19 @@ def get_supported_types():
     in spyder-docs
     """
     from datetime import date, timedelta
-    editable_types = [int, float, complex, list, set, dict, tuple, date,
-                      timedelta, str]
+    editable_types = [
+        int,
+        float,
+        complex,
+        list,
+        set,
+        frozenset,
+        dict,
+        tuple,
+        date,
+        timedelta,
+        str,
+    ]
     try:
         from numpy import ndarray, matrix, generic
         editable_types += [ndarray, matrix, generic]

@@ -120,7 +120,7 @@ class FileInfo(QObject):
     """File properties."""
     todo_results_changed = Signal()
     sig_save_bookmarks = Signal(str, str)
-    text_changed_at = Signal(str, int)
+    text_changed_at = Signal(str, tuple)
     edit_goto = Signal(str, int, str)
     sig_send_to_help = Signal(str, str, bool)
     sig_filename_changed = Signal(str)
@@ -163,8 +163,9 @@ class FileInfo(QObject):
     def text_changed(self):
         """Editor's text has changed."""
         self.default = False
-        self.text_changed_at.emit(self.filename,
-                                  self.editor.get_position('cursor'))
+        all_cursors = self.editor.all_cursors
+        positions = tuple(cursor.position() for cursor in all_cursors)
+        self.text_changed_at.emit(self.filename, positions)
 
     def get_source_code(self):
         """Return associated editor source code."""

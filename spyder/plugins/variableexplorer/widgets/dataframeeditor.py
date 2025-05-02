@@ -33,9 +33,10 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
+from __future__ import annotations
 import io
 from time import perf_counter
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from packaging.version import parse
@@ -45,9 +46,26 @@ from qtpy.QtCore import (
     Signal, Slot)
 from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
-    QApplication, QDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
-    QItemDelegate, QLabel, QLineEdit, QMessageBox, QPushButton, QScrollBar,
-    QStyle, QTableView, QTableWidget, QToolButton, QVBoxLayout, QWidget)
+    QApplication,
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QItemDelegate,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollBar,
+    QStyle,
+    QTableView,
+    QTableWidget,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 
 # Local imports
@@ -66,6 +84,12 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+        NamespaceBrowser
+    )
+
 
 # =============================================================================
 # ---- Constants
@@ -83,6 +107,7 @@ class DataframeEditorActions:
     Edit = 'edit_action'
     EditHeader = 'edit_header_action'
     EditIndex = 'edit_index_action'
+    Histogram = 'histogram'
     InsertAbove = 'insert_above_action'
     InsertAfter = 'insert_after_action'
     InsertBefore = 'insert_before_action'
@@ -337,9 +362,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             return
         self.max_min_col = []
         for __, col in self.df.items():
-            # This is necessary to catch an error in Pandas when computing
+            # This is necessary to catch some errors in Pandas when computing
             # the maximum of a column.
-            # Fixes spyder-ide/spyder#17145
+            # Fixes spyder-ide/spyder#17145 and spyder-ide/spyder#24094
             try:
                 if (
                     is_any_real_numeric_dtype(col.dtype)
@@ -357,8 +382,9 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
                         max_min = [vmax, vmin - 1]
                 else:
                     max_min = None
-            except TypeError:
+            except (TypeError, ValueError):
                 max_min = None
+
             self.max_min_col.append(max_min)
 
     def get_format_spec(self) -> str:
@@ -659,8 +685,16 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
-    def __init__(self, parent, model, header, hscroll, vscroll,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self,
+        parent: Optional[QWidget],
+        model: DataFrameModel,
+        header: QHeaderView,
+        hscroll: QScrollBar,
+        vscroll: QScrollBar,
+        namespacebrowser: Optional[NamespaceBrowser] = None,
+        data_function: Optional[Callable[[], Any]] = None
+    ):
         """Constructor."""
         QTableView.__init__(self, parent)
 
@@ -681,6 +715,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.convert_to_menu = None
         self.resize_action = None
         self.resize_columns_action = None
+        self.histogram_action = None
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
@@ -698,6 +733,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.header_class.customContextMenuRequested.connect(
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
+        self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
@@ -803,14 +839,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                        self.duplicate_col_action]:
             action.setEnabled(condition_edit)
 
-        # Enable/disable actions for remove col/row and copy
+        # Enable/disable actions for remove col/row, copy and plot
         condition_copy_remove = (
             index.isValid() and
             (len(self.selectedIndexes()) > 0)
         )
 
         for action in [self.copy_action, self.remove_row_action,
-                       self.remove_col_action]:
+                       self.remove_col_action, self.histogram_action]:
             action.setEnabled(condition_copy_remove)
 
     def setup_menu(self):
@@ -903,6 +939,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         )
         self.copy_action.setShortcut(keybinding('Copy'))
         self.copy_action.setShortcutContext(Qt.WidgetShortcut)
+        self.histogram_action = self.create_action(
+            name=DataframeEditorActions.Histogram,
+            text=_("Histogram"),
+            tip=_("Plot a histogram of the selected columns"),
+            icon=ima.icon('hist'),
+            triggered=self.plot_hist,
+            register_action=False
+        )
 
         # ---- Create "Convert to" submenu and actions
 
@@ -1002,6 +1046,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 self.resizeRowsToContents()
                 self.parent().table_index.resizeRowsToContents()
             else:
+                self.parent().table_index.resizeColumnsToContents()
                 self.parent().resize_to_contents()
 
     def flags(self, index):
@@ -1422,6 +1467,20 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             self.model().dataChanged.emit(index, index)
             self.setCurrentIndex(self.model().index(focus_row, focus_col))
 
+    def plot_hist(self) -> None:
+        """
+        Plot histogram of selected columns
+        """
+        def plot_function(figure: Figure) -> None:
+            ax = figure.subplots()
+            model.df.hist(column=col_labels, ax=ax)
+
+        cols = list(index.column() for index in self.selectedIndexes())
+        cols = list(set(cols))  # Remove duplicates
+        model = self.model()
+        col_labels = [model.header(0, col) for col in cols]
+        self.namespacebrowser.plot(plot_function)
+
 
 class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
     """
@@ -1720,10 +1779,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def __init__(
         self,
-        parent: QWidget = None,
+        parent: Optional[QWidget] = None,
+        namespacebrowser: Optional[NamespaceBrowser] = None,
         data_function: Optional[Callable[[], Any]] = None
     ):
         super().__init__(parent)
+        self.namespacebrowser = namespacebrowser
         self.data_function = data_function
 
         self.refresh_action = self.create_action(
@@ -1753,6 +1814,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.glayout = None
         self.menu_header_v = None
         self.dataTable = None
+        self.resizeToHeader = False
 
     def setup_and_check(self, data, title='') -> bool:
         """
@@ -1938,6 +2000,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.dataTable.duplicate_col_action,
             self.dataTable.remove_col_action,
             stretcher,
+            self.dataTable.histogram_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
             self.refresh_action,
@@ -2048,10 +2111,15 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def create_data_table(self):
         """Create the QTableView that will hold the data model."""
-        self.dataTable = DataFrameView(self, self.dataModel,
-                                       self.table_header.horizontalHeader(),
-                                       self.hscroll, self.vscroll,
-                                       self.data_function)
+        self.dataTable = DataFrameView(
+            self,
+            self.dataModel,
+            self.table_header.horizontalHeader(),
+            self.hscroll,
+            self.vscroll,
+            self.namespacebrowser,
+            self.data_function
+        )
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
         self.dataTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -2123,9 +2191,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if last_col < 0:
             idx_width = self.table_level.verticalHeader().width()
         else:
-            idx_width = self.table_level.columnViewportPosition(last_col) + \
-                        self.table_level.columnWidth(last_col) + \
-                        self.table_level.verticalHeader().width()
+            idx_width = (
+                self.table_level.columnViewportPosition(last_col)
+                + self.table_level.columnWidth(last_col)
+                + self.table_level.verticalHeader().width()
+                # This is necessary to show the separator that allows to resize
+                # the index.
+                + 5
+            )
         self.table_index.setFixedWidth(idx_width)
         self.table_level.setFixedWidth(idx_width)
         self._resizeVisibleColumnsToContents()
@@ -2274,6 +2347,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         # If user clicked 'OK' then set new options accordingly
         if result == QDialog.Accepted:
             float_format = dialog.float_format
+
+            # This is necessary to handle formatting for integers.
+            # Fixes spyder-ide/spyder#22629
+            if float_format == 'd':
+                float_format = '.0f'
+
             try:
                 format(1.1, float_format)
             except:
@@ -2343,7 +2422,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
     def _update_header_size(self):
         """Update the column width of the header."""
-        self.table_header.resizeColumnsToContents()
+        if self.resizeToHeader:
+            self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
@@ -2353,6 +2433,24 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
                     self.table_header.setColumnWidth(index, column_width)
                 else:
                     self.dataTable.setColumnWidth(index, header_width)
+            else:
+                break
+
+    def _update_index_size(self):
+        """Update the index's column width."""
+        if self.resizeToHeader:
+            self.table_level.resizeColumnsToContents()
+
+
+        column_count = self.table_level.model().columnCount()
+        for index in range(0, column_count):
+            if index < column_count:
+                column_width = self.table_index.columnWidth(index)
+                header_width = self.table_level.columnWidth(index)
+                if column_width > header_width:
+                    self.table_level.setColumnWidth(index, column_width)
+                else:
+                    self.table_index.setColumnWidth(index, header_width)
             else:
                 break
 
@@ -2385,6 +2483,17 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """Fetch more data for the index (rows)."""
         self.table_index.model().fetch_more()
 
+    def _update_flag_resize(self):
+        self.resizeToHeader = not self.resizeToHeader
+        if self.resizeToHeader:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to headers")
+            )
+        else:
+            self.dataTable.resize_columns_action.setText(
+                _("Resize columns to contents")
+            )
+
     @Slot()
     def resize_to_contents(self):
         """"Resize columns to contents"""
@@ -2393,6 +2502,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataModel.fetch_more(columns=True)
         self.dataTable.resizeColumnsToContents()
         self._update_header_size()
+        self._update_index_size()
+        self._update_flag_resize()
+        self._update_layout()
+
         QApplication.restoreOverrideCursor()
 
 

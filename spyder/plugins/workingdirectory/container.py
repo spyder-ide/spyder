@@ -159,7 +159,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
     Parameters
     ----------
     new_working_directory: str
-        The new new working directory path.
+        The new working directory path.
     """
 
     edit_goto = Signal(str, int, str)
@@ -200,7 +200,6 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
-        self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.textActivated.connect(self.chdir)
 
@@ -281,7 +280,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         return workdir
 
     @Slot()
-    def _select_directory(self, directory=None):
+    def _select_directory(self):
         """
         Select working directory.
 
@@ -294,14 +293,13 @@ class WorkingDirectoryContainer(PluginMainContainer):
         -----
         If directory is None, a get directory dialog will be used.
         """
-        if directory is None:
-            self.sig_redirect_stdio_requested.emit(False)
-            directory = getexistingdirectory(
-                self,
-                _("Select directory"),
-                getcwd_or_home(),
-            )
-            self.sig_redirect_stdio_requested.emit(True)
+        self.sig_redirect_stdio_requested.emit(False)
+        directory = getexistingdirectory(
+            self,
+            _("Select directory"),
+            getcwd_or_home(),
+        )
+        self.sig_redirect_stdio_requested.emit(True)
 
         if directory:
             self.chdir(directory)

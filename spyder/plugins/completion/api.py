@@ -16,6 +16,7 @@ https://microsoft.github.io/language-server-protocol/specifications/specificatio
 from typing import Any, Optional, Tuple, Union
 
 # Third party imports
+from qtpy import PYSIDE6
 from qtpy.QtCore import Signal, QObject, Slot, Qt
 
 # Local imports
@@ -675,6 +676,13 @@ class CompletionConfigurationObserver(SpyderConfigurationObserver):
     def _gather_observers(self):
         """Gather all the methods decorated with `on_conf_change`."""
         for method_name in dir(self):
+            # Avoid crash at startup due to MRO
+            if PYSIDE6 and method_name in {
+                # Method is debounced
+                "interpreter_changed"
+            }:
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, '_conf_listen'):
                 info = method._conf_listen
@@ -1059,17 +1067,17 @@ class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
         """
         pass
 
-    @Slot(object, object)
-    def python_path_update(self, previous_path, new_path):
+    @Slot(object, bool)
+    def python_path_update(self, new_path, prioritize):
         """
         Handle Python path updates on Spyder.
 
         Parameters
         ----------
-        previous_path: Dict
-            Dictionary containing the previous Python path values.
-        new_path: Dict
+        new_path: list of str
             Dictionary containing the current Python path values.
+        prioritize: bool
+            Whether to prioritize Python path values in sys.path
         """
         pass
 

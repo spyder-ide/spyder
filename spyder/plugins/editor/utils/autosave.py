@@ -72,9 +72,12 @@ class AutosaveForPlugin(object):
         self.editor = editor
         self.name_mapping = {}
         self.file_hashes = {}
+        self.recover_files_to_open = []
+
         self.timer = QTimer(self.editor)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.do_autosave)
+
         self._enabled = False  # Can't use setter here
         self._interval = self.DEFAULT_AUTOSAVE_INTERVAL
 
@@ -308,7 +311,7 @@ class AutosaveForStack(object):
         autosave_filename = self.name_mapping[filename]
         try:
             os.remove(autosave_filename)
-        except EnvironmentError as error:
+        except (FileNotFoundError, OSError) as error:
             action = (_('Error while removing autosave file {}')
                       .format(autosave_filename))
             msgbox = AutosaveErrorDialog(action, error)
@@ -344,7 +347,7 @@ class AutosaveForStack(object):
             if not osp.isdir(autosave_dir):
                 try:
                     os.mkdir(autosave_dir)
-                except EnvironmentError as error:
+                except (PermissionError, OSError) as error:
                     action = _('Error while creating autosave directory')
                     msgbox = AutosaveErrorDialog(action, error)
                     msgbox.exec_if_enabled()
@@ -414,7 +417,7 @@ class AutosaveForStack(object):
             self.stack._write_to_file(finfo, autosave_filename)
             autosave_hash = self.stack.compute_hash(finfo)
             self.file_hashes[autosave_filename] = autosave_hash
-        except EnvironmentError as error:
+        except (PermissionError, OSError) as error:
             action = (_('Error while autosaving {} to {}')
                       .format(finfo.filename, autosave_filename))
             msgbox = AutosaveErrorDialog(action, error)

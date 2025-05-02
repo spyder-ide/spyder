@@ -1539,6 +1539,28 @@ class BaseEditMixin(object):
         elif isinstance(self, QTextEdit):
             QTextEdit.mouseDoubleClickEvent(self, event)
 
+    def inputMethodQuery(self, query):
+        """
+        Prevent Chinese input method to block edit input area.
+
+        Notes
+        -----
+        This was suggested by a user in spyder-ide/spyder#23313. So, it's not
+        tested by us.
+        """
+        if query == Qt.ImInputItemClipRectangle:
+            cursor_rect = self.cursorRect()
+            margins = self.viewportMargins()
+            cursor_rect.moveTopLeft(
+                cursor_rect.topLeft() + QPoint(margins.left(), margins.top())
+            )
+            return cursor_rect
+
+        if isinstance(self, QPlainTextEdit):
+            QPlainTextEdit.inputMethodQuery(self, query)
+        elif isinstance(self, QTextEdit):
+            QTextEdit.inputMethodQuery(self, query)
+
 
 class TracebackLinksMixin(object):
     """Mixin to make file names in tracebacks and anchors clickable."""

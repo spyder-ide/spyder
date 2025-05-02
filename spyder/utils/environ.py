@@ -111,15 +111,13 @@ def get_user_environment_variables():
         # We only need to do this if Spyder was **not** launched from a
         # terminal. Otherwise, it'll inherit the env vars present in it.
         # Fixes spyder-ide/spyder#22415
-        if not launched_from_terminal:
+        if not launched_from_terminal or running_in_ci():
             try:
                 user_env_script = _get_user_env_script()
                 proc = run_shell_command(user_env_script, env={}, text=True)
 
                 # Use timeout to fix spyder-ide/spyder#21172
-                stdout, stderr = proc.communicate(
-                    timeout=3 if running_in_ci() else 0.5
-                )
+                stdout, stderr = proc.communicate(timeout=3)
 
                 if stderr:
                     logger.info(stderr.strip())

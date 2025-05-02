@@ -85,7 +85,6 @@ def is_program_installed(basename, extra_paths=None):
     """
     extra_paths = [] if extra_paths is None else extra_paths
     home = get_home_dir()
-    req_paths = []
     if (
         sys.platform == 'darwin'
         and basename.endswith('.app')
@@ -111,9 +110,10 @@ def is_program_installed(basename, extra_paths=None):
              'Miniconda3', 'Anaconda3', 'Miniconda', 'Anaconda']
 
     conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
-    req_paths.extend(pyenv + conda + extra_paths)
 
-    for path in set(os.environ['PATH'].split(os.pathsep) + req_paths):
+    for path in (
+        extra_paths + conda + pyenv + os.getenv('PATH', []).split(os.pathsep)
+    ):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
             return abspath

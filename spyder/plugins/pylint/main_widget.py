@@ -24,8 +24,13 @@ import pylint
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, Signal,
                          Slot)
-from qtpy.QtWidgets import (QComboBox, QInputDialog, QLabel, QMessageBox,
-                            QTreeWidgetItem, QStackedWidget, QVBoxLayout)
+from qtpy.QtWidgets import (
+    QComboBox,
+    QInputDialog,
+    QLabel,
+    QMessageBox,
+    QTreeWidgetItem,
+)
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -42,7 +47,6 @@ from spyder.utils.palette import SpyderPalette
 from spyder.widgets.comboboxes import (PythonModulesComboBox,
                                        is_module_or_package)
 from spyder.widgets.onecolumntree import OneColumnTree, OneColumnTreeActions
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # --- Constants
@@ -160,14 +164,14 @@ class ResultsTree(OneColumnTree):
         self.data = None
         self.set_title("")
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event"""
         data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
             self.sig_edit_goto_requested.emit(fname, lineno, "")
 
-    def clicked(self, item):
+    def on_item_clicked(self, item):
         """Click event."""
         if isinstance(item, CategoryItem):
             if item.isExpanded():
@@ -175,7 +179,7 @@ class ResultsTree(OneColumnTree):
             else:
                 self.expandItem(item)
         else:
-            self.activated(item)
+            self.on_item_activated(item)
 
     def clear_results(self):
         self.clear()
@@ -264,7 +268,15 @@ class PylintWidget(PluginMainWidget):
     """
     Pylint widget.
     """
+    # PluginMainWidget API
     ENABLE_SPINNER = True
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "code-analysis"
+    MESSAGE_WHEN_EMPTY = _("Code not analyzed yet")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Run an analysis using Pylint to get feedback on style issues, bad "
+        "practices, potential bugs, and suggested improvements in your code."
+    )
 
     DATAPATH = get_conf_path("pylint.results")
     VERSION = "1.1.0"
@@ -316,14 +328,7 @@ class PylintWidget(PluginMainWidget):
         self.datelabel.ID = PylintWidgetToolbarItems.DateLabel
 
         self.treewidget = ResultsTree(self)
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "code-analysis",
-            _("Code not analyzed yet"),
-            _("Run an analysis using Pylint to get feedback on "
-              "style issues, bad practices, potential bugs, "
-              "and suggested improvements in your code.")
-        )
+        self.set_content_widget(self.treewidget)
 
         if osp.isfile(self.DATAPATH):
             try:
@@ -339,15 +344,6 @@ class PylintWidget(PluginMainWidget):
         self.filecombo.setInsertPolicy(QComboBox.InsertPolicy.InsertAtTop)
         for fname in self.curr_filenames[::-1]:
             self.set_filename(fname)
-
-        # Layout
-        self.stacked_widget = QStackedWidget(self)
-        self.stacked_widget.addWidget(self.pane_empty)
-        self.stacked_widget.addWidget(self.treewidget)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.stacked_widget)
-        self.setLayout(layout)
 
         # Signals
         self.filecombo.valid.connect(self._check_new_file)
@@ -784,17 +780,17 @@ class PylintWidget(PluginMainWidget):
             text = _("Source code has not been rated yet.")
             self.treewidget.clear_results()
             date_text = ""
-            self.stacked_widget.setCurrentWidget(self.pane_empty)
+            self.show_empty_message()
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
-                self.stacked_widget.setCurrentWidget(self.treewidget)
+                self.show_content_widget()
                 text = _("Analysis did not succeed "
                          "(see output for more details).")
                 self.treewidget.clear_results()
                 date_text = ""
             else:
-                self.stacked_widget.setCurrentWidget(self.treewidget)
+                self.show_content_widget()
                 text_style = "<span style=\"color: %s\"><b>%s </b></span>"
                 rate_style = "<span style=\"color: %s\"><b>%s</b></span>"
                 prevrate_style = "<span style=\"color: %s\">%s</span>"

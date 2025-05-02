@@ -16,6 +16,14 @@ import os.path as osp
 import sys
 import site
 
+# Remove current directory from sys.path to prevent kernel crashes when people
+# name Python files or modules with the same name as standard library modules.
+# See spyder-ide/spyder#8007
+# Inject it back into sys.path after all imports in this module but
+# before the kernel is initialized
+while '' in sys.path:
+    sys.path.remove('')
+
 # Third-party imports
 from traitlets import DottedObjectName
 
@@ -29,13 +37,6 @@ def import_spydercustomize():
     parent = osp.dirname(here)
     customize_dir = osp.join(parent, 'customize')
 
-    # Remove current directory from sys.path to prevent kernel
-    # crashes when people name Python files or modules with
-    # the same name as standard library modules.
-    # See spyder-ide/spyder#8007
-    while '' in sys.path:
-        sys.path.remove('')
-
     # Import our customizations
     site.addsitedir(customize_dir)
     import spydercustomize  # noqa
@@ -45,6 +46,7 @@ def import_spydercustomize():
         sys.path.remove(customize_dir)
     except ValueError:
         pass
+
 
 def kernel_config():
     """Create a config object with IPython kernel options."""
@@ -150,13 +152,6 @@ def main():
     # Import our customizations into the kernel
     import_spydercustomize()
 
-    # Remove current directory from sys.path to prevent kernel
-    # crashes when people name Python files or modules with
-    # the same name as standard library modules.
-    # See spyder-ide/spyder#8007
-    while '' in sys.path:
-        sys.path.remove('')
-
     # Main imports
     from ipykernel.kernelapp import IPKernelApp
     from spyder_kernels.console.kernel import SpyderKernel
@@ -189,6 +184,12 @@ def main():
         kernel.config = kernel_config()
     except:
         pass
+
+    # Re-add current working directory path into sys.path after all of the
+    # import statements, but before initializing the kernel.
+    if '' not in sys.path:
+        sys.path.insert(0, '')
+
     kernel.initialize()
 
     # Set our own magics

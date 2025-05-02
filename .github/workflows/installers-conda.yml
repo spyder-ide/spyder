@@ -97,7 +97,7 @@ jobs:
         fi
 
         if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then
-            branch="'master', '6.x'"
+            branch="'master'"
         else
             branch="''"
         fi
@@ -165,7 +165,7 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -174,7 +174,7 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -183,14 +183,14 @@ jobs:
         if: env.USE_SUBREPOS == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: installers-conda/build/conda-bld/**/*.tar.bz2
+          path: installers-conda/build/conda-bld/**/*.conda
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
 
       - name: Setup Build Environment (Windows)
         if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
@@ -200,8 +200,7 @@ jobs:
               - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
-              # TODO: Add this channel when we create it
-              # - conda-forge/label/spyder_kernels_dev
+              - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -214,7 +213,7 @@ jobs:
 
       - name: Setup Build Environment (macOS & Linux)
         if: runner.os != 'Windows'
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           condarc: |
             conda_build:
@@ -224,8 +223,7 @@ jobs:
               - conda-forge/label/spyder_rc
               - conda-forge/label/spyder_dev
               - conda-forge/label/spyder_kernels_rc
-              # TODO: Add this channel when we create it
-              # - conda-forge/label/spyder_kernels_dev
+              - conda-forge/label/spyder_kernels_dev
               - conda-forge
           environment-file: installers-conda/build-environment.yml
           environment-name: spy-inst
@@ -254,14 +252,17 @@ jobs:
           # built in workspace
           [[ -d build/conda-bld ]] && cp -Rv build/conda-bld $CONDA_BLD_PATH
 
+          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
+
           python build_conda_pkgs.py --build spyder
 
       - name: Create Local Conda Channel
         run: |
           mkdir -p $CONDA_BLD_PATH
           conda config --set bld_path $CONDA_BLD_PATH
+          conda config --set conda_build.root-dir $CONDA_BLD_PATH
           conda index $CONDA_BLD_PATH
-          mamba search -c local --override-channels || true
+          conda search -c local --override-channels || true
 
       - name: Create Keychain
         if: runner.os == 'macOS' && env.NOTARIZE == 'true'
@@ -274,8 +275,8 @@ jobs:
           fi
 
           ./certkeychain.sh "${MACOS_CERTIFICATE_PWD}" "${MACOS_CERTIFICATE}" "${MACOS_INSTALLER_CERTIFICATE}"
-          CNAME=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
-          echo "CNAME=$CNAME" >> $GITHUB_ENV
+          CERT_ID=$(security find-identity -p codesigning -v | pcre2grep -o1 "\(([0-9A-Z]+)\)")
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
 
       - name: Load signing certificate (Windows)
         if: runner.os == 'Windows' && env.NOTARIZE == 'true'
@@ -289,11 +290,12 @@ jobs:
 
       - name: Build Package Installer
         run: |
-          [[ -n $CNAME ]] && args=("--cert-id" "$CNAME") || args=()
-          python build_installers.py ${args[@]}
+          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
+
+          python build_installers.py
 
           SPYVER=$(python build_installers.py --version)
-          PKG_PATH=$(python build_installers.py --artifact-name)
+          PKG_PATH=$(python build_installers.py --installer-path)
           PKG_NAME=$(basename $PKG_PATH)
           ARTIFACT_NAME=${PKG_NAME%.*}
           [[ "$GITHUB_EVENT_NAME" == "schedule" ]] && ARTIFACT_NAME=$ARTIFACT_NAME-$MATRIX_BRANCH
@@ -352,15 +354,10 @@ jobs:
 
           EXIT /B %ERRORLEVEL%
 
-      - name: Notarize or Compute Checksum
-        if: env.NOTARIZE == 'true'
+      - name: Notarize
+        if: runner.os == 'macOS' && env.NOTARIZE == 'true'
         run: |
-          if [[ $RUNNER_OS == "macOS" ]]; then
-              ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
-          else
-              cd $DISTDIR
-              echo $(sha256sum $PKG_NAME) > "${ARTIFACT_NAME}-sha256sum.txt"
-          fi
+          ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -387,11 +384,21 @@ jobs:
       - name: Zip Lock Files
         run: zip -mT spyder-conda-lock *.lock
 
-      - name: Upload Artifact
+      - name: Create Checksums
+        run: |
+          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt
+
+      - name: Upload Lock Files
         uses: actions/upload-artifact@v4
         with:
           path: spyder-conda-lock.zip
-          name: spyder-conda-lock
+          name: spyder-conda-lock-artifact
+
+      - name: Upload Checksums
+        uses: actions/upload-artifact@v4
+        with:
+          path: Spyder-checksums.txt
+          name: Spyder-checksums
 
       - name: Get Release
         if: env.IS_RELEASE == 'true'

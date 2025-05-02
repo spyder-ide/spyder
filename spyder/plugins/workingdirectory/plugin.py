@@ -9,7 +9,9 @@ Working Directory Plugin.
 """
 
 # Standard library imports
+import logging
 import os.path as osp
+from typing import Optional
 
 # Third party imports
 from qtpy.QtCore import Signal
@@ -27,6 +29,9 @@ from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 
 
+logger = logging.getLogger(__name__)
+
+
 class WorkingDirectory(SpyderPluginV2):
     """
     Working directory changer plugin.
@@ -34,8 +39,12 @@ class WorkingDirectory(SpyderPluginV2):
 
     NAME = 'workingdir'
     REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Toolbar]
-    OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
-                Plugins.Find, Plugins.Projects]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.Explorer,
+        Plugins.IPythonConsole,
+        Plugins.Projects,
+    ]
     CONTAINER_CLASS = WorkingDirectoryContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = WorkingDirectoryConfigPage
@@ -45,14 +54,16 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_current_directory_changed = Signal(str)
+    sig_current_directory_changed = Signal(str, str)
     """
     This signal is emitted when the current directory has changed.
 
     Parameters
     ----------
     new_working_directory: str
-        The new new working directory path.
+        The new working directory path.
+    sender_plugin: str
+        Name of the plugin that requested the directory to be changed.
     """
 
     # --- SpyderPluginV2 API
@@ -72,10 +83,9 @@ class WorkingDirectory(SpyderPluginV2):
     def on_initialize(self):
         container = self.get_container()
 
-        container.sig_current_directory_changed.connect(
-            self.sig_current_directory_changed)
-        self.sig_current_directory_changed.connect(
-            lambda path, plugin=None: self.chdir(path, plugin))
+        # To report to other plugins that cwd changed when the user selected a
+        # new one directly in the toolbar.
+        container.sig_current_directory_changed.connect(self.chdir)
 
         cli_options = self.get_command_line_options()
         container.set_history(
@@ -104,17 +114,14 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.Explorer)
     def on_explorer_available(self):
         explorer = self.get_plugin(Plugins.Explorer)
-        self.sig_current_directory_changed.connect(self._explorer_change_dir)
         explorer.sig_dir_opened.connect(self._explorer_dir_opened)
 
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_available(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        self.sig_current_directory_changed.connect(
-            ipyconsole.set_current_client_working_directory)
         ipyconsole.sig_current_directory_changed.connect(
-            self._ipyconsole_change_dir)
+            self._ipyconsole_change_dir
+        )
 
     @on_plugin_available(plugin=Plugins.Projects)
     def on_projects_available(self):
@@ -141,17 +148,14 @@ class WorkingDirectory(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.Explorer)
     def on_explorer_teardown(self):
         explorer = self.get_plugin(Plugins.Explorer)
-        self.sig_current_directory_changed.disconnect(self._explorer_change_dir)
         explorer.sig_dir_opened.disconnect(self._explorer_dir_opened)
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipyconsole_teardown(self):
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-
-        self.sig_current_directory_changed.disconnect(
-            ipyconsole.set_current_client_working_directory)
         ipyconsole.sig_current_directory_changed.disconnect(
-            self._ipyconsole_change_dir)
+            self._ipyconsole_change_dir
+        )
 
     @on_plugin_teardown(plugin=Plugins.Projects)
     def on_projects_teardown(self):
@@ -161,7 +165,7 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory, sender_plugin=None):
+    def chdir(self, directory: str, sender_plugin: Optional[str] = None):
         """
         Change current working directory.
 
@@ -169,28 +173,21 @@ class WorkingDirectory(SpyderPluginV2):
         ----------
         directory: str
             The new working directory to set.
-        sender_plugin: spyder.api.plugins.SpyderPluginsV2
-            The plugin that requested this change: Default is None.
+        sender_plugin: str
+            The plugin that requested this change. Default is None, which means
+            this is the plugin requesting the change.
         """
-        explorer = self.get_plugin(Plugins.Explorer)
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        find = self.get_plugin(Plugins.Find)
+        container = self.get_container()
 
-        if explorer and sender_plugin != explorer:
-            explorer.chdir(directory, emit=False)
-            explorer.refresh(directory, force_current=True)
+        if sender_plugin is None:
+            sender_plugin = self.NAME
 
-        if ipyconsole and sender_plugin != ipyconsole:
-            ipyconsole.set_current_client_working_directory(directory)
-
-        if find:
-            find.refresh_search_directory()
-
-        if sender_plugin is not None:
-            container = self.get_container()
-            container.chdir(directory, emit=False)
-            if ipyconsole:
-                ipyconsole.save_working_directory(directory)
+        logger.debug(
+            f"The plugin {sender_plugin} requested changing the cwd to "
+            f"{directory}"
+        )
+        container.chdir(directory, emit=False)
+        self.sig_current_directory_changed.emit(directory, sender_plugin)
 
         self.save_history()
 
@@ -238,29 +235,20 @@ class WorkingDirectory(SpyderPluginV2):
 
     # -------------------------- Private API ----------------------------------
     def _editor_change_dir(self, path):
-        editor = self.get_plugin(Plugins.Editor)
-        self.chdir(path, editor)
-
-    def _explorer_change_dir(self, path):
-        explorer = self.get_plugin(Plugins.Explorer)
-        if explorer:
-            explorer.chdir(path, emit=False)
+        self.chdir(path, Plugins.Editor)
 
     def _explorer_dir_opened(self, path):
-        explorer = self.get_plugin(Plugins.Explorer)
-        self.chdir(path, explorer)
+        self.chdir(path, Plugins.Explorer)
 
     def _ipyconsole_change_dir(self, path):
-        ipyconsole = self.get_plugin(Plugins.IPythonConsole)
-        self.chdir(path, ipyconsole)
+        self.chdir(path, Plugins.IPythonConsole)
 
     def _project_loaded(self, path):
-        projects = self.get_plugin(Plugins.Projects)
-        self.chdir(directory=path, sender_plugin=projects)
+        self.chdir(directory=path, sender_plugin=Plugins.Projects)
 
     def _project_closed(self, path):
         projects = self.get_plugin(Plugins.Projects)
         self.chdir(
             directory=projects.get_last_working_dir(),
-            sender_plugin=projects
+            sender_plugin=Plugins.Projects
         )

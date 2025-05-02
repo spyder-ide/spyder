@@ -45,14 +45,14 @@ def notebook_with_python_cells(cells: List[str]):
             "cells": [
                 {
                     "kind": NotebookCellKind.Code,
-                    "document": f"cell_{i+1}_uri",
+                    "document": f"cell_{i + 1}_uri",
                 }
                 for i in range(len(cells))
             ],
         },
         "cellTextDocuments": [
             {
-                "uri": f"cell_{i+1}_uri",
+                "uri": f"cell_{i + 1}_uri",
                 "languageId": "python",
                 "text": cell,
             }

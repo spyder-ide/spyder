@@ -84,6 +84,8 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_token': False,
               'show_dpi_message': True,
+              'show_message_when_panes_are_empty': True,
+              'max_recent_files': 20,
               }),
             ('update_manager',
              {
@@ -116,6 +118,9 @@ DEFAULTS = [
             ('pythonpath_manager',
              {
               'spyder_pythonpath': [],
+              'prioritize': False,
+              'system_paths': {},
+              'user_paths': {},
               }),
             ('quick_layouts',
              {
@@ -245,6 +250,10 @@ DEFAULTS = [
               'check_eol_chars': True,
               'convert_eol_on_save': False,
               'convert_eol_on_save_to': 'LF',
+              'multicursor_support': True,
+              'multicursor_paste/always_full': False,
+              'multicursor_paste/conditional_spread': True,
+              'multicursor_paste/always_spread': False,
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
@@ -260,14 +269,20 @@ DEFAULTS = [
               'add_newline': False,
               'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
+              'show_filename_toolbar': True,
               'show_class_func_dropdown': False,
-              'max_recent_files': 20,
               'onsave_analysis': False,
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
               'strip_trailing_spaces_on_modify': False,
               'show_outline_in_editor_window': True,
+              'mouse_shortcuts': {
+                  'jump_to_position': 'Alt',
+                  'goto_definition': 'Ctrl',
+                  'add_remove_cursor': 'Ctrl+Alt',
+                  'column_cursor': 'Ctrl+Alt+Shift'
+              },
               }),
             ('historylog',
              {
@@ -328,7 +343,8 @@ DEFAULTS = [
               'show_hidden': True,
               'size_column': False,
               'type_column': False,
-              'date_column': False
+              'date_column': False,
+              'search_files_in_switcher': True,
               }),
             ('explorer',
              {
@@ -405,6 +421,17 @@ DEFAULTS = [
               '_/run': "F5",
               '_/configure': "Ctrl+F6",
               '_/re-run last script': "F6",
+              # -- File menu --
+              # (intended context for these is plugins that support them)
+              'main/new file': "Ctrl+N",
+              'main/open file': "Ctrl+O",
+              'main/open last closed': "Ctrl+Shift+T",
+              'main/save file': "Ctrl+S",
+              'main/save all': "Ctrl+Alt+S",
+              'main/save as': 'Ctrl+Shift+S',
+              'main/close file 1': "Ctrl+W",
+              'main/close file 2': "Ctrl+F4",
+              'main/close all': "Ctrl+Shift+W",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -429,10 +456,8 @@ DEFAULTS = [
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line up': (
-                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
-              'editor/duplicate line down': (
-                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
+              'editor/duplicate line up': CTRL + "+Alt+PgUp",
+              'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -475,13 +500,6 @@ DEFAULTS = [
               'editor/go to next file': CTRL + '+Tab',
               'editor/cycle to previous file': 'Ctrl+PgUp',
               'editor/cycle to next file': 'Ctrl+PgDown',
-              'editor/new file': "Ctrl+N",
-              'editor/open last closed':"Ctrl+Shift+T",
-              'editor/open file': "Ctrl+O",
-              'editor/save file': "Ctrl+S",
-              'editor/save all': "Ctrl+Alt+S",
-              'editor/save as': 'Ctrl+Shift+S',
-              'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
               'editor/previous cursor position': "Alt+Left",
               'editor/next cursor position': "Alt+Right",
@@ -491,8 +509,6 @@ DEFAULTS = [
               'editor/zoom in 2': "Ctrl+=",
               'editor/zoom out': "Ctrl+-",
               'editor/zoom reset': "Ctrl+0",
-              'editor/close file 1': "Ctrl+W",
-              'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
               'editor/run selection and advance': "F9",
@@ -513,6 +529,9 @@ DEFAULTS = [
               'editor/enter array table': "Ctrl+M",
               'editor/run cell in debugger': 'Alt+Shift+Return',
               'editor/run selection in debugger': CTRL + '+F9',
+              'editor/add cursor up': 'Alt+Shift+Up',
+              'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/clear extra cursors': 'Esc',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
@@ -538,14 +557,14 @@ DEFAULTS = [
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
               # -- Debugger --
+              '_/run file in debugger': "Ctrl+F5",
+              '_/debug current line': "Ctrl+F10",
+              '_/debug continue': "Ctrl+F12",
+              '_/debug step into': "Ctrl+F11",
+              '_/debug step return': "Ctrl+Shift+F11",
+              '_/debug stop': "Ctrl+Shift+F12",
               'debugger/refresh': 'Ctrl+R',
               'debugger/search': 'Ctrl+F',
-              'debugger/run file in debugger': "Ctrl+F5",
-              'debugger/next': "Ctrl+F10",
-              'debugger/continue': "Ctrl+F12",
-              'debugger/step': "Ctrl+F11",
-              'debugger/return': "Ctrl+Shift+F11",
-              'debugger/stop': "Ctrl+Shift+F12",
               'debugger/toggle breakpoint': 'F12',
               'debugger/toggle conditional breakpoint': 'Shift+F12',
               'debugger/show breakpoint table': "",
@@ -590,6 +609,7 @@ NAME_MAP = {
             'crash',
             'current_version',
             'historylog_filename',
+            'recent_files',
             'window/position',
             'window/size',
             'window/state',
@@ -600,7 +620,6 @@ NAME_MAP = {
             'bookmarks',
             'filenames',
             'layout_settings',
-            'recent_files',
             'splitter_state',
             'file_uuids'
             ]
@@ -649,8 +668,10 @@ NAME_MAP = {
             'breakpoints',
             'configurations',
             'default/wdir/fixed_directory',
-            'last_used_parameters',
-            'parameters'
+            'parameters',
+            'last_used_parameters', # Needed for Spyder 6.0.0 to 6.0.3
+            'last_used_parameters_per_executor',
+            'last_configured_executor',
           ]
          ),
         ('workingdir', [
@@ -676,4 +697,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '85.0.0'
+CONF_VERSION = '87.0.0'

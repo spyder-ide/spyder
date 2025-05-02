@@ -12,7 +12,7 @@ Debugger Main Plugin Widget.
 import os.path as osp
 
 # Third party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QHBoxLayout, QSplitter
 
 # Local imports
@@ -39,11 +39,11 @@ class DebuggerWidgetActions:
     Inspect = 'inspect'
     EnterDebug = 'enter_debug'
     InterrupAndDebug = "interrupt_and_debug"
-    Next = "next"
-    Continue = "continue"
-    Step = "step"
-    Return = "return"
-    Stop = "stop"
+    Next = "debug current line"
+    Continue = "debug continue"
+    Step = "debug step into"
+    Return = "debug step return"
+    Stop = "debug stop"
     GotoCursor = "go to editor"
 
     # Toggles
@@ -86,6 +86,16 @@ class DebuggerContextMenuSections:
 # ---- Widgets
 # =============================================================================
 class DebuggerWidget(ShellConnectMainWidget):
+
+    # PluginMainWidget class constants
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "debugger"
+    MESSAGE_WHEN_EMPTY = _("Debugging is not active")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Start a debugging session with the ⏯ button, allowing you to step "
+        "through your code and see the functions here that Python has run."
+    )
+    SET_LAYOUT_WHEN_EMPTY = False
 
     # Signals
     sig_edit_goto = Signal(str, int, str)
@@ -181,7 +191,6 @@ class DebuggerWidget(ShellConnectMainWidget):
         )
 
         # Layout
-        # Create the layout.
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -257,10 +266,12 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         next_action = self.create_action(
             DebuggerWidgetActions.Next,
-            text=_("Execute current line"),
+            text=_("Debug current line"),
             icon=self.create_icon('arrow-step-over'),
             triggered=lambda: self.debug_command("next"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         continue_action = self.create_action(
@@ -268,7 +279,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Continue execution until next breakpoint"),
             icon=self.create_icon('arrow-continue'),
             triggered=lambda: self.debug_command("continue"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         step_action = self.create_action(
@@ -276,7 +289,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Step into function or method"),
             icon=self.create_icon('arrow-step-in'),
             triggered=lambda: self.debug_command("step"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         return_action = self.create_action(
@@ -284,7 +299,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Execute until function or method returns"),
             icon=self.create_icon('arrow-step-out'),
             triggered=lambda: self.debug_command("return"),
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         stop_action = self.create_action(
@@ -292,7 +309,9 @@ class DebuggerWidget(ShellConnectMainWidget):
             text=_("Stop debugging"),
             icon=self.create_icon('stop_debug'),
             triggered=self.stop_debugging,
-            register_shortcut=True
+            register_shortcut=True,
+            context=Qt.ApplicationShortcut,
+            shortcut_context="_"
         )
 
         goto_cursor_action = self.create_action(
@@ -411,7 +430,7 @@ class DebuggerWidget(ShellConnectMainWidget):
             )
 
             widget = self.current_widget()
-            if self.is_current_widget_empty() or widget is None:
+            if self.is_current_widget_error_message() or widget is None:
                 search_action.setEnabled(False)
                 post_mortem = False
                 executing = False
@@ -485,6 +504,9 @@ class DebuggerWidget(ShellConnectMainWidget):
         widget.sig_edit_goto.connect(self.sig_edit_goto)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
         widget.sig_update_actions_requested.connect(self.update_actions)
+        widget.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
 
         shellwidget.sig_prompt_ready.connect(widget.clear_if_needed)
         shellwidget.sig_pdb_prompt_ready.connect(widget.clear_if_needed)
@@ -512,7 +534,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
     def switch_widget(self, widget, old_widget):
         """Set the current FramesBrowser."""
-        if not self.is_current_widget_empty():
+        if not self.is_current_widget_error_message():
             sw = widget.shellwidget
             state = sw.is_waiting_pdb_input()
             self.sig_pdb_state_changed.emit(state)
@@ -576,7 +598,7 @@ class DebuggerWidget(ShellConnectMainWidget):
         next call.
         """
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return False
         widget.shellwidget._pdb_take_focus = take_focus
 
@@ -584,14 +606,14 @@ class DebuggerWidget(ShellConnectMainWidget):
     def toggle_finder(self, checked):
         """Show or hide finder."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return
         widget.toggle_finder(checked)
 
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return False
         sw = widget.shellwidget
         if sw is not None:
@@ -601,7 +623,7 @@ class DebuggerWidget(ShellConnectMainWidget):
     def get_pdb_last_step(self):
         """Get last pdb step of the current console."""
         widget = self.current_widget()
-        if widget is None or self.is_current_widget_empty():
+        if widget is None or self.is_current_widget_error_message():
             return None, None
         sw = widget.shellwidget
         if sw is not None:

@@ -117,6 +117,10 @@ class LSPMixin:
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
 
+    #: Signal emitted to tell cloned editors that they need to update their
+    # code folding.
+    sig_update_code_folding = Signal(tuple)
+
     # Used to start the status spinner in the editor
     sig_start_operation_in_progress = Signal()
 
@@ -1183,6 +1187,13 @@ class LSPMixin:
             merged_text = merged_text.replace("\n", self.get_line_separator())
             cursor = self.textCursor()
 
+            # Save breakpoints here to restore them after inserting merged_text
+            # Fixes spyder-ide/spyder#16549
+            if getattr(self, "breakpoints_manager", False):
+                breakpoints = self.breakpoints_manager.get_breakpoints()
+            else:
+                breakpoints = None
+
             # Begin text insertion
             cursor.beginEditBlock()
 
@@ -1195,6 +1206,10 @@ class LSPMixin:
 
             # End text insertion
             cursor.endEditBlock()
+            
+            # Restore breakpoints
+            if breakpoints:
+                self.breakpoints_manager.set_breakpoints(breakpoints)
 
             # Restore previous cursor position and center it.
             # Fixes spyder-ide/spyder#19958
@@ -1262,8 +1277,7 @@ class LSPMixin:
                 self.folding_panel.current_tree, self.folding_panel.root
             )
 
-            folding_info = collect_folding_regions(root)
-            self._folding_info = (current_tree, root, *folding_info)
+            self._folding_info = (current_tree, root, *collect_folding_regions(root))
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -1276,18 +1290,28 @@ class LSPMixin:
 
     def _finish_update_folding(self):
         """Finish updating code folding."""
+        self.sig_update_code_folding.emit(self._folding_info)
+        self.apply_code_folding(self._folding_info)
+
+    def apply_code_folding(self, folding_info):
+        """Apply code folding info."""
         # Check if we actually have folding info to update before trying to do
         # it.
         # Fixes spyder-ide/spyder#19514
-        if self._folding_info is not None:
-            self.folding_panel.update_folding(self._folding_info)
+        if folding_info is not None:
+            self.folding_panel.update_folding(folding_info)
 
         self.highlight_folded_regions()
 
         # Update indent guides, which depend on folding
-        if self.indent_guides._enabled and len(self.patch) > 0:
+        if self.indent_guides._enabled:
             line, column = self.get_cursor_line_column()
             self.update_whitespace_count(line, column)
+
+            # This is necessary to repaint guides in cloned editors and the
+            # original one after making edits in any one of them.
+            # See spyder-ide/spyder#23297
+            self.update()
 
         self.folding_in_sync = True
 

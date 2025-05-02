@@ -18,7 +18,7 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QEvent,
@@ -34,15 +34,15 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget, QStackedLayout)
+                            QVBoxLayout, QWidget)
 
 # Local library imports
 from spyder.api.translations import _
+from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # TODO:
@@ -82,7 +82,9 @@ def get_unique_figname(dirname, root, ext, start_at_zero=False):
             return osp.join(dirname, figname)
 
 
-class FigureBrowser(QWidget, SpyderWidgetMixin):
+class FigureBrowser(
+    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+):
     """
     Widget to browse the figures that were sent by the kernel to the IPython
     console to be plotted inline.
@@ -147,7 +149,7 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -183,17 +185,6 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
 
-        # Widget empty pane
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "plots",
-            _("No plots to show"),
-            _("Run plot-generating code in the Editor or IPython console to "
-              "see your figures appear here. This pane only supports "
-              "static images, so it can't display interactive plots "
-              "like Bokeh, Plotly or Altair.")
-        )
-
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
         splitter.addWidget(self.figviewer)
@@ -203,14 +194,21 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
         splitter.setStyleSheet(
             f"border-radius: {SpyderPalette.SIZE_BORDER_RADIUS}"
         )
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.splitterMoved.connect(self._on_splitter_moved)
 
-        self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(splitter)
-        self.stack_layout.addWidget(self.pane_empty)
-        self.setLayout(self.stack_layout)
-        self.stack_layout.setContentsMargins(0, 0, 0, 0)
-        self.stack_layout.setSpacing(0)
+        layout = QVBoxLayout()
+        layout.addWidget(splitter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.setLayout(layout)
         self.setContentsMargins(0, 0, 0, 0)
+
+    def _on_splitter_moved(self):
+        total_width = self.splitter.width()
+        min_width_percentage = 0.55
+        min_width = int(total_width * min_width_percentage)
+        self.figviewer.setMinimumWidth(min_width)
 
     def _update_zoom_value(self, value):
         """
@@ -233,9 +231,11 @@ class FigureBrowser(QWidget, SpyderWidgetMixin):
 
     def set_pane_empty(self, empty):
         if empty:
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.is_empty = True
+            self.sig_show_empty_message_requested.emit(True)
         else:
-            self.stack_layout.setCurrentWidget(self.splitter)
+            self.is_empty = False
+            self.sig_show_empty_message_requested.emit(False)
 
     def update_splitter_widths(self, base_width):
         """
@@ -367,7 +367,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QScrollArea.__init__(self, parent)
@@ -636,7 +636,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         width = self.figcanvas.width()
         fwidth = self.figcanvas.fwidth
         if fwidth != 0:
-            return round(width / fwidth * 100)
+            return max(round(width / fwidth * 100), 1)
         else:
             return 100
 
@@ -847,6 +847,12 @@ class ThumbnailScrollBar(QFrame):
                     self.scene.insertWidget(i - 1, dropped_thumbnail)
                     break
 
+        # Recreate thumbnails list to take into account the new order
+        # Fixes spyder-ide/spyder#22458
+        self._thumbnails = []
+        for i in range(n_thumbnails):
+            self._thumbnails.append(self.scene.itemAt(i).widget())
+
         event.accept()
 
     # ---- Save Figure
@@ -1001,7 +1007,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
-        if not is_first and not stick_at_end:
+        if not is_first and (not stick_at_end or not select_last):
             self._scroll_to_last_thumbnail = False
 
     def remove_current_thumbnail(self):
@@ -1041,7 +1047,7 @@ class ThumbnailScrollBar(QFrame):
         if thumbnail in self._thumbnails:
             self._thumbnails.remove(thumbnail)
 
-        # Select a new thumbnail if any :
+        # Select a new thumbnail, if any
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
                 self.set_current_index(

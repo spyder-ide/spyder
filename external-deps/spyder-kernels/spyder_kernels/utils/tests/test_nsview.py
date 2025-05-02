@@ -13,6 +13,7 @@ Tests for utils.py
 # Standard library imports
 from collections import defaultdict
 import datetime
+import pathlib
 import sys
 
 # Third party imports
@@ -55,8 +56,14 @@ def test_get_size():
                 return super(object, self).__getattribute__(name)
 
 
-    length = [list([1,2,3]), tuple([1,2,3]), set([1,2,3]), '123',
-              {1:1, 2:2, 3:3}]
+    length = [
+        list([1, 2, 3]),
+        tuple([1, 2, 3]),
+        set([1, 2, 3]),
+        '123',
+        {1:1, 2:2, 3:3},
+        frozenset([1, 2, 3]),
+    ]
     for obj in length:
         assert get_size(obj) == 3
 
@@ -243,6 +250,11 @@ def test_set_display():
     assert value_to_display([long_set] * 10) == disp[:70] + ' ...'
 
 
+def test_frozenset_display():
+    """Test for display of a frozenset."""
+    assert value_to_display(frozenset({1, 2, 3})) == 'frozenset({1, 2, 3})'
+
+
 def test_datetime_display():
     """Simple tests that dates, datetimes and timedeltas display correctly."""
     test_date = datetime.date(2017, 12, 18)
@@ -278,10 +290,27 @@ def test_datetime_display():
             ("{0:2017-12-18, 1:2017-12-18 13:43:02, 2:1:00:00}"))
 
 
+def test_path_display():
+    """Test for display of a path from pathlib."""
+    path = pathlib.PureWindowsPath('C:/') / 'Program Files'
+    assert value_to_display(path) == r'C:\Program Files'
+
+
+def test_none_display():
+    """Test for display of None."""
+    assert value_to_display(None) == 'None'
+
+
 def test_str_in_container_display():
     """Test that strings are displayed correctly inside lists or dicts."""
     # Assert that both bytes and unicode return the right display
     assert value_to_display([b'a', u'b']) == "['a', 'b']"
+
+
+def test_string_array_display():
+    """Test that an array of strings is displayed correctly."""
+    arr = np.array(['a', 'b'])
+    assert value_to_display(arr) == "['a' 'b']"
 
 
 def test_ellipses(tmpdir):
@@ -316,6 +345,9 @@ def test_get_type_string():
 
     # Sets
     assert get_type_string({1, 2, 3}) == 'set'
+
+    # Frozensets
+    assert get_type_string(frozenset({1, 2, 3})) == 'frozenset'
 
     # Dictionaries
     assert get_type_string({'a': 1, 'b': 2}) == 'dict'
@@ -371,6 +403,9 @@ def test_is_editable_type():
 
     # Sets
     assert is_editable_type({1, 2, 3})
+
+    # Frozensets
+    assert is_editable_type(frozenset({1, 2, 3}))
 
     # Dictionaries
     assert is_editable_type({'a': 1, 'b': 2})

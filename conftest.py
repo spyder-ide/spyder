@@ -11,6 +11,7 @@ NOTE: DO NOT add fixtures here. It could generate problems with
       QtAwesome being called before a QApplication is created.
 """
 
+import concurrent.futures
 import os
 import os.path as osp
 import re
@@ -20,14 +21,25 @@ import sys
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
 
+
+# ---- Tests to skip on the first CI run
+SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
+
+
 # ---- Pytest adjustments
 import pytest
 
 
 def pytest_addoption(parser):
-    """Add option to run slow tests."""
+    """Add extra options for pytest.
+    
+    --run-slow: Run slow tests.
+    --remote-client: Run remote-client tests.
+    """
     parser.addoption("--run-slow", action="store_true",
                      default=False, help="Run slow tests")
+    parser.addoption("--remote-client", action="store_true",
+                     default=False, help="Run remote-client tests")
 
 
 def get_passed_tests():
@@ -49,7 +61,26 @@ def get_passed_tests():
         for line in logfile:
             match = test_re.match(line)
             if match:
-                tests.add(match.group(1))
+                if any(
+                    skipped_first_run in line
+                    for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+                ):
+                    passed_first_run = "passed_tests_skipped_on_first_run.txt"
+                    if "PASSED" in line or "XFAIL" in line:
+                        with open(passed_first_run, "w+") as f:
+                            f.write(match.group(1))
+                            tests.add(match.group(1))
+                            continue
+                    else:
+                        if osp.isfile(passed_first_run):
+                            with open(passed_first_run) as f:
+                                passed_first_run_contents = f.readlines()
+                            if match.group(1) in passed_first_run_contents:
+                                tests.add(match.group(1))
+                            else:
+                                continue
+                else:
+                    tests.add(match.group(1))
 
         return tests
     else:
@@ -63,9 +94,18 @@ def pytest_collection_modifyitems(config, items):
     """
     passed_tests = get_passed_tests()
     slow_option = config.getoption("--run-slow")
+    remote_client_option = config.getoption("--remote-client")
+
     skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
     skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
     skip_passed = pytest.mark.skip(reason="Test passed in previous runs")
+    skip_first_run = pytest.mark.skip(reason="Test skipped in first CI run")
+    skip_remote = pytest.mark.skip(
+        reason="Skipping remote test because --remote-client was not set"
+    )
+    skip_non_remote = pytest.mark.skip(
+        reason="Skipping non-remote test because --remote-client was set"
+    )
 
     # Break test suite in CIs according to the following criteria:
     # * Mark all main window tests, and a percentage of the IPython console
@@ -88,24 +128,36 @@ def pytest_collection_modifyitems(config, items):
         if os.name == 'nt':
             percentage = 0.4
         elif sys.platform == 'darwin':
-            percentage = 0.5
+            percentage = 0.3
         else:
-            percentage = 0.4
+            percentage = 0.3
 
         for i, item in enumerate(ipyconsole_items):
             if i < len(ipyconsole_items) * percentage:
                 slow_items.append(item)
 
-    for item in items:
-        if slow_option:
-            if item not in slow_items:
-                item.add_marker(skip_fast)
-        else:
-            if item in slow_items:
-                item.add_marker(skip_slow)
+    def mark_item(item):
+        if int(os.environ.get("CI_RUN_NUMBER", -1)) == 0 and any(
+            skipped_first_run in item.nodeid
+            for skipped_first_run in SKIP_ON_FIRST_CI_RUN
+        ):
+            item.add_marker(skip_first_run)
+            return
+
+        if remote_client_option and "remote_test" not in item.keywords:
+            item.add_marker(skip_non_remote)
+        elif not remote_client_option and "remote_test" in item.keywords:
+            item.add_marker(skip_remote)
+
+        if slow_option and item not in slow_items:
+            item.add_marker(skip_fast)
+        elif not slow_option and item in slow_items:
+            item.add_marker(skip_slow)
 
         if item.nodeid in passed_tests:
             item.add_marker(skip_passed)
+
+    concurrent.futures.ThreadPoolExecutor().map(mark_item, items)
 
 
 @pytest.fixture(autouse=True)

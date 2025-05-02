@@ -23,6 +23,11 @@ fi
 
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
+    if [ -n "$SPYDER_QT_BINDING" ]; then
+        # conda has no PyQt6 package
+        echo "Cannot use Qt 6 with Conda" 1>&2
+        exit 1
+    fi
 
     # Install dependencies per operating system
     if [ "$OS" = "win" ]; then
@@ -69,7 +74,6 @@ else
     if [ "$OS" = "linux" ]; then
         pip install jedi==0.19.1
     fi
-
 fi
 
 # Install subrepos from source
@@ -85,7 +89,7 @@ else
 
     # Install boilerplate plugin
     pushd spyder/app/tests/spyder-boilerplate
-    pip install --no-deps -q -e .
+    pip install --no-deps .
     popd
 
     # Adjust PATH on Windows so that we can use conda below. This needs to be done

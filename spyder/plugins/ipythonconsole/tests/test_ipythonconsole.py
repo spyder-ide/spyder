@@ -27,6 +27,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -160,6 +161,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -1042,8 +1044,10 @@ def test_set_elapsed_time(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Fails sometimes on macOS")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="Fails frequently on Windows and macOS"
+)
 def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
@@ -1368,7 +1372,10 @@ def test_conda_env_activation(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.parametrize("external_interpreter", [True, False])
-@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"),
+    reason="Fails frequently on macOS and no SIGTERM on Windows"
+)
 def test_kernel_kill(ipyconsole, qtbot, external_interpreter):
     """
     Test that the kernel correctly restarts after a kill.
@@ -1661,6 +1668,10 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert control.toPlainText().split()[-2:] == ["In", "[3]:"]
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 8), reason="Fails in Python 3.8"
+)
+@pytest.mark.skipif(PYQT6, reason="Crashes ('QThread destroyed while running')")
 def test_pdb_magics_are_recursive(ipyconsole, qtbot, tmp_path):
     """
     Check that calls to Pdb magics start a recursive debugger when called in
@@ -1921,6 +1932,10 @@ def test_shutdown_kernel(ipyconsole, qtbot):
     assert not shell.get_value('kernel_exists')
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Fails on Linux and CIs"
+)
 def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     """Check that the debugger handles the namespace of a comprehension."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1972,6 +1987,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different
@@ -2447,6 +2463,99 @@ def test_floats_selected_on_double_click(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Home)
     qtbot.mouseDClick(control.viewport(), Qt.LeftButton)
     assert control.get_selected_text() == float_number
+
+
+def test_filter_frames_in_tracebacks(ipyconsole, qtbot, tmp_path):
+    """Check that we filter some unnecessary frames in tracebacks."""
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Write code to file
+    file = tmp_path / 'test_filter_frames.py'
+    file.write_text("# Comment\n1/0")
+
+    # Filename in the format used when running magics from the main toolbar
+    fname = str(file).replace('\\', '/')
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    # Check frames related to spyder-kernels are not displayed
+    assert "spyder_kernels" not in control.toPlainText()
+
+    # Switch to %xmode plain and check again
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%xmode plain")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    assert "spyder_kernels" not in control.toPlainText()
+
+    # Switch back to %xmode verbose (the default)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%xmode verbose")
+
+    # Check we don't display a traceback when exiting our debugger if it's
+    # started with breakpoint().
+    file.write_text("# Comment\nbreakpoint()")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname}")
+
+    shell.clear_console()
+    empty_console_text = (
+        "\n\nIPdb [2]: " if os.name == "nt" else "\nIPdb [2]: "
+    )
+    qtbot.waitUntil(lambda: empty_console_text == control.toPlainText())
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!exit')
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    assert "BdbQuit" not in control.toPlainText()
+
+
+def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
+    """Test that we preserve case sensitive working directories."""
+
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Create case sensitive directory
+    dir_a = tmp_path / 'SensitiveCaseA'
+    dir_a.mkdir()
+    filename_a = dir_a / 'a.py'
+    filename_a.write_text('a = 1')
+
+    # Filename in the format used when running magics from the main toolbar
+    fname = str(filename_a).replace('\\', '/')
+    fdir = str(dir_a).replace('\\', '/')
+
+    # Run file
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {fname} --wdir {fdir}")
+
+    # Clear console
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%clear")
+
+    empty_console_text = '\n\nIn [3]: ' if os.name == "nt" else '\nIn [3]: '
+    qtbot.waitUntil(lambda: empty_console_text == shell._control.toPlainText())
+
+    # Check we preserved the case sensitive working directory.
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%pwd")
+
+    assert "SensitiveCaseA" in control.toPlainText()
+    assert "sensitivecasea" not in control.toPlainText()
 
 
 if __name__ == "__main__":

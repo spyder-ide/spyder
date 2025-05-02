@@ -11,18 +11,20 @@ This is the main widget used in the Variable Explorer plugin
 """
 
 # Standard library imports
+from __future__ import annotations
 import os
 import os.path as osp
 from pickle import UnpicklingError
 import tarfile
+from typing import Callable, TYPE_CHECKING
 
 # Third library imports
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QInputDialog, QMessageBox,
-                            QVBoxLayout, QStackedLayout, QWidget)
+                            QVBoxLayout, QWidget)
 from spyder_kernels.comms.commbase import CommError
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -30,13 +32,14 @@ from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
 from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
-from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
+from spyder.widgets.helperwidgets import FinderWidget
 
 
 # Constants
@@ -45,8 +48,14 @@ VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 # Max time before giving up when making a blocking call to the kernel
 CALL_KERNEL_TIMEOUT = 30
 
+# Types
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    PlotFunction = Callable(Figure, None)
 
-class NamespaceBrowser(QWidget, SpyderWidgetMixin):
+class NamespaceBrowser(
+    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+):
     """
     Namespace browser (global variables explorer widget).
     """
@@ -74,7 +83,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -88,13 +97,6 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         self.editor = None
         self.shellwidget = None
         self.finder = None
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "variable-explorer",
-            _("No variables to show"),
-            _("Run code in the Editor or IPython console to see any "
-              "global variables listed here for exploration and editing.")
-        )
 
     def toggle_finder(self, show):
         """Show and hide the finder."""
@@ -140,6 +142,7 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 regex_base=VALID_VARIABLE_CHARS,
                 key_filter_dict=key_filter_dict
             )
+            self.finder.setVisible(False)
 
             # Signals
             self.editor.sig_files_dropped.connect(self.import_data)
@@ -149,33 +152,29 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 self.sig_start_spinner_requested)
             self.editor.sig_editor_shown.connect(
                 self.sig_stop_spinner_requested)
+            self.editor.source_model.sig_setting_data.connect(
+                self.set_pane_empty
+            )
 
             self.finder.sig_find_text.connect(self.do_find)
             self.finder.sig_hide_finder_requested.connect(
                 self.sig_hide_finder_requested)
 
             # Layout
-            self.stack_layout = QStackedLayout()
             layout = QVBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(0)
             layout.addWidget(self.editor)
             layout.addWidget(self.finder)
-
-            self.table_widget = QWidget(self)
-            self.table_widget.setLayout(layout)
-            self.stack_layout.addWidget(self.table_widget)
-            self.stack_layout.addWidget(self.pane_empty)
-            self.setLayout(self.stack_layout)
-            self.set_pane_empty()
-            self.editor.source_model.sig_setting_data.connect(
-                self.set_pane_empty)
+            self.setLayout(layout)
 
     def set_pane_empty(self):
         if not self.editor.source_model.get_data():
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.is_empty = True
+            self.sig_show_empty_message_requested.emit(True)
         else:
-            self.stack_layout.setCurrentWidget(self.table_widget)
+            self.is_empty = False
+            self.sig_show_empty_message_requested.emit(False)
 
     def get_view_settings(self):
         """Return dict editor view settings"""
@@ -381,7 +380,16 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                     "<br><br><tt>{extensions}</tt>").format(
                         extensions=', '.join(IMPORT_EXT))
             return msg
-        except (UnpicklingError, RuntimeError, CommError):
+        except TypeError:
+            msg = _(
+                "Spyder is unable to open the file you're trying to load. "
+                "This could be caused due to a difference between the package "
+                "versions used when you saved this spydata file and the ones "
+                "installed in the current environment. Please check the "
+                "compatibility between them (e.g. that you're using Numpy 2.x "
+                "in both environments).<br>"
+            )
+        except (UnpicklingError, RuntimeError, CommError, OSError):
             return None
 
     def reset_namespace(self):
@@ -445,9 +453,9 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         except (UnpicklingError, RuntimeError, CommError):
             return None
 
-    def plot(self, data, funcname):
+    def plot(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data.
+        Make a plot.
 
         If all the following conditions are met:
         * the Plots plugin is enabled, and
@@ -464,16 +472,16 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
                 == 'inline'
             )
         ):
-            self.plot_in_plots_plugin(data, funcname)
+            self.plot_in_plots_plugin(plot_function)
         else:
-            self.plot_in_window(data, funcname)
+            self.plot_in_window(plot_function)
 
-    def plot_in_plots_plugin(self, data, funcname):
+    def plot_in_plots_plugin(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data in Plots plugin.
+        Make a plot and display it in the Plots plugin.
 
-        Plot the given data to a PNG or SVG image and show the plot in the
-        Plots plugin.
+        Construct an empty figure, call `plot_function` on it, convert the
+        plot to a PNG or SVG image and show this plot in the Plots plugin.
         """
         import spyder.pyplot as plt
         from IPython.core.pylabtools import print_figure
@@ -512,8 +520,8 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
         }
 
         with rc_context(matplotlib_rc):
-            fig, ax = plt.subplots(figsize=(width, height))
-            getattr(ax, funcname)(data)
+            fig = plt.figure(figsize=(width, height))
+            plot_function(fig)
             image = print_figure(
                 fig,
                 fmt=figure_format,
@@ -525,12 +533,12 @@ class NamespaceBrowser(QWidget, SpyderWidgetMixin):
             image = image.encode()
         self.sig_show_figure_requested.emit(image, mime_type, self.shellwidget)
 
-    def plot_in_window(self, data, funcname):
+    def plot_in_window(self, plot_function: Callable[[Figure], None]):
         """
-        Plot data in new Qt window.
+        Make a plot and display it in a new Qt window.
         """
         import spyder.pyplot as plt
 
-        plt.figure()
-        getattr(plt, funcname)(data)
-        plt.show()
+        fig = plt.figure()
+        plot_function(fig)
+        fig.show()

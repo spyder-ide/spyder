@@ -47,21 +47,22 @@ REQUIREMENTS = [
 ]
 
 TEST_REQUIREMENTS = [
-    'cython',
-    'dask[distributed]',
-    'flaky',
-    'matplotlib',
-    'mock',
-    'numpy',
-    'pandas',
-    'pytest',
-    'pytest-cov',
-    'scipy',
-    'xarray',
-    'pillow',
-    'django',
-    'h5py',
-    'pydicom'
+    "cython",
+    "dask[distributed]",
+    "flaky",
+    "matplotlib",
+    "mock",
+    "numpy",
+    "pandas",
+    "pytest",
+    "pytest-cov",
+    "scipy",
+    "xarray",
+    "pillow",
+    "django",
+    "h5py",
+    "pydicom",
+    "anyio",
 ]
 
 setup(

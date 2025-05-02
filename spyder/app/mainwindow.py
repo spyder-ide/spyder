@@ -58,6 +58,7 @@ try:
 except ImportError:
     WEBENGINE = False
 
+from qtawesome import get_fonts_info
 from qtawesome.iconic_font import FontError
 
 #==============================================================================
@@ -149,6 +150,17 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
     ----------
     window_state: Qt.WindowStates
         The window state.
+    """
+
+    sig_focused_plugin_changed = Signal(object)
+    """
+    This signal is emitted when another plugin received keyboard focus.
+
+    Parameters
+    ----------
+    plugin: Optional[SpyderDockablePlugin]
+        The plugin that currently has keyboard focus, or None if no dockable
+        plugin has focus.
     """
 
     def __init__(self, splash=None, options=None):
@@ -275,6 +287,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # To keep track of the last focused widget
         self.last_focused_widget = None
+        self.last_focused_plugin = None
         self.previous_focused_widget = None
 
         # Server to open external files on a single instance
@@ -419,6 +432,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
         self.sig_window_state_changed.connect(
             plugin.sig_mainwindow_state_changed)
+        self.sig_focused_plugin_changed.connect(
+            plugin.sig_focused_plugin_changed
+        )
 
         # Register plugin
         plugin._register(omit_conf=omit_conf)
@@ -1053,24 +1069,52 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Set splash message"""
         if self.splash is None:
             return
-        if message:
-            logger.info(message)
         self.splash.show()
-        self.splash.showMessage(message,
-                                int(Qt.AlignBottom | Qt.AlignCenter |
-                                    Qt.AlignAbsolute),
-                                QColor(Qt.white))
+        self.splash.showMessage(
+            message,
+            int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+            QColor(Qt.white),
+        )
         QApplication.processEvents()
 
     def change_last_focused_widget(self, old, now):
-        """To keep track of to the last focused widget"""
+        """
+        Keep track of widget and plugin that has keyboard focus.
+
+        This function is connected to the app `focusChanged` signal. It keeps
+        track of the widget and plugin that currently has keyboard focus, so
+        that we can give focus to the last focused widget when restoring it
+        after minimization. It also emits `sig_focused_plugin_changed` if the
+        plugin with focus has changed.
+
+        Parameters
+        ----------
+        old : Optional[QWidget]
+            Widget that used to have keyboard focus.
+        now : Optional[QWidget]
+            Widget that currently has keyboard focus.
+        """
         if (now is None and QApplication.activeWindow() is not None):
             QApplication.activeWindow().setFocus()
             self.last_focused_widget = QApplication.focusWidget()
         elif now is not None:
             self.last_focused_widget = now
 
-        self.previous_focused_widget =  old
+        self.previous_focused_widget = old
+
+        if self.last_focused_widget:
+            for plugin_name, plugin in self.get_dockable_plugins():
+                if self.is_plugin_available(plugin_name):
+                    plugin_widget = plugin.get_widget()
+                    if plugin_widget.isAncestorOf(self.last_focused_widget):
+                        focused_plugin = plugin
+                        break
+            else:
+                focused_plugin = None
+
+            if focused_plugin != self.last_focused_plugin:
+                self.last_focused_plugin = focused_plugin
+                self.sig_focused_plugin_changed.emit(focused_plugin)
 
     def closing(self, cancelable=False, close_immediately=False):
         """Exit tasks"""
@@ -1164,27 +1208,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             else:
                 console.restore_stds()
 
-    def open_file(self, fname, external=False):
-        """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
-        """
-        fname = to_text_string(fname)
-        ext = osp.splitext(fname)[1]
-        editor = self.get_plugin(Plugins.Editor, error=False)
-        variableexplorer = self.get_plugin(
-            Plugins.VariableExplorer, error=False)
-
-        if encoding.is_text_file(fname):
-            if editor:
-                editor.load(fname)
-        elif variableexplorer is not None and ext in IMPORT_EXT:
-            variableexplorer.get_widget().import_data(fname)
-        elif not external:
-            fname = file_uri(fname)
-            start_file(fname)
-
     def get_initial_working_directory(self):
         """Return the initial working directory."""
         return self.INITIAL_CWD
@@ -1209,8 +1232,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if sys.platform == 'darwin' and 'bin/spyder' in fname:
             return
 
-        if osp.isfile(fpath):
-            self.open_file(fpath, external=True)
+        application = self.get_plugin(Plugins.Application, error=False)
+        if osp.isfile(fpath) and application:
+            application.open_file_in_plugin(fpath)
         elif osp.isdir(fpath):
             QMessageBox.warning(
                 self, _("Error"),
@@ -1418,17 +1442,36 @@ def main(options, args):
         else:
             mainwindow = create_window(MainWindow, app, splash, options, args)
     except FontError:
-        QMessageBox.information(
-            None, "Spyder",
-            "It was not possible to load Spyder's icon theme, so Spyder "
-            "cannot start on your system. The most probable causes for this "
-            "are either that you are using a Windows version earlier than "
-            "Windows 10 1803/Windows Server 2019, which is no longer "
-            "supported by Spyder or Microsoft, or your system administrator "
-            "has disabled font installation for non-admin users. Please "
-            "upgrade Windows or ask your system administrator for help to "
-            "allow Spyder to start."
+        fonts_directory, fonts = get_fonts_info()
+        fonts_list = "".join(
+            [f"<li><code>{font}</code></li>" for font in fonts]
         )
+        fonts_message = QMessageBox(
+            QMessageBox.Icon.Information,
+            "Spyder",
+            _("It was not possible to load Spyder's icon theme, so Spyder "
+              "cannot start on your system. The most probable causes for this "
+              "are either that you are using a Windows version earlier than "
+              "Windows 10 1803/Windows Server 2019, which is no longer "
+              "supported by Spyder or Microsoft, or your system administrator "
+              "has disabled font installation for non-admin users.<br><br>"
+              "Please ask your system administrator for help to upgrade "
+              "Windows or to install for all users the following fonts:"
+              "<ul>{fonts_list}</ul>which are located at:<br><br>"
+              "<code>{fonts_directory}</code><br><br>"
+              "If you have administrator privileges, you can run the "
+              "following command in a Command Prompt to install the required "
+              "fonts:<br><br>"
+              "<code>qta-install-fonts-all-users</code>").format(
+                fonts_list=fonts_list, fonts_directory=fonts_directory,
+            ),
+            QMessageBox.StandardButton.Ok
+        )
+        fonts_message.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        fonts_message.exec_()
+
     if mainwindow is None:
         # An exception occurred
         if splash is not None:

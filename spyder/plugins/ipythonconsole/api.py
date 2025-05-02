@@ -95,6 +95,7 @@ class ClientContextMenuSections:
     Clear = 'clear'
     Image = 'image'
     SVG = 'svg'
+    Quit = 'exit'
 
 
 class ClientContextMenuActions:
@@ -128,8 +129,20 @@ class ClientContextMenuActions:
     CopySvg = 'copy_svg'
     SaveSvg = 'save_svg'
 
+    # Quit section
+    Quit = 'exit'
+
 
 class IPythonConsoleWidgetCornerWidgets:
     ResetButton = "reset_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
+
+
+class RemoteConsolesMenus:
+    RemoteConsoles = "remote_consoles_menu"
+
+
+class RemoteConsolesMenuSections:
+    ManagerSection = "manager_section"
+    ConsolesSection = "consoles_section"

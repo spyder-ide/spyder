@@ -38,6 +38,7 @@ AIOHTTP_REQVER = '>=3.9.3'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
+BCRYPT_REQVER = ">=4.3.0"
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
@@ -45,12 +46,14 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0,!=8.17.1"
+IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
+PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -59,7 +62,7 @@ PYGITHUB_REQVER = '>=2.3.0'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
-PYLSP_REQVER = '>=1.12.0,<1.13.0'
+PYLSP_REQVER = '>=1.12.2,<1.13.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
@@ -67,13 +70,12 @@ PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
 QDARKSTYLE_REQVER = '>=3.2.0,<3.3.0'
 QSTYLIZER_REQVER = '>=0.2.2'
-QTAWESOME_REQVER = '>=1.3.1,<1.4.0'
+QTAWESOME_REQVER = '>=1.4.0,<1.5.0'
 QTCONSOLE_REQVER = '>=5.6.1,<5.7.0'
 QTPY_REQVER = '>=2.4.0'
 RTREE_REQVER = '>=0.9.7'
-SETUPTOOLS_REQVER = '>=49.6.0'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=3.0.0,<3.2.0'
+SPYDER_KERNELS_REQVER = '>=3.1.0a1,<3.2.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -114,6 +116,10 @@ DESCRIPTIONS = [
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
+    {'modname': "bcrypt",
+     'package_name': "bcrypt",
+     'features': _("Decrypt passphrase of SSH key files"),
+     'required_version': BCRYPT_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
      'features': _("Character encoding auto-detection for the Editor"),
@@ -142,6 +148,10 @@ DESCRIPTIONS = [
      'package_name': "IPython",
      'features': _("IPython interactive python environment"),
      'required_version': IPYTHON_REQVER},
+    {'modname': "ipython_pygments_lexers",
+     'package_name': "ipython_pygments_lexers",
+     'features': _("IPython lexers for syntax highlighting"),
+     'required_version': IPYTHON_PYGMENTS_LEXERS_REQVER},
     {'modname': "jedi",
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
@@ -167,6 +177,10 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
+    {'modname': "packaging",
+     'package_name': "packaging",
+     'features': _("Compare version numbers of Python packages"),
+     'required_version': PACKAGING_REQVER},
     {'modname': "parso",
      'package_name': "parso",
      'features': _("Python parser that supports error recovery and "
@@ -251,10 +265,6 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippet regions"),
      'required_version': RTREE_REQVER},
-    {'modname': "setuptools",
-     'package_name': "setuptools",
-     'features': _("Determine package versions"),
-     'required_version': SETUPTOOLS_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),

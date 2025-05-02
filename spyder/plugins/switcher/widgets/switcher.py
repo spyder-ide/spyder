@@ -8,7 +8,15 @@
 
 
 # Third party imports
-from qtpy.QtCore import QEvent, QObject, Qt, Signal, Slot, QModelIndex
+from qtpy.QtCore import (
+    QEvent,
+    QItemSelectionModel,
+    QModelIndex,
+    QObject,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import (QAbstractItemView, QDialog, QLineEdit,
                             QListView, QListWidgetItem, QStyle,
@@ -220,9 +228,7 @@ class Switcher(QDialog, SpyderFontsMixin):
     def clear(self):
         """Remove all items from the list and clear the search text."""
         self.set_placeholder_text('')
-        self.model.beginResetModel()
         self.model.clear()
-        self.model.endResetModel()
         self.setMinimumHeight(self._MIN_HEIGHT)
 
     def set_placeholder_text(self, text):
@@ -530,7 +536,7 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
         selection_model.setCurrentIndex(
-            proxy_index, selection_model.ClearAndSelect
+            proxy_index, QItemSelectionModel.SelectionFlag.ClearAndSelect
         )
 
         # Ensure that the selected item is visible

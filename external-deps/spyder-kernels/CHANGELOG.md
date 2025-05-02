@@ -1,5 +1,59 @@
 # History of changes
 
+## Version 3.1.0a1 (2025/03/13)
+
+### Pull Requests Merged
+
+* [PR 534](https://github.com/spyder-ide/spyder-kernels/pull/534) - PR: Fix some async do completes, by [@Carreau](https://github.com/Carreau)
+* [PR 532](https://github.com/spyder-ide/spyder-kernels/pull/532) - PR: Split `test_interrupt` into two tests, by [@Carreau](https://github.com/Carreau)
+* [PR 520](https://github.com/spyder-ide/spyder-kernels/pull/520) - Handle async do_complete in the debugger, by [@Carreau](https://github.com/Carreau)
+* [PR 519](https://github.com/spyder-ide/spyder-kernels/pull/519) - PR: Clarify test error message, by [@Carreau](https://github.com/Carreau)
+* [PR 515](https://github.com/spyder-ide/spyder-kernels/pull/515) - PR: Fix version that will be released from master, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 478](https://github.com/spyder-ide/spyder-kernels/pull/478) - PR: Add feature to prepend/append PYTHONPATH to sys.path, by [@mrclary](https://github.com/mrclary)
+
+In this release 6 pull requests were closed.
+
+----
+
+## Version 3.0.3 (2025-02-05)
+
+### Pull Requests Merged
+
+* [PR 530](https://github.com/spyder-ide/spyder-kernels/pull/530) - PR: Correctly process Pdb commands available in `cmdqueue`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 527](https://github.com/spyder-ide/spyder-kernels/pull/527) - PR: Use an older Ubuntu version on CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 526](https://github.com/spyder-ide/spyder-kernels/pull/526) - PR: Filter frames that come from Spyder-kernels in tracebacks and fix tracebacks in Python 3.8, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 3.0.2 (2024-12-04)
+
+### Pull Requests Merged
+
+* [PR 524](https://github.com/spyder-ide/spyder-kernels/pull/524) - PR: Improve release instructions for the new backporting workflow, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 521](https://github.com/spyder-ide/spyder-kernels/pull/521) - PR: Add logic to handle traceback color configuration, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 3.0.1 (2024-10-29)
+
+### Pull Requests Merged
+
+* [PR 517](https://github.com/spyder-ide/spyder-kernels/pull/517) - PR: Manually register the Matplotlib inline backend in case it hasn't, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 514](https://github.com/spyder-ide/spyder-kernels/pull/514) - PR: Fix development version for the stable branch, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 510](https://github.com/spyder-ide/spyder-kernels/pull/510) - PR: Replace Quansight logo by CZI one in Readme, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 508](https://github.com/spyder-ide/spyder-kernels/pull/508) - PR: Update workflows to run in the `3.x` branch (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 506](https://github.com/spyder-ide/spyder-kernels/pull/506) - PR: Make `glob` and `loc` kwargs of `debug_exec`, by [@impact27](https://github.com/impact27)
+* [PR 504](https://github.com/spyder-ide/spyder-kernels/pull/504) - PR: Update workflow actions (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 503](https://github.com/spyder-ide/spyder-kernels/pull/503) - PR: Update `load_dicom` to accommodate Pydicom 3.0, by [@mrclary](https://github.com/mrclary)
+
+In this release 7 pull requests were closed.
+
+----
+
 ## Version 3.0.0 (2024-08-29)
 
 ### New features

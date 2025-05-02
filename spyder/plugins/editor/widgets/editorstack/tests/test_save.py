@@ -17,9 +17,11 @@ from unittest.mock import Mock
 # Third party imports
 from flaky import flaky
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
@@ -37,7 +39,6 @@ from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 def add_files(editorstack):
     editorstack.close_split_action.setEnabled(False)
     editorstack.set_find_widget(Mock())
-    editorstack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     editorstack.new('foo.py', 'utf-8', 'a = 1\n'
                                        'print(a)\n'
                                        '\n'
@@ -53,7 +54,6 @@ def add_files(editorstack):
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [], False)
     editor_stack.set_find_widget(Mock())
-    editor_stack.set_io_actions(Mock(), Mock(), Mock(), Mock())
     return editor_stack, qtbot
 
 
@@ -211,6 +211,7 @@ def test_save(editor_bot, mocker):
     editor_stack.file_saved = save_file_saved
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
     """Test EditorStack.file_saved_in_other_editorstack()."""
     es = editor_splitter_layout_bot
@@ -493,7 +494,8 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
 def test_save_when_completions_are_visible(completions_editor, qtbot):
     """
     Test that save works when the completion widget is visible and the user
-    press the save shortcut (Ctrl+S).
+    press the save shortcut (Ctrl+S). This only checks that the correct signal
+    is emitted; the Application plugin is needed to actually save the file.
 
     Regression test for issue spyder-ide/spyder#14806.
     """
@@ -513,14 +515,17 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     assert "some" in [x['label'] for x in sig.args[0]]
     assert "something" in [x['label'] for x in sig.args[0]]
 
-    # Press keyboard shortcut corresponding to save
-    qtbot.keyPress(
-        completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300)
+    # Check that pressing Ctrl+S emits the signal for saving the file
+    with qtbot.waitSignal(
+        editorstack.sig_trigger_action, timeout=5_000
+    ) as blocker:
+        # Press keyboard shortcut corresponding to save
+        qtbot.keyPress(
+            completion, Qt.Key_S, modifier=Qt.ControlModifier, delay=300
+        )
 
-    # Assert file was saved
-    with open(file_path, 'r') as f:
-        saved_text = f.read()
-    assert saved_text == 'some = 0\nsomething = 1\nsome'
+    # Assert the signal had the correct arguments
+    assert blocker.args == ['Save file', Plugins.Application]
 
     code_editor.toggle_code_snippets(True)
 

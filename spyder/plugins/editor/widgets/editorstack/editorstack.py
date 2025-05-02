@@ -21,7 +21,7 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5, PYQT6
+from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QTextCursor
@@ -39,6 +39,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -123,15 +124,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     todo_results_changed = Signal()
     sig_update_code_analysis_actions = Signal()
     refresh_file_dependent_actions = Signal()
-    refresh_save_all_action = Signal()
-    text_changed_at = Signal(str, int)
+    refresh_save_actions = Signal()
+    text_changed_at = Signal(str, tuple)
     current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
     sig_split_horizontally = Signal()
     sig_new_file = Signal((str,), ())
-    sig_save_as = Signal()
     sig_prev_edit_pos = Signal()
     sig_prev_cursor = Signal()
     sig_next_cursor = Signal()
@@ -142,8 +142,18 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
-    sig_trigger_run_action = Signal(str)
-    sig_trigger_debugger_action = Signal(str)
+
+    sig_trigger_action = Signal(str, str)
+    """
+    This signal is emitted to request that an action be triggered.
+
+    Parameters
+    ----------
+    id: str
+        The id of the action.
+    plugin: str
+        The plugin in which the action is registered.
+    """
 
     sig_open_last_closed = Signal()
     """
@@ -207,7 +217,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
@@ -271,7 +281,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.close_all_but_this = self.create_action(
             EditorStackActions.CloseAllButThis,
             text=_("Close all but this"),
-            triggered=self.close_all_but_this,
+            triggered=self.on_close_all_but_this,
             register_action=False
         )
         self.sort_tabs = self.create_action(
@@ -305,10 +315,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
         self._given_actions = actions
         self.outlineexplorer = None
-        self.new_action = None
-        self.open_action = None
-        self.save_action = None
-        self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
         self.todolist_enabled = True
@@ -351,9 +357,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
+        self.multicursor_support = True
         self.create_new_file_if_empty = True
         self.indent_guides = False
         self.__file_status_flag = False
+        self.mouse_shortcuts = {
+            'jump_to_position': 'Alt',
+            'goto_definition': 'Ctrl',
+            'add_remove_cursor': 'Ctrl+Alt',
+            'column_cursor': 'Ctrl+Alt+Shift'
+        }
 
         # Set default color scheme
         color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
@@ -402,14 +415,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         try:
             show_in_external_file_explorer(fnames)
         except FileNotFoundError as error:
-            file = str(error).split("'")[1]
-            if "xdg-open" in file:
-                msg_title = _("Warning")
+            if "xdg-open" in str(error):
+                msg_title = _("Error")
                 msg = _("Spyder can't show this file in the external file "
                         "explorer because the <tt>xdg-utils</tt> package is "
                         "not available on your system.")
-                QMessageBox.information(self, msg_title, msg,
-                                        QMessageBox.Ok)
+                QMessageBox.critical(
+                    self, msg_title, msg, QMessageBox.Ok
+                )
 
     def copy_absolute_path(self):
         """Copy current filename absolute path to the clipboard."""
@@ -453,13 +466,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ('Go to next file', self.tab_navigation_mru),
             ('Cycle to previous file', lambda: self.tabs.tab_navigate(-1)),
             ('Cycle to next file', lambda: self.tabs.tab_navigate(1)),
-            ('New file', self.sig_new_file[()]),
-            ('Open file', self.plugin_load[()]),
-            ('Open last closed', self.sig_open_last_closed),
-            ('Save file', self.save),
-            ('Save all', self.save_all),
-            ('Save As', self.sig_save_as),
-            ('Close all', self.close_all_files),
             ("Last edit location", self.sig_prev_edit_pos),
             ("Previous cursor position", self.sig_prev_cursor),
             ("Next cursor position", self.sig_next_cursor),
@@ -467,8 +473,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             ("zoom in 2", self.zoom_in),
             ("zoom out", self.zoom_out),
             ("zoom reset", self.zoom_reset),
-            ("close file 1", self.close_file),
-            ("close file 2", self.close_file),
             ("go to next cell", self.advance_cell),
             ("go to previous cell", lambda: self.advance_cell(reverse=True)),
             ("Previous warning", self.sig_prev_warning),
@@ -499,27 +503,54 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_run_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Run
                 ),
             )
 
         # Register shortcuts for debugger actions
         for action_id in [
-            "next",
-            "continue",
-            "step",
-            "return",
             "toggle breakpoint",
             "toggle conditional breakpoint",
         ]:
             self.register_shortcut_for_widget(
                 name=action_id,
                 triggered=functools.partial(
-                    self.sig_trigger_debugger_action.emit,
+                    self.sig_trigger_action.emit,
                     action_id,
+                    Plugins.Debugger
                 ),
                 context=Plugins.Debugger,
+            )
+
+        # Register shortcuts for file actions defined in the Application plugin
+        for shortcut_name in [
+            "New file",
+            "Open file",
+            "Open last closed",
+            "Save file",
+            "Save all",
+            "Save as",
+            "Close file 1",
+            "Close file 2",
+            "Close all"
+        ]:
+            # The shortcut has the same name as the action, except for
+            # "Close file" which has two shortcuts associated to it
+            if shortcut_name.startswith('Close file'):
+                action_id = 'Close file'
+            else:
+                action_id = shortcut_name
+
+            self.register_shortcut_for_widget(
+                name=shortcut_name,
+                triggered=functools.partial(
+                    self.sig_trigger_action.emit,
+                    action_id,
+                    Plugins.Application
+                ),
+                context='main',
             )
 
     def update_switcher_actions(self, switcher_available):
@@ -754,13 +785,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
-
-    def set_io_actions(self, new_action, open_action,
-                       save_action, revert_action):
-        self.new_action = new_action
-        self.open_action = open_action
-        self.save_action = save_action
-        self.revert_action = revert_action
 
     def set_find_widget(self, find_widget):
         self.find_widget = find_widget
@@ -1091,6 +1115,21 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """`state` can be one of ('LF', 'CRLF', 'CR')"""
         self.convert_eol_on_save_to = state
 
+    @on_conf_change(option='multicursor_support')
+    def set_multicursor_support(self, state):
+        """If `state` is `True`, multi-cursor editing is enabled."""
+        self.multicursor_support = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_multi_cursor(state)
+
+    @on_conf_change(option='mouse_shortcuts')
+    def set_mouse_shortcuts(self, state):
+        self.mouse_shortcuts = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_mouse_shortcuts(state)
+
     def set_current_project_path(self, root_path=None):
         """
         Set the current active project root path.
@@ -1124,6 +1163,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @on_conf_change(option='show_tab_bar')
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)
+
+    @on_conf_change(option='show_filename_toolbar')
+    def set_toptoolbar_visible(self, state):
+        self.top_toolbar.setVisible(state)
 
     def remove_from_data(self, index):
         self.tabs.blockSignals(True)
@@ -1293,9 +1336,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     section=EditorStackMenuSections.CloseOrderSection
                 )
         else:
-            actions = (self.new_action, self.open_action)
             self.setFocus()  # --> Editor.__get_focus_editortabwidget
-            for menu_action in actions:
+            new_action = self.get_action(
+                ApplicationActions.NewFile,
+                plugin=Plugins.Application
+            )
+            open_action = self.get_action(
+                ApplicationActions.OpenFile,
+                plugin=Plugins.Application
+            )
+            for menu_action in (new_action, open_action):
                 self.menu.add_action(menu_action)
 
         for split_actions in self.__get_split_actions():
@@ -1394,11 +1444,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             else:
                 if self.new_window_action:
                     actions += [self.new_window_action]
-                actions += [
-                    main_widget.lock_unlock_action,
-                    main_widget.undock_action,
-                    main_widget.close_action
-                ]
+                if not self.new_window:
+                    actions += [
+                        main_widget.lock_unlock_action,
+                        main_widget.undock_action,                    
+                        main_widget.close_action
+                    ]
 
         return actions
 
@@ -1671,7 +1722,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         for __ in range(num, n - 1):
             self.close_file(num + 1)
 
-    def close_all_but_this(self):
+    def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
         for __ in range(0, self.get_stack_count() - 1):
@@ -2448,8 +2499,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.set_stack_title(index, state)
 
         # Toggle save/save all actions state
-        self.save_action.setEnabled(state)
-        self.refresh_save_all_action.emit()
+        self.refresh_save_actions.emit()
 
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
@@ -2583,15 +2633,17 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             remove_trailing_spaces=self.always_remove_trailing_spaces,
             remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline,
-            format_on_save=self.format_on_save
+            format_on_save=self.format_on_save,
+            multi_cursor_enabled=self.multicursor_support,
+            mouse_shortcuts=self.mouse_shortcuts
         )
 
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
         finfo.text_changed_at.connect(
-            lambda fname, position:
-            self.text_changed_at.emit(fname, position))
+            lambda fname, positions:
+            self.text_changed_at.emit(fname, positions))
         editor.sig_cursor_position_changed.connect(
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
@@ -2914,6 +2966,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.append(editor.get_line_separator())
 
         editor.move_cursor_to_next('line', 'down')
+        editor.merge_extra_cursors(True)
 
     def get_current_cell(self):
         """Get current cell attributes."""

@@ -14,7 +14,6 @@ from typing import TypedDict
 import uuid
 
 # Third party imports
-import qstylizer.style
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
     QDialogButtonBox,
@@ -45,10 +44,9 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
     ConnectionStatusWidget,
 )
 from spyder.utils.icon_manager import ima
-from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
-from spyder.widgets.helperwidgets import TipWidget
+from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 from spyder.widgets.sidebardialog import SidebarDialog
 
 
@@ -59,75 +57,6 @@ class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
     invalid_address: bool | None
-
-
-# =============================================================================
-# ---- Auxiliary widgets
-# =============================================================================
-class ValidationLabel(QLabel):
-    """Label to report to users that info failed to be validated."""
-
-    def __init__(self, parent):
-        super().__init__("", parent)
-
-        # Set main attributes
-        self.setWordWrap(True)
-        self.setVisible(False)
-
-        # Set style
-        css = qstylizer.style.StyleSheet()
-        css.QLabel.setValues(
-            backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
-            # Top margin is set by the layout
-            marginTop="0px",
-            marginRight=f"{9 * AppStyle.MarginSize}px",
-            # We don't need bottom margin because there are no other elements
-            # below this one.
-            marginBottom="0px",
-            # The extra 5px are necessary because we need to add them to all
-            # lineedits in this dialog to align them to the labels on top of
-            # them (see SpyderConfigPage.create_lineedit).
-            marginLeft=f"{9 * AppStyle.MarginSize + 5}px",
-            padding=f"{3 * AppStyle.MarginSize}px {6 * AppStyle.MarginSize}px",
-            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
-        )
-
-        self.setStyleSheet(css.toString())
-
-    def set_text(self, reasons: ValidationReasons):
-        n_reasons = list(reasons.values()).count(True)
-        prefix = "- " if n_reasons > 1 else ""
-        suffix = "<br>" if n_reasons > 1 else ""
-
-        text = ""
-        if reasons.get("repeated_name"):
-            text += (
-                prefix
-                + _(
-                    "The name you selected is already used by another "
-                    "connection."
-                )
-                + suffix
-            )
-
-        if reasons.get("invalid_address"):
-            text += (
-                prefix
-                + _(
-                    "The address you provided is not a valid IP or domain "
-                    "name."
-                )
-                + suffix
-            )
-
-        if reasons.get("missing_info"):
-            text += (
-                prefix
-                + _("There are missing fields on this page.")
-            )
-
-        self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
-        self.setText(text)
 
 
 # =============================================================================
@@ -211,7 +140,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 widget.status_action.setVisible(False)
 
         if reasons:
-            validate_label.set_text(reasons)
+            validate_label.set_text(
+                self._compose_failed_validation_text(reasons)
+            )
             validate_label.setVisible(True)
 
         return False if reasons else True
@@ -395,7 +326,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             password=True
         )
 
-        validation_label = ValidationLabel(self)
+        validation_label = MessageLabel(self)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.Password].append(
@@ -439,9 +370,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
-        passpharse = self.create_lineedit(
-            text=_("Passpharse"),
-            option=f"{self.host_id}/passpharse",
+        passphrase = self.create_lineedit(
+            text=_("Passphrase"),
+            option=f"{self.host_id}/passphrase",
             tip=(
                 _("Your passphrase will be saved securely by Spyder")
                 if self.NEW_CONNECTION
@@ -450,7 +381,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             password=True
         )
 
-        validation_label = ValidationLabel(self)
+        validation_label = MessageLabel(self)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.KeyFile].append(
@@ -473,7 +404,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
         keyfile_layout.addWidget(keyfile)
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        keyfile_layout.addWidget(passpharse)
+        keyfile_layout.addWidget(passphrase)
         keyfile_layout.addSpacing(7 * AppStyle.MarginSize)
         keyfile_layout.addWidget(validation_label)
         keyfile_layout.addStretch()
@@ -499,7 +430,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
-        validation_label = ValidationLabel(self)
+        validation_label = MessageLabel(self)
 
         # Add widgets to their required dicts
         self._name_widgets[AuthenticationMethod.ConfigFile] = name
@@ -565,10 +496,49 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         address_re = re.compile(combined_pattern)
         return True if address_re.match(address) else False
 
+    def _compose_failed_validation_text(self, reasons: ValidationReasons):
+        """
+        Compose validation text from a dictionary of reasons for which it
+        failed.
+        """
+        n_reasons = list(reasons.values()).count(True)
+        prefix = "- " if n_reasons > 1 else ""
+        suffix = "<br>" if n_reasons > 1 else ""
+
+        text = ""
+        if reasons.get("repeated_name"):
+            text += (
+                prefix
+                + _(
+                    "The name you selected is already used by another "
+                    "connection."
+                )
+                + suffix
+            )
+
+        if reasons.get("invalid_address"):
+            text += (
+                prefix
+                + _(
+                    "The address you provided is not a valid IP or domain "
+                    "name."
+                )
+                + suffix
+            )
+
+        if reasons.get("missing_info"):
+            text += (
+                prefix
+                + _("There are missing fields on this page.")
+            )
+
+        return text
+
 
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
+    MAX_WIDTH = 540 if MAC else 520
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
@@ -618,6 +588,8 @@ class NewConnectionPage(BaseConnectionPage):
 
 class ConnectionPage(BaseConnectionPage):
     """Page to display connection status and info for a remote machine."""
+
+    MAX_WIDTH = 600 if MAC else 580
 
     def __init__(self, parent, host_id):
         super().__init__(parent, host_id)
@@ -684,7 +656,7 @@ class ConnectionPage(BaseConnectionPage):
             self.remove_option(f"{self.host_id}/{option}")
 
         # Remove secure options
-        for secure_option in ["password", "passpharse"]:
+        for secure_option in ["password", "passphrase"]:
             # One of these options was saved securely and other as empty in our
             # config system, so we try to remove them both.
             for secure in [True, False]:
@@ -727,7 +699,7 @@ class ConnectionDialog(SidebarDialog):
     """
 
     TITLE = _("Remote connections")
-    MIN_WIDTH = 900 if MAC else (850 if WIN else 860)
+    MIN_WIDTH = 900 if MAC else (830 if WIN else 880)
     MIN_HEIGHT = 700 if MAC else (635 if WIN else 650)
     PAGE_CLASSES = [NewConnectionPage]
 

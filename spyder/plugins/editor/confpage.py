@@ -6,18 +6,21 @@
 
 """Editor config page."""
 
-import os
-import sys
-
-from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (
+    QButtonGroup,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+)
 
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.utils.icon_manager import ima
+from spyder.plugins.editor.widgets.mouse_shortcuts import MouseShortcutEditor
 
 
 NUMPYDOC = "https://numpydoc.readthedocs.io/en/latest/format.html"
@@ -32,6 +35,7 @@ DOCSTRING_SHORTCUT = CONF.get('shortcuts', 'editor/docstring')
 
 
 class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
+
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         SpyderConfigurationObserver.__init__(self)
@@ -40,30 +44,15 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.add_newline_box = None
         self.remove_trail_newline_box = None
 
-        # *********************** IMPORTANT NOTES *****************************
-        # * This value needs to be ajusted if we add new options to the
-        #   "Advanced settings" tab.
-        # * We need to do this so that the text of some options is not clipped.
-        if os.name == "nt":
-            min_height = 620
-        elif sys.platform == "darwin":
-            min_height = 760
-        else:
-            min_height = 670
-
-        self.setMinimumHeight(min_height)
-
-    def get_name(self):
-        return _("Editor")
-
-    def get_icon(self):
-        return ima.icon('edit')
-
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Display tab ---
+        # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
+        show_filename_box = newcb(
+            _("Show full file name on top of tab bar"),
+            'show_filename_toolbar'
+        )
         showclassfuncdropdown_box = newcb(
                 _("Show selector for classes and functions"),
                 'show_class_func_dropdown')
@@ -109,6 +98,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         display_group = QGroupBox(_("Display"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
+        display_layout.addWidget(show_filename_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(showcodefolding_box)
@@ -130,7 +120,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         other_layout.addWidget(scroll_past_end_box)
         other_group.setLayout(other_layout)
 
-        # --- Source code tab ---
+        # ---- Source code tab
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
             'close_parentheses')
@@ -242,7 +232,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
 
-        # --- Advanced tab ---
+        # ---- Advanced tab
         # -- Templates
         templates_group = QGroupBox(_('Templates'))
         template_btn = self.create_button(
@@ -361,6 +351,72 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
+        # -- Multi-cursor
+        multicursor_group = QGroupBox(_("Multi-Cursor"))
+        multicursor_label = QLabel(
+            _("Enable adding multiple cursors for simultaneous editing. "
+              "Additional cursors and a column of cursors can be added using "
+              "the mouse shortcuts that can be configured below.")
+        )
+        multicursor_label.setWordWrap(True)
+        multicursor_box = newcb(
+            _("Enable Multi-Cursor "),
+            'multicursor_support')
+
+        multicursor_layout = QVBoxLayout()
+        multicursor_layout.addWidget(multicursor_label)
+        multicursor_layout.addWidget(multicursor_box)
+        multicursor_group.setLayout(multicursor_layout)
+
+        # -- Multicursor Paste
+        multicursor_paste_group = QGroupBox(_("Multi-Cursor paste behavior"))
+        multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
+
+        entire_clip_radio = self.create_radiobutton(
+            _("Always paste the entire clipboard for each cursor"),
+            "multicursor_paste/always_full",
+            button_group=multicursor_paste_bg
+        )
+        conditional_spread_radio = self.create_radiobutton(
+            _(
+                "Paste one line per cursor if the number of of lines and cursors "
+                "match"
+            ),
+            "multicursor_paste/conditional_spread",
+            button_group=multicursor_paste_bg
+        )
+        always_spread_radio = self.create_radiobutton(
+            _(
+                "Always paste one line per cursor if there is more than one "
+                "line in the clipboard"
+            ),
+            "multicursor_paste/always_spread",
+            button_group=multicursor_paste_bg
+        )
+
+        multicursor_box.checkbox.toggled.connect(
+            multicursor_paste_group.setEnabled
+        )
+        multicursor_paste_group.setEnabled(
+            self.get_option("multicursor_support")
+        )
+        multicursor_paste_layout = QVBoxLayout()
+        multicursor_paste_layout.addWidget(entire_clip_radio)
+        multicursor_paste_layout.addWidget(conditional_spread_radio)
+        multicursor_paste_layout.addWidget(always_spread_radio)
+        multicursor_paste_group.setLayout(multicursor_paste_layout)
+
+        # -- Mouse Shortcuts
+        mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
+        mouse_shortcuts_button = self.create_button(
+            lambda: MouseShortcutEditor(self).exec_(),
+            _("Edit mouse shortcut modifiers")
+        )
+
+        mouse_shortcuts_layout = QVBoxLayout()
+        mouse_shortcuts_layout.addWidget(mouse_shortcuts_button)
+        mouse_shortcuts_group.setLayout(mouse_shortcuts_layout)
+
         # --- Tabs ---
         self.create_tab(
             _("Interface"),
@@ -372,7 +428,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced settings"),
             [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group]
+             annotations_group, eol_group, multicursor_group,
+             multicursor_paste_group, mouse_shortcuts_group]
         )
 
     @on_conf_change(

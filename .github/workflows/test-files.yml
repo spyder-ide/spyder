@@ -5,39 +5,31 @@ on:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/modules_test.sh'
+      - '.github/workflows/test-files.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/purge-cache.yml'
-      - '!.github/scripts/installer_test.sh'
 
   pull_request:
     branches:
       - master
       - 6.*
-      - 5.*
     paths:
-      - '.github/scripts/*.sh'
-      - '.github/workflows/*.yml'
+      - '.github/scripts/install.sh'
+      - '.github/scripts/modules_test.sh'
+      - '.github/workflows/test-files.yml'
       - 'requirements/*.yml'
       - 'MANIFEST.in'
       - '**.bat'
       - '**.py'
       - '**.sh'
       - '!installers-conda/**'
-      - '!.github/workflows/installers-conda.yml'
-      - '!.github/workflows/build-subrepos.yml'
-      - '!.github/workflows/purge-cache.yml'
-      - '!.github/scripts/installer_test.sh'
 
   workflow_call:
 
@@ -61,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9', '3.10']
+        PYTHON_VERSION: ['3.9', '3.12']
     timeout-minutes: 30
     steps:
       - name: Checkout Pull Requests
@@ -80,21 +72,13 @@ jobs:
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
-      - name: Cache conda
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache if requirements/*.yml has not changed
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-cacheconda-installconda-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.yml') }}
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml

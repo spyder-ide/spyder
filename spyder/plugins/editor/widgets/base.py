@@ -806,7 +806,7 @@ class TextEditBaseWidget(
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def __move_line_or_selection(self, after_current_line=True):
+    def move_line_or_selection(self, after_current_line=True):
         """Move current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
@@ -880,14 +880,6 @@ class TextEditBaseWidget(
         cursor.endEditBlock()
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
-
-    def move_line_up(self):
-        """Move up current line or selected text"""
-        self.__move_line_or_selection(after_current_line=False)
-
-    def move_line_down(self):
-        """Move down current line or selected text"""
-        self.__move_line_or_selection(after_current_line=True)
 
     def go_to_new_line(self):
         """Go to the end of the current line and create a new line"""

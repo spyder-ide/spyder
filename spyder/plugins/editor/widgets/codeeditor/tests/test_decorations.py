@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 from flaky import flaky
 import pytest
+from qtpy import PYQT6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor
 
@@ -93,6 +94,7 @@ def test_decorations(codeeditor, qtbot):
 
 
 @flaky(max_runs=10)
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_update_decorations_when_scrolling(qtbot):
     """
     Test how many calls we're doing to update decorations when

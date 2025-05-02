@@ -51,8 +51,8 @@ and [Quansight](https://www.quansight.com).
 There are numerous [ways you can help](
 https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder), many of
 which don't require any programming. If you'd like to make a [donation](
-https://opencollective.com/spyder/donate) to help fund further improvements,
-we're on [OpenCollective](https://opencollective.com/spyder).
+https://www.spyder-ide.org/donate) to help fund further improvements,
+we'd really appreciate it.
 
 Thanks for all you do to make the Spyder project thrive! [More details](
 https://github.com/spyder-ide/spyder/wiki/Current-Funding-and-Development-Status)

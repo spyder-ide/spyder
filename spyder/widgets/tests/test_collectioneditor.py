@@ -25,7 +25,7 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QDateEdit, QMessageBox, QWidget
+from qtpy.QtWidgets import QDateEdit, QLineEdit, QMessageBox, QWidget
 
 # Local imports
 from spyder.config.manager import CONF
@@ -33,6 +33,9 @@ from spyder.widgets.collectionseditor import (
     CollectionsEditor, CollectionsEditorTableView, CollectionsEditorWidget,
     CollectionsModel, LARGE_NROWS, natsort, RemoteCollectionsEditorTableView,
     ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
+    SELECT_ROW_BUTTON_SIZE
+)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import (
     generate_pandas_indexes)
 from spyder_kernels.utils.nsview import get_size
@@ -349,6 +352,17 @@ def test_shows_dataframeeditor_when_editing_index(monkeypatch):
         editor.delegate.createEditor(None, None,
                                      editor.model().index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
+
+
+def test_shows_collectioneditor_when_editing_frozenset():
+    fs = frozenset('Spyder')
+    editor = CollectionsEditorTableView(None, {'fs': fs})
+    name_to_patch = 'spyder.widgets.collectionseditor.CollectionsEditor'
+    with patch(name_to_patch) as MockCollectionsEditor:
+        editor.delegate.createEditor(
+            None, None, editor.model().index(0, 3)
+        )
+    MockCollectionsEditor.return_value.show.assert_called_once_with()
 
 
 def test_sort_numpy_numeric_collectionsmodel():
@@ -740,6 +754,43 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
     assert mockCollectionsEditor_instance.setup.call_args[1]["readonly"]
 
 
+@pytest.mark.parametrize(
+    'exponent, error_expected',
+    [(32_766, False), (32_767, True)]
+)
+def test_edit_large_int(monkeypatch, exponent, error_expected):
+    """
+    Test editing large int values either works or displays an error.
+
+    Regression test for spyder-ide/spyder#21751.
+    """
+    num = 10 ** exponent + 1
+    editor = CollectionsEditorTableView(None, [num])
+    index = editor.model().index(0, 3)
+
+    with patch(
+        'spyder.plugins.variableexplorer.widgets'
+        '.collectionsdelegate.QLineEdit'
+    ) as MockQLineEdit:
+        with patch(
+            'spyder.plugins.variableexplorer.widgets'
+            '.collectionsdelegate.QMessageBox'
+        ) as MockQMessageBox:
+            editor.delegate.createEditor(None, None, index)
+
+    if error_expected:
+        MockQLineEdit.assert_not_called()
+        MockQMessageBox.assert_called_once()
+    else:
+        MockQLineEdit.assert_called_once()
+        MockQMessageBox.assert_not_called()
+
+        line_edit_instance = Mock(spec=QLineEdit)
+        editor.delegate.setEditorData(line_edit_instance, index)
+        expected = '1' + (exponent - 1) * '0' + '1'
+        line_edit_instance.setText.assert_called_once_with(expected)
+
+
 @flaky(max_runs=3)
 def test_view_module_in_coledit():
     """
@@ -1070,7 +1121,8 @@ def test_dicts_natural_sorting_mixed_types():
 def test_collectioneditor_plot(qtbot):
     """
     Test that plotting a list from the collection editor calls the .plot()
-    function in the associated namespace browser.
+    function in the associated namespace browser and that the executing
+    `plot_function` plots the list.
     """
     my_list = [4, 2]
     mock_namespacebrowser = Mock()
@@ -1079,7 +1131,53 @@ def test_collectioneditor_plot(qtbot):
     qtbot.addWidget(cew)
 
     cew.editor.plot('list', 'plot')
-    mock_namespacebrowser.plot.assert_called_once_with(my_list, 'plot')
+    mock_namespacebrowser.plot.assert_called_once()
+
+    plot_function = mock_namespacebrowser.plot.call_args.args[0]
+    mock_figure = Mock()
+    plot_function(mock_figure)
+
+    mock_figure.subplots.return_value.plot.assert_called_once_with(my_list)
+
+
+def test_collectionseditor_select_row_button(qtbot):
+    """Test that the button to select rows is working as expected."""
+    data = {"a": 10, "b": "This is a string"}
+    editor = CollectionsEditor()
+    editor.setup(data)
+    editor.show()
+
+    # This is necessary so that Qt paints
+    qtbot.wait(300)
+
+    # Coordinates to position the cursor on top of the select row button for
+    # the first row
+    table_view = editor.widget.editor
+    x = (
+        # Left x ccordinate for the first row
+        + table_view.columnViewportPosition(0)
+        + table_view.width()
+        - SELECT_ROW_BUTTON_SIZE // 2
+    )
+
+    y = (
+        # Top y ccordinate for the first row
+        + table_view.rowViewportPosition(0)
+        + table_view.rowHeight(0) // 2
+    )
+
+    # Move cursor
+    qtbot.mouseMove(table_view.viewport(), QPoint(x, y), delay=100)
+
+    # Click on that posiiton and check the first row was selected.
+    # Note: We can't use LeftButton here because it edits the row. However, it
+    # works as exoected in regular usage.
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == {0}
+
+    # Click again and check the row was deselected
+    qtbot.mouseClick(table_view.viewport(), Qt.MiddleButton, pos=QPoint(x, y))
+    assert table_view.selected_rows() == set()
 
 
 if __name__ == "__main__":

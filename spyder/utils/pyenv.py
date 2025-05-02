@@ -54,6 +54,25 @@ def get_list_pyenv_envs():
 
         name = f'Pyenv: {data[-1]}'
         version = f'Python {data[0]}'
+
+        if name in env_list:
+            if not (path, version) == env_list[name]:
+                prev_info = env_list[name]
+                prev_data = prev_info[0]
+                prev_data = prev_data.split(osp.sep)
+                env_list.pop(name)
+                index_common_folder = 1
+                for i in range(-1, -len(data) - 1, -1):
+                    if data[i] == prev_data[i]:
+                        index_common_folder += 1
+                    else:
+                        break
+                part_path = prev_data[-index_common_folder : -1]
+                prev_name = f'Pyenv: {"/".join(part_path)}'
+                env_list[prev_name] = prev_info
+                name = f'Pyenv: {"/".join(data[-index_common_folder:])}'
+
+        
         env_list[name] = (path, version)
 
     PYENV_ENV_LIST_CACHE = env_list

@@ -20,15 +20,16 @@ from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QSize, Qt, Slot)
 from qtpy.QtWidgets import (
     QApplication, QStyle, QStyledItemDelegate, QStyleOptionViewItem,
-    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget, QStackedLayout)
+    QTreeWidgetItem, QVBoxLayout, QWidget, QTreeWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.translations import _
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.palette import SpyderPalette
-from spyder.widgets.helperwidgets import FinderWidget, PaneEmptyWidget
+from spyder.widgets.helperwidgets import FinderWidget
 
 
 class FramesBrowserState:
@@ -38,7 +39,9 @@ class FramesBrowserState:
     Error = 'error'
 
 
-class FramesBrowser(QWidget, SpyderWidgetMixin):
+class FramesBrowser(
+    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+):
     """Frames browser (global debugger widget)"""
     CONF_SECTION = 'debugger'
 
@@ -117,9 +120,11 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
 
     def set_pane_empty(self, empty):
         if empty:
-            self.stack_layout.setCurrentWidget(self.pane_empty)
+            self.is_empty = True
+            self.sig_show_empty_message_requested.emit(True)
         else:
-            self.stack_layout.setCurrentWidget(self.container)
+            self.is_empty = False
+            self.sig_show_empty_message_requested.emit(False)
 
     def setup(self):
         """
@@ -132,37 +137,19 @@ class FramesBrowser(QWidget, SpyderWidgetMixin):
         self.results_browser.sig_edit_goto.connect(self.sig_edit_goto)
 
         self.finder = FinderWidget(self)
+        self.finder.setVisible(False)
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
 
-        # Widget empty pane
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "debugger",
-            _("Debugging is not active"),
-            _("Start a debugging session with the ⏯ button, allowing you to "
-              "step through your code and see the functions here that "
-              "Python has run.")
-        )
-
         # Setup layout.
-        self.stack_layout = QStackedLayout()
-        self.stack_layout.addWidget(self.pane_empty)
-        self.setLayout(self.stack_layout)
-        self.stack_layout.setContentsMargins(0, 0, 0, 0)
-        self.stack_layout.setSpacing(0)
-        self.setContentsMargins(0, 0, 0, 0)
-
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.results_browser)
         layout.addWidget(self.finder)
-
-        self.container = QWidget(self)
-        self.container.setLayout(layout)
-        self.stack_layout.addWidget(self.container)
+        self.setLayout(layout)
+        self.setContentsMargins(0, 0, 0, 0)
 
     def _show_frames(self, stack_dict, title, state):
         """Set current frames"""
@@ -492,13 +479,13 @@ class ResultsBrowser(QTreeWidget):
 
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
-        self.itemActivated.connect(self.activated)
-        self.itemClicked.connect(self.activated)
+        self.itemActivated.connect(self.on_item_activated)
+        self.itemClicked.connect(self.on_item_activated)
 
     def set_title(self, title):
         self.setHeaderLabels([title])
 
-    def activated(self, item):
+    def on_item_activated(self, item):
         """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
@@ -544,9 +531,7 @@ class ResultsBrowser(QTreeWidget):
                     )
                     self.data[id(item)] = (frame["filename"], frame["lineno"])
             else:
-                item = LineFrameItem(
-                    parent, 0, None, '', 0, '', None,
-                )
+                item = LineFrameItem(parent, 0, None, '', 0, '')
 
     def do_find(self, text):
         """Update the regex text for the variable finder."""

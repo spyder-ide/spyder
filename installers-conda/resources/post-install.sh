@@ -186,12 +186,18 @@ fi
 echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 # ---- Launch Spyder
-if [[ -n "$CI" || "$INSTALLER_UNATTENDED" == "1" || "$COMMAND_LINE_INSTALL" == "1" ]]; then
-    echo Installing in batch mode, do not launch Spyder
+if [[
+    -n "$CI"                                          # Running in CI (sh)
+    || "$INSTALLER_UNATTENDED" == "1"                 # Running in batch mode (sh)
+    || "$COMMAND_LINE_INSTALL" == "1"                 # Running in batch mode (pkg)
+    || "$START_SPYDER" == "False"                     # Running from updater (sh)
+    || -f "$(dirname $PACKAGE_PATH)/no-start-spyder"  # Running from updater (pkg)
+]]; then
+    echo "Do not launch Spyder"
     exit 0
 fi
 
-echo "Launching Spyder now..."
+echo "Launching Spyder after install completed."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     launch_script=${TMPDIR:-$SHARED_INSTALLER_TEMP}/post-install-launch.sh
     echo "Creating post-install launch script $launch_script..."

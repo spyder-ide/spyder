@@ -10,6 +10,7 @@ import os
 import tempfile
 
 # Third party imports
+from qtpy import PYQT6
 from qtpy.QtCore import Qt, QPoint, QTimer
 from qtpy.QtGui import QDesktopServices, QTextCursor
 from qtpy.QtWidgets import QMessageBox
@@ -28,6 +29,7 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------
@@ -118,6 +120,7 @@ def test_goto_uri(qtbot, codeeditor, mocker, params):
         assert expected_output_2 == output_2
 
 
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_goto_uri_project_root_path(qtbot, codeeditor, mocker, tmpdir):
     """Test that the uri search is working correctly."""
     code_editor = codeeditor

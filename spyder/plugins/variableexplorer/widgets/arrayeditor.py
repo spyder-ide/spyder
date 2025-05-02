@@ -1139,6 +1139,12 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         # If user clicked 'OK' then set new options accordingly
         if result == QDialog.Accepted:
             float_format = dialog.float_format
+
+            # This is necessary to handle formatting for integers.
+            # Fixes spyder-ide/spyder#22629
+            if float_format == 'd':
+                float_format = '.0f'
+
             try:
                 format(1.1, float_format)
             except:

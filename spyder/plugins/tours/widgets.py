@@ -1044,6 +1044,7 @@ class AnimatedTour(QWidget):
             else:
                 if not self.any_has_focus():
                     self.hide_tips()
+                    self.close_tour()
 
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""

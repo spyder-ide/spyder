@@ -11,10 +11,10 @@ import os.path as osp
 import re
 
 # Third party imports
-from qtpy import PYQT5, PYQT6
-from qtpy.QtCore import Signal
+from qtpy import PYSIDE2
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetricsF
-from qtpy.QtWidgets import QInputDialog, QLabel, QStackedWidget, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QLabel
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -29,7 +29,6 @@ from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.comboboxes import PatternComboBox
-from spyder.widgets.helperwidgets import PaneEmptyWidget
 
 
 # ---- Constants
@@ -91,6 +90,13 @@ class FindInFilesWidget(PluginMainWidget):
     # PluginMainWidget constants
     ENABLE_SPINNER = True
     MARGIN_TOP = AppStyle.MarginSize + 5
+    SHOW_MESSAGE_WHEN_EMPTY = True
+    IMAGE_WHEN_EMPTY = "find_empty"
+    MESSAGE_WHEN_EMPTY = _("Nothing searched for yet")
+    DESCRIPTION_WHEN_EMPTY = _(
+        "Search the content of text files in any directory using the search "
+        "box."
+    )
 
     # Other constants
     REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
@@ -128,7 +134,7 @@ class FindInFilesWidget(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        if PYQT5 or PYQT6:
+        if not PYSIDE2:
             super().__init__(name, plugin, parent=parent)
         else:
             PluginMainWidget.__init__(self, name, plugin, parent=parent)
@@ -161,22 +167,24 @@ class FindInFilesWidget(PluginMainWidget):
             path_history = [path_history]
 
         # Widgets
-        self.pane_empty = PaneEmptyWidget(
-            self,
-            "find_empty",
-            _("Nothing searched for yet"),
-            _("Search the content of text files in any directory using the "
-              "search box.")
-        )
-
         self.search_text_edit = PatternComboBox(
             self,
             items=search_text,
             adjust_to_minimum=False,
-            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
+            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo,
+            items_elide_mode=Qt.ElideMiddle
         )
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
+        
+        self.search_text_edit.setMinimumSize(
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
+        )        
+        
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
+        self.search_text_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
@@ -210,6 +218,7 @@ class FindInFilesWidget(PluginMainWidget):
             text_color=self.text_color,
             max_results=self.get_conf('max_results'),
         )
+        self.set_content_widget(self.result_browser)
 
         # Setup
         exclude_idx = self.get_conf('exclude_index', None)
@@ -220,15 +229,6 @@ class FindInFilesWidget(PluginMainWidget):
         search_in_index = self.get_conf('search_in_index', None)
         self.path_selection_combo.set_current_searchpath_index(
             search_in_index)
-
-        # Layout
-        self.stacked_widget = QStackedWidget(self)
-        self.stacked_widget.addWidget(self.result_browser)
-        self.stacked_widget.addWidget(self.pane_empty)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.stacked_widget)
-        self.setLayout(layout)
 
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
@@ -356,9 +356,6 @@ class FindInFilesWidget(PluginMainWidget):
             menu=menu,
         )
 
-        # Set pane_empty widget at the beginning
-        self.stacked_widget.setCurrentWidget(self.pane_empty)
-
     def update_actions(self):
         self.find_action.setIcon(self.create_icon(
             'stop' if self.running else 'find')
@@ -442,6 +439,11 @@ class FindInFilesWidget(PluginMainWidget):
     def resizeEvent(self, event):
         """Adjustments when the widget is resized."""
         super().resizeEvent(event)
+
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
+        self.search_text_edit.setMaximumWidth(self.width())
 
         # This recomputes the result items width according to this widget's
         # width, which makes the UI be rendered as expected.
@@ -661,7 +663,7 @@ class FindInFilesWidget(PluginMainWidget):
         # Show result_browser the first time a user performs a search and leave
         # it shown afterwards.
         if not self._is_first_time:
-            self.stacked_widget.setCurrentWidget(self.result_browser)
+            self.show_content_widget()
             self._is_first_time = True
 
         if self.running:

@@ -17,9 +17,9 @@ import re
 # Third-party imports
 from IPython.core.history import HistoryManager
 from IPython.core.inputtransformer2 import TransformerManager
-from IPython.lib.lexers import (
-    IPython3Lexer, Python3Lexer, bygroups, using
-)
+from ipython_pygments_lexers import IPython3Lexer
+from pygments.lexer import bygroups, using
+from pygments.lexers import Python3Lexer
 from pygments.token import Keyword, Operator
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget

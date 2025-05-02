@@ -99,13 +99,19 @@ class StdThread(QThread):
     def run(self):
         txt = True
         while txt:
-            txt = self._std_buffer.read1()
+            try:
+                txt = self._std_buffer.read1()
+            except ValueError:  # I/O operation on closed file
+                break
+
             if txt:
                 try:
                     txt = txt.decode()
                 except UnicodeDecodeError:
                     txt = str(txt)
                 self.sig_out.emit(txt)
+            else:
+                break  # EOF
 
 
 class KernelHandler(QObject):
@@ -519,8 +525,8 @@ class KernelHandler(QObject):
             else:
                 shutdown_thread = QThread(None)
                 shutdown_thread.run = self._thread_shutdown_kernel
-                shutdown_thread.start()
                 shutdown_thread.finished.connect(self.after_shutdown)
+                shutdown_thread.start()
                 with self._shutdown_thread_list_lock:
                     self._shutdown_thread_list.append(shutdown_thread)
 

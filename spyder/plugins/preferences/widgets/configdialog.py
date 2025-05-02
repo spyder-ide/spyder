@@ -28,11 +28,11 @@ class ConfigDialog(SidebarDialog):
 
     # Constants
     TITLE = _("Preferences")
-    ICON = ima.icon('configure')
     MIN_WIDTH = 940 if MAC else (875 if WIN else 920)
     MIN_HEIGHT = 700 if MAC else (660 if WIN else 670)
 
     def __init__(self, parent=None):
+        self.ICON = ima.icon('configure')
         SidebarDialog.__init__(self, parent)
 
         # Attributes

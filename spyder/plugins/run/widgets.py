@@ -591,14 +591,11 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         self.configuration_combo.hide()
 
         # --- Executor and parameters widgets
-        executor_label = QLabel(_("Run this file in:"))
+        executor_label = QLabel(_("Runner:"))
         self.executor_combo = SpyderComboBox(self)
         self.executor_combo.setMinimumWidth(250)
         executor_tip = TipWidget(
-            _(
-                "This is the runner that will be used for execution when you "
-                "click on the Run button"
-            ),
+            _("Configure the selected runner for this file"),
             icon=ima.icon('question_tip'),
             hover_icon=ima.icon('question_tip_hover'),
             size=23,

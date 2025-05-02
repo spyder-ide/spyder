@@ -1,0 +1,164 @@
+name: Linux tests with PyQt6
+
+on:
+  push:
+    branches:
+      - master
+      - 6.*
+    paths:
+      - '.github/scripts/install.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-linux-qt6.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+
+  pull_request:
+    branches:
+      - master
+      - 6.*
+    paths:
+      - '.github/scripts/install.sh'
+      - '.github/scripts/run_tests.sh'
+      - '.github/workflows/test-linux-qt6.yml'
+      - 'requirements/*.yml'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+      - '!installers-conda/**'
+
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      ssh:
+        # github_cli: gh workflow run test-linux-qt6.yml --ref <branch> -f ssh=true
+        description: 'Enable ssh debugging'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: test-linux-qt6-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ENABLE_SSH: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh }}
+
+jobs:
+  build:
+    # Use this to disable the workflow
+    # if: false
+    name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.SPYDER_QT_BINDING }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
+    runs-on: ubuntu-22.04
+    env:
+      CI: 'true'
+      QTCONSOLE_TESTING: 'true'
+      CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
+      USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      USE_GDB: 'false'
+      SPYDER_QT_BINDING: ${{ matrix.SPYDER_QT_BINDING }}
+    strategy:
+      fail-fast: false
+      matrix:
+        INSTALL_TYPE: ['pip']  # conda has no PyQt6 package
+        PYTHON_VERSION: ['3.10']
+        TEST_TYPE: ['fast', 'slow']
+        SPYDER_QT_BINDING: ['pyqt6'] # TODO add 'pyside6' once Spyder supports it
+    timeout-minutes: 90
+    steps:
+      - name: Setup Remote SSH Connection
+        if: env.ENABLE_SSH == 'true'
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          detached: true
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+      - name: Fetch branches
+        run: git fetch --prune --unshallow
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 libxcb-cursor0 xterm --fix-missing
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
+      - name: Create conda test environment
+        if: env.USE_CONDA == 'true'
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          micromamba-version: '1.5.10-0'
+          environment-file: requirements/main.yml
+          environment-name: test
+          cache-downloads: true
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+      - name: Create pip test environment
+        if: env.USE_CONDA != 'true'
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          micromamba-version: '1.5.10-0'
+          environment-name: test
+          cache-downloads: true
+          create-args: python=${{ matrix.PYTHON_VERSION }}
+          condarc: |
+            channels:
+              - conda-forge
+      - name: Install additional dependencies
+        shell: bash -l {0}
+        run: bash -l .github/scripts/install.sh
+      - name: Show conda test environment
+        if: env.USE_CONDA == 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+      - name: Show pip test environment
+        if: env.USE_CONDA != 'true'
+        shell: bash -l {0}
+        run: |
+          micromamba info
+          micromamba list
+          pip list
+      - name: Run manifest checks
+        shell: bash -l {0}
+        run: check-manifest
+      - name: Run tests with gdb
+        if: env.USE_GDB == 'true'
+        shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: xvfb-run --auto-servernum gdb -return-child-result -batch -ex r -ex py-bt --args python runtests.py -s
+      - name: Run tests
+        shell: bash -l {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QT_API: ${{ matrix.SPYDER_QT_BINDING }}
+          PYTEST_QT_API: ${{ matrix.SPYDER_QT_BINDING }}
+        run: |
+          rm -f pytest_log.txt  # Must remove any log file from a previous run
+          .github/scripts/run_tests.sh -n 0 || \
+          .github/scripts/run_tests.sh -n 1 || \
+          .github/scripts/run_tests.sh -n 2 || \
+          .github/scripts/run_tests.sh -n 3
+      - name: Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+          verbose: true

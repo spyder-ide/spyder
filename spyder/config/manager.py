@@ -12,12 +12,14 @@ Configuration manager providing access to user/site/project configuration.
 import logging
 import os
 import os.path as osp
+import sys
 import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
 # Third-party imports
 import keyring
+from keyring.errors import NoKeyringError
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
@@ -574,7 +576,33 @@ class ConfigurationManager(object):
                 f"Saving option {option} with keyring because it was marked "
                 f"as secure."
             )
-            keyring.set_password(section, option, value)
+
+            # Catch error when there's no keyring backend available.
+            # Fixes spyder-ide/spyder#22623
+            try:
+                keyring.set_password(section, option, value)
+            except NoKeyringError:
+                # This file must not have top-level Qt imports. This also
+                # prevents possible circular imports.
+                from qtpy.QtWidgets import QMessageBox
+                from spyder_kernels.utils.pythonenv import is_conda_env
+
+                pkg_manager = "conda" if is_conda_env(sys.prefix) else "pip"
+                msg = _(
+                    "It was not possible to save a configuration setting "
+                    "securely. A possible solution is to install the "
+                    "<tt>keyrings.alt</tt> package with {}.<br><br>"
+                    "<bb>Note</bb>: That package may have security risks or "
+                    "other implications. Hence, it's not advised to use it in "
+                    "general production or security-sensitive systems."
+                ).format(pkg_manager)
+
+                QMessageBox.critical(
+                    None,
+                    _("Error"),
+                    msg,
+                    QMessageBox.Ok,
+                )
         else:
             config.set(
                 section=section,
