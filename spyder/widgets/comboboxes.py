@@ -48,8 +48,8 @@ class BaseComboBox(SpyderComboBox):
         The previous size of the widget.
     """
 
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, parent, items_elide_mode=None):
+        super().__init__(parent, items_elide_mode)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
         self.selected_text = self.currentText()
@@ -162,9 +162,16 @@ class BaseComboBox(SpyderComboBox):
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
 
-    def __init__(self, parent, items=None, tip=None,
-                 adjust_to_minimum=True, id_=None):
-        BaseComboBox.__init__(self, parent)
+    def __init__(
+        self,
+        parent,
+        items=None,
+        tip=None,
+        adjust_to_minimum=True,
+        id_=None,
+        items_elide_mode=None,
+    ):
+        BaseComboBox.__init__(self, parent, items_elide_mode)
 
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(
