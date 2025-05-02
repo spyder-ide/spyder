@@ -1,4 +1,27 @@
-from spyder_remote_services.services.envs_manager.handlers import handlers as envs_manager_handlers
-from spyder_remote_services.services.files.handlers import handlers as files_handlers
+from importlib.metadata import version
 
-handlers = envs_manager_handlers + files_handlers
+from jupyter_server.auth.decorator import authorized
+from jupyter_server.base.handlers import JupyterHandler
+from tornado import web
+
+from spyder_remote_services.services.envs_manager.handlers import (
+    handlers as envs_manager_handlers,
+)
+from spyder_remote_services.services.files.handlers import (
+    handlers as files_handlers,
+)
+
+
+class VersionHandler(JupyterHandler):
+    """Handler to return the version of the service."""
+
+    @web.authenticated
+    @authorized
+    def get(self):
+        """Return the version of the service."""
+        self.finish(version("spyder_remote_services"))
+
+
+handlers = (
+    envs_manager_handlers + files_handlers + [(r"/version", VersionHandler)]
+)
