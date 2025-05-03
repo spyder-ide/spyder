@@ -892,6 +892,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 self.expanded_or_colapsed_by_mouse = True
             else:
                 self.expanded_or_colapsed_by_mouse = False
+        else:
+            # Clear selection if users click on an empty region. This improves
+            # the context menu UX because it makes the current directory to be
+            # used for its operations (i.e. creating a new folder or directory,
+            # copying its path, etc).
+            self.selectionModel().clear()
+
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
