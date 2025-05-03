@@ -9,6 +9,16 @@ echo "Environment variables:"
 env | sort
 echo ""
 
+# ---- QtWebengine
+# QtWebengine cannot find $prefix/resources directory on a APFS case-sensitive file system.
+# This is not the default macOS file system. To work-around this we rename it to Resources.
+# See https://github.com/spyder-ide/spyder/issues/23415
+runtime_env="${PREFIX}/envs/spyder-runtime"
+if [[ "$OSTYPE" == "darwin"* && ! -e "${runtime_env}/Resources" ]]; then
+    # macOS and case-sensitive
+    mv -f ${runtime_env}/resources ${runtime_env}/Resources || true
+fi
+
 # ---- Shortcut
 pythonexe=${PREFIX}/bin/python
 menuinst=${PREFIX}/bin/menuinst_cli.py
