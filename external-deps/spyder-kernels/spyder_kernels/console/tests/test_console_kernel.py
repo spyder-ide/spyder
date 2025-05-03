@@ -12,16 +12,17 @@ Tests for the console kernel.
 # Standard library imports
 import ast
 import asyncio
+from collections import namedtuple
+from contextlib import contextmanager
+import inspect
 import os
 import os.path as osp
-from textwrap import dedent
-from contextlib import contextmanager
-import time
+import random
 from subprocess import Popen, PIPE
 import sys
-import inspect
+from textwrap import dedent
+import time
 import uuid
-from collections import namedtuple
 
 # Test imports
 from flaky import flaky
@@ -1487,6 +1488,15 @@ def test_get_pythonenv_info(kernel):
     assert output["python_version"] == sys.version.split()[0]
     assert output["ipython_version"] == ipython_release.version
     assert output["sys_version"] == sys.version
+
+
+@pytest.mark.parametrize("prefix", ["%", "!"])
+def test_disable_pkg_managers(kernel, capsys, prefix):
+    """Test that we disable Python package manager magics and commands."""
+    pkg_manager = random.choice(kernel.shell._disabled_pkg_managers)
+    asyncio.run(kernel.do_execute(f"{prefix}{pkg_manager}", True))
+    captured = capsys.readouterr()
+    assert kernel.shell._disable_pkg_managers_msg[2:] == captured.out[1:-1]
 
 
 if __name__ == "__main__":
