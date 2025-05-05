@@ -143,7 +143,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     )
                 )
             pixi_manifest, pixi_env = get_pixi_manifest_path_and_env_name(
-                pixi_exe,
+                pyexec,
             )
             kernel_cmd.extend([
                 pixi_exe,
@@ -154,7 +154,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 pixi_manifest,
             ])
 
-        if is_conda_env(pyexec=pyexec):
+        elif is_conda_env(pyexec=pyexec):
             # If executable is a conda environment, use "run" subcommand to
             # activate it and run spyder-kernels.
             conda_exe = find_conda()
