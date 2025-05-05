@@ -23,6 +23,7 @@ from spyder.api.translations import _
 from spyder.plugins.remoteclient import (
     SPYDER_REMOTE_MAX_VERSION,
     SPYDER_REMOTE_MIN_VERSION,
+    SPYDER_PLUGIN_NAME
 )
 from spyder.plugins.remoteclient.api.manager.base import (
     SpyderRemoteAPIManagerBase,
@@ -50,7 +51,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
     @property
     def server_url(self):
-        return self.hub_url / f"hub/api/user/{self._user_name}/server/spyder"
+        return self.hub_url / f"user/{self._user_name}/spyder/"
 
     @property
     def hub_url(self):
@@ -67,26 +68,40 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             return False
 
         async with self._session.post(
-            f"user/{self._user_name}/server/spyder",
+            f"hub/api/users/{self._user_name}/servers/spyder",
         ) as response:
+            if response.status in {201, 400}:
+                if await self.check_server_version():
+                    self._emit_connection_status(
+                        ConnectionStatus.Active,
+                        _("The connection was established successfully"),
+                    )
+                    return True
+                return False
             if not response.ok:
-                self.logger.error(
-                    "Error starting remote server: %s", response.status,
-                )
+                try:
+                    jupyter_error = await response.json()
+                    self.logger.error(
+                        "Unexpected jupyterhub response when starting "
+                        "spyder's jupyter server: [%s]: %s",
+                        jupyter_error["status"],
+                        jupyter_error["message"],
+                    )
+                except (aiohttp.ContentTypeError, json.JSONDecodeError):
+                    self.logger.exception(
+                        "Unexpected jupyterhub response when starting "
+                        "spyder's jupyter server: [%s]: %s",
+                        response.status,
+                        await response.text(),
+                    )
                 self._emit_connection_status(
                     ConnectionStatus.Error,
                     _("Error starting the remote server"),
                 )
                 return False
-            if response.status == 201:
-                self._emit_connection_status(
-                    ConnectionStatus.Active,
-                    _("The connection was established successfully"),
-                )
-                return True
 
         async with self._session.get(
-            f"user/{self._user_name}/server/spyder/progress",
+            f"hub/api/users/{self._user_name}/servers/spyder/progress",
         ) as response:
             if not response.ok:
                 self.logger.error(
@@ -106,7 +121,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 if line.startswith("data:"):
                     ready = json.loads(line.split(":", 1)[1])["ready"]
 
-        if ready:
+        if ready and await self.check_server_version():
             self._emit_connection_status(
                 ConnectionStatus.Active,
                 _("The connection was established successfully"),
@@ -114,7 +129,8 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             return True
 
         self.logger.error(
-            "Error starting remote server: %s", response.status,
+            "Spyder remote server was unable to start, please check the "
+            "JupyterHub logs for more information",
         )
         self._emit_connection_status(
             ConnectionStatus.Error,
@@ -123,6 +139,10 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         return False
 
     async def ensure_server_installed(self) -> bool:
+        """Assume the server is installed."""
+        return True
+
+    async def check_server_version(self) -> bool:
         """Check remote server version."""
         if not self.connected:
             self.logger.error("Connection is not open")
@@ -132,55 +152,72 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             )
             return False
 
-        try:
-            async with self.get_jupyter_api() as jupyter_api:
-                version = await jupyter_api.get_plugin_version()
-        except SpyderRemoteAPIError:
-            self.logger.exception(
-                "Error getting remote server version. "
-                "The server might not be installed"
-            )
-            self._emit_connection_status(
-                ConnectionStatus.Error,
-                _("Error connecting to the remote server"),
-            )
-            return False
+        async with self._session.get(
+            f"user/{self._user_name}/spyder/{SPYDER_PLUGIN_NAME}/version",
+        ) as response:
+            if not response.ok:
+                try:
+                    jupyter_error = await response.json()
+                    self.logger.error(
+                        "Unexpected jupyterhub response when getting "
+                        "%s version: [%s]: %s",
+                        SPYDER_PLUGIN_NAME,
+                        jupyter_error["status"],
+                        jupyter_error["message"],
+                    )
+                except (aiohttp.ContentTypeError, json.JSONDecodeError):
+                    self.logger.exception(
+                        "Error starting remote server: [%s]: %s",
+                        response.status,
+                        await response.text(),
+                    )
+                self._emit_connection_status(
+                    ConnectionStatus.Error,
+                    _("Error starting the remote server"),
+                )
+                return False
+
+            version = await response.text()
 
         if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self.logger.error(
-                f"Server version mismatch: {version} is greater than "
-                f"the maximum supported version {SPYDER_REMOTE_MAX_VERSION}"
+                "Server version mismatch: %s is greater than "
+                "the maximum supported version %s",
+                version,
+                SPYDER_REMOTE_MAX_VERSION,
             )
             self._emit_version_mismatch(version)
             self._emit_connection_status(
                 status=ConnectionStatus.Error,
-                message=_("Error connecting to the remote server"),
+                message=_("Error staring the remote server"),
             )
             return False
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
             self.logger.warning(
-                f"Server version mismatch: {version} is lower than "
-                f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}. "
-                f"A more recent version will be installed."
+                "Server version mismatch: %s is lower than "
+                "the minimum supported version %s. "
+                "A more recent version will be installed.",
+                version,
+                SPYDER_REMOTE_MIN_VERSION,
             )
             return await self.install_remote_server()
 
-        self.logger.info(f"Supported Server version: {version}")
+        self.logger.info("Supported Server version: %s", version)
 
         return True
 
     async def _install_remote_server(self):
         self.logger.error(
-            "Remote server installation is not supported for JupyterHub"
+            "Remote server installation is not supported for JupyterHub",
         )
         return False
 
     async def _create_new_connection(self) -> bool:
         if self.connected:
             self.logger.debug(
-                f"Atempting to create a new connection with an existing for "
-                f"{self.server_name}"
+                "Atempting to create a new connection with an existing for %s",
+                self.server_name,
             )
             await self.close_connection()
 
@@ -192,13 +229,13 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         self.logger.debug("Loggin to jupyterhub at %s", self.hub_url)
 
         self._session = aiohttp.ClientSession(
-            self.hub_url / "hub/api/",
+            self.hub_url,
             headers={"Authorization": f"token {self.api_token}"},
         )
 
         user_data = None
         try:
-            async with self._session.get("user") as response:
+            async with self._session.get("hub/api/user") as response:
                 if response.ok:
                     user_data = await response.json()
         except aiohttp.ClientError:
@@ -208,17 +245,6 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         if user_data is None:
             self.logger.error(
                 "Error connecting to JupyterHub: %s", response.status,
-            )
-            return False
-
-        if "servers" not in user_data["scopes"]:
-            self.logger.error(
-                "This user does not have permission to start a server. "
-                "Please check your JupyterHub configuration."
-            )
-            self._emit_connection_status(
-                ConnectionStatus.Error,
-                _("Insufficient permissions"),
             )
             return False
 
