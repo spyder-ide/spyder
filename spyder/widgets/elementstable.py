@@ -64,7 +64,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         parent: QWidget,
         elements: List[Element],
         with_icons: bool,
-        with_addtional_info: bool,
+        with_additional_info: bool,
         with_widgets: bool,
     ):
         QAbstractTableModel.__init__(self)
@@ -79,7 +79,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         self.columns = {'title': 0}
 
         # Extra columns
-        if with_addtional_info:
+        if with_additional_info:
             self.n_columns += 1
             self.columns['additional_info'] = 1
 
@@ -182,16 +182,16 @@ class SortElementsFilterProxy(CustomSortFilterProxy):
             r_description = None
 
         if element.get("additional_info"):
-            r_addtional_info = re.search(
+            r_additional_info = re.search(
                 pattern, element["additional_info"]
             )
         else:
-            r_addtional_info = None
+            r_additional_info = None
 
         if (
             r_title is None
             and r_description is None
-            and r_addtional_info is None
+            and r_additional_info is None
         ):
             return False
         else:
@@ -237,7 +237,7 @@ class ElementsTable(HoverRowsTableView):
 
         # Check for additional features
         self._with_icons = self._with_feature('icon')
-        self._with_addtional_info = self._with_feature('additional_info')
+        self._with_additional_info = self._with_feature('additional_info')
         self._with_widgets = self._with_feature('widget')
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
@@ -262,7 +262,7 @@ class ElementsTable(HoverRowsTableView):
             self,
             self.elements,
             self._with_icons,
-            self._with_addtional_info,
+            self._with_additional_info,
             self._with_widgets
         )
 
@@ -285,7 +285,7 @@ class ElementsTable(HoverRowsTableView):
             )
 
         # Adjustments for the additional info column
-        if self._with_addtional_info:
+        if self._with_additional_info:
             info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate
