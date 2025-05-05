@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/dalthviz/spyder-kernels.git
 	branch = spyder_23558
-	commit = eb2ab0afb20f0b0934d7ce47868ba539a637c3d1
-	parent = 4983fd769717c07bb1bc1841813f88e7b910fa26
+	commit = 59bd758240ac782a63a1c02d76f6c2d6686bfc5e
+	parent = c30b9109329446b076ceb978bb5237a239b3f5e4
 	method = merge
 	cmdver = 0.4.3

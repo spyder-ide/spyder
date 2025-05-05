@@ -836,7 +836,7 @@ class SpyderKernel(IPythonKernel):
 
             if is_pixi_env(path):
                 env_type = PythonEnvType.Pixi
-            if is_conda_env(pyexec=path):
+            elif is_conda_env(pyexec=path):
                 env_type = PythonEnvType.Conda
             elif is_pyenv_env(path):
                 env_type = PythonEnvType.PyEnv
