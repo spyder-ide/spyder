@@ -1,35 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.5"]
+build-backend = "hatchling.build"
+
 [project]
 name = "spyder-remote-services"
-authors = [{name = "Hendrik Louzada", email = "hendriklouzada@gmail.com"}]
-description = "A remote server for Spyder IDE"
 readme = "README.md"
-license = { file = "LICENSE.txt" }
 dynamic = ["version"]
-requires-python = ">=3.10"
+description = "A Jupyter Server Extension Providing Support for Spyder Remote Services"
+keywords = ["jupyter", "spyder"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11"
+]
+requires-python = ">=3.8"
 dependencies = [
-    "jupyter_server >=2.14.2,<3.0",
-    "jupyter_client >=8.6.2,<9.0",
-    "envs-manager <1.0.0",
-    "orjson >=3.10.12,<4.0",
+  "jupyter_server >=2.14.2,<3.0",
+  "jupyter_client >=8.6.2,<9.0",
+  "envs-manager <1.0.0",
+  "orjson >=3.10.12,<4.0",
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "spyder_remote_services.__version__"}
-
-[project.scripts]
-spyder-server = "spyder_remote_services.__main__:main"
-
-[project.entry-points.'jupyter_client.kernel_provisioners']
-spyder-kernels-provisioner = 'spyder_remote_services.services.spyder_kernels.provisioner:SpyderKernelsProvisioner'
+[[project.authors]]
+name = "Hendrik Louzada"
+email = "hendriklouzada@gmail.com"
 
 
 [project.optional-dependencies]
-dev = [
-    "pytest >= 7.3.1",
-    "ruff >= 0.4.1",
-    #"pyinstaller >= 5.10.1"
+test = [
+  "pytest >= 7.3.1",
+  "ruff >= 0.4.1",
 ]
 
-[build-system]
-requires = ["setuptools >= 61.0"]
-build-backend = "setuptools.build_meta"
+[tool.hatch.version]
+path = "spyder_remote_services/__init__.py"
+
+[tool.hatch.build.targets.wheel.shared-data]
+"jupyter-config" = "etc/jupyter/jupyter_server_config.d"
