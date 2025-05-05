@@ -11,12 +11,16 @@ import uuid
 
 import pytest
 
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 
 
 __all__ = [
     "remote_client_id",
     "ssh_server_addr",
+    "jupyterhub_server_addr",
+    "jupyterhub_client_id",
+    "ssh_client_id",
     "docker_compose_file",
 ]
 
@@ -53,8 +57,15 @@ def check_server(ip="127.0.0.1", port=22):
     return True
 
 
+@pytest.fixture(params=["ssh_client_id", "jupyterhub_client_id"],
+                ids=["ssh", "jupyterhub"])
+def remote_client_id(request):
+    """Fixture to provide the remote client ID based on the request parameter."""
+    return request.getfixturevalue(request.param)
+
+
 @pytest.fixture(scope="class")
-def remote_client_id(
+def ssh_client_id(
     ssh_server_addr: typing.Tuple[str, int], remote_client
 ) -> typing.Iterator[str]:
     """Add the Spyder Remote Client plugin to the registry."""
@@ -83,12 +94,37 @@ def remote_client_id(
         f"{config_id}/{AuthenticationMethod.Password}/username", USERNAME
     )
 
-    remote_client.load_client(options=ssh_options, config_id=config_id)
+    remote_client.load_ssh_client(options=ssh_options, config_id=config_id)
 
     try:
         yield config_id
     finally:
-        remote_client.on_close()
+        AsyncDispatcher(
+            loop="asyncssh",
+            early_return=False,
+        )(remote_client._remote_clients[config_id])()
+
+
+@pytest.fixture(scope="class")
+def jupyterhub_client_id(
+    jupyterhub_server_addr: typing.Tuple[str, int], remote_client
+) -> typing.Iterator[str]:
+    """Add the Spyder Remote Client plugin to the registry."""
+    jupyterhub_options = {
+        "url": f"http://{jupyterhub_server_addr[0]}:{jupyterhub_server_addr[1]}",
+        "token": "test_api_key",
+    }
+    config_id = str(uuid.uuid4())
+
+    remote_client.load_jupyterhub_client(options=jupyterhub_options, config_id=config_id)
+
+    try:
+        yield config_id
+    finally:
+        AsyncDispatcher(
+            loop="asyncssh",
+            early_return=False,
+        )(remote_client._remote_clients[config_id])()
 
 
 @pytest.fixture(scope="class")
@@ -109,6 +145,34 @@ def ssh_server_addr(
     # Build URL to service listening on random port.
     # NOTE: This is the service name and port in the docker-compose.yml file.
     port = docker_services.port_for("test-spyder-remote-server", 22)
+
+    docker_services.wait_until_responsive(
+        check=lambda: check_server(ip=docker_ip, port=port),
+        timeout=30.0,
+        pause=0.1,
+    )
+
+    return docker_ip, port
+
+
+@pytest.fixture(scope="class")
+def jupyterhub_server_addr(
+    docker_ip: str, docker_services
+) -> typing.Tuple[str, int]:
+    """Start an SSH server from docker-compose and return its address.
+
+    Args
+    ----
+        docker_ip (str): IP address of the Docker daemon.
+        docker_services (Services): Docker services.
+
+    Returns
+    -------
+        tuple: IP address and port of the SSH server.
+    """
+    # Build URL to service listening on random port.
+    # NOTE: This is the service name and port in the docker-compose.yml file.
+    port = docker_services.port_for("test-spyder-jupyterhub", 8000)
 
     docker_services.wait_until_responsive(
         check=lambda: check_server(ip=docker_ip, port=port),
