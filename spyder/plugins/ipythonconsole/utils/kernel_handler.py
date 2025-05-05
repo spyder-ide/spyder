@@ -156,9 +156,9 @@ class KernelHandler(QObject):
 
     def __init__(
         self,
+        kernel_client,
         connection_file=None,
         kernel_manager=None,
-        kernel_client=None,
         known_spyder_kernel=False,
         hostname=None,
         sshkey=None,
@@ -447,7 +447,7 @@ class KernelHandler(QObject):
             json.dump(connection_info, f)
 
         return cls(
-            new_connection_file,
+            connection_file=new_connection_file,
             kernel_client=cls.init_kernel_client(
                 new_connection_file,
                 hostname,
@@ -468,7 +468,7 @@ class KernelHandler(QObject):
     ):
         """Create kernel for given connection file."""
         return cls(
-            connection_file,
+            connection_file=connection_file,
             hostname=hostname,
             sshkey=sshkey,
             password=password,
