@@ -15,6 +15,8 @@ from spyder_remote_services.services.files.handlers import (
 class VersionHandler(JupyterHandler):
     """Handler to return the version of the service."""
 
+    auth_resource = "spyder-services"
+
     @web.authenticated
     @authorized
     def get(self):
