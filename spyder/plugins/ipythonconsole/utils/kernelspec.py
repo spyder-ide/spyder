@@ -16,7 +16,12 @@ import os.path as osp
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
-from spyder_kernels.utils.pythonenv import get_conda_env_path, is_conda_env
+from spyder_kernels.utils.pythonenv import (
+    get_conda_env_path,
+    get_pixi_manifest_path_and_env_name,
+    is_conda_env,
+    is_pixi_env,
+)
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -29,6 +34,7 @@ from spyder.plugins.ipythonconsole import (
 from spyder.utils.conda import conda_version, find_conda
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
+from spyder.utils.pixi import find_pixi
 from spyder.utils.programs import (
     get_module_version,
     get_temp_dir,
@@ -124,10 +130,35 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Command used to start kernels
         kernel_cmd = []
 
+        if is_pixi_env(pyexec=pyexec):
+            pixi_exe = find_pixi()
+
+            if not pixi_exe:
+                raise SpyderKernelError(
+                    _(
+                        "Spyder couldn't find pixi in your system to activate "
+                        "the kernel's environment. Please add the directory "
+                        "where the pixi executable is located to your PATH "
+                        "environment variable for it to be detected."
+                    )
+                )
+            pixi_manifest, pixi_env = get_pixi_manifest_path_and_env_name(
+                pixi_exe,
+            )
+            kernel_cmd.extend([
+                pixi_exe,
+                'run',
+                '--environment',
+                pixi_env,
+                '--manifest-path',
+                pixi_manifest,
+            ])
+
         if is_conda_env(pyexec=pyexec):
             # If executable is a conda environment, use "run" subcommand to
             # activate it and run spyder-kernels.
             conda_exe = find_conda()
+
             if not conda_exe:
                 # Raise error since we were unable to determine the path to
                 # the conda executable (e.g when Anaconda/Miniconda was
