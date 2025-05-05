@@ -322,7 +322,7 @@ class _Session:
     ) -> bytes:
         echannel = channel.encode("utf-8")
         offsets = [8 * (1 + 1 + len(components) + 1)]
-        offsets.append(len(channel) + offsets[-1])
+        offsets.append(len(echannel) + offsets[-1])
         for msg in components:
             offsets.append(len(msg) + offsets[-1])
         offset_number = len(offsets).to_bytes(8, byteorder="little")
