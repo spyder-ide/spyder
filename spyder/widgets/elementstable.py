@@ -320,6 +320,16 @@ class ElementsTable(HoverRowsTableView):
             # Add widgets
             for i in range(len(self.elements)):
                 layout = QHBoxLayout()
+                layout.setContentsMargins(
+                    3 * AppStyle.MarginSize,
+                    3 * AppStyle.MarginSize,
+                    # We add 10 pixels to the right when there's no additional
+                    # info, so that the widgets are not so close to the border
+                    # of the table.
+                    3 * AppStyle.MarginSize
+                    + (10 if not self._with_additional_info else 0),
+                    3 * AppStyle.MarginSize,
+                )
                 layout.addWidget(self.elements[i]['widget'])
                 layout.setAlignment(Qt.AlignHCenter)
 
@@ -336,8 +346,11 @@ class ElementsTable(HoverRowsTableView):
                     container_widget
                 )
 
-        # Make last column take the available space to the right
-        self.horizontalHeader().setStretchLastSection(True)
+        # Make last column take the available space to the right, if necessary
+        stretch_last_column = True
+        if self._with_widgets and not self._with_additional_info:
+            stretch_last_column = False
+        self.horizontalHeader().setStretchLastSection(stretch_last_column)
 
         # Hide headers
         self.horizontalHeader().hide()
@@ -468,11 +481,18 @@ class ElementsTable(HoverRowsTableView):
             # We add 10 pixels to the width computed by Qt so that the widgets
             # are not so close to the right border of the table, which doesn't
             # look good.
+            extra_width = 10
+            if self._with_widgets and not self._with_additional_info:
+                # In this case the extra width is added by the widget's
+                # container layout to prevent the row separator not to end in
+                # the table's right border.
+                extra_width = 0
+
             self._widgets_column_width = (
                 self.horizontalHeader().sectionSize(
                     self.model.columns["widgets"]
                 )
-                + 10
+                + extra_width
             )
 
     # ---- Qt methods
