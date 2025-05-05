@@ -62,7 +62,7 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
-def get_pixi_manifest_path_and_env_name(pyexec, quote):
+def get_pixi_manifest_path_and_env_name(pyexec, quote=False):
     pyexec = pyexec.replace("\\", "/")
     pixi_env_path = os.path.dirname(pyexec)
     pixi_env_name = os.path.basename(pixi_env_path)
