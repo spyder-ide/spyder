@@ -196,7 +196,9 @@ class HTMLDelegate(QStyledItemDelegate):
         # Center text vertically if requested.
         # Take from https://stackoverflow.com/a/32911270/438386
         if self._align_vcenter:
-            doc.setTextWidth(option.rect.width())
+            # The +1 below is required to avoid this operation to wrap the text
+            # for some fonts.
+            doc.setTextWidth(option.rect.width() + 1)
             offset_y = (option.rect.height() - doc.size().height()) / 2
             painter.translate(options.rect.x(), options.rect.y() + offset_y)
             doc.drawContents(painter)
