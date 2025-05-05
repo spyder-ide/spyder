@@ -9,6 +9,16 @@ echo "Environment variables:"
 env | sort
 echo ""
 
+# ---- QtWebengine
+# QtWebengine cannot find $prefix/resources directory on a APFS case-sensitive file system.
+# This is not the default macOS file system. To work-around this we rename it to Resources.
+# See https://github.com/spyder-ide/spyder/issues/23415
+runtime_env="${PREFIX}/envs/spyder-runtime"
+if [[ "$OSTYPE" == "darwin"* && ! -e "${runtime_env}/Resources" ]]; then
+    # macOS and case-sensitive
+    mv -f ${runtime_env}/resources ${runtime_env}/Resources || true
+fi
+
 # ---- Shortcut
 pythonexe=${PREFIX}/bin/python
 menuinst=${PREFIX}/bin/menuinst_cli.py
@@ -186,12 +196,18 @@ fi
 echo "*** Post install script for ${INSTALLER_NAME} complete"
 
 # ---- Launch Spyder
-if [[ -n "$CI" || "$INSTALLER_UNATTENDED" == "1" || "$COMMAND_LINE_INSTALL" == "1" ]]; then
-    echo Installing in batch mode, do not launch Spyder
+if [[
+    -n "$CI"                                          # Running in CI (sh)
+    || "$INSTALLER_UNATTENDED" == "1"                 # Running in batch mode (sh)
+    || "$COMMAND_LINE_INSTALL" == "1"                 # Running in batch mode (pkg)
+    || "$START_SPYDER" == "False"                     # Running from updater (sh)
+    || -f "$(dirname $PACKAGE_PATH)/no-start-spyder"  # Running from updater (pkg)
+]]; then
+    echo "Do not launch Spyder"
     exit 0
 fi
 
-echo "Launching Spyder now..."
+echo "Launching Spyder after install completed."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     launch_script=${TMPDIR:-$SHARED_INSTALLER_TEMP}/post-install-launch.sh
     echo "Creating post-install launch script $launch_script..."

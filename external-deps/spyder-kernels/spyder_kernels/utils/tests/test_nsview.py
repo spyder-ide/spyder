@@ -13,6 +13,7 @@ Tests for utils.py
 # Standard library imports
 from collections import defaultdict
 import datetime
+import pathlib
 import sys
 
 # Third party imports
@@ -287,6 +288,17 @@ def test_datetime_display():
                               1: test_datetime,
                               2: test_timedelta_2}) ==
             ("{0:2017-12-18, 1:2017-12-18 13:43:02, 2:1:00:00}"))
+
+
+def test_path_display():
+    """Test for display of a path from pathlib."""
+    path = pathlib.PureWindowsPath('C:/') / 'Program Files'
+    assert value_to_display(path) == r'C:\Program Files'
+
+
+def test_none_display():
+    """Test for display of None."""
+    assert value_to_display(None) == 'None'
 
 
 def test_str_in_container_display():

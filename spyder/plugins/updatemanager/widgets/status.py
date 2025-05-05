@@ -43,17 +43,10 @@ class UpdateManagerStatus(StatusBarWidget):
     """Signal to request checking for updates."""
 
     sig_start_update = Signal()
-    """Signal to start the update process"""
+    """Signal to start the update process."""
 
-    sig_show_progress_dialog = Signal(bool)
-    """
-    Signal to show the progress dialog.
-
-    Parameters
-    ----------
-    show: bool
-        True to show, False to hide.
-    """
+    sig_show_progress_dialog = Signal()
+    """Signal to show the progress dialog."""
 
     CUSTOM_WIDGET_CLASS = QLabel
 
@@ -121,7 +114,7 @@ class UpdateManagerStatus(StatusBarWidget):
     @Slot()
     def show_dialog_or_menu(self):
         """Show download dialog or status bar menu."""
-        if self.value == DOWNLOADING_INSTALLER:
-            self.sig_show_progress_dialog.emit(True)
+        if self.value in (DOWNLOADING_INSTALLER, UPDATING_UPDATER):
+            self.sig_show_progress_dialog.emit()
         elif self.value in (PENDING, DOWNLOAD_FINISHED, INSTALL_ON_CLOSE):
             self.sig_start_update.emit()
