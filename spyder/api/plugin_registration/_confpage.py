@@ -95,8 +95,9 @@ class PluginsConfigPage(PluginConfigPage):
         external_elements.sort(key=lambda e: collator.sort_key(e['title']))
 
         # Build plugins table, showing external plugins first.
-        self._plugins_table = ElementsTable(
-            self, external_elements + internal_elements
+        self._plugins_table = ElementsTable(self)
+        self._plugins_table.setup_elements(
+            external_elements + internal_elements
         )
 
         # Finder to filter plugins

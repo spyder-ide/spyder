@@ -228,17 +228,12 @@ class ElementsTable(HoverRowsTableView):
     def __init__(
         self,
         parent: Optional[QWidget],
-        elements: List[Element],
         highlight_hovered_row: bool = True,
     ):
         HoverRowsTableView.__init__(self, parent, custom_delegate=True)
-        self.elements = elements
-        self._highlight_hovered_row = highlight_hovered_row
 
-        # Check for additional features
-        self._with_icons = self._with_feature('icon')
-        self._with_additional_info = self._with_feature('additional_info')
-        self._with_widgets = self._with_feature('widget')
+        # To highlight the hovered row
+        self._highlight_hovered_row = highlight_hovered_row
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
@@ -251,6 +246,16 @@ class ElementsTable(HoverRowsTableView):
         # To use these widths where necessary
         self._info_column_width = 0
         self._widgets_column_width = 0
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def setup_elements(self, elements: List[Element]):
+        self.elements = elements
+
+        # Check for additional features
+        self._with_icons = self._with_feature('icon')
+        self._with_additional_info = self._with_feature('additional_info')
+        self._with_widgets = self._with_feature('widget')
 
         # This is used to paint the entire row's background color when its
         # hovered.
@@ -351,8 +356,6 @@ class ElementsTable(HoverRowsTableView):
         # Set stylesheet
         self._set_stylesheet()
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
     @qdebounced(timeout=200)
     def do_find(self, text):
         if self._with_widgets:
