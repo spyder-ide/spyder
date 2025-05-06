@@ -258,9 +258,16 @@ class TabBar(QTabBar):
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_name_changed = Signal(str)
 
-    def __init__(self, parent, ancestor, max_tab_width=None,
-                 min_tab_width=None, rename_tabs=False,
-                 split_char='', split_index=0):
+    def __init__(
+        self,
+        parent,
+        ancestor,
+        max_tab_width=None,
+        min_tab_width=None,
+        rename_tabs=False,
+        split_char='',
+        split_index=0
+    ):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
         self.setObjectName('pane-tabbar')
@@ -320,8 +327,12 @@ class TabBar(QTabBar):
 
     def tabSizeHint(self, index):
         size = super().tabSizeHint(index)
-        if (self._min_tab_width and self._max_tab_width):
-            size.setWidth(min(max(size.width(), self._min_tab_width), self._max_tab_width))
+        if self._min_tab_width and self._max_tab_width:
+            size.setWidth(
+                min(
+                    max(size.width(), self._min_tab_width), self._max_tab_width
+                )
+            )
         return size
 
     def mousePressEvent(self, event):
@@ -436,13 +447,25 @@ class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
     sig_close_tab = Signal(int)
 
-    def __init__(self, parent, actions=None, menu=None,
-                 corner_widgets=None, menu_use_tooltips=False,
-                 _max_tab_width=None, _min_tab_width=None):
+    def __init__(
+        self,
+        parent,
+        actions=None,
+        menu=None,
+        corner_widgets=None,
+        menu_use_tooltips=False,
+        max_tab_width=None,
+        min_tab_width=None
+    ):
         QTabWidget.__init__(self, parent)
-        self.setTabBar(TabBar(self, parent,
-                              max_tab_width=_max_tab_width,
-                              min_tab_width=_min_tab_width))
+        self.setTabBar(
+            TabBar(
+                self,
+                parent,
+                max_tab_width=max_tab_width,
+                min_tab_width=min_tab_width,
+            )
+        )
 
         # Needed to prevent eliding tabs text on MacOS
         # See spyder-ide/spyder#18817
