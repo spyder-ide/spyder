@@ -50,10 +50,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "serialized."
         )
         reason_dead = _("The kernel is dead")
-        reason_other = _(
-            "An unknown error occurred. Check the console because its "
-            "contents could have been printed there."
-        )
+        reason_other = _("An unknown error occurred, sorry.")
         reason_comm = _(
             "The channel used to communicate with the kernel is not working."
         )
@@ -84,7 +81,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             value = self.call_kernel(
                 blocking=True,
-                display_error=True,
+                # We prefer not to display errors because it's not clear that
+                # they are related to what users are doing in the Variable
+                # Explorer. So, it's not user friendly.
+                # See spyder-ide/spyder#22411
+                display_error=False,
                 timeout=CALL_KERNEL_TIMEOUT
             ).get_value(name, encoded=True)
             value = cloudpickle.loads(value)
