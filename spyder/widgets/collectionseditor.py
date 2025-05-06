@@ -31,12 +31,14 @@ import warnings
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer, Signal,
-    Slot)
+    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer,
+    Signal, Slot
+)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
-    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
+    QMessageBox, QPushButton, QStackedWidget, QTableView, QVBoxLayout, QWidget
+)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -61,7 +63,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     SELECT_ROW_BUTTON_SIZE,
 )
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.widgets.helperwidgets import CustomSortFilterProxy
+from spyder.widgets.helperwidgets import CustomSortFilterProxy, PaneEmptyWidget
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
@@ -872,7 +874,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 action,
                 menu,
                 section=CollectionsEditorContextMenuSections.Edit
-        )
+            )
 
         for action in [self.insert_action, self.insert_action_above,
                        self.insert_action_below, self.duplicate_action,
@@ -1028,7 +1030,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             is_dataframe = self.is_data_frame(key) and self.get_len(key) != 0
             condition_plot = (
                 is_array and len(self.get_array_shape(key)) <= 2
-                ) or is_dataframe
+            ) or is_dataframe
             condition_hist = (is_array and self.get_array_ndim(key) == 1)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
@@ -1824,8 +1826,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
-    def __init__(self, parent=None, namespacebrowser=None,
-                 data_function: Optional[Callable[[], Any]] = None):
+    def __init__(
+        self, parent=None, namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None,
+    ):
         super().__init__(parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -1840,9 +1844,13 @@ class CollectionsEditor(BaseDialog):
         self.widget = None
         self.btn_save_and_close = None
         self.btn_close = None
+        self.stacked_widget = None
+        self.loading_pane = None
 
-    def setup(self, data, title='', readonly=False, remote=False,
-              icon=None, parent=None):
+    def setup(
+        self, data, title='', readonly=False, remote=False,
+        icon=None, parent=None, loading_msg=None, loading_img=None
+    ):
         """Setup editor."""
         if isinstance(data, (dict, set, frozenset)):
             # dictionary, set
@@ -1863,7 +1871,7 @@ class CollectionsEditor(BaseDialog):
 
         # If the copy has a different type, then do not allow editing, because
         # this would change the type after saving; cf. spyder-ide/spyder#6936.
-        if type(self.data_copy) != type(data):
+        if not isinstance(self.data_copy, type(data)):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
@@ -1890,9 +1898,30 @@ class CollectionsEditor(BaseDialog):
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
 
+        # Create a QStackedWidget
+        self.stacked_widget = QStackedWidget()
+
+        self.stacked_widget.addWidget(self.widget)
+
+        # Create a loading message
+        if loading_msg and loading_img:
+            self.loading_pane = PaneEmptyWidget(
+                parent=self,
+                icon_filename=loading_img,
+                text=loading_msg,
+                bottom_stretch=1,
+                spinner=True,
+            )
+            self.stacked_widget.addWidget(self.loading_pane)
+
+            # Make sure the loading label is the one shown initially
+            self.stacked_widget.setCurrentWidget(self.loading_pane)
+        else:
+            self.stacked_widget.setCurrentWidget(self.widget)
+
         # CollectionEditor widget layout
         layout = QVBoxLayout()
-        layout.addWidget(self.widget)
+        layout.addWidget(self.stacked_widget)
         layout.addSpacing((-1 if MAC else 2) * AppStyle.MarginSize)
         layout.addLayout(btn_layout)
         self.setLayout(layout)

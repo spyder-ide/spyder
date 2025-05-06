@@ -161,10 +161,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
-        self.loading_page = self._create_loading_page()
-        # To keep a reference to the page to be displayed
-        # in infowidget
-        self.info_page = None
+        self.kernel_loading_page = self._create_loading_page()
+        self.env_loading_page = self._create_loading_page(env=True)
+
+        if self.is_remote():
+            # Keep a reference
+            self.info_page = None
+        else:
+            # Initially show environment loading page
+            self.info_page = self.env_loading_page
 
         # Elapsed time
         self.t0 = time.monotonic()
@@ -226,16 +231,20 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def _create_loading_page(self):
+    def _create_loading_page(self, env=False):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
         message = _("Connecting to kernel...")
-        page = loading_template.substitute(css_path=self.css_path,
-                                           loading_img=loading_img,
-                                           message=message)
+        if env:
+            message = _("Retrieving environment variables...")
+        page = loading_template.substitute(
+            css_path=self.css_path,
+            loading_img=loading_img,
+            message=message
+        )
         return page
 
     def _create_blank_page(self):
@@ -244,16 +253,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         page = loading_template.substitute(css_path=self.css_path)
         return page
 
-    def _show_loading_page(self):
-        """Show animation while the kernel is loading."""
+    def _show_loading_page(self, page):
+        """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
             self.infowidget.show()
-            self.info_page = self.loading_page
+            self.info_page = page
             self.set_info_page()
 
     def _hide_loading_page(self):
-        """Hide animation shown while the kernel is loading."""
+        """Hide animation shown while loading."""
         if self.infowidget is not None:
             self.infowidget.hide()
             self.info_page = self.blank_page
@@ -350,6 +359,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
 
     def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect kernel to client using our handler."""
+        self._hide_loading_page()
+        if not self.is_remote():
+            self._show_loading_page(self.kernel_loading_page)
+
         self.kernel_handler = kernel_handler
 
         # Connect standard streams.
@@ -358,11 +371,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         kernel_handler.sig_fault.connect(self.print_fault)
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
-
-        if self.is_remote():
-            self._hide_loading_page()
-        else:
-            self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler, first_connect)
