@@ -6,8 +6,12 @@
 
 from pathlib import Path
 import socket
+import subprocess
+import sys
+import time
 import typing
 import uuid
+import re
 
 import pytest
 
@@ -21,7 +25,7 @@ __all__ = [
     "jupyterhub_server_addr",
     "jupyterhub_client_id",
     "ssh_client_id",
-    "docker_compose_file",
+    "docker_compose_id",
 ]
 
 # NOTE: These credentials are hardcoded in the Dockerfile.
@@ -29,13 +33,39 @@ USERNAME = "ubuntu"
 PASSWORD = USERNAME
 
 
-@pytest.fixture(scope="session")
-def docker_compose_file(pytestconfig):
-    """Override the default docker-compose.yml file."""
-    return str(Path(__file__).resolve().parent / "docker-compose.yml")
+@pytest.fixture(scope="class")
+def docker_compose_id():
+    """Fixture to start a Docker container using docker-compose."""
+    compose_file = str(Path(__file__).resolve().parent / "docker-compose.yml")
+    project_name = "pytest-spyder-remote"
+    subprocess.check_call(
+        ["docker", "compose", "-f", compose_file,
+         "--project-name", project_name,
+         "up", "--build", "-d"],
+    )
+
+    try:
+        yield project_name
+    finally:
+        subprocess.check_call(
+            ["docker", "compose", "--project-name", project_name, "down"],
+        )
 
 
-def check_server(ip="127.0.0.1", port=22):
+def get_addr_for_port(project_name: str, service_name: str, container_port: int):
+    result = subprocess.run(
+        ["docker", "compose", "-p", project_name, "port", service_name, str(container_port)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    host, port = result.stdout.strip().split(":")
+    if host == "0.0.0.0":
+        host = "127.0.0.1"
+    return host, int(port)
+
+
+def check_server(ip="127.0.0.1", port=22, timeout=30):
     """Check if a server is listening on the given IP and port.
 
     Args
@@ -43,18 +73,30 @@ def check_server(ip="127.0.0.1", port=22):
         ip (str, optional): IP address to check. Defaults to "127.0.0.1".
         port (int, optional): Port to check. Defaults to 22.
 
-    Returns
-    -------
-        bool: server is listening on the given IP and port
+    Raises
+    ------
+        TimeoutError: If the server is not reachable within the timeout period.
     """
     test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        test_socket.connect((ip, port))
-    except OSError:
-        return False
-    else:
-        test_socket.close()
-    return True
+
+    def test_port():
+        try:
+            test_socket.connect((ip, port))
+        except OSError:
+            return False
+        else:
+            return True
+
+    start = time.monotonic()
+    while not test_port():
+        if time.monotonic() - start > timeout:
+            msg = f"Timeout waiting for socket on {ip}:{port}"
+            test_socket.close()
+            raise TimeoutError(
+                msg,
+            )
+        time.sleep(1)
+    test_socket.close()
 
 
 @pytest.fixture(params=["ssh_client_id", "jupyterhub_client_id"],
@@ -102,7 +144,7 @@ def ssh_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
-        )(remote_client._remote_clients[config_id])()
+        )(remote_client._remote_clients[config_id].close)()
 
 
 @pytest.fixture(scope="class")
@@ -124,12 +166,12 @@ def jupyterhub_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
-        )(remote_client._remote_clients[config_id])()
+        )(remote_client._remote_clients[config_id].close)()
 
 
 @pytest.fixture(scope="class")
 def ssh_server_addr(
-    docker_ip: str, docker_services
+    docker_compose_id: str,
 ) -> typing.Tuple[str, int]:
     """Start an SSH server from docker-compose and return its address.
 
@@ -144,12 +186,11 @@ def ssh_server_addr(
     """
     # Build URL to service listening on random port.
     # NOTE: This is the service name and port in the docker-compose.yml file.
-    port = docker_services.port_for("test-spyder-remote-server", 22)
+    docker_ip, port = get_addr_for_port(docker_compose_id, "test-spyder-remote-server", 22)
 
-    docker_services.wait_until_responsive(
-        check=lambda: check_server(ip=docker_ip, port=port),
-        timeout=30.0,
-        pause=0.1,
+    check_server(
+        ip=docker_ip,
+        port=port,
     )
 
     return docker_ip, port
@@ -157,7 +198,7 @@ def ssh_server_addr(
 
 @pytest.fixture(scope="class")
 def jupyterhub_server_addr(
-    docker_ip: str, docker_services
+    docker_ip: str, docker_compose_id,
 ) -> typing.Tuple[str, int]:
     """Start an SSH server from docker-compose and return its address.
 
@@ -172,12 +213,11 @@ def jupyterhub_server_addr(
     """
     # Build URL to service listening on random port.
     # NOTE: This is the service name and port in the docker-compose.yml file.
-    port = docker_services.port_for("test-spyder-jupyterhub", 8000)
+    docker_ip, port = get_addr_for_port(docker_compose_id, "test-spyder-jupyterhub", 8000)
 
-    docker_services.wait_until_responsive(
-        check=lambda: check_server(ip=docker_ip, port=port),
-        timeout=30.0,
-        pause=0.1,
+    check_server(
+        ip=docker_ip,
+        port=port,
     )
 
     return docker_ip, port
