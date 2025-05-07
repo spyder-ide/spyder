@@ -130,8 +130,9 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
             return
 
         self._websocket = await self.session.ws_connect(
-            self.api_url / f"file://{self.name}",
+            self.api_url,
             params={
+                "path": f"file://{self.name}",
                 "mode": self.mode,
                 "atomic": str(self.atomic).lower(),
                 "lock": str(self.lock).lower(),
@@ -374,33 +375,37 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
 
     async def ls(self, path: Path, *, detail: bool = True):
         async with self.session.get(
-            self.api_url / "ls" / f"file://{path}",
-            params={"detail": str(detail).lower()},
+            self.api_url / "ls",
+            params={"path": f"file://{path}", "detail": str(detail).lower()},
         ) as response:
             async for line in response.content:
                 yield json.loads(line)
 
     async def info(self, path: Path):
         async with self.session.get(
-            self.api_url / "info" / f"file://{path}"
+            self.api_url / "info",
+            params={"path": f"file://{path}"},
         ) as response:
             return await response.json()
 
     async def exists(self, path: Path):
         async with self.session.get(
-            self.api_url / "exists" / f"file://{path}"
+            self.api_url / "exists",
+            params={"path": f"file://{path}"},
         ) as response:
             return await response.json()
 
     async def is_file(self, path: Path):
         async with self.session.get(
-            self.api_url / "isfile" / f"file://{path}"
+            self.api_url / "isfile",
+            params={"path": f"file://{path}"},
         ) as response:
             return await response.json()
 
     async def is_dir(self, path: Path):
         async with self.session.get(
-            self.api_url / "isdir" / f"file://{path}"
+            self.api_url / "isdir",
+            params={"path": f"file://{path}"},
         ) as response:
             return await response.json()
 
@@ -412,8 +417,9 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         exist_ok: bool = False
     ):
         async with self.session.post(
-            self.api_url / "mkdir" / f"file://{path}",
+            self.api_url / "mkdir",
             params={
+                "path": f"file://{path}",
                 "create_parents": str(create_parents).lower(),
                 "exist_ok": str(exist_ok).lower(),
             },
@@ -422,42 +428,43 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
 
     async def rmdir(self, path: Path):
         async with self.session.delete(
-            self.api_url / "rmdir" / f"file://{path}"
+            self.api_url / "rmdir",
+            params={"path": f"file://{path}"},
         ) as response:
             return await response.json()
 
     async def unlink(self, path: Path, missing_ok: bool = False):
         async with self.session.delete(
-            self.api_url / "file" / f"file://{path}",
-            params={"missing_ok": str(missing_ok).lower()},
+            self.api_url / "file",
+            params={"path": f"file://{path}", "missing_ok": str(missing_ok).lower()},
         ) as response:
             return await response.json()
 
     async def copy(self, path1: Path, path2: Path):
         async with self.session.post(
-            self.api_url / "copy" / f"file://{path1}",
-            params={"dest": f"file://{path2}"},
+            self.api_url / "copy",
+            params={"path": f"file://{path1}", "dest": f"file://{path2}"},
         ) as response:
             return await response.json()
 
     async def copy2(self, path1: Path, path2: Path):
         async with self.session.post(
-            self.api_url / "copy" / f"file://{path1}",
-            params={"dest": f"file://{path2}", "metadata": "true"},
+            self.api_url / "copy",
+            params={"path": f"file://{path1}", "dest": f"file://{path2}", "metadata": "true"},
         ) as response:
             return await response.json()
 
     async def replace(self, path1: Path, path2: Path):
         async with self.session.post(
-            self.api_url / "move" / f"file://{path1}",
-            params={"dest": f"file://{path2}"},
+            self.api_url / "move",
+            params={"path": f"file://{path1}", "dest": f"file://{path2}"},
         ) as response:
             return await response.json()
 
     async def touch(self, path: Path, truncate: bool = True):
         async with self.session.post(
-            self.api_url / "touch" / f"file://{path}",
-            params={"truncate": str(truncate).lower()},
+            self.api_url / "touch",
+            params={"path": f"file://{path}", "truncate": str(truncate).lower()},
         ) as response:
             return await response.json()
 
