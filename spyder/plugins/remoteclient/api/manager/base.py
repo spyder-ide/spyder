@@ -349,8 +349,8 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         SpyderRemoteAPIManagerBase.REGISTERED_MODULE_APIS[kclass.__qualname__] = kclass
         return kclass
 
-    @staticmethod
     def get_api(
+        self,
         api: str | type[SpyderBaseJupyterAPIType]
     ) -> typing.Callable[..., SpyderBaseJupyterAPIType]:
         """Get a registered REST API class."""
