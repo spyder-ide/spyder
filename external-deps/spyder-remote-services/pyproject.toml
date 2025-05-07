@@ -38,6 +38,9 @@ test = [
   "ruff >= 0.4.1",
 ]
 
+[project.scripts]
+"spyder-server" = "spyder_remote_services.app:main"
+
 [tool.hatch.version]
 path = "spyder_remote_services/__init__.py"
 
