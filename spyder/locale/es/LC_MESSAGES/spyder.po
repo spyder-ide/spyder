@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-07 01:58\n"
+"PO-Revision-Date: 2025-05-07 23:59\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -319,7 +319,7 @@ msgstr "Escritura atómica de archivos en el editor"
 
 #: spyder/dependencies.py:120
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Desencripta frase de contraseña de archivos de claves SSH"
 
 #: spyder/dependencies.py:124
 msgid "Character encoding auto-detection for the Editor"
@@ -375,7 +375,7 @@ msgstr "Mejora el completado del código para los objetos que usan dosctrings de
 
 #: spyder/dependencies.py:177
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Compara números de versión de paquetes de Python"
 
 #: spyder/dependencies.py:181
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -4393,7 +4393,7 @@ msgstr "La variable es demasiado grande para ser recuperada"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:45
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "No fue posible crear una copia de la variable en el núcleo o carga la copia en Spyder.<br><br>Si el objeto que intenta visualizar contiene un generador, necesita reemplazarlo por una lista dado que los generadores no puedes ser serializados."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "The kernel is dead"
@@ -4401,7 +4401,7 @@ msgstr "El núcleo está muerto"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:53
 msgid "An unknown error occurred, sorry."
-msgstr ""
+msgstr "Ocurrió un error desconocido, lo sentimos."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:54
 msgid "The channel used to communicate with the kernel is not working."
@@ -4417,7 +4417,7 @@ msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:67
 msgid "There is a mistmatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Hay una discrepancia entre la versión de Python usada por Spyder ({}) y la versión disponible en el núcleo de la consola actual ({}).<br><br>Para arreglarlo, necesita recrear el entorno usado por la consola con Python {} o {}."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:74
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
@@ -5663,7 +5663,7 @@ msgstr "Archivo de clave *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:443
 msgid "Passphrase"
-msgstr ""
+msgstr "Frase de contraseña"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:446
 msgid "Your passphrase will be saved securely by Spyder"
