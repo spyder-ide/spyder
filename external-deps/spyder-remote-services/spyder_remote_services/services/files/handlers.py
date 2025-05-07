@@ -34,6 +34,32 @@ class ReadWriteWebsocketHandler(
 class BaseFSHandler(FilesRESTMixin, JupyterHandler):
     auth_resource = "spyder-services"
 
+    def get_path_argument(self, name: str) -> str:
+        """Get the path argument from the request.
+
+        Args
+        ----
+            name (str): Name of the argument to get.
+        Returns
+        -------
+            str: The path argument.
+        Raises
+            HTTPError: If the argument is missing or invalid.
+        """
+        path = self.get_argument(name)
+        if not path:
+            raise web.HTTPError(
+                HTTPStatus.BAD_REQUEST,
+                reason=f"Missing {name} argument",
+            )
+        match = re.match(_path_regex, path)
+        if not match:
+            raise web.HTTPError(
+                HTTPStatus.BAD_REQUEST,
+                reason=f"Missing {name} argument",
+            )
+        return match.group("path")
+
     def write_json(self, data, status=200):
         self.set_status(status)
         self.set_header("Content-Type", "application/json")
@@ -99,9 +125,10 @@ class BaseFSHandler(FilesRESTMixin, JupyterHandler):
 class LsHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def get(self, path):
+    def get(self):
         detail_arg = self.get_argument("detail", default="true").lower()
         detail = detail_arg == "true"
+        path = self.get_path_argument("path")
         with self.stream_json() as write_json:
             for result in self.fs_ls(path, detail=detail):
                 write_json(result)
@@ -109,39 +136,40 @@ class LsHandler(BaseFSHandler):
 class InfoHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def get(self, path):
-        result = self.fs_info(path)
+    def get(self):
+        result = self.fs_info(self.get_path_argument("path"))
         self.write_json(result)
 
 
 class ExistsHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def get(self, path):
-        result = self.fs_exists(path)
+    def get(self):
+        result = self.fs_exists(self.get_path_argument("path"))
         self.write_json({"exists": result})
 
 
 class IsFileHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def get(self, path):
-        result = self.fs_isfile(path)
+    def get(self):
+        result = self.fs_isfile(self.get_path_argument("path"))
         self.write_json({"isfile": result})
 
 
 class IsDirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def get(self, path):
-        result = self.fs_isdir(path)
+    def get(self):
+        result = self.fs_isdir(self.get_path_argument("path"))
         self.write_json({"isdir": result})
 
 
 class MkdirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def post(self, path):
+    def post(self):
+        path = self.get_path_argument("path")
         create_parents = (self.get_argument("create_parents", "true").lower() == "true")
         exist_ok = (self.get_argument("exist_ok", "false").lower() == "true")
         result = self.fs_mkdir(path, create_parents=create_parents, exist_ok=exist_ok)
@@ -151,15 +179,16 @@ class MkdirHandler(BaseFSHandler):
 class RmdirHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def delete(self, path):
-        result = self.fs_rmdir(path)
+    def delete(self):
+        result = self.fs_rmdir(self.get_path_argument("path"))
         self.write_json(result)
 
 
 class RemoveFileHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def delete(self, path):
+    def delete(self):
+        path = self.get_path_argument("path")
         missing_ok = (self.get_argument("missing_ok", "false").lower() == "true")
         result = self.fs_rm_file(path, missing_ok=missing_ok)
         self.write_json(result)
@@ -168,7 +197,8 @@ class RemoveFileHandler(BaseFSHandler):
 class TouchHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def post(self, path):
+    def post(self):
+        path = self.get_path_argument("path")
         truncate = (self.get_argument("truncate", "true").lower() == "true")
         result = self.fs_touch(path, truncate=truncate)
         self.write_json(result)
@@ -178,7 +208,8 @@ class CopyHandler(BaseFSHandler):
     @web.authenticated
     @authorized
     def post(self, path):
-        dest = re.match(_path_regex, self.get_argument("dest")).group("path")
+        path = self.get_path_argument("path")
+        dest = self.get_path_argument("dest")
         metadata = (self.get_argument("metadata", "false").lower() == "true")
         result = self.fs_copy(path, dest, metadata=metadata)
         self.write_json(result)
@@ -187,15 +218,15 @@ class CopyHandler(BaseFSHandler):
 _path_regex = r"file://(?P<path>.+)"
 
 handlers = [
-    (rf"/fs/open/{_path_regex}", ReadWriteWebsocketHandler),  # WebSocket
-    (rf"/fs/ls/{_path_regex}", LsHandler),                  # GET
-    (rf"/fs/info/{_path_regex}", InfoHandler),              # GET
-    (rf"/fs/exists/{_path_regex}", ExistsHandler),          # GET
-    (rf"/fs/isfile/{_path_regex}", IsFileHandler),          # GET
-    (rf"/fs/isdir/{_path_regex}", IsDirHandler),            # GET
-    (rf"/fs/mkdir/{_path_regex}", MkdirHandler),            # POST
-    (rf"/fs/rmdir/{_path_regex}", RmdirHandler),            # DELETE
-    (rf"/fs/file/{_path_regex}", RemoveFileHandler),        # DELETE
-    (rf"/fs/touch/{_path_regex}", TouchHandler),            # POST
-    (rf"/fs/copy/{_path_regex}", CopyHandler),              # POST
+    (r"/fs/open", ReadWriteWebsocketHandler),  # WebSocket
+    (r"/fs/ls", LsHandler),                  # GET
+    (r"/fs/info", InfoHandler),              # GET
+    (r"/fs/exists", ExistsHandler),          # GET
+    (r"/fs/isfile", IsFileHandler),          # GET
+    (r"/fs/isdir", IsDirHandler),            # GET
+    (r"/fs/mkdir", MkdirHandler),            # POST
+    (r"/fs/rmdir", RmdirHandler),            # DELETE
+    (r"/fs/file", RemoveFileHandler),        # DELETE
+    (r"/fs/touch", TouchHandler),            # POST
+    (r"/fs/copy", CopyHandler),              # POST
 ]
