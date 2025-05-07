@@ -63,20 +63,18 @@ def get_conda_env_path(pyexec, quote=False):
 
 
 def get_pixi_manifest_path_and_env_name(pyexec, quote=False):
-    pyexec = pyexec.replace("\\", "/")
-    pixi_env_path = os.path.dirname(pyexec)
-    pixi_env_name = os.path.basename(pixi_env_path)
-    pixi_dir_path = os.path.dirname(os.path.dirname(pixi_env_path))
+    pyexec_path = Path(pyexec.replace("\\", "/"))
+    pixi_env_path = pyexec_path.parent
+    pixi_env_name = pixi_env_path.name
+    pixi_dir_path = pixi_env_path.parent.parent
     pixi_manifest_path = None
     pixi_manifest_paths = [
-        os.path.join(os.path.dirname(pixi_dir_path), "pixi.toml"),
-        os.path.join(os.path.dirname(pixi_dir_path), "pyproject.toml"),
-        os.path.join(
-            os.path.dirname(pixi_dir_path), "manifests", "pixi-global.toml"
-        ),
+        pixi_dir_path.parent / "pixi.toml",
+        pixi_dir_path.parent / "pyproject.toml",
+        pixi_dir_path.parent / "manifests" / "pixi-global.toml",
     ]
     for manifest_path in pixi_manifest_paths:
-        if os.path.exists(manifest_path):
+        if manifest_path.exists():
             pixi_manifest_path = manifest_path
             break
 
@@ -86,9 +84,9 @@ def get_pixi_manifest_path_and_env_name(pyexec, quote=False):
         )
 
     if quote:
-        pixi_manifest_path = add_quotes(pixi_env_name)
+        pixi_env_name = add_quotes(pixi_env_name)
 
-    return pixi_manifest_path, pixi_env_name
+    return str(pixi_manifest_path), pixi_env_name
 
 
 def is_conda_env(prefix=None, pyexec=None):
