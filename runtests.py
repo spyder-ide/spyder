@@ -35,8 +35,7 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
     """Run pytest tests for Spyder."""
     # Be sure to ignore subrepos and remoteclient plugin
     pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps',
-                   '-W ignore::UserWarning', '--timeout=120',
-                   '--timeout_method=thread']
+                   '-W ignore::UserWarning']
 
     if CI:
         # Show coverage
