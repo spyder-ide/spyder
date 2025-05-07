@@ -14,9 +14,10 @@ Spyder API Mixins.
 # Standard library imports
 from collections import OrderedDict
 from typing import Any, Optional, Dict
+import logging
 
 # Third party imports
-from qtpy.QtCore import QPoint, Qt
+from qtpy.QtCore import QPoint, Qt, QByteArray
 from qtpy.QtGui import QIcon, QImage, QPainter, QPixmap
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtWidgets import (
@@ -39,6 +40,10 @@ from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.svg_colorizer import SVGColorize
+
+
+log = logging.getLogger(__name__)
 
 
 class SpyderToolButtonMixin:
@@ -748,7 +753,8 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
     factor set by users in Preferences.
     """
 
-    def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
+    def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True, 
+                             icon_colors=None):
         """
         Transform svg to a QPixmap that is scaled according to the factor set
         by users in Preferences.
@@ -761,9 +767,14 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
             Rescale pixmap according to a factor between 0 and 1.
         in_package: bool, optional
             Get svg from the `images` folder in the Spyder package.
+        icon_colors: dict, optional
+            Dictionary mapping SVG class names to color values. If provided, 
+            the SVG will be colorized using these colors.
         """
         if in_package:
             image_path = get_image_path(svg_file)
+        else:
+            image_path = svg_file
 
         if self.get_conf('high_dpi_custom_scale_factor', section='main'):
             scale_factors = self.get_conf(
@@ -774,10 +785,32 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
         else:
             scale_factor = 1
 
+        # Apply SVG colorization if colors are provided
+        if icon_colors and image_path.endswith('.svg'):
+            try:
+                # Colorize the SVG data with the provided colors
+                svg_data = SVGColorize.colorize_icon_from_theme(
+                    image_path,
+                    icon_colors
+                )
+                
+                if svg_data:
+                    # Create a renderer from the colorized SVG data
+                    renderer = QSvgRenderer(QByteArray(svg_data.encode()))
+                else:
+                    # Fallback to the original SVG file if colorization fails
+                    renderer = QSvgRenderer(image_path)
+            except Exception as e:
+                log.error(f"Error colorizing SVG {image_path}: {str(e)}")
+                renderer = QSvgRenderer(image_path)
+        else:
+            # Use the original SVG file directly
+            renderer = QSvgRenderer(image_path)
+            
         # Get width and height
-        pm = QPixmap(image_path)
-        width = pm.width()
-        height = pm.height()
+        size = renderer.defaultSize()
+        width = size.width()
+        height = size.height()
 
         # Rescale but preserving aspect ratio
         if rescale is not None:
@@ -792,7 +825,6 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
         )
         image.fill(0)
         painter = QPainter(image)
-        renderer = QSvgRenderer(image_path)
         renderer.render(painter)
         painter.end()
 
