@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-07 23:59\n"
+"PO-Revision-Date: 2025-05-08 01:00\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -319,7 +319,7 @@ msgstr "Escritura atómica de archivos en el editor"
 
 #: spyder/dependencies.py:120
 msgid "Decrypt passphrase of SSH key files"
-msgstr "Desencripta frase de contraseña de archivos de claves SSH"
+msgstr "Desencripta la frase de contraseña de archivos de claves SSH"
 
 #: spyder/dependencies.py:124
 msgid "Character encoding auto-detection for the Editor"
@@ -4425,11 +4425,11 @@ msgstr "<br>%s<br><br><b>Nota</b>: Si considera que esto es un error válido que
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:110
 msgid "lower"
-msgstr ""
+msgstr "inferior"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:112
 msgid "greater"
-msgstr ""
+msgstr "superior"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -4549,7 +4549,7 @@ msgstr "Para el modo de pantalla completa utilice la función incorporada de mac
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "El modo de pantalla completa no funciona de forma confiable en WSL"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -6679,7 +6679,7 @@ msgstr "Spyder no fue capaz de extraer el valor de esta variable de la terminal.
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:333
 msgid "The value of this variable is too large to be edited."
-msgstr ""
+msgstr "El valor de esta variable es demasiado grande para ser editado."
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:454
 msgid "Edit item"
