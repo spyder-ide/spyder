@@ -19,6 +19,7 @@ class PythonEnvType:
     """Enum with the different types of Python environments we can detect."""
 
     Conda = "conda"
+    Pixi = "pixi"
     PyEnv = "pyenv"
     Custom = "custom"  # Nor Conda or Pyenv
 
@@ -61,6 +62,33 @@ def get_conda_env_path(pyexec, quote=False):
     return conda_env
 
 
+def get_pixi_manifest_path_and_env_name(pyexec, quote=False):
+    pyexec_path = Path(pyexec.replace("\\", "/"))
+    pixi_env_path = pyexec_path.parent
+    pixi_env_name = pixi_env_path.name
+    pixi_dir_path = pixi_env_path.parents[1]
+    pixi_manifest_path = None
+    pixi_manifest_paths = [
+        pixi_dir_path.parent / "pixi.toml",
+        pixi_dir_path.parent / "pyproject.toml",
+        pixi_dir_path.parent / "manifests" / "pixi-global.toml",
+    ]
+    for manifest_path in pixi_manifest_paths:
+        if manifest_path.exists():
+            pixi_manifest_path = manifest_path
+            break
+
+    if not pixi_manifest_path:
+        raise FileNotFoundError(
+            "No manifest file for your pixi environment was found!"
+        )
+
+    if quote:
+        pixi_env_name = add_quotes(pixi_env_name)
+
+    return str(pixi_manifest_path), pixi_env_name
+
+
 def is_conda_env(prefix=None, pyexec=None):
     """Check if prefix or python executable are in a conda environment."""
     if pyexec is not None:
@@ -79,6 +107,12 @@ def is_pyenv_env(pyexec):
     """Check if a python executable is a Pyenv environment."""
     path = Path(pyexec)
     return "pyenv" in path.parts[:-1]
+
+
+def is_pixi_env(pyexec):
+    """Check if a python executable is a Pixi environment."""
+    path = Path(pyexec)
+    return ".pixi" in path.parts[:-1]
 
 
 def get_env_dir(interpreter, only_dir=False):
