@@ -46,8 +46,9 @@ class FileWebSocketHandler(WebSocketHandler):
     # ----------------------------------------------------------------
     # Tornado WebSocket / Handler Hooks
     # ----------------------------------------------------------------
-    async def open(self, path):
+    async def open(self):
         """Open file."""
+        path = self.get_path_argument("path")
         self.mode = self.get_argument("mode", default="r")
         self.atomic = self.get_argument("atomic", default="false") == "true"
         lock = self.get_argument("lock", default="false") == "true"
