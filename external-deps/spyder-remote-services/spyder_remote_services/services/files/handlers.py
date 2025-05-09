@@ -239,7 +239,7 @@ class TouchHandler(BaseFSHandler):
 class CopyHandler(BaseFSHandler):
     @web.authenticated
     @authorized
-    def post(self, path):
+    def post(self):
         path = self.get_path_argument("path")
         dest = self.get_path_argument("dest")
         metadata = (self.get_argument("metadata", "false").lower() == "true")
