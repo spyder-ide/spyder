@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QFontMetrics, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
@@ -594,9 +594,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.menu.aboutToShow.connect(self.__setup_menu)
 
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
-        self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
-                             corner_widgets=corner_widgets)
+        self.tabs = BaseTabs(
+            self,
+            menu=self.menu,
+            menu_use_tooltips=True,
+            corner_widgets=corner_widgets,
+            min_tab_width=70,
+            max_tab_width=250
+        )
         self.tabs.set_close_function(self.close_file)
+        self.tabs.tabBar().setElideMode(Qt.ElideMiddle)
         self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
 
@@ -653,7 +660,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
-            shorten_filename = u'...' + filename[-100:]
+            metrics = QFontMetrics(
+                self.default_font
+                if self.default_font is not None
+                else self.font()
+            )
+            max_width = 100 * metrics.width('W')
+            elided_filename = metrics.elidedText(
+                filename, Qt.ElideMiddle, max_width
+            )
+            shorten_filename = elided_filename
         else:
             shorten_filename = filename
         self.fname_label.setText(shorten_filename)
