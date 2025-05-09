@@ -201,6 +201,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
+        self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.textActivated.connect(self.chdir)
 
