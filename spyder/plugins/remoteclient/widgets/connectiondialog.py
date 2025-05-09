@@ -65,7 +65,7 @@ class ValidationReasons(TypedDict):
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 450
+    MIN_HEIGHT = 700
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -186,8 +186,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             intro_layout.addWidget(intro_tip)
 
         # Authentication methods
-        # TODO: The config file method is not implemented yet, so we need to
-        # disable it for now.
         methods = (
             (_('Password'), AuthenticationMethod.Password),
             (_('Key file'), AuthenticationMethod.KeyFile),
@@ -423,23 +421,72 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
-        host = self.create_lineedit(
-            text=_("Host *"),
-            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
-            default="",
-            tip=_(
-                "This is the host (<b>Host</b> configuration keyword) that encapsulates the options "
-                "to use for the connection"
-            ),
-            status_icon=ima.icon("error"),
-        )
-
         configfile = self.create_browsefile(
             text=_("Configuration file *"),
             option=f"{self.host_id}/configfile",
             tip=_("File with the OpenSSH client configuration to use"),
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
+        )
+
+        host = self.create_lineedit(
+            text=_("Host *"),
+            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
+            default="",
+            tip=_(
+                "This is the host (<i><b>Host</b></i> configuration keyword) "
+                "that encapsulates the options to use for the connection"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
+        port = self.create_spinbox(
+            prefix=_("Port"),
+            suffix="",
+            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/port",
+            min_=0,
+            max_=65535,
+            tip=_("Introduce a port to use for this connection. "
+                  "Set <i><b>0</b></i> (<i><b>From file</b></i> value) to use "
+                  "the port specified in the configuration file"),
+        )
+        port.spinbox.setSpecialValueText(_("From file"))
+        port.spinbox.setStyleSheet("margin-left: 5px")
+
+        username = self.create_lineedit(
+            text=_("Username"),
+            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/username",
+            status_icon=ima.icon("error"),
+        )
+
+        password = self.create_lineedit(
+            text=_("Password"),
+            option=f"{self.host_id}/password",
+            tip=(
+                _("Your password will be saved securely by Spyder")
+                if self.NEW_CONNECTION
+                else _("Your password is saved securely by Spyder")
+            ),
+            status_icon=ima.icon("error"),
+            password=True
+        )
+
+        keyfile = self.create_browsefile(
+            text=_("Key file"),
+            option=f"{self.host_id}/keyfile",
+            alignment=Qt.Vertical,
+            status_icon=ima.icon("error"),
+        )
+
+        passphrase = self.create_lineedit(
+            text=_("Passphrase"),
+            option=f"{self.host_id}/passphrase",
+            tip=(
+                _("Your passphrase will be saved securely by Spyder")
+                if self.NEW_CONNECTION
+                else _("Your passphrase is saved securely by Spyder")
+            ),
+            password=True
         )
 
         validation_label = MessageLabel(self)
@@ -456,13 +503,48 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         ] = validation_label
 
         # Layout
+        # Hide container widgets for host and port since we only use their
+        # components
+        host.hide()
+        port.hide()
+
+        # Layout for the host label
+        host_label_layout = QHBoxLayout()
+        host_label_layout.setSpacing(0)
+        host_label_layout.addWidget(host.label)
+        host_label_layout.addWidget(host.help_label)
+        host_label_layout.addStretch()
+
+        # Layout for the port label
+        port_label_layout = QHBoxLayout()
+        port_label_layout.setSpacing(0)
+        port_label_layout.addWidget(port.plabel)
+        port_label_layout.addWidget(port.help_label)
+
+        # host + port layout
+        host_layout = QGridLayout()
+        host_layout.setContentsMargins(0, 0, 0, 0)
+
+        host_layout.addLayout(host_label_layout, 0, 0)
+        host_layout.addWidget(host.textbox, 1, 0)
+        host_layout.addLayout(port_label_layout, 0, 1)
+        host_layout.addWidget(port.spinbox, 1, 1)
+
         configfile_layout = QVBoxLayout()
         configfile_layout.setContentsMargins(0, 0, 0, 0)
         configfile_layout.addWidget(name)
         configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(host)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
         configfile_layout.addWidget(configfile)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addLayout(host_layout)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addWidget(username)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addWidget(password)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addWidget(keyfile)
+        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        configfile_layout.addWidget(passphrase)
         configfile_layout.addSpacing(7 * AppStyle.MarginSize)
         configfile_layout.addWidget(validation_label)
         configfile_layout.addStretch()
@@ -636,14 +718,13 @@ class ConnectionPage(BaseConnectionPage):
             ),
             port=self.get_option(
                 f"{self.host_id}/{self.auth_method()}/port",
-                default=""
             ),
             username=self.get_option(
                 f"{self.host_id}/{self.auth_method()}/username",
                 default=""
             ),
             client_keys=self.get_option(f"{self.host_id}/keyfile", default=""),
-            config=[self.get_option(f"{self.host_id}/configfile")],
+            config=self.get_option(f"{self.host_id}/configfile"),
         )
 
         servers = self.get_option("servers", default={})
@@ -671,6 +752,8 @@ class ConnectionPage(BaseConnectionPage):
             "keyfile",
             "configfile_login/name",
             "configfile_login/address",
+            "configfile_login/port",
+            "configfile_login/username",
             "configfile",
         ]
         for option in options:

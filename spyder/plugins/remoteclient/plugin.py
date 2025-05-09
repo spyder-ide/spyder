@@ -213,19 +213,39 @@ class RemoteClient(SpyderPluginV2):
         if not options:
             return {}
 
-        if options["client_keys"]:
+        if options["config"]:
+            # Only `host` and list with path to config file as `config`
+            # are required
+            options["config"] = [options["config"]]
+
+            # Optional configuration vslues mapping (`port`, `username`,
+            # `client_keys`, `passphrase` and `password`)
+            if options["port"] == 0:
+                # If 0 is set (`From file` option) ignore value
+                options.pop("port")
+
+            if not options["username"]:
+                options.pop("username")
+
+            if not options["client_keys"]:
+                options.pop("client_keys")
+            else:
+                options["client_keys"] = [options["client_keys"]]
+
+            passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
+            if passphrase:
+                options["passphrase"] = passphrase
+
+            password = self.get_conf(f"{config_id}/password", secure=True)
+            if password:
+                options["password"] = password
+        elif options["client_keys"]:
             passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
             options["client_keys"] = [options["client_keys"]]
 
             # Passphrase is optional
             if passphrase:
                 options["passphrase"] = passphrase
-        elif options["config"]:
-            # Should have only `host` and list with path to config file as
-            # `config`
-            options.pop("port")
-            options.pop("username")
-            options.pop("client_keys")
         else:
             # Password is mandatory in this case
             password = self.get_conf(f"{config_id}/password", secure=True)
