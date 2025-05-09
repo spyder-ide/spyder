@@ -3,8 +3,8 @@ from contextlib import contextmanager
 from http import HTTPStatus
 from http.client import responses
 import re
-from typing import Any
 import traceback
+from typing import Any
 
 from jupyter_server.auth.decorator import authorized, ws_authenticated
 from jupyter_server.base.handlers import JupyterHandler
@@ -13,8 +13,8 @@ import orjson
 from tornado import web
 
 from spyder_remote_services.services.files.base import (
-    FileWebSocketHandler,
     FilesRESTMixin,
+    FileWebSocketHandler,
 )
 
 
@@ -24,6 +24,35 @@ class ReadWriteWebsocketHandler(
     JupyterHandler,
 ):
     auth_resource = "spyder-services"
+
+    def get_path_argument(self, name: str) -> str:
+        """Get the path argument from the request.
+
+        Args
+        ----
+            name (str): Name of the argument to get.
+
+        Returns
+        -------
+            str: The path argument.
+
+        Raises
+        ------
+            HTTPError: If the argument is missing or invalid.
+        """
+        path = self.get_argument(name)
+        if not path:
+            raise web.HTTPError(
+                HTTPStatus.BAD_REQUEST,
+                reason=f"Missing {name} argument",
+            )
+        match = re.match(_path_regex, path)
+        if not match:
+            raise web.HTTPError(
+                HTTPStatus.BAD_REQUEST,
+                reason=f"Missing {name} argument",
+            )
+        return match.group("path")
 
     @ws_authenticated
     async def get(self, *args, **kwargs):
@@ -40,10 +69,13 @@ class BaseFSHandler(FilesRESTMixin, JupyterHandler):
         Args
         ----
             name (str): Name of the argument to get.
+
         Returns
         -------
             str: The path argument.
+
         Raises
+        ------
             HTTPError: If the argument is missing or invalid.
         """
         path = self.get_argument(name)
