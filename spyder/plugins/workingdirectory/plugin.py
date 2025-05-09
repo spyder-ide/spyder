@@ -28,7 +28,6 @@ from spyder.plugins.workingdirectory.container import (
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils import encoding
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +53,7 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_current_directory_changed = Signal(str, str)
+    sig_current_directory_changed = Signal(str, str, str)
     """
     This signal is emitted when the current directory has changed.
 
@@ -64,6 +63,9 @@ class WorkingDirectory(SpyderPluginV2):
         The new working directory path.
     sender_plugin: str
         Name of the plugin that requested the directory to be changed.
+    server_id: str
+        The server identification from where the new working directory is
+        reachable.
     """
 
     # --- SpyderPluginV2 API
@@ -165,7 +167,12 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory: str, sender_plugin: Optional[str] = None):
+    def chdir(
+        self,
+        directory: str,
+        sender_plugin: Optional[str] = None,
+        server_id: Optional[str] = None
+    ):
         """
         Change current working directory.
 
@@ -173,11 +180,23 @@ class WorkingDirectory(SpyderPluginV2):
         ----------
         directory: str
             The new working directory to set.
-        sender_plugin: str
+        sender_plugin: str, optional
             The plugin that requested this change. Default is None, which means
             this is the plugin requesting the change.
+        server_id: str, optional
+            The server identification from where the directory is reachable.
+            Default is None.
         """
         container = self.get_container()
+
+        if container.server_id != server_id:
+            # Remove previous paths history in case we are changing not only cwd
+            # but also `server_id` while saving the history for local paths
+            container.pathedit.clear()
+            if not server_id:
+                history = self.load_history()
+                self.set_conf("history", history)
+                container.pathedit.addItems(history)
 
         if sender_plugin is None:
             sender_plugin = self.NAME
@@ -186,10 +205,13 @@ class WorkingDirectory(SpyderPluginV2):
             f"The plugin {sender_plugin} requested changing the cwd to "
             f"{directory}"
         )
-        container.chdir(directory, emit=False)
-        self.sig_current_directory_changed.emit(directory, sender_plugin)
+        container.chdir(directory, emit=False, server_id=server_id)
+        self.sig_current_directory_changed.emit(
+            directory, sender_plugin, server_id
+        )
 
-        self.save_history()
+        if server_id is None:
+            self.save_history()
 
     def load_history(self, workdir=None):
         """
@@ -237,11 +259,11 @@ class WorkingDirectory(SpyderPluginV2):
     def _editor_change_dir(self, path):
         self.chdir(path, Plugins.Editor)
 
-    def _explorer_dir_opened(self, path):
-        self.chdir(path, Plugins.Explorer)
+    def _explorer_dir_opened(self, path, server_id=None):
+        self.chdir(path, Plugins.Explorer, server_id)
 
-    def _ipyconsole_change_dir(self, path):
-        self.chdir(path, Plugins.IPythonConsole)
+    def _ipyconsole_change_dir(self, path, server_id=None):
+        self.chdir(path, Plugins.IPythonConsole, server_id)
 
     def _project_loaded(self, path):
         self.chdir(directory=path, sender_plugin=Plugins.Projects)
