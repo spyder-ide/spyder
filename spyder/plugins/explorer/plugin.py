@@ -299,7 +299,9 @@ class Explorer(SpyderDockablePlugin):
         if not remoteclient:
             return
         if server_id not in self._file_managers:
-            self._file_managers[server_id] = remoteclient.get_file_api(server_id)()
+            self._file_managers[server_id] = remoteclient.get_file_api(
+                server_id
+            )()
             await self._file_managers[server_id].connect()
         return self._file_managers.get(server_id, None)
 
@@ -341,7 +343,9 @@ class Explorer(SpyderDockablePlugin):
     # ---- Private API
     # -------------------------------------------------------------------------
     @qdebounced(timeout=100)
-    def _chdir_from_working_directory(self, directory, sender_plugin, server_id=None):
+    def _chdir_from_working_directory(
+        self, directory, sender_plugin, server_id=None
+    ):
         """
         Change the working directory when requested from the Working Directory
         plugin.

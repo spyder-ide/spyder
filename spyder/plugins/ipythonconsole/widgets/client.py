@@ -51,7 +51,9 @@ from spyder.widgets.mixins import SaveHistoryMixin
 
 if typing.TYPE_CHECKING:
     from spyder.plugins.remoteclient.api.modules import JupyterAPI
-    from spyder.plugins.remoteclient.api.modules.file_services import SpyderRemoteFileServicesAPI
+    from spyder.plugins.remoteclient.api.modules.file_services import (
+        SpyderRemoteFileServicesAPI,
+    )
 
 
 # Logging
@@ -131,7 +133,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.initial_cwd = initial_cwd
         self.forcing_custom_interpreter = forcing_custom_interpreter
         self._jupyter_api: typing.Optional[JupyterAPI] = jupyter_api
-        self._files_api: typing.Optional[SpyderRemoteFileServicesAPI] = files_api
+        self._files_api: typing.Optional[
+            SpyderRemoteFileServicesAPI
+        ] = files_api
         self.can_close = can_close
 
         # --- Other attrs
@@ -343,7 +347,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         if osp.isdir(cwd_path) and not self.shellwidget.is_remote():
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
         else:
-            # Use remote machines files API to get home directory (`~`)
+            # Use the remote machine files API to get the home directory (`~`)
             # absolute path.
             self._get_remote_home_directory().connect(
                 self._on_remote_home_directory

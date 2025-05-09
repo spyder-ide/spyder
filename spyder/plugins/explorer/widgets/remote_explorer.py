@@ -75,7 +75,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.histindex = None
 
         # Model and widget setup
-        self.model = QStandardItemModel()
+        self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
             [
                 "Name",
@@ -84,7 +84,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 "Date Modified",
             ]
         )
-        self.proxy_model = RemoteQSortFilterProxyModel()
+        self.proxy_model = RemoteQSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
 
         self.view = QTreeView(self)
@@ -95,7 +95,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.set_files(files)
 
         self.view.sortByColumn(0, Qt.AscendingOrder)
-
         self.view.entered.connect(self._on_entered_item)
 
         layout = QVBoxLayout(self)
@@ -154,12 +153,14 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     async def _do_remote_ls(self, path, server_id):
         if not self.remote_files_manager:
             return
+
         for task in self.background_files_load:
             task.cancel()
             try:
                 await task
             except asyncio.CancelledError:
                 pass
+
         self.extra_files = []
         self.more_files_available = False
         files = []
@@ -219,6 +220,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             file_type = file["type"]
             if not self.get_conf("show_hidden") and file_name.startswith("."):
                 continue
+
             if (
                 self.name_filters
                 and len(self.name_filters)
@@ -232,6 +234,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         break
             else:
                 self.extra_files.append(file)
+
         logger.debug(
             f"{len(self.extra_files)} available extra files to be shown"
         )
@@ -259,6 +262,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             ):
                 self.history.append(directory)
             self.histindex = len(self.history) - 1
+
         if directory == self.root_prefix:
             return
         self.root_prefix = directory
@@ -273,6 +277,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def set_files(self, files, reset=True):
         if reset:
             self.model.setRowCount(0)
+
         if files:
             logger.debug(f"Setting {len(files)} files")
             root = self.model.invisibleRootItem()
@@ -296,13 +301,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             for file in files:
                 path = file["name"]
                 name = os.path.relpath(path, self.root_prefix)
+
                 file_type = file["type"]
                 icon = ima.icon("FileIcon")
                 if file_type == "directory":
                     icon = ima.icon("DirClosedIcon")
+
                 file_name = QStandardItem(icon, name)
                 file_name.setData(file)
                 file_name.setToolTip(file["name"])
+
                 file_size = QStandardItem(str(file["size"]))
                 file_type = QStandardItem(file_type)
                 file_date_modified = QStandardItem(
@@ -310,6 +318,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         "%d/%m/%Y %I:%M %p"
                     )
                 )
+
                 items = [
                     file_name,
                     file_size,
@@ -365,14 +374,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def go_to_parent_directory(self):
         parent_directory = os.path.dirname(self.root_prefix)
         logger.debug(
-            f"Going to parent directory of {self.root_prefix}: {parent_directory}"
+            f"Going to parent directory of {self.root_prefix}: "
+            f"{parent_directory}"
         )
         self.chdir(parent_directory)
 
     def go_to_previous_directory(self):
         self.histindex -= 1
         logger.debug(
-            f"Going to previous directory in history with index {self.histindex}"
+            f"Going to previous directory in history with index "
+            f"{self.histindex}"
         )
         self.chdir(browsing_history=True)
 

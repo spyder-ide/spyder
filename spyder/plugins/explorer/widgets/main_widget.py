@@ -34,7 +34,8 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.plugins.explorer.widgets.explorer import (
-    DirViewActions, ExplorerTreeWidget
+    DirViewActions,
+    ExplorerTreeWidget,
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
@@ -208,7 +209,9 @@ class ExplorerWidget(PluginMainWidget):
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
         self.remote_treewidget.sig_dir_opened.connect(self.sig_dir_opened)
-        self.remote_treewidget.sig_stop_spinner_requested.connect(self.stop_spinner)
+        self.remote_treewidget.sig_stop_spinner_requested.connect(
+            self.stop_spinner
+        )
         self.treewidget.sig_file_created.connect(self.sig_file_created)
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
@@ -234,7 +237,7 @@ class ExplorerWidget(PluginMainWidget):
         return _("Files")
 
     def setup(self):
-        """Perform the setup of plugin's menu and actions."""
+        """Perform the setup of the plugin's menu and actions."""
         # Common actions
         self.previous_action = self.create_action(
             ExplorerWidgetActions.Previous,
@@ -362,7 +365,12 @@ class ExplorerWidget(PluginMainWidget):
 
             @AsyncDispatcher.QtSlot
             def remote_ls(future):
-                self.remote_treewidget.chdir(directory, server_id=server_id, emit=emit, remote_files_manager=future.result())
+                self.remote_treewidget.chdir(
+                    directory,
+                    server_id=server_id,
+                    emit=emit,
+                    remote_files_manager=future.result()
+                )
 
             self._plugin._get_remote_files_manager(server_id).connect(
                 remote_ls
@@ -382,19 +390,19 @@ class ExplorerWidget(PluginMainWidget):
         folder: str
             Folder path to set as current folder.
         """
-        self.stackwidget.currentWidget().set_current_folder(folder)
+        self.get_current_widget().set_current_folder(folder)
 
     def go_to_parent_directory(self):
         """Move to parent directory."""
-        self.stackwidget.currentWidget().go_to_parent_directory()
+        self.get_current_widget().go_to_parent_directory()
 
     def go_to_previous_directory(self):
         """Move to previous directory in history."""
-        self.stackwidget.currentWidget().go_to_previous_directory()
+        self.get_current_widget().go_to_previous_directory()
 
     def go_to_next_directory(self):
         """Move to next directory in history."""
-        self.stackwidget.currentWidget().go_to_next_directory()
+        self.get_current_widget().go_to_next_directory()
 
     def refresh(self, new_path=None, force_current=False):
         """
@@ -407,9 +415,10 @@ class ExplorerWidget(PluginMainWidget):
         force_current: bool, optional
             Default is True.
         """
-        self.stackwidget.currentWidget().refresh(new_path, force_current)
+        self.get_current_widget().refresh(new_path, force_current)
 
     def get_current_widget(self):
+        """Get the current widget in stackwidget."""
         return self.stackwidget.currentWidget()
 
     @Slot()
@@ -422,14 +431,19 @@ class ExplorerWidget(PluginMainWidget):
 
         # Create dialog contents
         description_label = QLabel(
-            _('Filter files by name, extension, or more using '
-              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob'
-              ' patterns.</a> Please enter the glob patterns of the files you '
-              'want to show, separated by commas.'))
+            _(
+                "Filter files by name, extension, or more using "
+                '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">'
+                "glob patterns.</a> Please enter the glob patterns of the "
+                "files you want to show, separated by commas."
+            )
+        )
         description_label.setOpenExternalLinks(True)
         description_label.setWordWrap(True)
-        filters = QTextEdit(", ".join(self.get_conf('name_filters')),
-                            parent=self)
+        filters = QTextEdit(
+            ", ".join(self.get_conf('name_filters')),
+            parent=self
+        )
         layout = QVBoxLayout()
         layout.addWidget(description_label)
         layout.addWidget(filters)

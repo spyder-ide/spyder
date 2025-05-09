@@ -14,4 +14,7 @@ from spyder.plugins.explorer.widgets.explorer import (
     DirViewNewSubMenuSections)
 
 from spyder.plugins.explorer.widgets.main_widget import (
-    ExplorerWidgetMainToolbarSections, ExplorerWidgetOptionsMenuSections)
+    ExplorerWidgetMainToolbarSections,
+    ExplorerWidgetOptionsMenuSections,
+    ExplorerWidgetActions,
+)

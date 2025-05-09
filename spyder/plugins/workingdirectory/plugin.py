@@ -164,7 +164,12 @@ class WorkingDirectory(SpyderPluginV2):
 
     # --- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory: str, sender_plugin: Optional[str] = None, server_id: Optional[str] = None):
+    def chdir(
+        self,
+        directory: str,
+        sender_plugin: Optional[str] = None,
+        server_id: Optional[str] = None
+    ):
         """
         Change current working directory.
 
@@ -195,7 +200,9 @@ class WorkingDirectory(SpyderPluginV2):
             f"{directory}"
         )
         container.chdir(directory, emit=False, server_id=server_id)
-        self.sig_current_directory_changed.emit(directory, sender_plugin, server_id)
+        self.sig_current_directory_changed.emit(
+            directory, sender_plugin, server_id
+        )
 
         if server_id is None:
             self.save_history()

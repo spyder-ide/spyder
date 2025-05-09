@@ -235,7 +235,12 @@ class WorkingDirectoryContainer(PluginMainContainer):
             triggered=self._parent_directory,
         )
 
-        for item in [spacer, self.pathedit, self.browse_action, self.parent_action]:
+        for item in [
+            spacer,
+            self.pathedit,
+            self.browse_action,
+            self.parent_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,
@@ -350,7 +355,9 @@ class WorkingDirectoryContainer(PluginMainContainer):
     @Slot(str, bool)
     @Slot(str, bool, bool)
     @Slot(str, bool, bool, str)
-    def chdir(self, directory, browsing_history=False, emit=True, server_id=None):
+    def chdir(
+        self, directory, browsing_history=False, emit=True, server_id=None
+    ):
         """
         Set `directory` as working directory.
 
