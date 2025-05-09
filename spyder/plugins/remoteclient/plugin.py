@@ -283,8 +283,18 @@ class RemoteClient(SpyderPluginV2):
 
     def get_server_name(self, config_id):
         """Get configured remote server name."""
-        auth_method = self.get_conf(f"{config_id}/auth_method")
-        return self.get_conf(f"{config_id}/{auth_method}/name")
+        client_type = self.get_conf(f"{config_id}/client_type", default="ssh")
+        if client_type == "ssh":
+            auth_method = self.get_conf(f"{config_id}/auth_method")
+            return self.get_conf(f"{config_id}/{auth_method}/name")
+        if client_type == "jupyterhub":
+            return self.get_conf(f"{config_id}/name")
+
+        msg = (
+            f"Unknown client type '{client_type}' for server '{config_id}'. "
+            f"Please check your configuration."
+        )
+        raise ValueError(msg)
 
     # --- API Methods
     @staticmethod
