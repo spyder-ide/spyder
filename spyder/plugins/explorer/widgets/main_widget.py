@@ -80,6 +80,8 @@ class ExplorerWidget(PluginMainWidget):
     ----------
     directory: str
         The path to the directory opened.
+    server_id: str
+        The server identification from where the directory path is reachable.
     """
 
     sig_module_created = Signal(str)
@@ -355,6 +357,9 @@ class ExplorerWidget(PluginMainWidget):
             Directory to set as working directory.
         emit: bool, optional
             Default is True.
+        server_id: str, optional
+            The server identification from where the directory is reachable.
+            Default is None.
         """
         if not server_id:
             self.treewidget.chdir(directory, emit=emit)

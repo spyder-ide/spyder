@@ -370,6 +370,9 @@ class WorkingDirectoryContainer(PluginMainContainer):
         emit: bool, optional
             Emit a signal when changing the working directory.
             Default is True.
+        server_id: str, optional
+            The server identification from where the directory is reachable.
+            Default is None.
         """
         self.server_id = server_id
 

@@ -60,6 +60,8 @@ class Explorer(SpyderDockablePlugin):
     ----------
     directory: str
         The opened path directory.
+    server_id: str
+        The server identification from where the directory path is reachable.
 
     Notes
     -----

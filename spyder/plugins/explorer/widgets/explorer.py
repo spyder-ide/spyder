@@ -1792,6 +1792,8 @@ class ExplorerTreeWidget(DirView):
     ----------
     new_root_directory: str
         The new root directory path.
+    server_id: str
+        The server identification from where the new root directory is reachable.
 
     Notes
     -----

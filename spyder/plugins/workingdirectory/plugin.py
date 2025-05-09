@@ -63,6 +63,9 @@ class WorkingDirectory(SpyderPluginV2):
         The new working directory path.
     sender_plugin: str
         Name of the plugin that requested the directory to be changed.
+    server_id: str
+        The server identification from where the new working directory is
+        reachable.
     """
 
     # --- SpyderPluginV2 API
@@ -177,9 +180,12 @@ class WorkingDirectory(SpyderPluginV2):
         ----------
         directory: str
             The new working directory to set.
-        sender_plugin: str
+        sender_plugin: str, optional
             The plugin that requested this change. Default is None, which means
             this is the plugin requesting the change.
+        server_id: str, optional
+            The server identification from where the directory is reachable.
+            Default is None.
         """
         container = self.get_container()
 

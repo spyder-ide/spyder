@@ -257,6 +257,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     ----------
     working_directory: str
         The new working directory path.
+    server_id: str
+        The server identification from where the working directory is reachable.
     """
 
     sig_interpreter_changed = Signal(str)
