@@ -17,3 +17,6 @@ SPYDER_REMOTE_MAX_VERSION = "2.0.0"
 SPYDER_REMOTE_VERSION = (
     f">={SPYDER_REMOTE_MIN_VERSION},<{SPYDER_REMOTE_MAX_VERSION}"
 )
+
+# jupyter server's extension name for spyder-remote-services
+SPYDER_PLUGIN_NAME = "spyder-services"
