@@ -70,7 +70,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'delete line') == 'Ctrl+D'
     assert CONF.get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
     assert CONF.get_shortcut('editor',
-                             'transform to uppercase') == 'Ctrl+Shift+U'
+                             'transform to uppercase') == 'Alt+Shift+U'
     assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
     assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
