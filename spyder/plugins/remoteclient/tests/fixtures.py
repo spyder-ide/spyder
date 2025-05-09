@@ -158,6 +158,13 @@ def jupyterhub_client_id(
     }
     config_id = str(uuid.uuid4())
 
+    remote_client.set_conf(
+        f"{config_id}/client_type", "jupyterhub"
+    )
+    remote_client.set_conf(
+        f"{config_id}/name", "test-server"
+    )
+
     remote_client.load_jupyterhub_client(options=jupyterhub_options, config_id=config_id)
 
     try:
