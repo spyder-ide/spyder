@@ -1611,9 +1611,12 @@ class CollectionsEditorTableView(BaseTableView):
         self.setup_table()
         self.menu = self.setup_menu()
 
-        # Sorting columns
+        # Leave unsorted if dict, sort by column 0 otherwise
+        if isinstance(data, dict):
+            self.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
+        else:
+            self.horizontalHeader().setSortIndicator(0, Qt.AscendingOrder)
         self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
 
         if isinstance(data, (set, frozenset)):
             self.horizontalHeader().hideSection(0)
