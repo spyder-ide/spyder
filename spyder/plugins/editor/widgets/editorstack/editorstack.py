@@ -598,12 +598,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self,
             menu=self.menu,
             menu_use_tooltips=True,
-            corner_widgets=corner_widgets,
-            min_tab_width=70,
-            max_tab_width=250
+            corner_widgets=corner_widgets
         )
         self.tabs.set_close_function(self.close_file)
-        self.tabs.tabBar().setElideMode(Qt.ElideMiddle)
         self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
 
@@ -1203,6 +1200,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         files_path_list = [finfo.filename for finfo in self.data]
         fname = self.data[index].filename
         fname = sourcecode.disambiguate_fname(files_path_list, fname)
+        if len(fname) > 40:
+            fname = fname[:18]+ "..."+fname[-18:]
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 

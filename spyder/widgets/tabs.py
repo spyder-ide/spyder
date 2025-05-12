@@ -262,8 +262,6 @@ class TabBar(QTabBar):
         self,
         parent,
         ancestor,
-        max_tab_width=None,
-        min_tab_width=None,
         rename_tabs=False,
         split_char='',
         split_index=0
@@ -271,9 +269,6 @@ class TabBar(QTabBar):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
         self.setObjectName('pane-tabbar')
-
-        self._max_tab_width = max_tab_width
-        self._min_tab_width = min_tab_width
 
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -324,16 +319,6 @@ class TabBar(QTabBar):
 
         close_btn_from.set_not_selected_color()
         close_btn_to.set_selected_color()
-
-    def tabSizeHint(self, index):
-        size = super().tabSizeHint(index)
-        if self._min_tab_width and self._max_tab_width:
-            size.setWidth(
-                min(
-                    max(size.width(), self._min_tab_width), self._max_tab_width
-                )
-            )
-        return size
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -453,17 +438,13 @@ class BaseTabs(QTabWidget):
         actions=None,
         menu=None,
         corner_widgets=None,
-        menu_use_tooltips=False,
-        max_tab_width=None,
-        min_tab_width=None
+        menu_use_tooltips=False
     ):
         QTabWidget.__init__(self, parent)
         self.setTabBar(
             TabBar(
                 self,
-                parent,
-                max_tab_width=max_tab_width,
-                min_tab_width=min_tab_width,
+                parent
             )
         )
 
