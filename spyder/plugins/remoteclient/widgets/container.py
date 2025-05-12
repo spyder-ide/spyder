@@ -119,8 +119,7 @@ class RemoteClientContainer(PluginMainContainer):
         spyder-remote-services version installed in the server and the one
         supported by Spyder.
         """
-        auth_method = self.get_conf(f"{config_id}/auth_method")
-        server_name = self.get_conf(f"{config_id}/{auth_method}/name")
+        server_name = self._plugin.get_server_name(config_id)
 
         QMessageBox.critical(
             self,
