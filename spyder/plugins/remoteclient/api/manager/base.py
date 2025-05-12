@@ -20,6 +20,7 @@ import typing
 from abc import abstractmethod
 from functools import partial
 
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.utils import ABCMeta
 from spyder.config.base import get_debug_level
@@ -78,9 +79,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         self.options = options
         self._plugin = _plugin
 
-        self.__server_installed = asyncio.Event()
-        self.__starting_event = asyncio.Event()
-        self.__connection_established = asyncio.Event()
+        loop = AsyncDispatcher.get_event_loop("asyncssh")
+        self.__server_installed = asyncio.Event(loop=loop)
+        self.__starting_event = asyncio.Event(loop=loop)
+        self.__connection_established = asyncio.Event(loop=loop)
+
         self.__installing_server = False
         self.__starting_server = False
         self.__creating_connection = False

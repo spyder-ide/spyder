@@ -362,15 +362,11 @@ class _Session:
 
 class _ChannelQueues:
     def __init__(self):
-        AsyncDispatcher(loop="ipythonconsole", early_return=False)(
-            self._create_queue
-        )()
-
-    async def _create_queue(self):
-        self.shell = asyncio.Queue()
-        self.iopub = asyncio.Queue()
-        self.stdin = asyncio.Queue()
-        self.control = asyncio.Queue()
+        loop = AsyncDispatcher.get_event_loop("ipythonconsole")
+        self.shell = asyncio.Queue(loop=loop)
+        self.iopub = asyncio.Queue(loop=loop)
+        self.stdin = asyncio.Queue(loop=loop)
+        self.control = asyncio.Queue(loop=loop)
 
     def __getitem__(self, channel: str) -> asyncio.Queue[dict[str, t.Any]]:
         return getattr(self, channel)
