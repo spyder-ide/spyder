@@ -116,7 +116,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             self.setPage(web_page)
             self.source_text = ''
 
-    def setup(self, options={}):
+    def setup(self, options=None):
+        options = {} if options is None else options
+
         # Actions
         original_back_action = self.pageAction(QWebEnginePage.WebAction.Back)
         back_action = self.create_action(
