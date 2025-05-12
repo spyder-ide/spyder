@@ -220,8 +220,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         """Set model data"""
         self._data = data
 
-        if (coll_filter is not None and not self.remote and
-                isinstance(data, (tuple, list, dict, set))):
+        if (
+            coll_filter is not None
+            and not self.remote 
+            and isinstance(data, (tuple, list, dict, set, frozenset))
+        ):
             data = coll_filter(data)
         self.showndata = data
 
@@ -237,6 +240,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         elif isinstance(data, set):
             self.keys = list(range(len(data)))
             self.title += _("Set")
+            self._data = list(data)
+        elif isinstance(data, frozenset):
+            self.keys = list(range(len(data)))
+            self.title += _("Frozenset")
             self._data = list(data)
         elif isinstance(data, dict):
             try:
@@ -576,7 +583,7 @@ class CollectionsModel(ReadOnlyCollectionsModel):
             color = SpyderPalette.GROUP_4
         elif python_type == 'list':
             color = SpyderPalette.GROUP_5
-        elif python_type == 'set':
+        elif python_type in ['set', 'frozenset']:
             color = SpyderPalette.GROUP_6
         elif python_type == 'tuple':
             color = SpyderPalette.GROUP_7
@@ -973,7 +980,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         # Enable/disable actions
         condition_edit = (
-            (not isinstance(data, (tuple, set))) and
+            (not isinstance(data, (tuple, set, frozenset))) and
             index.isValid() and
             (len(self.selectedIndexes()) > 0) and
             indexes_in_same_row() and
@@ -998,7 +1005,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.copy_action.setEnabled(condition_select)
 
         condition_remove = (
-            (not isinstance(data, (tuple, set))) and
+            (not isinstance(data, (tuple, set, frozenset))) and
             index.isValid() and
             (len(self.selectedIndexes()) > 0) and
             not self.readonly
@@ -1291,7 +1298,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             field_text = _('Variable name:')
 
         data = self.source_model.get_data()
-        if isinstance(data, (list, set)):
+        if isinstance(data, (list, set, frozenset)):
             new_key, valid = len(data), True
         elif new_name is not None:
             new_key, valid = new_name, True
@@ -1595,7 +1602,7 @@ class CollectionsEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.namespacebrowser = namespacebrowser
-        self.readonly = readonly or isinstance(data, (tuple, set))
+        self.readonly = readonly or isinstance(data, (tuple, set, frozenset))
         CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
                                  else CollectionsModel)
         self.source_model = CollectionsModelClass(
@@ -1613,7 +1620,7 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu()
-        if isinstance(data, set):
+        if isinstance(data, (set, frozenset)):
             self.horizontalHeader().hideSection(0)
 
     #------ Remote/local API --------------------------------------------------
@@ -1629,7 +1636,7 @@ class CollectionsEditorTableView(BaseTableView):
         data = self.source_model.get_data()
         if isinstance(data, list):
             data.append(data[orig_key])
-        if isinstance(data, set):
+        if isinstance(data, (set, frozenset)):
             data.add(data[orig_key])
         else:
             data[new_key] = data[orig_key]
@@ -1649,9 +1656,9 @@ class CollectionsEditorTableView(BaseTableView):
         return isinstance(data[key], (tuple, list))
 
     def is_set(self, key):
-        """Return True if variable is a set"""
+        """Return True if variable is a set or a frozenset"""
         data = self.source_model.get_data()
-        return isinstance(data[key], set)
+        return isinstance(data[key], (set, frozenset))
 
     def get_len(self, key):
         """Return sequence length"""
@@ -1837,7 +1844,7 @@ class CollectionsEditor(BaseDialog):
     def setup(self, data, title='', readonly=False, remote=False,
               icon=None, parent=None):
         """Setup editor."""
-        if isinstance(data, (dict, set)):
+        if isinstance(data, (dict, set, frozenset)):
             # dictionary, set
             self.data_copy = data.copy()
         elif isinstance(data, (tuple, list)):

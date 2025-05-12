@@ -14,6 +14,7 @@ from qtpy.QtWidgets import QVBoxLayout, QLabel
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.widgets.elementstable import ElementsTable
+from spyder.widgets.helperwidgets import FinderWidget
 
 
 class PluginsConfigPage(PluginConfigPage):
@@ -94,15 +95,25 @@ class PluginsConfigPage(PluginConfigPage):
         external_elements.sort(key=lambda e: collator.sort_key(e['title']))
 
         # Build plugins table, showing external plugins first.
-        plugins_table = ElementsTable(
+        self._plugins_table = ElementsTable(
             self, external_elements + internal_elements
         )
+
+        # Finder to filter plugins
+        finder = FinderWidget(
+            self,
+            find_on_change=True,
+            show_close_button=False,
+            set_min_width=False,
+        )
+        finder.sig_find_text.connect(self._do_find)
 
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(header_label)
         layout.addSpacing(15)
-        layout.addWidget(plugins_table)
+        layout.addWidget(self._plugins_table)
+        layout.addWidget(finder)
         layout.addSpacing(15)
         self.setLayout(layout)
 
@@ -133,3 +144,6 @@ class PluginsConfigPage(PluginConfigPage):
                 # self.plugin.delete_plugin(plugin_name)
                 pass
         return set({})
+
+    def _do_find(self, text):
+        self._plugins_table.do_find(text)

@@ -12,9 +12,11 @@ the Variable Explorer
 # Standard library imports
 import logging
 from pickle import PicklingError, UnpicklingError
-import cloudpickle
+import sys
 
 # Third-party imports
+import cloudpickle
+from packaging.version import parse
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from spyder_kernels.comms.commbase import CommError
 
@@ -42,16 +44,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _(
             "It was not possible to create a copy of the variable in the "
-            "kernel to pass it to Spyder.<br><br>"
+            "kernel or to load that copy in Spyder.<br><br>"
             "If the object you're trying to view contains a generator, you "
             "need to replace it by a list because generators can't be "
             "serialized."
         )
         reason_dead = _("The kernel is dead")
-        reason_other = _(
-            "An unknown error occurred. Check the console because its contents "
-            "could have been printed there."
-        )
+        reason_other = _("An unknown error occurred, sorry.")
         reason_comm = _(
             "The channel used to communicate with the kernel is not working."
         )
@@ -65,6 +64,13 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
         )
+        reason_mismatched_python = _(
+            "There is a mistmatch between the Python versions used by Spyder "
+            "({}) and the kernel of your current console ({}).<br><br>"
+            "To fix it, you need to recreate your console environment with "
+            "Python {} or {}."
+        )
+
         msg = _(
             "<br>%s<br><br>"
             "<b>Note</b>: If you consider this to be a valid error that needs "
@@ -75,14 +81,46 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         try:
             value = self.call_kernel(
                 blocking=True,
-                display_error=True,
+                # We prefer not to display errors because it's not clear that
+                # they are related to what users are doing in the Variable
+                # Explorer. So, it's not user friendly.
+                # See spyder-ide/spyder#22411
+                display_error=False,
                 timeout=CALL_KERNEL_TIMEOUT
             ).get_value(name, encoded=True)
             value = cloudpickle.loads(value)
             return value
         except TimeoutError:
             raise ValueError(msg % reason_big)
-        except (PicklingError, UnpicklingError, TypeError):
+        except (PicklingError, UnpicklingError, TypeError) as err:
+            if str(err).startswith(
+                ("code expected at most", "code() argument")
+            ):
+                # This error happens when Spyder is using Python 3.11+ and the
+                # kernel 3.10-, or the other way around. In that case,
+                # cloudpickle can't deserialize the objects sent from the
+                # kernel and we need to inform users about it.
+                # Fixes spyder-ide/spyder#24125.
+                py_spyder_version = ".".join(
+                    [str(n) for n in sys.version_info[:3]]
+                )
+                py_kernel_version = self.get_pythonenv_info()["python_version"]
+
+                if parse(py_spyder_version) < parse(py_kernel_version):
+                    py_good_version, compatible_versions  = "3.10", _("lower")
+                else:
+                    py_good_version, compatible_versions = "3.11", _("greater")
+
+                raise ValueError(
+                    msg
+                    % reason_mismatched_python.format(
+                        py_spyder_version,
+                        py_kernel_version,
+                        py_good_version,
+                        compatible_versions,
+                    )
+                )
+
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
             raise ValueError(msg % reason_dead)

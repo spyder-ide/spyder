@@ -12,7 +12,7 @@ import re
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import QInputDialog, QLabel
 
@@ -171,10 +171,20 @@ class FindInFilesWidget(PluginMainWidget):
             self,
             items=search_text,
             adjust_to_minimum=False,
-            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo
+            id_=FindInFilesWidgetToolbarItems.SearchPatternCombo,
+            items_elide_mode=Qt.ElideMiddle
         )
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
+        
+        self.search_text_edit.setMinimumSize(
+            MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
+        )        
+        
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
+        self.search_text_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
@@ -429,6 +439,11 @@ class FindInFilesWidget(PluginMainWidget):
     def resizeEvent(self, event):
         """Adjustments when the widget is resized."""
         super().resizeEvent(event)
+
+        # This is necessary to prevent the width of search_text_edit to control
+        # the width of the pane.
+        # Fixes spyder-ide/spyder#24188
+        self.search_text_edit.setMaximumWidth(self.width())
 
         # This recomputes the result items width according to this widget's
         # width, which makes the UI be rendered as expected.
