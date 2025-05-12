@@ -1049,13 +1049,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 self.parent().table_index.resizeColumnsToContents()
                 self.parent().resize_to_contents()
 
-    def flags(self, index):
-        """Set flags"""
-        return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled |
-                Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.EditRole
-        )
-
     def edit_header_item(self):
         """Edit header item"""
         pos = self.header_class.currentIndex()
@@ -2052,14 +2045,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if self.table_index.indexAt(v).isValid():
             self.menu_header_v.popup(event.globalPos())
             event.accept()
-
-    def flags(self, index):
-        """Set flags"""
-        return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemFlag.ItemIsEditable |
-                Qt.ItemFlag.ItemIsEnabled |
-                Qt.ItemFlag.ItemIsSelectable
-        )
 
     def create_table_level(self):
         """Create the QTableView that will hold the level model."""
