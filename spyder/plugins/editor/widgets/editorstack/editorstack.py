@@ -667,8 +667,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 filename, Qt.ElideMiddle, max_width
             )
             shorten_filename = elided_filename
+            self.fname_label.setToolTip(filename)
         else:
             shorten_filename = filename
+            self.fname_label.setToolTip("")
         self.fname_label.setText(shorten_filename)
 
     def add_corner_widgets_to_tabbar(self, widgets):
@@ -1201,7 +1203,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         fname = self.data[index].filename
         fname = sourcecode.disambiguate_fname(files_path_list, fname)
         if len(fname) > 40:
-            fname = fname[:18]+ "..."+fname[-18:]
+            fname = fname[:18] + "..." + fname[-18:]
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
