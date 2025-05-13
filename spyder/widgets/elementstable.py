@@ -155,6 +155,18 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
             f'</span>'
         )
 
+    def clear_elements(self):
+        self.beginRemoveRows(QModelIndex(), 0, self.rowCount())
+        self.elements = []
+        self.endRemoveRows()
+
+    def replace_elements(self, elements: List[Element]):
+        # The -1 is necessary to add exactly the number present in `elements`
+        # (including the 0 index). Otherwise, spurious rows are added by Qt.
+        self.beginInsertRows(QModelIndex(), 0, len(elements) - 1)
+        self.elements = elements
+        self.endInsertRows()
+
 
 class SortElementsFilterProxy(CustomSortFilterProxy):
 
@@ -235,6 +247,9 @@ class ElementsTable(HoverRowsTableView):
         # To highlight the hovered row
         self._highlight_hovered_row = highlight_hovered_row
 
+        # To keep a reference to the table's elements
+        self.elements: List[Element] | None = None
+
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
         self._current_row = -1
@@ -250,6 +265,7 @@ class ElementsTable(HoverRowsTableView):
     # ---- Public API
     # -------------------------------------------------------------------------
     def setup_elements(self, elements: List[Element]):
+        """Setup a list of Elements in the table."""
         self.elements = elements
 
         # Check for additional features
@@ -317,34 +333,7 @@ class ElementsTable(HoverRowsTableView):
                      widgets_delegate.on_hover_index_changed
                 )
 
-            # Add widgets
-            for i in range(len(self.elements)):
-                layout = QHBoxLayout()
-                layout.setContentsMargins(
-                    3 * AppStyle.MarginSize,
-                    3 * AppStyle.MarginSize,
-                    # We add 10 pixels to the right when there's no additional
-                    # info, so that the widgets are not so close to the border
-                    # of the table.
-                    3 * AppStyle.MarginSize
-                    + (10 if not self._with_additional_info else 0),
-                    3 * AppStyle.MarginSize,
-                )
-                layout.addWidget(self.elements[i]['widget'])
-                layout.setAlignment(Qt.AlignHCenter)
-
-                container_widget = QWidget(self)
-                container_widget.setLayout(layout)
-
-                # This key is not accounted for in Element because it's only
-                # used internally, so it doesn't need to provided in a list of
-                # Element's.
-                self.elements[i]['row_widget'] = container_widget
-
-                self.setIndexWidget(
-                    self.proxy_model.index(i, self.model.columns['widgets']),
-                    container_widget
-                )
+            self._add_widgets()
 
         # Make last column take the available space to the right, if necessary
         stretch_last_column = True
@@ -369,8 +358,45 @@ class ElementsTable(HoverRowsTableView):
         # Set stylesheet
         self._set_stylesheet()
 
+    def replace_elements(
+        self, elements: List[Element], clear_first: bool = True
+    ):
+        """
+        Replace current elements by new ones.
+
+        Parameters
+        ----------
+        elements: List[Element]
+            Elements that will be replaced.
+        clear_first: bool
+            Whether the table should be cleared before adding the new elements
+        """
+        if clear_first:
+            self.clear_elements()
+
+        self.elements = elements
+        self.model.replace_elements(elements)
+        if self._with_widgets:
+            self._add_widgets()
+
+        self._set_layout()
+
+    def clear_elements(self):
+        """Clear all elements to leave the table empty."""
+        self.model.clear_elements()
+        self._current_row_widget = None
+
     @qdebounced(timeout=200)
-    def do_find(self, text):
+    def do_find(self, text: str):
+        """
+        Filter rows that match `text` in their title, description or additional
+        info.
+
+        Parameters
+        ----------
+        text: str
+            Text to filter rows with.
+        """
         if self._with_widgets:
             # We need to do this when the table has widgets because it seems Qt
             # deletes all filtered rows, which deletes their widgets too. So,
@@ -493,6 +519,36 @@ class ElementsTable(HoverRowsTableView):
                     self.model.columns["widgets"]
                 )
                 + extra_width
+            )
+
+    def _add_widgets(self):
+        """Add element widgets associated to the table."""
+        for i in range(len(self.elements)):
+            layout = QHBoxLayout()
+            layout.setContentsMargins(
+                3 * AppStyle.MarginSize,
+                3 * AppStyle.MarginSize,
+                # We add 10 pixels to the right when there's no additional
+                # info, so that the widgets are not so close to the border
+                # of the table.
+                3 * AppStyle.MarginSize
+                + (10 if not self._with_additional_info else 0),
+                3 * AppStyle.MarginSize,
+            )
+            layout.addWidget(self.elements[i]['widget'])
+            layout.setAlignment(Qt.AlignHCenter)
+
+            container_widget = QWidget(self)
+            container_widget.setLayout(layout)
+
+            # This key is not accounted for in Element because it's only
+            # used internally, so it doesn't need to provided in a list of
+            # Element's.
+            self.elements[i]['row_widget'] = container_widget
+
+            self.setIndexWidget(
+                self.proxy_model.index(i, self.model.columns['widgets']),
+                container_widget
             )
 
     # ---- Qt methods
