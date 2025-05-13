@@ -258,14 +258,8 @@ class TabBar(QTabBar):
     sig_move_tab = Signal((int, int), (str, int, int))
     sig_name_changed = Signal(str)
 
-    def __init__(
-        self,
-        parent,
-        ancestor,
-        rename_tabs=False,
-        split_char='',
-        split_index=0
-    ):
+    def __init__(self, parent, ancestor, rename_tabs=False, split_char='',
+                 split_index=0):
         QTabBar.__init__(self, parent)
         self.ancestor = ancestor
         self.setObjectName('pane-tabbar')
@@ -432,21 +426,10 @@ class BaseTabs(QTabWidget):
     """TabWidget with context menu and corner widgets"""
     sig_close_tab = Signal(int)
 
-    def __init__(
-        self,
-        parent,
-        actions=None,
-        menu=None,
-        corner_widgets=None,
-        menu_use_tooltips=False
-    ):
+    def __init__(self, parent, actions=None, menu=None,
+                 corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
-        self.setTabBar(
-            TabBar(
-                self,
-                parent
-            )
-        )
+        self.setTabBar(TabBar(self, parent))
 
         # Needed to prevent eliding tabs text on MacOS
         # See spyder-ide/spyder#18817

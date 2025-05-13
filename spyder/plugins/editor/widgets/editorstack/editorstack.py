@@ -594,12 +594,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.menu.aboutToShow.connect(self.__setup_menu)
 
         corner_widgets = {Qt.TopRightCorner: [menu_btn]}
-        self.tabs = BaseTabs(
-            self,
-            menu=self.menu,
-            menu_use_tooltips=True,
-            corner_widgets=corner_widgets
-        )
+        self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
+                             corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
         self.tabs.tabBar().tabMoved.connect(self.move_editorstack_data)
         self.tabs.setMovable(True)
