@@ -459,7 +459,7 @@ DEFAULTS = [
               'editor/duplicate line up': CTRL + "+Alt+PgUp",
               'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
-              'editor/transform to uppercase': 'Ctrl+Shift+U',
+              'editor/transform to uppercase': 'Alt+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
               'editor/indent': 'Ctrl+]',
               'editor/unindent': 'Ctrl+[',
