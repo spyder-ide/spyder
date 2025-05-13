@@ -23,6 +23,7 @@ from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QDir,
+    QFile,
     QMimeData,
     QSortFilterProxyModel,
     Qt,
@@ -1166,14 +1167,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         Reimplemented in project explorer widget
         """
         while osp.exists(dirname):
-            try:
-                shutil.rmtree(dirname, onerror=misc.onerror)
-            except Exception as e:
-                # This handles a Windows problem with shutil.rmtree.
-                # See spyder-ide/spyder#8567.
-                if type(e).__name__ == "OSError":
-                    error_path = str(e.filename)
-                    shutil.rmtree(error_path, ignore_errors=True)
+            QFile.moveToTrash(dirname)
 
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
