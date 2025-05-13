@@ -320,6 +320,9 @@ class Explorer(SpyderDockablePlugin):
         emit: bool, optional
             Emit a signal to indicate the working directory has changed.
             Default is True.
+        server_id: str
+            The server identification from where the new working directory is
+            reachable.
         """
         self.get_widget().chdir(directory, emit=emit, server_id=server_id)
 
