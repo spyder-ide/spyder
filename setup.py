@@ -39,7 +39,7 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 8):
+if v[:2] < (3, 8):
     error = "ERROR: Spyder requires Python version 3.8 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
