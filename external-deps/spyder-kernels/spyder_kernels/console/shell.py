@@ -12,6 +12,7 @@ Spyder shell for Jupyter kernels.
 
 # Standard library imports
 import bdb
+import itertools
 import logging
 import os
 import re
@@ -19,6 +20,7 @@ import signal
 import sys
 import traceback
 from _thread import interrupt_main
+from typing import List
 
 # Third-party imports
 from ipykernel.zmqshell import ZMQInteractiveShell
@@ -70,6 +72,24 @@ class SpyderShell(ZMQInteractiveShell):
 
         # register post_execute
         self.events.register('post_execute', self.do_post_execute)
+
+        # Disable Python package managers because they don't work reliably for
+        # us when called from the kernel.
+        self._disabled_pkg_managers = [
+            "conda",
+            "mamba",
+            "micromamba",
+            "pip",
+            "pixi",
+            "uv",
+        ]
+        self._disable_pkg_managers_msg = (
+            "\\nInstalling packages through the IPython console doesn't work "
+            "reliably in Spyder. Please use a system terminal to do that, "
+            "i.e. cmd.exe on Windows, Terminal on macOS or xterm on "
+            "Linux."
+        )
+        self.input_transformers_cleanup.append(self._do_input_cleanup)
 
     def init_magics(self):
         """Init magics"""
@@ -456,3 +476,23 @@ class SpyderShell(ZMQInteractiveShell):
         sys.__stderr__.flush()
         sys.__stdout__.flush()
         self.kernel.publish_state()
+
+    def _do_input_cleanup(self, lines: List[str]):
+        """
+        Input transformations before the code is made valid Python by IPython.
+        """
+        for line in lines:
+            # Disable magics and commands to call Python package managers from
+            # the kernel because they don't work reliably.
+            # Fixes spyder-ide/spyder#21894
+            if any(
+                [
+                    line.startswith(f"{prefix}{command}")
+                    for prefix, command in itertools.product(
+                        ["%", "!"], self._disabled_pkg_managers
+                    )
+                ]
+            ):
+                return [f'print("{self._disable_pkg_managers_msg}")']
+
+        return lines

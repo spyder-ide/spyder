@@ -167,7 +167,7 @@ def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     ]
 
     logger.info(f"Building {lock_file.name}...")
-    logger.info("Conda lock configuration:\n{env_file.read_text()}\n")
+    logger.info(f"Conda lock configuration:\n{env_file.read_text()}\n")
     run(cmd_args, check=True, env=env)
 
     logger.info(f"Contents of {lock_file}:\n{lock_file.read_text()}")
