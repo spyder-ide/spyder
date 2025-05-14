@@ -1,32 +1,34 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.5 is released!
+**Subject**: [ANN] Spyder 6.0.6 is released!
 
 
 Hi all,
 
-On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.5** has been released and is available for
+On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder **6.0.6** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 6.0.4 and it contains the
+This release comes seven weeks after version 6.0.5 and it contains the
 following new features and important fixes:
 
-* Add option to the Projects options menu to disable file searches in the Switcher.
-* Support displaying environments with the same name in the IPython Console `New console in environment` menu.
-* Fix `Check for updates at startup` option when an update is declined.
-* Remove `mamba` from Spyder installers.
-* Several improvements to the Variable Explorer messages shown when a variable can't be displayed.
-* Prevent error in `Connect to an existing kernel` dialog when the connection file doesn't exist.
-* Several fixes related to the Run plugin and working directory options used to run and debug files.
-* Fix conda executable validation when creating kernels and improve feedback in case it's not found.
-* Add message related to support for Pixi environments when starting kernels.
-* Improve message related to loading the Spyder icon theme not being possible.
-* Prevent Spyder softlock when lossing focus while the tour is being shown.
-* Fixes to better handle errors when trying to load `.spydata` files in the Variable Explorer.
-* Fix Editor code folding and indent guides for cloned editors.
+* Make Editor annotations work in lowercase.
+* Retore `Quit` action in IPython console context menu.
+* Don't advance line when running code if there's selected text in the Editor.
+* Fix remote connections errors when using `Key file` authentication method.
+* Disable fullscreen mode when running on WSL.
+* Revert `mamba` removal from Spyder installers and verify downloaded update assets.
+* Prevent breakpoints from disappearinf when formating code.
+* Prevent Python 2 pass `setup.py` Python version sanity check.
+* Several fixes to prevent panes like the Editor and Find from taking too much width space.
+* Add message for error with objects deserialization due to Python versions mismatch.
+* Fix opening Files pane context menu from blank area.
+* Remove `QtWebEngine` requirement to show `Help Spyder` action.
+* Prevent `Matplotlib` cache font message from being display.
+* Ensure color schemes changes are applied to all the open files.
+* Respect case sensitivity of working directory when running code.
 
-In this release we fixed 28 issues and merged 43 pull requests. For a full
+In this release we fixed 20 issues and merged 37 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
