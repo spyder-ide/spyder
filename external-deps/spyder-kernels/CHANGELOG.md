@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.0.4 (2025-05-13)
+
+### Pull Requests Merged
+
+* [PR 538](https://github.com/spyder-ide/spyder-kernels/pull/538) - PR: Use Ubuntu 22.04 for testing on CIs because the 20.04 image was removed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 536](https://github.com/spyder-ide/spyder-kernels/pull/536) - PR: Preserve case sensitivity of working directory when running files, by [@jsbautista](https://github.com/jsbautista)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.0.3 (2025-02-05)
 
 ### Pull Requests Merged
