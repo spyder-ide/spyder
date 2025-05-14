@@ -54,6 +54,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_comm = _(
             "The channel used to communicate with the kernel is not working."
         )
+        reason_missing_package_target = _(
+            "The '<tt>{}</tt>' module is required to open this variable and "
+            "it's not installed in the console environment. To fix this "
+            "problem, please install it in the environment which you use to "
+            "run your code."
+        )
         reason_missing_package_installer = _(
             "The '<tt>{}</tt>' module is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
@@ -78,6 +84,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "<a href='{}'>Github</a>."
         ).format(GH_ISSUES)
 
+        kernel_call_success = False
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -88,6 +95,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 display_error=False,
                 timeout=CALL_KERNEL_TIMEOUT
             ).get_value(name, encoded=True)
+            kernel_call_success = True
             value = cloudpickle.loads(value)
             return value
         except TimeoutError:
@@ -129,12 +137,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except CommError:
             raise ValueError(msg % reason_comm)
         except ModuleNotFoundError as e:
-            if is_conda_based_app():
-                raise ValueError(
-                    msg % reason_missing_package_installer.format(e.name)
-                )
+            if not kernel_call_success:
+                name = e.args[0].error.name
+                reason = reason_missing_package_target.format(name)
+            elif is_conda_based_app():
+                reason = reason_missing_package_installer.format(e.name)
             else:
-                raise ValueError(msg % reason_missing_package.format(e.name))
+                reason = reason_missing_package.format(e.name)
+            raise ValueError(msg % reason)
         except Exception:
             raise ValueError(msg % reason_other)
 
