@@ -450,7 +450,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
             rel_path = osp.relpath(
                 self.get_current_filename(), base_path
-            ).replace(os.sep, "/")
+            )
 
             QApplication.clipboard().setText(rel_path)
 
