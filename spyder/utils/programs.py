@@ -91,9 +91,7 @@ def is_program_installed(basename, extra_paths=[]):
     ):
         return basename
 
-    pixi = [
-        osp.join(home, '.pixi', 'bin'),
-    ]
+    pixi = [osp.join(home, '.pixi', 'bin')]
 
     if os.name == 'posix':
         pyenv = [
@@ -115,7 +113,11 @@ def is_program_installed(basename, extra_paths=[]):
     conda = [osp.join(*p, 'condabin') for p in itertools.product(a, b)]
 
     for path in (
-        extra_paths + conda + pyenv + pixi + os.getenv('PATH', []).split(os.pathsep)
+        extra_paths
+        + conda
+        + pyenv
+        + pixi
+        + os.getenv("PATH", []).split(os.pathsep)
     ):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):

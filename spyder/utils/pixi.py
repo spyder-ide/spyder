@@ -30,7 +30,7 @@ def find_pixi(pyexec=None):
     pixi_home = os.environ.get('PIXI_HOME')
     pixi = None
     if pixi_home:
-        pixi = os.environ.get('PIXI_HOME') or os.environ.get('MAMBA_EXE')
+        pixi = os.environ.get('PIXI_HOME')
 
     # Next try searching for the executable in default paths
     if pixi is None:
