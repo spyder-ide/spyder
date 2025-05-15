@@ -252,7 +252,7 @@ def test_transform_to_uppercase_shortcut(editorstack, qtbot):
     # Transform all the text to uppercase.
     qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
     qtbot.keyClick(editor, Qt.Key_U,
-                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+                   modifier=Qt.AltModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'LINE1\nLINE2\nLINE3\nLINE4\n'
 
 
