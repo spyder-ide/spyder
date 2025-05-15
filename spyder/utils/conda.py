@@ -103,6 +103,27 @@ def find_conda(pyexec=None):
     return conda
 
 
+def find_pixi(pyexec=None):
+    """
+    Find pixi executable.
+
+    `pyexec` is a python executable, the relative location from which to
+    attempt to locate a pixi executable.
+    """
+    # Try the environment variables
+    pixi_home = os.environ.get('PIXI_HOME')
+    pixi = None
+    if pixi_home:
+        pixi = os.environ.get('PIXI_HOME')
+
+    # Next try searching for the executable in default paths
+    if pixi is None:
+        pixi_exec = 'pixi.exe' if WINDOWS else 'pixi'
+        pixi = find_program(pixi_exec)
+
+    return pixi
+
+
 def get_list_conda_envs():
     """Return the list of all conda envs found in the system."""
     global CONDA_ENV_LIST_CACHE

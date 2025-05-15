@@ -31,10 +31,9 @@ from spyder.config.base import (get_safe_mode, is_conda_based_app,
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import conda_version, find_conda
+from spyder.utils.conda import conda_version, find_conda, find_pixi
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
-from spyder.utils.pixi import find_pixi
 from spyder.utils.programs import (
     get_module_version,
     get_temp_dir,
