@@ -71,7 +71,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "install it in the same environment that you use to run Spyder."
         )
         reason_mismatched_python = _(
-            "There is a mistmatch between the Python versions used by Spyder "
+            "There is a mismatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
             "To fix it, you need to recreate your console environment with "
             "Python {} or {}."
