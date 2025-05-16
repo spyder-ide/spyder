@@ -40,6 +40,7 @@ from spyder_kernels.comms.decorators import (
 from spyder_kernels.utils.pythonenv import (
     get_env_dir,
     is_conda_env,
+    is_pixi_env,
     is_pyenv_env,
     PythonEnvInfo,
     PythonEnvType,
@@ -833,7 +834,9 @@ class SpyderKernel(IPythonKernel):
         if not self.pythonenv_info:
             path = sys.executable.replace("pythonw.exe", "python.exe")
 
-            if is_conda_env(pyexec=path):
+            if is_pixi_env(path):
+                env_type = PythonEnvType.Pixi
+            elif is_conda_env(pyexec=path):
                 env_type = PythonEnvType.Conda
             elif is_pyenv_env(path):
                 env_type = PythonEnvType.PyEnv
