@@ -459,7 +459,7 @@ DEFAULTS = [
               'editor/duplicate line up': CTRL + "+Alt+PgUp",
               'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
-              'editor/transform to uppercase': 'Ctrl+Shift+U',
+              'editor/transform to uppercase': 'Alt+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
               'editor/indent': 'Ctrl+]',
               'editor/unindent': 'Ctrl+[',
@@ -697,4 +697,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.0.0'
+CONF_VERSION = '87.1.0'
