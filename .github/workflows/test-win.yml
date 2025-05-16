@@ -61,6 +61,7 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      CONDA: C:\Users\runneradmin\miniconda3
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +91,12 @@ jobs:
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
+      - name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          conda-remove-defaults: "true"
+          auto-activate-base: false
+          installer-url: https://repo.anaconda.com/miniconda/Miniconda3-py312_25.1.1-2-Windows-x86_64.exe
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'
         uses: mamba-org/setup-micromamba@v2
@@ -124,6 +131,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba info
+          conda info
           micromamba list
           pip list
       - name: Run manifest checks
