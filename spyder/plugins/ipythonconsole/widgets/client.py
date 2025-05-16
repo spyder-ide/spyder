@@ -80,7 +80,7 @@ except AttributeError:
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
-class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
+class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR0904
     """
     Client widget for the IPython Console
 
@@ -674,10 +674,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             and not self.error_text
         )
 
+        self.shellwidget.shutdown(shutdown_kernel)
+
         if self.is_remote() and shutdown_kernel and not close_console:
             self.shutdown_remote_kernel()
-
-        self.shellwidget.shutdown(shutdown_kernel)
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
@@ -869,31 +869,38 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
             sw.sig_shellwidget_errored.emit(sw)
         self.__remote_restart_requested = False
 
-    @AsyncDispatcher.QtSlot
-    def _reconnect_on_kernel_info(self, future):
-        if (kernel_info := future.result()):
-            try:
-                kernel_handler = KernelHandler.from_connection_info(
-                    kernel_info["connection_info"],
-                    ssh_connection=self._jupyter_api.manager._ssh_connection,
-                )
-                kernel_handler.set_time_to_dead(1.0)
-            except Exception as err:
-                self.remote_kernel_restarted_failure_message(
-                    err, shutdown=True
-                )
-            else:
-                self.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=False
-                )
-        else:
-            self.remote_kernel_restarted_failure_message(shutdown=True)
-            # This will show an error message in the plugins connected to the
-            # IPython console and disable kernel related actions in its Options
-            # menu.
-            sw = self.shellwidget
-            sw.sig_shellwidget_errored.emit(sw)
-        self.__remote_reconnect_requested = False
+    # @AsyncDispatcher.QtSlot
+    # def _reconnect_on_kernel_info(self, future):
+    #     if (kernel_info := future.result()):
+    #         try:
+    #             AsyncDispatcher(
+    #                 loop="ipythonconsole",
+    #                 early_return=False,
+    #             )(self._ws_connector.close)()
+    #             connection_info = self._get_websocket_connection_info(
+    #                 kernel_info["id"]
+    #             )
+
+    #             kernel_handler = KernelHandler.from_connection_info(
+    #                 connection_info,
+    #             )
+    #             kernel_handler.set_time_to_dead(1.0)
+    #         except Exception as err:
+    #             self.remote_kernel_restarted_failure_message(
+    #                 err, shutdown=True
+    #             )
+    #         else:
+    #             self.replace_kernel(
+    #                 kernel_handler, shutdown_kernel=False, clear=False
+    #             )
+    #     else:
+    #         self.remote_kernel_restarted_failure_message(shutdown=True)
+    #         # This will show an error message in the plugins connected to the
+    #         # IPython console and disable kernel related actions in its Options
+    #         # menu.
+    #         sw = self.shellwidget
+    #         sw.sig_shellwidget_errored.emit(sw)
+    #     self.__remote_reconnect_requested = False
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_started(self, future):
@@ -924,25 +931,24 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         self.kernel_id = kernel_info["id"]
 
         try:
-            kernel_handler = KernelHandler.from_connection_info(
-                kernel_info["connection_info"],
-                ssh_connection=self._jupyter_api.manager._ssh_connection,
+            kernel_handler = KernelHandler.from_websocket(
+                (self.jupyter_api.api_url / "kernels" / self.kernel_id / "channels").with_scheme('ws'),
+                aiohttp_session=self._jupyter_api.session,
             )
-
             # Need to be smaller than the usual time it takes for the kernel to
             # restart
-            kernel_handler.set_time_to_dead(1.0)
+            # kernel_handler.set_time_to_dead(1.0)
         except Exception as err:
             self.show_kernel_error(err)
         else:
             # Connect client to the kernel
             self.connect_kernel(kernel_handler)
 
-    @AsyncDispatcher(loop="ipythonconsole")
+    @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def shutdown_remote_kernel(self):
         return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
-    @AsyncDispatcher(loop="ipythonconsole")
+    @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def interrupt_remote_kernel(self):
         return await self._jupyter_api.interrupt_kernel(self.kernel_id)
 
@@ -950,12 +956,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
     async def _restart_remote_kernel(self):
         return await self._jupyter_api.restart_kernel(self.kernel_id)
 
-    @AsyncDispatcher(loop="ipythonconsole")
-    async def _get_remote_kernel_info(self):
-        return await self._jupyter_api.get_kernel(self.kernel_id)
+    # @AsyncDispatcher(loop="ipythonconsole")
+    # async def _get_remote_kernel_info(self):
+    #     return await self._jupyter_api.get_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
     async def _new_remote_kernel(self):
+        logger.debug("Creating new remote kernel for %s",
+                     self.get_name())
         await self.jupyter_api.connect()
         return await self._jupyter_api.create_kernel()
 
@@ -967,11 +975,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):
         )
         self.__remote_restart_requested = True
 
-    def reconnect_remote_kernel(self):
-        if self.__remote_reconnect_requested:
-            return
-        self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
-        self.__remote_reconnect_requested = True
+    # def reconnect_remote_kernel(self):
+    #     if self.__remote_reconnect_requested:
+    #         return
+    #     self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
+    #     self.__remote_reconnect_requested = True
 
     def start_remote_kernel(self):
         self._new_remote_kernel().connect(self._on_remote_kernel_started)
+
+    # @AsyncDispatcher(loop="ipythonconsole", early_return=False)
+    # async def _get_websocket_connection_info(self, kernel_id):
+    #     self._ws_connector = await self._jupyter_api.kernel_ws(kernel_id)
+    #     return await self._ws_connector.connection_info()
