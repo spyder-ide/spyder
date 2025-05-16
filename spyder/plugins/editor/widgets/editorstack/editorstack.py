@@ -24,7 +24,7 @@ import qstylizer.style
 from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QFontMetrics, QTextCursor
 from qtpy.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
                             QMessageBox, QVBoxLayout, QWidget, QSizePolicy,
                             QToolBar, QToolButton)
@@ -653,9 +653,20 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Update file name label."""
         filename = to_text_string(self.get_current_filename())
         if len(filename) > 100:
-            shorten_filename = u'...' + filename[-100:]
+            metrics = QFontMetrics(
+                self.default_font
+                if self.default_font is not None
+                else self.font()
+            )
+            max_width = 100 * metrics.width('W')
+            elided_filename = metrics.elidedText(
+                filename, Qt.ElideMiddle, max_width
+            )
+            shorten_filename = elided_filename
+            self.fname_label.setToolTip(filename)
         else:
             shorten_filename = filename
+            self.fname_label.setToolTip("")
         self.fname_label.setText(shorten_filename)
 
     def add_corner_widgets_to_tabbar(self, widgets):
@@ -1187,6 +1198,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         files_path_list = [finfo.filename for finfo in self.data]
         fname = self.data[index].filename
         fname = sourcecode.disambiguate_fname(files_path_list, fname)
+        if len(fname) > 40:
+            fname = fname[:18] + "..." + fname[-18:]
         return self.__modified_readonly_title(fname,
                                               is_modified, is_readonly)
 
