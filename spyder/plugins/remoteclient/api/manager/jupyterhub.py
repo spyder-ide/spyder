@@ -226,7 +226,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             _("We're establishing the connection. Please be patient"),
         )
 
-        self.logger.debug("Loggin to jupyterhub at %s", self.hub_url)
+        self.logger.debug("Connecting to jupyterhub at %s", self.hub_url)
 
         self._session = aiohttp.ClientSession(
             self.hub_url,

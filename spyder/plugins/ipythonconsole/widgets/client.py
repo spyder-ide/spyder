@@ -976,6 +976,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole")
     async def _new_remote_kernel(self):
+        logger.debug("Creating new remote kernel for %s",
+                     self.get_name())
         await self.jupyter_api.connect()
         return await self._jupyter_api.create_kernel()
 
