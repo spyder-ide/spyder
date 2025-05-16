@@ -110,11 +110,8 @@ def find_pixi(pyexec=None):
     `pyexec` is a python executable, the relative location from which to
     attempt to locate a pixi executable.
     """
-    # Try the environment variables
-    pixi_home = os.environ.get('PIXI_HOME')
-    pixi = None
-    if pixi_home:
-        pixi = os.environ.get('PIXI_HOME')
+    # Try the `PIXI_HOME` environment variable
+    pixi = os.environ.get('PIXI_HOME', None)
 
     # Next try searching for the executable in default paths
     if pixi is None:
@@ -251,7 +248,13 @@ def get_spyder_conda_channel():
 
 @lru_cache(maxsize=1)
 def conda_version(conda_executable=None):
-    """Get the conda version if available."""
+    """
+    Get the conda version if available.
+
+    Note: This function can potentialy get the version of other
+    conda-like executables like mamba, micromamba or Pixi, as well as any
+    executable that provides a `--version` CLI argument.
+    """
     version = parse('0')
     if not conda_executable:
         conda_executable = find_conda()
