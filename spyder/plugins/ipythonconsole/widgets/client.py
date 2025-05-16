@@ -946,8 +946,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         try:
             kernel_handler = KernelHandler.from_websocket(
-                self.jupyter_api.api_url / "kernels" / self.kernel_id / "channels",
-                self.jupyter_api.manager.api_token,
+                (self.jupyter_api.api_url / "kernels" / self.kernel_id / "channels").with_scheme('ws'),
+                aiohttp_session=self._jupyter_api.session,
             )
             # Need to be smaller than the usual time it takes for the kernel to
             # restart

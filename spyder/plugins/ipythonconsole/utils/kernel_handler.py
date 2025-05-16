@@ -166,6 +166,7 @@ class KernelHandler(QObject):
         ssh_connection=None,
         websocket_url=None,
         token=None,
+        aiohttp_session=None,
     ):
         super().__init__()
         # Connection Informations
@@ -182,6 +183,8 @@ class KernelHandler(QObject):
 
         self.websocket_url = websocket_url
         self.token = token
+
+        self.aiohttp_session = None
 
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
@@ -486,13 +489,16 @@ class KernelHandler(QObject):
         cls,
         websocket_url,
         token=None,
+        aiohttp_session=None,
     ):
         return cls(
             websocket_url=websocket_url,
             token=token,
+            aiohttp_session=aiohttp_session,
             kernel_client=cls.init_ws_kernel_client(
                 websocket_url,
                 token=token,
+                aiohttp_session=aiohttp_session,
             ),
         )
 
@@ -535,9 +541,13 @@ class KernelHandler(QObject):
         websocket_url,
         token=None,
         username=None,
+        aiohttp_session=None,
     ):
         """Create kernel client."""
-        return SpyderWSKernelClient(endpoint=websocket_url, token=token, username=username)
+        return SpyderWSKernelClient(endpoint=websocket_url,
+                                    token=token,
+                                    username=username,
+                                    aiohttp_session=aiohttp_session)
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
@@ -609,6 +619,7 @@ class KernelHandler(QObject):
             kernel_client = self.init_ws_kernel_client(
                 self.websocket_url,
                 token=self.token,
+                aiohttp_session=self.aiohttp_session,
             )
         else:
             kernel_client = self.init_kernel_client(
@@ -629,6 +640,7 @@ class KernelHandler(QObject):
             ssh_connection=self.ssh_connection,
             websocket_url=self.websocket_url,
             token=self.token,
+            aiohttp_session=self.aiohttp_session,
             kernel_client=kernel_client,
         )
 
