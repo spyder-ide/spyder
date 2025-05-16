@@ -958,11 +958,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             # Connect client to the kernel
             self.connect_kernel(kernel_handler)
 
-    @AsyncDispatcher(loop="ipythonconsole")
+    @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def shutdown_remote_kernel(self):
         return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
-    @AsyncDispatcher(loop="ipythonconsole")
+    @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def interrupt_remote_kernel(self):
         return await self._jupyter_api.interrupt_kernel(self.kernel_id)
 
