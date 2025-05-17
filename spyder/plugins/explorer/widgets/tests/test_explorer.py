@@ -379,7 +379,7 @@ def test_update_filters(file_explorer, qtbot):
 
     # Auxiliary function to interact with the filters dialog.
     def interact():
-        dlg = widget.findChild(QDialog)
+        dlg = file_explorer.explorer.findChild(QDialog)
         assert dlg
 
         # Change filters
@@ -392,7 +392,7 @@ def test_update_filters(file_explorer, qtbot):
 
     # Edit filters
     _ = create_timer(interact)
-    widget.edit_filter()
+    file_explorer.explorer.edit_filter()
 
     # Wait for filters to be applied
     qtbot.wait(1000)

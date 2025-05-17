@@ -29,14 +29,18 @@
 
 #### IPython console
 
+* **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
 * **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
 * **Breaking** - The `save_working_directory` method was made private because it's only used internally.
 * Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
+* Add `server_id` kwarg to the `set_current_client_working_directory` method.
 
 #### Working Directory
 
-* **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
+* **Breaking** - The `sig_current_directory_changed` signal now emits three strings instead of a single one.
 * **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
+* Add `server_id` kwarg to the `chdir` method.
+
 
 #### Remote Client
 
@@ -55,6 +59,12 @@
 
 * Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
 * Add `focused_plugin` attribute.
+
+#### File Explorer
+
+* **Breaking** - `ExplorerTreeWidgetActions` renamed to `ExplorerWidgetActions`.
+* **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
+* Add `server_id` kwarg to the `chdir` method.
 
 #### SpyderPluginV2
 
