@@ -25,6 +25,7 @@ from qtpy.QtGui import QColor, QIcon
 from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
+from spyder.app import SHORTCUT_EXE
 from spyder.app.utils import create_splash_screen
 from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
@@ -232,7 +233,7 @@ def main():
     else:
         script = osp.join(spyder_dir, 'spyder', 'app', 'start.py')
 
-    command = [f'"{sys.executable}"', f'"{script}"']
+    command = [f'"{SHORTCUT_EXE or sys.executable}"', f'"{script}"']
 
     # Adjust the command and/or arguments to subprocess depending on the OS
     shell = not IS_WINDOWS
