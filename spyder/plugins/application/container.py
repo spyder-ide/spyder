@@ -574,9 +574,8 @@ class ApplicationContainer(PluginMainContainer):
                     QDir.AllDirs | QDir.Files | QDir.Drives | QDir.Hidden
                 )
                 dialog.setFileMode(QFileDialog.ExistingFiles)
-
-                if dialog.exec_():
-                    filenames = dialog.selectedFiles()
+                dialog.exec_()
+                filenames = dialog.selectedFiles()
             else:
                 filenames, _sf = getopenfilenames(
                     self,
@@ -591,8 +590,8 @@ class ApplicationContainer(PluginMainContainer):
             dialog = QFileDialog(
                 self, _("Open file"), options=QFileDialog.DontUseNativeDialog
             )
-            if dialog.exec_():
-                filenames = dialog.selectedFiles()
+            dialog.exec_()
+            filenames = dialog.selectedFiles()
 
         self.sig_redirect_stdio_requested.emit(True)
 
