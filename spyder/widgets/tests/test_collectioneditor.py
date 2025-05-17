@@ -55,6 +55,11 @@ def data(cm, i, j):
     return cm.data(cm.index(i, j))
 
 
+def data_col(cm, j):
+    n_rows = cm.rowCount()
+    return [cm.data(cm.index(i, j)) for i in range(n_rows)]
+
+
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
 
@@ -527,17 +532,71 @@ def test_sort_and_fetch_collectionsmodel_with_many_rows():
     assert cm.rowCount() == len(coll)
 
 
-def test_dict_in_tableview_sorting():
+def test_dict_in_tableview_sorting(qtbot):
+    """
+    Test clicking on a column header in an editor showing a dict cycles
+    through sorting in ascending, descending and insertion order.
+    """
     my_dict = {2: 3, 3: 1, 1: 2}
     editor = CollectionsEditorTableView(None, my_dict)
+    qtbot.addWidget(editor)
+    editor.show()
 
     # Test that dict is displayed in insertion order
-    assert data(editor.model(), 0, 0) == 2
-    assert data(editor.model(), 1, 0) == 3
-    assert data(editor.model(), 2, 0) == 1
-    assert data(editor.model(), 0, 3) == '3'
-    assert data(editor.model(), 1, 3) == '1'
-    assert data(editor.model(), 2, 3) == '2'
+    assert data_col(editor.model(), 0) == [2, 3, 1]
+    assert data_col(editor.model(), 3) == ['3', '1', '2']
+
+    # Click on header of first column
+    header = editor.horizontalHeader()
+    x_col0 = header.sectionPosition(0) + header.sectionSize(0) // 2
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+
+    # Test that dict is sorted by key
+    assert data_col(editor.model(), 0) == [1, 2, 3]
+    assert data_col(editor.model(), 3) == ['2', '3', '1']
+
+    # Click on header of first column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+
+    # Test that dict is sorted by key in reverse order
+    assert data_col(editor.model(), 0) == [3, 2, 1]
+    assert data_col(editor.model(), 3) == ['1', '3', '2']
+
+    # Click on header of first column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+
+    # Test that dict is displayed in insertion order
+    assert data_col(editor.model(), 0) == [2, 3, 1]
+    assert data_col(editor.model(), 3) == ['3', '1', '2']
+
+    # Click on header of fourth column
+    x_col3 = header.sectionPosition(3) + header.sectionSize(3) // 2
+    with qtbot.waitSignal(header.sectionClicked, timeout=2000):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1))
+
+    # Test that dict is sorted by value
+    assert data_col(editor.model(), 0) == [3, 1, 2]
+    assert data_col(editor.model(), 3) == ['1', '2', '3']
+
+    # Click on header of fourth column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1))
+
+    # Test that dict is sorted by value in reverse order
+    assert data_col(editor.model(), 0) == [2, 1, 3]
+    assert data_col(editor.model(), 3) == ['3', '2', '1']
+
+    # Click on header of first column
+    header = editor.horizontalHeader()
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+
+    # Test that dict is sorted by key
+    assert data_col(editor.model(), 0) == [1, 2, 3]
+    assert data_col(editor.model(), 3) == ['2', '3', '1']
 
 
 def test_rename_and_duplicate_item_in_collection_editor():
