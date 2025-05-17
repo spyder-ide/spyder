@@ -201,6 +201,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
+        self.previous_sort = -1
         self._data = None
         self.total_rows = None
         self.showndata = None
@@ -320,16 +321,63 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         """Load all the data."""
         self.fetchMore(number_to_fetch=self.total_rows)
 
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Overriding sort method"""
+    def sort(
+        self,
+        column: int,
+        order: Qt.SortOrder = Qt.AscendingOrder
+    ) -> None:
+        """
+        Sort model by given column and order
+
+        This overrides the method in the base class and it called by Qt if
+        the user clicks on the header of a column.
+
+        If the collection editor shows a dictionary and the user changes the
+        order of a column from descending to ascending, then instead sort the
+        dict by insertion order. The effect is that clicking on a column
+        header switches between three states: that column is sorting in
+        ascending order, then in descending order, and then the dict reverts
+        to its natural state, which is sorted by insertion order. This
+        implementation is a bit of a hack. In Qt 6, the flag
+        `sortIndicatorClearable` in `QHeaderView` has the same effect.
+
+        Parameters
+        ----------
+        column : int
+            The column to sort. If column is -1 then return the model to its
+            unsorted state.
+        order : Qt.SortOrder, optional
+            Whether to sort in ascending or descending order. The default is
+            Qt.AscendingOrder.
+        """
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
 
+        try:
+            header = self._parent.horizontalHeader()
+        except AttributeError:
+            # may happen in tests
+            header = None
+
+        if (
+            header
+            and order == Qt.AscendingOrder
+            and column != -1
+            and self.previous_sort == column
+            and isinstance(self._data, dict)
+        ):
+            header.setSortIndicator(-1, Qt.AscendingOrder)
+            return
+
+        self.previous_sort = column
         reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
-        if column == 0:
+        if column == -1:
+            self.keys = list(self._data.keys())
+            self.set_size_and_type()
+        elif column == 0:
             self.sizes = sort_against(self.sizes, self.keys,
                                       reverse=reverse,
                                       sort_key=natsort)
