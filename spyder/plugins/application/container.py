@@ -560,6 +560,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
             selectedfilter = ''
 
+        filenames = []
         if not running_under_pytest():
             # See: spyder-ide/spyder#3291
             if sys.platform == 'darwin':
@@ -574,8 +575,9 @@ class ApplicationContainer(PluginMainContainer):
                     QDir.AllDirs | QDir.Files | QDir.Drives | QDir.Hidden
                 )
                 dialog.setFileMode(QFileDialog.ExistingFiles)
-                dialog.exec_()
-                filenames = dialog.selectedFiles()
+
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
             else:
                 filenames, _sf = getopenfilenames(
                     self,
@@ -590,8 +592,8 @@ class ApplicationContainer(PluginMainContainer):
             dialog = QFileDialog(
                 self, _("Open file"), options=QFileDialog.DontUseNativeDialog
             )
-            dialog.exec_()
-            filenames = dialog.selectedFiles()
+            if dialog.exec_():
+                filenames = dialog.selectedFiles()
 
         self.sig_redirect_stdio_requested.emit(True)
 
