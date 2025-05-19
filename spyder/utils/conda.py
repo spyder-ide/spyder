@@ -251,9 +251,9 @@ def conda_version(conda_executable=None):
     """
     Get the conda version if available.
 
-    Note: This function can potentialy get the version of other
-    conda-like executables like mamba, micromamba or Pixi, as well as any
-    executable that provides a `--version` CLI argument.
+    Note: This function can get the version of other conda-like executables
+    like mamba, micromamba or pixi, as well as any executable that provides a
+    `--version` CLI argument.
     """
     version = parse('0')
     if not conda_executable:
