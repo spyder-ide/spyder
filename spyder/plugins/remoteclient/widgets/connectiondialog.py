@@ -434,7 +434,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
             default="",
             tip=_(
-                "This is the host (<i><b>Host</b></i> configuration keyword) "
+                "This is the host (i.e. <b>Host</b> configuration keyword) "
                 "that encapsulates the options to use for the connection"
             ),
             status_icon=ima.icon("error"),
@@ -446,11 +446,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/port",
             min_=0,
             max_=65535,
-            tip=_("Introduce a port to use for this connection. "
-                  "Set <i><b>0</b></i> (<i><b>From file</b></i> value) to use "
-                  "the port specified in the configuration file"),
+            tip=_(
+                "Introduce a port to use for this connection. Set <b>0</b> "
+                "to use the port specified in the configuration file"
+            ),
         )
-        port.spinbox.setSpecialValueText(_("From file"))
+        port.spinbox.setSpecialValueText("")
         port.spinbox.setStyleSheet("margin-left: 5px")
 
         username = self.create_lineedit(
@@ -486,6 +487,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 if self.NEW_CONNECTION
                 else _("Your passphrase is saved securely by Spyder")
             ),
+            status_icon=ima.icon("error"),
             password=True
         )
 
@@ -496,6 +498,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._widgets_for_validation[AuthenticationMethod.ConfigFile] = [
             name,
             host,
+            username,
+            password,
+            keyfile,
+            passphrase,
             configfile,
         ]
         self._validation_labels[

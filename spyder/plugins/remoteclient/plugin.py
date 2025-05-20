@@ -218,10 +218,11 @@ class RemoteClient(SpyderPluginV2):
             # are required
             options["config"] = [options["config"]]
 
-            # Optional configuration vslues mapping (`port`, `username`,
+            # Optional configuration values mapping (`port`, `username`,
             # `client_keys`, `passphrase` and `password`)
             if options["port"] == 0:
-                # If 0 is set (`From file` option) ignore value
+                # Ignore value if 0 is set because it means the port we'll be
+                # read from the config file.
                 options.pop("port")
 
             if not options["username"]:
