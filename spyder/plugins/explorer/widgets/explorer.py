@@ -1180,7 +1180,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             answer = QMessageBox.warning(
                 self, _("Delete"),
                 _("Do you really want to delete <b>%s</b>?\n"
-                  "The file will be moved to the trash."
+                  "The file will be moved to the trash can."
                   ) % osp.basename(fname), buttons)
             if answer == QMessageBox.No:
                 return yes_to_all

@@ -16,6 +16,7 @@ import stat
 import socket
 
 from qtpy.QtCore import QFile
+
 from spyder.config.base import get_home_dir
 
 
@@ -27,7 +28,7 @@ def __remove_pyc_pyo(fname):
     if osp.splitext(fname)[1] == '.py':
         for ending in ('c', 'o'):
             if osp.exists(fname + ending):
-                QFile.moveToTrash(fname + ending)
+                os.remove(fname + ending)
 
 
 def rename_file(source, dest):
