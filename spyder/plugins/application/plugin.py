@@ -25,6 +25,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.widgets.menus import SpyderMenu, MENU_SEPARATOR
+from spyder.app import SHORTCUT_EXE
 from spyder.config.base import (get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
@@ -530,7 +531,7 @@ class Application(SpyderPluginV2):
 
         # Get current process and python running spyder
         pid = os.getpid()
-        python = sys.executable
+        python = SHORTCUT_EXE or sys.executable
 
         # Check if started with bootstrap.py
         if bootstrap_args is not None:

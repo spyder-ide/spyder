@@ -248,7 +248,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
-    sig_current_directory_changed = Signal(str)
+    sig_current_directory_changed = Signal(str, str)
     """
     This signal is emitted when the current directory of the active shell
     widget has changed.
@@ -257,6 +257,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     ----------
     working_directory: str
         The new working directory path.
+    server_id: str
+        The server identification from where the working directory is reachable.
     """
 
     sig_interpreter_changed = Signal(str)
@@ -1502,7 +1504,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # we call on_working_directory_changed to validate that the cwd
             # exists (this couldn't be the case for remote kernels).
             if sw.get_cwd() != self.get_working_directory():
-                self.on_working_directory_changed(sw.get_cwd())
+                self.on_working_directory_changed(sw.get_cwd(), sw.server_id)
 
         self.update_tabs_text()
         self.update_actions()
@@ -1776,9 +1778,17 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         client.connect_kernel(kernel_handler)
         return client
 
-    def create_client_for_kernel(self, connection_file, hostname, sshkey,
-                                 password, jupyter_api=None, give_focus=False,
-                                 can_close=True):
+    def create_client_for_kernel(
+        self,
+        connection_file,
+        hostname,
+        sshkey,
+        password,
+        jupyter_api=None,
+        files_api=None,
+        give_focus=False,
+        can_close=True
+    ):
         """Create a client connected to an existing kernel."""
         given_name = None
         master_client = None
@@ -1824,6 +1834,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             additional_options=self.additional_options(),
             handlers=self.registered_spyder_kernel_handlers,
             jupyter_api=jupyter_api,
+            files_api=files_api,
             give_focus=give_focus,
             can_close=can_close,
         )
@@ -2484,19 +2495,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Get saved value of current working directory."""
         return self._current_working_directory
 
-    def set_current_client_working_directory(self, directory):
+    def set_current_client_working_directory(self, directory, server_id=None):
         """Set current client working directory."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.set_cwd(directory)
 
-    def on_working_directory_changed(self, dirname):
+    def on_working_directory_changed(self, dirname, server_id):
         """
         Notify that the working directory was changed in the current console
         to other plugins.
         """
-        if dirname and osp.isdir(dirname):
-            self.sig_current_directory_changed.emit(dirname)
+        logger.debug(f"Changing working directory: {server_id} - {dirname}")
+        if dirname:
+            self.sig_current_directory_changed.emit(dirname, server_id)
 
     def update_path(self, new_path, prioritize):
         """Update path on consoles."""
@@ -2603,6 +2615,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
     # -------------------------------------------------------------------------
     def create_ipyclient_for_server(self, server_id):
         jupyter_api = self._plugin._remote_client.get_jupyter_api(server_id)
+        files_api = self._plugin._remote_client.get_file_api(server_id)()
+
         client = self.create_client_for_kernel(
             # The connection file will be supplied when connecting a remote
             # kernel to this client
@@ -2616,6 +2630,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # We save the jupyter_api in the client to perform on it operations
             # related to this plugin.
             jupyter_api=jupyter_api,
+            # We save the files_api in the client to get the remote machine
+            # home directory.
+            files_api=files_api,
             # This is necessary because it takes a while before getting a
             # response from the server with the kernel id that will be
             # associated to this client. So, if users could close it before

@@ -182,6 +182,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         # Variables
         self.history = self.get_conf('history', [])
         self.histindex = None
+        self.server_id = None
 
         # Widgets
         title = _('Current working directory')
@@ -204,6 +205,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.textActivated.connect(self.chdir)
 
         # Actions
+        # TODO: Previous and Next actions not being used?
         self.previous_action = self.create_action(
             WorkingDirectoryActions.Previous,
             text=_('Back'),
@@ -218,14 +220,14 @@ class WorkingDirectoryContainer(PluginMainContainer):
             icon=self.create_icon('next'),
             triggered=self._next_directory,
         )
-        browse_action = self.create_action(
+        self.browse_action = self.create_action(
             WorkingDirectoryActions.Browse,
             text=_('Browse a working directory'),
             tip=_('Browse a working directory'),
             icon=self.create_icon('DirOpenIcon'),
             triggered=self._select_directory,
         )
-        parent_action = self.create_action(
+        self.parent_action = self.create_action(
             WorkingDirectoryActions.Parent,
             text=_('Change to parent directory'),
             tip=_('Change to parent directory'),
@@ -233,7 +235,12 @@ class WorkingDirectoryContainer(PluginMainContainer):
             triggered=self._parent_directory,
         )
 
-        for item in [spacer, self.pathedit, browse_action, parent_action]:
+        for item in [
+            spacer,
+            self.pathedit,
+            self.browse_action,
+            self.parent_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,
@@ -241,12 +248,22 @@ class WorkingDirectoryContainer(PluginMainContainer):
             )
 
     def update_actions(self):
-        self.previous_action.setEnabled(
-            self.histindex is not None and self.histindex > 0)
-        self.next_action.setEnabled(
-            self.histindex is not None
-            and self.histindex < len(self.history) - 1
-        )
+        if self.server_id:
+            self.pathedit.setEnabled(False)
+            self.browse_action.setEnabled(False)
+            self.parent_action.setEnabled(False)
+        else:
+            self.pathedit.setEnabled(True)
+            self.browse_action.setEnabled(True)
+            self.parent_action.setEnabled(True)
+
+            # TODO: Seems like these actions are not used
+            self.previous_action.setEnabled(
+                self.histindex is not None and self.histindex > 0)
+            self.next_action.setEnabled(
+                self.histindex is not None
+                and self.histindex < len(self.history) - 1
+            )
 
     @on_conf_change(option='history')
     def on_history_update(self, value):
@@ -337,7 +354,10 @@ class WorkingDirectoryContainer(PluginMainContainer):
     @Slot(str)
     @Slot(str, bool)
     @Slot(str, bool, bool)
-    def chdir(self, directory, browsing_history=False, emit=True):
+    @Slot(str, bool, bool, str)
+    def chdir(
+        self, directory, browsing_history=False, emit=True, server_id=None
+    ):
         """
         Set `directory` as working directory.
 
@@ -350,28 +370,40 @@ class WorkingDirectoryContainer(PluginMainContainer):
         emit: bool, optional
             Emit a signal when changing the working directory.
             Default is True.
+        server_id: str, optional
+            The server identification from where the directory is reachable.
+            Default is None.
         """
-        if directory:
+        self.server_id = server_id
+
+        if directory and not server_id:
             directory = osp.abspath(str(directory))
 
         # Working directory history management
-        if browsing_history:
-            directory = self.history[self.histindex]
-        elif directory in self.history:
-            self.histindex = self.history.index(directory)
-        else:
-            if self.histindex is None:
-                self.history = []
+        # TODO: Each host/server requires an independent history
+        # Possibly handle current history with `history` as it is but populate it
+        # with entry from a dict that contains all hosts histories depending
+        # on server_id value passed:
+        #       {"<server_id>": {"history": []}}
+        if not server_id:
+            if browsing_history:
+                directory = self.history[self.histindex]
+            elif directory in self.history:
+                self.histindex = self.history.index(directory)
             else:
-                self.history = self.history[:self.histindex + 1]
+                if self.histindex is None:
+                    self.history = []
+                else:
+                    self.history = self.history[:self.histindex + 1]
 
-            self.history.append(directory)
-            self.histindex = len(self.history) - 1
+                self.history.append(directory)
+                self.histindex = len(self.history) - 1
 
         # Changing working directory
         try:
             logger.debug(f'Setting cwd to {directory}')
-            os.chdir(directory)
+            if not server_id:
+                os.chdir(directory)
             self.pathedit.add_text(directory)
             self.update_actions()
 
