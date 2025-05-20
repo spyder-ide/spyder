@@ -70,7 +70,7 @@ def test_default_keybinding_values():
     assert CONF.get_shortcut('editor', 'delete line') == 'Ctrl+D'
     assert CONF.get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
     assert CONF.get_shortcut('editor',
-                             'transform to uppercase') == 'Ctrl+Shift+U'
+                             'transform to uppercase') == 'Alt+Shift+U'
     assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
     assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
     assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
@@ -252,7 +252,7 @@ def test_transform_to_uppercase_shortcut(editorstack, qtbot):
     # Transform all the text to uppercase.
     qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
     qtbot.keyClick(editor, Qt.Key_U,
-                   modifier=Qt.ControlModifier | Qt.ShiftModifier)
+                   modifier=Qt.AltModifier | Qt.ShiftModifier)
     assert editor.toPlainText() == 'LINE1\nLINE2\nLINE3\nLINE4\n'
 
 
