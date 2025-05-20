@@ -335,6 +335,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
             ("find previous", self.find_previous, parent),
             ('find text', self.show, parent),
             ('replace text', self.show_replace, parent),
+            ('replace all', self.replace_find_all, parent),
             ('hide find and replace', self.hide, self),
         )
 
