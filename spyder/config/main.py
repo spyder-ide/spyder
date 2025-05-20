@@ -456,6 +456,7 @@ DEFAULTS = [
               'find_replace/find previous': (
                   "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
+              'find_replace/replace all': "Alt+A",
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
