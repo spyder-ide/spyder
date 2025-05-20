@@ -75,6 +75,7 @@ class CachedKernelMixin:
             # Fixes spyder-ide/spyder#24132
             or (
                 os.name == "nt"
+                and self._conda_exec is not None  # See spyder-ide/spyder#24421
                 and "conda" in osp.basename(self._conda_exec)
                 and conda_version() >= parse("25.3.0")
             )
