@@ -560,6 +560,7 @@ class ApplicationContainer(PluginMainContainer):
         else:
             selectedfilter = ''
 
+        filenames = []
         if not running_under_pytest():
             # See: spyder-ide/spyder#3291
             if sys.platform == 'darwin':
