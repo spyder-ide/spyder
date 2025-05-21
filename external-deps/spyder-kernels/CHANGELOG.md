@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.0.5 (2025/05/21)
+
+### Pull Requests Merged
+
+* [PR 544](https://github.com/spyder-ide/spyder-kernels/pull/544) - PR: Add minimal required version of `traitlets`, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.0.4 (2025-05-13)
 
 ### Pull Requests Merged
