@@ -172,6 +172,32 @@ In this release 25 pull requests were closed.
 
 ----
 
+## Version 6.0.7 (2025/05/22)
+
+### Important fixes
+
+* Fix hard crash when checking conda for cached kernels.
+* Fix inline plots failing due to faulty `traitlets` versions.
+
+### Issues Closed
+
+* [Issue 24421](https://github.com/spyder-ide/spyder/issues/24421) - Spyder 6.0.6 crashes at startup ([PR 24448](https://github.com/spyder-ide/spyder/pull/24448) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24390](https://github.com/spyder-ide/spyder/issues/24390) - Inline plots are not working due to faulty `traitlets` versions ([PR 24450](https://github.com/spyder-ide/spyder/pull/24450) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 24458](https://github.com/spyder-ide/spyder/pull/24458) - PR: Update `spyder-kernels` to 3.0.5 (for Spyder 6.0.7), by [@dalthviz](https://github.com/dalthviz)
+* [PR 24450](https://github.com/spyder-ide/spyder/pull/24450) - PR: Require a minimal version of the `traitlets` package (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([24390](https://github.com/spyder-ide/spyder/issues/24390))
+* [PR 24448](https://github.com/spyder-ide/spyder/pull/24448) - PR: Fix hard crash when checking conda for cached kernels (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([24421](https://github.com/spyder-ide/spyder/issues/24421))
+* [PR 24425](https://github.com/spyder-ide/spyder/pull/24425) - PR: Fix cached kernels on Windows for CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24399](https://github.com/spyder-ide/spyder/pull/24399) - PR: Try to decrease `test_dedicated_consoles` flakyness (CI/Tests), by [@dalthviz](https://github.com/dalthviz)
+
+In this release 5 pull requests were closed.
+
+----
+
 ## Version 6.0.6 (2025/05/14)
 
 ### New features
