@@ -1,32 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.6 is released!
+**Subject**: [ANN] Spyder 6.0.7 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.6** has been released and is available for
+I'm pleased to announce that Spyder **6.0.7** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 6.0.5 and it contains the
-following new features and important fixes:
+This release comes one week after version 6.0.6 and it contains the
+following important fixes:
 
-* Make Editor annotations (like `FIXME` or `HINT`) work in lowercase.
-* Retore `Quit` action to the the IPython console context menu.
-* Don't advance line when running code if there's selected text in the Editor.
-* Prevent breakpoints from disappearing when formatting code.
-* Fix remote connections error when using the `Key file` authentication method.
-* Respect case sensitivity of working directory when running code.
-* Disable fullscreen mode when running on the Windows Subsystem for Linux.
-* Several fixes to prevent the Editor and Find panes from taking too much horizontal space.
-* Show a better error message when failing to open objects in the Variable Explorer due to a mismatch of Python versions.
-* Fix opening Files pane context menu when clicking on its blank area.
-* Remove `QtWebEngine` requirement to show the `Help Spyder` action.
-* Prevent `Matplotlib` cache font message from being displayed.
-* Ensure color scheme changes are applied to all the open files.
+* Fix crash at startup on Windows when Conda is not available.
+* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
 
-In this release we fixed 20 issues and merged 37 pull requests. For a full
+In this release we fixed 2 issues and merged 5 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
