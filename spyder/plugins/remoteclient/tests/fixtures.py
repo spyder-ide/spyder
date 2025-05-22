@@ -14,6 +14,7 @@ import uuid
 import re
 
 import pytest
+import requests
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
@@ -22,9 +23,9 @@ from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 __all__ = [
     "remote_client_id",
     "ssh_server_addr",
+    "ssh_client_id",
     "jupyterhub_server_addr",
     "jupyterhub_client_id",
-    "ssh_client_id",
     "docker_compose_id",
 ]
 
@@ -40,7 +41,7 @@ def docker_compose_id():
     project_name = "pytest-spyder-remote"
     subprocess.check_call(
         ["docker", "compose", "-f", compose_file,
-         "--project-name", project_name,
+         "-p", project_name,
          "up", "--build", "-d"],
     )
 
@@ -48,7 +49,7 @@ def docker_compose_id():
         yield project_name
     finally:
         subprocess.check_call(
-            ["docker", "compose", "--project-name", project_name, "down"],
+            ["docker", "compose", "-p", project_name, "down"],
         )
 
 
@@ -99,8 +100,9 @@ def check_server(ip="127.0.0.1", port=22, timeout=30):
     test_socket.close()
 
 
-@pytest.fixture(params=["ssh_client_id", "jupyterhub_client_id"],
-                ids=["ssh", "jupyterhub"])
+@pytest.fixture(
+    params=["ssh_client_id", "jupyterhub_client_id"],
+)
 def remote_client_id(request):
     """Fixture to provide the remote client ID based on the request parameter."""
     return request.getfixturevalue(request.param)
@@ -205,7 +207,7 @@ def ssh_server_addr(
 
 @pytest.fixture(scope="class")
 def jupyterhub_server_addr(
-    docker_ip: str, docker_compose_id,
+    docker_compose_id: str,
 ) -> typing.Tuple[str, int]:
     """Start an SSH server from docker-compose and return its address.
 
@@ -226,5 +228,23 @@ def jupyterhub_server_addr(
         ip=docker_ip,
         port=port,
     )
+    timeout = 30
+    start = time.monotonic()
+    while True:
+        try:
+            response = requests.get(
+                f"http://{docker_ip}:{port}/hub/api",
+                timeout=5,
+            )
+            if response.status_code == 200:
+                break
+        except requests.exceptions.RequestException:
+            pass
+        time.sleep(1)
+        if time.monotonic() - start > timeout:
+            msg = f"Timeout waiting for JupyterHub server on {docker_ip}:{port}"
+            raise TimeoutError(
+                msg,
+            )
 
     return docker_ip, port
