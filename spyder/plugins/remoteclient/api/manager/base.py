@@ -79,10 +79,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         self.options = options
         self._plugin = _plugin
 
-        loop = AsyncDispatcher.get_event_loop("asyncssh")
-        self.__server_installed = asyncio.Event(loop=loop)
-        self.__starting_event = asyncio.Event(loop=loop)
-        self.__connection_established = asyncio.Event(loop=loop)
+        self.__create_events()
 
         self.__installing_server = False
         self.__starting_server = False
@@ -98,6 +95,12 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
         if self._plugin is not None:
             self.logger.addHandler(SpyderRemoteAPILoggerHandler(self))
+
+    @AsyncDispatcher(loop="asyncssh", early_return=False)
+    async def __create_events(self):
+        self.__server_installed = asyncio.Event()
+        self.__starting_event = asyncio.Event()
+        self.__connection_established = asyncio.Event()
 
     def _emit_connection_status(self, status, message):
         if self._plugin is not None:
