@@ -176,8 +176,8 @@ In this release 25 pull requests were closed.
 
 ### Important fixes
 
-* Fix hard crash when checking conda for cached kernels.
-* Fix inline plots failing due to faulty `traitlets` versions.
+* Fix crash at startup on Windows when Conda is not available.
+* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
 
 ### Issues Closed
 

@@ -12,8 +12,8 @@ Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 This release comes one week after version 6.0.6 and it contains the
 following important fixes:
 
-* Fix hard crash when checking conda for cached kernels.
-* Fix inline plots failing due to faulty `traitlets` versions.
+* Fix crash at startup on Windows when Conda is not available.
+* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
 
 In this release we fixed 2 issues and merged 5 pull requests. For a full
 list of fixes, please see our
