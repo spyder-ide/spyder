@@ -42,8 +42,12 @@ REQUIREMENTS = [
     'ipython>=8.13.0,<9,!=8.17.1; python_version>"3.8"',
     'jupyter-client>=7.4.9,<9',
     'pyzmq>=24.0.0',
-    'wurlitzer>=1.0.3;platform_system!="Windows"',
     'pyxdg>=0.26;platform_system=="Linux"',
+    # We need at least this version of traitlets to fix an error when setting
+    # the Matplotlib inline backend formats.
+    # Fixes spyder-ide/spyder#24390
+    'traitlets>=5.14.3',
+    'wurlitzer>=1.0.3;platform_system!="Windows"',
 ]
 
 TEST_REQUIREMENTS = [
