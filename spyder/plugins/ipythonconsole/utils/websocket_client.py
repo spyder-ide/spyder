@@ -691,20 +691,27 @@ class _WebSocketKernelClient(Configurable):
         qs = {"session_id": self.session.session}
         if self._token:
             qs["token"] = self._token
-        url = f"{self._endpoint}?{urlencode(qs)}"
 
-        _LOGGER.info("Connecting to Websocket at: %s", url)
+        _LOGGER.info("Connecting to Websocket at: %s", self._endpoint)
         self._ws = await self._aiohttp_session.ws_connect(
-            url,
+            self._endpoint,
+            params=qs,
             protocols=("v1.kernel.websocket.jupyter.org",),
             autoping=True,
         )
 
     async def _receiver_loop(self):
         """Receive messages from the websocket stream."""
-        while True:
-            channel, msg = await self.session.recv(self._ws)
-            await self._queues[channel].put(msg)
+        try:
+            while True:
+                channel, msg = await self.session.recv(self._ws)
+                await self._queues[channel].put(msg)
+        except BaseException as exc:
+            if isinstance(exc, asyncio.CancelledError):
+                _LOGGER.debug("Receiver loop cancelled")
+            else:
+                _LOGGER.exception("Receiver loop error for %s",
+                                  self.session.session)
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def stop_channels(self):
