@@ -1402,7 +1402,7 @@ overrided by the Sympy module (e.g. plot)
 
         if self.is_remote():
             self._kernel_restarted_message(died=True)
-            self.ipyclient.restart_remote_kernel()
+            self.ipyclient.reconnect_remote_kernel()
         else:
             super()._handle_kernel_died(since_last_heartbeat)
 

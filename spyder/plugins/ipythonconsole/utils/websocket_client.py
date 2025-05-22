@@ -705,6 +705,18 @@ class _WebSocketKernelClient(Configurable):
         try:
             while True:
                 channel, msg = await self.session.recv(self._ws)
+
+                # TODO(@hlouzada): handle restarts on comms
+                if (
+                    channel == "iopub"
+                    and msg["msg_type"] == "status"
+                    and msg["content"].get("execution_state") == "restarting"
+                ):
+                    await asyncio.to_thread(
+                        self.hb_channel.call_handlers,
+                        self._ws._loop.time() - self._ws._heartbeat_when,
+                    )
+
                 await self._queues[channel].put(msg)
         except BaseException as exc:
             if isinstance(exc, asyncio.CancelledError):
