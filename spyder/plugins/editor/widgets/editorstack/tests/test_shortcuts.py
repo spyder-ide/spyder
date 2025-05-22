@@ -234,7 +234,7 @@ def test_transform_to_lowercase_shortcut(editorstack, qtbot):
 
     # Transform all the text to lowercase.
     qtbot.keyClick(editor, Qt.Key_A, modifier=Qt.ControlModifier)
-    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.AltModifier)
     assert editor.toPlainText() == 'line1\nline2\nline3\nline4\n'
 
 
