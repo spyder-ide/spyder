@@ -7,11 +7,9 @@
 from pathlib import Path
 import socket
 import subprocess
-import sys
 import time
 import typing
 import uuid
-import re
 
 import pytest
 import requests
@@ -26,36 +24,53 @@ __all__ = [
     "ssh_client_id",
     "jupyterhub_server_addr",
     "jupyterhub_client_id",
-    "docker_compose_id",
 ]
 
 # NOTE: These credentials are hardcoded in the Dockerfile.
 USERNAME = "ubuntu"
 PASSWORD = USERNAME
 
+_COMPOSE_FILE = str(Path(__file__).resolve().parent / "docker-compose.yml")
+_COMPOSE_PROJECT_NAME = "spyder-remote-client-tests"
 
-@pytest.fixture(scope="class")
-def docker_compose_id():
-    """Fixture to start a Docker container using docker-compose."""
-    compose_file = str(Path(__file__).resolve().parent / "docker-compose.yml")
-    project_name = "pytest-spyder-remote"
+
+def start_docker_service(service: str) -> None:
+    """docker-compose up for one service only (no deps, build if needed)."""
     subprocess.check_call(
-        ["docker", "compose", "-f", compose_file,
-         "-p", project_name,
-         "up", "--build", "-d"],
+        [
+            "docker",
+            "compose",
+            "-f",
+            _COMPOSE_FILE,
+            "-p",
+            _COMPOSE_PROJECT_NAME,
+            "up",
+            "-d",
+            # "--build",
+            service,
+        ],
     )
 
-    try:
-        yield project_name
-    finally:
-        subprocess.check_call(
-            ["docker", "compose", "-p", project_name, "down"],
-        )
+
+def stop_docker_service(service: str) -> None:
+    """docker-compose down for one service only (no deps)."""
+    subprocess.check_call(
+        [
+            "docker",
+            "compose",
+            "-f",
+            _COMPOSE_FILE,
+            "-p",
+            _COMPOSE_PROJECT_NAME,
+            "down",
+            "--remove-orphans",
+        ],
+    )
 
 
-def get_addr_for_port(project_name: str, service_name: str, container_port: int):
+def get_addr_for_port(service_name: str, container_port: int):
     result = subprocess.run(
-        ["docker", "compose", "-p", project_name, "port", service_name, str(container_port)],
+        ["docker", "compose", "-p", _COMPOSE_PROJECT_NAME, "port", service_name, str(container_port)],
         check=True,
         capture_output=True,
         text=True,
@@ -101,6 +116,7 @@ def check_server(ip="127.0.0.1", port=22, timeout=30):
 
 
 @pytest.fixture(
+    scope="class",
     params=["ssh_client_id", "jupyterhub_client_id"],
 )
 def remote_client_id(request):
@@ -179,9 +195,7 @@ def jupyterhub_client_id(
 
 
 @pytest.fixture(scope="class")
-def ssh_server_addr(
-    docker_compose_id: str,
-) -> typing.Tuple[str, int]:
+def ssh_server_addr():
     """Start an SSH server from docker-compose and return its address.
 
     Args
@@ -195,20 +209,22 @@ def ssh_server_addr(
     """
     # Build URL to service listening on random port.
     # NOTE: This is the service name and port in the docker-compose.yml file.
-    docker_ip, port = get_addr_for_port(docker_compose_id, "test-spyder-remote-server", 22)
+    service_name = "test-spyder-remote-server"
+    start_docker_service(service_name)
+    docker_ip, port = get_addr_for_port(service_name, 22)
 
     check_server(
         ip=docker_ip,
         port=port,
     )
-
-    return docker_ip, port
+    try:
+        yield (docker_ip, port)
+    finally:
+        stop_docker_service(service_name)
 
 
 @pytest.fixture(scope="class")
-def jupyterhub_server_addr(
-    docker_compose_id: str,
-) -> typing.Tuple[str, int]:
+def jupyterhub_server_addr():
     """Start an SSH server from docker-compose and return its address.
 
     Args
@@ -222,7 +238,10 @@ def jupyterhub_server_addr(
     """
     # Build URL to service listening on random port.
     # NOTE: This is the service name and port in the docker-compose.yml file.
-    docker_ip, port = get_addr_for_port(docker_compose_id, "test-spyder-jupyterhub", 8000)
+    service_name = "test-spyder-jupyterhub"
+    start_docker_service(service_name)
+
+    docker_ip, port = get_addr_for_port(service_name, 8000)
 
     check_server(
         ip=docker_ip,
@@ -232,11 +251,10 @@ def jupyterhub_server_addr(
     start = time.monotonic()
     while True:
         try:
-            response = requests.get(
+            if requests.get(
                 f"http://{docker_ip}:{port}/hub/api",
                 timeout=5,
-            )
-            if response.status_code == 200:
+            ).status_code == 200:
                 break
         except requests.exceptions.RequestException:
             pass
@@ -246,5 +264,7 @@ def jupyterhub_server_addr(
             raise TimeoutError(
                 msg,
             )
-
-    return docker_ip, port
+    try:
+        yield (docker_ip, port)
+    finally:
+        stop_docker_service(service_name)
