@@ -1,7 +1,7 @@
 {
     "ServerApp": {
         "jpserver_extensions": {
-            "spyder-services": true
+            "spyder_remote_services": true
         }
     }
 }

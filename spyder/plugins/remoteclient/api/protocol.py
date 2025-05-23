@@ -9,6 +9,7 @@ Spyder Remote Client API.
 """
 
 from __future__ import annotations
+import enum
 import logging
 import typing
 
@@ -44,6 +45,11 @@ class SSHClientOptions(typing.TypedDict):
     known_hosts: str | typing.Sequence[str] | None
     config: typing.Sequence[str] | None
     platform: str | None
+
+
+class JupyterHubClientOptions(typing.TypedDict):
+    url: str
+    token: str
 
 
 class ConnectionStatus:
