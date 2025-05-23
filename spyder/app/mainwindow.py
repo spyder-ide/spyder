@@ -559,7 +559,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         this plugin to view (if it's hidden) and gives it focus (if
         possible).
         """
-            self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
+        self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
 
     def unmaximize_plugin(self, not_this_plugin=None):
         """
