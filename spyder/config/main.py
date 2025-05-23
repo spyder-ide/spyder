@@ -557,6 +557,7 @@ DEFAULTS = [
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
               # -- Variable explorer --
+              'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
