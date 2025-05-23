@@ -949,7 +949,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                 plugin.get_widget().windowwidget.activateWindow()
             else:
                 plugin.change_visibility(True, force_focus=force_focus)
-                self.activateWindow()
+                self.main.activateWindow()
         except AttributeError:
             # Old API
             plugin._visibility_changed(True)
