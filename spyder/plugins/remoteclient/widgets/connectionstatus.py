@@ -124,7 +124,7 @@ class ConnectionStatusWidget(
 
         self._log_widget.setMaximumBlockCount(MAX_CLIENT_MESSAGES)
         self._log_widget.setReadOnly(True)
-        self._log_widget.setMinimumHeight(210 if MAC else 230)
+        self._log_widget.setMinimumHeight(200 if MAC else 210)
         self._log_widget.setPlaceholderText(_("No logs to show"))
 
         self._copy_logs_button.setEnabled(False)
@@ -301,8 +301,14 @@ class ConnectionStatusWidget(
         )
 
     def _set_icon(self, status):
+        icon_colors = {
+            'active':     STATUS_TO_COLOR[ConnectionStatus.Active],
+            'inactive':   STATUS_TO_COLOR[ConnectionStatus.Inactive],
+            'connecting': STATUS_TO_COLOR[ConnectionStatus.Connecting],
+            'error':      STATUS_TO_COLOR[ConnectionStatus.Error],
+        }
         self._image_label.setPixmap(
-            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
+            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1, icon_colors=icon_colors)
         )
 
     @property
