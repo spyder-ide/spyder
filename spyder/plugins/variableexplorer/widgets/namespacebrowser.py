@@ -248,6 +248,7 @@ class NamespaceBrowser(
 
     def set_data(self, data):
         """Set data."""
+        data = dict(sorted(data.items()))
         if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
