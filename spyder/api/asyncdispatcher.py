@@ -248,12 +248,15 @@ class AsyncDispatcher(typing.Generic[_RT]):
         Parameters
         ----------
         loop_id : LoopID, optional (default: None)
-            The event loop to be used, by default gets the current
-            thread event loop.
-            If a hashable is provided, it will be used to identify the loop
-            in the AsyncDispatcher.
-            If an event loop is provided, it will be used as the event loop
-            in the AsyncDispatcher.
+            The event loop to be used, by default gets the current thread event
+            loop.
+
+        Notes
+        -----
+        * If a hashable is provided, it will be used to identify the loop in
+          the AsyncDispatcher.
+        * If an event loop is provided, it will be used as the event loop in
+          the AsyncDispatcher.
 
         Returns
         -------

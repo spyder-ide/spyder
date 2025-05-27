@@ -9,7 +9,6 @@ Spyder Remote Client API.
 """
 
 from __future__ import annotations
-import enum
 import logging
 import typing
 

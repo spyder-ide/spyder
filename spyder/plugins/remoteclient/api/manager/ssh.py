@@ -40,7 +40,7 @@ from spyder.plugins.remoteclient.utils.installation import (
 
 
 class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
-    """Class to manage a remote server and its APIs."""
+    """Class to manage a remote SSH server and its APIs."""
 
     _extra_options = ["platform", "id"]
 

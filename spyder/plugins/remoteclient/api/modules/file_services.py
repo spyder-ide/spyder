@@ -436,7 +436,10 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     async def unlink(self, path: Path, missing_ok: bool = False):
         async with self.session.delete(
             self.api_url / "file",
-            params={"path": f"file://{path}", "missing_ok": str(missing_ok).lower()},
+            params={
+                "path": f"file://{path}",
+                "missing_ok": str(missing_ok).lower(),
+            },
         ) as response:
             return await response.json()
 
@@ -450,7 +453,11 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     async def copy2(self, path1: Path, path2: Path):
         async with self.session.post(
             self.api_url / "copy",
-            params={"path": f"file://{path1}", "dest": f"file://{path2}", "metadata": "true"},
+            params={
+                "path": f"file://{path1}",
+                "dest": f"file://{path2}",
+                "metadata": "true",
+            },
         ) as response:
             return await response.json()
 
@@ -464,7 +471,10 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
     async def touch(self, path: Path, truncate: bool = True):
         async with self.session.post(
             self.api_url / "touch",
-            params={"path": f"file://{path}", "truncate": str(truncate).lower()},
+            params={
+                "path": f"file://{path}",
+                "truncate": str(truncate).lower(),
+            },
         ) as response:
             return await response.json()
 

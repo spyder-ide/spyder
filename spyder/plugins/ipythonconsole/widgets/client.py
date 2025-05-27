@@ -888,7 +888,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if (kernel_info := future.result()):
             try:
                 kernel_handler = KernelHandler.from_websocket(
-                    (self.jupyter_api.api_url / "kernels" / self.kernel_id / "channels").with_scheme('ws'),
+                    (
+                        self.jupyter_api.api_url
+                        / "kernels"
+                        / self.kernel_id
+                        / "channels"
+                    ).with_scheme("ws"),
                     aiohttp_session=self._jupyter_api.session,
                 )
             except Exception as err:
@@ -938,7 +943,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         try:
             kernel_handler = KernelHandler.from_websocket(
-                (self.jupyter_api.api_url / "kernels" / self.kernel_id / "channels").with_scheme('ws'),
+                (
+                    self.jupyter_api.api_url
+                    / "kernels"
+                    / self.kernel_id
+                    / "channels"
+                ).with_scheme("ws"),
                 aiohttp_session=self._jupyter_api.session,
             )
         except Exception as err:
@@ -965,8 +975,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole")
     async def _new_remote_kernel(self):
-        logger.debug("Creating new remote kernel for %s",
-                     self.get_name())
+        logger.debug("Creating new remote kernel for %s", self.get_name())
         await self.jupyter_api.connect()
         return await self._jupyter_api.create_kernel()
 

@@ -32,7 +32,9 @@ from spyder.plugins.ipythonconsole import (
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
-from spyder.plugins.ipythonconsole.utils.websocket_client import SpyderWSKernelClient
+from spyder.plugins.ipythonconsole.utils.websocket_client import (
+    SpyderWSKernelClient,
+)
 from spyder.utils.programs import check_version_range
 
 
@@ -544,10 +546,12 @@ class KernelHandler(QObject):
         aiohttp_session=None,
     ):
         """Create kernel client."""
-        return SpyderWSKernelClient(endpoint=websocket_url,
-                                    token=token,
-                                    username=username,
-                                    aiohttp_session=aiohttp_session)
+        return SpyderWSKernelClient(
+            endpoint=websocket_url,
+            token=token,
+            username=username,
+            aiohttp_session=aiohttp_session,
+        )
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""

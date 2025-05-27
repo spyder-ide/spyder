@@ -28,7 +28,6 @@ from spyder.plugins.remoteclient import (
 from spyder.plugins.remoteclient.api.manager.base import (
     SpyderRemoteAPIManagerBase,
 )
-from spyder.plugins.remoteclient.api.modules.base import SpyderRemoteAPIError
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionStatus,
     JupyterHubClientOptions,
@@ -36,9 +35,11 @@ from spyder.plugins.remoteclient.api.protocol import (
 
 
 class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
-    """Class to manage a remote server and its APIs."""
+    """Class to manage a remote JupyterHub server and its APIs."""
 
-    def __init__(self, conf_id, options: JupyterHubClientOptions, _plugin=None):
+    def __init__(
+        self, conf_id, options: JupyterHubClientOptions, _plugin=None
+    ):
         super().__init__(conf_id, options, _plugin)
 
         self._server_url = None
@@ -78,6 +79,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                     )
                     return True
                 return False
+
             if not response.ok:
                 try:
                     jupyter_error = await response.json()
@@ -105,13 +107,14 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         ) as response:
             if not response.ok:
                 self.logger.error(
-                    "Error getting remote server progress: %s", response.status,
+                    "Error getting remote server progress: %s",
+                    response.status,
                 )
                 self._emit_connection_status(
                     ConnectionStatus.Error,
                     _(
-                        "There was an error when trying to get the remote server "
-                        "information"
+                        "There was an error when trying to get the remote "
+                        "server information"
                     ),
                 )
                 return False
@@ -133,8 +136,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             "JupyterHub logs for more information",
         )
         self._emit_connection_status(
-            ConnectionStatus.Error,
-            _("Error starting the remote server"),
+            ConnectionStatus.Error, _("Error starting the remote server"),
         )
         return False
 
@@ -171,6 +173,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                         response.status,
                         await response.text(),
                     )
+
                 self._emit_connection_status(
                     ConnectionStatus.Error,
                     _("Error starting the remote server"),
@@ -181,8 +184,8 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self.logger.error(
-                "Server version mismatch: %s is greater than "
-                "the maximum supported version %s",
+                "Server version mismatch: %s is greater than the maximum "
+                "supported version %s",
                 version,
                 SPYDER_REMOTE_MAX_VERSION,
             )
@@ -195,9 +198,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
             self.logger.warning(
-                "Server version mismatch: %s is lower than "
-                "the minimum supported version %s. "
-                "A more recent version will be installed.",
+                "Server version mismatch: %s is lower than the minimum "
+                "supported version %s. A more recent version will be "
+                "installed.",
                 version,
                 SPYDER_REMOTE_MIN_VERSION,
             )

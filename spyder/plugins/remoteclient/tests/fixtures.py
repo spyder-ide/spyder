@@ -71,7 +71,15 @@ def stop_docker_service(service: str) -> None:
 
 def get_addr_for_port(service_name: str, container_port: int):
     result = subprocess.run(
-        ["docker", "compose", "-p", _COMPOSE_PROJECT_NAME, "port", service_name, str(container_port)],
+        [
+            "docker",
+            "compose",
+            "-p",
+            _COMPOSE_PROJECT_NAME,
+            "port",
+            service_name,
+            str(container_port),
+        ],
         check=True,
         capture_output=True,
         text=True,
@@ -121,7 +129,9 @@ def check_server(ip="127.0.0.1", port=22, timeout=30):
     params=["ssh_client_id", "jupyterhub_client_id"],
 )
 def remote_client_id(request):
-    """Fixture to provide the remote client ID based on the request parameter."""
+    """
+    Fixture to provide the remote client ID based on the request parameter.
+    """
     return request.getfixturevalue(request.param)
 
 
@@ -184,7 +194,9 @@ def jupyterhub_client_id(
         f"{config_id}/name", "test-server"
     )
 
-    remote_client.load_jupyterhub_client(options=jupyterhub_options, config_id=config_id)
+    remote_client.load_jupyterhub_client(
+        options=jupyterhub_options, config_id=config_id
+    )
 
     try:
         yield config_id
@@ -214,10 +226,7 @@ def ssh_server_addr():
     start_docker_service(service_name)
     docker_ip, port = get_addr_for_port(service_name, 22)
 
-    check_server(
-        ip=docker_ip,
-        port=port,
-    )
+    check_server(ip=docker_ip, port=port)
     try:
         yield (docker_ip, port)
     finally:
@@ -244,10 +253,7 @@ def jupyterhub_server_addr():
 
     docker_ip, port = get_addr_for_port(service_name, 8000)
 
-    check_server(
-        ip=docker_ip,
-        port=port,
-    )
+    check_server(ip=docker_ip, port=port)
     timeout = 30
     start = time.monotonic()
     while True:

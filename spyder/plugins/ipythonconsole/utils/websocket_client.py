@@ -20,7 +20,6 @@ import typing as t
 from functools import wraps
 from getpass import getuser
 from types import MethodType
-from urllib.parse import urlencode
 
 import aiohttp
 from jupyter_client.adapter import adapt
@@ -80,14 +79,15 @@ class _Session:
         channel: str,
         msg: dict[str, t.Any],
     ) -> dict[str, t.Any] | None:
-        """Build and send a message via websocket.
+        """
+        Build and send a message via websocket.
 
         The message format used by this function internally is as follows:
 
         [p_header, p_parent, p_content, buffer1, buffer2,...]
 
-        The serialize/deserialize methods convert the nested message dict into this
-        format.
+        The serialize/deserialize methods convert the nested message dict into
+        this format.
 
         Parameters
         ----------
@@ -117,6 +117,7 @@ class _Session:
                 "WARNING: attempted to send message from fork\n%s", msg
             )
             return None
+
         buffers = [] if buffers is None else buffers
         for idx, buf in enumerate(buffers):
             if isinstance(buf, memoryview):
@@ -128,8 +129,9 @@ class _Session:
                 except TypeError as e:
                     emsg = "Buffer objects must support the buffer protocol."
                     raise TypeError(emsg) from e
-            # memoryview.contiguous is new in 3.3,
-            # just skip the check on Python 2
+
+            # memoryview.contiguous is new in 3.3, just skip the check on
+            # Python 2
             if hasattr(view, "contiguous") and not view.contiguous:
                 # zmq requires memoryviews to be contiguous
                 msge = f"Buffer {idx} ({buf}) is not contiguous"
@@ -137,6 +139,7 @@ class _Session:
 
         if self.adapt_version:
             msg = adapt(msg, self.adapt_version)
+
         to_send = self.serialize(msg)
         to_send.extend(buffers)
 
@@ -151,14 +154,15 @@ class _Session:
         stream: aiohttp.ClientWebSocketResponse,
         timeout: t.Optional[float] = None,
     ) -> tuple[str, dict[str, t.Any]]:
-        """Receive a message from the websocket stream.
+        """
+        Receive a message from the websocket stream.
 
         The message format used by this function internally is as follows:
 
         [p_header, p_parent, p_content, buffer1, buffer2,...]
 
-        The serialize/deserialize methods convert the nested message dict into this
-        format.
+        The serialize/deserialize methods convert the nested message dict into
+        this format.
 
         Parameters
         ----------
@@ -180,7 +184,8 @@ class _Session:
         self,
         msg: dict[str, t.Any],
     ) -> list[bytes]:
-        """Serialize the message components to bytes.
+        """
+        Serialize the message components to bytes.
 
         This is roughly the inverse of deserialize. The serialize/deserialize
         methods work with full message lists, whereas pack/unpack work with
@@ -234,7 +239,8 @@ class _Session:
         msg_list: list[bytes],
         content: bool = True,
     ) -> dict[str, t.Any]:
-        """Unserialize a msg_list to a nested message dict.
+        """
+        Unserialize a msg_list to a nested message dict.
 
         This is roughly the inverse of serialize. The serialize/deserialize
         methods work with full message lists, whereas pack/unpack work with
@@ -265,16 +271,19 @@ class _Session:
         if not len(msg_list) >= minlen:
             msg = f"malformed message, must have at least {minlen} elements"
             raise TypeError(msg)
+
         header = self.unpack(msg_list[0])
         message["header"] = extract_dates(header)
         message["msg_id"] = header["msg_id"]
         message["msg_type"] = header["msg_type"]
         message["parent_header"] = extract_dates(self.unpack(msg_list[1]))
         message["metadata"] = self.unpack(msg_list[2])
+
         if content:
             message["content"] = self.unpack(msg_list[3])
         else:
             message["content"] = msg_list[3]
+
         buffers = [memoryview(b) for b in msg_list[4:]]
         message["buffers"] = buffers
 
@@ -298,11 +307,12 @@ class _Session:
         header: dict[str, t.Any] | None = None,
         metadata: dict[str, t.Any] | None = None,
     ) -> dict[str, t.Any]:
-        """Return the nested message dict.
+        """
+        Return the nested message dict.
 
         This format is different from what is sent over the wire. The
-        serialize/deserialize methods converts this nested message dict to the wire
-        format, which is a list of message parts.
+        serialize/deserialize methods converts this nested message dict to the
+        wire format, which is a list of message parts.
         """
         msg = {}
         header = self.msg_header(msg_type) if header is None else header
@@ -312,8 +322,10 @@ class _Session:
         msg["parent_header"] = {} if parent is None else extract_header(parent)
         msg["content"] = {} if content is None else content
         msg["metadata"] = self.metadata.copy()
+
         if metadata is not None:
             msg["metadata"].update(metadata)
+
         return msg
 
     @staticmethod
@@ -323,12 +335,15 @@ class _Session:
         echannel = channel.encode("utf-8")
         offsets = [8 * (1 + 1 + len(components) + 1)]
         offsets.append(len(echannel) + offsets[-1])
+
         for msg in components:
             offsets.append(len(msg) + offsets[-1])
+
         offset_number = len(offsets).to_bytes(8, byteorder="little")
         offsets = [
             offset.to_bytes(8, byteorder="little") for offset in offsets
         ]
+
         return b"".join([offset_number, *offsets, echannel, *components])
 
     @staticmethod
@@ -345,6 +360,7 @@ class _Session:
             ws_msg[offsets[i] : offsets[i + 1]]
             for i in range(1, offset_number - 1)
         ]
+
         return channel, msg_list
 
     def send_raw(self, *args, **kwargs):
@@ -638,7 +654,8 @@ class _WebSocketKernelClient(Configurable):
         hb: bool = True,
         control: bool = True,
     ):
-        """Start the channels.
+        """
+        Start the channels.
 
         Parameters
         ----------
@@ -722,13 +739,15 @@ class _WebSocketKernelClient(Configurable):
             if isinstance(exc, asyncio.CancelledError):
                 _LOGGER.debug("Receiver loop cancelled")
             else:
-                _LOGGER.exception("Receiver loop error for %s",
-                                  self.session.session)
+                _LOGGER.exception(
+                    "Receiver loop error for %s", self.session.session
+                )
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def stop_channels(self):
         """Stop the channels."""
         _LOGGER.info("Stopping channels for %s", self.session.session)
+
         if self._receiver is not None:
             self._receiver.cancel()
             self._receiver = None
@@ -756,10 +775,11 @@ class _WebSocketKernelClient(Configurable):
             await self._aiohttp_session.close()
 
     def _handle_kernel_info_reply(self, msg: t.Dict[str, t.Any]) -> None:
-        """Handle kernel info reply.
+        """
+        Handle kernel info reply.
 
-        sets protocol adaptation version. This might
-        be run from a separate thread.
+        It sets protocol adaptation version. This might be run from a separate
+        thread.
         """
         adapt_version = int(msg["content"]["protocol_version"].split(".")[0])
         if adapt_version != major_protocol_version:
@@ -778,35 +798,31 @@ class _WebSocketKernelClient(Configurable):
         allow_stdin: t.Optional[bool] = None,
         stop_on_error: bool = True,
     ) -> str:
-        """Execute code in the kernel.
+        """
+        Execute code in the kernel.
 
         Parameters
         ----------
         code : str
             A string of code in the kernel's language.
-
         silent : bool, optional (default False)
             If set, the kernel will execute the code as quietly possible, and
             will force store_history to be False.
-
         store_history : bool, optional (default True)
-            If set, the kernel will store command history.  This is forced
+            If set, the kernel will store command history. This is forced
             to be False if silent is True.
-
         user_expressions : dict, optional
             A dict mapping names to expressions to be evaluated in the user's
             dict. The expression values are returned as strings formatted using
             :func:`repr`.
-
         allow_stdin : bool, optional (default self.allow_stdin)
             Flag for whether the kernel can send stdin requests to frontends.
-
             Some frontends (e.g. the Notebook) do not support stdin requests.
             If raw_input is called from code executed from such a frontend, a
             StdinNotImplementedError will be raised.
-
         stop_on_error: bool, optional (default True)
-            Flag whether to abort the execution queue, if an exception is encountered.
+            Flag whether to abort the execution queue, if an exception is
+            encountered.
 
         Returns
         -------
@@ -842,16 +858,17 @@ class _WebSocketKernelClient(Configurable):
         return msg["header"]["msg_id"]
 
     def complete(self, code: str, cursor_pos: t.Optional[int] = None) -> str:
-        """Tab complete text in the kernel's namespace.
+        """
+        Tab complete text in the kernel's namespace.
 
         Parameters
         ----------
         code : str
-            The context in which completion is requested.
-            Can be anything between a variable name and an entire cell.
+            The context in which completion is requested. It can be anything
+            between a variable name and an entire cell.
         cursor_pos : int, optional
-            The position of the cursor in the block of code where the completion was requested.
-            Default: ``len(code)``
+            The position of the cursor in the block of code where the
+            completion was requested. The default is ``len(code)``.
 
         Returns
         -------
@@ -870,20 +887,21 @@ class _WebSocketKernelClient(Configurable):
         cursor_pos: t.Optional[int] = None,
         detail_level: int = 0,
     ) -> str:
-        """Get metadata information about an object in the kernel's namespace.
+        """
+        Get metadata information about an object in the kernel's namespace.
 
         It is up to the kernel to determine the appropriate object to inspect.
 
         Parameters
         ----------
         code : str
-            The context in which info is requested.
-            Can be anything between a variable name and an entire cell.
+            The context in which info is requested. It can be anything between
+            a variable name and an entire cell.
         cursor_pos : int, optional
-            The position of the cursor in the block of code where the info was requested.
-            Default: ``len(code)``
+            The position of the cursor in the block of code where the info was
+            requested. The default is ``len(code)``.
         detail_level : int, optional
-            The level of detail for the introspection (0-2)
+            The level of detail for the introspection (0-2).
 
         Returns
         -------
@@ -907,7 +925,8 @@ class _WebSocketKernelClient(Configurable):
         hist_access_type: str = "range",
         **kwargs: t.Any,
     ) -> str:
-        """Get entries from the kernel's history list.
+        """
+        Get entries from the kernel's history list.
 
         Parameters
         ----------
@@ -916,8 +935,8 @@ class _WebSocketKernelClient(Configurable):
         output : bool
             If True, then return the output as well.
         hist_access_type : str
-            'range' (fill in session, start and stop params), 'tail' (fill in n)
-             or 'search' (fill in pattern param).
+            'range' (fill in session, start and stop params), 'tail' (fill in
+             n) or 'search' (fill in pattern param).
 
         session : int
             For a range request, the session from which to get lines. Session
@@ -927,10 +946,8 @@ class _WebSocketKernelClient(Configurable):
             The first line number of a history range.
         stop : int
             The final (excluded) line number of a history range.
-
         n : int
             The number of lines of history to get for a tail request.
-
         pattern : str
             The glob-syntax pattern for a search request.
 
@@ -949,22 +966,24 @@ class _WebSocketKernelClient(Configurable):
         return msg["header"]["msg_id"]
 
     def kernel_info(self) -> str:
-        """Request kernel info.
+        """
+        Request kernel info.
 
         Returns
         -------
-        The msg_id of the message sent
+        The msg_id of the message sent.
         """
         msg = self.session.msg("kernel_info_request")
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
 
     def comm_info(self, target_name: t.Optional[str] = None) -> str:
-        """Request comm info.
+        """
+        Request comm info.
 
         Returns
         -------
-        The msg_id of the message sent
+        The msg_id of the message sent.
         """
         content = {} if target_name is None else {"target_name": target_name}
         msg = self.session.msg("comm_info_request", content)
@@ -972,7 +991,8 @@ class _WebSocketKernelClient(Configurable):
         return msg["header"]["msg_id"]
 
     def is_complete(self, code: str) -> str:
-        """Ask the kernel whether some code is complete and ready to execute.
+        """
+        Ask the kernel whether some code is complete and ready to execute.
 
         Returns
         -------
@@ -983,7 +1003,8 @@ class _WebSocketKernelClient(Configurable):
         return msg["header"]["msg_id"]
 
     def input(self, string: str) -> None:
-        """Send a string of raw input to the kernel.
+        """
+        Send a string of raw input to the kernel.
 
         This should only be called in response to the kernel sending an
         ``input_request`` message on the stdin channel.
@@ -997,7 +1018,8 @@ class _WebSocketKernelClient(Configurable):
         self.stdin_channel.send(msg)
 
     def shutdown(self, restart: bool = False) -> str:
-        """Request an immediate kernel shutdown on the control channel.
+        """
+        Request an immediate kernel shutdown on the control channel.
 
         Upon receipt of the (empty) reply, client code can safely assume that
         the kernel has shut down and it's safe to forcefully terminate it if
@@ -1037,7 +1059,8 @@ class QtWSChannel(_WebSocketChannel, SuperQObject):
     message_received = Signal(object)
 
     def call_handlers(self, msg):
-        """This method is called in the ioloop thread when a message arrives.
+        """
+        This method is called in the ioloop thread when a message arrives.
 
         It is important to remember that this method is called in the thread
         so that some logic must be done to ensure that the application level

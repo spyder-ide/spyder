@@ -12,11 +12,10 @@ Remote Client Plugin.
 # Standard library imports
 from __future__ import annotations
 import logging
-import contextlib
 import typing
 
 # Third-party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -33,9 +32,15 @@ from spyder.plugins.mainmenu.api import (
 from spyder.plugins.remoteclient.api import (
     RemoteClientActions,
 )
-from spyder.plugins.remoteclient.api.manager.base import SpyderRemoteAPIManagerBase
-from spyder.plugins.remoteclient.api.manager.jupyterhub import SpyderRemoteJupyterHubAPIManager
-from spyder.plugins.remoteclient.api.manager.ssh import SpyderRemoteSSHAPIManager
+from spyder.plugins.remoteclient.api.manager.base import (
+    SpyderRemoteAPIManagerBase,
+)
+from spyder.plugins.remoteclient.api.manager.jupyterhub import (
+    SpyderRemoteJupyterHubAPIManager,
+)
+from spyder.plugins.remoteclient.api.manager.ssh import (
+    SpyderRemoteSSHAPIManager,
+)
 from spyder.plugins.remoteclient.api.protocol import (
     JupyterHubClientOptions,
     SSHClientOptions,
@@ -207,8 +212,8 @@ class RemoteClient(SpyderPluginV2):
             self.load_jupyterhub_client(config_id, options)
         else:
             msg = (
-                f"Unknown client type '{client_type}' for server '{config_id}'. "
-                f"Please check your configuration."
+                f"Unknown client type '{client_type}' for server "
+                f"'{config_id}'. Please check your configuration."
             )
             raise ValueError(msg)
 
@@ -221,7 +226,9 @@ class RemoteClient(SpyderPluginV2):
         self, config_id: str, options: JupyterHubClientOptions,
     ):
         """Load JupyterHub remote server."""
-        client = SpyderRemoteJupyterHubAPIManager(config_id, options, _plugin=self)
+        client = SpyderRemoteJupyterHubAPIManager(
+            config_id, options, _plugin=self
+        )
         self._remote_clients[config_id] = client
 
     def _load_jupyterhub_client_options(self, config_id):
