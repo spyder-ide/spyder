@@ -23,6 +23,7 @@ from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QDir,
+    QFile,
     QMimeData,
     QSortFilterProxyModel,
     Qt,
@@ -1101,14 +1102,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         Reimplemented in project explorer widget
         """
         while osp.exists(dirname):
-            try:
-                shutil.rmtree(dirname, onerror=misc.onerror)
-            except Exception as e:
-                # This handles a Windows problem with shutil.rmtree.
-                # See spyder-ide/spyder#8567.
-                if type(e).__name__ == "OSError":
-                    error_path = str(e.filename)
-                    shutil.rmtree(error_path, ignore_errors=True)
+            QFile.moveToTrash(dirname)
 
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
@@ -1120,7 +1114,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if yes_to_all is None:
             answer = QMessageBox.warning(
                 self, _("Delete"),
-                _("Do you really want to delete <b>%s</b>?"
+                _("Do you really want to delete <b>%s</b>?\n"
+                  "<br><br>"
+                  "<b>Note</b>: This file or directory will be moved to the "
+                  "trash can."
                   ) % osp.basename(fname), buttons)
             if answer == QMessageBox.No:
                 return yes_to_all

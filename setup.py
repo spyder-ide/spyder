@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[:2] < (3, 8):
-    error = "ERROR: Spyder requires Python version 3.8 and above."
+if v[:2] < (3, 9):
+    error = "ERROR: Spyder requires Python version 3.9 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -220,18 +220,18 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -246,7 +246,6 @@ setup_args = dict(
 qt_requirements = {
     'pyqt5': [
         'pyqt5>=5.15,<5.16',
-        'pyqt5-sip<12.16; python_version=="3.8"',
         'pyqtwebengine>=5.15,<5.16',
         'qtconsole>=5.6.1,<5.7.0',
     ],
@@ -281,8 +280,7 @@ install_requires += [
     # install in all cases and helps the tests to pass.
     'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
-    'ipython>=8.12.2,<8.13.0; python_version=="3.8"',
-    'ipython>=8.13.0,<9.0.0,!=8.17.1; python_version>"3.8"',
+    'ipython>=8.13.0,<9.0.0,!=8.17.1',
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',

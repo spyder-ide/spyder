@@ -332,14 +332,18 @@ class ExplorerWidget(PluginMainWidget):
             self.previous_action,
             self.next_action,
             self.parent_action,
-            self.refresh_action,
-            self.filter_button,
         ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
                 section=ExplorerWidgetMainToolbarSections.Main,
             )
+
+        for action in [
+            self.filter_button,
+            self.refresh_action,
+        ]:
+            self.add_corner_widget(action, before=self._options_button)
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""

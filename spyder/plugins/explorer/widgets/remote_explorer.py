@@ -98,6 +98,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.view.entered.connect(self._on_entered_item)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.view)
 
     @on_conf_change(
