@@ -211,6 +211,9 @@ class ExplorerWidget(PluginMainWidget):
         # Signals
         self.treewidget.sig_dir_opened.connect(self.sig_dir_opened)
         self.remote_treewidget.sig_dir_opened.connect(self.sig_dir_opened)
+        self.remote_treewidget.sig_start_spinner_requested.connect(
+            self.start_spinner
+        )
         self.remote_treewidget.sig_stop_spinner_requested.connect(
             self.stop_spinner
         )
