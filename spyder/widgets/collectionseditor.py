@@ -1768,7 +1768,9 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=parent.reject,
-            register_shortcut=True
+            context=Qt.ApplicationShortcut,
+            register_shortcut=True,
+            shortcut_context='variable_explorer'
         )
 
         toolbar = self.create_toolbar(
