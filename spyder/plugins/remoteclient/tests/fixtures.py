@@ -64,6 +64,7 @@ def stop_docker_service(service: str) -> None:
             _COMPOSE_PROJECT_NAME,
             "down",
             "--remove-orphans",
+            service
         ],
     )
 
