@@ -1809,8 +1809,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
-            register_shortcut=True,
-            shortcut_context=self.CONF_SECTION
+            register_shortcut=True
         )
 
         # Destroying the C++ object right after closing the dialog box,
