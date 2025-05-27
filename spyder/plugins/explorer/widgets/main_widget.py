@@ -344,13 +344,16 @@ class ExplorerWidget(PluginMainWidget):
 
         for action in [
             self.filter_button,
+            self.remote_treewidget.upload_file_action,
             self.refresh_action,
         ]:
             self.add_corner_widget(action, before=self._options_button)
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""
-        pass
+        enable_remote_actions = self.get_current_widget() == self.remote_treewidget
+        self.refresh_action.setEnabled(enable_remote_actions)
+        self.remote_treewidget.upload_file_action.setEnabled(enable_remote_actions)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -388,6 +391,7 @@ class ExplorerWidget(PluginMainWidget):
                 remote_ls
             )
             self.stackwidget.setCurrentWidget(self.remote_treewidget)
+        self.update_actions()
 
     def get_current_folder(self):
         """Get current folder in the tree widget."""

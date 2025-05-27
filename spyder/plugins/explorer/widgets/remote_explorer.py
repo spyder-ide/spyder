@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime
 
-from qtpy.compat import getsavefilename
+from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import QTreeView, QVBoxLayout, QWidget
@@ -91,13 +91,18 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.download_file_action = self.create_action(
             RemoteExplorerActions.Download,
             _("Download file"),
+            icon=self.create_icon("fileimport"),
             triggered=self.download_file,
+        )
+        self.upload_file_action = self.create_action(
+            RemoteExplorerActions.Upload,
+            _("Upload file"),
+            icon=self.create_icon("fileexport"),
+            triggered=self.upload_file,
         )
 
         for action in [self.download_file_action]:
             self.add_item_to_menu(action, self.context_menu)
-
-        self.context_menu.aboutToShow.connect(self.update_actions)
 
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
@@ -154,16 +159,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         elif option == "single_click_to_open":
             self.set_single_click_to_open(value)
 
-    def update_actions(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
-            return
-
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-
     def _on_show_context_menu(self, position):
         index = self.view.indexAt(position)
         source_index = self.proxy_model.mapToSource(self.view.currentIndex())
@@ -204,7 +199,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     @AsyncDispatcher.QtSlot
     def _on_remote_download_file(self, future, remote_filename):
         data = future.result()
-        filename, _selfilter = getsavefilename(
+        filename, __ = getsavefilename(
             self,
             _("Download file"),
             os.path.join(getcwd_or_home(), remote_filename),
@@ -245,6 +240,43 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self._on_remote_download_file(future, filename)
 
             self._do_remote_download_file(path).connect(remote_download_file)
+            self.sig_start_spinner_requested.emit()
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_upload_file(self, future):
+        try:
+            data = future.result()
+            logger.info(data)
+        except OSError as error:
+            logger.error(error)
+
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_upload_file(self, local_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+        remote_file = os.path.basename(local_path)
+        file_manager = await self.remote_files_manager.open(
+            remote_file, mode="w"
+        )
+        with open(local_path, mode="r") as local_file:
+            remote_file_response = await file_manager.write(local_file.read())
+        await file_manager.close()
+        return remote_file_response
+
+    def upload_file(self):
+        local_path, __ = getopenfilename(
+            self,
+            _("Upload file"),
+            getcwd_or_home(),
+            _("All files") + " (*)",
+        )
+        if os.path.exists(local_path):
+            self._do_remote_upload_file(local_path).connect(
+                self._on_remote_upload_file
+            )
             self.sig_start_spinner_requested.emit()
 
     @AsyncDispatcher.QtSlot
