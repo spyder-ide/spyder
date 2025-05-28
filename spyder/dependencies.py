@@ -30,7 +30,7 @@ PLUGIN = 'spyder plugins'
 # Versions
 # =============================================================================
 # Hard dependencies
-AIOHTTP_REQVER = '>=3.9.3'
+AIOHTTP_REQVER = '>=3.11.2'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'

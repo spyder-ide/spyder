@@ -267,7 +267,7 @@ qt_requirements = {
 install_requires = get_qt_requirements(qt_requirements, default='pyqt5')
 
 install_requires += [
-    'aiohttp>=3.9.3',
+    'aiohttp>=3.11.2',
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'asyncssh>=2.14.0,<3.0.0',
     'atomicwrites>=1.2.0',
