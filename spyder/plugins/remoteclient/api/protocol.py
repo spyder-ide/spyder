@@ -46,6 +46,11 @@ class SSHClientOptions(typing.TypedDict):
     platform: str | None
 
 
+class JupyterHubClientOptions(typing.TypedDict):
+    url: str
+    token: str
+
+
 class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
