@@ -145,7 +145,7 @@ class InternalShell(PythonShellWidget):
     # TODO: I think this is not being used now?
     sig_focus_changed = Signal()
 
-    def __init__(self, parent=None, commands=[], message=None,
+    def __init__(self, parent=None, commands=None, message=None,
                  max_line_count=300, exitfunc=None, profile=False,
                  multithreaded=True):
         super().__init__(parent, get_conf_path('history_internal.py'),
@@ -168,6 +168,7 @@ class InternalShell(PythonShellWidget):
 
         # Init interpreter
         self.exitfunc = exitfunc
+        commands = [] if commands is None else commands
         self.commands = commands
         self.message = message
         self.interpreter = None

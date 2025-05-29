@@ -2598,7 +2598,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if len(spaces) - 1 >= group:
             return len(spaces[group])
 
-    def __get_brackets(self, line_text, closing_brackets=[]):
+    def __get_brackets(self, line_text, closing_brackets=None):
         """
         Return unmatched opening brackets and left-over closing brackets.
 
@@ -2615,6 +2615,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             be matched with previously unmatched opening brackets in this line.
         3) Pos at which a # comment begins. -1 if it doesn't.'
         """
+        closing_brackets = [] if closing_brackets is None else closing_brackets
         # Remove inline comment and check brackets
         bracket_stack = []  # list containing this lines unmatched opening
         # same deal, for closing though. Ignore if bracket stack not empty,
