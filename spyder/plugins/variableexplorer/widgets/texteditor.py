@@ -139,12 +139,6 @@ class TextEditor(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
                             u"%s" % (u" - " + unicode_title
                                      if unicode_title else u""))
         
-        options_button = self.create_toolbutton(
-            name='toolButton',
-            text=_('Options'),
-            icon=ima.icon('tooloptions'),
-            register=False
-        )
         stretcher = self.create_stretcher(
             TextEditorWidgets.ToolbarStretcher
         )

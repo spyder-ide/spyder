@@ -779,8 +779,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
-            register_shortcut=True,
-            shortcut_context=self.CONF_SECTION
+            register_shortcut=True
         )
         self.refresh_action = self.create_action(
             ArrayEditorActions.Refresh,
