@@ -237,6 +237,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 async for data in file_manager:
                     file_data += data
             except RemoteFileServicesError as download_error:
+                # TODO: Should a dialog be shown using the information from
+                # the exception to the user?
                 logger.debug(f"Unable to download {path}")
                 logger.error(
                     f"Error while trying to download file: {download_error.message}"
@@ -247,9 +249,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
         try:
-            data = future.result()
-            logger.info(data)
+            # Need to call `future.result()` to get any possible exception
+            # generated over the remote server.
+            future.result()
         except OSError as error:
+            # TODO: Should a dialog be shown using the information from
+            # the exception to the user?
+            logger.debug("Unable to upload file")
             logger.error(error)
 
         self.refresh(force_current=True)
