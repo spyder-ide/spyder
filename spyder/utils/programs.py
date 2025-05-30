@@ -230,7 +230,7 @@ def run_shell_command(cmdstr, asynchronous=False, **subprocess_kwargs):
     popen = subprocess.Popen
     pipe = subprocess.PIPE
     if asynchronous:
-        popen = asyncio.subprocess.create_subprocess_shell
+        popen = asyncio.create_subprocess_shell
         pipe = asyncio.subprocess.PIPE
 
     if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
