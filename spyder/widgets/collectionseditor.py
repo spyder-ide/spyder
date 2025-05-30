@@ -36,7 +36,7 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
-    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
+    QMessageBox, QPushButton, QTableView, QToolButton, QVBoxLayout, QWidget)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -71,6 +71,7 @@ from spyder.utils.stylesheet import AppStyle, MAC
 # ---- Constants
 # =============================================================================
 class CollectionsEditorActions:
+    Close = 'close'
     Copy = 'copy_action'
     Duplicate = 'duplicate_action'
     Edit = 'edit_action'
@@ -100,6 +101,7 @@ class CollectionsEditorMenus:
 
 
 class CollectionsEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
     Toolbar = 'toolbar'
     ToolbarStretcher = 'toolbar_stretcher'
 
@@ -1761,6 +1763,14 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             register_action=None
         )
 
+        self.close_action = self.create_action(
+            name=CollectionsEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=parent.reject,
+            register_shortcut=True
+        )
+
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
             register=False
@@ -1783,6 +1793,23 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 section=CollectionsEditorToolbarSections.AddDelete
             )
 
+        options_menu = self.create_menu(
+            CollectionsEditorMenus.Options,
+            register=False
+        )
+
+        for item in [self.close_action]:
+            self.add_item_to_menu(item, options_menu)
+
+        options_button = self.create_toolbutton(
+            name=CollectionsEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
         for item in [
             self.editor.view_action,
             self.editor.plot_action,
@@ -1791,7 +1818,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             stretcher,
             self.editor.resize_action,
             self.editor.resize_columns_action,
-            self.refresh_action
+            self.refresh_action,
+            options_button
         ]:
             self.add_item_to_toolbar(
                 item,
