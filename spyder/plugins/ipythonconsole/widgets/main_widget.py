@@ -2445,7 +2445,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         if is_new_client:
             # Create new client; wait until kernel is connected before
             # running the script
-            client.shellwidget.sig_prompt_ready.connect(_rs)
+            client.shellwidget.sig_shellwidget_created.connect(_rs)
         else:
             _rs()
 
