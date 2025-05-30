@@ -257,14 +257,18 @@ class SpyderMenuMixin:
     """
 
     def add_item_to_menu(self, action_or_menu, menu, section=None,
-                         before=None):
+                         before=None, before_section=None):
         """
         Add a SpyderAction or a QWidget to the menu.
         """
         if not isinstance(menu, SpyderMenu):
             raise SpyderAPIError('Menu must be an instance of SpyderMenu!')
 
-        menu.add_action(action_or_menu, section=section, before=before)
+        menu.add_action(
+            action_or_menu,
+            section=section,
+            before=before,
+            before_section=before_section)
 
     def _create_menu(
         self,

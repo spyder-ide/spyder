@@ -192,7 +192,7 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
                 action,
                 menu=self.show_cols_submenu,
                 section=ObjectExplorerOptionsMenuSections.Toggle,
-                before=ObjectExplorerActions.Close)
+                before_section=ObjectExplorerOptionsMenuSections.Close)
         column_visible = [col.col_visible for col in self._attr_cols]
         for idx, visible in enumerate(column_visible):
             elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
