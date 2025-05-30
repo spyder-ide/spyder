@@ -27,7 +27,6 @@ async def list_kernels(remote_client_plugin, server_id):
 
 @mark_remote_test
 class TestIpythonConsole:
-    @flaky(max_runs=3, min_passes=1)
     def test_start_stop_kernel(
         self, ipyconsole, remote_client, remote_client_id, qtbot
     ):
@@ -93,14 +92,6 @@ class TestIpythonConsole:
         crash_string = (
             "import os, signal; os.kill(os.getpid(), signal.SIGTERM)"
         )
-
-        # Since the heartbeat and the tunnels are running in separate threads,
-        # we need to make sure that the heartbeat thread has "higher" priority
-        # than the tunnel thread, otherwise the kernel will be restarted and
-        # the tunnels recreated before the heartbeat can detect the kernel
-        # is dead. In the test enviroment, the heartbeat needs to be set to a
-        # lower value because there are fewer threads running.
-        remote_shell.kernel_handler.set_time_to_dead(0.2)
 
         with qtbot.waitSignal(remote_shell.sig_prompt_ready, timeout=30000):
             remote_shell.execute(crash_string)

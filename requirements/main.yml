@@ -7,7 +7,7 @@ channels:
   - conda-forge/label/spyder_kernels_rc
   - conda-forge
 dependencies:
-  - aiohttp >=3.9.3
+  - aiohttp >=3.11.2
   - asyncssh >=2.14.0,<3.0.0
   - atomicwrites >=1.2.0
   - bcrypt >=4.3.0
