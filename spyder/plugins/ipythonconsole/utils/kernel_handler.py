@@ -32,6 +32,9 @@ from spyder.plugins.ipythonconsole import (
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.client import SpyderKernelClient
+from spyder.plugins.ipythonconsole.utils.websocket_client import (
+    SpyderWSKernelClient,
+)
 from spyder.utils.programs import check_version_range
 
 
@@ -155,14 +158,17 @@ class KernelHandler(QObject):
 
     def __init__(
         self,
-        connection_file,
+        kernel_client,
+        connection_file=None,
         kernel_manager=None,
-        kernel_client=None,
         known_spyder_kernel=False,
         hostname=None,
         sshkey=None,
         password=None,
         ssh_connection=None,
+        websocket_url=None,
+        token=None,
+        aiohttp_session=None,
     ):
         super().__init__()
         # Connection Informations
@@ -170,10 +176,18 @@ class KernelHandler(QObject):
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
         self.known_spyder_kernel = known_spyder_kernel
+
         self.hostname = hostname
         self.sshkey = sshkey
         self.password = password
+
         self.ssh_connection = ssh_connection
+
+        self.websocket_url = websocket_url
+        self.token = token
+
+        self.aiohttp_session = None
+
         self.kernel_error_message = None
         self.connection_state = KernelConnectionState.Connecting
 
@@ -204,11 +218,9 @@ class KernelHandler(QObject):
         self.kernel_comm.open_comm(self.kernel_client)
 
     @property
-    def connection_info(self):
-        """Get connection info."""
-        connection_info = self.kernel_client.get_connection_info()
-        connection_info["key"] = connection_info["key"].decode()
-        return connection_info
+    def is_websocket_client(self):
+        """Return the websocket client."""
+        return isinstance(self.kernel_client, SpyderWSKernelClient)
 
     def connect_(self):
         """Connect to shellwidget."""
@@ -440,7 +452,7 @@ class KernelHandler(QObject):
             json.dump(connection_info, f)
 
         return cls(
-            new_connection_file,
+            connection_file=new_connection_file,
             kernel_client=cls.init_kernel_client(
                 new_connection_file,
                 hostname,
@@ -461,7 +473,7 @@ class KernelHandler(QObject):
     ):
         """Create kernel for given connection file."""
         return cls(
-            connection_file,
+            connection_file=connection_file,
             hostname=hostname,
             sshkey=sshkey,
             password=password,
@@ -471,6 +483,24 @@ class KernelHandler(QObject):
                 sshkey,
                 password,
                 ssh_connection,
+            ),
+        )
+
+    @classmethod
+    def from_websocket(
+        cls,
+        websocket_url,
+        token=None,
+        aiohttp_session=None,
+    ):
+        return cls(
+            websocket_url=websocket_url,
+            token=token,
+            aiohttp_session=aiohttp_session,
+            kernel_client=cls.init_ws_kernel_client(
+                websocket_url,
+                token=token,
+                aiohttp_session=aiohttp_session,
             ),
         )
 
@@ -507,6 +537,21 @@ class KernelHandler(QObject):
             )
 
         return kernel_client
+
+    @staticmethod
+    def init_ws_kernel_client(
+        websocket_url,
+        token=None,
+        username=None,
+        aiohttp_session=None,
+    ):
+        """Create kernel client."""
+        return SpyderWSKernelClient(
+            endpoint=websocket_url,
+            token=token,
+            username=username,
+            aiohttp_session=aiohttp_session,
+        )
 
     def close(self, shutdown_kernel=True, now=False):
         """Close kernel"""
@@ -574,13 +619,20 @@ class KernelHandler(QObject):
         # Copy kernel infos
 
         # Get new kernel_client
-        kernel_client = self.init_kernel_client(
-            self.connection_file,
-            self.hostname,
-            self.sshkey,
-            self.password,
-            self.ssh_connection,
-        )
+        if self.is_websocket_client:
+            kernel_client = self.init_ws_kernel_client(
+                self.websocket_url,
+                token=self.token,
+                aiohttp_session=self.aiohttp_session,
+            )
+        else:
+            kernel_client = self.init_kernel_client(
+                self.connection_file,
+                self.hostname,
+                self.sshkey,
+                self.password,
+                self.ssh_connection,
+            )
 
         return self.__class__(
             connection_file=self.connection_file,
@@ -590,6 +642,9 @@ class KernelHandler(QObject):
             sshkey=self.sshkey,
             password=self.password,
             ssh_connection=self.ssh_connection,
+            websocket_url=self.websocket_url,
+            token=self.token,
+            aiohttp_session=self.aiohttp_session,
             kernel_client=kernel_client,
         )
 

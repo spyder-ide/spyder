@@ -155,7 +155,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             Return the coroutine as an awaitable (asyncio) Future instead of a
             concurrent Future. Idenpendently of the value of `early_return`.
         """
-        self._loop = self._ensure_running_loop(loop)
+        self._loop = self.get_event_loop(loop)
         self._early_return = early_return
         self._return_awaitable = return_awaitable
 
@@ -236,11 +236,34 @@ class AsyncDispatcher(typing.Generic[_RT]):
                 raise exception
 
     @classmethod
-    def _ensure_running_loop(
+    def get_event_loop(
         cls,
         loop_id: LoopID | None = None,
     ) -> asyncio.AbstractEventLoop:
-        loop, loop_id = cls.get_event_loop(loop_id)
+        """Get the event loop to run the coroutine.
+
+        If the loop is not running, it will be started in a new thread and
+        managed by the AsyncDispatcher.
+
+        Parameters
+        ----------
+        loop_id : LoopID, optional (default: None)
+            The event loop to be used, by default gets the current thread event
+            loop.
+
+        Notes
+        -----
+        * If a hashable is provided, it will be used to identify the loop in
+          the AsyncDispatcher.
+        * If an event loop is provided, it will be used as the event loop in
+          the AsyncDispatcher.
+
+        Returns
+        -------
+        AbstractEventLoop
+            The event loop to be used.
+        """
+        loop, loop_id = cls._fetch_event_loop(loop_id)
 
         try:
             if loop.is_running():
@@ -262,7 +285,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         return loop
 
     @classmethod
-    def get_event_loop(
+    def _fetch_event_loop(
         cls,
         loop_id: LoopID | None = None,
     ) -> tuple[asyncio.AbstractEventLoop, typing.Hashable | None]:

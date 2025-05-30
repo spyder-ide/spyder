@@ -456,6 +456,7 @@ DEFAULTS = [
               'find_replace/find previous': (
                   "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
+              'find_replace/replace all': "Alt+A",
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
@@ -463,7 +464,7 @@ DEFAULTS = [
               'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Alt+Shift+U',
-              'editor/transform to lowercase': 'Ctrl+U',
+              'editor/transform to lowercase': 'Alt+U',
               'editor/indent': 'Ctrl+]',
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
@@ -700,4 +701,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.1.0'
+CONF_VERSION = '87.2.0'

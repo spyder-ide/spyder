@@ -221,6 +221,8 @@ class PythonEnvironmentStatus(ShellConnectStatusBarWidget):
             env_type = "Conda"
         elif env_info["env_type"] == PythonEnvType.PyEnv:
             env_type = "Pyenv"
+        elif env_info["env_type"] == PythonEnvType.Pixi:
+            env_type = "Pixi"
         else:
             env_type = _("Custom")
 
