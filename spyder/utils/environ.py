@@ -118,7 +118,7 @@ async def get_user_environment_variables() -> dict:
             try:
                 user_env_script = _get_user_env_script()
                 proc = await run_shell_command(
-                    user_env_script, asynchronous=True, env={}, text=True
+                    user_env_script, asynchronous=True, env={}
                 )
 
                 # Use timeout to fix spyder-ide/spyder#21172
@@ -127,9 +127,9 @@ async def get_user_environment_variables() -> dict:
                 )
 
                 if stderr:
-                    logger.info(stderr.strip())
+                    logger.info(stderr.decode().strip())
                 if stdout:
-                    env_var = eval(stdout, None)
+                    env_var = eval(stdout.decode(), None)
             except Exception as exc:
                 logger.info(exc)
         else:
