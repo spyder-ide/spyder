@@ -19,7 +19,7 @@ DEBUG_EDITOR = get_debug_level() >= 3
 # Find tasks - TODOs
 # =============================================================================
 TASKS_PATTERN = (
-    r"(^|#)[ ]*(TODO|todo|FIXME|fixme|XXX|xxx|HINT|hint|TIP|tip|@todo|@TODO|"
+    r"#\s*(TODO|todo|FIXME|fixme|XXX|xxx|HINT|hint|TIP|tip|@todo|@TODO|"
     r"HACK|hack|BUG|bug|OPTIMIZE|optimize|!!!|\?\?\?)([^#]*)"
 )
 
