@@ -260,12 +260,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         page = loading_template.substitute(css_path=self.css_path)
         return page
 
-    def _show_loading_page(self, page):
+    def _show_loading_page(self, page=None):
         """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
             self.infowidget.show()
-            self.info_page = page
+            self.info_page = page if page else self.kernel_loading_page
             self.set_info_page()
 
     def _hide_loading_page(self):
