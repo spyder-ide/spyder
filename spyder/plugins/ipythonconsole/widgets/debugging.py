@@ -89,7 +89,13 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         """Start a new history session."""
         self._pdb_history_input_number = 0
         if self._pdb_history_file is not None:
-            self._pdb_history_file.new_session()
+            # Prevent errors when trying to create a new session.
+            # Fixes spyder-ide/spyder#24504
+            try:
+                self._pdb_history_file.new_session()
+            except Exception:
+                self._pdb_history_file = None
+                self._pdb_history = []
 
     def end_history_session(self):
         """End an history session."""
