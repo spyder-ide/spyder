@@ -62,7 +62,7 @@ class SpyderMainKernelHandler(MainKernelHandler):
                 kernel_name=model["name"],
                 path=model.get("path"),
                 spyder_kernel=model.get("spyder_kernel", False),
-                envs=model.get("envs"),
+                env=model.get("env"),
                 kernel_id=model.get("kernel_id", str(uuid.uuid4())),
             )
         )
