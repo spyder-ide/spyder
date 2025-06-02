@@ -53,7 +53,7 @@ class SpyderKernelProvisioner(LocalProvisioner):
                 km.hb_port = lpc.find_available_port(km.ip)
                 km.control_port = lpc.find_available_port(km.ip)
                 self.ports_cached = True
-            if "env" in kwargs:
+            if kwargs.get("env"):
                 jupyter_session = kwargs["env"].get("JPY_SESSION_NAME", "")
                 km.write_connection_file(jupyter_session=jupyter_session)
             else:
