@@ -351,7 +351,9 @@ class ExplorerWidget(PluginMainWidget):
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""
-        enable_remote_actions = self.get_current_widget() == self.remote_treewidget
+        enable_remote_actions = (
+            self.get_current_widget() == self.remote_treewidget
+        )
         self.refresh_action.setEnabled(enable_remote_actions)
         self.remote_treewidget.upload_file_action.setEnabled(
             enable_remote_actions
