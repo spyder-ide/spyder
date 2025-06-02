@@ -343,20 +343,20 @@ class ExplorerWidget(PluginMainWidget):
             )
 
         for action in [
-            self.filter_button,
             self.remote_treewidget.upload_file_action,
             self.refresh_action,
+            self.filter_button,
         ]:
             self.add_corner_widget(action, before=self._options_button)
 
     def update_actions(self):
         """Handle the update of actions of the plugin."""
-        enable_remote_actions = (
+        visible_remote_actions = (
             self.get_current_widget() == self.remote_treewidget
         )
-        self.refresh_action.setEnabled(enable_remote_actions)
-        self.remote_treewidget.upload_file_action.setEnabled(
-            enable_remote_actions
+        self.refresh_action.setVisible(visible_remote_actions)
+        self.remote_treewidget.upload_file_action.setVisible(
+            visible_remote_actions
         )
 
     # ---- Public API
