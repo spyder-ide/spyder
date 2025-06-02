@@ -223,6 +223,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if not self.remote_files_manager:
             self.sig_stop_spinner_requested.emit()
             return
+
         try:
             file_manager = await self.remote_files_manager.open(path, mode="r")
             file_data = ""
@@ -241,8 +242,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 # the exception to the user?
                 logger.debug(f"Unable to download {path}")
                 logger.error(
-                    f"Error while trying to download file: {download_error.message}"
+                    f"Error while trying to download file: "
+                    f"{download_error.message}"
                 )
+
         await file_manager.close()
         return file_data
 
@@ -265,8 +268,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if not self.remote_files_manager:
             self.sig_stop_spinner_requested.emit()
             return
+
         remote_file = os.path.basename(local_path)
         file_content = None
+
         try:
             with open(local_path, mode="r") as local_file:
                 file_content = local_file.read()
@@ -279,8 +284,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             file_manager = await self.remote_files_manager.open(
                 remote_file, mode="wb"
             )
+
         if file_content:
             remote_file_response = await file_manager.write(file_content)
+
         await file_manager.close()
         return remote_file_response
 
