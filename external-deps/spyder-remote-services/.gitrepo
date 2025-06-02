@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
-	branch = main
-	commit = 9e58b1e50955b24dee10f1969ebf8d259d34fafa
-	parent = bd9247464d0b5be8b4365c8e55b8372c38d8410c
+	branch = feat/add-environ-support
+	commit = 4eff0f5ed3248053abef1683c2166ba512ad51b2
+	parent = df4eeb928a64940bb143530bd56d915e6562ce3e
 	method = merge
 	cmdver = 0.4.9
