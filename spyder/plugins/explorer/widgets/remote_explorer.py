@@ -13,7 +13,7 @@ from datetime import datetime
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QTreeView, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QMessageBox, QTreeView, QVBoxLayout, QWidget
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
@@ -238,8 +238,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 async for data in file_manager:
                     file_data += data
             except RemoteFileServicesError as download_error:
-                # TODO: Should a dialog be shown using the information from
-                # the exception to the user?
+                error_message = _(
+                    "An error occured while trying to download {path}".format(
+                        path=path
+                    )
+                )
+                QMessageBox.critical(self, _("Download error"), error_message)
                 logger.debug(f"Unable to download {path}")
                 logger.error(
                     f"Error while trying to download file: "
@@ -256,8 +260,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             # generated over the remote server.
             future.result()
         except OSError as error:
-            # TODO: Should a dialog be shown using the information from
-            # the exception to the user?
+            error_message = _("An error occured while trying to upload a file")
+            QMessageBox.critical(self, _("Upload error"), error_message)
             logger.debug("Unable to upload file")
             logger.error(error)
 
