@@ -1809,8 +1809,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
+            context=Qt.WindowShortcut,
             register_shortcut=True
         )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread

@@ -1770,6 +1770,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             triggered=parent.reject,
             register_shortcut=True
         )
+        self.register_shortcut_for_widget(
+            name='close', triggered=parent.reject, context='variable_explorer')
 
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,

@@ -48,7 +48,7 @@ class TextEditorToolbarSections:
     Copy = 'copy_section'
 
 
-class TextEditor(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
+class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     """Array Editor Dialog"""
     CONF_SECTION = 'variable_explorer'
 
@@ -71,6 +71,7 @@ class TextEditor(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             triggered=self.reject,
             register_shortcut=True
         )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
         # Display text as unicode if it comes as bytes, so users see
         # its right representation
