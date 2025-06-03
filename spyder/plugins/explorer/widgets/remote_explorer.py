@@ -38,8 +38,9 @@ class RemoteViewMenus:
 
 
 class RemoteExplorerActions:
-    Upload = "upload_file"
+    Delete = "delete"
     Download = "download_file"
+    Upload = "upload_file"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -91,9 +92,15 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         # Model, actions and widget setup
         self.context_menu = self.create_menu(RemoteViewMenus.Context)
+        self.delete_action = self.create_action(
+            RemoteExplorerActions.Delete,
+            _("Delete..."),
+            icon=self.create_icon("editclear"),
+            triggered=self.delete_item,
+        )
         self.download_file_action = self.create_action(
             RemoteExplorerActions.Download,
-            _("Download file"),
+            _("Download..."),
             icon=self.create_icon("fileimport"),
             triggered=self.download_file,
         )
@@ -104,7 +111,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             triggered=self.upload_file,
         )
 
-        for action in [self.download_file_action]:
+        for action in [self.delete_action, self.download_file_action]:
             self.add_item_to_menu(action, self.context_menu)
 
         self.model = QStandardItemModel(self)
@@ -174,8 +181,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if not data:
             return
 
-        if data.get("type", "directory") == "directory":
-            return
+        # TODO: For now disable the download action in the context menu for
+        # directories
+        is_file = data.get("type", "file") == "file"
+        self.download_file_action.setEnabled(is_file)
 
         global_position = self.mapToGlobal(position)
         self.context_menu.popup(global_position)
@@ -198,6 +207,37 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.chdir(data_name, emit=True)
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
+
+    def _handle_future_response_error(self, future, error_title, error_message):
+        try:
+            # Need to call `future.result()` to get any possible exception
+            # generated over the remote server.
+            future.result()
+        except OSError as error:
+            QMessageBox.critical(self, error_title, error_message)
+            logger.error(error)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_delete(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Delete error"),
+            _("An error occured while trying to delete a file/directory"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_delete(self, path, is_file=False):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        if is_file:
+            response = await self.remote_files_manager.unlink(path)
+        else:
+            response = await self.remote_files_manager.rmdir(path)
+
+        return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_download_file(self, future, remote_filename):
@@ -255,16 +295,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
-        try:
-            # Need to call `future.result()` to get any possible exception
-            # generated over the remote server.
-            future.result()
-        except OSError as error:
-            error_message = _("An error occured while trying to upload a file")
-            QMessageBox.critical(self, _("Upload error"), error_message)
-            logger.debug("Unable to upload file")
-            logger.error(error)
-
+        self._handle_future_response_error(
+            future,
+            _("Upload error"),
+            _("An error occured while trying to upload a file"),
+        )
         self.refresh(force_current=True)
 
     @AsyncDispatcher(loop="explorer")
@@ -590,6 +625,34 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
+
+    def delete_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            path = data["name"]
+            filename = os.path.relpath(path, self.root_prefix)
+            result = QMessageBox.warning(
+                self,
+                _("Delete"),
+                _("Do you really want to delete <b>{filename}</b>?").format(
+                    filename=filename
+                ),
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if result == QMessageBox.Yes:
+                is_file = data["type"] == "file"
+                self._do_remote_delete(path, is_file=is_file).connect(
+                    self._on_remote_delete
+                )
+                self.sig_start_spinner_requested.emit()
 
     def download_file(self):
         if (
