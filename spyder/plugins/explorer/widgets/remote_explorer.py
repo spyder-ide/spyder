@@ -12,8 +12,14 @@ from datetime import datetime
 
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
-from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QMessageBox, QTreeView, QVBoxLayout, QWidget
+from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
+from qtpy.QtWidgets import (
+    QApplication,
+    QMessageBox,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
@@ -38,9 +44,16 @@ class RemoteViewMenus:
 
 
 class RemoteExplorerActions:
+    CopyPath = "copy_path"
     Delete = "delete"
     Download = "download_file"
     Upload = "upload_file"
+
+
+class RemoteExplorerContextMenuSections:
+    CopyPaste = "copy_paste_section"
+    Extras = "extras_section"
+    New = "new_section"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -92,6 +105,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         # Model, actions and widget setup
         self.context_menu = self.create_menu(RemoteViewMenus.Context)
+        self.copy_path_action = self.create_action(
+            RemoteExplorerActions.CopyPath,
+            _("Copy path"),
+            triggered=self.copy_path,
+        )
         self.delete_action = self.create_action(
             RemoteExplorerActions.Delete,
             _("Delete..."),
@@ -111,8 +129,28 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             triggered=self.upload_file,
         )
 
-        for action in [self.delete_action, self.download_file_action]:
-            self.add_item_to_menu(action, self.context_menu)
+        for action in [self.delete_action]:
+            self.add_item_to_menu(
+                action,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.New,
+            )
+
+        for action in [
+            self.copy_path_action,
+        ]:
+            self.add_item_to_menu(
+                action,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.CopyPaste,
+            )
+
+        for action in [self.download_file_action]:
+            self.add_item_to_menu(
+                action,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.Extras,
+            )
 
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
@@ -625,6 +663,21 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
+
+    def copy_path(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            path = data["name"]
+            cb = QApplication.clipboard()
+            cb.setText(path, mode=QClipboard.Mode.Clipboard)
 
     def delete_item(self):
         if (
