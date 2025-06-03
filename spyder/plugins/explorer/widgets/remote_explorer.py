@@ -8,6 +8,7 @@ import asyncio
 import fnmatch
 import logging
 import os
+import posixpath
 from datetime import datetime
 
 from qtpy.compat import getopenfilename, getsavefilename
@@ -15,7 +16,9 @@ from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import (
     QApplication,
+    QInputDialog,
     QMessageBox,
+    QLineEdit,
     QTreeView,
     QVBoxLayout,
     QWidget,
@@ -44,9 +47,11 @@ class RemoteViewMenus:
 
 
 class RemoteExplorerActions:
+    CopyPaste = "copy_paste"
     CopyPath = "copy_path"
     Delete = "delete"
     Download = "download_file"
+    Rename = "rename"
     Upload = "upload_file"
 
 
@@ -105,6 +110,19 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         # Model, actions and widget setup
         self.context_menu = self.create_menu(RemoteViewMenus.Context)
+
+        self.copy_paste_action = self.create_action(
+            RemoteExplorerActions.CopyPaste,
+            _("Copy and Paste..."),
+            icon=self.create_icon("editcopy"),
+            triggered=self.copy_paste_item,
+        )
+        self.rename_action = self.create_action(
+            RemoteExplorerActions.Rename,
+            _("Rename..."),
+            icon=self.create_icon("rename"),
+            triggered=self.rename_item,
+        )
         self.copy_path_action = self.create_action(
             RemoteExplorerActions.CopyPath,
             _("Copy path"),
@@ -129,7 +147,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             triggered=self.upload_file,
         )
 
-        for action in [self.delete_action]:
+        for action in [
+            self.rename_action,
+            self.delete_action,
+        ]:
             self.add_item_to_menu(
                 action,
                 self.context_menu,
@@ -137,6 +158,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             )
 
         for action in [
+            self.copy_paste_action,
             self.copy_path_action,
         ]:
             self.add_item_to_menu(
@@ -219,9 +241,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if not data:
             return
 
-        # TODO: For now disable the download action in the context menu for
-        # directories
+        # Disable actions not suitable for directories
         is_file = data.get("type", "file") == "file"
+        self.copy_paste_action.setEnabled(is_file)
+        # TODO: For now disable the download action in the context menu for
+        # directories too
         self.download_file_action.setEnabled(is_file)
 
         global_position = self.mapToGlobal(position)
@@ -254,6 +278,40 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         except OSError as error:
             QMessageBox.critical(self, error_title, error_message)
             logger.error(error)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_copy_paste(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Copy and Paste error"),
+            _("An error occured while trying to copy and paste a file/directory"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_copy_paste(self, old_path, new_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        return await self.remote_files_manager.copy(old_path, new_path)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_rename(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Rename error"),
+            _("An error occured while trying to rename a file"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_rename(self, old_path, new_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        return await self.remote_files_manager.replace(old_path, new_path)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_delete(self, future):
@@ -663,6 +721,52 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
+
+    def copy_paste_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            old_path = data["name"]
+            relpath = os.path.relpath(old_path, self.root_prefix)
+            new_relpath, valid = QInputDialog.getText(
+                self, _("Copy and Paste"), _("Paste as:"), QLineEdit.Normal, relpath
+            )
+            if valid:
+                new_path = posixpath.join(self.root_prefix, new_relpath)
+                self._do_remote_copy_paste(old_path, new_path).connect(
+                    self._on_remote_copy_paste
+                )
+                self.sig_start_spinner_requested.emit()
+
+    def rename_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            old_path = data["name"]
+            relpath = os.path.relpath(old_path, self.root_prefix)
+            new_relpath, valid = QInputDialog.getText(
+                self, _("Rename"), _("New name:"), QLineEdit.Normal, relpath
+            )
+            if valid:
+                new_path = posixpath.join(self.root_prefix, new_relpath)
+                self._do_remote_rename(old_path, str(new_path)).connect(
+                    self._on_remote_rename
+                )
+                self.sig_start_spinner_requested.emit()
 
     def copy_path(self):
         if (
