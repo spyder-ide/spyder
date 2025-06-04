@@ -1738,7 +1738,7 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
     # Dummy conf section to avoid a warning from SpyderConfigurationObserver
-    CONF_SECTION = ""
+    CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
 
@@ -1754,6 +1754,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 self, data, namespacebrowser, data_function, readonly, title
             )
 
+        self.parent = parent
+
         self.refresh_action = self.create_action(
             name=CollectionsEditorActions.Refresh,
             text=_('Refresh'),
@@ -1767,11 +1769,12 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             name=CollectionsEditorActions.Close,
             icon=self.create_icon('close_pane'),
             text=_('Close'),
-            triggered=parent.reject,
+            triggered=self.close_window,
+            shortcut=self.get_shortcut(CollectionsEditorActions.Close),
             register_shortcut=True
         )
         self.register_shortcut_for_widget(
-            name='close', triggered=parent.reject, context='variable_explorer')
+            name='close', triggered=self.close_window)
 
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
@@ -1849,6 +1852,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     def get_title(self):
         """Get model title"""
         return self.editor.source_model.title
+    
+    def close_window(self):
+        if self.parent:
+            self.parent.reject
 
 
 class CollectionsEditor(BaseDialog):

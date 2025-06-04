@@ -1809,6 +1809,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
+            shortcut=self.get_shortcut(DataframeEditorActions.Close),
             context=Qt.WindowShortcut,
             register_shortcut=True
         )

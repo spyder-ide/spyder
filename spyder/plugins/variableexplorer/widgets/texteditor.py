@@ -69,6 +69,7 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
+            shortcut=self.get_shortcut(TextEditorActions.Close),
             register_shortcut=True
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)

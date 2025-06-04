@@ -446,7 +446,7 @@ class SpyderActionMixin:
     # name where it is applied).
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, data=None,
-                      shortcut_context=None,
+                      shortcut=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
                       parent=None, register_action=True, overwrite=False,
@@ -542,6 +542,7 @@ class SpyderActionMixin:
             data=data,
             context=context,
             section=section,
+            shortcut=shortcut,
             option=option,
             id_=name,
             plugin=self.PLUGIN_NAME,

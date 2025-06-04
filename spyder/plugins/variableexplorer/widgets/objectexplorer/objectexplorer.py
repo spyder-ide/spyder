@@ -63,7 +63,7 @@ class ObjectExplorerWidgets:
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
+class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     """Object explorer main widget window."""
     CONF_SECTION = 'variable_explorer'
 
@@ -263,8 +263,10 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             icon=self.create_icon('close_pane'),
             text=_('Close'),
             triggered=self.reject,
+            shortcut=self.get_shortcut(ObjectExplorerActions.Close),
             register_shortcut=True
         )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
         self.refresh_action.setEnabled(self.data_function is not None)
 
