@@ -44,21 +44,24 @@ logger = logging.getLogger(__name__)
 
 class RemoteViewMenus:
     Context = "remote_context_menu"
+    New = "remote_new_menu"
 
 
 class RemoteExplorerActions:
-    CopyPaste = "copy_paste"
-    CopyPath = "copy_path"
-    Delete = "delete"
-    Download = "download_file"
-    Rename = "rename"
-    Upload = "upload_file"
+    CopyPaste = "remote_copy_paste_action"
+    CopyPath = "remote_copy_path_action"
+    Delete = "remote_delete_action"
+    Download = "remote_download_file_action"
+    NewFile = "remote_new_file_action"
+    NewDirectory = "remote_new_directory_action"
+    Rename = "remote_rename_action"
+    Upload = "remote_upload_file_action"
 
 
 class RemoteExplorerContextMenuSections:
-    CopyPaste = "copy_paste_section"
-    Extras = "extras_section"
-    New = "new_section"
+    CopyPaste = "remote_copy_paste_section"
+    Extras = "remote_extras_section"
+    New = "remote_new_section"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -110,7 +113,23 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         # Model, actions and widget setup
         self.context_menu = self.create_menu(RemoteViewMenus.Context)
+        new_submenu = self.create_menu(
+            RemoteViewMenus.New,
+            _('New'),
+        )
 
+        self.new_directory_action = self.create_action(
+            RemoteExplorerActions.NewDirectory,
+            text=_("Folder..."),
+            icon=self.create_icon('folder_new'),
+            triggered=self.new_directory,
+        )
+        self.new_file_action = self.create_action(
+            RemoteExplorerActions.NewFile,
+            text=_("File..."),
+            icon=self.create_icon('TextFileIcon'),
+            triggered=self.new_file,
+        )
         self.copy_paste_action = self.create_action(
             RemoteExplorerActions.CopyPaste,
             _("Copy and Paste..."),
@@ -147,32 +166,42 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             triggered=self.upload_file,
         )
 
-        for action in [
+        for item in [self.new_file_action, self.new_directory_action]:
+            self.add_item_to_menu(
+                item,
+                new_submenu,
+            )
+
+        for item in [
+            new_submenu,
             self.rename_action,
             self.delete_action,
         ]:
             self.add_item_to_menu(
-                action,
+                item,
                 self.context_menu,
                 section=RemoteExplorerContextMenuSections.New,
             )
 
-        for action in [
+        for item in [
             self.copy_paste_action,
             self.copy_path_action,
         ]:
             self.add_item_to_menu(
-                action,
+                item,
                 self.context_menu,
                 section=RemoteExplorerContextMenuSections.CopyPaste,
             )
 
-        for action in [self.download_file_action]:
+        for item in [self.download_file_action]:
             self.add_item_to_menu(
-                action,
+                item,
                 self.context_menu,
                 section=RemoteExplorerContextMenuSections.Extras,
             )
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._on_show_context_menu)
 
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
@@ -231,18 +260,27 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     def _on_show_context_menu(self, position):
         index = self.view.indexAt(position)
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-
         if not index.isValid():
-            return
+            self.view.setCurrentIndex(index)
+            self.view.clearSelection()
+            data = {}
+            data_available = False
+            is_file = False
+        else:
+            source_index = self.proxy_model.mapToSource(
+                self.view.currentIndex()
+            )
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            data_available = bool(data)
+            is_file = (
+                data_available and data.get("type", "directory") == "file"
+            )
 
-        if not data:
-            return
-
+        # Disable actions that require a valid selection
+        self.rename_action.setEnabled(data_available)
+        self.delete_action.setEnabled(data_available)
         # Disable actions not suitable for directories
-        is_file = data.get("type", "file") == "file"
         self.copy_paste_action.setEnabled(is_file)
         # TODO: For now disable the download action in the context menu for
         # directories too
@@ -275,9 +313,34 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             # Need to call `future.result()` to get any possible exception
             # generated over the remote server.
             future.result()
-        except OSError as error:
+        except (RemoteOSError, OSError) as error:
+            error_message = f"{error_message}<br><br>{error.message}"
             QMessageBox.critical(self, error_title, error_message)
             logger.error(error)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_new(self, future):
+        self._handle_future_response_error(
+            future,
+            _("New error"),
+            _("An error occured while trying to create a file/directory"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_new(
+        self, new_path, for_file=False
+    ):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        if for_file:
+            response = await self.remote_files_manager.touch(new_path)
+        else:
+            response = await self.remote_files_manager.mkdir(new_path)
+
+        return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_copy_paste(self, future):
@@ -404,7 +467,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        remote_file = os.path.basename(local_path)
+        remote_file = posixpath.join(self.root_prefix, os.path.basename(local_path))
         file_content = None
 
         try:
@@ -521,6 +584,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         logger.debug(
             f"{len(self.extra_files)} available extra files to be shown"
         )
+
+    def _new_item(self, new_name, for_file=False):
+        new_path = posixpath.join(self.root_prefix, new_name)
+        self._do_remote_new(new_path, for_file=for_file).connect(
+            self._on_remote_new
+        )
+        self.sig_start_spinner_requested.emit()
 
     @AsyncDispatcher.QtSlot
     def chdir(
@@ -722,6 +792,20 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
 
+    def new_directory(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New Folder"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name)
+
+    def new_file(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New File"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name, for_file=True)
+
     def copy_paste_item(self):
         if (
             not self.view.currentIndex()
@@ -773,15 +857,18 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             not self.view.currentIndex()
             or not self.view.currentIndex().isValid()
         ):
-            return
+            path = self.root_prefix
+        else:
+            source_index = self.proxy_model.mapToSource(
+                self.view.currentIndex()
+            )
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                path = data["name"]
 
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-        if data:
-            path = data["name"]
-            cb = QApplication.clipboard()
-            cb.setText(path, mode=QClipboard.Mode.Clipboard)
+        cb = QApplication.clipboard()
+        cb.setText(path, mode=QClipboard.Mode.Clipboard)
 
     def delete_item(self):
         if (
