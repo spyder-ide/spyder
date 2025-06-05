@@ -94,9 +94,6 @@ class AssetInfo(TypedDict):
     # Download URL for the asset.
     url: str
 
-    # Checksum url
-    checksum_url: str
-
     # File sha256 checksum
     checksum: str
 
@@ -184,7 +181,7 @@ def get_asset_checksum(url: str, name: str) -> str | None:
 
 def get_asset_info(release_info: dict) -> AssetInfo | None:
     """
-    Get the version, name, update type, download URL, and size for the asset
+    Get the version, name, update type, download URL, and digest for the asset
     of the given release.
 
     Parameters
@@ -197,15 +194,9 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
     asset_info: AssetInfo | None
         Information about the asset.
     """
-    current_version = CURRENT_VERSION
-    checksum_name = "Spyder-checksums.txt"
-
-    updater = "spyder-updater" in release_info["url"]
-    if updater:
-        current_version = UPDATER_VERSION
-        checksum_name = "Spyder-Updater-checksums.txt"
-
     release = parse(release_info["tag_name"])
+    updater = "spyder-updater" in release_info["url"]
+    current_version = UPDATER_VERSION if updater else CURRENT_VERSION
 
     if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
@@ -225,23 +216,17 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
         if sys.platform.startswith('linux'):
             ext += '.sh'
 
-    asset_info = AssetInfo(version=release, update_type=update_type)
+    asset_info = None
     for asset in release_info["assets"]:
         if asset["name"].endswith(ext):
-            asset_info.update(
+            asset_info = AssetInfo(
+                version=release,
+                update_type=update_type,
                 filename=asset["name"],
-                url=asset["browser_download_url"]
+                url=asset["browser_download_url"],
+                checksum=asset["digest"],
             )
-        if asset["name"] == checksum_name:
-            asset_info.update(
-                checksum_url=asset["browser_download_url"]
-            )
-        if asset_info.get("url") and asset_info.get("checksum_url"):
             break
-
-    if asset_info.get("url") is None or asset_info.get("checksum_url") is None:
-        # Both assets are required
-        asset_info = None
 
     return asset_info
 
@@ -266,16 +251,7 @@ def _check_asset_available(
         asset_info = get_asset_info(releases.get(latest_release))
 
         if asset_info is not None:
-            # The asset is available, now get checksum.
-            checksum = get_asset_checksum(
-                asset_info["checksum_url"], asset_info["filename"]
-            )
-            if checksum is not None:
-                asset_info.update(checksum=checksum)
-                logger.debug(f"Asset available: {latest_release}")
-                break
-            else:
-                asset_info = None
+            break
 
         # The asset is not available
         logger.debug(f"Asset not available: {latest_release}")
