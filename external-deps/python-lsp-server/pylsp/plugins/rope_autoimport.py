@@ -2,7 +2,8 @@
 
 import logging
 import threading
-from typing import Any, Dict, Generator, List, Optional, Set, Union
+from collections.abc import Generator
+from typing import Any, Optional, Union
 
 import parso
 from jedi import Script
@@ -36,7 +37,7 @@ class AutoimportCache:
         self,
         config: Config,
         workspace: Workspace,
-        files: Optional[List[Document]] = None,
+        files: Optional[list[Document]] = None,
         single_thread: Optional[bool] = True,
     ):
         if self.is_blocked():
@@ -45,7 +46,7 @@ class AutoimportCache:
         memory: bool = config.plugin_settings("rope_autoimport").get("memory", False)
         rope_config = config.settings().get("rope", {})
         autoimport = workspace._rope_autoimport(rope_config, memory)
-        resources: Optional[List[Resource]] = (
+        resources: Optional[list[Resource]] = (
             None
             if files is None
             else [document._rope_resource(rope_config) for document in files]
@@ -65,7 +66,7 @@ class AutoimportCache:
         self,
         workspace: Workspace,
         autoimport: AutoImport,
-        resources: Optional[List[Resource]] = None,
+        resources: Optional[list[Resource]] = None,
     ) -> None:
         task_handle = PylspTaskHandle(workspace)
         autoimport.generate_cache(task_handle=task_handle, resources=resources)
@@ -76,7 +77,7 @@ class AutoimportCache:
 
 
 @hookimpl
-def pylsp_settings() -> Dict[str, Dict[str, Dict[str, Any]]]:
+def pylsp_settings() -> dict[str, dict[str, dict[str, Any]]]:
     # Default rope_completion to disabled
     return {
         "plugins": {
@@ -180,13 +181,13 @@ def _handle_argument(node: NodeOrLeaf, word_node: tree.Leaf):
 
 
 def _process_statements(
-    suggestions: List[SearchResult],
+    suggestions: list[SearchResult],
     doc_uri: str,
     word: str,
     autoimport: AutoImport,
     document: Document,
     feature: str = "completions",
-) -> Generator[Dict[str, Any], None, None]:
+) -> Generator[dict[str, Any], None, None]:
     for suggestion in suggestions:
         insert_line = autoimport.find_insertion_line(document.source) - 1
         start = {"line": insert_line, "character": 0}
@@ -220,7 +221,7 @@ def _process_statements(
             raise ValueError(f"Unknown feature: {feature}")
 
 
-def get_names(script: Script) -> Set[str]:
+def get_names(script: Script) -> set[str]:
     """Get all names to ignore from the current file."""
     raw_names = script.get_names(definitions=True)
     log.debug(raw_names)
@@ -233,7 +234,7 @@ def pylsp_completions(
     workspace: Workspace,
     document: Document,
     position,
-    ignored_names: Union[Set[str], None],
+    ignored_names: Union[set[str], None],
 ):
     """Get autoimport suggestions."""
     if (
@@ -251,7 +252,7 @@ def pylsp_completions(
     word = word_node.value
     log.debug(f"autoimport: searching for word: {word}")
     rope_config = config.settings(document_path=document.path).get("rope", {})
-    ignored_names: Set[str] = ignored_names or get_names(
+    ignored_names: set[str] = ignored_names or get_names(
         document.jedi_script(use_document_path=True)
     )
     autoimport = workspace._rope_autoimport(rope_config)
@@ -303,9 +304,9 @@ def pylsp_code_actions(
     config: Config,
     workspace: Workspace,
     document: Document,
-    range: Dict,
-    context: Dict,
-) -> List[Dict]:
+    range: dict,
+    context: dict,
+) -> list[dict]:
     """
     Provide code actions through rope.
 
@@ -317,9 +318,9 @@ def pylsp_code_actions(
         Current workspace.
     document : pylsp.workspace.Document
         Document to apply code actions on.
-    range : Dict
+    range : dict
         Range argument given by pylsp. Not used here.
-    context : Dict
+    context : dict
         CodeActionContext given as dict.
 
     Returns

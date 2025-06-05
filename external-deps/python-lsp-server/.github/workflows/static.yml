@@ -30,9 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # TODO: check with Python 3, but need to fix the
-          # errors first
-          python-version: '3.8'
+          python-version: '3.9'
           architecture: 'x64'
       - run: python -m pip install --upgrade pip setuptools jsonschema
       # If we don't install pycodestyle, pylint will throw an unused-argument error in pylsp/plugins/pycodestyle_lint.py:72

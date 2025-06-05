@@ -6,7 +6,7 @@ import os
 import sys
 import time
 from threading import Thread
-from typing import Any, Dict, List
+from typing import Any
 from unittest import mock
 
 from docstring_to_markdown import UnknownFormatError
@@ -19,7 +19,7 @@ from pylsp.python_lsp import PythonLSPServer, start_io_lang_server
 CALL_TIMEOUT_IN_SECONDS = 30
 
 
-def send_notebook_did_open(client, cells: List[str]) -> None:
+def send_notebook_did_open(client, cells: list[str]) -> None:
     """
     Sends a notebookDocument/didOpen notification with the given python cells.
 
@@ -31,7 +31,7 @@ def send_notebook_did_open(client, cells: List[str]) -> None:
     )
 
 
-def notebook_with_python_cells(cells: List[str]):
+def notebook_with_python_cells(cells: list[str]):
     """
     Create a notebook document with the given python cells.
 
@@ -61,7 +61,7 @@ def notebook_with_python_cells(cells: List[str]):
     }
 
 
-def send_initialize_request(client, initialization_options: Dict[str, Any] = None):
+def send_initialize_request(client, initialization_options: dict[str, Any] = None):
     return client._endpoint.request(
         "initialize",
         {

@@ -20,6 +20,9 @@ def pylsp_document_symbols(config, document):
     symbols = []
     exclude = set({})
     redefinitions = {}
+    pattern_import = re.compile(
+        r"^\s*(?!#)\s*(from\s+[.\w]+(\.[\w]+)*\s+import\s+[\w\s,()*]+|import\s+[\w\s,.*]+)"
+    )
 
     while definitions != []:
         d = definitions.pop(0)
@@ -28,11 +31,8 @@ def pylsp_document_symbols(config, document):
         if not add_import_symbols:
             # Skip if there's an import in the code the symbol is defined.
             code = d.get_line_code()
-            pattern = (
-                re.compile
-                (r'^\s*(?!#)(from\s+\w+(\.\w+)*\s+import\s+[\w,\s*]+|import\s+[\w,\s]+)')
-                )
-            if pattern.match(code):
+
+            if pattern_import.match(code):
                 continue
 
             # Skip imported symbols comparing module names.
