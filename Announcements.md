@@ -154,13 +154,13 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.1.0a2 is released!
+**Subject**: [ANN] Spyder 6.1.0a3 is released!
 
 
 Hi all,
 
-On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second alpha of our next minor version: Spyder **6.1**.
+On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce the third alpha of our next minor version: Spyder **6.1**.
 
 We've been working on this version for around half a year now and it's working
 relatively well. We encourage all people who like the bleeding edge to give it a try.
@@ -187,13 +187,15 @@ Spyder 6.1 comes with the following interesting new features and fixes:
         * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
         * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
     - IPython console
+        * **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
         * **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
         * **Breaking** - The `save_working_directory` method was made private because it's only used internally.
         * Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
-
+        * Add `server_id` kwarg to the `set_current_client_working_directory` method.
     - Working Directory
-        * **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
+        * **Breaking** - The `sig_current_directory_changed` signal now emits three strings instead of a single one.
         * **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
+        * Add `server_id` kwarg to the `chdir` method.
     - Remote Client
         * **Breaking** - The `create_ipyclient_for_server` and `get_kernels` methods were removed.
         * Add `sig_server_changed` signal to report when a server was added or removed.
@@ -206,13 +208,15 @@ Spyder 6.1 comes with the following interesting new features and fixes:
     - Application plugin
         * Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
         * Add `focused_plugin` attribute.
+    - File Explorer
+        * **Breaking** - `ExplorerTreeWidgetActions` renamed to `ExplorerWidgetActions`.
+        * **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
+        * Add `server_id` kwarg to the `chdir` method.
     - SpyderPluginV2
         * Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
         * Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
     - PluginMainWidget
-        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
-          and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in
-          the Variable Explorer).
+        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes, and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in the Variable Explorer).
     - Shellconnect
         * **Breaking** - Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
         * Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.
@@ -227,7 +231,7 @@ For a more complete list of changes, please see our
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0a2
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0a3
 
 Or you can use pip with this command:
 
