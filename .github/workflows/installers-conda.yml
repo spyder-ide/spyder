@@ -386,6 +386,7 @@ jobs:
 
       - name: Create Checksums
         run: |
+          # TODO: Remove this step for Spyder 7
           sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt
 
       - name: Upload Lock Files
