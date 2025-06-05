@@ -91,6 +91,67 @@
 
 ----
 
+## Version 6.1.0a3 (2025/06/05)
+
+### Issues Closed
+
+* [Issue 24504](https://github.com/spyder-ide/spyder/issues/24504) - Error when starting the debugger ([PR 24508](https://github.com/spyder-ide/spyder/pull/24508) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24442](https://github.com/spyder-ide/spyder/issues/24442) - Annotations are not limited to comments ([PR 24491](https://github.com/spyder-ide/spyder/pull/24491) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24423](https://github.com/spyder-ide/spyder/issues/24423) - Add shortcut for `Replace all` action ([PR 24444](https://github.com/spyder-ide/spyder/pull/24444) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24370](https://github.com/spyder-ide/spyder/issues/24370) - Error with Open file dialog on macOS ([PR 24416](https://github.com/spyder-ide/spyder/pull/24416) by [@mrclary](https://github.com/mrclary))
+* [Issue 24306](https://github.com/spyder-ide/spyder/issues/24306) - Add support for `frozenset` to Variable Explorer ([PR 24307](https://github.com/spyder-ide/spyder/pull/24307) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 24280](https://github.com/spyder-ide/spyder/issues/24280) - Error on `PaneEmptyWidget` resize event ([PR 24303](https://github.com/spyder-ide/spyder/pull/24303) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 23558](https://github.com/spyder-ide/spyder/issues/23558) - Add support to activate environments with Pixi ([PR 23919](https://github.com/spyder-ide/spyder/pull/23919) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 23415](https://github.com/spyder-ide/spyder/issues/23415) - Spyder fails to launch on MacOS with case-sensitive root volume ([PR 24321](https://github.com/spyder-ide/spyder/pull/24321) by [@mrclary](https://github.com/mrclary))
+* [Issue 22570](https://github.com/spyder-ide/spyder/issues/22570) - Array of strings not displayed in Variable Explorer pane ([PR 24150](https://github.com/spyder-ide/spyder/pull/24150) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 22351](https://github.com/spyder-ide/spyder/issues/22351) - ENH: Show repr() info on a WindowPath variable ([PR 24330](https://github.com/spyder-ide/spyder/pull/24330) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 21894](https://github.com/spyder-ide/spyder/issues/21894) - `conda` gives `error: incomplete escape \U` when trying to install package in the IPython console ([PR 24344](https://github.com/spyder-ide/spyder/pull/24344) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 21683](https://github.com/spyder-ide/spyder/issues/21683) - Viewing older plots drags you down to the newly made plots while the code is running ([PR 24279](https://github.com/spyder-ide/spyder/pull/24279) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 21659](https://github.com/spyder-ide/spyder/issues/21659) - Files are not moved to the operating system trash can after deleting them in Files or Projects ([PR 24382](https://github.com/spyder-ide/spyder/pull/24382) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 21025](https://github.com/spyder-ide/spyder/issues/21025) - Feature: Support creating histograms and showing images for dataframes ([PR 24266](https://github.com/spyder-ide/spyder/pull/24266) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 6853](https://github.com/spyder-ide/spyder/issues/6853) - None displays as NoneType in Variable Explorer ([PR 24330](https://github.com/spyder-ide/spyder/pull/24330) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 4126](https://github.com/spyder-ide/spyder/issues/4126) - Cannot input unicode character with `Ctrl+Shift+U` in the Editor ([PR 24381](https://github.com/spyder-ide/spyder/pull/24381) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 1351](https://github.com/spyder-ide/spyder/issues/1351) - Undocked windows are not reachable by shortcut ([PR 24424](https://github.com/spyder-ide/spyder/pull/24424) by [@jsbautista](https://github.com/jsbautista))
+
+In this release 17 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 24536](https://github.com/spyder-ide/spyder/pull/24536) - PR: Update `spyder-kernels` to 3.1.0a2 (for Spyder 6.1.0a3), by [@dalthviz](https://github.com/dalthviz)
+* [PR 24508](https://github.com/spyder-ide/spyder/pull/24508) - PR: Catch any error when creating a new Pdb history session (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([24504](https://github.com/spyder-ide/spyder/issues/24504))
+* [PR 24507](https://github.com/spyder-ide/spyder/pull/24507) - PR: Fix Remote client tests by passing `ClientSession` loop when closing APIs (Jupyter and Files APIs), by [@dalthviz](https://github.com/dalthviz)
+* [PR 24493](https://github.com/spyder-ide/spyder/pull/24493) - PR: Increase minimal supported Python version to 3.9, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24491](https://github.com/spyder-ide/spyder/pull/24491) - PR: Make editor annotations be limited to comments, by [@jsbautista](https://github.com/jsbautista) ([24442](https://github.com/spyder-ide/spyder/issues/24442))
+* [PR 24482](https://github.com/spyder-ide/spyder/pull/24482) - PR: Move filter and refresh actions to be part of the corner widgets (Files), by [@dalthviz](https://github.com/dalthviz)
+* [PR 24480](https://github.com/spyder-ide/spyder/pull/24480) - PR: Remove unnecessary margins around `RemoteExplorer` widget (Files), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24445](https://github.com/spyder-ide/spyder/pull/24445) - PR: Change shortcut to transform text to lowercase (Editor), by [@jsbautista](https://github.com/jsbautista)
+* [PR 24444](https://github.com/spyder-ide/spyder/pull/24444) - PR: Add shortcut to find/replace widget to replace all found instances, by [@jsbautista](https://github.com/jsbautista) ([24423](https://github.com/spyder-ide/spyder/issues/24423))
+* [PR 24427](https://github.com/spyder-ide/spyder/pull/24427) - PR: Fix executable used for restarts on macOS, by [@mrclary](https://github.com/mrclary)
+* [PR 24424](https://github.com/spyder-ide/spyder/pull/24424) - PR: Make shortcuts to move to plugins work when they are undocked, by [@jsbautista](https://github.com/jsbautista) ([1351](https://github.com/spyder-ide/spyder/issues/1351))
+* [PR 24416](https://github.com/spyder-ide/spyder/pull/24416) - PR: Fix UnboundLocalError when cancelling the open file dialog, by [@mrclary](https://github.com/mrclary) ([24370](https://github.com/spyder-ide/spyder/issues/24370))
+* [PR 24382](https://github.com/spyder-ide/spyder/pull/24382) - PR : Move files to the OS trash can when deleting them in Files or Projects, by [@jsbautista](https://github.com/jsbautista) ([21659](https://github.com/spyder-ide/spyder/issues/21659))
+* [PR 24381](https://github.com/spyder-ide/spyder/pull/24381) - PR : Change shortcut to transform text to uppercase (Editor), by [@jsbautista](https://github.com/jsbautista) ([4126](https://github.com/spyder-ide/spyder/issues/4126))
+* [PR 24344](https://github.com/spyder-ide/spyder/pull/24344) - PR: Disable magics and commands to call Python package managers in the IPython console, by [@ccordoba12](https://github.com/ccordoba12) ([21894](https://github.com/spyder-ide/spyder/issues/21894))
+* [PR 24331](https://github.com/spyder-ide/spyder/pull/24331) - PR: Rename `PaneEmptyWidget` to `EmptyMessageWidget` (Widgets), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24330](https://github.com/spyder-ide/spyder/pull/24330) - PR: Display `pathlib.Path` variables and `None` in Variable Explorer, by [@jitseniesen](https://github.com/jitseniesen) ([6853](https://github.com/spyder-ide/spyder/issues/6853), [22351](https://github.com/spyder-ide/spyder/issues/22351))
+* [PR 24327](https://github.com/spyder-ide/spyder/pull/24327) - PR: Add ability to filter elements in `ElementsTable`, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24321](https://github.com/spyder-ide/spyder/pull/24321) - PR: Rename resources to Resources in our runtime environment for macOS case-sensitive file systems (Installers), by [@mrclary](https://github.com/mrclary) ([23415](https://github.com/spyder-ide/spyder/issues/23415))
+* [PR 24314](https://github.com/spyder-ide/spyder/pull/24314) - PR: Updater implementation improvements (Installers), by [@mrclary](https://github.com/mrclary)
+* [PR 24311](https://github.com/spyder-ide/spyder/pull/24311) - PR: Remove 6.x branch from weekly scheduled installer build, by [@mrclary](https://github.com/mrclary)
+* [PR 24307](https://github.com/spyder-ide/spyder/pull/24307) - PR: Treat `frozenset` as `set` in Variable Explorer, by [@jitseniesen](https://github.com/jitseniesen) ([24306](https://github.com/spyder-ide/spyder/issues/24306))
+* [PR 24303](https://github.com/spyder-ide/spyder/pull/24303) - PR: Fix error when resizing not visible `PaneEmptyWidget`'s, by [@ccordoba12](https://github.com/ccordoba12) ([24280](https://github.com/spyder-ide/spyder/issues/24280))
+* [PR 24279](https://github.com/spyder-ide/spyder/pull/24279) - PR: Do not scroll to the bottom if last plot is not selected (Plots), by [@jitseniesen](https://github.com/jitseniesen) ([21683](https://github.com/spyder-ide/spyder/issues/21683))
+* [PR 24268](https://github.com/spyder-ide/spyder/pull/24268) - PR: Add support to connect to JupyterHub instances (Remote client), by [@hlouzada](https://github.com/hlouzada)
+* [PR 24266](https://github.com/spyder-ide/spyder/pull/24266) - PR: Plot histogram from dataframe editor (Variable Explorer), by [@jitseniesen](https://github.com/jitseniesen) ([21025](https://github.com/spyder-ide/spyder/issues/21025))
+* [PR 24249](https://github.com/spyder-ide/spyder/pull/24249) - PR: Improve UI of dialog to create new projects, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24150](https://github.com/spyder-ide/spyder/pull/24150) - PR: Show contents of Numpy string arrays in the Variable Explorer, by [@jitseniesen](https://github.com/jitseniesen) ([22570](https://github.com/spyder-ide/spyder/issues/22570))
+* [PR 23986](https://github.com/spyder-ide/spyder/pull/23986) - PR: Add support for displaying remote files (File Explorer, Working Directory), by [@dalthviz](https://github.com/dalthviz)
+* [PR 23919](https://github.com/spyder-ide/spyder/pull/23919) - PR: Support activation of Pixi environments, by [@dalthviz](https://github.com/dalthviz) ([23558](https://github.com/spyder-ide/spyder/issues/23558))
+
+In this release 30 pull requests were closed.
+
+----
+
 ## Version 6.1.0a2 (2025/04/22)
 
 ### Issues Closed
