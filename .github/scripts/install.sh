@@ -8,7 +8,7 @@ install_spyder_kernels() {
 
     if [ "$OS" = "win" ]; then
         # `conda run` fails on Windows without a clear reason
-        /c/Miniconda/envs/"$1"/python -m pip install -q .
+        /c/Users/runneradmin/miniconda3/envs/"$1"/python -m pip install -q .
     else
         conda run -n "$1" python -m pip install -q .
     fi
@@ -92,12 +92,6 @@ else
     pip install --no-deps .
     popd
 
-    # Adjust PATH on Windows so that we can use conda below. This needs to be done
-    # at this point or the pip slots fail.
-    if [ "$OS" = "win" ]; then
-        PATH=/c/Miniconda/Scripts/:$PATH
-    fi
-
     # Create environment for Jedi environment tests
     conda create -n jedi-test-env -q -y python=3.9 flask
     install_spyder_kernels jedi-test-env
@@ -112,7 +106,7 @@ else
     if [ "$RUN_SLOW" = "false" ]; then
         if [ "$OS" = "linux" ]; then
             curl https://pyenv.run | bash
-            $HOME/.pyenv/bin/pyenv install 3.8.1
+            $HOME/.pyenv/bin/pyenv install 3.10.6
         fi
     fi
 fi

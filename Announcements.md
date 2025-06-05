@@ -1,32 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.5 is released!
+**Subject**: [ANN] Spyder 6.0.7 is released!
 
 
 Hi all,
 
-On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.5** has been released and is available for
+On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
+I'm pleased to announce that Spyder **6.0.7** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes seven weeks after version 6.0.4 and it contains the
-following new features and important fixes:
+This release comes one week after version 6.0.6 and it contains the
+following important fixes:
 
-* Add option to the Projects options menu to disable file searches in the Switcher.
-* Support displaying environments with the same name in the IPython Console `New console in environment` menu.
-* Fix `Check for updates at startup` option when an update is declined.
-* Remove `mamba` from Spyder installers.
-* Several improvements to the Variable Explorer messages shown when a variable can't be displayed.
-* Prevent error in `Connect to an existing kernel` dialog when the connection file doesn't exist.
-* Several fixes related to the Run plugin and working directory options used to run and debug files.
-* Fix conda executable validation when creating kernels and improve feedback in case it's not found.
-* Add message related to support for Pixi environments when starting kernels.
-* Improve message related to loading the Spyder icon theme not being possible.
-* Prevent Spyder softlock when lossing focus while the tour is being shown.
-* Fixes to better handle errors when trying to load `.spydata` files in the Variable Explorer.
-* Fix Editor code folding and indent guides for cloned editors.
+* Fix crash at startup on Windows when Conda is not available.
+* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
 
-In this release we fixed 28 issues and merged 43 pull requests. For a full
+In this release we fixed 2 issues and merged 5 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 

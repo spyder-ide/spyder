@@ -70,13 +70,12 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.8', '3.10', '3.12']
+        PYTHON_VERSION: ['3.9', '3.10', '3.12']
         TEST_TYPE: ['fast', 'slow']
         exclude:
-          # Only test Python 3.8 with pip because Conda-forge drop support for
-          # it
+          # Only test Python 3.9 with pip to save CI time
           - INSTALL_TYPE: 'conda'
-            PYTHON_VERSION: '3.8'
+            PYTHON_VERSION: '3.9'
           # We can't test with pip in Python 3.11+ due to an error, so we use
           # 3.10 instead.
           - INSTALL_TYPE: 'pip'

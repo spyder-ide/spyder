@@ -23,6 +23,7 @@ from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QDir,
+    QFile,
     QMimeData,
     QSortFilterProxyModel,
     Qt,
@@ -55,10 +56,8 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
-from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
-from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.utils import (
     create_script, fixpath, IconProvider, show_in_external_file_explorer)
 from spyder.py3compat import to_binary_string
@@ -96,7 +95,6 @@ class DirViewActions:
     ToggleHiddenFiles = 'toggle_show_hidden_action'
 
     # Triggers
-    EditNameFilters = 'edit_name_filters_action'
     NewFile = 'new_file_action'
     NewModule = 'new_module_action'
     NewFolder = 'new_folder_action'
@@ -143,16 +141,6 @@ class DirViewContextMenuSections:
     New = 'new_section'
     System = 'system_section'
     VersionControl = 'version_control_section'
-
-
-class ExplorerTreeWidgetActions:
-    # Toggles
-    ToggleFilter = 'toggle_filter_files_action'
-
-    # Triggers
-    Next = 'next_action'
-    Parent = 'parent_action'
-    Previous = 'previous_action'
 
 
 # ---- Styles
@@ -521,13 +509,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
             toggled=True,
             initial=self.get_conf('show_hidden'),
             option='show_hidden'
-        )
-
-        self.filters_action = self.create_action(
-            DirViewActions.EditNameFilters,
-            text=_("Edit filter settings..."),
-            icon=self.create_icon('filter'),
-            triggered=self.edit_filter,
         )
 
         self.create_action(
@@ -1069,51 +1050,6 @@ class DirView(QTreeView, SpyderWidgetMixin):
         raise NotImplementedError('To be implemented by subclasses')
 
     @Slot()
-    def edit_filter(self):
-        """Edit name filters."""
-        # Create Dialog
-        dialog = QDialog(self)
-        dialog.resize(500, 300)
-        dialog.setWindowTitle(_('Edit filter settings'))
-
-        # Create dialog contents
-        description_label = QLabel(
-            _('Filter files by name, extension, or more using '
-              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob'
-              ' patterns.</a> Please enter the glob patterns of the files you '
-              'want to show, separated by commas.'))
-        description_label.setOpenExternalLinks(True)
-        description_label.setWordWrap(True)
-        filters = QTextEdit(", ".join(self.get_conf('name_filters')),
-                            parent=self)
-        layout = QVBoxLayout()
-        layout.addWidget(description_label)
-        layout.addWidget(filters)
-
-        def handle_ok():
-            filter_text = filters.toPlainText()
-            filter_text = [f.strip() for f in str(filter_text).split(',')]
-            self.set_name_filters(filter_text)
-            dialog.accept()
-
-        def handle_reset():
-            self.set_name_filters(NAME_FILTERS)
-            filters.setPlainText(", ".join(self.get_conf('name_filters')))
-
-        # Dialog buttons
-        button_box = SpyderDialogButtonBox(
-            QDialogButtonBox.Reset
-            | QDialogButtonBox.Ok
-            | QDialogButtonBox.Cancel
-        )
-        button_box.accepted.connect(handle_ok)
-        button_box.rejected.connect(dialog.reject)
-        button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)
-        layout.addWidget(button_box)
-        dialog.setLayout(layout)
-        dialog.show()
-
-    @Slot()
     def open(self, fnames=None):
         """Open files with the appropriate application"""
         if fnames is None or isinstance(fnames, bool):
@@ -1166,14 +1102,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         Reimplemented in project explorer widget
         """
         while osp.exists(dirname):
-            try:
-                shutil.rmtree(dirname, onerror=misc.onerror)
-            except Exception as e:
-                # This handles a Windows problem with shutil.rmtree.
-                # See spyder-ide/spyder#8567.
-                if type(e).__name__ == "OSError":
-                    error_path = str(e.filename)
-                    shutil.rmtree(error_path, ignore_errors=True)
+            QFile.moveToTrash(dirname)
 
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
@@ -1185,7 +1114,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if yes_to_all is None:
             answer = QMessageBox.warning(
                 self, _("Delete"),
-                _("Do you really want to delete <b>%s</b>?"
+                _("Do you really want to delete <b>%s</b>?\n"
+                  "<br><br>"
+                  "<b>Note</b>: This file or directory will be moved to the "
+                  "trash can."
                   ) % osp.basename(fname), buttons)
             if answer == QMessageBox.No:
                 return yes_to_all
@@ -1858,7 +1790,7 @@ class ExplorerTreeWidget(DirView):
     File/directory explorer tree widget.
     """
 
-    sig_dir_opened = Signal(str)
+    sig_dir_opened = Signal(str, str)
     """
     This signal is emitted when the current directory of the explorer tree
     has changed.
@@ -1867,6 +1799,8 @@ class ExplorerTreeWidget(DirView):
     ----------
     new_root_directory: str
         The new root directory path.
+    server_id: str
+        The server identification from where the new root directory is reachable.
 
     Notes
     -----
@@ -1896,41 +1830,6 @@ class ExplorerTreeWidget(DirView):
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def setup(self):
-        """
-        Perform the setup of the widget.
-        """
-        super().setup()
-
-        # Actions
-        self.previous_action = self.create_action(
-            ExplorerTreeWidgetActions.Previous,
-            text=_("Previous"),
-            icon=self.create_icon('previous'),
-            triggered=self.go_to_previous_directory,
-        )
-        self.next_action = self.create_action(
-            ExplorerTreeWidgetActions.Next,
-            text=_("Next"),
-            icon=self.create_icon('next'),
-            triggered=self.go_to_next_directory,
-        )
-        self.create_action(
-            ExplorerTreeWidgetActions.Parent,
-            text=_("Parent"),
-            icon=self.create_icon('up'),
-            triggered=self.go_to_parent_directory
-        )
-
-        # Toolbuttons
-        self.filter_button = self.create_action(
-            ExplorerTreeWidgetActions.ToggleFilter,
-            text="",
-            icon=ima.icon('filter'),
-            toggled=self.change_filter_state
-        )
-        self.filter_button.setCheckable(True)
-
     def update_actions(self):
         """Update the widget actions."""
         super().update_actions()
@@ -2062,7 +1961,7 @@ class ExplorerTreeWidget(DirView):
             os.chdir(directory)
             self.refresh(new_path=directory, force_current=True)
             if emit:
-                self.sig_dir_opened.emit(directory)
+                self.sig_dir_opened.emit(directory, None)
         except PermissionError:
             QMessageBox.critical(self._parent, "Error",
                                  _("You don't have the right permissions to "

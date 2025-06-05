@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import logging
 import os.path as osp
 
 # Third party imports
@@ -19,12 +20,15 @@ from qtpy.QtCore import Signal
 from superqt.utils import qdebounced
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.translations import _
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.plugins.explorer.widgets.main_widget import ExplorerWidget
 from spyder.plugins.explorer.confpage import ExplorerConfigPage
+
+logger = logging.getLogger(__name__)
 
 
 class Explorer(SpyderDockablePlugin):
@@ -36,6 +40,7 @@ class Explorer(SpyderDockablePlugin):
         Plugins.IPythonConsole,
         Plugins.Editor,
         Plugins.WorkingDirectory,
+        Plugins.RemoteClient,
         Plugins.Application,
     ]
     TABIFY = Plugins.VariableExplorer
@@ -47,7 +52,7 @@ class Explorer(SpyderDockablePlugin):
 
     # --- Signals
     # ------------------------------------------------------------------------
-    sig_dir_opened = Signal(str)
+    sig_dir_opened = Signal(str, str)
     """
     This signal is emitted to indicate a folder has been opened.
 
@@ -55,6 +60,8 @@ class Explorer(SpyderDockablePlugin):
     ----------
     directory: str
         The opened path directory.
+    server_id: str
+        The server identification from where the directory path is reachable.
 
     Notes
     -----
@@ -174,6 +181,7 @@ class Explorer(SpyderDockablePlugin):
         return cls.create_icon('files')
 
     def on_initialize(self):
+        self._file_managers = {}
         widget = self.get_widget()
 
         # Expose widget signals on the plugin
@@ -272,9 +280,40 @@ class Explorer(SpyderDockablePlugin):
             application.open_file_in_plugin
         )
 
+    @on_plugin_teardown(plugin=Plugins.RemoteClient)
+    def on_remote_client_teardown(self):
+        if len(self._file_managers):
+            for file_manager in self._file_managers.values():
+                AsyncDispatcher(
+                    loop=file_manager.session._loop, early_return=False
+                )(file_manager.close)()
+            self._file_managers = {}
+
+    def on_close(self, cancelable=False):
+        if len(self._file_managers):
+            for file_manager in self._file_managers.values():
+                AsyncDispatcher(
+                    loop=file_manager.session._loop, early_return=False
+                )(file_manager.close)()
+            self._file_managers = {}
+
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    @AsyncDispatcher(loop="explorer")
+    async def _get_remote_files_manager(self, server_id):
+        remoteclient = self.get_plugin(Plugins.RemoteClient, error=False)
+        if not remoteclient:
+            return
+        if server_id not in self._file_managers:
+            self._file_managers[server_id] = remoteclient.get_file_api(
+                server_id
+            )()
+            await self._file_managers[server_id].connect()
+        return self._file_managers.get(server_id, None)
+
     # ---- Public API
     # ------------------------------------------------------------------------
-    def chdir(self, directory, emit=True):
+    def chdir(self, directory, emit=True, server_id=None):
         """
         Set working directory.
 
@@ -285,8 +324,11 @@ class Explorer(SpyderDockablePlugin):
         emit: bool, optional
             Emit a signal to indicate the working directory has changed.
             Default is True.
+        server_id: str
+            The server identification from where the new working directory is
+            reachable.
         """
-        self.get_widget().chdir(directory, emit=emit)
+        self.get_widget().chdir(directory, emit=emit, server_id=server_id)
 
     def get_current_folder(self):
         """Get folder displayed at the moment."""
@@ -310,7 +352,9 @@ class Explorer(SpyderDockablePlugin):
     # ---- Private API
     # -------------------------------------------------------------------------
     @qdebounced(timeout=100)
-    def _chdir_from_working_directory(self, directory, sender_plugin):
+    def _chdir_from_working_directory(
+        self, directory, sender_plugin, server_id=None
+    ):
         """
         Change the working directory when requested from the Working Directory
         plugin.
@@ -322,5 +366,5 @@ class Explorer(SpyderDockablePlugin):
         """
         # Only update the cwd if this plugin didn't request changing it
         if sender_plugin != self.NAME:
-            self.chdir(directory, emit=False)
+            self.chdir(directory, emit=False, server_id=server_id)
             self.refresh(directory)
