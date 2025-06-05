@@ -22,7 +22,6 @@ from spyder.plugins.updatemanager.widgets.update import UpdateManagerWidget
 logging.basicConfig()
 
 workers.get_github_releases = lru_cache(workers.get_github_releases)
-workers.get_asset_checksum = lru_cache(workers.get_asset_checksum)
 _tags = (
     "v6.0.5", "v6.0.5rc1", "v6.1.0a1", "v6.0.4",
     "v6.0.4rc1", "v6.0.3", "v6.0.3rc2", "v6.0.3rc1",

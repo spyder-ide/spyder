@@ -149,36 +149,6 @@ def get_github_releases(
     return {parse(item['tag_name']): item for item in data}
 
 
-def get_asset_checksum(url: str, name: str) -> str | None:
-    """
-    Get the checksum for the provided asset.
-
-    Parameters
-    ----------
-    url : str
-        Url to the checksum asset
-    name : str
-        Name of the asset for which to obtain the checksum
-
-    Returns
-    -------
-    checksum : str | None
-        Checksum for the provided asset. None is returned if the checksum is
-        not available for the provided asset name.
-    """
-    logger.info(f"Getting checksum from {url}")
-    page = requests.get(url, headers=GH_HEADERS)
-    page.raise_for_status()
-
-    digest = page.text.strip().split("\n")
-    data = {k: v for v, k in [item.split() for item in digest]}
-    checksum = data.get(name, None)
-
-    logger.info(f"Checksum for {name}: {checksum}")
-
-    return checksum
-
-
 def get_asset_info(release_info: dict) -> AssetInfo | None:
     """
     Get the version, name, update type, download URL, and digest for the asset
