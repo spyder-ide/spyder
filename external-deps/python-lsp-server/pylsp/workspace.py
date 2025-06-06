@@ -7,9 +7,10 @@ import logging
 import os
 import re
 import uuid
+from collections.abc import Generator
 from contextlib import contextmanager
 from threading import RLock
-from typing import Callable, Generator, List, Optional
+from typing import Callable, Optional
 
 import jedi
 
@@ -436,7 +437,7 @@ class Document:
     @lock
     def source(self):
         if self._source is None:
-            with io.open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
         return self._source
 
@@ -625,7 +626,7 @@ class Notebook:
     def __str__(self):
         return "Notebook with URI '%s'" % str(self.uri)
 
-    def add_cells(self, new_cells: List, start: int) -> None:
+    def add_cells(self, new_cells: list, start: int) -> None:
         self.cells[start:start] = new_cells
 
     def remove_cells(self, start: int, delete_count: int) -> None:
