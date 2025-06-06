@@ -88,7 +88,7 @@ class Resolver:
 def format_label(completion, sig):
     if sig and completion.type in ("function", "method"):
         params = ", ".join(param.name for param in sig[0].params)
-        label = "{}({})".format(completion.name, params)
+        label = f"{completion.name}({params})"
         return label
     return completion.name
 
@@ -115,7 +115,7 @@ def format_snippet(completion, sig):
         snippet_completion["insertTextFormat"] = lsp.InsertTextFormat.Snippet
         snippet = completion.name + "("
         for i, param in enumerate(positional_args):
-            snippet += "${%s:%s}" % (i + 1, param.name)
+            snippet += "${{{}:{}}}".format(i + 1, param.name)
             if i < len(positional_args) - 1:
                 snippet += ", "
         snippet += ")$0"

@@ -1,0 +1,52 @@
+FROM ubuntu:focal AS ubuntu-base
+
+ARG JUPYTERHUB_API_TOKEN
+ARG JUPYTERHUB_USERNAME
+
+RUN useradd -rm -d /home/${JUPYTERHUB_USERNAME} -s /bin/bash -g root ${JUPYTERHUB_USERNAME}
+
+RUN apt-get -qq update \
+    && apt-get -qq --no-install-recommends install curl \
+    && apt-get -qq --no-install-recommends install ca-certificates \
+    && apt-get -qq clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+USER ${JUPYTERHUB_USERNAME}
+WORKDIR /home/${JUPYTERHUB_USERNAME}
+
+COPY --from=external-deps --chown=${JUPYTERHUB_USERNAME} spyder-remote-services ./spyder-remote-services
+COPY --from=external-deps --chown=${JUPYTERHUB_USERNAME} spyder-kernels ./spyder-kernels
+
+RUN bash ./spyder-remote-services/scripts/installer_dev.sh ./spyder-remote-services ./spyder-kernels
+
+RUN .local/bin/micromamba run -n spyder-remote pip install jupyterhub jupyterhub-traefik-proxy
+
+RUN .local/bin/micromamba run -n spyder-remote python -m jupyterhub_traefik_proxy.install --output=.local/bin
+
+ENV PATH=$PATH:/home/${JUPYTERHUB_USERNAME}/.local/bin
+
+RUN cat <<EOF > jupyterhub_config.py
+# disable hub ui
+c.JupyterHub.hub_routespec = "/hub/api"
+
+c.JupyterHub.proxy_class = "traefik_file"
+
+c.JupyterHub.allow_named_servers = True
+c.JupyterHub.api_tokens = {'${JUPYTERHUB_API_TOKEN}':'${JUPYTERHUB_USERNAME}'}
+
+c.JupyterHub.load_roles = [
+    {
+        'name': 'spyder-remote-user',
+        'scopes': [
+            'self'
+        ],
+        'users': [
+            '${JUPYTERHUB_USERNAME}',
+        ],
+    }
+]
+
+EOF
+
+CMD ["micromamba", "run", "-n", "spyder-remote", "jupyterhub", "-f", "jupyterhub_config.py"]

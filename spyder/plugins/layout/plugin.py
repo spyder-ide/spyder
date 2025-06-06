@@ -945,7 +945,16 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
         try:
             # New API
-            plugin.change_visibility(True, force_focus=force_focus)
+            if plugin.get_widget().windowwidget:
+                # This is necessary to give focus to undocked plugin windows
+                # from plugins in the main one when using the "switch to
+                # plugin" shortcuts. It also allows to switch between different
+                # undocked windows with those shortcuts.
+                # Fixes spyder-ide/spyder#1351
+                plugin.get_widget().windowwidget.activateWindow()
+            else:
+                plugin.change_visibility(True, force_focus=force_focus)
+                self.main.activateWindow()
         except AttributeError:
             # Old API
             plugin._visibility_changed(True)

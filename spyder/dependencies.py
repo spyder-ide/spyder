@@ -18,10 +18,6 @@ from spyder.utils import programs
 
 HERE = osp.dirname(osp.abspath(__file__))
 
-# Python 3.8
-PY38 = sys.version_info[:2] == (3, 8)
-
-
 # =============================================================================
 # Kind of dependency
 # =============================================================================
@@ -34,7 +30,7 @@ PLUGIN = 'spyder plugins'
 # Versions
 # =============================================================================
 # Hard dependencies
-AIOHTTP_REQVER = '>=3.9.3'
+AIOHTTP_REQVER = '>=3.11.2'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
@@ -45,7 +41,7 @@ COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = ">=8.12.2,<8.13.0" if PY38 else ">=8.13.0,<9.0.0,!=8.17.1"
+IPYTHON_REQVER = ">=8.13.0,<9.0.0,!=8.17.1"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
@@ -75,7 +71,7 @@ QTCONSOLE_REQVER = '>=5.6.1,<5.7.0'
 QTPY_REQVER = '>=2.4.0'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=3.1.0a1,<3.2.0'
+SPYDER_KERNELS_REQVER = '>=3.1.0a2,<3.2.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'

@@ -1,5 +1,19 @@
 # History of changes
 
+## Version 3.1.0a2 (2025/06/05)
+
+### Pull Requests Merged
+
+* [PR 542](https://github.com/spyder-ide/spyder-kernels/pull/542) - PR: Disable magics and commands to call Python package managers, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 541](https://github.com/spyder-ide/spyder-kernels/pull/541) - PR: Support pathlib and None in namespace view, by [@jitseniesen](https://github.com/jitseniesen)
+* [PR 540](https://github.com/spyder-ide/spyder-kernels/pull/540) - PR: Support `frozenset` in namespace view, by [@jitseniesen](https://github.com/jitseniesen)
+* [PR 535](https://github.com/spyder-ide/spyder-kernels/pull/535) - PR: Display contents of string arrays, by [@jitseniesen](https://github.com/jitseniesen)
+* [PR 533](https://github.com/spyder-ide/spyder-kernels/pull/533) - PR: Add pixi related utility functions and env info, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 5 pull requests were closed.
+
+----
+
 ## Version 3.1.0a1 (2025/03/13)
 
 ### Pull Requests Merged
@@ -12,6 +26,27 @@
 * [PR 478](https://github.com/spyder-ide/spyder-kernels/pull/478) - PR: Add feature to prepend/append PYTHONPATH to sys.path, by [@mrclary](https://github.com/mrclary)
 
 In this release 6 pull requests were closed.
+
+----
+
+## Version 3.0.5 (2025/05/21)
+
+### Pull Requests Merged
+
+* [PR 544](https://github.com/spyder-ide/spyder-kernels/pull/544) - PR: Add minimal required version of `traitlets`, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.0.4 (2025-05-13)
+
+### Pull Requests Merged
+
+* [PR 538](https://github.com/spyder-ide/spyder-kernels/pull/538) - PR: Use Ubuntu 22.04 for testing on CIs because the 20.04 image was removed, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 536](https://github.com/spyder-ide/spyder-kernels/pull/536) - PR: Preserve case sensitivity of working directory when running files, by [@jsbautista](https://github.com/jsbautista)
+
+In this release 2 pull requests were closed.
 
 ----
 
