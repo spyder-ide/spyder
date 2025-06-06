@@ -192,7 +192,8 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
                 action,
                 menu=self.show_cols_submenu,
                 section=ObjectExplorerOptionsMenuSections.Toggle,
-                before_section=ObjectExplorerOptionsMenuSections.Close)
+                before_section=ObjectExplorerOptionsMenuSections.Close
+            )
         column_visible = [col.col_visible for col in self._attr_cols]
         for idx, visible in enumerate(column_visible):
             elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
@@ -278,7 +279,8 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             self.add_item_to_menu(
                 item,
                 menu=self.show_cols_submenu,
-                section=ObjectExplorerOptionsMenuSections.Close,)
+                section=ObjectExplorerOptionsMenuSections.Close
+            )
 
         self.options_button = self.create_toolbutton(
             name=ObjectExplorerWidgets.OptionsToolButton,

@@ -268,7 +268,8 @@ class SpyderMenuMixin:
             action_or_menu,
             section=section,
             before=before,
-            before_section=before_section)
+            before_section=before_section,
+        )
 
     def _create_menu(
         self,

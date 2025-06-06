@@ -35,8 +35,18 @@ from qtpy.QtCore import (
     Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
-    QMessageBox, QPushButton, QTableView, QToolButton, QVBoxLayout, QWidget)
+    QApplication,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QTableView,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -1774,7 +1784,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             register_shortcut=True
         )
         self.register_shortcut_for_widget(
-            name='close', triggered=self.close_window)
+            name='close', triggered=self.close_window
+        )
 
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
@@ -1802,7 +1813,6 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             CollectionsEditorMenus.Options,
             register=False
         )
-
         for item in [self.close_action]:
             self.add_item_to_menu(item, options_menu)
 

@@ -14,7 +14,12 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import (
-    QHBoxLayout, QPushButton, QTextEdit, QToolButton, QVBoxLayout)
+    QHBoxLayout,
+    QPushButton,
+    QTextEdit,
+    QToolButton,
+    QVBoxLayout,
+)
 
 # Local import
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
@@ -86,10 +91,9 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         self.setLayout(self.layout)
 
         self.toolbar = self.create_toolbar(
-                TextEditorWidgets.Toolbar,
-                register=False
-            )
-
+            TextEditorWidgets.Toolbar,
+            register=False
+        )
         self.layout.addWidget(self.toolbar)
 
         # Text edit
@@ -115,8 +119,6 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         self.btn_close.setDefault(True)
         self.btn_close.clicked.connect(self.reject)
         btn_layout.addWidget(self.btn_close)
-
-        
 
         self.layout.addLayout(btn_layout)
 
@@ -158,14 +160,12 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         )
         options_button.setPopupMode(QToolButton.InstantPopup)
         options_button.setMenu(options_menu)
+
         self.toolbar.clear()
         self.toolbar._section_items.clear()
         self.toolbar._item_map.clear()
         
-        for item in [
-            stretcher,
-            options_button
-        ]:
+        for item in [stretcher, options_button]:
             self.add_item_to_toolbar(
                 item,
                 self.toolbar,

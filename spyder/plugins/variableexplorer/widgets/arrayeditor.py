@@ -783,6 +783,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             register_shortcut=True
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)
+
         self.refresh_action = self.create_action(
             ArrayEditorActions.Refresh,
             text=_('Refresh'),
