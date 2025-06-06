@@ -180,8 +180,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                         "moment, but it will in version 6.1.0"
                     )
                 raise SpyderKernelError(not_found_exe_message)
+
+            # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
 
+            # Base command
             kernel_cmd.extend([
                 conda_exe,
                 'run',
@@ -189,12 +192,19 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 get_conda_env_path(pyexec)
             ])
 
-            # We need to use this flag to prevent conda_exe from capturing the
-            # kernel process stdout/stderr streams. That way we are able to
-            # show them in Spyder.
-            if "micromamba" in osp.basename(conda_exe):
+            # We need to use these flags to prevent conda_exe from capturing
+            # the kernel process stdout/stderr streams. That way we'll be able
+            # to show them in Spyder.
+            if "micromamba" in osp.basename(conda_exe) or (
+                # Fixes spyder-ide/spyder#24513
+                "mamba" in osp.basename(conda_exe)
+                and conda_exe_version >= parse("2.0")
+            ):
                 kernel_cmd.extend(['--attach', '""'])
-            elif "mamba" in osp.basename(conda_exe) or (
+            elif (
+                "mamba" in osp.basename(conda_exe)
+                and conda_exe_version < parse("2.0")
+            ) or (
                 "conda" in osp.basename(conda_exe)
                 and conda_exe_version >= parse("4.9")
             ):
