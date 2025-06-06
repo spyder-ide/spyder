@@ -127,7 +127,7 @@ PYTHON_CONFIG = {
                     'args': []
                 },
                 'flake8': {
-                    'enabled': False,
+                    'enabled': True,
                 },
                 'pyls_spyder': {
                     'enable_block_comments': True,
