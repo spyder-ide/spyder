@@ -15,8 +15,6 @@ import sys
 import stat
 import socket
 
-from qtpy.QtCore import QFile
-
 from spyder.config.base import get_home_dir
 
 
@@ -45,6 +43,8 @@ def remove_file(fname):
     Remove file *fname*
     If file is a Python script, also rename .pyc and .pyo files if any
     """
+    from qtpy.QtCore import QFile
+
     QFile.moveToTrash(fname)
     __remove_pyc_pyo(fname)
 
