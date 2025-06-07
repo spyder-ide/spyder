@@ -341,6 +341,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         implementation is a bit of a hack. In Qt 6, the flag
         `sortIndicatorClearable` in `QHeaderView` has the same effect.
 
+        If a view uses a proxy model, then the sort function of the proxy model
+        overrides this function and the special handling of dictionaries
+        described in the previous paragraph does not happen. This happens in
+        `RemoteCollectionsEditorTableView` which is used in `NamespaceBrowser`.
+
         Parameters
         ----------
         column : int
