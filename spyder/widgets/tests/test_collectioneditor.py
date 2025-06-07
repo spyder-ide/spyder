@@ -550,7 +550,9 @@ def test_dict_in_tableview_sorting(qtbot):
     header = editor.horizontalHeader()
     x_col0 = header.sectionPosition(0) + header.sectionSize(0) // 2
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
 
     # Test that dict is sorted by key
     assert data_col(editor.model(), 0) == [1, 2, 3]
@@ -558,7 +560,9 @@ def test_dict_in_tableview_sorting(qtbot):
 
     # Click on header of first column
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
 
     # Test that dict is sorted by key in reverse order
     assert data_col(editor.model(), 0) == [3, 2, 1]
@@ -566,7 +570,9 @@ def test_dict_in_tableview_sorting(qtbot):
 
     # Click on header of first column
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
 
     # Test that dict is displayed in insertion order
     assert data_col(editor.model(), 0) == [2, 3, 1]
@@ -575,7 +581,9 @@ def test_dict_in_tableview_sorting(qtbot):
     # Click on header of fourth column
     x_col3 = header.sectionPosition(3) + header.sectionSize(3) // 2
     with qtbot.waitSignal(header.sectionClicked, timeout=2000):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1)
+        )
 
     # Test that dict is sorted by value
     assert data_col(editor.model(), 0) == [3, 1, 2]
@@ -583,7 +591,9 @@ def test_dict_in_tableview_sorting(qtbot):
 
     # Click on header of fourth column
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1)
+        )
 
     # Test that dict is sorted by value in reverse order
     assert data_col(editor.model(), 0) == [2, 1, 3]
@@ -592,7 +602,9 @@ def test_dict_in_tableview_sorting(qtbot):
     # Click on header of first column
     header = editor.horizontalHeader()
     with qtbot.waitSignal(header.sectionClicked, timeout=200):
-        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1))
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
 
     # Test that dict is sorted by key
     assert data_col(editor.model(), 0) == [1, 2, 3]
@@ -1157,15 +1169,19 @@ def test_dicts_natural_sorting_mixed_types():
     assert types == ['Series', 'str', 'dict']
     assert sizes == [(0,), str_size, 2]
 
-    assert data_table(cm, 3, 3) == [['DSeries', 'aStr', 'kDict'],
-                                    ['Series', 'str', 'dict'],
-                                    ['(0,)', str_size, 2]]
+    assert data_table(cm, 3, 3) == [
+        ["DSeries", "aStr", "kDict"],
+        ["Series", "str", "dict"],
+        ["(0,)", str_size, 2],
+    ]
 
     # insert an item and check that it is still sorted correctly
     editor.widget.editor.new_value('List', [1, 2, 3])
-    assert data_table(cm, 4, 3) == [['DSeries', 'aStr', 'kDict', 'List'],
-                                    ['Series', 'str', 'dict', 'list'],
-                                    ['(0,)', str_size, 2, 3]]
+    assert data_table(cm, 4, 3) == [
+        ["DSeries", "aStr", "kDict", "List"],
+        ["Series", "str", "dict", "list"],
+        ["(0,)", str_size, 2, 3],
+    ]
 
     # now sort by key
     cm.sort(0)

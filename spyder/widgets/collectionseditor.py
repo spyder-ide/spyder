@@ -327,9 +327,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         order: Qt.SortOrder = Qt.AscendingOrder
     ) -> None:
         """
-        Sort model by given column and order
+        Sort model by given column and order.
 
-        This overrides the method in the base class and it called by Qt if
+        This overrides the method in the base class and it's called by Qt if
         the user clicks on the header of a column.
 
         If the collection editor shows a dictionary and the user changes the
