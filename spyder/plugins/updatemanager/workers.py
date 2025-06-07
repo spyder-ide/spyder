@@ -149,7 +149,9 @@ def get_github_releases(
     return {parse(item['tag_name']): item for item in data}
 
 
-def get_asset_info(release_info: dict) -> AssetInfo | None:
+def get_asset_info(
+    release_info: dict, current_version: Version, updater: bool
+) -> AssetInfo | None:
     """
     Get the version, name, update type, download URL, and digest for the asset
     of the given release.
@@ -157,7 +159,11 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
     Parameters
     ----------
     release_info: dict
-        Release information from Github for a single release
+        Release information from Github for a single release.
+    current_version: Version
+        Current version.
+    updater: bool
+        Whether Spyder-updater (True) or Spyder (False).
 
     Returns
     -------
@@ -165,8 +171,6 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
         Information about the asset.
     """
     release = parse(release_info["tag_name"])
-    updater = "spyder-updater" in release_info["url"]
-    current_version = UPDATER_VERSION if updater else CURRENT_VERSION
 
     if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
@@ -175,20 +179,22 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
     else:
         update_type = UpdateType.Micro
 
-    if updater or update_type != UpdateType.Major:
-        ext = ".zip"
+    if updater:
+        filename = "spyder-updater.zip"
+    elif update_type != UpdateType.Major:
+        filename = "spyder-conda-lock.zip"
     else:
-        ext = platform.machine().lower().replace("amd64", "x86_64")
+        mach = platform.machine().lower().replace("amd64", "x86_64")
         if os.name == 'nt':
-            ext += '.exe'
+            filename = f"Spyder-Windows-{mach}.exe"
         if sys.platform == 'darwin':
-            ext += '.pkg'
+            filename = f"Spyder-macOS-{mach}.pkg"
         if sys.platform.startswith('linux'):
-            ext += '.sh'
+            filename = f"Spyder-Linux-{mach}.sh"
 
     asset_info = None
     for asset in release_info["assets"]:
-        if asset["name"].endswith(ext):
+        if asset["name"] == filename:
             asset_info = AssetInfo(
                 version=release,
                 update_type=update_type,
@@ -218,7 +224,9 @@ def _check_asset_available(
     # release, and so on until either a new asset is available or there
     # is no update available.
     while update_available:
-        asset_info = get_asset_info(releases.get(latest_release))
+        asset_info = get_asset_info(
+            releases.get(latest_release), current_version, updater
+        )
 
         if asset_info is not None:
             break
