@@ -55,6 +55,11 @@ def data(cm, i, j):
     return cm.data(cm.index(i, j))
 
 
+def data_col(cm, j):
+    n_rows = cm.rowCount()
+    return [cm.data(cm.index(i, j)) for i in range(n_rows)]
+
+
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
 
@@ -96,10 +101,10 @@ def test_rename_variable(qtbot):
     editor.rename_item(new_name='b2')
     assert editor.model().rowCount() == 5
     assert data(editor.model(), 0, 0) == 'a'
-    assert data(editor.model(), 1, 0) == 'b2'
-    assert data(editor.model(), 2, 0) == 'c'
-    assert data(editor.model(), 3, 0) == 'd'
-    assert data(editor.model(), 4, 0) == 'e'
+    assert data(editor.model(), 1, 0) == 'c'
+    assert data(editor.model(), 2, 0) == 'd'
+    assert data(editor.model(), 3, 0) == 'e'
+    assert data(editor.model(), 4, 0) == 'b2'
 
     # Reset variables and try renaming one again
     new_variables = {'a': 1,
@@ -115,10 +120,10 @@ def test_rename_variable(qtbot):
     assert editor.model().rowCount() == 6
     assert data(editor.model(), 0, 0) == 'a'
     assert data(editor.model(), 1, 0) == 'b2'
-    assert data(editor.model(), 2, 0) == 'b3'
-    assert data(editor.model(), 3, 0) == 'c'
-    assert data(editor.model(), 4, 0) == 'd'
-    assert data(editor.model(), 5, 0) == 'e'
+    assert data(editor.model(), 2, 0) == 'c'
+    assert data(editor.model(), 3, 0) == 'd'
+    assert data(editor.model(), 4, 0) == 'e'
+    assert data(editor.model(), 5, 0) == 'b3'
 
 
 def test_remove_variable(qtbot):
@@ -302,27 +307,21 @@ def test_create_dataframeeditor_with_correct_format(qtbot):
 
 
 def test_collectionsmodel_with_two_ints():
-    coll = {'x': 1, 'y': 2}
+    coll = {'y': 2, 'x': 1}
     cm = CollectionsModel(MockParent(), coll)
 
     assert cm.rowCount() == 2
     assert cm.columnCount() == 4
-    # dict is unordered, so first row might be x or y
-    assert data(cm, 0, 0) in {'x',
-                              'y'}
-    if data(cm, 0, 0) == 'x':
-        row_with_x = 0
-        row_with_y = 1
-    else:
-        row_with_x = 1
-        row_with_y = 0
-    assert data(cm, row_with_x, 1) == 'int'
-    assert data(cm, row_with_x, 2) == 1
-    assert data(cm, row_with_x, 3) == '1'
-    assert data(cm, row_with_y, 0) == 'y'
-    assert data(cm, row_with_y, 1) == 'int'
-    assert data(cm, row_with_y, 2) == 1
-    assert data(cm, row_with_y, 3) == '2'
+
+    # dict is sorted by insertion order
+    assert data(cm, 0, 0) == 'y'
+    assert data(cm, 0, 1) == 'int'
+    assert data(cm, 0, 2) == 1
+    assert data(cm, 0, 3) == '2'
+    assert data(cm, 1, 0) == 'x'
+    assert data(cm, 1, 1) == 'int'
+    assert data(cm, 1, 2) == 1
+    assert data(cm, 1, 3) == '1'
 
 
 def test_collectionsmodel_with_index():
@@ -531,6 +530,85 @@ def test_sort_and_fetch_collectionsmodel_with_many_rows():
     for _ in range(3):
         cm.fetchMore()
     assert cm.rowCount() == len(coll)
+
+
+def test_dict_in_tableview_sorting(qtbot):
+    """
+    Test clicking on a column header in an editor showing a dict cycles
+    through sorting in ascending, descending and insertion order.
+    """
+    my_dict = {2: 3, 3: 1, 1: 2}
+    editor = CollectionsEditorTableView(None, my_dict)
+    qtbot.addWidget(editor)
+    editor.show()
+
+    # Test that dict is displayed in insertion order
+    assert data_col(editor.model(), 0) == [2, 3, 1]
+    assert data_col(editor.model(), 3) == ['3', '1', '2']
+
+    # Click on header of first column
+    header = editor.horizontalHeader()
+    x_col0 = header.sectionPosition(0) + header.sectionSize(0) // 2
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
+
+    # Test that dict is sorted by key
+    assert data_col(editor.model(), 0) == [1, 2, 3]
+    assert data_col(editor.model(), 3) == ['2', '3', '1']
+
+    # Click on header of first column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
+
+    # Test that dict is sorted by key in reverse order
+    assert data_col(editor.model(), 0) == [3, 2, 1]
+    assert data_col(editor.model(), 3) == ['1', '3', '2']
+
+    # Click on header of first column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
+
+    # Test that dict is displayed in insertion order
+    assert data_col(editor.model(), 0) == [2, 3, 1]
+    assert data_col(editor.model(), 3) == ['3', '1', '2']
+
+    # Click on header of fourth column
+    x_col3 = header.sectionPosition(3) + header.sectionSize(3) // 2
+    with qtbot.waitSignal(header.sectionClicked, timeout=2000):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1)
+        )
+
+    # Test that dict is sorted by value
+    assert data_col(editor.model(), 0) == [3, 1, 2]
+    assert data_col(editor.model(), 3) == ['1', '2', '3']
+
+    # Click on header of fourth column
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col3, 1)
+        )
+
+    # Test that dict is sorted by value in reverse order
+    assert data_col(editor.model(), 0) == [2, 1, 3]
+    assert data_col(editor.model(), 3) == ['3', '2', '1']
+
+    # Click on header of first column
+    header = editor.horizontalHeader()
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(
+            header.viewport(), Qt.LeftButton, pos=QPoint(x_col0, 1)
+        )
+
+    # Test that dict is sorted by key
+    assert data_col(editor.model(), 0) == [1, 2, 3]
+    assert data_col(editor.model(), 3) == ['2', '3', '1']
 
 
 def test_rename_and_duplicate_item_in_collection_editor():
@@ -1082,24 +1160,30 @@ def test_dicts_natural_sorting_mixed_types():
     editor = CollectionsEditor()
     editor.setup(dictionary)
     cm = editor.widget.editor.source_model
-    cm.sort(0)
     keys = cm.keys
     types = cm.types
     sizes = cm.sizes
 
-    assert keys == ['aStr', 'DSeries', 'kDict']
-    assert types == ['str', 'Series', 'dict']
-    assert sizes == [str_size, (0,), 2]
+    # Initially sorted by insertion order
+    assert keys == ['DSeries', 'aStr', 'kDict']
+    assert types == ['Series', 'str', 'dict']
+    assert sizes == [(0,), str_size, 2]
 
-    assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
-                                    ['str', 'Series', 'dict'],
-                                    [str_size, '(0,)', 2]]
+    assert data_table(cm, 3, 3) == [
+        ["DSeries", "aStr", "kDict"],
+        ["Series", "str", "dict"],
+        ["(0,)", str_size, 2],
+    ]
 
     # insert an item and check that it is still sorted correctly
     editor.widget.editor.new_value('List', [1, 2, 3])
-    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
-                                    ['str', 'Series', 'dict', 'list'],
-                                    [str_size, '(0,)', 2, 3]]
+    assert data_table(cm, 4, 3) == [
+        ["DSeries", "aStr", "kDict", "List"],
+        ["Series", "str", "dict", "list"],
+        ["(0,)", str_size, 2, 3],
+    ]
+
+    # now sort by key
     cm.sort(0)
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],

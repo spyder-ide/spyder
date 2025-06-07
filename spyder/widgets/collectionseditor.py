@@ -201,6 +201,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
+        self.previous_sort = -1
         self._data = None
         self.total_rows = None
         self.showndata = None
@@ -246,13 +247,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             self.title += _("Frozenset")
             self._data = list(data)
         elif isinstance(data, dict):
-            try:
-                self.keys = sorted(list(data.keys()), key=natsort)
-            except TypeError:
-                # This is necessary to display dictionaries with mixed
-                # types as keys.
-                # Fixes spyder-ide/spyder#13481
-                self.keys = list(data.keys())
+            self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
@@ -326,16 +321,68 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         """Load all the data."""
         self.fetchMore(number_to_fetch=self.total_rows)
 
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Overriding sort method"""
+    def sort(
+        self,
+        column: int,
+        order: Qt.SortOrder = Qt.AscendingOrder
+    ) -> None:
+        """
+        Sort model by given column and order.
+
+        This overrides the method in the base class and it's called by Qt if
+        the user clicks on the header of a column.
+
+        If the collection editor shows a dictionary and the user changes the
+        order of a column from descending to ascending, then instead sort the
+        dict by insertion order. The effect is that clicking on a column
+        header switches between three states: that column is sorting in
+        ascending order, then in descending order, and then the dict reverts
+        to its natural state, which is sorted by insertion order. This
+        implementation is a bit of a hack. In Qt 6, the flag
+        `sortIndicatorClearable` in `QHeaderView` has the same effect.
+
+        If a view uses a proxy model, then the sort function of the proxy model
+        overrides this function and the special handling of dictionaries
+        described in the previous paragraph does not happen. This happens in
+        `RemoteCollectionsEditorTableView` which is used in `NamespaceBrowser`.
+
+        Parameters
+        ----------
+        column : int
+            The column to sort. If column is -1 then return the model to its
+            unsorted state.
+        order : Qt.SortOrder, optional
+            Whether to sort in ascending or descending order. The default is
+            Qt.AscendingOrder.
+        """
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
 
+        try:
+            header = self._parent.horizontalHeader()
+        except AttributeError:
+            # may happen in tests
+            header = None
+
+        if (
+            header
+            and order == Qt.AscendingOrder
+            and column != -1
+            and self.previous_sort == column
+            and isinstance(self._data, dict)
+        ):
+            header.setSortIndicator(-1, Qt.AscendingOrder)
+            return
+
+        self.previous_sort = column
         reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
-        if column == 0:
+        if column == -1:
+            self.keys = list(self._data.keys())
+            self.set_size_and_type()
+        elif column == 0:
             self.sizes = sort_against(self.sizes, self.keys,
                                       reverse=reverse,
                                       sort_key=natsort)
@@ -731,10 +778,6 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
 
-        # Sorting columns
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
-
         # Actions to take when the selection changes
         self.selectionModel().selectionChanged.connect(self.refresh_menu)
         self.selectionModel().selectionChanged.connect(
@@ -1066,7 +1109,9 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
             self.source_model.reset()
-            self.sortByColumn(0, Qt.AscendingOrder)
+
+            # Sort table using current sort column and order
+            self.setSortingEnabled(True)
 
     def _edit_value(self):
         self.edit(self.__index_clicked)
@@ -1620,6 +1665,14 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu()
+
+        # Leave unsorted if dict, sort by column 0 otherwise
+        if isinstance(data, dict):
+            self.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
+        else:
+            self.horizontalHeader().setSortIndicator(0, Qt.AscendingOrder)
+        self.setSortingEnabled(True)
+
         if isinstance(data, (set, frozenset)):
             self.horizontalHeader().hideSection(0)
 
@@ -2066,6 +2119,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         if create_menu:
             self.menu = self.setup_menu()
+
+        # Sorting columns
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
 
     # ------ Remote/local API -------------------------------------------------
     def get_value(self, name):

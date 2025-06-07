@@ -782,6 +782,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     @Slot(object)
     def show_env(self, env):
         """Show environment variables."""
+        env = dict(sorted(env.items()))
         self.dialog_manager.show(RemoteEnvDialog(env, parent=self))
 
     def show_time(self, end=False):
