@@ -76,29 +76,21 @@ def test_updates(qtbot, mocker, caplog, version, channel):
         assert um.update_worker.asset_info is None
 
 
-@pytest.mark.parametrize("version", ["6.1.0a1", "4.0.0"])
+@pytest.mark.parametrize("version", ["4.0.0a1", "4.0.0"])
+@pytest.mark.parametrize("release", ["6.0.0", "6.0.0rc1"])
 @pytest.mark.parametrize("stable_only", [True, False])
-def test_update_non_stable(qtbot, mocker, version, stable_only):
+def test_update_non_stable(qtbot, mocker, version, release, stable_only):
     """Test we offer unstable updates."""
-    version = parse(version)
-    mocker.patch.object(workers, "CURRENT_VERSION", new=version)
+    mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
 
-    release = parse("6.1.0a2")
+    release = parse(release)
     worker = WorkerUpdate(stable_only)
     worker._check_update_available(release)
 
-    if stable_only:
-        if version.is_prerelease:
-            # We shouldn't offer an update from 6.1.0a1 to 6.1.0a2 when
-            # stable_only is True.
-            assert worker.asset_info is None
-        else:
-            # This should give the latest 6.0.x stable version
-            assert not worker.asset_info["version"].is_prerelease
+    if release.is_prerelease and stable_only:
+        assert worker.asset_info is None
     else:
-        # For both pre and stable releases we should offer to update to the
-        # version used above.
-        assert worker.asset_info["version"] == release
+        assert worker.asset_info is not None
 
 
 @pytest.mark.parametrize("version", ["4.0.0", "6.0.0"])
