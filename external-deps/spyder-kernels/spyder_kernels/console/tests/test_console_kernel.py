@@ -346,6 +346,17 @@ def test_get_value(kernel):
     assert kernel.get_value(name) == 124
 
 
+def test_get_value_with_polars(kernel):
+    """Test getting the value of a Polars DataFrame."""
+    import pandas
+    from pandas.testing import assert_frame_equal
+
+    command = "import polars; polars_df = polars.DataFrame({'a': [10]})"
+    asyncio.run(kernel.do_execute(command, True))
+    pandas_df = pandas.DataFrame({'a': [10]})
+    assert_frame_equal(kernel.get_value('polars_df'), pandas_df)
+
+
 def test_set_value(kernel):
     """Test setting the value of a variable."""
     name = 'a'
