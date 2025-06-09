@@ -20,7 +20,7 @@ from .python_lsp import (
     start_ws_lang_server,
 )
 
-LOG_FORMAT = "%(asctime)s {0} - %(levelname)s - %(name)s - %(message)s".format(
+LOG_FORMAT = "%(asctime)s {} - %(levelname)s - %(name)s - %(message)s".format(
     time.localtime().tm_zone
 )
 
@@ -98,7 +98,7 @@ def _configure_logger(verbose=0, log_config=None, log_file=None) -> None:
     root_logger = logging.root
 
     if log_config:
-        with open(log_config, "r", encoding="utf-8") as f:
+        with open(log_config, encoding="utf-8") as f:
             logging.config.dictConfig(json.load(f))
     else:
         formatter = logging.Formatter(LOG_FORMAT)

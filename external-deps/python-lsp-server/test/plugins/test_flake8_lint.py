@@ -125,20 +125,20 @@ def test_flake8_respecting_configuration(workspace) -> None:
 def test_flake8_config_param(workspace) -> None:
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
-        mock_instance.communicate.return_value = [bytes(), bytes()]
+        mock_instance.communicate.return_value = [b"", b""]
         flake8_conf = "/tmp/some.cfg"
         workspace._config.update({"plugins": {"flake8": {"config": flake8_conf}}})
         _name, doc = temp_document(DOC, workspace)
         flake8_lint.pylsp_lint(workspace, doc)
         (call_args,) = popen_mock.call_args[0]
         assert "flake8" in call_args
-        assert "--config={}".format(flake8_conf) in call_args
+        assert f"--config={flake8_conf}" in call_args
 
 
 def test_flake8_executable_param(workspace) -> None:
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
-        mock_instance.communicate.return_value = [bytes(), bytes()]
+        mock_instance.communicate.return_value = [b"", b""]
 
         flake8_executable = "/tmp/flake8"
         workspace._config.update(
@@ -187,7 +187,7 @@ exclude =
 
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
-        mock_instance.communicate.return_value = [bytes(), bytes()]
+        mock_instance.communicate.return_value = [b"", b""]
 
         doc = workspace.get_document(doc_uri)
         flake8_lint.pylsp_lint(workspace, doc)

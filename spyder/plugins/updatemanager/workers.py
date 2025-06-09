@@ -29,7 +29,12 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_conda_based_app, running_in_ci
+from spyder.config.base import (
+    _,
+    is_conda_based_app,
+    running_in_ci,
+    running_under_pytest,
+)
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
 from spyder.utils.programs import get_temp_dir
@@ -128,8 +133,8 @@ def get_github_releases(
     )
 
     if tags is None:
-        # Get 20 most recent releases
-        url += "?per_page=20&page=1"
+        # Get the most recent releases
+        url += f"?per_page={100 if running_under_pytest() else 20}&page=1"
         logger.info(f"Getting release info from {url}")
         page = requests.get(url, headers=GH_HEADERS)
         page.raise_for_status()

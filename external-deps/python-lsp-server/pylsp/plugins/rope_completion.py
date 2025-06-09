@@ -22,7 +22,7 @@ def _resolve_completion(completion, data, markup_kind):
     except Exception as e:
         log.debug("Failed to resolve Rope completion: %s", e)
         doc = ""
-    completion["detail"] = "{0} {1}".format(data.scope or "", data.name)
+    completion["detail"] = "{} {}".format(data.scope or "", data.name)
     completion["documentation"] = doc
     return completion
 
