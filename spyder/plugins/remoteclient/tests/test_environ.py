@@ -26,7 +26,9 @@ class TestRemoteEnvironAPI:
         remote_client: RemoteClient,
         remote_client_id: str,
     ):
-        """Test that an environment variable can be set on the remote server."""
+        """
+        Test that an environment variable can be set on the remote server.
+        """
         environ_api_class = remote_client.get_environ_api(remote_client_id)
         assert environ_api_class is not None
 
@@ -42,7 +44,9 @@ class TestRemoteEnvironAPI:
         remote_client: RemoteClient,
         remote_client_id: str,
     ):
-        """Test that environment variables can be listed on the remote server."""
+        """
+        Test that environment variables can be listed on the remote server.
+        """
         environ_api_class = remote_client.get_environ_api(remote_client_id)
         assert environ_api_class is not None
 
@@ -58,7 +62,9 @@ class TestRemoteEnvironAPI:
         remote_client: RemoteClient,
         remote_client_id: str,
     ):
-        """Test that getting a non-existent environment variable returns None."""
+        """
+        Test that getting a non-existent environment variable returns None.
+        """
         environ_api_class = remote_client.get_environ_api(remote_client_id)
         assert environ_api_class is not None
 
@@ -72,7 +78,9 @@ class TestRemoteEnvironAPI:
         remote_client: RemoteClient,
         remote_client_id: str,
     ):
-        """Test that an environment variable can be deleted on the remote server."""
+        """
+        Test that an environment variable can be deleted on the remote server.
+        """
         environ_api_class = remote_client.get_environ_api(remote_client_id)
         assert environ_api_class is not None
 
