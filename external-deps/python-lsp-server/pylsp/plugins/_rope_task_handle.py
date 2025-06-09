@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, ContextManager, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Callable, ContextManager
 
 from rope.base.taskhandle import BaseJobSet, BaseTaskHandle
 
@@ -19,13 +20,13 @@ class PylspJobSet(BaseJobSet):
     _report_iter: ContextManager
     job_name: str = ""
 
-    def __init__(self, count: Optional[int], report_iter: ContextManager) -> None:
+    def __init__(self, count: int | None, report_iter: ContextManager) -> None:
         if count is not None:
             self.count = count
         self._reporter = report_iter.__enter__()
         self._report_iter = report_iter
 
-    def started_job(self, name: Optional[str]) -> None:
+    def started_job(self, name: str | None) -> None:
         if name:
             self.job_name = name
 
@@ -42,7 +43,7 @@ class PylspJobSet(BaseJobSet):
     def check_status(self) -> None:
         pass
 
-    def get_percent_done(self) -> Optional[float]:
+    def get_percent_done(self) -> float | None:
         if self.count == 0:
             return 0
         return (self.done / self.count) * 100
@@ -66,8 +67,8 @@ class PylspJobSet(BaseJobSet):
 
 class PylspTaskHandle(BaseTaskHandle):
     name: str
-    observers: List
-    job_sets: List[PylspJobSet]
+    observers: list
+    job_sets: list[PylspJobSet]
     stopped: bool
     workspace: Workspace
     _report: Callable[[str, str], None]
@@ -77,7 +78,7 @@ class PylspTaskHandle(BaseTaskHandle):
         self.job_sets = []
         self.observers = []
 
-    def create_jobset(self, name="JobSet", count: Optional[int] = None):
+    def create_jobset(self, name="JobSet", count: int | None = None):
         report_iter = self.workspace.report_progress(
             name, None, None, skip_token_initialization=True
         )
@@ -89,7 +90,7 @@ class PylspTaskHandle(BaseTaskHandle):
     def stop(self) -> None:
         pass
 
-    def current_jobset(self) -> Optional[BaseJobSet]:
+    def current_jobset(self) -> BaseJobSet | None:
         pass
 
     def add_observer(self) -> None:

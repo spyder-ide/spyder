@@ -511,6 +511,24 @@
       },
       "uniqueItems": true,
       "description": "The name of the folder in which rope stores project configurations and data.  Pass `null` for not using such a folder at all."
+    },
+    "pylsp.signature.formatter": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "black",
+        "ruff",
+        null
+      ],
+      "default": "black",
+      "description": "Formatter to use for reformatting signatures in docstrings."
+    },
+    "pylsp.signature.line_length": {
+      "type": "number",
+      "default": 88,
+      "description": "Maximum line length in signatures."
     }
   }
 }

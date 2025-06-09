@@ -1,6 +1,6 @@
 # Copyright 2022- Python Language Server Contributors.
 
-from typing import Any, Dict, List
+from typing import Any
 from unittest.mock import Mock, patch
 
 import jedi
@@ -26,14 +26,14 @@ from test.test_utils import send_initialize_request, send_notebook_did_open
 DOC_URI = uris.from_fs_path(__file__)
 
 
-def contains_autoimport_completion(suggestion: Dict[str, Any], module: str) -> bool:
+def contains_autoimport_completion(suggestion: dict[str, Any], module: str) -> bool:
     """Checks if `suggestion` contains an autoimport completion for `module`."""
     return suggestion.get("label", "") == module and "import" in suggestion.get(
         "detail", ""
     )
 
 
-def contains_autoimport_quickfix(suggestion: Dict[str, Any], module: str) -> bool:
+def contains_autoimport_quickfix(suggestion: dict[str, Any], module: str) -> bool:
     """Checks if `suggestion` contains an autoimport quick fix for `module`."""
     return suggestion.get("title", "") == f"import {module}"
 
@@ -78,7 +78,7 @@ def should_insert(phrase: str, position: int):
     return _should_insert(expr, word_node)
 
 
-def check_dict(query: Dict, results: List[Dict]) -> bool:
+def check_dict(query: dict, results: list[dict]) -> bool:
     for result in results:
         if all(result[key] == query[key] for key in query.keys()):
             return True

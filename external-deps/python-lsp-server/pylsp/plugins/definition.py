@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 import jedi
 
@@ -23,7 +23,7 @@ MAX_JEDI_GOTO_HOPS = 100
 
 
 def _resolve_definition(
-    maybe_defn: Name, script: Script, settings: Dict[str, Any]
+    maybe_defn: Name, script: Script, settings: dict[str, Any]
 ) -> Name:
     for _ in range(MAX_JEDI_GOTO_HOPS):
         if maybe_defn.is_definition() or maybe_defn.module_path != script.path:
@@ -43,8 +43,8 @@ def _resolve_definition(
 
 @hookimpl
 def pylsp_definitions(
-    config: Config, document: Document, position: Dict[str, int]
-) -> List[Dict[str, Any]]:
+    config: Config, document: Document, position: dict[str, int]
+) -> list[dict[str, Any]]:
     settings = config.plugin_settings("jedi_definition")
     code_position = _utils.position_to_jedi_linecolumn(document, position)
     script = document.jedi_script(use_document_path=True)

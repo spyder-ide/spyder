@@ -135,7 +135,7 @@ def run_flake8(flake8_executable, args, document, source):
         cmd = [flake8_executable]
         cmd.extend(args)
         p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, **popen_kwargs)
-    except IOError:
+    except OSError:
         log.debug(
             "Can't execute %s. Trying with '%s -m flake8'",
             flake8_executable,
@@ -165,9 +165,9 @@ def build_args(options):
             arg = "--{}={}".format(arg_name, ",".join(arg_val))
         elif isinstance(arg_val, bool):
             if arg_val:
-                arg = "--{}".format(arg_name)
+                arg = f"--{arg_name}"
         else:
-            arg = "--{}={}".format(arg_name, arg_val)
+            arg = f"--{arg_name}={arg_val}"
         args.append(arg)
     return args
 

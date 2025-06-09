@@ -287,7 +287,7 @@ def _run_pylint_stdio(pylint_executable, document, flags):
         cmd.extend(flags)
         cmd.extend(["--from-stdin", document.path])
         p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    except IOError:
+    except OSError:
         log.debug("Can't execute %s. Trying with 'python -m pylint'", pylint_executable)
         cmd = [sys.executable, "-m", "pylint"]
         cmd.extend(flags)
