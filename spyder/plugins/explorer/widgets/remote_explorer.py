@@ -28,6 +28,8 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.config.base import get_conf_path
+from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.remoteclient.api.modules.base import (
     SpyderRemoteSessionClosed,
 )
@@ -46,14 +48,19 @@ class RemoteViewMenus:
     Context = "remote_context_menu"
     New = "remote_new_menu"
 
+class RemoteViewNewSubMenuSections:
+    General = 'remote_general_section'
+    Language = 'remote_language_section'
 
 class RemoteExplorerActions:
     CopyPaste = "remote_copy_paste_action"
     CopyPath = "remote_copy_path_action"
     Delete = "remote_delete_action"
     Download = "remote_download_file_action"
-    NewFile = "remote_new_file_action"
     NewDirectory = "remote_new_directory_action"
+    NewFile = "remote_new_file_action"
+    NewModule = "remote_new_module_action"
+    NewPackage = "remote_new_package_action"
     Rename = "remote_rename_action"
     Upload = "remote_upload_file_action"
 
@@ -118,6 +125,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _('New'),
         )
 
+        self.new_module_action = self.create_action(
+            RemoteExplorerActions.NewModule,
+            text=_("Python file..."),
+            icon=self.create_icon('python'),
+            triggered=self.new_module,
+        )
         self.new_directory_action = self.create_action(
             RemoteExplorerActions.NewDirectory,
             text=_("Folder..."),
@@ -170,6 +183,14 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.add_item_to_menu(
                 item,
                 new_submenu,
+                section=RemoteViewNewSubMenuSections.General,
+            )
+
+        for item in [self.new_module_action]:
+            self.add_item_to_menu(
+                item,
+                new_submenu,
+                section=RemoteViewNewSubMenuSections.Language,
             )
 
         for item in [
@@ -317,6 +338,27 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             error_message = f"{error_message}<br><br>{error.message}"
             QMessageBox.critical(self, error_title, error_message)
             logger.error(error)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_new_module(self, future):
+        self._handle_future_response_error(
+            future,
+            _("New Python file error"),
+            _("An error occured while trying to create a new Python file"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_new_module(self, new_path, file_content):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        file_manager = await self.remote_files_manager.open(new_path, mode="w")
+        remote_file_response = await file_manager.write(file_content)
+        await file_manager.close()
+
+        return remote_file_response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_new(self, future):
@@ -585,11 +627,20 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             f"{len(self.extra_files)} available extra files to be shown"
         )
 
-    def _new_item(self, new_name, for_file=False):
+    def _new_item(self, new_name, for_file=False, with_content=False):
         new_path = posixpath.join(self.root_prefix, new_name)
-        self._do_remote_new(new_path, for_file=for_file).connect(
-            self._on_remote_new
-        )
+        if not with_content:
+            self._do_remote_new(new_path, for_file=for_file).connect(
+                self._on_remote_new
+            )
+        elif for_file and with_content:
+            file_content, __, __ = get_default_file_content(
+                get_conf_path("template.py")
+            )
+            self._do_remote_new_module(new_path, file_content).connect(
+                self._on_remote_new_module
+            )
+
         self.sig_start_spinner_requested.emit()
 
     @AsyncDispatcher.QtSlot
@@ -791,6 +842,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
+
+    def new_module(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New File"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name, for_file=True, with_content=True)
 
     def new_directory(self):
         new_name, valid = QInputDialog.getText(
