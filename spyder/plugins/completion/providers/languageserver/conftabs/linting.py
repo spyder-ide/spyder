@@ -47,24 +47,22 @@ class LintingConfigTab(SpyderPreferencesTab):
             'flake8',
             button_group=linting_bg
         )
-        """
+        
         disable_linting_radio = self.create_radiobutton(
             _("No linting"),
-            'pyflakes',
+            'no_linting',
             button_group=linting_bg
         )
-        """
+        
         linting_select_layout = QVBoxLayout()
         linting_select_layout.addWidget(linting_select_label)
         linting_select_layout.addWidget(basic_linting_radio)
         linting_select_layout.addWidget(flake_linting_radio)
-        #linting_select_layout.addWidget(disable_linting_radio)
+        linting_select_layout.addWidget(disable_linting_radio)
         linting_select_group.setLayout(linting_select_layout)
 
+        additional_options_group = QGroupBox(_("Additional options"))
 
-        linting_check = self.create_checkbox(
-            _("Enable basic linting"),
-            'pyflakes')
         underline_errors_box = newcb(
             _("Underline errors and warnings"),
             'underline_errors',
@@ -73,10 +71,15 @@ class LintingConfigTab(SpyderPreferencesTab):
             _("Enable complexity linting with the Mccabe package"),
             'mccabe')
 
+        additional_options_layout = QVBoxLayout()
+        additional_options_layout.addWidget(underline_errors_box)
+        additional_options_layout.addWidget(linting_complexity_box)
+        additional_options_group.setLayout(additional_options_layout)
+
+
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_select_group)
-        linting_layout.addWidget(underline_errors_box)
-        linting_layout.addWidget(linting_complexity_box)
+        linting_layout.addWidget(additional_options_group)
         self.setLayout(linting_layout)
