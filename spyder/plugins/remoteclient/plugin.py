@@ -12,11 +12,10 @@ Remote Client Plugin.
 # Standard library imports
 from __future__ import annotations
 import logging
-import contextlib
 import typing
 
 # Third-party imports
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -33,13 +32,25 @@ from spyder.plugins.mainmenu.api import (
 from spyder.plugins.remoteclient.api import (
     RemoteClientActions,
 )
-from spyder.plugins.remoteclient.api.manager import SpyderRemoteAPIManager
+from spyder.plugins.remoteclient.api.manager.base import (
+    SpyderRemoteAPIManagerBase,
+)
+from spyder.plugins.remoteclient.api.manager.jupyterhub import (
+    SpyderRemoteJupyterHubAPIManager,
+)
+from spyder.plugins.remoteclient.api.manager.ssh import (
+    SpyderRemoteSSHAPIManager,
+)
 from spyder.plugins.remoteclient.api.protocol import (
+    JupyterHubClientOptions,
     SSHClientOptions,
     ConnectionStatus,
 )
 from spyder.plugins.remoteclient.api.modules.file_services import (
     SpyderRemoteFileServicesAPI,
+)
+from spyder.plugins.remoteclient.api.modules.environ import (
+    SpyderRemoteEnvironAPI,
 )
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
@@ -81,7 +92,7 @@ class RemoteClient(SpyderPluginV2):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._remote_clients: dict[str, SpyderRemoteAPIManager] = {}
+        self._remote_clients: dict[str, SpyderRemoteAPIManagerBase] = {}
 
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
@@ -195,15 +206,51 @@ class RemoteClient(SpyderPluginV2):
     # --- Configuration Methods
     def load_client_from_id(self, config_id):
         """Load remote server from configuration id."""
-        options = self.load_conf(config_id)
-        self.load_client(config_id, options)
+        client_type = self.get_conf(f"{config_id}/client_type", default="ssh")
+        if client_type == "ssh":
+            options = self._load_ssh_client_options(config_id)
+            self.load_ssh_client(config_id, options)
+        elif client_type == "jupyterhub":
+            options = self._load_jupyterhub_client_options(config_id)
+            self.load_jupyterhub_client(config_id, options)
+        else:
+            msg = (
+                f"Unknown client type '{client_type}' for server "
+                f"'{config_id}'. Please check your configuration."
+            )
+            raise ValueError(msg)
 
-    def load_client(self, config_id: str, options: SSHClientOptions):
+    def load_ssh_client(self, config_id: str, options: SSHClientOptions):
         """Load remote server."""
-        client = SpyderRemoteAPIManager(config_id, options, _plugin=self)
+        client = SpyderRemoteSSHAPIManager(config_id, options, _plugin=self)
         self._remote_clients[config_id] = client
 
-    def load_conf(self, config_id):
+    def load_jupyterhub_client(
+        self, config_id: str, options: JupyterHubClientOptions,
+    ):
+        """Load JupyterHub remote server."""
+        client = SpyderRemoteJupyterHubAPIManager(
+            config_id, options, _plugin=self
+        )
+        self._remote_clients[config_id] = client
+
+    def _load_jupyterhub_client_options(self, config_id):
+        """Load JupyterHub remote server configuration."""
+        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
+            config_id, {}
+        )
+
+        # We couldn't find saved options for config_id
+        if not options:
+            return {}
+
+        # Password is mandatory in this case
+        token = self.get_conf(f"{config_id}/token", secure=True)
+        options["token"] = token
+
+        return JupyterHubClientOptions(**options)
+
+    def _load_ssh_client_options(self, config_id):
         """Load remote server configuration."""
         options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
             config_id, {}
@@ -246,8 +293,18 @@ class RemoteClient(SpyderPluginV2):
 
     def get_server_name(self, config_id):
         """Get configured remote server name."""
-        auth_method = self.get_conf(f"{config_id}/auth_method")
-        return self.get_conf(f"{config_id}/{auth_method}/name")
+        client_type = self.get_conf(f"{config_id}/client_type", default="ssh")
+        if client_type == "ssh":
+            auth_method = self.get_conf(f"{config_id}/auth_method")
+            return self.get_conf(f"{config_id}/{auth_method}/name")
+        if client_type == "jupyterhub":
+            return self.get_conf(f"{config_id}/name")
+
+        msg = (
+            f"Unknown client type '{client_type}' for server '{config_id}'. "
+            f"Please check your configuration."
+        )
+        raise ValueError(msg)
 
     # --- API Methods
     @staticmethod
@@ -268,7 +325,7 @@ class RemoteClient(SpyderPluginV2):
         Type[SpyderBaseJupyterAPI]
             Class that was registered.
         """
-        return SpyderRemoteAPIManager.register_api(kclass)
+        return SpyderRemoteAPIManagerBase.register_api(kclass)
 
     def get_api(
         self, config_id: str, api: str | typing.Type[SpyderBaseJupyterAPIType]
@@ -305,6 +362,15 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
 
         return client.get_api(SpyderRemoteFileServicesAPI)
+
+    def get_environ_api(self, config_id):
+        """Get environment API."""
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
+
+        return client.get_api(SpyderRemoteEnvironAPI)
 
     def get_jupyter_api(self, config_id):
         """Get Jupyter API."""

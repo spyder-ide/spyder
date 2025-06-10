@@ -11,11 +11,10 @@ import os.path as osp
 # Third party imports
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
-import pytest
 import yaml
 
 # Local imports
-from spyder.dependencies import DESCRIPTIONS, OPTIONAL, PY38
+from spyder.dependencies import DESCRIPTIONS, OPTIONAL
 
 # Constants
 HERE = osp.abspath(osp.dirname(__file__))
@@ -175,7 +174,6 @@ def test_dependencies_for_binder_in_sync():
     assert spyder_env == full_reqs
 
 
-@pytest.mark.skipif(PY38, reason="Fails in Python 3.8")
 def test_dependencies_for_spyder_dialog_in_sync():
     """
     Spyder dependencies dialog should share deps with main.yml.
@@ -218,8 +216,6 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     # We can't declare these as dependencies in setup.py
     for dep in ['python.app', 'fzf', 'fcitx-qt5']:
         full_reqs.pop(dep)
-    # Ignored `pyqt5-sip` constraint on conda
-    spyder_setup.pop('pyqt5-sip')
 
     assert spyder_setup == full_reqs
 

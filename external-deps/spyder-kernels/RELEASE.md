@@ -1,12 +1,18 @@
-To release a new version of spyder-kernels on PyPI:
+# Instructions to release a new Spyder-kernels version
+
+## Before starting the release
+
+* Create a PR against `master` to update the Changelog with the following command:
+
+    `loghub spyder-ide/spyder-kernels -m vX.X.X`
+
+## To release a new version on PyPI
 
 * Close the respective milestone on Github
 
 * git checkout 3.x
 
 * git fetch upstream && get merge upstream/3.x
-
-* Update CHANGELOG.md with `loghub spyder-ide/spyder-kernels -m vX.X.X`
 
 * git clean -xfdi
 

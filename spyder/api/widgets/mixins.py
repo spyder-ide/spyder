@@ -257,14 +257,19 @@ class SpyderMenuMixin:
     """
 
     def add_item_to_menu(self, action_or_menu, menu, section=None,
-                         before=None):
+                         before=None, before_section=None):
         """
         Add a SpyderAction or a QWidget to the menu.
         """
         if not isinstance(menu, SpyderMenu):
             raise SpyderAPIError('Menu must be an instance of SpyderMenu!')
 
-        menu.add_action(action_or_menu, section=section, before=before)
+        menu.add_action(
+            action_or_menu,
+            section=section,
+            before=before,
+            before_section=before_section,
+        )
 
     def _create_menu(
         self,
@@ -442,7 +447,7 @@ class SpyderActionMixin:
     # name where it is applied).
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, data=None,
-                      shortcut_context=None,
+                      shortcut=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
                       register_shortcut=False, section=None, option=None,
                       parent=None, register_action=True, overwrite=False,
@@ -538,6 +543,7 @@ class SpyderActionMixin:
             data=data,
             context=context,
             section=section,
+            shortcut=shortcut,
             option=option,
             id_=name,
             plugin=self.PLUGIN_NAME,

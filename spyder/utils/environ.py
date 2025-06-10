@@ -128,6 +128,7 @@ def get_user_environment_variables():
         else:
             env_var = dict(os.environ)
 
+    env_var = dict(sorted(env_var.items()))
     return env_var
 
 

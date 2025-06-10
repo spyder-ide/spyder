@@ -43,7 +43,9 @@ def remove_file(fname):
     Remove file *fname*
     If file is a Python script, also rename .pyc and .pyo files if any
     """
-    os.remove(fname)
+    from qtpy.QtCore import QFile
+
+    QFile.moveToTrash(fname)
     __remove_pyc_pyo(fname)
 
 

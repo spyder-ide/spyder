@@ -4,10 +4,24 @@ services:
       context: ./
       additional_contexts:
         external-deps: ../../../../external-deps
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.ssh
     volumes:
       - "../../../../external-deps/spyder-remote-services:/home/ubuntu/spyder-remote-services"
       - "../../../../external-deps/spyder-kernels:/home/ubuntu/spyder-kernels"
     ports:
       - "22"
     privileged: true  # Required for /usr/sbin/init
+  test-spyder-jupyterhub:
+    build:
+      context: ./
+      additional_contexts:
+        external-deps: ../../../../external-deps
+      args:
+        JUPYTERHUB_USERNAME: test
+        JUPYTERHUB_API_TOKEN: test_api_key
+      dockerfile: Dockerfile.jupyterhub
+    volumes:
+      - "../../../../external-deps/spyder-remote-services:/home/test/spyder-remote-services"
+      - "../../../../external-deps/spyder-kernels:/home/test/spyder-kernels"
+    ports:
+      - "8000"

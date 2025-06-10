@@ -54,6 +54,7 @@ from spyder.utils.stylesheet import AppStyle, MAC
 # =============================================================================
 
 class ArrayEditorActions:
+    Close = 'close'
     Copy = 'copy_action'
     Edit = 'edit_action'
     Preferences = 'preferences_action'
@@ -773,6 +774,17 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=self.show_preferences_dialog,
             register_action=False
         )
+        self.close_action = self.create_action(
+            name=ArrayEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.reject,
+            shortcut=self.get_shortcut(ArrayEditorActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
+
         self.refresh_action = self.create_action(
             ArrayEditorActions.Refresh,
             text=_('Refresh'),
@@ -797,7 +809,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             ArrayEditorMenus.Options,
             register=False
         )
-        options_menu.add_action(self.preferences_action)
+        for item in [self.preferences_action, self.close_action]:
+            self.add_item_to_menu(item, options_menu)
 
         options_button = self.create_toolbutton(
             name=ArrayEditorWidgets.OptionsToolButton,

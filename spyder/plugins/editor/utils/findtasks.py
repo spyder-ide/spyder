@@ -18,8 +18,10 @@ DEBUG_EDITOR = get_debug_level() >= 3
 # =============================================================================
 # Find tasks - TODOs
 # =============================================================================
-TASKS_PATTERN = r"(^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP|@todo|" \
-                r"HACK|BUG|OPTIMIZE|!!!|\?\?\?)([^#]*)"
+TASKS_PATTERN = (
+    r"#\s*(TODO|todo|FIXME|fixme|XXX|xxx|HINT|hint|TIP|tip|@todo|@TODO|"
+    r"HACK|hack|BUG|bug|OPTIMIZE|optimize|!!!|\?\?\?)([^#]*)"
+)
 
 
 def find_tasks(source_code):

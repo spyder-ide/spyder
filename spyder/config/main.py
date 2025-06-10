@@ -354,7 +354,10 @@ DEFAULTS = [
               'single_click_to_open': False,
               'size_column': False,
               'type_column': False,
-              'date_column': True
+              'date_column': True,
+              'init_files_display': 500,
+              'fetch_files_display': 500,
+              'max_files_display': 2000,
               }),
             ('find_in_files',
              {
@@ -453,14 +456,15 @@ DEFAULTS = [
               'find_replace/find previous': (
                   "Ctrl+Shift+G" if MAC else "Shift+F3"),
               'find_replace/replace text': "Ctrl+R",
+              'find_replace/replace all': "Alt+A",
               'find_replace/hide find and replace': "Escape",
               # -- Editor --
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line up': CTRL + "+Alt+PgUp",
               'editor/duplicate line down': CTRL + "+Alt+PgDown",
               'editor/delete line': 'Ctrl+D',
-              'editor/transform to uppercase': 'Ctrl+Shift+U',
-              'editor/transform to lowercase': 'Ctrl+U',
+              'editor/transform to uppercase': 'Alt+Shift+U',
+              'editor/transform to lowercase': 'Alt+U',
               'editor/indent': 'Ctrl+]',
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
@@ -553,6 +557,7 @@ DEFAULTS = [
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
               # -- Variable explorer --
+              'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
               'variable_explorer/search': 'Ctrl+F',
               'variable_explorer/refresh': 'Ctrl+R',
@@ -697,4 +702,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.0.0'
+CONF_VERSION = '87.2.0'

@@ -7,7 +7,7 @@ import socketserver
 import threading
 import uuid
 from functools import partial
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     import ujson as json
@@ -382,7 +382,7 @@ class PythonLSPServer(MethodDispatcher):
     def m_initialized(self, **_kwargs) -> None:
         self._hook("pylsp_initialized")
 
-    def code_actions(self, doc_uri: str, range: Dict, context: Dict):
+    def code_actions(self, doc_uri: str, range: dict, context: dict):
         return flatten(
             self._hook("pylsp_code_actions", doc_uri, range=range, context=context)
         )
@@ -471,7 +471,7 @@ class PythonLSPServer(MethodDispatcher):
         random_uri = str(uuid.uuid4())
 
         # cell_list helps us map the diagnostics back to the correct cell later.
-        cell_list: List[Dict[str, Any]] = []
+        cell_list: list[dict[str, Any]] = []
 
         offset = 0
         total_source = ""

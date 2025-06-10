@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
 	branch = main
-	commit = b4de4a02107feec976fe6f457278ace842c29ec1
-	parent = 11ab489965089bae137f60d0b73729082e05b3f4
+	commit = 6123020398c9e6adc65043ca17c1eea8fe4d3ff5
+	parent = e81b1f11500893c43ea70dbfb309fd4c8ca47477
 	method = merge
 	cmdver = 0.4.9
