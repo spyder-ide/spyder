@@ -125,6 +125,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _('New'),
         )
 
+        self.new_package_action = self.create_action(
+            RemoteExplorerActions.NewPackage,
+            text=_("Python package..."),
+            icon=self.create_icon('package_new'),
+            triggered=self.new_package,
+        )
         self.new_module_action = self.create_action(
             RemoteExplorerActions.NewModule,
             text=_("Python file..."),
@@ -186,7 +192,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 section=RemoteViewNewSubMenuSections.General,
             )
 
-        for item in [self.new_module_action]:
+        for item in [self.new_module_action, self.new_package_action]:
             self.add_item_to_menu(
                 item,
                 new_submenu,
@@ -340,10 +346,20 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             logger.error(error)
 
     @AsyncDispatcher.QtSlot
+    def _on_remote_new_package(self, future, package_name):
+        self._handle_future_response_error(
+            future,
+            _("New Python Package error"),
+            _("An error occured while trying to create a new Python package"),
+        )
+        new_name = posixpath.join(package_name, "__init__.py")
+        self._new_item(new_name, for_file=True, with_content=True)
+
+    @AsyncDispatcher.QtSlot
     def _on_remote_new_module(self, future):
         self._handle_future_response_error(
             future,
-            _("New Python file error"),
+            _("New Python File error"),
             _("An error occured while trying to create a new Python file"),
         )
         self.refresh(force_current=True)
@@ -640,6 +656,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self._do_remote_new_module(new_path, file_content).connect(
                 self._on_remote_new_module
             )
+        elif not for_file and with_content:
+
+            @AsyncDispatcher.QtSlot
+            def remote_package(future):
+                self._on_remote_new_package(future, new_name)
+
+            self._do_remote_new(new_path).connect(remote_package)
 
         self.sig_start_spinner_requested.emit()
 
@@ -843,9 +866,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
 
+    def new_package(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New Python Package"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name, with_content=True)
+
     def new_module(self):
         new_name, valid = QInputDialog.getText(
-            self, _("New File"), _("Name as:"), QLineEdit.Normal, ""
+            self, _("New Python File"), _("Name as:"), QLineEdit.Normal, ".py"
         )
         if valid:
             self._new_item(new_name, for_file=True, with_content=True)
