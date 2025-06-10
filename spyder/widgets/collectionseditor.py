@@ -1764,8 +1764,6 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 self, data, namespacebrowser, data_function, readonly, title
             )
 
-        self.parent = parent
-
         self.refresh_action = self.create_action(
             name=CollectionsEditorActions.Refresh,
             text=_('Refresh'),
@@ -1781,6 +1779,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             text=_('Close'),
             triggered=self.close_window,
             shortcut=self.get_shortcut(CollectionsEditorActions.Close),
+            register_action=False,
             register_shortcut=True
         )
         self.register_shortcut_for_widget(
@@ -1864,8 +1863,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         return self.editor.source_model.title
     
     def close_window(self):
-        if self.parent:
-            self.parent.reject
+        if self.parent():
+            self.parent().reject()
 
 
 class CollectionsEditor(BaseDialog):

@@ -34,7 +34,6 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 # =============================================================================
 # ---- Constants
 # =============================================================================
-
 class TextEditorActions:
     Close = 'close'
     Copy = 'copy_action'
@@ -48,6 +47,7 @@ class TextEditorWidgets:
     OptionsToolButton = 'options_button_widget'
     Toolbar = 'toolbar'
     ToolbarStretcher = 'toolbar_stretcher'
+
 
 class TextEditorToolbarSections:
     Copy = 'copy_section'
@@ -75,6 +75,7 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             text=_('Close'),
             triggered=self.reject,
             shortcut=self.get_shortcut(TextEditorActions.Close),
+            register_action=False,
             register_shortcut=True
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)

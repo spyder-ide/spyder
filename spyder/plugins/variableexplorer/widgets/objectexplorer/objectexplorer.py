@@ -265,6 +265,7 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             text=_('Close'),
             triggered=self.reject,
             shortcut=self.get_shortcut(ObjectExplorerActions.Close),
+            register_action=False,
             register_shortcut=True
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)

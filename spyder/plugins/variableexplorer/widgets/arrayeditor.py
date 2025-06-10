@@ -780,6 +780,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             text=_('Close'),
             triggered=self.reject,
             shortcut=self.get_shortcut(ArrayEditorActions.Close),
+            register_action=False,
             register_shortcut=True
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)
