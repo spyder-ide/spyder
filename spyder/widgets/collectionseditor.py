@@ -35,8 +35,18 @@ from qtpy.QtCore import (
     Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
-    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
+    QApplication,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QTableView,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -71,6 +81,7 @@ from spyder.utils.stylesheet import AppStyle, MAC
 # ---- Constants
 # =============================================================================
 class CollectionsEditorActions:
+    Close = 'close'
     Copy = 'copy_action'
     Duplicate = 'duplicate_action'
     Edit = 'edit_action'
@@ -100,6 +111,7 @@ class CollectionsEditorMenus:
 
 
 class CollectionsEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
     Toolbar = 'toolbar'
     ToolbarStretcher = 'toolbar_stretcher'
 
@@ -201,6 +213,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         self.minmax = minmax
         self.remote = remote
         self.header0 = None
+        self.previous_sort = -1
         self._data = None
         self.total_rows = None
         self.showndata = None
@@ -246,13 +259,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
             self.title += _("Frozenset")
             self._data = list(data)
         elif isinstance(data, dict):
-            try:
-                self.keys = sorted(list(data.keys()), key=natsort)
-            except TypeError:
-                # This is necessary to display dictionaries with mixed
-                # types as keys.
-                # Fixes spyder-ide/spyder#13481
-                self.keys = list(data.keys())
+            self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
@@ -326,16 +333,68 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         """Load all the data."""
         self.fetchMore(number_to_fetch=self.total_rows)
 
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Overriding sort method"""
+    def sort(
+        self,
+        column: int,
+        order: Qt.SortOrder = Qt.AscendingOrder
+    ) -> None:
+        """
+        Sort model by given column and order.
+
+        This overrides the method in the base class and it's called by Qt if
+        the user clicks on the header of a column.
+
+        If the collection editor shows a dictionary and the user changes the
+        order of a column from descending to ascending, then instead sort the
+        dict by insertion order. The effect is that clicking on a column
+        header switches between three states: that column is sorting in
+        ascending order, then in descending order, and then the dict reverts
+        to its natural state, which is sorted by insertion order. This
+        implementation is a bit of a hack. In Qt 6, the flag
+        `sortIndicatorClearable` in `QHeaderView` has the same effect.
+
+        If a view uses a proxy model, then the sort function of the proxy model
+        overrides this function and the special handling of dictionaries
+        described in the previous paragraph does not happen. This happens in
+        `RemoteCollectionsEditorTableView` which is used in `NamespaceBrowser`.
+
+        Parameters
+        ----------
+        column : int
+            The column to sort. If column is -1 then return the model to its
+            unsorted state.
+        order : Qt.SortOrder, optional
+            Whether to sort in ascending or descending order. The default is
+            Qt.AscendingOrder.
+        """
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
 
+        try:
+            header = self._parent.horizontalHeader()
+        except AttributeError:
+            # may happen in tests
+            header = None
+
+        if (
+            header
+            and order == Qt.AscendingOrder
+            and column != -1
+            and self.previous_sort == column
+            and isinstance(self._data, dict)
+        ):
+            header.setSortIndicator(-1, Qt.AscendingOrder)
+            return
+
+        self.previous_sort = column
         reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
-        if column == 0:
+        if column == -1:
+            self.keys = list(self._data.keys())
+            self.set_size_and_type()
+        elif column == 0:
             self.sizes = sort_against(self.sizes, self.keys,
                                       reverse=reverse,
                                       sort_key=natsort)
@@ -731,10 +790,6 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         self.horizontalHeader().setSectionsMovable(True)
         self.adjust_columns()
 
-        # Sorting columns
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
-
         # Actions to take when the selection changes
         self.selectionModel().selectionChanged.connect(self.refresh_menu)
         self.selectionModel().selectionChanged.connect(
@@ -1066,7 +1121,9 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
             self.source_model.reset()
-            self.sortByColumn(0, Qt.AscendingOrder)
+
+            # Sort table using current sort column and order
+            self.setSortingEnabled(True)
 
     def _edit_value(self):
         self.edit(self.__index_clicked)
@@ -1620,6 +1677,14 @@ class CollectionsEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu()
+
+        # Leave unsorted if dict, sort by column 0 otherwise
+        if isinstance(data, dict):
+            self.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
+        else:
+            self.horizontalHeader().setSortIndicator(0, Qt.AscendingOrder)
+        self.setSortingEnabled(True)
+
         if isinstance(data, (set, frozenset)):
             self.horizontalHeader().hideSection(0)
 
@@ -1736,7 +1801,7 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
     # Dummy conf section to avoid a warning from SpyderConfigurationObserver
-    CONF_SECTION = ""
+    CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
 
@@ -1761,6 +1826,19 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             register_action=None
         )
 
+        self.close_action = self.create_action(
+            name=CollectionsEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.close_window,
+            shortcut=self.get_shortcut(CollectionsEditorActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(
+            name='close', triggered=self.close_window
+        )
+
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
             register=False
@@ -1783,6 +1861,22 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 section=CollectionsEditorToolbarSections.AddDelete
             )
 
+        options_menu = self.create_menu(
+            CollectionsEditorMenus.Options,
+            register=False
+        )
+        for item in [self.close_action]:
+            self.add_item_to_menu(item, options_menu)
+
+        options_button = self.create_toolbutton(
+            name=CollectionsEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
         for item in [
             self.editor.view_action,
             self.editor.plot_action,
@@ -1791,7 +1885,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             stretcher,
             self.editor.resize_action,
             self.editor.resize_columns_action,
-            self.refresh_action
+            self.refresh_action,
+            options_button
         ]:
             self.add_item_to_toolbar(
                 item,
@@ -1819,6 +1914,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     def get_title(self):
         """Get model title"""
         return self.editor.source_model.title
+    
+    def close_window(self):
+        if self.parent():
+            self.parent().reject()
 
 
 class CollectionsEditor(BaseDialog):
@@ -2066,6 +2165,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         if create_menu:
             self.menu = self.setup_menu()
+
+        # Sorting columns
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
 
     # ------ Remote/local API -------------------------------------------------
     def get_value(self, name):

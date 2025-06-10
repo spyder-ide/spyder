@@ -284,13 +284,17 @@ class Explorer(SpyderDockablePlugin):
     def on_remote_client_teardown(self):
         if len(self._file_managers):
             for file_manager in self._file_managers.values():
-                AsyncDispatcher(early_return=False)(file_manager.close)()
+                AsyncDispatcher(
+                    loop=file_manager.session._loop, early_return=False
+                )(file_manager.close)()
             self._file_managers = {}
 
     def on_close(self, cancelable=False):
         if len(self._file_managers):
             for file_manager in self._file_managers.values():
-                AsyncDispatcher(early_return=False)(file_manager.close)()
+                AsyncDispatcher(
+                    loop=file_manager.session._loop, early_return=False
+                )(file_manager.close)()
             self._file_managers = {}
 
     # ---- Private API

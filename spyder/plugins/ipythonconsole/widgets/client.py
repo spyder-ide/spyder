@@ -669,8 +669,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         # Close jupyter api regardless of the kernel state
         if self.is_remote():
-            AsyncDispatcher(early_return=False)(self._jupyter_api.close)()
-            AsyncDispatcher(early_return=False)(self._files_api.close)()
+            AsyncDispatcher(
+                loop=self._jupyter_api.session._loop, early_return=False
+            )(self._jupyter_api.close)()
+            AsyncDispatcher(
+                loop=self._files_api.session._loop, early_return=False
+            )(self._files_api.close)()
 
         # Prevent errors in our tests
         try:
@@ -778,6 +782,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     @Slot(object)
     def show_env(self, env):
         """Show environment variables."""
+        env = dict(sorted(env.items()))
         self.dialog_manager.show(RemoteEnvDialog(env, parent=self))
 
     def show_time(self, end=False):

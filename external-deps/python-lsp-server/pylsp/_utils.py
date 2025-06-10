@@ -7,9 +7,11 @@ import logging
 import os
 import pathlib
 import re
+import subprocess
+import sys
 import threading
 import time
-from typing import List, Optional
+from typing import Optional
 
 import docstring_to_markdown
 import jedi
@@ -57,7 +59,7 @@ def debounce(interval_s, keyed_by=None):
 
 
 def throttle(seconds=1):
-    """Throttles calls to a function evey `seconds` seconds."""
+    """Throttles calls to a function every `seconds` seconds."""
 
     def decorator(func):
         @functools.wraps(func)
@@ -78,7 +80,7 @@ def find_parents(root, path, names):
 
     Args:
         path (str): The file path to start searching up from.
-        names (List[str]): The file/directory names to look for.
+        names (list[str]): The file/directory names to look for.
         root (str): The directory at which to stop recursing upwards.
 
     Note:
@@ -198,7 +200,7 @@ def wrap_signature(signature):
 SERVER_SUPPORTED_MARKUP_KINDS = {"markdown", "plaintext"}
 
 
-def choose_markup_kind(client_supported_markup_kinds: List[str]):
+def choose_markup_kind(client_supported_markup_kinds: list[str]):
     """Choose a markup kind supported by both client and the server.
 
     This gives priority to the markup kinds provided earlier on the client preference list.
@@ -209,8 +211,96 @@ def choose_markup_kind(client_supported_markup_kinds: List[str]):
     return "markdown"
 
 
+class Formatter:
+    command: list[str]
+
+    @property
+    def is_installed(self) -> bool:
+        """Returns whether formatter is available"""
+        if not hasattr(self, "_is_installed"):
+            self._is_installed = self._is_available_via_cli()
+        return self._is_installed
+
+    def format(self, code: str, line_length: int) -> str:
+        """Formats code"""
+        return subprocess.check_output(
+            [
+                sys.executable,
+                "-m",
+                *self.command,
+                "--line-length",
+                str(line_length),
+                "-",
+            ],
+            input=code,
+            text=True,
+        ).strip()
+
+    def _is_available_via_cli(self) -> bool:
+        try:
+            subprocess.check_output(
+                [
+                    sys.executable,
+                    "-m",
+                    *self.command,
+                    "--help",
+                ],
+            )
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+
+class RuffFormatter(Formatter):
+    command = ["ruff", "format"]
+
+
+class BlackFormatter(Formatter):
+    command = ["black"]
+
+
+formatters = {"ruff": RuffFormatter(), "black": BlackFormatter()}
+
+
+def format_signature(signature: str, config: dict, signature_formatter: str) -> str:
+    """Formats signature using ruff or black if either is available."""
+    as_func = f"def {signature.strip()}:\n    pass"
+    line_length = config.get("line_length", 88)
+    formatter = formatters[signature_formatter]
+    if formatter.is_installed:
+        try:
+            return (
+                formatter.format(as_func, line_length=line_length)
+                .removeprefix("def ")
+                .removesuffix(":\n    pass")
+            )
+        except subprocess.CalledProcessError as e:
+            log.warning("Signature formatter failed %s", e)
+    else:
+        log.warning(
+            "Formatter %s was requested but it does not appear to be installed",
+            signature_formatter,
+        )
+    return signature
+
+
+def convert_signatures_to_markdown(signatures: list[str], config: dict) -> str:
+    signature_formatter = config.get("formatter", "black")
+    if signature_formatter:
+        signatures = [
+            format_signature(
+                signature, signature_formatter=signature_formatter, config=config
+            )
+            for signature in signatures
+        ]
+    return wrap_signature("\n".join(signatures))
+
+
 def format_docstring(
-    contents: str, markup_kind: str, signatures: Optional[List[str]] = None
+    contents: str,
+    markup_kind: str,
+    signatures: Optional[list[str]] = None,
+    signature_config: Optional[dict] = None,
 ):
     """Transform the provided docstring into a MarkupContent object.
 
@@ -232,7 +322,10 @@ def format_docstring(
             value = escape_markdown(contents)
 
         if signatures:
-            value = wrap_signature("\n".join(signatures)) + "\n\n" + value
+            wrapped_signatures = convert_signatures_to_markdown(
+                signatures, config=signature_config or {}
+            )
+            value = wrapped_signatures + "\n\n" + value
 
         return {"kind": "markdown", "value": value}
     value = contents

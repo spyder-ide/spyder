@@ -246,7 +246,7 @@ def get_spyder_conda_channel():
     return channel, channel_url
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=10)
 def conda_version(conda_executable=None):
     """
     Get the conda version if available.

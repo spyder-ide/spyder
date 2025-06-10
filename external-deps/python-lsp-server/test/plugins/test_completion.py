@@ -5,7 +5,7 @@ import math
 import os
 import sys
 from pathlib import Path
-from typing import Dict, NamedTuple
+from typing import NamedTuple
 
 import pytest
 
@@ -66,7 +66,7 @@ class TypeCase(NamedTuple):
 
 
 # fmt: off
-TYPE_CASES: Dict[str, TypeCase] = {
+TYPE_CASES: dict[str, TypeCase] = {
     "variable": TypeCase(
         document="test = 1\ntes",
         position={"line": 1, "character": 3},

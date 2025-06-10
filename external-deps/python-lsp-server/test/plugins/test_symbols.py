@@ -30,6 +30,17 @@ def main(x):
 
 """
 
+DOC_IMPORTS = """from . import something
+from ..module import something
+from module import (a, b)
+
+def main():
+    # import ignored
+    print("from module import x")  # string with import
+    return something
+
+"""
+
 
 def helper_check_symbols_all_scope(symbols):
     # All eight symbols (import sys, a, B, __init__, x, y, main, y)
@@ -71,6 +82,24 @@ def test_symbols(config, workspace):
     # Ensure that the symbol range spans the whole definition
     assert sym("main")["location"]["range"]["start"] == {"line": 9, "character": 0}
     assert sym("main")["location"]["range"]["end"] == {"line": 12, "character": 0}
+
+
+def test_symbols_complex_imports(config, workspace):
+    doc = Document(DOC_URI, workspace, DOC_IMPORTS)
+    config.update({"plugins": {"jedi_symbols": {"all_scopes": False}}})
+    symbols = pylsp_document_symbols(config, doc)
+
+    import_symbols = [s for s in symbols if s["kind"] == SymbolKind.Module]
+
+    assert len(import_symbols) == 4
+
+    names = [s["name"] for s in import_symbols]
+    assert "something" in names
+    assert "a" in names or "b" in names
+
+    assert any(
+        s["name"] == "main" and s["kind"] == SymbolKind.Function for s in symbols
+    )
 
 
 def test_symbols_all_scopes(config, workspace) -> None:

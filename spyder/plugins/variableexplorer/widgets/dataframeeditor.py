@@ -96,6 +96,7 @@ if TYPE_CHECKING:
 # =============================================================================
 
 class DataframeEditorActions:
+    Close = 'close'
     ConvertToBool = 'convert_to_bool_action'
     ConvertToComplex = 'convert_to_complex_action'
     ConvertToFloat = 'convert_to_float_action'
@@ -1803,6 +1804,16 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             triggered=self.show_preferences_dialog,
             register_action=False
         )
+        self.close_action = self.create_action(
+            name=DataframeEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.reject,
+            shortcut=self.get_shortcut(DataframeEditorActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -1967,7 +1978,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             DataframeEditorMenus.Options,
             register=False
         )
-        self.add_item_to_menu(self.preferences_action, options_menu)
+        for item in [self.preferences_action, self.close_action]:
+            self.add_item_to_menu(item, options_menu)
 
         options_button = self.create_toolbutton(
             name=DataframeEditorWidgets.OptionsToolButton,

@@ -10,6 +10,9 @@ from spyder_remote_services.services.envs_manager.handlers import (
 from spyder_remote_services.services.files.handlers import (
     handlers as files_handlers,
 )
+from spyder_remote_services.services.environ.handler import (
+    handlers as environ_handlers,
+)
 
 
 class VersionHandler(JupyterHandler):
@@ -25,5 +28,8 @@ class VersionHandler(JupyterHandler):
 
 
 handlers = (
-    envs_manager_handlers + files_handlers + [(r"/version", VersionHandler)]
+    envs_manager_handlers +
+    files_handlers +
+    environ_handlers +
+    [(r"/version", VersionHandler)]
 )
