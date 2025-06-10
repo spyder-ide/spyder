@@ -75,7 +75,6 @@ class SearchInComboBox(SpyderComboBox):
         external_path_history = (
             [] if external_path_history is None else external_path_history
         )        
-
         if external_path_history:
             for path in external_path_history:
                 self.add_external_path(path)

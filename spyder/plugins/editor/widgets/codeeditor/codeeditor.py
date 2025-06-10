@@ -2616,6 +2616,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         3) Pos at which a # comment begins. -1 if it doesn't.'
         """
         closing_brackets = [] if closing_brackets is None else closing_brackets
+
         # Remove inline comment and check brackets
         bracket_stack = []  # list containing this lines unmatched opening
         # same deal, for closing though. Ignore if bracket stack not empty,

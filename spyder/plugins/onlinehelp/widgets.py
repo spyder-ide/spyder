@@ -65,6 +65,7 @@ try:
 
     def spyder_safeimport(path, forceload=0, cache=None):
         cache = {} if cache is None else cache
+
         if path in DIRECT_PYDOC_IMPORT_MODULES:
             forceload = 0
         return safeimport(path, forceload=forceload, cache=cache)

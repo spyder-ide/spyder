@@ -102,6 +102,7 @@ COMMUNICATE_LOCK = threading.Lock()
 def communicate(sock, command, settings=None):
     """Communicate with monitor"""
     settings = [] if settings is None else settings
+
     try:
         COMMUNICATE_LOCK.acquire()
         write_packet(sock, command)

@@ -316,10 +316,11 @@ class FileExplorerTest(QWidget):
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
 
-        self.explorer = ExplorerWidget('explorer', self, parent=self)
         file_associations = (
             {} if file_associations is None else file_associations
-        )        
+        )
+
+        self.explorer = ExplorerWidget('explorer', self, parent=self)
         self.explorer.set_conf('file_associations', file_associations)
         self.explorer._setup()
         self.explorer.setup()
