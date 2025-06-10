@@ -164,24 +164,18 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 # installed in a non-standard location).
                 # See spyder-ide/spyder#23595
                 not_found_exe_message = _(
-                    "Spyder couldn't find conda or mamba in your system "
-                    "to activate the kernel's environment. Please add the "
-                    "directory where the conda or mamba executable is "
-                    "located to your PATH environment variable for it to "
+                    "Spyder couldn't find conda, mamba or micromamba in your "
+                    "system to activate the kernel's environment. Please add "
+                    "the directory where at least one of their executables "
+                    "is located to your PATH environment variable for it to "
                     "be detected."
                 )
-                if ".pixi" in pyexec:
-                    # Validate if the interpreter path contains ".pixi" to
-                    # handle pixi created environments when conda is not
-                    # installed and show proper feedback.
-                    # See spyder-ide/spyder#23558 (issuecomment-2707561132)
-                    not_found_exe_message = _(
-                        "Spyder doesn't support Pixi environments at the "
-                        "moment, but it will in version 6.1.0"
-                    )
                 raise SpyderKernelError(not_found_exe_message)
+
+            # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
 
+            # Base command
             kernel_cmd.extend([
                 conda_exe,
                 'run',
@@ -189,12 +183,19 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 get_conda_env_path(pyexec)
             ])
 
-            # We need to use this flag to prevent conda_exe from capturing the
-            # kernel process stdout/stderr streams. That way we are able to
-            # show them in Spyder.
-            if "micromamba" in osp.basename(conda_exe):
+            # We need to use these flags to prevent conda_exe from capturing
+            # the kernel process stdout/stderr streams. That way we'll be able
+            # to show them in Spyder.
+            if "micromamba" in osp.basename(conda_exe) or (
+                # Fixes spyder-ide/spyder#24513
+                "mamba" in osp.basename(conda_exe)
+                and conda_exe_version >= parse("2.0")
+            ):
                 kernel_cmd.extend(['--attach', '""'])
-            elif "mamba" in osp.basename(conda_exe) or (
+            elif (
+                "mamba" in osp.basename(conda_exe)
+                and conda_exe_version < parse("2.0")
+            ) or (
                 "conda" in osp.basename(conda_exe)
                 and conda_exe_version >= parse("4.9")
             ):
