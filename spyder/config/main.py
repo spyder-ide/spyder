@@ -256,6 +256,7 @@ DEFAULTS = [
               'multicursor_paste/always_spread': False,
               'tab_always_indent': False,
               'intelligent_backspace': True,
+              'intelligent_paste': True,
               'automatic_completions': True,
               'automatic_completions_after_chars': 1,
               'completions_hint': True,
