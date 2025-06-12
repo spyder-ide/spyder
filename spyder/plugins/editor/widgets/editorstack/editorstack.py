@@ -2405,9 +2405,17 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 finfo.editor.document().setModified(True)
                 self.modification_changed(index=index)
         else:
-            # Else, testing if it has been modified elsewhere:
+            # Else, testing if it has been modified elsewhere.
             lastm = QFileInfo(finfo.filename).lastModified()
-            if str(lastm.toString()) != str(finfo.lastmodified.toString()):
+            dt = finfo.lastmodified.msecsTo(lastm)
+
+            # We use a delta of one second below (instead of comparing the
+            # timestamps of the file loaded in Spyder and the one present in
+            # the filesystem) because there are some filesystems that cache
+            # file attributes (e.g. CIFS). So, it's possible to expect
+            # identical timestamps in that case.
+            # Fixes spyder-ide/spyder#21877.
+            if dt > 1000:
                 # Catch any error when trying to reload a file and close it if
                 # that's the case to prevent users from destroying external
                 # changes in Spyder.
