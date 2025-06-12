@@ -108,6 +108,7 @@ class CommsErrorWrapper():
             "call_id": self.call_id,
             "etype": self.etype.__name__,
             "args": self.error.args,
+            "error_name": getattr(self.error, "name", None),
             "tb": stacksummary_to_json(self.tb)
         }
 
@@ -124,6 +125,8 @@ class CommsErrorWrapper():
             type(etype, (Exception,), {})
         )
         instance.error = instance.etype(*json_data["args"])
+        if json_data["error_name"]:
+            instance.error.name = json_data["error_name"]
         instance.tb = staksummary_from_json(json_data["tb"])
         return instance
 
