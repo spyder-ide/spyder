@@ -1984,7 +1984,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         assert "_spyderpdb" not in key
 
 
-@flaky(max_runs=10)
+# @flaky(max_runs=10)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
@@ -2004,30 +2004,35 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
 
     # Switch to the tk backend
     ipyconsole.set_conf('pylab/backend', 'tk')
+    qtbot.wait(500)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
-    assert shell.get_matplotlib_backend() == "qt"
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
     assert matplotlib_status.value == "Qt"
 
     # Switch to the inline backend
     os.environ.pop('BACKEND_REQUIRE_RESTART')
     ipyconsole.set_conf('pylab/backend', 'inline')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "inline")
     assert matplotlib_status.value == "Inline"
 
     # Switch to the auto backend
     ipyconsole.set_conf('pylab/backend', 'auto')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
     assert matplotlib_status.value == "Qt"
 
     # Switch to the qt backend
     ipyconsole.set_conf('pylab/backend', 'qt')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     assert matplotlib_status.value == "Qt"
 
     # Switch to the tk backend again
     ipyconsole.set_conf('pylab/backend', 'tk')
+    qtbot.wait(500)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
     # Check we no spurious messages are shown before the restart below
@@ -2035,7 +2040,8 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
 
     # Restart kernel to check if the new interactive backend is set
     ipyconsole.restart_kernel()
-    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT)
+    assert shell.spyder_kernel_ready
     qtbot.wait(SHELL_TIMEOUT)
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
     assert shell.get_mpl_interactive_backend() == "tk"
