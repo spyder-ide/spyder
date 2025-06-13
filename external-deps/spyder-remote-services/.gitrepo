@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
 	branch = feat/add-zipping-support
-	commit = fd1cfc179b64e48505717182078f6188b4b2fa20
-	parent = dcaca8aeeb4faf94da71ee416fadd349a6e91de3
+	commit = 9e5961cd44337e908da8c78075a15cd5e6918b7b
+	parent = 96b0b9754397efe51d2f25f429452b23f5dad355
 	method = merge
 	cmdver = 0.4.9

@@ -298,5 +298,5 @@ handlers = [
     (r"/fs/touch", TouchHandler),            # POST
     (r"/fs/copy", CopyHandler),              # POST
     (r"/fs/move", MoveHandler),
-    (r"/fs/zip/", ZipHandler),              # POST
+    (r"/fs/zip", ZipHandler),              # POST
 ]
