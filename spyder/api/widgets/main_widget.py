@@ -839,6 +839,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         if (
             self._stack is not None
             and self._content_widget is not None
+            and self._stack.indexOf(self._content_widget) != -1
         ):
             self._stack.setCurrentWidget(self._content_widget)
 
