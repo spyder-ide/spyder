@@ -452,7 +452,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if is_file:
             response = await self.remote_files_manager.unlink(path)
         else:
-            response = await self.remote_files_manager.rmdir(path)
+            response = await self.remote_files_manager.rmdir(path, non_empty=True)
 
         return response
 
