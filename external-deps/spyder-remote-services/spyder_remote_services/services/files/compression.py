@@ -26,9 +26,6 @@ class CompressionType(enum.Enum):
     NO_COMPRESSION_STREAMED_64 = enum.auto()
 
 
-_CompressObjGetter = Callable[[], zlib._Compress]
-
-
 @dataclass(frozen=True)
 class MemberFile:
     name: str
@@ -85,7 +82,7 @@ class ZipStream:
         self,
         files: Iterable[MemberFile],
         chunk_size: int = 65536,
-        get_compressobj: _CompressObjGetter = lambda: zlib.compressobj(
+        get_compressobj: Callable[[], "zlib._Compress"] = lambda: zlib.compressobj(
             wbits=-zlib.MAX_WBITS, level=9
         ),
         extended_timestamps: bool = True,
