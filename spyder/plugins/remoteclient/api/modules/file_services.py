@@ -487,3 +487,16 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         )
         await file.connect()
         return file
+
+    async def zip_directory(
+        self, path: Path, *, compression_level: int = 5
+    ):
+        async with self.session.post(
+            self.api_url / "zip",
+            params={
+                "path": f"file://{path}",
+                "compression": compression_level,
+            },
+        ) as response:
+            while data := await response.content.read(65536):
+                yield data
