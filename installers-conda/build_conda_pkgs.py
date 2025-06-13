@@ -144,6 +144,9 @@ class BuildCondaPkg:
         for k, v in self.data.items():
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
 
+        # Remove temporary patches
+        meta = re.sub(r"^\s*- temp-.+\.patch\n", "", meta, flags=re.MULTILINE)
+
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(meta)
 
