@@ -13,7 +13,8 @@ from qtpy.QtWidgets import QButtonGroup, QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
-from spyder.config.base import _
+from spyder.api.translations import _
+from spyder.utils.stylesheet import AppStyle
 
 
 class LintingConfigTab(SpyderPreferencesTab):
@@ -25,37 +26,38 @@ class LintingConfigTab(SpyderPreferencesTab):
         super().__init__(parent)
         newcb = self.create_checkbox
 
-        linting_label = QLabel(_("Spyder can optionally highlight syntax "
-                                 "errors and possible problems with your "
-                                 "code in the editor."))
+        linting_label = QLabel(
+            _(
+                "Spyder can highlight syntax errors and possible problems "
+                "with your code in the editor by using one of the providers "
+                "below"
+            )
+        )
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
 
-        linting_select_group = QGroupBox(_("Linting"))
-        linting_select_label = QLabel(
-            _("Choose the linting:")
-        )
-        linting_select_label.setWordWrap(True)
+        linting_select_group = QGroupBox(_("Provider"))
+
         linting_bg = QButtonGroup(linting_select_group)
         basic_linting_radio = self.create_radiobutton(
-            _("Basic linting"),
+            _("Pyflakes (basic)"),
             'pyflakes',
             button_group=linting_bg
         )
         flake_linting_radio = self.create_radiobutton(
-            _("Flake8 linting"),
+            _("Flake8 (intermediate)"),
             'flake8',
             button_group=linting_bg
         )
         
         disable_linting_radio = self.create_radiobutton(
-            _("No linting"),
+            _("Disable linting"),
             'no_linting',
             button_group=linting_bg
         )
         
         linting_select_layout = QVBoxLayout()
-        linting_select_layout.addWidget(linting_select_label)
+        linting_select_layout.addSpacing(3 * AppStyle.MarginSize)
         linting_select_layout.addWidget(basic_linting_radio)
         linting_select_layout.addWidget(flake_linting_radio)
         linting_select_layout.addWidget(disable_linting_radio)
