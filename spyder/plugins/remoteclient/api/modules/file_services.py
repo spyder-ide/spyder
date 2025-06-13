@@ -426,10 +426,11 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         ) as response:
             return await response.json()
 
-    async def rmdir(self, path: Path):
+    async def rmdir(self, path: Path, non_empty: bool = False):
         async with self.session.delete(
             self.api_url / "rmdir",
-            params={"path": f"file://{path}"},
+            params={"path": f"file://{path}",
+                    "non_empty": str(non_empty).lower()},
         ) as response:
             return await response.json()
 
