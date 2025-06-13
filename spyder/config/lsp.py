@@ -127,7 +127,7 @@ PYTHON_CONFIG = {
                     'args': []
                 },
                 'flake8': {
-                    'enabled': False,
+                    'enabled': True,
                 },
                 'pyls_spyder': {
                     'enable_block_comments': True,
@@ -141,6 +141,9 @@ PYTHON_CONFIG = {
                     # Disable it until we have a graphical option for users to
                     # enable it.
                     'enabled': False,
+                },
+                'no_linting': {
+                    'enabled' : False
                 }
             },
 
