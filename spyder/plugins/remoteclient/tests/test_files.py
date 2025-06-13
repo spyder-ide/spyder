@@ -131,15 +131,12 @@ class TestRemoteFilesAPI:
             assert zip_file.testzip() is None
             zip_file_contents = zip_file.namelist()
             assert len(zip_file_contents) == 2
-            assert self.remote_temp_dir + "/test.txt" in zip_file_contents
-            assert self.remote_temp_dir + "/test2.txt" in zip_file_contents
-
             with zip_file.open(
-                self.remote_temp_dir + "/test.txt"
+                "test.txt"
             ) as file:
                 assert file.read() == b"Hello, world!"
             with zip_file.open(
-                self.remote_temp_dir + "/test2.txt"
+                "test2.txt"
             ) as file:
                 assert file.read() == b"Hello, world!"
 
