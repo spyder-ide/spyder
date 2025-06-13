@@ -60,6 +60,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('preload_modules', PRELOAD_MDOULES),
         ('pyflakes', True),
         ('mccabe', False),
+        ('flake8', False),
+        ('no_linting', False),
         ('formatting', 'autopep8'),
         ('format_on_save', False),
         ('pycodestyle', False),
@@ -745,6 +747,14 @@ class LanguageServerProvider(SpyderCompletionProvider):
             'enabled': self.get_conf('pyflakes')
         }
 
+        flake8 = {
+            'enabled': self.get_conf('flake8')
+        }
+
+        no_linting = {
+            'enabled': self.get_conf('no_linting')
+        }
+
         # Pydocstyle
         convention = self.get_conf('pydocstyle/convention')
 
@@ -851,6 +861,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins = python_config['configurations']['pylsp']['plugins']
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
+        plugins['flake8'].update(flake8)
+        plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
         plugins['pyls_spyder'].update(pyls_spyder_options)
         plugins['jedi'].update(jedi)

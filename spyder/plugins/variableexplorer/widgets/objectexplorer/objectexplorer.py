@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class ObjectExplorerActions:
+    Close = "close"
     Refresh = 'refresh_action'
     ShowCallable = 'show_callable_action'
     ShowSpecialAttributes = 'show_special_attributes_action'
@@ -46,6 +47,11 @@ class ObjectExplorerActions:
 
 class ObjectExplorerMenus:
     Options = 'options_menu'
+
+
+class ObjectExplorerOptionsMenuSections:
+    Toggle = 'toggle_section'
+    Close = 'close_section'
 
 
 class ObjectExplorerWidgets:
@@ -57,7 +63,7 @@ class ObjectExplorerWidgets:
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
+class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     """Object explorer main widget window."""
     CONF_SECTION = 'variable_explorer'
 
@@ -182,7 +188,12 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
 
         # Add menu item for toggling columns to the Options menu
         for action in self.obj_tree.toggle_column_actions_group.actions():
-            self.add_item_to_menu(action, self.show_cols_submenu)
+            self.add_item_to_menu(
+                action,
+                menu=self.show_cols_submenu,
+                section=ObjectExplorerOptionsMenuSections.Toggle,
+                before_section=ObjectExplorerOptionsMenuSections.Close
+            )
         column_visible = [col.col_visible for col in self._attr_cols]
         for idx, visible in enumerate(column_visible):
             elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
@@ -247,12 +258,31 @@ class ObjectExplorer(BaseDialog, SpyderFontsMixin, SpyderWidgetMixin):
             triggered=self.refresh_editor,
             register_action=False
         )
+
+        self.close_action = self.create_action(
+            name=ObjectExplorerActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.reject,
+            shortcut=self.get_shortcut(ObjectExplorerActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
+
         self.refresh_action.setEnabled(self.data_function is not None)
 
         self.show_cols_submenu = self.create_menu(
             ObjectExplorerMenus.Options,
             register=False
         )
+        for item in [self.close_action]:
+            self.add_item_to_menu(
+                item,
+                menu=self.show_cols_submenu,
+                section=ObjectExplorerOptionsMenuSections.Close
+            )
+
         self.options_button = self.create_toolbutton(
             name=ObjectExplorerWidgets.OptionsToolButton,
             text=_('Options'),

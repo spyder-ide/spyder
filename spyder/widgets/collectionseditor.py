@@ -35,8 +35,18 @@ from qtpy.QtCore import (
     Slot)
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
-    QApplication, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
-    QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget)
+    QApplication,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QTableView,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.misc import fix_reference_name
@@ -71,6 +81,7 @@ from spyder.utils.stylesheet import AppStyle, MAC
 # ---- Constants
 # =============================================================================
 class CollectionsEditorActions:
+    Close = 'close'
     Copy = 'copy_action'
     Duplicate = 'duplicate_action'
     Edit = 'edit_action'
@@ -100,6 +111,7 @@ class CollectionsEditorMenus:
 
 
 class CollectionsEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
     Toolbar = 'toolbar'
     ToolbarStretcher = 'toolbar_stretcher'
 
@@ -1789,7 +1801,7 @@ class CollectionsEditorTableView(BaseTableView):
 class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     """Dictionary Editor Widget"""
     # Dummy conf section to avoid a warning from SpyderConfigurationObserver
-    CONF_SECTION = ""
+    CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
 
@@ -1814,6 +1826,19 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             register_action=None
         )
 
+        self.close_action = self.create_action(
+            name=CollectionsEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.close_window,
+            shortcut=self.get_shortcut(CollectionsEditorActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(
+            name='close', triggered=self.close_window
+        )
+
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
             register=False
@@ -1836,6 +1861,22 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                 section=CollectionsEditorToolbarSections.AddDelete
             )
 
+        options_menu = self.create_menu(
+            CollectionsEditorMenus.Options,
+            register=False
+        )
+        for item in [self.close_action]:
+            self.add_item_to_menu(item, options_menu)
+
+        options_button = self.create_toolbutton(
+            name=CollectionsEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
         for item in [
             self.editor.view_action,
             self.editor.plot_action,
@@ -1844,7 +1885,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             stretcher,
             self.editor.resize_action,
             self.editor.resize_columns_action,
-            self.refresh_action
+            self.refresh_action,
+            options_button
         ]:
             self.add_item_to_toolbar(
                 item,
@@ -1872,6 +1914,10 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     def get_title(self):
         """Get model title"""
         return self.editor.source_model.title
+    
+    def close_window(self):
+        if self.parent():
+            self.parent().reject()
 
 
 class CollectionsEditor(BaseDialog):

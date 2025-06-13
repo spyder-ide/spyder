@@ -13,10 +13,17 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QPushButton,
+    QTextEdit,
+    QToolButton,
+    QVBoxLayout,
+)
 
 # Local import
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.py3compat import (is_binary_string, to_binary_string,
                               to_text_string)
@@ -24,8 +31,32 @@ from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
-class TextEditor(BaseDialog, SpyderFontsMixin):
+# =============================================================================
+# ---- Constants
+# =============================================================================
+class TextEditorActions:
+    Close = 'close'
+    Copy = 'copy_action'
+
+
+class TextEditorMenus:
+    Options = 'options_menu'
+
+
+class TextEditorWidgets:
+    OptionsToolButton = 'options_button_widget'
+    Toolbar = 'toolbar'
+    ToolbarStretcher = 'toolbar_stretcher'
+
+
+class TextEditorToolbarSections:
+    Copy = 'copy_section'
+
+
+class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     """Array Editor Dialog"""
+    CONF_SECTION = 'variable_explorer'
+
     def __init__(self, text, title='', parent=None, readonly=False):
         super().__init__(parent)
 
@@ -38,6 +69,17 @@ class TextEditor(BaseDialog, SpyderFontsMixin):
         self.text = None
         self.btn_save_and_close = None
 
+        self.close_action = self.create_action(
+            name=TextEditorActions.Close,
+            icon=self.create_icon('close_pane'),
+            text=_('Close'),
+            triggered=self.reject,
+            shortcut=self.get_shortcut(TextEditorActions.Close),
+            register_action=False,
+            register_shortcut=True
+        )
+        self.register_shortcut_for_widget(name='close', triggered=self.reject)
+
         # Display text as unicode if it comes as bytes, so users see
         # its right representation
         if is_binary_string(text):
@@ -48,6 +90,12 @@ class TextEditor(BaseDialog, SpyderFontsMixin):
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
+
+        self.toolbar = self.create_toolbar(
+            TextEditorWidgets.Toolbar,
+            register=False
+        )
+        self.layout.addWidget(self.toolbar)
 
         # Text edit
         self.edit = QTextEdit(parent)
@@ -95,6 +143,36 @@ class TextEditor(BaseDialog, SpyderFontsMixin):
         self.setWindowTitle(_("Text editor") + \
                             u"%s" % (u" - " + unicode_title
                                      if unicode_title else u""))
+        
+        stretcher = self.create_stretcher(
+            TextEditorWidgets.ToolbarStretcher
+        )
+        options_menu = self.create_menu(
+            TextEditorMenus.Options,
+            register=False
+        )
+        for item in [self.close_action]:
+            self.add_item_to_menu(item, options_menu)
+        options_button = self.create_toolbutton(
+            name=TextEditorWidgets.OptionsToolButton,
+            text=_('Options'),
+            icon=ima.icon('tooloptions'),
+            register=False
+        )
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+
+        self.toolbar.clear()
+        self.toolbar._section_items.clear()
+        self.toolbar._item_map.clear()
+        
+        for item in [stretcher, options_button]:
+            self.add_item_to_toolbar(
+                item,
+                self.toolbar,
+                section=TextEditorToolbarSections.Copy
+            )
+        self.toolbar.render()
 
     @Slot()
     def text_changed(self):
