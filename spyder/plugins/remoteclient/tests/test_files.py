@@ -6,6 +6,8 @@
 # -----------------------------------------------------------------------------
 
 """Tests for the remote files API."""
+import io
+import zipfile
 
 # Third party imports
 import pytest
@@ -107,6 +109,39 @@ class TestRemoteFilesAPI:
                 == self.remote_temp_dir + "/test2.txt"
             )
             assert ls_content[0]["size"] == ls_content[1]["size"]
+
+    @AsyncDispatcher(early_return=False)
+    async def test_zip_dir(
+        self,
+        remote_client: RemoteClient,
+        remote_client_id: str,
+    ):
+        """Test that a directory can be zipped on the remote server."""
+        file_api_class = remote_client.get_file_api(remote_client_id)
+        assert file_api_class is not None
+
+        buffer = io.BytesIO()
+        async with file_api_class() as file_api:
+            async for chunk in file_api.zip_directory(self.remote_temp_dir):
+                buffer.write(chunk)
+            assert buffer.tell() > 0
+
+        buffer.seek(0)
+        with zipfile.ZipFile(buffer, "r") as zip_file:
+            assert zip_file.testzip() is None
+            zip_file_contents = zip_file.namelist()
+            assert len(zip_file_contents) == 2
+            assert self.remote_temp_dir + "/test.txt" in zip_file_contents
+            assert self.remote_temp_dir + "/test2.txt" in zip_file_contents
+
+            with zip_file.open(
+                self.remote_temp_dir + "/test.txt"
+            ) as file:
+                assert file.read() == b"Hello, world!"
+            with zip_file.open(
+                self.remote_temp_dir + "/test2.txt"
+            ) as file:
+                assert file.read() == b"Hello, world!"
 
     @AsyncDispatcher(early_return=False)
     async def test_rm_file(
