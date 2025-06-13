@@ -1984,7 +1984,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         assert "_spyderpdb" not in key
 
 
-# @flaky(max_runs=10)
+@flaky(max_runs=10)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
