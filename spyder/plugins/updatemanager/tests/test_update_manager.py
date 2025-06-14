@@ -79,20 +79,32 @@ def test_updates(qtbot, mocker, caplog, version, channel):
 
 
 @pytest.mark.parametrize("version", ["5.5.6", "6.0.0a1"])
-@pytest.mark.parametrize("release", ["6.0.0rc1", "6.0.7"])
-@pytest.mark.parametrize("stable_only", [True, False])
-def test_update_non_stable(qtbot, mocker, version, release, stable_only):
+@pytest.mark.parametrize(
+    "stable_only,release,expected",
+    [
+        (True, "6.0.7", "6.0.7"),
+        (True, "6.1.0a3", "6.0.7"),
+        (True, "6.0.0rc1", None),
+        (False, "6.0.7", "6.0.7"),
+        (False, "6.0.0rc1", "6.0.0rc1")
+    ]
+)
+def test_update_non_stable(
+    qtbot, mocker, version, stable_only, release, expected
+):
     """Test we offer unstable updates."""
     mocker.patch.object(workers, "CURRENT_VERSION", new=parse(version))
 
-    release = parse(release)
     worker = WorkerUpdate(stable_only)
+    release = parse(release)
+
     worker._check_update_available(release)
 
-    if release.is_prerelease and stable_only:
-        assert worker.asset_info is None
+    if expected is not None:
+        expected = parse(expected)
+        assert worker.asset_info["version"] == expected
     else:
-        assert worker.asset_info is not None
+        assert worker.asset_info is None
 
 
 def test_update_no_asset(qtbot, mocker):
