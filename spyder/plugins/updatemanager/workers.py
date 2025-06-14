@@ -184,13 +184,13 @@ def get_asset_info(
     elif update_type != UpdateType.Major:
         filename = "spyder-conda-lock.zip"
     else:
-        mach = platform.machine().lower().replace("amd64", "x86_64")
+        machine = platform.machine().lower().replace("amd64", "x86_64")
         if os.name == 'nt':
-            filename = f"Spyder-Windows-{mach}.exe"
+            filename = f"Spyder-Windows-{machine}.exe"
         if sys.platform == 'darwin':
-            filename = f"Spyder-macOS-{mach}.pkg"
+            filename = f"Spyder-macOS-{machine}.pkg"
         if sys.platform.startswith('linux'):
-            filename = f"Spyder-Linux-{mach}.sh"
+            filename = f"Spyder-Linux-{machine}.sh"
 
     asset_info = None
     for asset in release_info["assets"]:
