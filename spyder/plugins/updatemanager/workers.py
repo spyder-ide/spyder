@@ -29,12 +29,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import (
-    _,
-    is_conda_based_app,
-    running_in_ci,
-    running_under_pytest,
-)
+from spyder.config.base import _, is_conda_based_app, running_in_ci
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
 from spyder.utils.programs import get_temp_dir
@@ -99,9 +94,6 @@ class AssetInfo(TypedDict):
     # Download URL for the asset.
     url: str
 
-    # Checksum url
-    checksum_url: str
-
     # File sha256 checksum
     checksum: str
 
@@ -133,8 +125,8 @@ def get_github_releases(
     )
 
     if tags is None:
-        # Get the most recent releases
-        url += f"?per_page={100 if running_under_pytest() else 20}&page=1"
+        # Get 20 most recent releases
+        url += "?per_page=20&page=1"
         logger.info(f"Getting release info from {url}")
         page = requests.get(url, headers=GH_HEADERS)
         page.raise_for_status()
@@ -157,59 +149,27 @@ def get_github_releases(
     return {parse(item['tag_name']): item for item in data}
 
 
-def get_asset_checksum(url: str, name: str) -> str | None:
+def get_asset_info(
+    release_info: dict, current_version: Version, updater: bool
+) -> AssetInfo | None:
     """
-    Get the checksum for the provided asset.
-
-    Parameters
-    ----------
-    url : str
-        Url to the checksum asset
-    name : str
-        Name of the asset for which to obtain the checksum
-
-    Returns
-    -------
-    checksum : str | None
-        Checksum for the provided asset. None is returned if the checksum is
-        not available for the provided asset name.
-    """
-    logger.info(f"Getting checksum from {url}")
-    page = requests.get(url, headers=GH_HEADERS)
-    page.raise_for_status()
-
-    digest = page.text.strip().split("\n")
-    data = {k: v for v, k in [item.split() for item in digest]}
-    checksum = data.get(name, None)
-
-    logger.info(f"Checksum for {name}: {checksum}")
-
-    return checksum
-
-
-def get_asset_info(release_info: dict) -> AssetInfo | None:
-    """
-    Get the version, name, update type, download URL, and size for the asset
+    Get the version, name, update type, download URL, and digest for the asset
     of the given release.
 
     Parameters
     ----------
     release_info: dict
-        Release information from Github for a single release
+        Release information from Github for a single release.
+    current_version: Version
+        Current version.
+    updater: bool
+        Whether Spyder-updater (True) or Spyder (False).
 
     Returns
     -------
     asset_info: AssetInfo | None
         Information about the asset.
     """
-    current_version = CURRENT_VERSION
-    checksum_name = "Spyder-checksums.txt"
-
-    updater = "spyder-updater" in release_info["url"]
-    if updater:
-        current_version = UPDATER_VERSION
-        checksum_name = "Spyder-Updater-checksums.txt"
-
     release = parse(release_info["tag_name"])
 
     if current_version.major < release.major or not is_conda_based_app():
@@ -219,34 +179,30 @@ def get_asset_info(release_info: dict) -> AssetInfo | None:
     else:
         update_type = UpdateType.Micro
 
-    if updater or update_type != UpdateType.Major:
-        ext = ".zip"
+    if updater:
+        filename = "spyder-updater.zip"
+    elif update_type != UpdateType.Major:
+        filename = "spyder-conda-lock.zip"
     else:
-        ext = platform.machine().lower().replace("amd64", "x86_64")
+        machine = platform.machine().lower().replace("amd64", "x86_64")
         if os.name == 'nt':
-            ext += '.exe'
+            filename = f"Spyder-Windows-{machine}.exe"
         if sys.platform == 'darwin':
-            ext += '.pkg'
+            filename = f"Spyder-macOS-{machine}.pkg"
         if sys.platform.startswith('linux'):
-            ext += '.sh'
+            filename = f"Spyder-Linux-{machine}.sh"
 
-    asset_info = AssetInfo(version=release, update_type=update_type)
+    asset_info = None
     for asset in release_info["assets"]:
-        if asset["name"].endswith(ext):
-            asset_info.update(
+        if asset["name"] == filename:
+            asset_info = AssetInfo(
+                version=release,
+                update_type=update_type,
                 filename=asset["name"],
-                url=asset["browser_download_url"]
+                url=asset["browser_download_url"],
+                checksum=asset["digest"],
             )
-        if asset["name"] == checksum_name:
-            asset_info.update(
-                checksum_url=asset["browser_download_url"]
-            )
-        if asset_info.get("url") and asset_info.get("checksum_url"):
             break
-
-    if asset_info.get("url") is None or asset_info.get("checksum_url") is None:
-        # Both assets are required
-        asset_info = None
 
     return asset_info
 
@@ -268,19 +224,12 @@ def _check_asset_available(
     # release, and so on until either a new asset is available or there
     # is no update available.
     while update_available:
-        asset_info = get_asset_info(releases.get(latest_release))
+        asset_info = get_asset_info(
+            releases.get(latest_release), current_version, updater
+        )
 
         if asset_info is not None:
-            # The asset is available, now get checksum.
-            checksum = get_asset_checksum(
-                asset_info["checksum_url"], asset_info["filename"]
-            )
-            if checksum is not None:
-                asset_info.update(checksum=checksum)
-                logger.debug(f"Asset available: {latest_release}")
-                break
-            else:
-                asset_info = None
+            break
 
         # The asset is not available
         logger.debug(f"Asset not available: {latest_release}")
