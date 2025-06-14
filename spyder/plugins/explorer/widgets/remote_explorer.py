@@ -6,6 +6,7 @@
 
 import asyncio
 import fnmatch
+import io
 import logging
 import os
 import posixpath
@@ -56,7 +57,7 @@ class RemoteExplorerActions:
     CopyPaste = "remote_copy_paste_action"
     CopyPath = "remote_copy_path_action"
     Delete = "remote_delete_action"
-    Download = "remote_download_file_action"
+    Download = "remote_download_action"
     NewDirectory = "remote_new_directory_action"
     NewFile = "remote_new_file_action"
     NewModule = "remote_new_module_action"
@@ -172,11 +173,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             icon=self.create_icon("editclear"),
             triggered=self.delete_item,
         )
-        self.download_file_action = self.create_action(
+        self.download_action = self.create_action(
             RemoteExplorerActions.Download,
             _("Download..."),
             icon=self.create_icon("fileimport"),
-            triggered=self.download_file,
+            triggered=self.download_item,
         )
         self.upload_file_action = self.create_action(
             RemoteExplorerActions.Upload,
@@ -220,7 +221,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 section=RemoteExplorerContextMenuSections.CopyPaste,
             )
 
-        for item in [self.download_file_action]:
+        for item in [self.download_action]:
             self.add_item_to_menu(
                 item,
                 self.context_menu,
@@ -309,9 +310,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.delete_action.setEnabled(data_available)
         # Disable actions not suitable for directories
         self.copy_paste_action.setEnabled(is_file)
-        # TODO: For now disable the download action in the context menu for
-        # directories too
-        self.download_file_action.setEnabled(is_file)
 
         global_position = self.mapToGlobal(position)
         self.context_menu.popup(global_position)
@@ -474,6 +472,33 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                     download_file.write(data)
 
         self.sig_stop_spinner_requested.emit()
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_download_directory(self, path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        try:
+            zip_generator = self.remote_files_manager.zip_directory(path)
+            zip_data = io.BytesIO()
+            async for data in zip_generator:
+                zip_data.write(data)
+            zip_data.seek(0)
+        except RemoteFileServicesError as download_error:
+            error_message = _(
+                "An error occured while trying to download {path}".format(
+                    path=path
+                )
+            )
+            QMessageBox.critical(self, _("Download error"), error_message)
+            logger.debug(f"Unable to download {path}")
+            logger.error(
+                f"Error while trying to download directory (compressed): "
+                f"{download_error.message}"
+            )
+
+        return zip_data.getbuffer()
 
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_download_file(self, path):
@@ -986,7 +1011,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 )
                 self.sig_start_spinner_requested.emit()
 
-    def download_file(self):
+    def download_item(self):
         if (
             not self.view.currentIndex()
             or not self.view.currentIndex().isValid()
@@ -999,12 +1024,18 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if data:
             path = data["name"]
             filename = os.path.relpath(path, self.root_prefix)
+            is_file = data["type"] == "file"
+            remote_filename = filename if is_file else f"{filename}.zip"
 
             @AsyncDispatcher.QtSlot
             def remote_download_file(future):
-                self._on_remote_download_file(future, filename)
+                self._on_remote_download_file(future, remote_filename)
 
-            self._do_remote_download_file(path).connect(remote_download_file)
+            if is_file:
+                self._do_remote_download_file(path).connect(remote_download_file)
+            else:
+                self._do_remote_download_directory(path).connect(remote_download_file)
+
             self.sig_start_spinner_requested.emit()
 
     def upload_file(self):
