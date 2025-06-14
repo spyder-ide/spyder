@@ -44,7 +44,8 @@ class SearchInComboBox(SpyderComboBox):
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
 
-    def __init__(self, external_path_history=[], parent=None, id_=None):
+    def __init__(self, external_path_history=None, parent=None, id_=None):
+
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setEditable(False)
@@ -71,6 +72,9 @@ class SearchInComboBox(SpyderComboBox):
 
         self.insertSeparator(SearchInComboBoxItems.SecondSeparator)
 
+        external_path_history = (
+            [] if external_path_history is None else external_path_history
+        )        
         if external_path_history:
             for path in external_path_history:
                 self.add_external_path(path)

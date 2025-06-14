@@ -548,8 +548,12 @@ def create_program_action(parent, text, name, icon=None, nt_name=None):
                              triggered=lambda: programs.run_program(name))
 
 
-def create_python_script_action(parent, text, icon, package, module, args=[]):
+def create_python_script_action(
+    parent, text, icon, package, module, args=None
+):
     """Create action to run a GUI based Python script"""
+    args = [] if args is None else args
+
     if is_text_string(icon):
         icon = ima.get_icon(icon)
     if programs.python_script_exists(package, module):
