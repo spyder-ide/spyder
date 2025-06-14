@@ -134,6 +134,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
+    # Kernel ready
+    sig_kernel_is_ready = Signal()
+
     # To notify of kernel connection, disconnection and kernel errors
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
@@ -332,6 +335,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.setup_spyder_kernel()
             self._show_banner()
+            self.sig_kernel_is_ready.emit()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
