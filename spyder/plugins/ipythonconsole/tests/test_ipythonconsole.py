@@ -2042,9 +2042,11 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT):
         ipyconsole.restart_kernel()
     assert shell.spyder_kernel_ready
-    qtbot.wait(SHELL_TIMEOUT)
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
     assert shell.get_mpl_interactive_backend() == "tk"
+    qtbot.waitUntil(
+        lambda: matplotlib_status.value == "Tk", timeout=SHELL_TIMEOUT
+    )
     assert matplotlib_status.value == "Tk"
 
 

@@ -335,7 +335,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.setup_spyder_kernel()
             self._show_banner()
-            self.sig_kernel_is_ready.emit()
+        self.sig_kernel_is_ready.emit()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""
