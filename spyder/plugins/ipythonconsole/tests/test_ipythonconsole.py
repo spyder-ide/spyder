@@ -2039,8 +2039,8 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
     assert empty_console_text == shell._control.toPlainText()
 
     # Restart kernel to check if the new interactive backend is set
-    ipyconsole.restart_kernel()
-    qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT):
+        ipyconsole.restart_kernel()
     assert shell.spyder_kernel_ready
     qtbot.wait(SHELL_TIMEOUT)
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
