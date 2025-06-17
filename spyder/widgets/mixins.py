@@ -1557,9 +1557,9 @@ class BaseEditMixin(object):
             return cursor_rect
 
         if isinstance(self, QPlainTextEdit):
-            QPlainTextEdit.inputMethodQuery(self, query)
+            return QPlainTextEdit.inputMethodQuery(self, query)
         elif isinstance(self, QTextEdit):
-            QTextEdit.inputMethodQuery(self, query)
+            return QTextEdit.inputMethodQuery(self, query)
 
 
 class TracebackLinksMixin(object):

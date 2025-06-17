@@ -96,10 +96,13 @@ def read_packet(sock, timeout=None):
 # spyder-ide/spyder#857.
 COMMUNICATE_LOCK = threading.Lock()
 
+
 # * Old com implementation *
 # See solution (1) in spyder-ide/spyder#434, comment 13:
-def communicate(sock, command, settings=[]):
+def communicate(sock, command, settings=None):
     """Communicate with monitor"""
+    settings = [] if settings is None else settings
+
     try:
         COMMUNICATE_LOCK.acquire()
         write_packet(sock, command)

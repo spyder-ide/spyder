@@ -3,8 +3,9 @@
 
 import logging
 import sys
+from collections.abc import Mapping, Sequence
 from functools import lru_cache
-from typing import List, Mapping, Sequence, Union
+from typing import Union
 
 import pluggy
 from pluggy._hooks import HookImpl
@@ -32,7 +33,7 @@ class PluginManager(pluggy.PluginManager):
         methods: Sequence[HookImpl],
         kwargs: Mapping[str, object],
         firstresult: bool,
-    ) -> Union[object, List[object]]:
+    ) -> Union[object, list[object]]:
         # called from all hookcaller instances.
         # enable_tracing will set its own wrapping function at self._inner_hookexec
         try:

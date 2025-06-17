@@ -49,6 +49,9 @@ from spyder.plugins.remoteclient.api.protocol import (
 from spyder.plugins.remoteclient.api.modules.file_services import (
     SpyderRemoteFileServicesAPI,
 )
+from spyder.plugins.remoteclient.api.modules.environ import (
+    SpyderRemoteEnvironAPI,
+)
 from spyder.plugins.remoteclient.widgets.container import RemoteClientContainer
 
 if typing.TYPE_CHECKING:
@@ -383,6 +386,15 @@ class RemoteClient(SpyderPluginV2):
         client = self._remote_clients[config_id]
 
         return client.get_api(SpyderRemoteFileServicesAPI)
+
+    def get_environ_api(self, config_id):
+        """Get environment API."""
+        if config_id not in self._remote_clients:
+            self.load_client_from_id(config_id)
+
+        client = self._remote_clients[config_id]
+
+        return client.get_api(SpyderRemoteEnvironAPI)
 
     def get_jupyter_api(self, config_id):
         """Get Jupyter API."""

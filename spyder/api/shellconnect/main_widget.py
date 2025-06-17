@@ -168,7 +168,8 @@ class ShellConnectMainWidget(PluginMainWidget):
             self.show_empty_message()
         else:
             self.show_content_widget()
-            self.switch_widget(widget, old_widget)
+
+        self.switch_widget(widget, old_widget)
         self.update_actions()
 
     def add_errored_shellwidget(self, shellwidget):

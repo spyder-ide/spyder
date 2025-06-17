@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 from typing import TYPE_CHECKING, Any
 
 from jupyter_client.connect import LocalPortCache
@@ -52,7 +53,7 @@ class SpyderKernelProvisioner(LocalProvisioner):
                 km.hb_port = lpc.find_available_port(km.ip)
                 km.control_port = lpc.find_available_port(km.ip)
                 self.ports_cached = True
-            if "env" in kwargs:
+            if kwargs.get("env"):
                 jupyter_session = kwargs["env"].get("JPY_SESSION_NAME", "")
                 km.write_connection_file(jupyter_session=jupyter_session)
             else:
@@ -66,8 +67,10 @@ class SpyderKernelProvisioner(LocalProvisioner):
             extra_arguments = kwargs.pop("extra_arguments", [])
             kernel_cmd = self.kernel_spec.argv + extra_arguments
 
-        kwargs["env"] = {**kwargs.get("env", {}),
-                         "PYDEVD_DISABLE_FILE_VALIDATION": "1"}
+        kwargs["env"] = {
+            **os.environ.copy(),
+            **kwargs.get("env", {}),
+        }
 
         # Replace the `ipykernel_launcher` with `spyder_kernel.console`
         cmd_indx = kernel_cmd.index("ipykernel_launcher")
@@ -75,3 +78,10 @@ class SpyderKernelProvisioner(LocalProvisioner):
             kernel_cmd[cmd_indx] = "spyder_kernels.console"
 
         return await super(LocalProvisioner, self).pre_launch(cmd=kernel_cmd, **kwargs)
+
+    def _finalize_env(self, env: dict[str, str]) -> None:
+        """Finalize the environment variables for the kernel."""
+        # disable file validation for pydevd
+        # this is needed for spyder-kernels to work with pydevd
+        env["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
+        return super()._finalize_env(env)
