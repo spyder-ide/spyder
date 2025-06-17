@@ -46,7 +46,8 @@ class BuildCondaPkg:
     feedstock = None
     feedstock_branch = None
 
-    def __init__(self, data={}, debug=False):
+    def __init__(self, data=None, debug=False):
+        data = {} if data is None else data
         self.logger = logger.getChild(self.__class__.__name__)
 
         self.debug = debug
@@ -143,6 +144,9 @@ class BuildCondaPkg:
         # Replace jinja variable values
         for k, v in self.data.items():
             meta = re.sub(f".*set {k} =.*", f'{{% set {k} = "{v}" %}}', meta)
+
+        # Remove temporary patches
+        meta = re.sub(r"^\s*- temp-.+\.patch\n", "", meta, flags=re.MULTILINE)
 
         file.rename(file.parent / ("_" + file.name))  # keep copy of original
         file.write_text(meta)
@@ -285,7 +289,9 @@ class SpyderCondaPkg(BuildCondaPkg):
 
         spyder_reqs = [f"spyder-base =={self.version}"]
         for req in spyder_base_reqs.copy():
-            if req.startswith(('pyqt ', 'pyqtwebengine ', 'qtconsole ')):
+            if req.startswith(
+                ('pyqt ', 'pyqtwebengine ', 'qtconsole ', 'fcitx-qt5 ')
+            ):
                 spyder_reqs.append(req)
                 spyder_base_reqs.remove(req)
 
@@ -293,6 +299,12 @@ class SpyderCondaPkg(BuildCondaPkg):
                 spyder_base_reqs.append(
                     req.replace('qtconsole', 'qtconsole-base')
                 )
+
+        if sys.platform == "darwin":
+            spyder_base_reqs.append("__osx")
+        if sys.platform.startswith("linux"):
+            spyder_base_reqs.append("__linux")
+            spyder_reqs.append("__linux")
 
         self.recipe_clobber.update({
             "requirements": {"run": spyder_base_reqs},

@@ -1,20 +1,27 @@
 from __future__ import annotations
 import asyncio
 import base64
+from contextlib import contextmanager
 import datetime
 import errno
 from http import HTTPStatus
-from io import FileIO
 import os
 from pathlib import Path
-from shutil import copy, copy2
+from shutil import copy, copy2, rmtree
 import stat
 import threading
 import time
 import traceback
+import typing
+import zlib
 
 import orjson
 from tornado.websocket import WebSocketHandler
+
+from spyder_remote_services.services.files.compression import ZipStream, MemberFile, CompressionType
+
+if typing.TYPE_CHECKING:
+    from io import FileIO
 
 
 class FileWebSocketHandler(WebSocketHandler):
@@ -397,10 +404,13 @@ class FilesRESTMixin:
         path.mkdir(parents=create_parents, exist_ok=exist_ok)
         return {"success": True}
 
-    def fs_rmdir(self, path_str: str):
+    def fs_rmdir(self, path_str: str, non_empty: bool = False):
         """Like fsspec.rmdir() - remove if empty."""
         path = self._load_path(path_str)
-        path.rmdir()
+        if non_empty:
+            rmtree(path)
+        else:
+            path.rmdir()
         return {"success": True}
 
     def fs_rm_file(self, path_str: str, missing_ok: bool = False):
@@ -433,3 +443,53 @@ class FilesRESTMixin:
         else:
             copy(src, dst)
         return {"success": True}
+
+    def fs_move(self, src_str: str, dst_str: str):
+        """Like fsspec.move()."""
+        src = self._load_path(src_str)
+        dst = self._load_path(dst_str)
+        if not src.exists():
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(src))
+        if dst.exists():
+            raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(dst))
+        src.rename(dst)
+        return {"success": True}
+
+    @contextmanager
+    def fs_zip_dir(
+        self,
+        path_str: str,
+        compression: int = 9,
+        chunk_size: int = 65536,
+    ):
+        """Stream compressed directory content."""
+        path = self._load_path(path_str)
+
+        zip_files = []
+        for p in path.glob("**/*"):
+            if p.is_file():
+                arcname = p.relative_to(path)
+                zip_files.append(
+                    MemberFile(
+                        name=str(arcname),
+                        modified_at=datetime.datetime.fromtimestamp(p.stat().st_mtime),
+                        data=p.open("rb"),
+                        mode=0x7777 & p.stat().st_mode,
+                        size=p.stat().st_size,
+                        method=CompressionType.ZIP_64,
+                    )
+                )
+
+        try:
+            if not zip_files:
+                yield None
+            else:
+                yield ZipStream(zip_files,
+                    get_compressobj=lambda: zlib.compressobj(
+                        wbits=-zlib.MAX_WBITS, level=compression,
+                    ),
+                    chunk_size=chunk_size,
+                )
+        finally:
+            for f in zip_files:
+                f.data.close()

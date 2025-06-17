@@ -499,7 +499,8 @@ class ExplorerWidget(PluginMainWidget):
 # Tests
 # =============================================================================
 class FileExplorerTest(QWidget):
-    def __init__(self, directory=None, file_associations={}):
+    def __init__(self, directory=None, file_associations=None):
+
         self.CONF_SECTION = 'explorer'
         super().__init__()
 
@@ -507,6 +508,10 @@ class FileExplorerTest(QWidget):
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
+
+        file_associations = (
+            {} if file_associations is None else file_associations
+        )
 
         self.explorer = ExplorerWidget('explorer', self, parent=self)
         self.explorer.set_conf('file_associations', file_associations)
