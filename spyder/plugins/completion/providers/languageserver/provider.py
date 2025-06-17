@@ -68,7 +68,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('pycodestyle/filename', ''),
         ('pycodestyle/exclude', ''),
         ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),        
+        ('pycodestyle/ignore', ''),
         ('pycodestyle/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
@@ -861,8 +861,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins = python_config['configurations']['pylsp']['plugins']
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
-        plugins['flake8'].update(flake8)
-        plugins['no_linting'].update(no_linting)
         plugins['flake8'].update(flake8)
         plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
