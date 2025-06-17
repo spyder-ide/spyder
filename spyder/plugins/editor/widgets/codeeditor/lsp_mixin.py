@@ -612,7 +612,7 @@ class LSPMixin:
                 continue
 
             # This only works for Python.
-            if self.language == "Python":
+            if self.language == "Python" and self.get_conf('pyflakes'):
                 if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
