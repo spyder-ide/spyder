@@ -2035,19 +2035,18 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
     qtbot.wait(500)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
-    # Check we no spurious messages are shown before the restart below
+    # Check no spurious messages are shown before the restart below
     assert empty_console_text == shell._control.toPlainText()
 
     # Restart kernel to check if the new interactive backend is set
+    # Don't check `matplotlib_status.value` since it is set to "inline" when
+    # running tests on CI.
+    # See `spyder.plugins.ipythonconsole.widgets.status.MatplotlibStatus.on_kernel_start`
     with qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT):
         ipyconsole.restart_kernel()
     assert shell.spyder_kernel_ready
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
     assert shell.get_mpl_interactive_backend() == "tk"
-    qtbot.waitUntil(
-        lambda: matplotlib_status.value == "Tk", timeout=SHELL_TIMEOUT
-    )
-    assert matplotlib_status.value == "Tk"
 
 
 def test_mpl_conf(ipyconsole, qtbot):
