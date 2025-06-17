@@ -68,7 +68,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('pycodestyle/filename', ''),
         ('pycodestyle/exclude', ''),
         ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),
+        ('pycodestyle/ignore', ''),        
+        ('flake8/filename', ''),
+        ('flake8/exclude', ''),
+        ('flake8/select', ''),
+        ('flake8/ignore', ''),
         ('pycodestyle/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
@@ -731,6 +735,13 @@ class LanguageServerProvider(SpyderCompletionProvider):
         cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
         cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
 
+        # Flake8
+        f8_exclude = self.get_conf('flake8/exclude', '').split(',')
+        f8_filename = self.get_conf('flake8/filename', '').split(',')
+        f8_select = self.get_conf('flake8/select', '').split(',')
+        f8_ignore = self.get_conf('flake8/ignore', '').split(',')
+
+
         pycodestyle = {
             'enabled': self.get_conf('pycodestyle'),
             'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
@@ -861,6 +872,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins = python_config['configurations']['pylsp']['plugins']
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
+        plugins['flake8'].update(flake8)
+        plugins['no_linting'].update(no_linting)
         plugins['flake8'].update(flake8)
         plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
