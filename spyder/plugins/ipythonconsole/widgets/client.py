@@ -369,6 +369,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         kernel_handler.sig_stderr.connect(self.print_stderr)
         kernel_handler.sig_stdout.connect(self.print_stdout)
         kernel_handler.sig_fault.connect(self.print_fault)
+
         # This needs to be done only once (when the console is created) and not
         # on every kernel restart. That's why we connect directly to
         # kernel_handler.sig_kernel_is_ready.
