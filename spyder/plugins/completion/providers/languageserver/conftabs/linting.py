@@ -9,7 +9,14 @@ Language Server Protocol linting configuration tab.
 """
 
 # Third party imports
-from qtpy.QtWidgets import QButtonGroup, QGroupBox, QLabel, QVBoxLayout
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (QButtonGroup,
+                            QGroupBox,                            
+                            QGridLayout,
+                            QLabel,
+                            QStackedLayout,
+                            QVBoxLayout,
+                            QWidget)
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -78,10 +85,87 @@ class LintingConfigTab(SpyderPreferencesTab):
         additional_options_layout.addWidget(linting_complexity_box)
         additional_options_group.setLayout(additional_options_layout)
 
+        configuration_options_group = QGroupBox(_("Configuration options"))
+        configuration_options_layout = QVBoxLayout()
+        self.code_style_filenames_match = self.create_lineedit(
+            _("Only check filenames matching these patterns:"),
+            'flake8/filename', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Check Python files: *.py"))
+
+        code_style_select = self.create_lineedit(
+            _("Show the following errors or warnings:"),
+            'flake8/select', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: E113, W391"))
+        
+        code_style_ignore = self.create_lineedit(
+            _("Ignore the following errors or warnings:"),
+            'flake8/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example codes: E201, E303"))
+
+        flake8_layout = QGridLayout()
+        flake8_layout.addWidget(
+            self.code_style_filenames_match.label, 1, 0)
+        flake8_layout.addWidget(
+            self.code_style_filenames_match.textbox, 1, 1)
+        flake8_layout.addWidget(code_style_select.label, 2, 0)
+        flake8_layout.addWidget(code_style_select.textbox, 2, 1)
+        flake8_layout.addWidget(code_style_ignore.label, 3, 0)
+        flake8_layout.addWidget(code_style_ignore.textbox, 3, 1)
+
+        pyflakes_conf_options = QLabel(
+            _(
+                "No configuration options available for pyflakes"
+            )
+        )
+        not_select_conf_options = QLabel(
+            _(
+                "No linting option is enabled"
+            )
+        )
+
+        grid_widget = QWidget()
+        grid_widget.setLayout(flake8_layout)
+
+        configuration_options_layout.addWidget(grid_widget)
+        configuration_options_layout.addWidget(pyflakes_conf_options)        
+        configuration_options_layout.addWidget(not_select_conf_options)
+
+        grid_widget.hide()
+        pyflakes_conf_options.show()
+        not_select_conf_options.hide()
+
+        flake_linting_radio.radiobutton.toggled.connect(
+            lambda checked: (
+                grid_widget.setVisible(checked),
+                pyflakes_conf_options.setVisible(not checked),
+                not_select_conf_options.setVisible(False)
+            ) if checked else None
+        )
+
+        basic_linting_radio.radiobutton.toggled.connect(
+            lambda checked: (
+                grid_widget.setVisible(False),
+                pyflakes_conf_options.setVisible(checked),
+                not_select_conf_options.setVisible(False)
+            ) if checked else None
+        )
+
+        disable_linting_radio.radiobutton.toggled.connect(
+            lambda checked: (
+                grid_widget.setVisible(False),
+                pyflakes_conf_options.setVisible(False),
+                not_select_conf_options.setVisible(checked)
+            ) if checked else None
+        )
+
+        configuration_options_group.setLayout(configuration_options_layout)
 
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_select_group)
-        linting_layout.addWidget(additional_options_group)
+        linting_layout.addWidget(additional_options_group)        
+        linting_layout.addWidget(configuration_options_group)
         self.setLayout(linting_layout)
+
+
