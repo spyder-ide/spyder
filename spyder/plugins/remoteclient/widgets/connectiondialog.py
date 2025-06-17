@@ -475,6 +475,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             prefix=_("Port"),
             suffix="",
             option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/port",
+            default=0,
             min_=0,
             max_=65535,
             tip=_(
@@ -482,12 +483,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 "to use the port specified in the configuration file"
             ),
         )
-        port.spinbox.setSpecialValueText(" ")
         port.spinbox.setStyleSheet("margin-left: 5px")
 
         username = self.create_lineedit(
             text=_("Username"),
             option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/username",
+            default="",
             status_icon=ima.icon("error"),
         )
 
