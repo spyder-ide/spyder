@@ -78,16 +78,6 @@ class WorkingDirectoryComboBox(PathComboBox):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
 
-    def focusOutEvent(self, event):
-        """Handle focus out event restoring the last valid selected path."""
-        if self.add_current_text_if_valid():
-            self.selected()
-            self.hide_completer()
-        hide_status = getattr(self.lineEdit(), 'hide_status_icon', None)
-        if hide_status:
-            hide_status()
-        super().focusOutEvent(event)
-
     # ---- Own methods
     def valid_text(self):
         """Get valid version of current text."""
@@ -108,7 +98,7 @@ class WorkingDirectoryComboBox(PathComboBox):
 
             # If the directory is actually a file, open containing directory
             if osp.isfile(directory):
-                file = osp.basename(directory)
+                file = directory
                 directory = osp.dirname(directory)
 
             # If the directory name is malformed, open parent directory
@@ -201,6 +191,7 @@ class WorkingDirectoryContainer(PluginMainContainer):
         self.pathedit.selected_text = self.pathedit.currentText()
 
         # Signals
+        self.pathedit.open_dir.connect(self.chdir)
         self.pathedit.edit_goto.connect(self.edit_goto)
         self.pathedit.textActivated.connect(self.chdir)
 
