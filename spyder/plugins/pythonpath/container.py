@@ -207,10 +207,9 @@ class PythonpathContainer(PluginMainContainer):
         """
         path_file = get_conf_path('path')
         not_active_path_file = get_conf_path('not_active_path')
-        config_path = self.get_conf('path', None)
-        config_not_active_path = self.get_conf('not_active_path', None)
-        paths_in_conf_files = self.get_conf('paths_in_conf_files', None)
-        system_path = self.get_conf('system_path', None)
+        config_path = self.get_conf('path', ())
+        config_not_active_path = self.get_conf('not_active_path', ())
+        system_path = self.get_conf('system_path', ())
 
         path = []
         not_active_path = []
@@ -234,23 +233,17 @@ class PythonpathContainer(PluginMainContainer):
                 pass
 
         # Get path from config; supersedes paths from file
-        if config_path is not None:
+        if config_path:
             path = config_path
-            self.remove_conf('path')
 
         # Get inactive path from config; supersedes paths from file
         if config_not_active_path is not None:
             not_active_path = config_not_active_path
-            self.remove_conf('not_active_path')
-
-        if paths_in_conf_files is not None:
-            self.remove_conf('paths_in_conf_files')
 
         # Get system path
         system_paths = {}
-        if system_path is not None:
+        if system_path:
             system_paths = {p: p not in not_active_path for p in system_path}
-            self.remove_conf('system_path')
 
         # path config has all user and system paths; only want user paths
         user_paths = {
