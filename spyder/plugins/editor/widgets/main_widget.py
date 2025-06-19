@@ -48,6 +48,7 @@ from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
@@ -1832,38 +1833,9 @@ class EditorMainWidget(PluginMainWidget):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        try:
-            if text is None:
-                default_content = True
-                text, enc = encoding.read(self.TEMPLATE_PATH)
-                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
-                                      text)
-                if enc_match:
-                    enc = enc_match.group(1)
-
-                # Initialize template variables
-                # Windows
-                username = encoding.to_unicode_from_fs(
-                                os.environ.get('USERNAME', ''))
-                # Linux, Mac OS X
-                if not username:
-                    username = encoding.to_unicode_from_fs(
-                                   os.environ.get('USER', '-'))
-                VARS = {
-                    'date': time.ctime(),
-                    'username': username,
-                }
-                try:
-                    text = text % VARS
-                except Exception:
-                    pass
-            else:
-                default_content = False
-                enc = encoding.read(self.TEMPLATE_PATH)[1]
-        except (IOError, OSError):
-            text = ''
-            enc = 'utf-8'
-            default_content = True
+        text, enc, default_content = get_default_file_content(
+            self.TEMPLATE_PATH, text=text,
+        )
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)  # noqa
 
