@@ -87,30 +87,37 @@ class LintingConfigTab(SpyderPreferencesTab):
 
         configuration_options_group = QGroupBox(_("Configuration options"))
         configuration_options_layout = QVBoxLayout()
-        self.code_style_filenames_match = self.create_lineedit(
+        flake8_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
             'flake8/filename', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Check Python files: *.py"))
 
-        code_style_select = self.create_lineedit(
+        flake8_exclude = self.create_lineedit(
+            _("Ignore the following files:"),
+            'flake8/exclude', alignment=Qt.Horizontal, word_wrap=False,
+            placeholder=_("Example file: file1.py, file2.py"))
+
+        flake8_select = self.create_lineedit(
             _("Show the following errors or warnings:"),
-            'flake8/select', alignment=Qt.Horizontal, word_wrap=False,
+            'flake8/extendSelect', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E113, W391"))
 
-        code_style_ignore = self.create_lineedit(
+        flake8_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
-            'flake8/ignore', alignment=Qt.Horizontal, word_wrap=False,
+            'flake8/extendIgnore', alignment=Qt.Horizontal, word_wrap=False,
             placeholder=_("Example codes: E201, E303"))
 
         flake8_layout = QGridLayout()
         flake8_layout.addWidget(
-            self.code_style_filenames_match.label, 1, 0)
+            flake8_filenames_match.label, 1, 0)
         flake8_layout.addWidget(
-            self.code_style_filenames_match.textbox, 1, 1)
-        flake8_layout.addWidget(code_style_select.label, 2, 0)
-        flake8_layout.addWidget(code_style_select.textbox, 2, 1)
-        flake8_layout.addWidget(code_style_ignore.label, 3, 0)
-        flake8_layout.addWidget(code_style_ignore.textbox, 3, 1)
+            flake8_filenames_match.textbox, 1, 1)
+        flake8_layout.addWidget(flake8_exclude.label, 2, 0)
+        flake8_layout.addWidget(flake8_exclude.textbox, 2, 1)
+        flake8_layout.addWidget(flake8_select.label, 3, 0)
+        flake8_layout.addWidget(flake8_select.textbox, 3, 1)
+        flake8_layout.addWidget(flake8_ignore.label, 4, 0)
+        flake8_layout.addWidget(flake8_ignore.textbox, 4, 1)
 
         pyflakes_conf_options = QLabel(
             _(
