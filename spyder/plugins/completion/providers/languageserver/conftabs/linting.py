@@ -85,7 +85,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         additional_options_layout.addWidget(linting_complexity_box)
         additional_options_group.setLayout(additional_options_layout)
 
-        configuration_options_group = QGroupBox(_("Configuration options"))
+        configuration_options_group = QGroupBox(_("Provider options"))
         configuration_options_layout = QVBoxLayout()
         flake8_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
@@ -173,6 +173,6 @@ class LintingConfigTab(SpyderPreferencesTab):
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_select_group)
-        linting_layout.addWidget(additional_options_group)        
         linting_layout.addWidget(configuration_options_group)
+        linting_layout.addWidget(additional_options_group)
         self.setLayout(linting_layout)
