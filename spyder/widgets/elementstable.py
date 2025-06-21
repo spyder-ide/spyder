@@ -570,8 +570,9 @@ class ElementsTable(HoverRowsTableView):
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         if not self._is_shown:
-            self._compute_widgets_column_width()
-            self._set_layout()
+            if self.elements is not None:
+                self._compute_widgets_column_width()
+                self._set_layout()
 
             # To not run the adjustments above every time the widget is shown
             self._is_shown = True
@@ -597,9 +598,15 @@ class ElementsTable(HoverRowsTableView):
         self._set_stylesheet()
 
     def resizeEvent(self, event):
-        # This is necessary to readjust the layout when the parent widget is
-        # resized.
-        self._set_layout_debounced()
+        # Notes
+        # -----
+        # * This is necessary to readjust the layout when the parent widget is
+        #   resized.
+        # * We skip this when there's a single element because the table is not
+        #   rendered as expected. In that case it's necessary to call
+        #   set_layout directly.
+        if self.elements is not None and len(self.elements) > 1:
+            self._set_layout_debounced()
         super().resizeEvent(event)
 
 
