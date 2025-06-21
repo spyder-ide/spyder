@@ -327,7 +327,15 @@ class ElementsTable(HoverRowsTableView):
         self.setModel(self.proxy_model)
 
         # Adjustments for the title column
-        title_delegate = HTMLDelegate(self, margin=9, wrap_text=True)
+        title_delegate = HTMLDelegate(
+            self,
+            margin=(
+                3 * AppStyle.MarginSize
+                if self._with_description
+                else 2 * AppStyle.MarginSize
+            ),
+            wrap_text=True
+        )
         self.setItemDelegateForColumn(
             self.model.columns['title'], title_delegate
         )
@@ -338,7 +346,15 @@ class ElementsTable(HoverRowsTableView):
 
         # Adjustments for the additional info column
         if self._with_additional_info:
-            info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
+            info_delegate = HTMLDelegate(
+                self,
+                margin=(
+                    3 * AppStyle.MarginSize
+                    if self._with_description
+                    else 2 * AppStyle.MarginSize
+                ),
+                align_vcenter=True
+            )
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate
             )
