@@ -63,6 +63,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         self,
         parent: QWidget,
         elements: List[Element],
+        with_description: bool,
         with_icons: bool,
         with_additional_info: bool,
         with_widgets: bool,
@@ -70,6 +71,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         QAbstractTableModel.__init__(self)
 
         self.elements = elements
+        self.with_description = with_description
         self.with_icons = with_icons
 
         # Number of columns
@@ -96,7 +98,11 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         title_font_size = self.get_font(
             SpyderFontType.Interface, font_size_delta=1).pointSize()
 
-        self.title_style = f'color:{text_color}; font-size:{title_font_size}pt'
+        self.title_style = (
+            f"color:{text_color}; font-size:{title_font_size}pt"
+            if self.with_description
+            else f"color:{text_color}"
+        )
         self.additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_4}'
         self.description_style = f'color:{text_color}'
 
@@ -130,6 +136,15 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
     # ---- Own methods
     # -------------------------------------------------------------------------
     def get_title_repr(self, element: Element) -> str:
+        if self.with_description:
+            description = (
+                f'<tr><td><span style="{self.description_style}">'
+                f'{element["description"]}'
+                f'</span></td></tr>'
+            )
+        else:
+            description = ""
+
         return (
             f'<table cellspacing="0" cellpadding="3">'
             # Title
@@ -137,9 +152,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
             f'{element["title"]}'
             f'</span></td></tr>'
             # Description
-            f'<tr><td><span style="{self.description_style}">'
-            f'{element["description"]}'
-            f'</span></td></tr>'
+            f'{description}'
             f'</table>'
         )
 
@@ -269,6 +282,7 @@ class ElementsTable(HoverRowsTableView):
         self.elements = elements
 
         # Check for additional features
+        self._with_description = self._with_feature('description')
         self._with_icons = self._with_feature('icon')
         self._with_additional_info = self._with_feature('additional_info')
         self._with_widgets = self._with_feature('widget')
@@ -282,6 +296,7 @@ class ElementsTable(HoverRowsTableView):
         self.model = ElementsModel(
             self,
             self.elements,
+            self._with_description,
             self._with_icons,
             self._with_additional_info,
             self._with_widgets
