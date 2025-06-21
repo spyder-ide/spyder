@@ -97,7 +97,9 @@ class PluginsConfigPage(PluginConfigPage):
         external_elements.sort(key=lambda e: collator.sort_key(e['title']))
 
         # Build plugins table, showing external plugins first.
-        self._plugins_table = ElementsTable(self)
+        self._plugins_table = ElementsTable(
+            self, add_padding_around_widgets=True
+        )
         self._plugins_table.setup_elements(
             external_elements + internal_elements
         )

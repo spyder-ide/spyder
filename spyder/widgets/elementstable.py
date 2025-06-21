@@ -263,11 +263,16 @@ class ElementsTable(HoverRowsTableView):
         self,
         parent: Optional[QWidget],
         highlight_hovered_row: bool = True,
+        add_padding_around_widgets: bool = False,
     ):
         HoverRowsTableView.__init__(self, parent, custom_delegate=True)
 
         # To highlight the hovered row
         self._highlight_hovered_row = highlight_hovered_row
+
+        # To add padding around widgets. This is necessary in case widgets are
+        # too small, e.g. when they are checkboxes or radiobuttons.
+        self._add_padding_around_widgets = add_padding_around_widgets
 
         # To keep a reference to the table's elements
         self.elements: List[Element] | None = None
@@ -471,7 +476,12 @@ class ElementsTable(HoverRowsTableView):
 
         css["QTableView::item"].setValues(
             borderBottom=f"1px solid {SpyderPalette.COLOR_BACKGROUND_4}",
-            paddingLeft="5px",
+            paddingLeft=f"{2 * AppStyle.MarginSize}px",
+            paddingRight=(
+                f"{AppStyle.MarginSize + 1}px"
+                if not self._add_padding_around_widgets
+                else "0px"
+            ),
             backgroundColor=bgcolor
         )
 
@@ -551,21 +561,30 @@ class ElementsTable(HoverRowsTableView):
             )
 
     def _add_widgets(self):
-        """Add element widgets associated to the table."""
+        """Add element widgets to the table."""
         for i in range(len(self.elements)):
             layout = QHBoxLayout()
-            layout.setContentsMargins(
-                3 * AppStyle.MarginSize,
-                3 * AppStyle.MarginSize,
-                # We add 10 pixels to the right when there's no additional
-                # info, so that the widgets are not so close to the border
-                # of the table.
-                3 * AppStyle.MarginSize
-                + (10 if not self._with_additional_info else 0),
-                3 * AppStyle.MarginSize,
-            )
-            layout.addWidget(self.elements[i]['widget'])
-            layout.setAlignment(Qt.AlignHCenter)
+
+            if self._add_padding_around_widgets:
+                layout.setContentsMargins(
+                    3 * AppStyle.MarginSize,
+                    3 * AppStyle.MarginSize,
+                    # We add 10 pixels to the right when there's no additional
+                    # info, so that the widgets are not so close to the border
+                    # of the table.
+                    3 * AppStyle.MarginSize
+                    + (10 if not self._with_additional_info else 0),
+                    3 * AppStyle.MarginSize,
+                )
+                layout.addWidget(self.elements[i]['widget'])
+                layout.setAlignment(Qt.AlignHCenter)
+            else:
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.addWidget(self.elements[i]['widget'])
+
+                # Widgets are the last column, so we prefer widgets to be
+                # aligned to the right border of the table.
+                layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             container_widget = QWidget(self)
             container_widget.setLayout(layout)
