@@ -47,6 +47,11 @@ class Element(TypedDict):
     Additional info that needs to be displayed in a separate column (optional)
     """
 
+    additional_info_color: Optional[str]
+    """
+    Color (in hex format) used for the additional info text (optional)
+    """
+
     icon: Optional[QIcon]
     """Element icon (optional)"""
 
@@ -103,7 +108,6 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
             if self.with_description
             else f"color:{text_color}"
         )
-        self.additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_4}'
         self.description_style = f'color:{text_color}'
 
     # ---- Qt overrides
@@ -162,8 +166,13 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         else:
             return ''
 
+        if element.get("additional_info_color"):
+            additional_info_style = f'color:{element["additional_info_color"]}'
+        else:
+            additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_1}'
+
         return (
-            f'<span style="{self.additional_info_style}">'
+            f'<span style="{additional_info_style}">'
             f'{additional_info}'
             f'</span>'
         )
