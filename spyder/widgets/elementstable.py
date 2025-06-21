@@ -277,7 +277,9 @@ class ElementsTable(HoverRowsTableView):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def setup_elements(self, elements: List[Element]):
+    def setup_elements(
+        self, elements: List[Element], set_layout: bool = False
+    ):
         """Setup a list of Elements in the table."""
         self.elements = elements
 
@@ -372,6 +374,9 @@ class ElementsTable(HoverRowsTableView):
 
         # Set stylesheet
         self._set_stylesheet()
+
+        if set_layout:
+            self._set_layout()
 
     def replace_elements(
         self, elements: List[Element], clear_first: bool = True
