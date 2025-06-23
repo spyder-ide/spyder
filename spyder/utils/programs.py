@@ -1011,7 +1011,8 @@ def get_module_version(module_name, interpreter=None):
 
             if "APPDATA" in os.environ:
                 env["APPDATA"] = os.environ["APPDATA"]
-        proc = run_program(interpreter, ['-c', cmd], env=os.environ.copy())
+
+        proc = run_program(interpreter, ['-c', cmd], env=env)
         stdout, stderr = proc.communicate()
         stdout = stdout.decode().strip()
 
