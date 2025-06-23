@@ -78,6 +78,13 @@ class WorkingDirectoryComboBox(PathComboBox):
         """Set current path as the tooltip of the widget on hover."""
         self.setToolTip(self.currentText())
 
+    def focusOutEvent(self, event):
+        """
+        Handle focus out event validating current path.
+        """
+        self.add_current_text_if_valid()
+        super().focusOutEvent(event)
+
     # ---- Own methods
     def valid_text(self):
         """Get valid version of current text."""
@@ -115,7 +122,7 @@ class WorkingDirectoryComboBox(PathComboBox):
         directory, file, line_number = self.valid_text()
         if file:
             self.edit_goto.emit(file, line_number, "")
-        if directory != self.currentText():
+        if directory and directory != self.currentText():
             self.add_text(directory)
         if directory:
             return True
