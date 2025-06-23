@@ -222,7 +222,9 @@ class IconManager():
             'collapse_row':            [('mdi.arrow-collapse-vertical',), {'color': self.MAIN_FG_COLOR}],
             'delete_row':              [('mdi.table-row-remove',), {'color': self.MAIN_FG_COLOR}],
             'delete_column':           [('mdi.table-column-remove',), {'color': self.MAIN_FG_COLOR}],
-            'edit_remove':             [('mdi.minus',), {'color': self.MAIN_FG_COLOR}],
+            # Although this icon is not used in Spyder, it can be in other plugins
+            # because it's the opposite of edit_add. So, don't remove it.
+            'edit_remove':             [('mdi.minus-box',), {'color': self.MAIN_FG_COLOR}],
             'format_float':            [('mdi.decimal-increase',), {'color': self.MAIN_FG_COLOR}],
             'background_color':        [('mdi.format-color-fill',), {'color': self.MAIN_FG_COLOR}],
             'browse_tab':              [('mdi.tab',), {'color': self.MAIN_FG_COLOR}],
