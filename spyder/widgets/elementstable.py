@@ -363,11 +363,7 @@ class ElementsTable(HoverRowsTableView):
                      info_delegate.on_hover_index_changed
                 )
 
-            # This is necessary to get this column's width below
-            self.resizeColumnsToContents()
-
-            self._info_column_width = self.horizontalHeader().sectionSize(
-                self.model.columns['additional_info'])
+            self._compute_info_column_width()
 
         # Adjustments for the widgets column
         if self._with_widgets:
@@ -523,6 +519,8 @@ class ElementsTable(HoverRowsTableView):
 
         # Resize title column so that the table fits into the available
         # horizontal space.
+        self._compute_info_column_width()
+        self._compute_widgets_column_width()
         if self._info_column_width > 0 or self._widgets_column_width > 0:
             title_column_width = (
                 self.horizontalHeader().size().width() -
@@ -553,6 +551,15 @@ class ElementsTable(HoverRowsTableView):
     def _with_feature(self, feature_name: str) -> bool:
         """Check if it's necessary to build the table with `feature_name`."""
         return len([e for e in self.elements if e.get(feature_name)]) > 0
+
+    def _compute_info_column_width(self):
+        if self._with_additional_info:
+            # This is necessary to get the right width
+            self.resizeColumnsToContents()
+
+            self._info_column_width = self.horizontalHeader().sectionSize(
+                self.model.columns['additional_info']
+            )
 
     def _compute_widgets_column_width(self):
         if self._with_widgets:
