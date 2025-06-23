@@ -39,8 +39,14 @@ class Element(TypedDict):
     title: str
     """Element title"""
 
+    title_color: Optional[str]
+    """Color (in hex format) used for the title text (optional)"""
+
     description: str
     """Element description"""
+
+    description_color: Optional[str]
+    """Color (in hex format) used for the description text (optional)"""
 
     additional_info: Optional[str]
     """
@@ -98,18 +104,6 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
             else:
                 self.columns['widgets'] = 1
 
-        # Text styles
-        text_color = SpyderPalette.COLOR_TEXT_1
-        title_font_size = self.get_font(
-            SpyderFontType.Interface, font_size_delta=1).pointSize()
-
-        self.title_style = (
-            f"color:{text_color}; font-size:{title_font_size}pt"
-            if self.with_description
-            else f"color:{text_color}"
-        )
-        self.description_style = f'color:{text_color}'
-
     # ---- Qt overrides
     # -------------------------------------------------------------------------
     def data(self, index, role=Qt.DisplayRole):
@@ -140,19 +134,41 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
     # ---- Own methods
     # -------------------------------------------------------------------------
     def get_title_repr(self, element: Element) -> str:
+        text_color = SpyderPalette.COLOR_TEXT_1
+
         if self.with_description:
+            if element.get("description_color"):
+                description_color = element["title_color"]
+            else:
+                description_color = text_color
+
             description = (
-                f'<tr><td><span style="{self.description_style}">'
+                f'<tr><td><span style="color:{description_color}">'
                 f'{element["description"]}'
                 f'</span></td></tr>'
             )
         else:
             description = ""
 
+        title_font_size = self.get_font(
+            SpyderFontType.Interface, font_size_delta=1
+        ).pointSize()
+
+        if element.get("title_color"):
+            title_color = element["title_color"]
+        else:
+            title_color = text_color
+
+        title_style = (
+            f"color:{title_color}; font-size:{title_font_size}pt"
+            if self.with_description
+            else f"color:{title_color}"
+        )
+
         return (
             f'<table cellspacing="0" cellpadding="3">'
             # Title
-            f'<tr><td><span style="{self.title_style}">'
+            f'<tr><td><span style="{title_style}">'
             f'{element["title"]}'
             f'</span></td></tr>'
             # Description
