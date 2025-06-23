@@ -32,10 +32,6 @@ class ImagePathManager():
             return
 
         for dirpath, __, _filenames in os.walk(path):
-            if is_dark_interface() and osp.basename(dirpath) == 'light':
-                continue
-            elif not is_dark_interface() and osp.basename(dirpath) == 'dark':
-                continue
             for filename in _filenames:
                 if filename.startswith('.'):
                     continue
