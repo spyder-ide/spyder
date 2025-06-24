@@ -2004,42 +2004,49 @@ def test_restart_interactive_backend(ipyconsole, qtbot):
 
     # Switch to the tk backend
     ipyconsole.set_conf('pylab/backend', 'tk')
+    qtbot.wait(500)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
-    assert shell.get_matplotlib_backend() == "qt"
+    qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
     assert matplotlib_status.value == "Qt"
 
     # Switch to the inline backend
     os.environ.pop('BACKEND_REQUIRE_RESTART')
     ipyconsole.set_conf('pylab/backend', 'inline')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "inline")
     assert matplotlib_status.value == "Inline"
 
     # Switch to the auto backend
     ipyconsole.set_conf('pylab/backend', 'auto')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "qt")
     assert matplotlib_status.value == "Qt"
 
     # Switch to the qt backend
     ipyconsole.set_conf('pylab/backend', 'qt')
+    qtbot.wait(500)
     assert not bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
     assert matplotlib_status.value == "Qt"
 
     # Switch to the tk backend again
     ipyconsole.set_conf('pylab/backend', 'tk')
+    qtbot.wait(500)
     assert bool(os.environ.get('BACKEND_REQUIRE_RESTART'))
 
-    # Check we no spurious messages are shown before the restart below
+    # Check no spurious messages are shown before the restart below
     assert empty_console_text == shell._control.toPlainText()
 
     # Restart kernel to check if the new interactive backend is set
-    ipyconsole.restart_kernel()
-    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
-    qtbot.wait(SHELL_TIMEOUT)
+    # Don't check `matplotlib_status.value` since it is set to "inline" when
+    # running tests on CI.
+    # See `spyder.plugins.ipythonconsole.widgets.status.MatplotlibStatus.on_kernel_start`
+    with qtbot.waitSignal(shell.sig_kernel_is_ready, timeout=SHELL_TIMEOUT):
+        ipyconsole.restart_kernel()
+    assert shell.spyder_kernel_ready
     qtbot.waitUntil(lambda: shell.get_matplotlib_backend() == "tk")
     assert shell.get_mpl_interactive_backend() == "tk"
-    assert matplotlib_status.value == "Tk"
 
 
 def test_mpl_conf(ipyconsole, qtbot):
