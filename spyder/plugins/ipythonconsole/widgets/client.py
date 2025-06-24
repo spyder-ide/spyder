@@ -716,6 +716,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
         """
+        # Reset elapsed time
+        self.t0 = time.monotonic()
+
         # Connect kernel to client
         self.disconnect_kernel(shutdown_kernel)
         self.connect_kernel(kernel_handler, first_connect=False)
@@ -1002,6 +1005,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return await self._files_api.info("~")
 
     def restart_remote_kernel(self):
+        self.t0 = time.monotonic()
         if self.__remote_restart_requested:
             return
         self._restart_remote_kernel().connect(
