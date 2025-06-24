@@ -1398,7 +1398,7 @@ class FigureCanvas(QFrame, SpyderConfigurationAccessor):
         if (self._qpix_scaled is None or
                 self._qpix_scaled.size().width() != rect.width()):
             if self.fmt in ['image/png', 'image/jpeg']:
-                if (scale_factor == 1):
+                if scale_factor == 1:
                     target_width = rect.width()
                 else:
                     target_width = int(self._qpix_orig.width() * scale_factor)
