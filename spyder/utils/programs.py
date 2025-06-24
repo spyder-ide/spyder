@@ -1000,8 +1000,19 @@ def get_module_version(module_name, interpreter=None):
             """
         ).format(module_name)
 
-        # Use clean environment
-        proc = run_program(interpreter, ['-c', cmd], env={})
+        # Use clean environment while preserving basic environment variables
+        # needed to properly detect installed modules like `spyder-kernels`
+        # from system-wide Python installations on Windows.
+        # See spyder-ide/spyder#20968
+        env = {}
+        if os.name == "nt":
+            if "USERPROFILE" in os.environ:
+                env["USERPROFILE"] = os.environ["USERPROFILE"]
+
+            if "APPDATA" in os.environ:
+                env["APPDATA"] = os.environ["APPDATA"]
+
+        proc = run_program(interpreter, ['-c', cmd], env=env)
         stdout, stderr = proc.communicate()
         stdout = stdout.decode().strip()
 
