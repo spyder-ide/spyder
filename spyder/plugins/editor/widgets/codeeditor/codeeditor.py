@@ -1986,56 +1986,58 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if cursor.hasSelection():
             self.delete()
 
-        cursor.setPosition(cursor.selectionStart())
-        cursor.setPosition(cursor.block().position(),
-                           QTextCursor.KeepAnchor)
-
-        preceding_text = cursor.selectedText()
-        first_line_selected, *remaining_lines = (text + eol_chars).splitlines()
-        first_line = preceding_text + first_line_selected
-
-        first_line_adjustment = 0
-
-        # Dedent if automatic indentation makes code invalid
-        # Minimum indentation = max of current and paster indentation
-        if (self.is_python_like() and len(preceding_text.strip()) == 0
-                and len(first_line.strip()) > 0):
-            # Correct indentation
-            desired_indent = self.find_indentation()
-            if desired_indent:
-                # minimum indentation is either the current indentation
-                # or the indentation of the paster text
-                desired_indent = max(
-                    desired_indent,
-                    self.get_line_indentation(first_line_selected),
-                    self.get_line_indentation(preceding_text))
-                first_line_adjustment = (
-                    desired_indent - self.get_line_indentation(first_line))
-                # Only dedent, don't indent
-                first_line_adjustment = min(first_line_adjustment, 0)
-                # Only dedent, don't indent
-                first_line = self.adjust_indentation(
-                    first_line, first_line_adjustment)
-
-        # Fix indentation of multiline text based on first line
-        if len(remaining_lines) > 0 and len(first_line.strip()) > 0:
-            lines_adjustment = first_line_adjustment
-            lines_adjustment += CLIPBOARD_HELPER.remaining_lines_adjustment(
-                preceding_text)
-
-            # Make sure the code is not flattened
-            indentations = [
-                self.get_line_indentation(line)
-                for line in remaining_lines if line.strip() != ""]
-            if indentations:
-                max_dedent = min(indentations)
-                lines_adjustment = max(lines_adjustment, -max_dedent)
-            # Get new text
-            remaining_lines = [
-                self.adjust_indentation(line, lines_adjustment)
-                for line in remaining_lines]
-
-        text = eol_chars.join([first_line, *remaining_lines])
+        if self.get_conf("intelligent_paste", True):
+            cursor.setPosition(cursor.selectionStart())
+            cursor.setPosition(cursor.block().position(),
+                               QTextCursor.KeepAnchor)
+    
+            preceding_text = cursor.selectedText()
+            lines = (text + eol_chars).splitlines()
+            first_line_selected, *remaining_lines = lines
+            first_line = preceding_text + first_line_selected
+    
+            first_line_adjustment = 0
+    
+            # Dedent if automatic indentation makes code invalid
+            # Minimum indentation = max of current and paster indentation
+            if (self.is_python_like() and len(preceding_text.strip()) == 0
+                    and len(first_line.strip()) > 0):
+                # Correct indentation
+                desired_indent = self.find_indentation()
+                if desired_indent:
+                    # minimum indentation is either the current indentation
+                    # or the indentation of the paster text
+                    desired_indent = max(
+                        desired_indent,
+                        self.get_line_indentation(first_line_selected),
+                        self.get_line_indentation(preceding_text))
+                    first_line_adjustment = (
+                        desired_indent - self.get_line_indentation(first_line))
+                    # Only dedent, don't indent
+                    first_line_adjustment = min(first_line_adjustment, 0)
+                    # Only dedent, don't indent
+                    first_line = self.adjust_indentation(
+                        first_line, first_line_adjustment)
+    
+            # Fix indentation of multiline text based on first line
+            if len(remaining_lines) > 0 and len(first_line.strip()) > 0:
+                lines_adjust = first_line_adjustment
+                lines_adjust += CLIPBOARD_HELPER.remaining_lines_adjustment(
+                    preceding_text)
+    
+                # Make sure the code is not flattened
+                indentations = [
+                    self.get_line_indentation(line)
+                    for line in remaining_lines if line.strip() != ""]
+                if indentations:
+                    max_dedent = min(indentations)
+                    lines_adjust = max(lines_adjust, -max_dedent)
+                # Get new text
+                remaining_lines = [
+                    self.adjust_indentation(line, lines_adjust)
+                    for line in remaining_lines]
+    
+            text = eol_chars.join([first_line, *remaining_lines])
 
         self.skip_rstrip = True
         self.sig_will_paste_text.emit(text)
