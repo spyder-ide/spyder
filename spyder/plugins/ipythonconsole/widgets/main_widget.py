@@ -1604,7 +1604,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         hostname = self._plugin._remote_client.get_server_name(server_id)
 
         for client in self.clients:
-            if client.jupyter_api.server_id == server_id:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
                 client.hostname = hostname
                 index = self.get_client_index_from_id(id(client))
                 self.tabwidget.setTabText(index, client.get_name())
@@ -2082,7 +2085,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close all clients connected to a remote server."""
         open_clients = self.clients.copy()
         for client in self.clients:
-            if client.jupyter_api.server_id == server_id:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
                 is_last_client = (
                     len(self.get_related_clients(client, open_clients)) == 0
                 )
