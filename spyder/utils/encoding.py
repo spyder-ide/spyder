@@ -24,7 +24,7 @@ import time
 import errno
 
 # Third-party imports
-from chardet.universaldetector import UniversalDetector
+from charset_normalizer import from_bytes
 from atomicwrites import atomic_write
 
 # Local imports
@@ -150,14 +150,11 @@ def get_coding(text, force_chardet=False, default_codec=None):
 
     # Fallback using chardet
     if is_binary_string(text) and (force_chardet or default_codec is None):
-        detector = UniversalDetector()
-        for line in text.splitlines()[:2]:
-            detector.feed(line)
-            if detector.done:
-                break
+        sample = b"\n".join(text.splitlines()[:2])
 
-        detector.close()
-        return detector.result['encoding']
+        result = from_bytes(sample).best()
+
+        return result.encoding if result else None
 
     return default_codec
 

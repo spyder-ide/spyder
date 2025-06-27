@@ -17,7 +17,7 @@ Adapted from binaryornot/helpers.py of
 `BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
-import chardet
+from charset_normalizer import detect
 import logging
 
 
@@ -96,8 +96,9 @@ def is_binary_string(bytes_to_check):
     )
     logger.debug('is_likely_binary: %(is_likely_binary)r', locals())
 
-    # then check for binary for possible encoding detection with chardet
-    detected_encoding = chardet.detect(bytes_to_check)
+    # then check for binary for possible encoding detection
+    # with charset_normalizer
+    detected_encoding = detect(bytes_to_check)
     logger.debug('detected_encoding: %(detected_encoding)r', locals())
 
     # finally use all the check to decide binary or text
