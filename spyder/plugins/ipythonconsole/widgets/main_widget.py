@@ -2459,16 +2459,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
-                    if is_new_client:
-                        client.shellwidget.silent_execute('%clear')
-                    else:
-                        client.shellwidget.execute('%clear')
-                    client.shellwidget.sig_prompt_ready.connect(
-                        lambda: self.execute_code(
+                    self.execute_code(
                             line, current_client, clear_variables,
                             shellwidget=client.shellwidget
                         )
-                    )
             except AttributeError:
                 pass
 
