@@ -588,6 +588,8 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Replace tab characters by space characters"),
             triggered=self.fix_indentation
         )
+
+        # Autofix actions
         formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
             default='',
