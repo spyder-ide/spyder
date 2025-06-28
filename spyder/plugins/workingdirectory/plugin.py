@@ -205,7 +205,10 @@ class WorkingDirectory(SpyderPluginV2):
             f"The plugin {sender_plugin} requested changing the cwd to "
             f"{directory}"
         )
-        container.chdir(directory, emit=False, server_id=server_id)
+        # Prevent setting the cwd twice if it was changed by the user in the
+        # toolbar.
+        if sender_plugin != self.NAME:
+            container.chdir(directory, emit=False, server_id=server_id)
         self.sig_current_directory_changed.emit(
             directory, sender_plugin, server_id
         )
