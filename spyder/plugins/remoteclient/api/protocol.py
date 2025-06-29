@@ -51,6 +51,11 @@ class JupyterHubClientOptions(typing.TypedDict):
     token: str
 
 
+class ClientType:
+    SSH = "ssh"
+    JupyterHub = "jupyterhub"
+
+
 class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"

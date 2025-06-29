@@ -97,8 +97,11 @@ class ConnectionStatusWidget(
         super().__init__(parent)
         self.host_id = host_id
 
+        if self._auth_method == AuthenticationMethod.JupyterHub:
+            self.address = self.get_conf(f"{host_id}/url")
+            username = ""
         # TODO: Address this for configfile login
-        if self._auth_method != AuthenticationMethod.ConfigFile:
+        elif self._auth_method != AuthenticationMethod.ConfigFile:
             self.address = self.get_conf(
                 f"{host_id}/{self._auth_method}/address"
             )
@@ -110,7 +113,9 @@ class ConnectionStatusWidget(
         # Widgets
         self._connection_label = QLabel(self)
         self._status_label = QLabel(self)
-        self._user_label = QLabel(_("Username: {}").format(username), self)
+        self._user_label = QLabel(
+            _("Username: {}").format(username) if username else "", self
+        )
         self._message_label = QLabel(self)
         self._message_label.setWordWrap(True)
         self._image_label = QLabel(self)
