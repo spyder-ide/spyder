@@ -290,9 +290,9 @@ class Editor(SpyderDockablePlugin):
         )
         run.create_run_button(
             RunContext.Selection,
-            _("Run &selection or current line"),
+            _("Run &current line/selection"),
             icon=self.create_icon('run_selection'),
-            tip=_("Run selection or current line"),
+            tip=_("Run current line or selection"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,

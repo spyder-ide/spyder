@@ -256,7 +256,7 @@ class ApplicationContainer(PluginMainContainer):
                     "sessions)")
         self.user_env_action = self.create_action(
             ApplicationActions.SpyderUserEnvVariables,
-            _("Current user environment variables..."),
+            _("User environment variables..."),
             icon=self.create_icon('environment'),
             tip=tip,
             triggered=self.show_user_env_variables)

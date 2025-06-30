@@ -408,7 +408,7 @@ class EditorMainWidget(PluginMainWidget):
         # Checkable actions
         self.showblanks_action = self._create_checkable_action(
             EditorWidgetActions.ShowBlanks,
-            _("Show blank spaces"),
+            _("Show invisible characters"),
             'blank_spaces',
             method='set_blanks_enabled'
         )
@@ -432,7 +432,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.show_classfunc_dropdown_action = self._create_checkable_action(
             EditorWidgetActions.ShowClassFuncDropdown,
-            _("Show selector for classes and functions"),
+            _("Show class/function selector"),
             'show_class_func_dropdown',
             method='set_classfunc_dropdown_visible'
         )
@@ -618,9 +618,9 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.toggle_comment_action = self.create_action(
             EditorWidgetActions.ToggleComment,
-            text=_("Comment")+"/"+_("Uncomment"),
+            text=_("Comment") + "/" + _("uncomment"),
             icon=self.create_icon('comment'),
-            tip=_("Comment current line or selection"),
+            tip=_("Toggle commenting the current line or selection"),
             triggered=self.toggle_comment,
             context=Qt.WidgetShortcut,
             register_shortcut=True
@@ -668,18 +668,18 @@ class EditorMainWidget(PluginMainWidget):
         # ---------------------------------------------------------------------
         self.text_uppercase_action = self.create_action(
             EditorWidgetActions.TransformToUppercase,
-            text=_("Toggle Uppercase"),
+            text=_("Toggle UPPERCASE"),
             icon=self.create_icon('toggle_uppercase'),
-            tip=_("Change to uppercase current line or selection"),
+            tip=_("Change current line or selection to UPPERCASE text"),
             triggered=self.text_uppercase,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
         self.text_lowercase_action = self.create_action(
             EditorWidgetActions.TransformToLowercase,
-            text=_("Toggle Lowercase"),
+            text=_("Toggle lowercase"),
             icon=self.create_icon('toggle_lowercase'),
-            tip=_("Change to lowercase current line or selection"),
+            tip=_("Change current line or selection to lowercase text"),
             triggered=self.text_lowercase,
             context=Qt.WidgetShortcut,
             register_shortcut=True
