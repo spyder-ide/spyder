@@ -545,7 +545,7 @@ class EditorMainWidget(PluginMainWidget):
             register_shortcut=True
         )
 
-        # Eol menu
+        # EOL menu
         self.win_eol_action = self.create_action(
             EditorWidgetActions.WinEOL,
             text=_("CRLF (Windows)"),
@@ -553,12 +553,12 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.linux_eol_action = self.create_action(
             EditorWidgetActions.LinuxEOL,
-            text=_("LF (Unix)"),
+            text=_("LF (Linux/macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = self.create_action(
             EditorWidgetActions.MacEOL,
-            text=_("CR (macOS)"),
+            text=_("CR (legacy Mac)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
 
@@ -569,8 +569,8 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         for eol_action in [
-            self.win_eol_action,
             self.linux_eol_action,
+            self.win_eol_action,
             self.mac_eol_action,
         ]:
             eol_action_group.addAction(eol_action)
