@@ -412,6 +412,12 @@ class EditorMainWidget(PluginMainWidget):
             'blank_spaces',
             method='set_blanks_enabled'
         )
+        self.wraplines_action = self._create_checkable_action(
+            EditorWidgetActions.WrapLines,
+            _("Wrap lines"),
+            'wrap',
+            method='set_wrap_enabled'
+        )
         self.showindentguides_action = self._create_checkable_action(
             EditorWidgetActions.ShowIndentGuides,
             _("Show indent guides"),
@@ -448,6 +454,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.checkable_actions = {
             'blank_spaces': self.showblanks_action,
+            'wrap': self.wraplines_action,
             'indent_guides': self.showindentguides_action,
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
@@ -3001,10 +3008,11 @@ class EditorMainWidget(PluginMainWidget):
     @on_conf_change(
         option=[
             'blank_spaces',
+            'wrap',
             'indent_guides',
             'code_folding',
             'show_class_func_dropdown',
-            'underline_errors'
+            'underline_errors',
         ]
     )
     def on_editor_checkable_action_change(self, option, value):
