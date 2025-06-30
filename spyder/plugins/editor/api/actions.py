@@ -40,7 +40,6 @@ class EditorWidgetActions:
 
     # Checkable operations
     ShowBlanks = "blank_spaces_action"
-    ScrollPastEnd = "scroll_past_end_action"
     ShowIndentGuides = "show_indent_guides_action"
     ShowCodeFolding = "show_code_folding_action"
     ShowClassFuncDropdown = "show_class_func_dropdown_action"
@@ -69,4 +68,3 @@ class EditorWidgetActions:
     Cut = "Cut"
     Paste = "Paste"
     SelectAll = "Select All"
-

@@ -412,12 +412,6 @@ class EditorMainWidget(PluginMainWidget):
             'blank_spaces',
             method='set_blanks_enabled'
         )
-        self.scrollpastend_action = self._create_checkable_action(
-            EditorWidgetActions.ScrollPastEnd,
-            _("Scroll past the end"),
-            'scroll_past_end',
-            method='set_scrollpastend_enabled'
-        )
         self.showindentguides_action = self._create_checkable_action(
             EditorWidgetActions.ShowIndentGuides,
             _("Show indent guides"),
@@ -454,7 +448,6 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.checkable_actions = {
             'blank_spaces': self.showblanks_action,
-            'scroll_past_end': self.scrollpastend_action,
             'indent_guides': self.showindentguides_action,
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
@@ -3008,7 +3001,6 @@ class EditorMainWidget(PluginMainWidget):
     @on_conf_change(
         option=[
             'blank_spaces',
-            'scroll_past_end',
             'indent_guides',
             'code_folding',
             'show_class_func_dropdown',
