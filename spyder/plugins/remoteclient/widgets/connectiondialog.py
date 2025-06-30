@@ -167,8 +167,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if self.NEW_CONNECTION:
             # Widgets
             intro_label = QLabel(
-                _("Configure settings for connecting to a JupyterHub server"
-                  " instance")
+                _("Configure settings for connecting to a JupyterHub server")
             )
             intro_tip_text = _(
                 "Spyder will use this connection to start remote kernels in "
@@ -533,9 +532,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         url = self.create_lineedit(
             text=_("Server URL *"),
             option=f"{self.host_id}/url",
-            tip=_(
-                "This is the URL of the JupyterHub server"
-            ),
+            tip=_("This is the URL of the JupyterHub server"),
             validate_callback=self._validate_url,
             validate_reason=_("The URL is not a valid one"),
         )
@@ -681,12 +678,12 @@ class NewConnectionPage(BaseConnectionPage):
 
         # Use a stacked layout so we can hide the current widgets and create
         # new ones in case users want to introduce more connections.
-        self.ssh_widget = QWidget()
+        self.ssh_widget = QWidget(self)
         ssh_layout = QStackedLayout()
         ssh_layout.addWidget(ssh_info_widget)
         self.ssh_widget.setLayout(ssh_layout)
 
-        self.jupyterhub_widget = QWidget()
+        self.jupyterhub_widget = QWidget(self)
         jupyterhub_layout = QStackedLayout()
         jupyterhub_layout.addWidget(jupyterhub_info_widget)
         self.jupyterhub_widget.setLayout(jupyterhub_layout)
@@ -699,6 +696,7 @@ class NewConnectionPage(BaseConnectionPage):
 
     def save_to_conf(self):
         super().save_to_conf()
+
         if self.NEW_CONNECTION:
             # Set the client type for new connections following current tab
             # index
@@ -771,6 +769,7 @@ class ConnectionPage(BaseConnectionPage):
             info_widget = self.create_ssh_connection_info_widget()
         else:
             info_widget = self.create_jupyterhub_connection_info_widget()
+
         self.status_widget = ConnectionStatusWidget(self, self.host_id)
 
         self.create_tab(_("Connection status"), self.status_widget)
@@ -797,8 +796,8 @@ class ConnectionPage(BaseConnectionPage):
                 config=self.get_option(f"{self.host_id}/configfile"),
             )
         elif self.client_type == ClientType.JupyterHub:
-            # Mapping from options in our config system to those needed for
-            # connection with a JupyterHub server instance
+            # Mapping from options in our config system to those needed to
+            # connect with a JupyterHub server
             options = JupyterHubClientOptions(
                 url=self.get_option(f"{self.host_id}/url"),
             )
