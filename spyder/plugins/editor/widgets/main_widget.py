@@ -316,8 +316,8 @@ class EditorMainWidget(PluginMainWidget):
         # ---- File operations ----
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
-            text=_("Print preview..."),
-            tip=_("Print preview..."),
+            text=_("Print preview"),
+            tip=_("Show a print preview for the current file"),
             triggered=self.print_preview
         )
         self.print_action = self.create_action(

@@ -215,7 +215,7 @@ class ApplicationContainer(PluginMainContainer):
         # Support actions
         self.trouble_action = self.create_action(
             ApplicationActions.SpyderTroubleshootingAction,
-            _("Troubleshooting..."),
+            _("Troubleshooting"),
             triggered=lambda: start_file(__trouble_url__))
         self.report_action = self.create_action(
             ConsoleActions.SpyderReportAction,
@@ -229,7 +229,7 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('advanced'))
         self.support_group_action = self.create_action(
             ApplicationActions.SpyderSupportAction,
-            _("Spyder support..."),
+            _("Spyder support"),
             triggered=lambda: start_file(__forum_url__))
 
         self.create_action(
@@ -242,7 +242,7 @@ class ApplicationContainer(PluginMainContainer):
         # About action
         self.about_action = self.create_action(
             ApplicationActions.SpyderAbout,
-            _("About %s...") % "Spyder",
+            _("About %s") % "Spyder",
             icon=self.create_icon('MessageBoxInformation'),
             triggered=self.show_about,
             menurole=QAction.AboutRole)
@@ -256,7 +256,7 @@ class ApplicationContainer(PluginMainContainer):
                     "sessions)")
         self.user_env_action = self.create_action(
             ApplicationActions.SpyderUserEnvVariables,
-            _("User environment variables..."),
+            _("User environment variables"),
             icon=self.create_icon('environment'),
             tip=tip,
             triggered=self.show_user_env_variables)
