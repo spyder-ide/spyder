@@ -17,8 +17,8 @@ from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
-                            QMessageBox, QPushButton, QRadioButton, 
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QMessageBox, QPushButton, QRadioButton,
                             QSpacerItem, QVBoxLayout)
 
 # Local imports
@@ -34,7 +34,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle(_('Connect to an existing kernel'))
+        self.setWindowTitle(_('Connect to existing kernel'))
 
         main_label = QLabel(_(
             "<p>Please select the JSON connection file (<i>e.g.</i> "

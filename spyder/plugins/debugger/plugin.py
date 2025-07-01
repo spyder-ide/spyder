@@ -196,8 +196,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
-            text=_("Debug selection or current line"),
-            tip=_("Debug selection or current line"),
+            text=_("Debug current line/selection"),
+            tip=_("Run the debugger on the current line or selection"),
             icon=self.create_icon('debug_selection'),
             shortcut_context=self.NAME,
             register_shortcut=True,
@@ -504,7 +504,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
     @Slot()
     def _set_or_clear_breakpoint(self):
-        """Set/Clear breakpoint"""
+        """Toggle breakpoint."""
         codeeditor = self._get_current_editor()
         if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
@@ -512,7 +512,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
     @Slot()
     def _set_or_edit_conditional_breakpoint(self):
-        """Set/Edit conditional breakpoint"""
+        """Set/edit conditional breakpoint."""
         codeeditor = self._get_current_editor()
         if codeeditor is None or codeeditor.breakpoints_manager is None:
             return
