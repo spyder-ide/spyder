@@ -74,7 +74,7 @@ class RemoteClientContainer(PluginMainContainer):
 
     sig_server_changed = Signal()
     """
-    Signal that a remote server was deleted or added    
+    Signal that a remote server was deleted or added
     """
 
     sig_client_message_logged = Signal(dict)
@@ -97,7 +97,7 @@ class RemoteClientContainer(PluginMainContainer):
         # Widgets
         self.create_action(
             RemoteClientActions.ManageConnections,
-            _("Manage remote connections..."),
+            _("Manage remote connections"),
             icon=self._plugin.get_icon(),
             triggered=self._show_connection_dialog,
         )

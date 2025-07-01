@@ -290,9 +290,9 @@ class Editor(SpyderDockablePlugin):
         )
         run.create_run_button(
             RunContext.Selection,
-            _("Run &selection or current line"),
+            _("Run &current line/selection"),
             icon=self.create_icon('run_selection'),
-            tip=_("Run selection or current line"),
+            tip=_("Run current line or selection"),
             shortcut_context=self.NAME,
             register_shortcut=True,
             add_to_toolbar=True,
@@ -407,19 +407,48 @@ class Editor(SpyderDockablePlugin):
             mainmenu.add_item_to_application_menu(
                 edit_item,
                 menu_id=ApplicationMenus.Edit,
-                section=EditMenuSections.Editor
+                section=EditMenuSections.Editor,
+                before_section=EditMenuSections.Formatting,
+            )
+
+        # Formatting section
+        formatting_actions = [
+            widget.eol_menu,
+            widget.trailingspaces_action,
+            widget.fixindentation_action,
+        ]
+        for formatting_item in formatting_actions:
+            mainmenu.add_item_to_application_menu(
+                formatting_item,
+                menu_id=ApplicationMenus.Edit,
+                section=EditMenuSections.Formatting,
             )
 
         # ---- Search menu ----
         search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
         search_menu.aboutToShow.connect(widget.update_search_menu)
 
+        # Find section
         for search_item in widget.search_menu_actions:
             mainmenu.add_item_to_application_menu(
                 search_item,
                 menu_id=ApplicationMenus.Search,
                 section=SearchMenuSections.FindInText,
-                before_section=SearchMenuSections.FindInFiles
+                before_section=SearchMenuSections.Cursor,
+            )
+
+        # Cursor section
+        cursor_actions = [
+            widget.previous_edit_cursor_action,
+            widget.previous_cursor_action,
+            widget.next_cursor_action,
+        ]
+        for cursor_item in cursor_actions:
+            mainmenu.add_item_to_application_menu(
+                cursor_item,
+                menu_id=ApplicationMenus.Search,
+                section=SearchMenuSections.Cursor,
+                before_section=SearchMenuSections.FindInFiles,
             )
 
         # ---- Source menu ----
@@ -428,58 +457,40 @@ class Editor(SpyderDockablePlugin):
         )
         source_menu.aboutToShow.connect(widget.refresh_formatter_name)
 
-        # Cursor section
-        source_menu_cursor_actions = [
-            widget.previous_edit_cursor_action,
-            widget.previous_cursor_action,
-            widget.next_cursor_action,
-        ]
-        for cursor_item in source_menu_cursor_actions:
-            mainmenu.add_item_to_application_menu(
-                cursor_item,
-                menu_id=ApplicationMenus.Source,
-                section=SourceMenuSections.Cursor,
-                before_section=SourceMenuSections.Formatting
-            )
-
-        # Formatting section
-        source_menu_formatting_actions = [
-            widget.eol_menu,
-            widget.trailingspaces_action,
-            widget.fixindentation_action,
-            widget.formatting_action
-        ]
-        for formatting_item in source_menu_formatting_actions:
-            mainmenu.add_item_to_application_menu(
-                formatting_item,
-                menu_id=ApplicationMenus.Source,
-                section=SourceMenuSections.Formatting,
-                before_section=SourceMenuSections.CodeAnalysis
-            )
-
         # Options section
-        source_menu_option_actions = widget.checkable_actions.values()
-        for option_item in source_menu_option_actions:
+        option_actions = widget.checkable_actions.values()
+        for option_item in option_actions:
             mainmenu.add_item_to_application_menu(
                 option_item,
                 menu_id=ApplicationMenus.Source,
                 section=SourceMenuSections.Options,
-                before_section=SourceMenuSections.Linting
+                before_section=SourceMenuSections.Linting,
             )
 
         # Linting section
-        source_menu_linting_actions = [
+        linting_actions = [
             widget.todo_list_action,
             widget.warning_list_action,
             widget.previous_warning_action,
             widget.next_warning_action,
         ]
-        for linting_item in source_menu_linting_actions:
+        for linting_item in linting_actions:
             mainmenu.add_item_to_application_menu(
                 linting_item,
                 menu_id=ApplicationMenus.Source,
                 section=SourceMenuSections.Linting,
-                before_section=SourceMenuSections.Cursor
+                before_section=SourceMenuSections.Autofix,
+            )
+
+        # Autofix section
+        autofix_actions = [
+            widget.formatting_action,
+        ]
+        for autofix_item in autofix_actions:
+            mainmenu.add_item_to_application_menu(
+                autofix_item,
+                menu_id=ApplicationMenus.Source,
+                section=SourceMenuSections.Autofix,
             )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
@@ -537,13 +548,38 @@ class Editor(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.Edit
             )
 
+        # Formatting section
+        formatting_actions = [
+            widget.eol_menu,
+            widget.trailingspaces_action,
+            widget.fixindentation_action,
+        ]
+        for formatting_item in formatting_actions:
+            mainmenu.remove_item_from_application_menu(
+                formatting_item,
+                menu_id=ApplicationMenus.Edit
+            )
+
         # ---- Search menu ----
         search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
         search_menu.aboutToShow.disconnect(widget.update_search_menu)
 
+        # Find section
         for search_item in widget.search_menu_actions:
             mainmenu.remove_item_from_application_menu(
                 search_item,
+                menu_id=ApplicationMenus.Search
+            )
+
+        # Cursor section
+        cursor_actions = [
+            widget.previous_edit_cursor_action,
+            widget.previous_cursor_action,
+            widget.next_cursor_action,
+        ]
+        for cursor_item in cursor_actions:
+            mainmenu.remove_item_from_application_menu(
+                cursor_item,
                 menu_id=ApplicationMenus.Search
             )
 
@@ -553,49 +589,34 @@ class Editor(SpyderDockablePlugin):
         )
         source_menu.aboutToShow.disconnect(widget.refresh_formatter_name)
 
-        # Cursor section
-        source_menu_cursor_actions = [
-            widget.previous_edit_cursor_action,
-            widget.previous_cursor_action,
-            widget.next_cursor_action,
-        ]
-        for cursor_item in source_menu_cursor_actions:
-            mainmenu.remove_item_from_application_menu(
-                cursor_item,
-                menu_id=ApplicationMenus.Source
-            )
-
-        # Formatting section
-        source_menu_formatting_actions = [
-            widget.eol_menu,
-            widget.trailingspaces_action,
-            widget.fixindentation_action,
-            widget.formatting_action
-        ]
-        for formatting_item in source_menu_formatting_actions:
-            mainmenu.remove_item_from_application_menu(
-                formatting_item,
-                menu_id=ApplicationMenus.Source
-            )
-
         # Options section
-        source_menu_option_actions = widget.checkable_actions.values()
-        for option_item in source_menu_option_actions:
+        option_actions = widget.checkable_actions.values()
+        for option_item in option_actions:
             mainmenu.remove_item_from_application_menu(
                 option_item,
                 menu_id=ApplicationMenus.Source
             )
 
         # Linting section
-        source_menu_linting_actions = [
+        linting_actions = [
             widget.todo_list_action,
             widget.warning_list_action,
             widget.previous_warning_action,
             widget.next_warning_action,
         ]
-        for linting_item in source_menu_linting_actions:
+        for linting_item in linting_actions:
             mainmenu.remove_item_from_application_menu(
                 linting_item,
+                menu_id=ApplicationMenus.Source
+            )
+
+        # Autofix section
+        autofix_actions = [
+            widget.formatting_action,
+        ]
+        for autofix_item in autofix_actions:
+            mainmenu.remove_item_from_application_menu(
+                autofix_item,
                 menu_id=ApplicationMenus.Source
             )
 
@@ -874,7 +895,7 @@ class Editor(SpyderDockablePlugin):
             more details.
         text: Optional[str]
             Base text content that will be added to the file. The default is
-            `None`. If that's the case, the default content created will be 
+            `None`. If that's the case, the default content created will be
             created via a template file. See
             `Preferences > Editor > Advanced settings > Edit template for new files`  # noqa
         """
