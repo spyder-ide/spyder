@@ -135,7 +135,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Source,
-                "section": SourceMenuSections.CodeAnalysis
+                "section": SourceMenuSections.Linting,
             },
             shortcut_widget_context=Qt.ApplicationShortcut,
         )

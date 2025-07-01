@@ -220,11 +220,16 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     def _validate_connection_file(self):
         cf_path = osp.dirname(self.cf.text())
         cf_filename = osp.basename(self.cf.text())
+
         try:
+            # We do this so that users can paste only the kernel id
+            if not cf_filename.startswith("kernel-"):
+                cf_filename = "kernel-" + cf_filename
             if not cf_filename.endswith(".json"):
                 cf_filename += ".json"
+
             connection_file = find_connection_file(
-                filename=cf_filename, path=cf_path
+                filename=cf_filename, path=cf_path if cf_path else None
             )
         except OSError:
             connection_file = None
