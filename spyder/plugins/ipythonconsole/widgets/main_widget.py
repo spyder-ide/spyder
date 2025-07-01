@@ -1491,6 +1491,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             self.show_time_action.setChecked(show_elapsed_time)
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
+            client.timer.timeout.emit()
         else:
             control = None
         self.find_widget.set_editor(control)
