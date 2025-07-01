@@ -10,13 +10,14 @@ Language Server Protocol linting configuration tab.
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QButtonGroup,
-                            QGroupBox,                            
-                            QGridLayout,
-                            QLabel,
-                            QStackedLayout,
-                            QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (
+    QButtonGroup,
+    QGroupBox,
+    QGridLayout,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -89,23 +90,35 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_layout = QVBoxLayout()
         flake8_filenames_match = self.create_lineedit(
             _("Only check filenames matching these patterns:"),
-            'flake8/filename', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Check Python files: *.py"))
+            'flake8/filename',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Check Python files: *.py"),
+        )
 
         flake8_exclude = self.create_lineedit(
             _("Ignore the following files:"),
-            'flake8/exclude', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example file: file1.py, file2.py"))
+            'flake8/exclude',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example file: file1.py, file2.py"),
+        )
 
         flake8_select = self.create_lineedit(
             _("Show the following errors or warnings:"),
-            'flake8/extendSelect', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: E113, W391"))
+            'flake8/extendSelect',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example codes: E113, W391"),
+        )
 
         flake8_ignore = self.create_lineedit(
             _("Ignore the following errors or warnings:"),
-            'flake8/extendIgnore', alignment=Qt.Horizontal, word_wrap=False,
-            placeholder=_("Example codes: E201, E303"))
+            'flake8/extendIgnore',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example codes: E201, E303"),
+        )
 
         flake8_layout = QGridLayout()
         flake8_layout.addWidget(
@@ -120,15 +133,9 @@ class LintingConfigTab(SpyderPreferencesTab):
         flake8_layout.addWidget(flake8_ignore.textbox, 4, 1)
 
         pyflakes_conf_options = QLabel(
-            _(
-                "No configuration options available for pyflakes"
-            )
+            _("There are no configuration options for Pyflakes")
         )
-        not_select_conf_options = QLabel(
-            _(
-                "No linting option is enabled"
-            )
-        )
+        not_select_conf_options = QLabel(_("Linting is disabled"))
 
         grid_widget = QWidget()
         grid_widget.setLayout(flake8_layout)
@@ -166,8 +173,6 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         configuration_options_group.setLayout(configuration_options_layout)
-
-
 
         # Linting layout
         linting_layout = QVBoxLayout()

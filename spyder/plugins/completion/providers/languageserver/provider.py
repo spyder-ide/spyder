@@ -741,9 +741,18 @@ class LanguageServerProvider(SpyderCompletionProvider):
         f8_select = self.get_conf('flake8/extendSelect', '').split(',')
         f8_ignore = self.get_conf('flake8/extendIgnore', '').split(',')
         f8_indent = self.get_conf(
-            'indent_chars', '*    *', section='editor').replace('*','')
-        f8_tab_size = self.get_conf('tab_stop_width_spaces', 4, section='editor')
-        f8_indent_size = f8_indent.count(' ') + f8_indent.count('\t') * f8_tab_size
+            'indent_chars',
+            '*    *',
+            section='editor'
+        ).replace('*','')
+        f8_tab_size = self.get_conf(
+            'tab_stop_width_spaces',
+            4,
+            section='editor'
+        )
+        f8_indent_size = (
+            f8_indent.count(" ") + f8_indent.count("\t") * f8_tab_size
+        )
 
         pycodestyle = {
             'enabled': self.get_conf('pycodestyle'),
@@ -762,20 +771,18 @@ class LanguageServerProvider(SpyderCompletionProvider):
         }
 
         flake8 = {
-            'enabled': self.get_conf('flake8'),
-            'filename': [filename.strip()
-                         for filename in f8_filename if filename],
-            'exclude': [exclude.strip()
-                         for exclude in f8_exclude if exclude],
-            'extendSelect': [select.strip() for select in f8_select if select],
-            'extendIgnore': [ignore.strip() for ignore in f8_ignore if ignore],
-            'indentSize': f8_indent_size,
-            'maxLineLength': cs_max_line_length
+            "enabled": self.get_conf("flake8"),
+            "filename": [
+                filename.strip() for filename in f8_filename if filename
+            ],
+            "exclude": [exclude.strip() for exclude in f8_exclude if exclude],
+            "extendSelect": [select.strip() for select in f8_select if select],
+            "extendIgnore": [ignore.strip() for ignore in f8_ignore if ignore],
+            "indentSize": f8_indent_size,
+            "maxLineLength": cs_max_line_length,
         }
 
-        no_linting = {
-            'enabled': self.get_conf('no_linting')
-        }
+        no_linting = {"enabled": self.get_conf("no_linting")}
 
         # Pydocstyle
         convention = self.get_conf('pydocstyle/convention')

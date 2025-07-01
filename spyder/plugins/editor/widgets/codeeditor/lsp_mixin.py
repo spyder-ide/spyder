@@ -612,13 +612,10 @@ class LSPMixin:
                 continue
 
             # This only works for Python.
-            pyflakes = (
-                    'provider_configuration',
-                    'lsp',
-                    'values',
-                    'pyflakes'
-                )
-            if self.language == "Python" and self.get_conf(pyflakes, section='completions'):
+            pyflakes = ("provider_configuration", "lsp", "values", "pyflakes")
+            if self.language == "Python" and self.get_conf(
+                pyflakes, section="completions"
+            ):
                 if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 
