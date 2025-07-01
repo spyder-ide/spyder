@@ -2460,9 +2460,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
                     self.execute_code(line, current_client, clear_variables)
                 else:
                     self.execute_code(
-                            line, current_client, clear_variables,
-                            shellwidget=client.shellwidget
-                        )
+                        line,
+                        current_client,
+                        clear_variables,
+                        shellwidget=client.shellwidget,
+                    )
             except AttributeError:
                 pass
 
