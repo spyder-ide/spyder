@@ -276,7 +276,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         continue_action = self.create_action(
             DebuggerWidgetActions.Continue,
-            text=_("Continue execution until next breakpoint"),
+            text=_("Execute until next breakpoint"),
             icon=self.create_icon('arrow-continue'),
             triggered=lambda: self.debug_command("continue"),
             register_shortcut=True,
@@ -296,7 +296,7 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         return_action = self.create_action(
             DebuggerWidgetActions.Return,
-            text=_("Execute until function or method returns"),
+            text=_("Execute until function returns"),
             icon=self.create_icon('arrow-step-out'),
             triggered=lambda: self.debug_command("return"),
             register_shortcut=True,
@@ -327,8 +327,8 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         self.create_action(
             DebuggerBreakpointActions.ToggleBreakpoint,
-            text=_("Set/Clear breakpoint"),
-            tip=_("Set/Clear breakpoint"),
+            text=_("Toggle breakpoint"),
+            tip=_("Set or clear a breakpoint on the current line"),
             icon=self.create_icon('breakpoint_big'),
             triggered=self.sig_toggle_breakpoints,
             register_shortcut=True,
@@ -336,8 +336,8 @@ class DebuggerWidget(ShellConnectMainWidget):
 
         self.create_action(
             DebuggerBreakpointActions.ToggleConditionalBreakpoint,
-            text=_("Set/Edit conditional breakpoint"),
-            tip=_("Set/Edit conditional breakpoint"),
+            text=_("Set/edit conditional breakpoint"),
+            tip=_("Set a conditional breakpoint, or edit an existing one"),
             icon=self.create_icon('breakpoint_cond_big'),
             triggered=self.sig_toggle_conditional_breakpoints,
             register_shortcut=True,
