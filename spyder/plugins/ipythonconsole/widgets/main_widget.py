@@ -468,9 +468,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         )
         self.connect_to_kernel_action = self.create_action(
             IPythonConsoleWidgetActions.ConnectToKernel,
-            text=_("Connect to an existing kernel"),
-            tip=_("Open a new IPython console connected to an existing "
-                  "kernel"),
+            text=_("Connect to existing kernel..."),
+            tip=_("Open an IPython console connected to an existing kernel"),
             triggered=self._create_client_for_kernel,
         )
         self.rename_tab_action = self.create_action(

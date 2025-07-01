@@ -346,7 +346,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.format_on_save = False
         self.code_snippets_enabled = True
         self.code_folding_enabled = True
-        self.underline_errors_enabled = False
+        self.underline_errors_enabled = True
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurrence_highlighting_enabled = True
@@ -1460,7 +1460,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 if not self.new_window:
                     actions += [
                         main_widget.lock_unlock_action,
-                        main_widget.undock_action,                    
+                        main_widget.undock_action,
                         main_widget.close_action
                     ]
 

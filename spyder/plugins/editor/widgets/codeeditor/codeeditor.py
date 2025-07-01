@@ -310,7 +310,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.blanks_enabled = False
 
         # Underline errors and warnings
-        self.underline_errors_enabled = False
+        self.underline_errors_enabled = True
 
         # Scrolling past the end of the document
         self.scrollpastend_enabled = False
@@ -745,7 +745,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                      edge_line=True,
                      edge_line_columns=(79,),
                      show_blanks=False,
-                     underline_errors=False,
+                     underline_errors=True,
                      close_parentheses=True,
                      close_quotes=False,
                      add_colons=True,
