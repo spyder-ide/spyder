@@ -35,7 +35,7 @@ APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
 ATOMICWRITES_REQVER = '>=1.2.0'
 BCRYPT_REQVER = ">=4.3.0"
-CHARDET_REQVER = '>=2.0.0'
+CHARSETNORMALIZER_REQVER = '>=3.4.2'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
@@ -116,10 +116,10 @@ DESCRIPTIONS = [
      'package_name': "bcrypt",
      'features': _("Decrypt passphrase of SSH key files"),
      'required_version': BCRYPT_REQVER},
-    {'modname': "chardet",
-     'package_name': "chardet",
+    {'modname': "charset_normalizer",
+     'package_name': "charset_normalizer",
      'features': _("Character encoding auto-detection for the Editor"),
-     'required_version': CHARDET_REQVER},
+     'required_version': CHARSETNORMALIZER_REQVER},
     {'modname': "cloudpickle",
      'package_name': "cloudpickle",
      'features': _("Handle communications between kernel and frontend"),

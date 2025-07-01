@@ -116,22 +116,23 @@ CODECS = [
 ]
 
 
-def get_coding(text, force_chardet=False, default_codec=None):
+def get_coding(text, force_charset_normalizer=False, default_codec=None):
     """
     Function to get the coding of a text.
 
     By default, first look for declarations of the form "coding=xxx" in the
-    first two lines of text. If none is found, then use the chardet library to
-    guess. If that also fails, then return None.
+    first two lines of text. If none is found, then use the charset_normalizer
+    library to guess. If that also fails, then return None.
 
-    If force_chardet is set, then do not look for "coding=xxx" and only use
-    the chardet library. If default_codec is set, then do not use the chardet
-    library and return default_codec if there is no "coding=xxx" declaration.
+    If force_charset_normalizer is set, then do not look for "coding=xxx" and
+    only use the charset_normalizer library. If default_codec is set, then do
+    not use the charset_normalizer library and return default_codec if there
+    is no "coding=xxx" declaration.
 
     @param text text to inspect (string)
     @return coding string
     """
-    if not force_chardet:
+    if not force_charset_normalizer:
         for line in text.splitlines()[:2]:
             try:
                 result = CODING_RE.search(to_text_string(line))
@@ -148,8 +149,8 @@ def get_coding(text, force_chardet=False, default_codec=None):
                     if codec in CODECS:
                         return codec
 
-    # Fallback using chardet
-    if is_binary_string(text) and (force_chardet or default_codec is None):
+    # Fallback using charset_normalizer
+    if is_binary_string(text) and (force_charset_normalizer or default_codec is None):
         sample = b"\n".join(text.splitlines()[:2])
 
         result = from_bytes(sample).best()
