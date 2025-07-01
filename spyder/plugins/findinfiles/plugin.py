@@ -64,8 +64,8 @@ class FindInFiles(SpyderDockablePlugin):
     def on_initialize(self):
         self.create_action(
             FindInFilesActions.FindInFiles,
-            text=_("Search text in the Find pane"),
-            tip=_("Search text in multiple files"),
+            text=_("Search text in files..."),
+            tip=_("Search text in multiple files with the Find pane"),
             triggered=self.find,
             register_shortcut=True,
             context=Qt.WindowShortcut

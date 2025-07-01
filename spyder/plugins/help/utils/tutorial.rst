@@ -200,7 +200,7 @@ To update the console's namespace with modified function, we have two options:
 * Option 1: Execute the whole file :file:`hello.py` again by pressing :kbd:`F5`: this creates a new function object ``hello`` (and overrides the old one).
   You should find that if you press :kbd:`F5`, and then call ``hello()`` at the prompt, the new text ``Later World`` is printed.
 
-* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later World")``, then click :menuselection:`Run --> Run selection or current line` or press :kbd:`F9`.
+* Option 2: Select the region you have changed (in this case the whole function ``hello``, starting from the line ``def hello():`` down to ``print("Later World")``, then click :menuselection:`Run --> Run current line/selection` or press :kbd:`F9`.
 
   This will update the ``hello`` object in the :guilabel:`Console` without having to execute the whole :file:`hello.py` file:
 
