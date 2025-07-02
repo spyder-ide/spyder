@@ -141,8 +141,8 @@ class ViewMenuSections:
 
 class HelpMenuSections:
     Documentation = 'documentation_section'
-    Support = 'support_section'
     ExternalDocumentation = 'external_documentation_section'
+    Support = 'support_section'
     About = 'about_section'
 
 
