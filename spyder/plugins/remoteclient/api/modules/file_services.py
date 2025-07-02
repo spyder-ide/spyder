@@ -241,11 +241,11 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
     def closefd(self):
         return True
 
-    async def __iter__(self):
+    async def __aiter__(self):
         while response := await self.readline():
             yield response
 
-    async def __next__(self):
+    async def __anext__(self):
         response = await self.readline()
         if not response:
             raise StopIteration
