@@ -303,13 +303,17 @@ class Application(SpyderPluginV2):
         mainmenu.add_item_to_application_menu(
             self.user_env_action,
             menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.Tools)
+            section=ToolsMenuSections.Managers,
+            before_section=ToolsMenuSections.Preferences,
+        )
 
         if get_debug_level() >= 2:
             mainmenu.add_item_to_application_menu(
                 self.debug_logs_menu,
-                menu_id=ApplicationMenus.Tools,
-                section=ToolsMenuSections.Extras)
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before_section=HelpMenuSections.ExternalDocumentation,
+            )
 
     def _populate_help_menu(self):
         """Add base actions and menus to the Help menu."""
