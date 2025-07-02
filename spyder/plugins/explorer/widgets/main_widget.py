@@ -395,6 +395,7 @@ class ExplorerWidget(PluginMainWidget):
                 remote_ls
             )
             self.stackwidget.setCurrentWidget(self.remote_treewidget)
+
         self.update_actions()
 
     def get_current_folder(self):

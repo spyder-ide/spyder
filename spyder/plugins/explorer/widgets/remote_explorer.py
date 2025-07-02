@@ -49,9 +49,11 @@ class RemoteViewMenus:
     Context = "remote_context_menu"
     New = "remote_new_menu"
 
+
 class RemoteViewNewSubMenuSections:
     General = 'remote_general_section'
     Language = 'remote_language_section'
+
 
 class RemoteExplorerActions:
     CopyPaste = "remote_copy_paste_action"
@@ -308,6 +310,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         # Disable actions that require a valid selection
         self.rename_action.setEnabled(data_available)
         self.delete_action.setEnabled(data_available)
+
         # Disable actions not suitable for directories
         self.copy_paste_action.setEnabled(is_file)
 
@@ -403,7 +406,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self._handle_future_response_error(
             future,
             _("Copy and Paste error"),
-            _("An error occured while trying to copy and paste a file/directory"),
+            _(
+                "An error occured while trying to copy and paste a "
+                "file/directory"
+            ),
         )
         self.refresh(force_current=True)
 
@@ -450,7 +456,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if is_file:
             response = await self.remote_files_manager.unlink(path)
         else:
-            response = await self.remote_files_manager.rmdir(path, non_empty=True)
+            response = await self.remote_files_manager.rmdir(
+                path, non_empty=True
+            )
 
         return response
 
@@ -550,7 +558,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        remote_file = posixpath.join(self.root_prefix, os.path.basename(local_path))
+        remote_file = posixpath.join(
+            self.root_prefix, os.path.basename(local_path)
+        )
         file_content = None
 
         try:
@@ -933,7 +943,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             old_path = data["name"]
             relpath = os.path.relpath(old_path, self.root_prefix)
             new_relpath, valid = QInputDialog.getText(
-                self, _("Copy and Paste"), _("Paste as:"), QLineEdit.Normal, relpath
+                self,
+                _("Copy and Paste"),
+                _("Paste as:"),
+                QLineEdit.Normal,
+                relpath,
             )
             if valid:
                 new_path = posixpath.join(self.root_prefix, new_relpath)
@@ -1032,9 +1046,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self._on_remote_download_file(future, remote_filename)
 
             if is_file:
-                self._do_remote_download_file(path).connect(remote_download_file)
+                self._do_remote_download_file(path).connect(
+                    remote_download_file
+                )
             else:
-                self._do_remote_download_directory(path).connect(remote_download_file)
+                self._do_remote_download_directory(path).connect(
+                    remote_download_file
+                )
 
             self.sig_start_spinner_requested.emit()
 
