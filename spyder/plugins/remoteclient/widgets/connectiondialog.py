@@ -59,6 +59,7 @@ class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
     invalid_address: bool | None
+    invalid_url: bool | None
 
 
 # =============================================================================
@@ -93,6 +94,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._validation_labels = {}
         self._name_widgets = {}
         self._address_widgets = {}
+        self._url_widgets = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -147,6 +149,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 address = widget.textbox.text()
                 if not self._validate_address(address):
                     reasons["invalid_address"] = True
+                    widget.status_action.setVisible(True)
+            elif widget == self._url_widgets.get(auth_method):
+                # Validate URL
+                widget.status_action.setVisible(False)
+                url = widget.textbox.text()
+                if not self._validate_url(url):
+                    reasons["invalid_url"] = True
                     widget.status_action.setVisible(True)
             else:
                 widget.status_action.setVisible(False)
@@ -558,6 +567,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             url,
             token,
         ]
+        self._url_widgets[f"{AuthenticationMethod.JupyterHub}"] = url
         self._validation_labels[
             AuthenticationMethod.JupyterHub
         ] = validation_label
@@ -598,7 +608,16 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         return True
 
     def _validate_url(self, url):
-        return QUrl(url).isValid()
+        # Regex pattern for a valid URL.
+        # See https://learn.microsoft.com/en-us/previous-versions/msp-n-p/ff650303(v=pandp.10)#common-regular-expressions
+        url_pattern = (
+            r'^(ht|f)tp(s?)\:\/\/'
+            r'[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)'
+            r'([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$'
+        )
+        url_re = re.compile(url_pattern)
+
+        return True if url_re.match(url) else False
 
     def _validate_address(self, address):
         """Validate if address introduced by users is correct."""
@@ -647,6 +666,15 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 + _(
                     "The address you provided is not a valid IP or domain "
                     "name."
+                )
+                + suffix
+            )
+
+        if reasons.get("invalid_url"):
+            text += (
+                prefix
+                + _(
+                    "The URL you provided is not a valid one."
                 )
                 + suffix
             )
