@@ -14,7 +14,7 @@ from typing import TypedDict
 import uuid
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, QUrl
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
     QDialogButtonBox,
     QGridLayout,
@@ -609,7 +609,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _validate_url(self, url):
         # Regex pattern for a valid URL.
-        # See https://learn.microsoft.com/en-us/previous-versions/msp-n-p/ff650303(v=pandp.10)#common-regular-expressions
+        # See https://learn.microsoft.com/en-us/previous-versions/msp-n-p/
+        # ff650303(v=pandp.10)#common-regular-expressions
         url_pattern = (
             r'^(ht|f)tp(s?)\:\/\/'
             r'[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)'
@@ -672,11 +673,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         if reasons.get("invalid_url"):
             text += (
-                prefix
-                + _(
-                    "The URL you provided is not a valid one."
-                )
-                + suffix
+                prefix + _("The URL you provided is not valid.") + suffix
             )
 
         if reasons.get("missing_info"):
