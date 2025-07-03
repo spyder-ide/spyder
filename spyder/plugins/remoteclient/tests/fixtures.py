@@ -191,7 +191,7 @@ def jupyterhub_client_id(
         f"{config_id}/client_type", "jupyterhub"
     )
     remote_client.set_conf(
-        f"{config_id}/name", "test-server"
+        f"{config_id}/{AuthenticationMethod.JupyterHub}/name", "test-server"
     )
 
     remote_client.load_jupyterhub_client(
