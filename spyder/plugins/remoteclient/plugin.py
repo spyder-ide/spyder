@@ -177,14 +177,16 @@ class RemoteClient(SpyderPluginV2):
             client = self._remote_clients[config_id]
             await client.connect_and_install_remote_server()
 
-    @AsyncDispatcher(loop="asyncssh")
-    async def start_remote_server(self, config_id):
+    def start_remote_server(self, config_id):
         """Start remote server."""
         if config_id not in self._remote_clients:
             self.load_client_from_id(config_id)
 
-        client = self._remote_clients[config_id]
-        await client.connect_and_ensure_server()
+        @AsyncDispatcher(loop="asyncssh")
+        async def _start_client():
+            client = self._remote_clients[config_id]
+            await client.connect_and_ensure_server()
+        _start_client()
 
     @AsyncDispatcher(loop="asyncssh")
     async def stop_remote_server(self, config_id):

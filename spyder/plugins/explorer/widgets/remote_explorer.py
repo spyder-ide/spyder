@@ -6,26 +6,72 @@
 
 import asyncio
 import fnmatch
+import io
 import logging
 import os
+import posixpath
 from datetime import datetime
 
+from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
-from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QTreeView, QVBoxLayout, QWidget
+from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
+from qtpy.QtWidgets import (
+    QApplication,
+    QInputDialog,
+    QMessageBox,
+    QLineEdit,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.config.base import get_conf_path
+from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.remoteclient.api.modules.base import (
     SpyderRemoteSessionClosed,
 )
-from spyder.plugins.remoteclient.api.modules.file_services import RemoteOSError
+from spyder.plugins.remoteclient.api.modules.file_services import (
+    RemoteFileServicesError,
+    RemoteOSError,
+)
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 
 
 logger = logging.getLogger(__name__)
+
+
+class RemoteViewMenus:
+    Context = "remote_context_menu"
+    New = "remote_new_menu"
+
+
+class RemoteViewNewSubMenuSections:
+    General = 'remote_general_section'
+    Language = 'remote_language_section'
+
+
+class RemoteExplorerActions:
+    CopyPaste = "remote_copy_paste_action"
+    CopyPath = "remote_copy_path_action"
+    Delete = "remote_delete_action"
+    Download = "remote_download_action"
+    NewDirectory = "remote_new_directory_action"
+    NewFile = "remote_new_file_action"
+    NewModule = "remote_new_module_action"
+    NewPackage = "remote_new_package_action"
+    Rename = "remote_rename_action"
+    Upload = "remote_upload_file_action"
+
+
+class RemoteExplorerContextMenuSections:
+    CopyPaste = "remote_copy_paste_section"
+    Extras = "remote_extras_section"
+    New = "remote_new_section"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -54,6 +100,7 @@ class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
 
 class RemoteExplorer(QWidget, SpyderWidgetMixin):
     sig_dir_opened = Signal(str, str)
+    sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
     def __init__(self, parent=None, class_parent=None, files=None):
@@ -74,7 +121,118 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.history = []
         self.histindex = None
 
-        # Model and widget setup
+        # Model, actions and widget setup
+        self.context_menu = self.create_menu(RemoteViewMenus.Context)
+        new_submenu = self.create_menu(
+            RemoteViewMenus.New,
+            _('New'),
+        )
+
+        self.new_package_action = self.create_action(
+            RemoteExplorerActions.NewPackage,
+            text=_("Python package..."),
+            icon=self.create_icon('package_new'),
+            triggered=self.new_package,
+        )
+        self.new_module_action = self.create_action(
+            RemoteExplorerActions.NewModule,
+            text=_("Python file..."),
+            icon=self.create_icon('python'),
+            triggered=self.new_module,
+        )
+        self.new_directory_action = self.create_action(
+            RemoteExplorerActions.NewDirectory,
+            text=_("Folder..."),
+            icon=self.create_icon('folder_new'),
+            triggered=self.new_directory,
+        )
+        self.new_file_action = self.create_action(
+            RemoteExplorerActions.NewFile,
+            text=_("File..."),
+            icon=self.create_icon('TextFileIcon'),
+            triggered=self.new_file,
+        )
+        self.copy_paste_action = self.create_action(
+            RemoteExplorerActions.CopyPaste,
+            _("Copy and Paste..."),
+            icon=self.create_icon("editcopy"),
+            triggered=self.copy_paste_item,
+        )
+        self.rename_action = self.create_action(
+            RemoteExplorerActions.Rename,
+            _("Rename..."),
+            icon=self.create_icon("rename"),
+            triggered=self.rename_item,
+        )
+        self.copy_path_action = self.create_action(
+            RemoteExplorerActions.CopyPath,
+            _("Copy path"),
+            triggered=self.copy_path,
+        )
+        self.delete_action = self.create_action(
+            RemoteExplorerActions.Delete,
+            _("Delete..."),
+            icon=self.create_icon("editclear"),
+            triggered=self.delete_item,
+        )
+        self.download_action = self.create_action(
+            RemoteExplorerActions.Download,
+            _("Download..."),
+            icon=self.create_icon("fileimport"),
+            triggered=self.download_item,
+        )
+        self.upload_file_action = self.create_action(
+            RemoteExplorerActions.Upload,
+            _("Upload file"),
+            icon=self.create_icon("fileexport"),
+            triggered=self.upload_file,
+        )
+
+        for item in [self.new_file_action, self.new_directory_action]:
+            self.add_item_to_menu(
+                item,
+                new_submenu,
+                section=RemoteViewNewSubMenuSections.General,
+            )
+
+        for item in [self.new_module_action, self.new_package_action]:
+            self.add_item_to_menu(
+                item,
+                new_submenu,
+                section=RemoteViewNewSubMenuSections.Language,
+            )
+
+        for item in [
+            new_submenu,
+            self.rename_action,
+            self.delete_action,
+        ]:
+            self.add_item_to_menu(
+                item,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.New,
+            )
+
+        for item in [
+            self.copy_paste_action,
+            self.copy_path_action,
+        ]:
+            self.add_item_to_menu(
+                item,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.CopyPaste,
+            )
+
+        for item in [self.download_action]:
+            self.add_item_to_menu(
+                item,
+                self.context_menu,
+                section=RemoteExplorerContextMenuSections.Extras,
+            )
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._on_show_context_menu)
+
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
             [
@@ -90,6 +248,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.view = QTreeView(self)
         self.view.setModel(self.proxy_model)
         self.view.setSortingEnabled(True)
+        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.customContextMenuRequested.connect(
+            self._on_show_context_menu
+        )
 
         if files:
             self.set_files(files)
@@ -126,6 +288,35 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         elif option == "single_click_to_open":
             self.set_single_click_to_open(value)
 
+    def _on_show_context_menu(self, position):
+        index = self.view.indexAt(position)
+        if not index.isValid():
+            self.view.setCurrentIndex(index)
+            self.view.clearSelection()
+            data = {}
+            data_available = False
+            is_file = False
+        else:
+            source_index = self.proxy_model.mapToSource(
+                self.view.currentIndex()
+            )
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            data_available = bool(data)
+            is_file = (
+                data_available and data.get("type", "directory") == "file"
+            )
+
+        # Disable actions that require a valid selection
+        self.rename_action.setEnabled(data_available)
+        self.delete_action.setEnabled(data_available)
+
+        # Disable actions not suitable for directories
+        self.copy_paste_action.setEnabled(is_file)
+
+        global_position = self.mapToGlobal(position)
+        self.context_menu.popup(global_position)
+
     def _on_entered_item(self, index):
         if self.get_conf("single_click_to_open"):
             self.view.setCursor(Qt.PointingHandCursor)
@@ -145,6 +336,252 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
 
+    def _handle_future_response_error(self, future, error_title, error_message):
+        try:
+            # Need to call `future.result()` to get any possible exception
+            # generated over the remote server.
+            future.result()
+        except (RemoteOSError, OSError) as error:
+            error_message = f"{error_message}<br><br>{error.message}"
+            QMessageBox.critical(self, error_title, error_message)
+            logger.error(error)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_new_package(self, future, package_name):
+        self._handle_future_response_error(
+            future,
+            _("New Python Package error"),
+            _("An error occured while trying to create a new Python package"),
+        )
+        new_name = posixpath.join(package_name, "__init__.py")
+        self._new_item(new_name, for_file=True, with_content=True)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_new_module(self, future):
+        self._handle_future_response_error(
+            future,
+            _("New Python File error"),
+            _("An error occured while trying to create a new Python file"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_new_module(self, new_path, file_content):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        file_manager = await self.remote_files_manager.open(new_path, mode="w")
+        remote_file_response = await file_manager.write(file_content)
+        await file_manager.close()
+
+        return remote_file_response
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_new(self, future):
+        self._handle_future_response_error(
+            future,
+            _("New error"),
+            _("An error occured while trying to create a file/directory"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_new(
+        self, new_path, for_file=False
+    ):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        if for_file:
+            response = await self.remote_files_manager.touch(new_path)
+        else:
+            response = await self.remote_files_manager.mkdir(new_path)
+
+        return response
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_copy_paste(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Copy and Paste error"),
+            _(
+                "An error occured while trying to copy and paste a "
+                "file/directory"
+            ),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_copy_paste(self, old_path, new_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        return await self.remote_files_manager.copy(old_path, new_path)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_rename(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Rename error"),
+            _("An error occured while trying to rename a file"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_rename(self, old_path, new_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        return await self.remote_files_manager.replace(old_path, new_path)
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_delete(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Delete error"),
+            _("An error occured while trying to delete a file/directory"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_delete(self, path, is_file=False):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        if is_file:
+            response = await self.remote_files_manager.unlink(path)
+        else:
+            response = await self.remote_files_manager.rmdir(
+                path, non_empty=True
+            )
+
+        return response
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_download_file(self, future, remote_filename):
+        data = future.result()
+        filename, __ = getsavefilename(
+            self,
+            _("Download file"),
+            os.path.join(getcwd_or_home(), remote_filename),
+            _("All files") + " (*)",
+        )
+        if filename:
+            try:
+                with open(filename, "w") as download_file:
+                    download_file.write(data)
+            except TypeError:
+                with open(filename, "wb") as download_file:
+                    download_file.write(data)
+
+        self.sig_stop_spinner_requested.emit()
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_download_directory(self, path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        try:
+            zip_generator = self.remote_files_manager.zip_directory(path)
+            zip_data = io.BytesIO()
+            async for data in zip_generator:
+                zip_data.write(data)
+            zip_data.seek(0)
+        except RemoteFileServicesError as download_error:
+            error_message = _(
+                "An error occured while trying to download {path}".format(
+                    path=path
+                )
+            )
+            QMessageBox.critical(self, _("Download error"), error_message)
+            logger.debug(f"Unable to download {path}")
+            logger.error(
+                f"Error while trying to download directory (compressed): "
+                f"{download_error.message}"
+            )
+
+        return zip_data.getbuffer()
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_download_file(self, path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        try:
+            file_manager = await self.remote_files_manager.open(path, mode="r")
+            file_data = ""
+            async for data in file_manager:
+                file_data += data
+        except RemoteFileServicesError:
+            try:
+                file_manager = await self.remote_files_manager.open(
+                    path, mode="rb"
+                )
+                file_data = b""
+                async for data in file_manager:
+                    file_data += data
+            except RemoteFileServicesError as download_error:
+                error_message = _(
+                    "An error occured while trying to download {path}".format(
+                        path=path
+                    )
+                )
+                QMessageBox.critical(self, _("Download error"), error_message)
+                logger.debug(f"Unable to download {path}")
+                logger.error(
+                    f"Error while trying to download file: "
+                    f"{download_error.message}"
+                )
+
+        await file_manager.close()
+        return file_data
+
+    @AsyncDispatcher.QtSlot
+    def _on_remote_upload_file(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Upload error"),
+            _("An error occured while trying to upload a file"),
+        )
+        self.refresh(force_current=True)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _do_remote_upload_file(self, local_path):
+        if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
+            return
+
+        remote_file = posixpath.join(
+            self.root_prefix, os.path.basename(local_path)
+        )
+        file_content = None
+
+        try:
+            with open(local_path, mode="r") as local_file:
+                file_content = local_file.read()
+            file_manager = await self.remote_files_manager.open(
+                remote_file, mode="w"
+            )
+        except UnicodeDecodeError:
+            with open(local_path, mode="rb") as local_file:
+                file_content = local_file.read()
+            file_manager = await self.remote_files_manager.open(
+                remote_file, mode="wb"
+            )
+
+        if file_content:
+            remote_file_response = await file_manager.write(file_content)
+
+        await file_manager.close()
+        return remote_file_response
+
     @AsyncDispatcher.QtSlot
     def _on_remote_ls(self, future):
         data = future.result()
@@ -153,6 +590,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_ls(self, path, server_id):
         if not self.remote_files_manager:
+            self.sig_stop_spinner_requested.emit()
             return
 
         for task in self.background_files_load:
@@ -239,6 +677,29 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         logger.debug(
             f"{len(self.extra_files)} available extra files to be shown"
         )
+
+    def _new_item(self, new_name, for_file=False, with_content=False):
+        new_path = posixpath.join(self.root_prefix, new_name)
+        if not with_content:
+            self._do_remote_new(new_path, for_file=for_file).connect(
+                self._on_remote_new
+            )
+        elif for_file and with_content:
+            file_content, __, __ = get_default_file_content(
+                get_conf_path("template.py")
+            )
+            self._do_remote_new_module(new_path, file_content).connect(
+                self._on_remote_new_module
+            )
+        elif not for_file and with_content:
+
+            @AsyncDispatcher.QtSlot
+            def remote_package(future):
+                self._on_remote_new_package(future, new_name)
+
+            self._do_remote_new(new_path).connect(remote_package)
+
+        self.sig_start_spinner_requested.emit()
 
     @AsyncDispatcher.QtSlot
     def chdir(
@@ -439,3 +900,171 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.filter_button.setChecked(self.filter_on)
         self.filter_button.setToolTip(_("Filter filenames"))
         self.filter_files()
+
+    def new_package(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New Python Package"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name, with_content=True)
+
+    def new_module(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New Python File"), _("Name as:"), QLineEdit.Normal, ".py"
+        )
+        if valid:
+            self._new_item(new_name, for_file=True, with_content=True)
+
+    def new_directory(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New Folder"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name)
+
+    def new_file(self):
+        new_name, valid = QInputDialog.getText(
+            self, _("New File"), _("Name as:"), QLineEdit.Normal, ""
+        )
+        if valid:
+            self._new_item(new_name, for_file=True)
+
+    def copy_paste_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            old_path = data["name"]
+            relpath = os.path.relpath(old_path, self.root_prefix)
+            new_relpath, valid = QInputDialog.getText(
+                self,
+                _("Copy and Paste"),
+                _("Paste as:"),
+                QLineEdit.Normal,
+                relpath,
+            )
+            if valid:
+                new_path = posixpath.join(self.root_prefix, new_relpath)
+                self._do_remote_copy_paste(old_path, new_path).connect(
+                    self._on_remote_copy_paste
+                )
+                self.sig_start_spinner_requested.emit()
+
+    def rename_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            old_path = data["name"]
+            relpath = os.path.relpath(old_path, self.root_prefix)
+            new_relpath, valid = QInputDialog.getText(
+                self, _("Rename"), _("New name:"), QLineEdit.Normal, relpath
+            )
+            if valid:
+                new_path = posixpath.join(self.root_prefix, new_relpath)
+                self._do_remote_rename(old_path, str(new_path)).connect(
+                    self._on_remote_rename
+                )
+                self.sig_start_spinner_requested.emit()
+
+    def copy_path(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            path = self.root_prefix
+        else:
+            source_index = self.proxy_model.mapToSource(
+                self.view.currentIndex()
+            )
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                path = data["name"]
+
+        cb = QApplication.clipboard()
+        cb.setText(path, mode=QClipboard.Mode.Clipboard)
+
+    def delete_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            path = data["name"]
+            filename = os.path.relpath(path, self.root_prefix)
+            result = QMessageBox.warning(
+                self,
+                _("Delete"),
+                _("Do you really want to delete <b>{filename}</b>?").format(
+                    filename=filename
+                ),
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if result == QMessageBox.Yes:
+                is_file = data["type"] == "file"
+                self._do_remote_delete(path, is_file=is_file).connect(
+                    self._on_remote_delete
+                )
+                self.sig_start_spinner_requested.emit()
+
+    def download_item(self):
+        if (
+            not self.view.currentIndex()
+            or not self.view.currentIndex().isValid()
+        ):
+            return
+
+        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
+        data_index = self.model.index(source_index.row(), 0)
+        data = self.model.data(data_index, Qt.UserRole + 1)
+        if data:
+            path = data["name"]
+            filename = os.path.relpath(path, self.root_prefix)
+            is_file = data["type"] == "file"
+            remote_filename = filename if is_file else f"{filename}.zip"
+
+            @AsyncDispatcher.QtSlot
+            def remote_download_file(future):
+                self._on_remote_download_file(future, remote_filename)
+
+            if is_file:
+                self._do_remote_download_file(path).connect(
+                    remote_download_file
+                )
+            else:
+                self._do_remote_download_directory(path).connect(
+                    remote_download_file
+                )
+
+            self.sig_start_spinner_requested.emit()
+
+    def upload_file(self):
+        local_path, __ = getopenfilename(
+            self,
+            _("Upload file"),
+            getcwd_or_home(),
+            _("All files") + " (*)",
+        )
+        if os.path.exists(local_path):
+            self._do_remote_upload_file(local_path).connect(
+                self._on_remote_upload_file
+            )
+            self.sig_start_spinner_requested.emit()

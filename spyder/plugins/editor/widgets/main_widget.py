@@ -48,6 +48,7 @@ from spyder.plugins.editor.api.run import (
     EditorRunConfiguration, FileRun, SelectionRun, CellRun,
     SelectionContextModificator, ExtraAction)
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
@@ -316,8 +317,8 @@ class EditorMainWidget(PluginMainWidget):
         # ---- File operations ----
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
-            text=_("Print preview..."),
-            tip=_("Print preview..."),
+            text=_("Print preview"),
+            tip=_("Show a print preview for the current file"),
             triggered=self.print_preview
         )
         self.print_action = self.create_action(
@@ -408,15 +409,15 @@ class EditorMainWidget(PluginMainWidget):
         # Checkable actions
         self.showblanks_action = self._create_checkable_action(
             EditorWidgetActions.ShowBlanks,
-            _("Show blank spaces"),
+            _("Show invisible characters"),
             'blank_spaces',
             method='set_blanks_enabled'
         )
-        self.scrollpastend_action = self._create_checkable_action(
-            EditorWidgetActions.ScrollPastEnd,
-            _("Scroll past the end"),
-            'scroll_past_end',
-            method='set_scrollpastend_enabled'
+        self.wraplines_action = self._create_checkable_action(
+            EditorWidgetActions.WrapLines,
+            _("Wrap lines"),
+            'wrap',
+            method='set_wrap_enabled'
         )
         self.showindentguides_action = self._create_checkable_action(
             EditorWidgetActions.ShowIndentGuides,
@@ -432,7 +433,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.show_classfunc_dropdown_action = self._create_checkable_action(
             EditorWidgetActions.ShowClassFuncDropdown,
-            _("Show selector for classes and functions"),
+            _("Show class/function selector"),
             'show_class_func_dropdown',
             method='set_classfunc_dropdown_visible'
         )
@@ -454,7 +455,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.checkable_actions = {
             'blank_spaces': self.showblanks_action,
-            'scroll_past_end': self.scrollpastend_action,
+            'wrap': self.wraplines_action,
             'indent_guides': self.showindentguides_action,
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
@@ -545,7 +546,7 @@ class EditorMainWidget(PluginMainWidget):
             register_shortcut=True
         )
 
-        # Eol menu
+        # EOL menu
         self.win_eol_action = self.create_action(
             EditorWidgetActions.WinEOL,
             text=_("CRLF (Windows)"),
@@ -553,12 +554,12 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.linux_eol_action = self.create_action(
             EditorWidgetActions.LinuxEOL,
-            text=_("LF (Unix)"),
+            text=_("LF (Linux/macOS)"),
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = self.create_action(
             EditorWidgetActions.MacEOL,
-            text=_("CR (macOS)"),
+            text=_("CR (legacy Mac)"),
             toggled=lambda checked: self.toggle_eol_chars('mac', checked)
         )
 
@@ -569,8 +570,8 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         for eol_action in [
-            self.win_eol_action,
             self.linux_eol_action,
+            self.win_eol_action,
             self.mac_eol_action,
         ]:
             eol_action_group.addAction(eol_action)
@@ -588,6 +589,8 @@ class EditorMainWidget(PluginMainWidget):
             tip=_("Replace tab characters by space characters"),
             triggered=self.fix_indentation
         )
+
+        # Autofix actions
         formatter = self.get_conf(
             ('provider_configuration', 'lsp', 'values', 'formatting'),
             default='',
@@ -616,9 +619,9 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.toggle_comment_action = self.create_action(
             EditorWidgetActions.ToggleComment,
-            text=_("Comment")+"/"+_("Uncomment"),
+            text=_("Comment") + "/" + _("uncomment"),
             icon=self.create_icon('comment'),
-            tip=_("Comment current line or selection"),
+            tip=_("Toggle commenting the current line or selection"),
             triggered=self.toggle_comment,
             context=Qt.WidgetShortcut,
             register_shortcut=True
@@ -666,18 +669,18 @@ class EditorMainWidget(PluginMainWidget):
         # ---------------------------------------------------------------------
         self.text_uppercase_action = self.create_action(
             EditorWidgetActions.TransformToUppercase,
-            text=_("Toggle Uppercase"),
+            text=_("Toggle UPPERCASE"),
             icon=self.create_icon('toggle_uppercase'),
-            tip=_("Change to uppercase current line or selection"),
+            tip=_("Change current line or selection to UPPERCASE text"),
             triggered=self.text_uppercase,
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
         self.text_lowercase_action = self.create_action(
             EditorWidgetActions.TransformToLowercase,
-            text=_("Toggle Lowercase"),
+            text=_("Toggle lowercase"),
             icon=self.create_icon('toggle_lowercase'),
-            tip=_("Change to lowercase current line or selection"),
+            tip=_("Change current line or selection to lowercase text"),
             triggered=self.text_lowercase,
             context=Qt.WidgetShortcut,
             register_shortcut=True
@@ -1832,38 +1835,9 @@ class EditorMainWidget(PluginMainWidget):
         fname=<basestring> --> create file
         """
         # If no text is provided, create default content
-        try:
-            if text is None:
-                default_content = True
-                text, enc = encoding.read(self.TEMPLATE_PATH)
-                enc_match = re.search(r'-*- coding: ?([a-z0-9A-Z\-]*) -*-',
-                                      text)
-                if enc_match:
-                    enc = enc_match.group(1)
-
-                # Initialize template variables
-                # Windows
-                username = encoding.to_unicode_from_fs(
-                                os.environ.get('USERNAME', ''))
-                # Linux, Mac OS X
-                if not username:
-                    username = encoding.to_unicode_from_fs(
-                                   os.environ.get('USER', '-'))
-                VARS = {
-                    'date': time.ctime(),
-                    'username': username,
-                }
-                try:
-                    text = text % VARS
-                except Exception:
-                    pass
-            else:
-                default_content = False
-                enc = encoding.read(self.TEMPLATE_PATH)[1]
-        except (IOError, OSError):
-            text = ''
-            enc = 'utf-8'
-            default_content = True
+        text, enc, default_content = get_default_file_content(
+            self.TEMPLATE_PATH, text=text,
+        )
 
         create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)  # noqa
 
@@ -3006,11 +2980,11 @@ class EditorMainWidget(PluginMainWidget):
     @on_conf_change(
         option=[
             'blank_spaces',
-            'scroll_past_end',
+            'wrap',
             'indent_guides',
             'code_folding',
             'show_class_func_dropdown',
-            'underline_errors'
+            'underline_errors',
         ]
     )
     def on_editor_checkable_action_change(self, option, value):
