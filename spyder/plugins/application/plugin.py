@@ -335,9 +335,11 @@ class Application(SpyderPluginV2):
 
         if ipythonconsole:
             from spyder.plugins.ipythonconsole.api import (
-                IPythonConsoleWidgetMenus)
+                IPythonConsoleWidgetMenus
+            )
             ipython_documentation_submenu = (
-                IPythonConsoleWidgetMenus.Documentation)
+                IPythonConsoleWidgetMenus.Documentation
+            )
         for documentation_action in [
                 self.documentation_action, self.video_action]:
             mainmenu.add_item_to_application_menu(

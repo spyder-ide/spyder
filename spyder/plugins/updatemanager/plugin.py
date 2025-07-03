@@ -111,12 +111,8 @@ class UpdateManager(SpyderPluginV2):
     def _populate_help_menu(self):
         """Add update action and menu to the Help menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        application_plugin = self.get_plugin(Plugins.Application)
-        help_spyder_action = None
-
-        if application_plugin:
-            from spyder.plugins.application.api import ApplicationActions
-            help_spyder_action = ApplicationActions.HelpSpyderAction
+        from spyder.plugins.application.api import ApplicationActions
+        help_spyder_action = ApplicationActions.HelpSpyderAction
 
         mainmenu.add_item_to_application_menu(
             self.check_update_action,
