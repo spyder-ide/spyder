@@ -1133,11 +1133,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self._is_remote_consoles_menu_added = True
 
-    @Slot()
+    @Slot(str)
     def _close_remote_clients(self, server_id):
         self.get_widget().close_remote_clients(server_id)
 
-    @Slot()
+    @Slot(str)
     def _rename_remote_clients(self, server_id):
         self.get_widget().rename_remote_clients(server_id)
 
