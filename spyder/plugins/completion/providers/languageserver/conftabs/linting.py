@@ -77,13 +77,9 @@ class LintingConfigTab(SpyderPreferencesTab):
             _("Underline errors and warnings"),
             'underline_errors',
             section='editor')
-        linting_complexity_box = self.create_checkbox(
-            _("Enable complexity linting with the Mccabe package"),
-            'mccabe')
 
         additional_options_layout = QVBoxLayout()
         additional_options_layout.addWidget(underline_errors_box)
-        additional_options_layout.addWidget(linting_complexity_box)
         additional_options_group.setLayout(additional_options_layout)
 
         configuration_options_group = QGroupBox(_("Provider options"))

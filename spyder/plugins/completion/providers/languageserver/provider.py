@@ -64,11 +64,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('no_linting', False),
         ('formatting', 'autopep8'),
         ('format_on_save', False),
-        ('pycodestyle', False),
-        ('pycodestyle/filename', ''),
-        ('pycodestyle/exclude', ''),
-        ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),        
         ('flake8/filename', ''),
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
@@ -729,10 +724,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         port = self.get_conf('advanced/port', 2087)
 
         # Pycodestyle
-        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
-        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
-        cs_select = self.get_conf('pycodestyle/select', '').split(',')
-        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
         cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
 
         # Flake8
@@ -753,17 +744,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         f8_indent_size = (
             f8_indent.count(" ") + f8_indent.count("\t") * f8_tab_size
         )
-
-        pycodestyle = {
-            'enabled': self.get_conf('pycodestyle'),
-            'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
-            'filename': [filename.strip()
-                         for filename in cs_filename if filename],
-            'select': [select.strip() for select in cs_select if select],
-            'ignore': [ignore.strip() for ignore in cs_ignore if ignore],
-            'hangClosing': False,
-            'maxLineLength': cs_max_line_length
-        }
 
         # Linting - Pyflakes
         pyflakes = {
@@ -888,7 +868,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Updating options
         plugins = python_config['configurations']['pylsp']['plugins']
-        plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
         plugins['flake8'].update(flake8)
         plugins['no_linting'].update(no_linting)

@@ -12,7 +12,6 @@ INITIALIZATION_OPTIONS = {
     "pylsp": {
         "plugins": {
             "flake8": {"enabled": True},
-            "pycodestyle": {"enabled": False},
             "pyflakes": {"enabled": False},
         },
     }
