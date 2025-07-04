@@ -64,6 +64,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
         )
+        reason_mismatched_numpy = _(
+            "The '<tt>{}</tt>' module is required to open this variable and "
+            "it's not installed alongside Spyder. To fix this problem, please "
+            "upgrade `numpy` in the same environment that you use to run "
+            "Spyder to version 1.26.1 or higher."
+        )
         reason_mismatched_python = _(
             "There is a mistmatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
@@ -133,6 +139,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 raise ValueError(
                     msg % reason_missing_package_installer.format(e.name)
                 )
+            elif e.name.startswith('numpy._core'):
+                raise ValueError(msg % reason_mismatched_numpy.format(e.name))
             else:
                 raise ValueError(msg % reason_missing_package.format(e.name))
         except Exception:
