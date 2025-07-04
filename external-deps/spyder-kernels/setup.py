@@ -58,6 +58,8 @@ TEST_REQUIREMENTS = [
     "mock",
     "numpy",
     "pandas",
+    "polars",
+    "pyarrow",
     "pytest",
     "pytest-cov",
     "scipy",
