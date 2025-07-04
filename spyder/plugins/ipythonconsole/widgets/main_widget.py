@@ -1489,6 +1489,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             show_elapsed_time = client.show_elapsed_time
             self.show_time_action.setChecked(show_elapsed_time)
             client.timer.timeout.connect(client.show_time)
+            client.timer.start(1000)
+            client.timer.timeout.emit()
         else:
             control = None
         self.find_widget.set_editor(control)
@@ -1852,6 +1854,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             client.t0 = master_client.t0
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
+            client.timer.timeout.emit()
 
         if jupyter_api is not None:
             # This is a client created by the RemoteClient plugin. So, we only
@@ -1972,6 +1975,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
         # Show time label
         client.sig_time_label.connect(self.time_label.setText)
+        client.timer.timeout.emit()
 
         # Exception handling
         shellwidget.sig_exception_occurred.connect(
