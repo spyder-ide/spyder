@@ -124,6 +124,7 @@ class WorkingDirectoryComboBox(PathComboBox):
             self.edit_goto.emit(file, line_number, "")
         if directory and directory != self.currentText():
             self.add_text(directory)
+            self.selected()
         if directory:
             return True
 
