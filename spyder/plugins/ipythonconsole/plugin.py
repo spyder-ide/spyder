@@ -444,7 +444,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             self.get_widget().ipython_menu,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.ExternalDocumentation,
-            before_section=HelpMenuSections.About,
+            before_section=HelpMenuSections.Support,
         )
 
         # Add remote console submenu
