@@ -168,6 +168,7 @@ def test_invalid_path_fallback(qtbot, setup_workingdirectory):
     pathedit.clearFocus()
     assert not pathedit.hasFocus()
     qtbot.waitUntil(lambda: container.get_workdir() == valid_cwd)
+    assert container.get_workdir() == os.getcwd()
 
 
 def test_partially_invalid_path_fallback(qtbot, setup_workingdirectory):
@@ -194,6 +195,7 @@ def test_partially_invalid_path_fallback(qtbot, setup_workingdirectory):
     pathedit.clearFocus()
     assert not pathedit.hasFocus()
     qtbot.waitUntil(lambda: container.get_workdir() == osp.dirname(valid_cwd))
+    assert container.get_workdir() == os.getcwd()
 
 
 if __name__ == "__main__":
