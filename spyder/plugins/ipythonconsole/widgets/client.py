@@ -1005,7 +1005,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return await self._files_api.info("~")
 
     def restart_remote_kernel(self):
+        # Reset elapsed time
         self.t0 = time.monotonic()
+
         if self.__remote_restart_requested:
             return
         self._restart_remote_kernel().connect(
