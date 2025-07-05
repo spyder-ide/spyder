@@ -25,6 +25,7 @@ from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
 )
+from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectionpages import (
     NewConnectionPage,
     ConnectionPage,
@@ -32,6 +33,12 @@ from spyder.plugins.remoteclient.widgets.connectionpages import (
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import MAC, WIN
 from spyder.widgets.sidebardialog import SidebarDialog
+
+try:
+    import spyder_env_manager  # noqa
+    ENV_MANAGER = True
+except Exception:
+    ENV_MANAGER = False
 
 
 class ConnectionDialog(SidebarDialog):
@@ -71,6 +78,11 @@ class ConnectionDialog(SidebarDialog):
                 self._update_connection_buttons_state
             )
 
+        new_connection_page = self.get_page(0)
+        new_connection_page.tabs.currentChanged.connect(
+            self._on_new_connection_page_tab_changed
+        )
+
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
     def create_buttons(self):
@@ -106,6 +118,10 @@ class ConnectionDialog(SidebarDialog):
         self._button_stop.clicked.connect(self._stop_server)
         bbox.addButton(self._button_stop, QDialogButtonBox.ActionRole)
 
+        self._button_next = QPushButton(_("Next"))
+        self._button_next.clicked.connect(self._on_button_next_clicked)
+        bbox.addButton(self._button_next, QDialogButtonBox.ActionRole)
+
         layout = QHBoxLayout()
         layout.addWidget(bbox)
 
@@ -119,6 +135,17 @@ class ConnectionDialog(SidebarDialog):
             self._button_clear_settings.setHidden(False)
             self._button_remove_connection.setHidden(True)
             self._button_stop.setHidden(True)
+
+            if ENV_MANAGER:
+                if (
+                    page.auth_method(from_gui=True)
+                    != AuthenticationMethod.JupyterHub
+                ):
+                    self._button_connect.setHidden(True)
+                    self._button_next.setHidden(False)
+                else:
+                    self._button_connect.setHidden(False)
+                    self._button_next.setHidden(True)
         else:
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
@@ -128,6 +155,8 @@ class ConnectionDialog(SidebarDialog):
             self._button_clear_settings.setHidden(True)
             self._button_remove_connection.setHidden(False)
             self._button_stop.setHidden(False)
+            self._button_connect.setHidden(False)
+            self._button_next.setHidden(True)
 
         if page.status in [
             ConnectionStatus.Inactive,
@@ -312,6 +341,24 @@ class ConnectionDialog(SidebarDialog):
                 self._button_stop.setEnabled(True)
             else:
                 self._button_stop.setEnabled(False)
+
+    def _on_button_next_clicked(self):
+        page = self.get_page()
+
+        # Validate info
+        if not page.validate_page():
+            return
+
+    def _on_new_connection_page_tab_changed(self, index):
+        if ENV_MANAGER:
+            tabs = self.get_page(0).tabs
+
+            if tabs.tabText(index) == "SSH":
+                self._button_connect.setHidden(True)
+                self._button_next.setHidden(False)
+            else:
+                self._button_connect.setHidden(False)
+                self._button_next.setHidden(True)
 
 
 def test():
