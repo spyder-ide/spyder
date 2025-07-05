@@ -708,8 +708,8 @@ class NewConnectionPage(BaseConnectionPage):
         jupyterhub_layout.addWidget(jupyterhub_info_widget)
         self.jupyterhub_widget.setLayout(jupyterhub_layout)
 
-        self.create_tab(_("SSH"), self.ssh_widget)
-        self.create_tab(_("JupyterHub"), self.jupyterhub_widget)
+        self.create_tab("SSH", self.ssh_widget)
+        self.create_tab("JupyterHub", self.jupyterhub_widget)
 
     def get_icon(self):
         return self.create_icon("add_server")
