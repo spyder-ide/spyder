@@ -16,7 +16,9 @@ import uuid
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
+    QButtonGroup,
     QGridLayout,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QStackedWidget,
@@ -46,6 +48,12 @@ from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 
+try:
+    import spyder_env_manager  # noqa
+    ENV_MANAGER = True
+except Exception:
+    ENV_MANAGER = False
+
 
 # =============================================================================
 # ---- Constants
@@ -55,6 +63,12 @@ class ValidationReasons(TypedDict):
     missing_info: bool | None
     invalid_address: bool | None
     invalid_url: bool | None
+
+
+class CreateEnvMethods:
+    NewEnv = 1
+    ImportEnv = 2
+    NoEnv = 4
 
 
 # =============================================================================
@@ -693,15 +707,18 @@ class NewConnectionPage(BaseConnectionPage):
         return _("New connection")
 
     def setup_page(self):
-        ssh_info_widget = self.create_ssh_connection_info_widget()
+        self.ssh_info_widget = self.create_ssh_connection_info_widget()
         jupyterhub_info_widget = self.create_jupyterhub_connection_info_widget()
 
-        # Use a stacked layout so we can hide the current widgets and create
-        # new ones in case users want to introduce more connections.
-        self.ssh_widget = QWidget(self)
-        ssh_layout = QStackedLayout()
-        ssh_layout.addWidget(ssh_info_widget)
-        self.ssh_widget.setLayout(ssh_layout)
+        if ENV_MANAGER:
+            self.env_creation_widget = self._create_env_creation_widget()
+
+        # Use a stacked widget/layout so we can hide the current widgets and
+        # create new ones in case users want to introduce more connections.
+        self.ssh_widget = QStackedWidget(self)
+        self.ssh_widget.addWidget(self.ssh_info_widget)
+        if ENV_MANAGER:
+            self.ssh_widget.addWidget(self.env_creation_widget)
 
         self.jupyterhub_widget = QWidget(self)
         jupyterhub_layout = QStackedLayout()
@@ -768,6 +785,107 @@ class NewConnectionPage(BaseConnectionPage):
                         [self.host_id] + option.split("/")[1:]
                     )
                     widgets[widget] = (section, new_option, default)
+
+    def get_current_tab(self, index: int | None = None) -> str:
+        if index is None:
+            index = self.tabs.currentIndex()
+
+        if index == 0:
+            return "SSH"
+        else:
+            return "JupyterHub"
+
+    def show_env_creation_widget(self):
+        self.ssh_widget.setCurrentWidget(self.env_creation_widget)
+
+    def show_ssh_info_widget(self):
+        self.ssh_widget.setCurrentWidget(self.ssh_info_widget)
+
+    def is_ssh_info_widget_shown(self) -> bool:
+        return self.ssh_widget.currentWidget() == self.ssh_info_widget
+
+    def selected_env_creation_method(self) -> CreateEnvMethods:
+        return self.env_method_group.checkedId()
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _create_env_creation_widget(self):
+        # Intro text
+        intro_label = QLabel(
+            _("Create a Python environment on the remote host")
+        )
+        intro_tip_text = _(
+            "Select the packages that will be used to run your code on the "
+            "remote machine"
+        )
+        intro_tip = TipWidget(
+            tip_text=intro_tip_text,
+            icon=ima.icon('info_tip'),
+            hover_icon=ima.icon('info_tip_hover'),
+            size=AppStyle.ConfigPageIconSize + 2,
+            wrap_text=True,
+        )
+
+        # Increase font size to make it more relevant
+        font = self.get_font(SpyderFontType.Interface)
+        font.setPointSize(font.pointSize() + 1)
+        intro_label.setFont(font)
+
+        # Layout
+        intro_layout = QHBoxLayout()
+        intro_layout.setContentsMargins(0, 0, 0, 0)
+        intro_layout.setSpacing(0)
+        intro_layout.setAlignment(Qt.AlignCenter)
+        intro_layout.addWidget(intro_label)
+        intro_layout.addWidget(intro_tip)
+
+        # Available methods
+        methods_group = QGroupBox(_("Available methods"))
+
+        self.env_method_group = QButtonGroup(self)
+
+        new_env_radio = self.create_radiobutton(
+            _("Create a new environment"),
+            option=None,
+            button_group=self.env_method_group,
+            id_=CreateEnvMethods.NewEnv,
+        )
+        import_env_radio = self.create_radiobutton(
+            _("Import an existing environment"),
+            option=None,
+            button_group=self.env_method_group,
+            id_=CreateEnvMethods.ImportEnv,
+        )
+        no_env_radio = self.create_radiobutton(
+            _("Don't create an environment"),
+            option=None,
+            button_group=self.env_method_group,
+            id_=CreateEnvMethods.NoEnv,
+        )
+
+        new_env_radio.radiobutton.setChecked(True)
+
+        methods_layout = QVBoxLayout()
+        methods_layout.addSpacing(3)
+        methods_layout.addWidget(new_env_radio)
+        methods_layout.addWidget(import_env_radio)
+        methods_layout.addWidget(no_env_radio)
+        methods_group.setLayout(methods_layout)
+
+        # Final layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize, 0, 3 * AppStyle.MarginSize, 0
+        )
+        layout.addLayout(intro_layout)
+        layout.addSpacing(8 * AppStyle.MarginSize)
+        layout.addWidget(methods_group)
+        layout.addStretch()
+
+        env_creation_widget = QWidget(self)
+        env_creation_widget.setLayout(layout)
+
+        return env_creation_widget
 
 
 class ConnectionPage(BaseConnectionPage):

@@ -25,20 +25,15 @@ from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
 )
-from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 from spyder.plugins.remoteclient.widgets.connectionpages import (
-    NewConnectionPage,
     ConnectionPage,
+    CreateEnvMethods,
+    ENV_MANAGER,
+    NewConnectionPage,
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import MAC, WIN
 from spyder.widgets.sidebardialog import SidebarDialog
-
-try:
-    import spyder_env_manager  # noqa
-    ENV_MANAGER = True
-except Exception:
-    ENV_MANAGER = False
 
 
 class ConnectionDialog(SidebarDialog):
@@ -78,10 +73,14 @@ class ConnectionDialog(SidebarDialog):
                 self._update_connection_buttons_state
             )
 
-        new_connection_page = self.get_page(0)
-        new_connection_page.tabs.currentChanged.connect(
-            self._on_new_connection_page_tab_changed
-        )
+        if ENV_MANAGER:
+            self._new_connection_page: NewConnectionPage = self.get_page(0)
+            self._new_connection_page.tabs.currentChanged.connect(
+                self._on_new_connection_page_tab_changed
+            )
+            self._new_connection_page.env_method_group.idToggled.connect(
+                self._set_buttons_for_env_creation_method
+            )
 
     # ---- SidebarDialog API
     # -------------------------------------------------------------------------
@@ -122,6 +121,10 @@ class ConnectionDialog(SidebarDialog):
         self._button_next.clicked.connect(self._on_button_next_clicked)
         bbox.addButton(self._button_next, QDialogButtonBox.ActionRole)
 
+        self._button_back = QPushButton(_("Back"))
+        self._button_back.clicked.connect(self._on_back_button_clicked)
+        bbox.addButton(self._button_back, QDialogButtonBox.ResetRole)
+
         layout = QHBoxLayout()
         layout.addWidget(bbox)
 
@@ -137,15 +140,18 @@ class ConnectionDialog(SidebarDialog):
             self._button_stop.setHidden(True)
 
             if ENV_MANAGER:
-                if (
-                    page.auth_method(from_gui=True)
-                    != AuthenticationMethod.JupyterHub
-                ):
-                    self._button_connect.setHidden(True)
-                    self._button_next.setHidden(False)
+                if page.get_current_tab() == "SSH":
+                    if page.is_ssh_info_widget_shown():
+                        self._button_connect.setHidden(True)
+                        self._button_next.setHidden(False)
+                        self._button_back.setHidden(True)
+                    else:
+                        self._button_back.setHidden(False)
+                        self._set_buttons_for_env_creation_method()
                 else:
                     self._button_connect.setHidden(False)
                     self._button_next.setHidden(True)
+                    self._button_back.setHidden(True)
         else:
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
@@ -157,6 +163,7 @@ class ConnectionDialog(SidebarDialog):
             self._button_stop.setHidden(False)
             self._button_connect.setHidden(False)
             self._button_next.setHidden(True)
+            self._button_back.setHidden(True)
 
         if page.status in [
             ConnectionStatus.Inactive,
@@ -342,23 +349,48 @@ class ConnectionDialog(SidebarDialog):
             else:
                 self._button_stop.setEnabled(False)
 
+    def _set_buttons_for_env_creation_method(
+        self, id_: CreateEnvMethods | None = None
+    ):
+        if id_ is None:
+            id_ = self._new_connection_page.selected_env_creation_method()
+
+        if id_ == CreateEnvMethods.NewEnv:
+            self._button_connect.setHidden(True)
+            self._button_next.setHidden(False)
+        else:
+            self._button_connect.setHidden(False)
+            self._button_next.setHidden(True)
+
+        self._button_back.setHidden(False)
+
     def _on_button_next_clicked(self):
-        page = self.get_page()
+        page = self._new_connection_page
 
         # Validate info
         if not page.validate_page():
             return
 
-    def _on_new_connection_page_tab_changed(self, index):
-        if ENV_MANAGER:
-            tabs = self.get_page(0).tabs
+        page.show_env_creation_widget()
+        self._button_back.setHidden(False)
 
-            if tabs.tabText(index) == "SSH":
+    def _on_back_button_clicked(self):
+        self._new_connection_page.show_ssh_info_widget()
+        self._button_back.setHidden(True)
+
+    def _on_new_connection_page_tab_changed(self, index):
+        page = self._new_connection_page
+        if page.get_current_tab(index) == "SSH":
+            if page.is_ssh_info_widget_shown():
                 self._button_connect.setHidden(True)
                 self._button_next.setHidden(False)
+                self._button_back.setHidden(True)
             else:
-                self._button_connect.setHidden(False)
-                self._button_next.setHidden(True)
+                self._set_buttons_for_env_creation_method()
+        else:
+            self._button_connect.setHidden(False)
+            self._button_next.setHidden(True)
+            self._button_back.setHidden(True)
 
 
 def test():
