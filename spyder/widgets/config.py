@@ -931,15 +931,18 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None, restart=False, section=None,
-                        items_elide_mode=None):
+                        items_elide_mode=None, alignment=Qt.Horizontal):
         """choices: couples (name, key)"""
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
+        # Widgets
         label = QLabel(text)
         combobox = SpyderComboBox(items_elide_mode=items_elide_mode)
         for name, key in choices:
             if not (name is None and key is None):
                 combobox.addItem(name, to_qvariant(key))
+
         # Insert separators
         count = 0
         for index, item in enumerate(choices):
@@ -948,20 +951,42 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 combobox.insertSeparator(index + count)
                 count += 1
         self.comboboxes[combobox] = (section, option, default)
-        layout = QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(combobox)
-        layout.addStretch(1)
+
+        if alignment == Qt.Vertical:
+            layout = QVBoxLayout()
+
+            if tip is not None:
+                label_layout = QHBoxLayout()
+                label_layout.setSpacing(0)
+                label_layout.addWidget(label)
+                label_layout, help_label = self.add_help_info_label(
+                    label_layout, tip
+                )
+                layout.addLayout(label_layout)
+            else:
+                layout.addWidget(label)
+
+            layout.addWidget(combobox)
+        else:
+            layout = QHBoxLayout()
+            layout.addWidget(label)
+            layout.addWidget(combobox)
+            if tip is not None:
+                layout, help_label = self.add_help_info_label(layout, tip)
+            layout.addStretch(1)
+
         layout.setContentsMargins(0, 0, 0, 0)
+
         widget = QWidget(self)
         widget.label = label
         widget.combobox = combobox
         if tip is not None:
-            layout, help_label = self.add_help_info_label(layout, tip)
             widget.help_label = help_label
+
         widget.setLayout(layout)
         combobox.restart_required = restart
         combobox.label_text = text
+
         return widget
 
     def create_file_combobox(self, text, choices, option, default=NoDefault,

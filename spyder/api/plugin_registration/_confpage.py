@@ -13,6 +13,7 @@ from qtpy.QtWidgets import QVBoxLayout, QLabel
 # Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
+from spyder.utils.palette import SpyderPalette
 from spyder.widgets.elementstable import ElementsTable
 from spyder.widgets.helperwidgets import FinderWidget
 
@@ -54,7 +55,8 @@ class PluginsConfigPage(PluginConfigPage):
                     description=PluginClass.get_description(),
                     icon=PluginClass.get_icon(),
                     widget=cb,
-                    additional_info=_("Built-in")
+                    additional_info=_("Built-in"),
+                    additional_info_color=SpyderPalette.COLOR_TEXT_4,
                 )
             )
 
@@ -96,7 +98,10 @@ class PluginsConfigPage(PluginConfigPage):
 
         # Build plugins table, showing external plugins first.
         self._plugins_table = ElementsTable(
-            self, external_elements + internal_elements
+            self, add_padding_around_widgets=True
+        )
+        self._plugins_table.setup_elements(
+            external_elements + internal_elements
         )
 
         # Finder to filter plugins

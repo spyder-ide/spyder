@@ -39,12 +39,23 @@ class Element(TypedDict):
     title: str
     """Element title"""
 
+    title_color: Optional[str]
+    """Color (in hex format) used for the title text (optional)"""
+
     description: str
     """Element description"""
+
+    description_color: Optional[str]
+    """Color (in hex format) used for the description text (optional)"""
 
     additional_info: Optional[str]
     """
     Additional info that needs to be displayed in a separate column (optional)
+    """
+
+    additional_info_color: Optional[str]
+    """
+    Color (in hex format) used for the additional info text (optional)
     """
 
     icon: Optional[QIcon]
@@ -63,13 +74,15 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         self,
         parent: QWidget,
         elements: List[Element],
+        with_description: bool,
         with_icons: bool,
-        with_addtional_info: bool,
+        with_additional_info: bool,
         with_widgets: bool,
     ):
         QAbstractTableModel.__init__(self)
 
         self.elements = elements
+        self.with_description = with_description
         self.with_icons = with_icons
 
         # Number of columns
@@ -79,7 +92,7 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         self.columns = {'title': 0}
 
         # Extra columns
-        if with_addtional_info:
+        if with_additional_info:
             self.n_columns += 1
             self.columns['additional_info'] = 1
 
@@ -90,15 +103,6 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
                 self.columns['widgets'] = 2
             else:
                 self.columns['widgets'] = 1
-
-        # Text styles
-        text_color = SpyderPalette.COLOR_TEXT_1
-        title_font_size = self.get_font(
-            SpyderFontType.Interface, font_size_delta=1).pointSize()
-
-        self.title_style = f'color:{text_color}; font-size:{title_font_size}pt'
-        self.additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_4}'
-        self.description_style = f'color:{text_color}'
 
     # ---- Qt overrides
     # -------------------------------------------------------------------------
@@ -130,16 +134,45 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
     # ---- Own methods
     # -------------------------------------------------------------------------
     def get_title_repr(self, element: Element) -> str:
+        text_color = SpyderPalette.COLOR_TEXT_1
+
+        if self.with_description:
+            if element.get("description_color"):
+                description_color = element["title_color"]
+            else:
+                description_color = text_color
+
+            description = (
+                f'<tr><td><span style="color:{description_color}">'
+                f'{element["description"]}'
+                f'</span></td></tr>'
+            )
+        else:
+            description = ""
+
+        title_font_size = self.get_font(
+            SpyderFontType.Interface, font_size_delta=1
+        ).pointSize()
+
+        if element.get("title_color"):
+            title_color = element["title_color"]
+        else:
+            title_color = text_color
+
+        title_style = (
+            f"color:{title_color}; font-size:{title_font_size}pt"
+            if self.with_description
+            else f"color:{title_color}"
+        )
+
         return (
             f'<table cellspacing="0" cellpadding="3">'
             # Title
-            f'<tr><td><span style="{self.title_style}">'
+            f'<tr><td><span style="{title_style}">'
             f'{element["title"]}'
             f'</span></td></tr>'
             # Description
-            f'<tr><td><span style="{self.description_style}">'
-            f'{element["description"]}'
-            f'</span></td></tr>'
+            f'{description}'
             f'</table>'
         )
 
@@ -149,11 +182,28 @@ class ElementsModel(QAbstractTableModel, SpyderFontsMixin):
         else:
             return ''
 
+        if element.get("additional_info_color"):
+            additional_info_style = f'color:{element["additional_info_color"]}'
+        else:
+            additional_info_style = f'color:{SpyderPalette.COLOR_TEXT_1}'
+
         return (
-            f'<span style="{self.additional_info_style}">'
+            f'<span style="{additional_info_style}">'
             f'{additional_info}'
             f'</span>'
         )
+
+    def clear_elements(self):
+        self.beginRemoveRows(QModelIndex(), 0, self.rowCount())
+        self.elements = []
+        self.endRemoveRows()
+
+    def replace_elements(self, elements: List[Element]):
+        # The -1 is necessary to add exactly the number present in `elements`
+        # (including the 0 index). Otherwise, spurious rows are added by Qt.
+        self.beginInsertRows(QModelIndex(), 0, len(elements) - 1)
+        self.elements = elements
+        self.endInsertRows()
 
 
 class SortElementsFilterProxy(CustomSortFilterProxy):
@@ -182,16 +232,16 @@ class SortElementsFilterProxy(CustomSortFilterProxy):
             r_description = None
 
         if element.get("additional_info"):
-            r_addtional_info = re.search(
+            r_additional_info = re.search(
                 pattern, element["additional_info"]
             )
         else:
-            r_addtional_info = None
+            r_additional_info = None
 
         if (
             r_title is None
             and r_description is None
-            and r_addtional_info is None
+            and r_additional_info is None
         ):
             return False
         else:
@@ -228,17 +278,20 @@ class ElementsTable(HoverRowsTableView):
     def __init__(
         self,
         parent: Optional[QWidget],
-        elements: List[Element],
         highlight_hovered_row: bool = True,
+        add_padding_around_widgets: bool = False,
     ):
         HoverRowsTableView.__init__(self, parent, custom_delegate=True)
-        self.elements = elements
+
+        # To highlight the hovered row
         self._highlight_hovered_row = highlight_hovered_row
 
-        # Check for additional features
-        self._with_icons = self._with_feature('icon')
-        self._with_addtional_info = self._with_feature('additional_info')
-        self._with_widgets = self._with_feature('widget')
+        # To add padding around widgets. This is necessary in case widgets are
+        # too small, e.g. when they are checkboxes or radiobuttons.
+        self._add_padding_around_widgets = add_padding_around_widgets
+
+        # To keep a reference to the table's elements
+        self.elements: List[Element] | None = None
 
         # To keep track of the current row widget (e.g. a checkbox) in order to
         # change its background color when its row is hovered.
@@ -252,6 +305,20 @@ class ElementsTable(HoverRowsTableView):
         self._info_column_width = 0
         self._widgets_column_width = 0
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def setup_elements(
+        self, elements: List[Element], set_layout: bool = False
+    ):
+        """Setup a list of Elements in the table."""
+        self.elements = elements
+
+        # Check for additional features
+        self._with_description = self._with_feature('description')
+        self._with_icons = self._with_feature('icon')
+        self._with_additional_info = self._with_feature('additional_info')
+        self._with_widgets = self._with_feature('widget')
+
         # This is used to paint the entire row's background color when its
         # hovered.
         if self._highlight_hovered_row:
@@ -261,8 +328,9 @@ class ElementsTable(HoverRowsTableView):
         self.model = ElementsModel(
             self,
             self.elements,
+            self._with_description,
             self._with_icons,
-            self._with_addtional_info,
+            self._with_additional_info,
             self._with_widgets
         )
 
@@ -275,7 +343,15 @@ class ElementsTable(HoverRowsTableView):
         self.setModel(self.proxy_model)
 
         # Adjustments for the title column
-        title_delegate = HTMLDelegate(self, margin=9, wrap_text=True)
+        title_delegate = HTMLDelegate(
+            self,
+            margin=(
+                3 * AppStyle.MarginSize
+                if self._with_description
+                else 2 * AppStyle.MarginSize
+            ),
+            wrap_text=True
+        )
         self.setItemDelegateForColumn(
             self.model.columns['title'], title_delegate
         )
@@ -285,8 +361,16 @@ class ElementsTable(HoverRowsTableView):
             )
 
         # Adjustments for the additional info column
-        if self._with_addtional_info:
-            info_delegate = HTMLDelegate(self, margin=10, align_vcenter=True)
+        if self._with_additional_info:
+            info_delegate = HTMLDelegate(
+                self,
+                margin=(
+                    3 * AppStyle.MarginSize
+                    if self._with_description
+                    else 2 * AppStyle.MarginSize
+                ),
+                align_vcenter=True
+            )
             self.setItemDelegateForColumn(
                 self.model.columns['additional_info'], info_delegate
             )
@@ -295,11 +379,7 @@ class ElementsTable(HoverRowsTableView):
                      info_delegate.on_hover_index_changed
                 )
 
-            # This is necessary to get this column's width below
-            self.resizeColumnsToContents()
-
-            self._info_column_width = self.horizontalHeader().sectionSize(
-                self.model.columns['additional_info'])
+            self._compute_info_column_width()
 
         # Adjustments for the widgets column
         if self._with_widgets:
@@ -312,27 +392,13 @@ class ElementsTable(HoverRowsTableView):
                      widgets_delegate.on_hover_index_changed
                 )
 
-            # Add widgets
-            for i in range(len(self.elements)):
-                layout = QHBoxLayout()
-                layout.addWidget(self.elements[i]['widget'])
-                layout.setAlignment(Qt.AlignHCenter)
+            self._add_widgets()
 
-                container_widget = QWidget(self)
-                container_widget.setLayout(layout)
-
-                # This key is not accounted for in Element because it's only
-                # used internally, so it doesn't need to provided in a list of
-                # Element's.
-                self.elements[i]['row_widget'] = container_widget
-
-                self.setIndexWidget(
-                    self.proxy_model.index(i, self.model.columns['widgets']),
-                    container_widget
-                )
-
-        # Make last column take the available space to the right
-        self.horizontalHeader().setStretchLastSection(True)
+        # Make last column take the available space to the right, if necessary
+        stretch_last_column = True
+        if self._with_widgets and not self._with_additional_info:
+            stretch_last_column = False
+        self.horizontalHeader().setStretchLastSection(stretch_last_column)
 
         # Hide headers
         self.horizontalHeader().hide()
@@ -351,10 +417,48 @@ class ElementsTable(HoverRowsTableView):
         # Set stylesheet
         self._set_stylesheet()
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
+        if set_layout:
+            self._set_layout()
+
+    def replace_elements(
+        self, elements: List[Element], clear_first: bool = True
+    ):
+        """
+        Replace current elements by new ones.
+
+        Parameters
+        ----------
+        elements: List[Element]
+            Elements that will be replaced.
+        clear_first: bool
+            Whether the table should be cleared before adding the new elements
+        """
+        if clear_first:
+            self.clear_elements()
+
+        self.elements = elements
+        self.model.replace_elements(elements)
+        if self._with_widgets:
+            self._add_widgets()
+
+        self._set_layout()
+
+    def clear_elements(self):
+        """Clear all elements to leave the table empty."""
+        self.model.clear_elements()
+        self._current_row_widget = None
+
     @qdebounced(timeout=200)
-    def do_find(self, text):
+    def do_find(self, text: str):
+        """
+        Filter rows that match `text` in their title, description or additional
+        info.
+
+        Parameters
+        ----------
+        text: str
+            Text to filter rows with.
+        """
         if self._with_widgets:
             # We need to do this when the table has widgets because it seems Qt
             # deletes all filtered rows, which deletes their widgets too. So,
@@ -400,7 +504,12 @@ class ElementsTable(HoverRowsTableView):
 
         css["QTableView::item"].setValues(
             borderBottom=f"1px solid {SpyderPalette.COLOR_BACKGROUND_4}",
-            paddingLeft="5px",
+            paddingLeft=f"{2 * AppStyle.MarginSize}px",
+            paddingRight=(
+                f"{AppStyle.MarginSize + 1}px"
+                if not self._add_padding_around_widgets
+                else "0px"
+            ),
             backgroundColor=bgcolor
         )
 
@@ -426,6 +535,8 @@ class ElementsTable(HoverRowsTableView):
 
         # Resize title column so that the table fits into the available
         # horizontal space.
+        self._compute_info_column_width()
+        self._compute_widgets_column_width()
         if self._info_column_width > 0 or self._widgets_column_width > 0:
             title_column_width = (
                 self.horizontalHeader().size().width() -
@@ -457,6 +568,15 @@ class ElementsTable(HoverRowsTableView):
         """Check if it's necessary to build the table with `feature_name`."""
         return len([e for e in self.elements if e.get(feature_name)]) > 0
 
+    def _compute_info_column_width(self):
+        if self._with_additional_info:
+            # This is necessary to get the right width
+            self.resizeColumnsToContents()
+
+            self._info_column_width = self.horizontalHeader().sectionSize(
+                self.model.columns['additional_info']
+            )
+
     def _compute_widgets_column_width(self):
         if self._with_widgets:
             # This is necessary to get the right width
@@ -465,19 +585,66 @@ class ElementsTable(HoverRowsTableView):
             # We add 10 pixels to the width computed by Qt so that the widgets
             # are not so close to the right border of the table, which doesn't
             # look good.
+            extra_width = 10
+            if self._with_widgets and not self._with_additional_info:
+                # In this case the extra width is added by the widget's
+                # container layout to prevent the row separator not to end in
+                # the table's right border.
+                extra_width = 0
+
             self._widgets_column_width = (
                 self.horizontalHeader().sectionSize(
                     self.model.columns["widgets"]
                 )
-                + 10
+                + extra_width
+            )
+
+    def _add_widgets(self):
+        """Add element widgets to the table."""
+        for i in range(len(self.elements)):
+            layout = QHBoxLayout()
+
+            if self._add_padding_around_widgets:
+                layout.setContentsMargins(
+                    3 * AppStyle.MarginSize,
+                    3 * AppStyle.MarginSize,
+                    # We add 10 pixels to the right when there's no additional
+                    # info, so that the widgets are not so close to the border
+                    # of the table.
+                    3 * AppStyle.MarginSize
+                    + (10 if not self._with_additional_info else 0),
+                    3 * AppStyle.MarginSize,
+                )
+                layout.addWidget(self.elements[i]['widget'])
+                layout.setAlignment(Qt.AlignHCenter)
+            else:
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.addWidget(self.elements[i]['widget'])
+
+                # Widgets are the last column, so we prefer widgets to be
+                # aligned to the right border of the table.
+                layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+            container_widget = QWidget(self)
+            container_widget.setLayout(layout)
+
+            # This key is not accounted for in Element because it's only
+            # used internally, so it doesn't need to provided in a list of
+            # Element's.
+            self.elements[i]['row_widget'] = container_widget
+
+            self.setIndexWidget(
+                self.proxy_model.index(i, self.model.columns['widgets']),
+                container_widget
             )
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def showEvent(self, event):
         if not self._is_shown:
-            self._compute_widgets_column_width()
-            self._set_layout()
+            if self.elements is not None:
+                self._compute_widgets_column_width()
+                self._set_layout()
 
             # To not run the adjustments above every time the widget is shown
             self._is_shown = True
@@ -503,9 +670,15 @@ class ElementsTable(HoverRowsTableView):
         self._set_stylesheet()
 
     def resizeEvent(self, event):
-        # This is necessary to readjust the layout when the parent widget is
-        # resized.
-        self._set_layout_debounced()
+        # Notes
+        # -----
+        # * This is necessary to readjust the layout when the parent widget is
+        #   resized.
+        # * We skip this when there's a single element because the table is not
+        #   rendered as expected. In that case it's necessary to call
+        #   set_layout directly.
+        if self.elements is not None and len(self.elements) > 1:
+            self._set_layout_debounced()
         super().resizeEvent(event)
 
 
