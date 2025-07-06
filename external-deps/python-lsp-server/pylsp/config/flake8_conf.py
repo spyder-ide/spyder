@@ -14,6 +14,16 @@ CONFIG_KEY = "flake8"
 PROJECT_CONFIGS = [".flake8", "setup.cfg", "tox.ini"]
 
 OPTIONS = [
+    # mccabe
+    ("max-complexity", "plugins.mccabe.threshold", int),
+    # pycodestyle
+    ("exclude", "plugins.pycodestyle.exclude", list),
+    ("filename", "plugins.pycodestyle.filename", list),
+    ("hang-closing", "plugins.pycodestyle.hangClosing", bool),
+    ("ignore", "plugins.pycodestyle.ignore", list),
+    ("max-line-length", "plugins.pycodestyle.maxLineLength", int),
+    ("indent-size", "plugins.pycodestyle.indentSize", int),
+    ("select", "plugins.pycodestyle.select", list),
     # flake8
     ("exclude", "plugins.flake8.exclude", list),
     ("extend-ignore", "plugins.flake8.extendIgnore", list),

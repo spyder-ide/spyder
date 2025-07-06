@@ -30,8 +30,11 @@ PYTHON_CONFIG = {
     'configurations': {
         'pylsp': {
             'configurationSources': [
-                "pyflakes"],
+                "pycodestyle", "pyflakes"],
             'plugins': {
+                'pycodestyle': {
+                    'enabled': False
+                },
                 'pyflakes': {
                     'enabled': True
                 },
