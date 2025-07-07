@@ -169,12 +169,20 @@ class ConnectionStatusWidget(
         copy_layout = QHBoxLayout()
         copy_layout.addStretch()
         copy_layout.addWidget(self._copy_logs_button)
-        bottom_layout.addSpacing(6)
+        bottom_layout.addSpacing(2 * AppStyle.MarginSize)
         bottom_layout.addLayout(copy_layout)
 
         # Final layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(
+            # Match left margin of info widgets
+            4 * AppStyle.MarginSize,
+            0,
+            # Match right margin of info widgets
+            3 * AppStyle.MarginSize,
+            # Prevent copy logs button to be clipped
+            4 * AppStyle.MarginSize
+        )
         layout.addLayout(top_layout)
         layout.addSpacing(6 * AppStyle.MarginSize)
         layout.addLayout(bottom_layout)

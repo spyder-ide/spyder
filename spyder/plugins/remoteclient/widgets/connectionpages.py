@@ -697,7 +697,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
-    MAX_WIDTH = 550 if MAC else 530
+    MAX_WIDTH = 600 if MAC else 580
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
