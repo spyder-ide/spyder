@@ -2700,9 +2700,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             )
 
         for action in self._remote_consoles_menu.get_actions():
-            if action.action_id == config_id or not action.action_id.startswith(config_id):
+            action_id = getattr(action, "action_id", None)
+            if (action_id is None or
+                action_id == config_id or
+                not action_id.startswith(config_id)):
                 continue
-            self._remote_consoles_menu.remove_action(action.action_id)
+            self._remote_consoles_menu.remove_action(action_id)
 
         server_name = self._plugin._remote_client.get_server_name(config_id)
 
@@ -2716,7 +2719,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             return
 
         for action in self._remote_consoles_menu.get_actions():
-            if action.action_id == config_id or not action.action_id.startswith(config_id):
+            action_id = getattr(action, "action_id", None)
+            if (action_id is None or
+                action_id == config_id or
+                not action_id.startswith(config_id)):
                 continue
             self._remote_consoles_menu.remove_action(action.action_id)
 
@@ -2724,7 +2730,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     async def __get_remote_kernel_specs(self, config_id: str):
         """Get kernel specs from remote Jupyter API."""
         async with self._plugin._remote_client.get_jupyter_api(config_id) as jupyter_api:
-            return jupyter_api.list_kernel_specs()
+            return await jupyter_api.list_kernel_specs()
 
     def __add_kernels_specs_callback(self, config_id: str, server_name: str):
         """Callback to add remote kernel specs."""
