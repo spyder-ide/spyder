@@ -2753,7 +2753,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 # default action in the remote consoles menu.
                 continue
             # Create an action for each kernel spec
-            spec_display_name = spec_info.get('display_name', spec_name)
+            spec_display_name = (spec_info["spec"].get("display_name") or
+                                 spec_info["name"])
             action = self.create_action(
                 name=f"{config_id}_{spec_name}",
                 text=f"{spec_display_name} ({server_name})",
