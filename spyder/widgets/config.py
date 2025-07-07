@@ -24,7 +24,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
     QFileDialog,
-    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -742,14 +741,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
@@ -810,14 +810,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
