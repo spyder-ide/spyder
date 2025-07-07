@@ -2694,6 +2694,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     def setup_server_consoles_submenu(self, config_id: str):
         """Add remote kernel specs to the cached kernels."""
+        if self._remote_consoles_menu is None:
+            self._remote_consoles_menu = self.create_menu(
+                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+            )
+
         for action in self._remote_consoles_menu.get_actions():
             if action.action_id == config_id or not action.action_id.startswith(config_id):
                 continue
@@ -2707,6 +2712,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     def clear_server_consoles_submenu(self, config_id: str):
         """Clear the remote consoles submenu."""
+        if self._remote_consoles_menu is None:
+            return
+
         for action in self._remote_consoles_menu.get_actions():
             if action.action_id == config_id or not action.action_id.startswith(config_id):
                 continue
