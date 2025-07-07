@@ -32,6 +32,7 @@ from superqt.utils import qdebounced
 from traitlets.config.loader import Config, load_pyconfig_files
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
@@ -103,7 +104,7 @@ class EnvironmentConsolesMenuSections:
 
 # ---- Widgets
 # ----------------------------------------------------------------------------
-class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
+class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR0904
     """
     IPython Console plugin
 
@@ -2618,7 +2619,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
 
     # ---- For remote kernels
     # -------------------------------------------------------------------------
-    def create_ipyclient_for_server(self, server_id):
+    def create_ipyclient_for_server(self, server_id, kernel_spec=None):
         jupyter_api = self._plugin._remote_client.get_jupyter_api(server_id)
         files_api = self._plugin._remote_client.get_file_api(server_id)()
 
@@ -2645,7 +2646,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
             # the server is stopped as well.
             can_close=False,
         )
-        client.start_remote_kernel()
+        client.start_remote_kernel(kernel_spec)
 
     def setup_remote_consoles_submenu(self, render=True):
         """Create the remote consoles submenu in the Consoles app one."""
@@ -2690,3 +2691,72 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         # This is necessary to reposition the menu correctly when rebuilt
         if render:
             self._remote_consoles_menu.render()
+
+    def setup_server_consoles_submenu(self, config_id: str):
+        """Add remote kernel specs to the cached kernels."""
+        for action in self._remote_consoles_menu.get_actions():
+            if action.action_id == config_id or not action.action_id.startswith(config_id):
+                continue
+            self._remote_consoles_menu.remove_action(action.action_id)
+
+        server_name = self._plugin._remote_client.get_server_name(config_id)
+
+        self.__get_remote_kernel_specs(config_id).connect(
+            self.__add_kernels_specs_callback(config_id, server_name),
+        )
+
+    def clear_server_consoles_submenu(self, config_id: str):
+        """Clear the remote consoles submenu."""
+        for action in self._remote_consoles_menu.get_actions():
+            if action.action_id == config_id or not action.action_id.startswith(config_id):
+                continue
+            self._remote_consoles_menu.remove_action(action.action_id)
+
+    @AsyncDispatcher(loop="ipythonconsole")
+    async def __get_remote_kernel_specs(self, config_id: str):
+        """Get kernel specs from remote Jupyter API."""
+        async with self._plugin._remote_client.get_jupyter_api(config_id) as jupyter_api:
+            return jupyter_api.list_kernel_specs()
+
+    def __add_kernels_specs_callback(self, config_id: str, server_name: str):
+        """Callback to add remote kernel specs."""
+        @AsyncDispatcher.QtSlot
+        def callback(future):
+            try:
+                kernel_specs = future.result()
+                if kernel_specs:
+                    self._add_remote_kernel_spec_action(config_id, server_name, kernel_specs)
+            except Exception:
+                logger.exception("Failed to get remote kernel specs")
+        return callback
+
+    def _add_remote_kernel_spec_action(self, config_id: str, server_name: str, kernel_specs: dict):
+        """Add remote kernel spec actions to the cached kernels."""
+        default_spec_name = kernel_specs['default']
+        for spec_name, spec_info in kernel_specs['kernelspecs'].items():
+            if spec_name == default_spec_name:
+                # Skip the default kernel spec, as it is already handled by the
+                # default action in the remote consoles menu.
+                continue
+            # Create an action for each kernel spec
+            spec_display_name = spec_info.get('display_name', spec_name)
+            action = self.create_action(
+                name=f"{config_id}_{spec_name}",
+                text=f"{spec_display_name} ({server_name})",
+                tip=(f"New console with {spec_display_name}"
+                      f" at {server_name} server"),
+                icon=self.create_icon("ipython_console"),
+                triggered=functools.partial(
+                    self.create_ipyclient_for_server,
+                    config_id,
+                    spec_name,
+                ),
+                overwrite=True,
+            )
+            self.add_item_to_menu(
+                action,
+                menu=self._remote_consoles_menu,
+                section=RemoteConsolesMenuSections.ConsolesSection,
+            )
+
+        self._remote_consoles_menu.render()
