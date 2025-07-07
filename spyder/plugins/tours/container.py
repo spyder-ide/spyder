@@ -49,7 +49,7 @@ class ToursContainer(PluginMainContainer):
 
         self.tour_action = self.create_action(
             TourActions.ShowTour,
-            text=_("Show tour"),
+            text=_("Interactive tour"),
             icon=self.create_icon('tour'),
             triggered=lambda: self.show_tour(DEFAULT_TOUR)
         )

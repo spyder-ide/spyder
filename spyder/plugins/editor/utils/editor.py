@@ -18,7 +18,10 @@ Original file:
 
 # Standard library imports
 import weakref
+import os
 import os.path as osp
+import re
+import time
 
 # Third party imports
 from qtpy.QtCore import QTimer, Qt
@@ -799,3 +802,46 @@ def get_file_language(filename, text=None):
             else:
                 break
     return language
+
+
+def get_default_file_content(template_path, text=None):
+    """
+    Get default file content and enconding parsing a template/using given text.
+    """
+    try:
+        if text is None:
+            default_content = True
+            text, enc = encoding.read(template_path)
+            enc_match = re.search(
+                r'-*- coding: ?([a-z0-9A-Z\-]*) -*-', text
+            )
+            if enc_match:
+                enc = enc_match.group(1)
+
+            # Initialize template variables
+            # Windows
+            username = encoding.to_unicode_from_fs(
+                os.environ.get('USERNAME', '')
+            )
+            # Linux, Mac OS X
+            if not username:
+                username = encoding.to_unicode_from_fs(
+                    os.environ.get('USER', '-')
+                )
+            VARS = {
+                'date': time.ctime(),
+                'username': username,
+            }
+            try:
+                text = text % VARS
+            except Exception:
+                pass
+        else:
+            default_content = False
+            enc = encoding.read(template_path)[1]
+    except (IOError, OSError):
+        text = ''
+        enc = 'utf-8'
+        default_content = True
+
+    return text, enc, default_content

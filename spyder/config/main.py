@@ -260,7 +260,7 @@ DEFAULTS = [
               'automatic_completions_after_chars': 1,
               'completions_hint': True,
               'completions_hint_after_ms': 500,
-              'underline_errors': False,
+              'underline_errors': True,
               'highlight_current_line': True,
               'highlight_current_cell': True,
               'occurrence_highlighting': True,
@@ -702,4 +702,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.2.0'
+CONF_VERSION = '87.3.0'

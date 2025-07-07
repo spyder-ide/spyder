@@ -468,9 +468,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         )
         self.connect_to_kernel_action = self.create_action(
             IPythonConsoleWidgetActions.ConnectToKernel,
-            text=_("Connect to an existing kernel"),
-            tip=_("Open a new IPython console connected to an existing "
-                  "kernel"),
+            text=_("Connect to existing kernel..."),
+            tip=_("Open an IPython console connected to an existing kernel"),
             triggered=self._create_client_for_kernel,
         )
         self.rename_tab_action = self.create_action(
@@ -1604,7 +1603,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         hostname = self._plugin._remote_client.get_server_name(server_id)
 
         for client in self.clients:
-            if client.jupyter_api.server_id == server_id:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
                 client.hostname = hostname
                 index = self.get_client_index_from_id(id(client))
                 self.tabwidget.setTabText(index, client.get_name())
@@ -2082,7 +2084,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):
         """Close all clients connected to a remote server."""
         open_clients = self.clients.copy()
         for client in self.clients:
-            if client.jupyter_api.server_id == server_id:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
                 is_last_client = (
                     len(self.get_related_clients(client, open_clients)) == 0
                 )

@@ -333,13 +333,14 @@ class Preferences(SpyderPluginV2):
         main_menu.add_item_to_application_menu(
             container.show_action,
             menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.Tools,
+            section=ToolsMenuSections.Preferences,
+            before=PreferencesActions.Reset,
         )
 
         main_menu.add_item_to_application_menu(
             container.reset_action,
             menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.Extras,
+            section=ToolsMenuSections.Preferences,
         )
 
     @on_plugin_available(plugin=Plugins.Toolbar)

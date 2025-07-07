@@ -93,7 +93,7 @@ class RunContainer(PluginMainContainer):
 
         self.create_action(
             RunActions.GlobalConfigurations,
-            _("&Global configurations"),
+            _("&Global presets"),
             triggered=self.sig_open_preferences_requested
         )
 
@@ -385,7 +385,7 @@ class RunContainer(PluginMainContainer):
 
     def re_run_file(self):
         self.run_file(self.last_executed_file, selected_executor=None)
-    
+
     @property
     def currently_selected_configuration(self):
         return self.metadata_model.get_current_run_configuration()
@@ -534,7 +534,7 @@ class RunContainer(PluginMainContainer):
         Cell can be used if and only if the file was registered.
 
         2. The button will be registered as `run <context>` or
-        `run <context> <context_modificator> and <extra_action_name>` 
+        `run <context> <context_modificator> and <extra_action_name>`
         on the action registry.
 
         3. The created button will operate over the last focused run input

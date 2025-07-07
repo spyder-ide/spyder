@@ -89,19 +89,19 @@ class EditMenuSections:
     UndoRedo = 'undo_redo_section'
     Copy = 'copy_section'
     Editor = 'editor_section'
+    Formatting = 'formatting_section'
 
 
 class SearchMenuSections:
     FindInText = 'find_text_section'
+    Cursor = 'cursor_section'
     FindInFiles = 'find_files_section'
 
 
 class SourceMenuSections:
     Options = 'options_section'
     Linting = 'linting_section'
-    Cursor = 'cursor_section'
-    Formatting = 'formatting_section'
-    CodeAnalysis = 'code_analysis_section'
+    Autofix = 'autofix_section'
 
 
 class RunMenuSections:
@@ -127,9 +127,8 @@ class ProjectsMenuSections:
 
 
 class ToolsMenuSections:
-    Tools = 'tools_section'
-    External = 'external_section'
-    Extras = 'extras_section'
+    Managers = 'managers_section'
+    Preferences = 'preferences_section'
 
 
 class ViewMenuSections:
@@ -142,8 +141,8 @@ class ViewMenuSections:
 
 class HelpMenuSections:
     Documentation = 'documentation_section'
-    Support = 'support_section'
     ExternalDocumentation = 'external_documentation_section'
+    Support = 'support_section'
     About = 'about_section'
 
 
