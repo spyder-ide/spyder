@@ -29,7 +29,7 @@ class Tours(SpyderPluginV2):
     """
     NAME = 'tours'
     CONF_SECTION = NAME
-    OPTIONAL = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.Help, Plugins.MainMenu]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
@@ -50,16 +50,18 @@ class Tours(SpyderPluginV2):
     def on_initialize(self):
         pass
 
+    @on_plugin_available(plugin=Plugins.Help)
+    def on_help_available(self):
+        if self.is_plugin_available(Plugins.MainMenu):
+            self._populate_help_menu()
+
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-
-        mainmenu.add_item_to_application_menu(
-            self.get_container().tour_action,
-            menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Documentation,
-            before_section=HelpMenuSections.Support,
-            before=ApplicationActions.SpyderDocumentationAction)
+        if self.is_plugin_enabled(Plugins.Help):
+            if self.is_plugin_available(Plugins.Help):
+                self._populate_help_menu()
+        else:
+            self._populate_help_menu()
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
@@ -156,3 +158,21 @@ class Tours(SpyderPluginV2):
                 trimmed_tour.append(step)
 
         return trimmed_tour
+
+    def _populate_help_menu(self):
+        """Add the Tour item to Spyder's Help menu."""
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        help_plugin = self.get_plugin(Plugins.Help)
+        help_tutorial_action = None
+
+        if help_plugin:
+            from spyder.plugins.help.plugin import HelpActions
+            help_tutorial_action = HelpActions.ShowSpyderTutorialAction
+
+        mainmenu.add_item_to_application_menu(
+            self.get_container().tour_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Documentation,
+            before=help_tutorial_action,
+            before_section=HelpMenuSections.ExternalDocumentation,
+        )
