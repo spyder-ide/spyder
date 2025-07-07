@@ -76,8 +76,8 @@
 
 ### Main menu
 
-* **Breaking** - Remove the `Cursor`, `Formatting` and `CodeAnalysis` sections from `SourceMenuSections`.
-* Add a `Formatting` section to `EditMenuSections`, `Cursor` to `SearchMenuSections` and `Autofix` to `SourceMenuSections`.
+* **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
+* **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
 
 #### SpyderPluginV2
 

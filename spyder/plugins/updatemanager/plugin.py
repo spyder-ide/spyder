@@ -25,7 +25,7 @@ from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
     REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.MainMenu, Plugins.StatusBar]
+    OPTIONAL = [Plugins.Application, Plugins.MainMenu, Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
     CONF_FILE = False
@@ -55,10 +55,15 @@ class UpdateManager(SpyderPluginV2):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.register_plugin_preferences(self)
 
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        if self.is_plugin_available(Plugins.MainMenu):
+            self._populate_help_menu()
+
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        if self.is_plugin_enabled(Plugins.Shortcuts):
-            if self.is_plugin_available(Plugins.Shortcuts):
+        if self.is_plugin_enabled(Plugins.Application):
+            if self.is_plugin_available(Plugins.Application):
                 self._populate_help_menu()
         else:
             self._populate_help_menu()
@@ -106,11 +111,15 @@ class UpdateManager(SpyderPluginV2):
     def _populate_help_menu(self):
         """Add update action and menu to the Help menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
+        from spyder.plugins.application.api import ApplicationActions
+        help_spyder_action = ApplicationActions.HelpSpyderAction
+
         mainmenu.add_item_to_application_menu(
             self.check_update_action,
             menu_id=ApplicationMenus.Help,
-            section=HelpMenuSections.Support,
-            before_section=HelpMenuSections.ExternalDocumentation)
+            section=HelpMenuSections.About,
+            before=help_spyder_action,
+        )
 
     @property
     def _window(self):

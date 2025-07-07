@@ -73,9 +73,9 @@ class PythonpathManager(SpyderPluginV2):
         main_menu.add_item_to_application_menu(
             container.path_manager_action,
             menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.Tools,
+            section=ToolsMenuSections.Managers,
             before=ApplicationActions.SpyderUserEnvVariables,
-            before_section=ToolsMenuSections.External
+            before_section=ToolsMenuSections.Preferences,
         )
 
     @on_plugin_available(plugin=Plugins.Projects)

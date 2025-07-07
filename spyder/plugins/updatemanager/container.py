@@ -49,7 +49,7 @@ class UpdateManagerContainer(PluginMainContainer):
         # Actions
         self.check_update_action = self.create_action(
             UpdateManagerActions.SpyderCheckUpdateAction,
-            _("Check for updates..."),
+            _("Check for updates"),
             triggered=self.start_check_update
         )
 
@@ -119,4 +119,4 @@ class UpdateManagerContainer(PluginMainContainer):
         if is_disabled:
             self.check_update_action.setText(_("Checking for updates..."))
         else:
-            self.check_update_action.setText(_("Check for updates..."))
+            self.check_update_action.setText(_("Check for updates"))

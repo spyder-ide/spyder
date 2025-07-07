@@ -127,9 +127,8 @@ class ProjectsMenuSections:
 
 
 class ToolsMenuSections:
-    Tools = 'tools_section'
-    External = 'external_section'
-    Extras = 'extras_section'
+    Managers = 'managers_section'
+    Preferences = 'preferences_section'
 
 
 class ViewMenuSections:
@@ -142,8 +141,8 @@ class ViewMenuSections:
 
 class HelpMenuSections:
     Documentation = 'documentation_section'
-    Support = 'support_section'
     ExternalDocumentation = 'external_documentation_section'
+    Support = 'support_section'
     About = 'about_section'
 
 

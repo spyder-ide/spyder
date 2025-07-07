@@ -149,8 +149,8 @@ class RemoteClient(SpyderPluginV2):
         mainmenu.add_item_to_application_menu(
             action,
             menu_id=ApplicationMenus.Tools,
-            section=ToolsMenuSections.External,
-            before_section=ToolsMenuSections.Extras,
+            section=ToolsMenuSections.Managers,
+            before_section=ToolsMenuSections.Preferences,
         )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)

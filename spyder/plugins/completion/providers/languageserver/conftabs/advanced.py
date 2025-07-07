@@ -157,7 +157,7 @@ class AdvancedConfigTab(SpyderPreferencesTab):
                   "If that's the case, please reset your Spyder preferences "
                   "by going to the menu"
                   "<br><br>"
-                  "<tt>Tools > Reset Spyder to factory defaults</tt>"
+                  "<tt>Tools > Reset all preferences to default</tt>"
                   "<br><br>"
                   "instead of reporting a bug."))
 

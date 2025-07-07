@@ -215,7 +215,7 @@ class ApplicationContainer(PluginMainContainer):
         # Support actions
         self.trouble_action = self.create_action(
             ApplicationActions.SpyderTroubleshootingAction,
-            _("Troubleshooting"),
+            _("Troubleshooting guide"),
             triggered=lambda: start_file(__trouble_url__))
         self.report_action = self.create_action(
             ConsoleActions.SpyderReportAction,
@@ -224,7 +224,7 @@ class ApplicationContainer(PluginMainContainer):
             triggered=self.sig_report_issue_requested)
         self.dependencies_action = self.create_action(
             ApplicationActions.SpyderDependenciesAction,
-            _("Dependencies..."),
+            _("Dependency status"),
             triggered=self.show_dependencies,
             icon=self.create_icon('advanced'))
         self.support_group_action = self.create_action(
