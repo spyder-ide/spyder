@@ -132,8 +132,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         panes_items = [
             container._plugins_menu,
             container._lock_interface_action,
+            container._maximize_dockwidget_action,
             container._close_dockwidget_action,
-            container._maximize_dockwidget_action]
+        ]
         for panes_item in panes_items:
             mainmenu.add_item_to_application_menu(
                 panes_item,
