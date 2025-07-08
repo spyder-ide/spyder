@@ -151,7 +151,7 @@ def get_coding(text, force_charset_normalizer=False, default_codec=None):
 
     # Fallback using charset_normalizer
     if is_binary_string(text) and (force_charset_normalizer or default_codec is None):
-        sample = b"\n".join(text.splitlines()[:2])
+        sample = text
 
         result = from_bytes(sample).best()
 
