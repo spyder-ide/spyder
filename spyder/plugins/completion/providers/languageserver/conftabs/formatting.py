@@ -35,34 +35,12 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
 
         self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
-            'pycodestyle/max_line_length', min_=10, max_=500, step=1,
+            'flake8/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
 
         vertical_line_box = newcb(
             _("Show vertical line at that length"), 'edge_line',
             section='editor')
-
-        # Code style layout
-        code_style_g_layout = QGridLayout()
-        code_style_g_layout.addWidget(
-            self.code_style_filenames_match.label, 1, 0)
-        code_style_g_layout.addWidget(
-            self.code_style_filenames_match.textbox, 1, 1)
-        code_style_g_layout.addWidget(self.code_style_exclude.label, 2, 0)
-        code_style_g_layout.addWidget(self.code_style_exclude.textbox, 2, 1)
-
-        # Set Code style options enabled/disabled
-        code_style_g_widget = QWidget()
-        code_style_g_widget.setLayout(code_style_g_layout)
-        code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
-        self.code_style_check.checkbox.toggled.connect(
-            code_style_g_widget.setEnabled)
-
-        # Code style layout
-        code_style_group = QGroupBox(_("Code style"))
-        code_style_layout = QVBoxLayout()
-        code_style_layout.addWidget(code_style_g_widget)
-        code_style_group.setLayout(code_style_layout)
 
         # Maximum allowed line length layout
         line_length_group = QGroupBox(_("Line length"))
@@ -111,7 +89,6 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         code_fmt_group.setLayout(code_fmt_layout)
 
         code_style_fmt_layout = QVBoxLayout()
-        code_style_fmt_layout.addWidget(code_style_group)
         code_style_fmt_layout.addWidget(code_fmt_group)
         code_style_fmt_layout.addWidget(line_length_group)
         self.setLayout(code_style_fmt_layout)

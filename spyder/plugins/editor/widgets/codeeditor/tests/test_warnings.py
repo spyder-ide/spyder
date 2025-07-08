@@ -31,11 +31,11 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
              True)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
              True)
 
     # After this call the manager needs to be reinitialized
@@ -48,7 +48,7 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
                  False)
 
         CONF.set('completions',
-                 ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+                 ('provider_configuration', 'lsp', 'values', 'flake8'),
                  False)
 
         # After this call the manager needs to be reinitialized
@@ -70,11 +70,11 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     editor.set_text(TEXT)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle/ignore'),
+             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
              'D100')
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle/ignore'),
+             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
              'E261')
 
     # After this call the manager needs to be reinitialized
@@ -102,7 +102,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
              '')
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle/ignore'),
+             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
              '')
 
     completion_plugin.after_configuration_update([])
@@ -241,9 +241,7 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
     qtbot.waitSignal(editor.completions_response_signal, timeout=30000)
 
     # Assert that the W293 warning is gone.
-    expected = [['D100: Missing docstring in public module', 1],
-                ['D103: Missing docstring in public function', 1],
-                ['E261 at least two spaces before inline comment', 2],
+    expected = [['E261 at least two spaces before inline comment', 2],
                 ["undefined name 's'", 4],
                 ["undefined name 'undefined_function'", 6],
                 ["W292 no newline at end of file", 6],
@@ -319,12 +317,12 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     elif sys.version_info >= (3, 10):
         expected = [
             ["'(' was never closed", 1],
-            ['E901 TokenError: EOF in multi-line statement', 2]
+            ['E901 TokenError: EOF in multi-line statement', 1]
         ]
     else:
         expected = [
             ['unexpected EOF while parsing', 1],
-            ['E901 TokenError: EOF in multi-line statement', 2]
+            ['E999 SyntaxError: unexpected EOF while parsing', 1]
         ]
 
     # Notify changes.
@@ -345,7 +343,7 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
 
     # Assert that the error is gone.
     qtbot.wait(2000)
-    expected = [["D100: Missing docstring in public module", 1]]
+    expected = []
     assert editor.get_current_warnings() == expected
 
 

@@ -68,7 +68,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
         ('flake8/extendIgnore', ''),
-        ('pycodestyle/max_line_length', 79),
+        ('flake8/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -723,10 +723,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         host = self.get_conf('advanced/host', '127.0.0.1')
         port = self.get_conf('advanced/port', 2087)
 
-        # Pycodestyle
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
+        
 
         # Flake8
+        cs_max_line_length = self.get_conf('flake8/max_line_length', 79)
         f8_exclude = self.get_conf('flake8/exclude', '').split(',')
         f8_filename = self.get_conf('flake8/filename', '').split(',')
         f8_select = self.get_conf('flake8/extendSelect', '').split(',')
@@ -806,7 +806,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Setting max line length for formatters.
         # Notes:
         # 1. The autopep8 plugin shares the same maxLineLength value with the
-        #    pycodestyle one. That's why it's not necessary to set it here.
+        #    flake8 one. That's why it's not necessary to set it here.
         # 2. The yapf pylsp plugin doesn't support this yet.
         formatter_options['black']['line_length'] = cs_max_line_length
 
