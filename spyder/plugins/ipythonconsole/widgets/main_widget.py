@@ -2730,23 +2730,32 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     async def __get_remote_kernel_specs(self, config_id: str):
         """Get kernel specs from remote Jupyter API."""
         async with self._plugin._remote_client.get_jupyter_api(config_id) as jupyter_api:
-            return await jupyter_api.list_kernel_specs()
+            return (await jupyter_api.list_kernel_specs(),
+                    jupyter_api.options.get("default_kernel_spec"))
 
     def __add_kernels_specs_callback(self, config_id: str, server_name: str):
         """Callback to add remote kernel specs."""
         @AsyncDispatcher.QtSlot
         def callback(future):
             try:
-                kernel_specs = future.result()
-                if kernel_specs:
-                    self._add_remote_kernel_spec_action(config_id, server_name, kernel_specs)
+                result = future.result()
+                if result[0]:
+                    self._add_remote_kernel_spec_action(
+                        config_id, server_name, *result,
+                    )
             except Exception:
                 logger.exception("Failed to get remote kernel specs")
         return callback
 
-    def _add_remote_kernel_spec_action(self, config_id: str, server_name: str, kernel_specs: dict):
+    def _add_remote_kernel_spec_action(
+        self,
+        config_id: str,
+        server_name: str,
+        kernel_specs: dict,
+        default_spec_name: str | None = None,
+    ):
         """Add remote kernel spec actions to the cached kernels."""
-        default_spec_name = kernel_specs['default']
+        default_spec_name = default_spec_name or kernel_specs['default']
         for spec_name, spec_info in kernel_specs['kernelspecs'].items():
             if spec_name == default_spec_name:
                 # Skip the default kernel spec, as it is already handled by the
