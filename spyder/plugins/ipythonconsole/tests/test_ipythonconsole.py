@@ -2630,6 +2630,5 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     assert ('' == main_widget.time_label.text())
 
 
-
 if __name__ == "__main__":
     pytest.main()
