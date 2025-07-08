@@ -10,6 +10,7 @@ Widget to show a friendly message when another one is empty.
 It's used in combination with a QStackedWidget.
 """
 
+from __future__ import annotations
 import textwrap
 
 import qstylizer.style
@@ -31,24 +32,29 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
     def __init__(
         self,
         parent,
-        icon_filename=None,
-        text=None,
-        description=None,
+        icon_filename: str | None = None,
+        text: str | None = None,
+        description: str | None = None,
         top_stretch: int = 1,
         middle_stretch: int = 1,
         bottom_stretch: int = 0,
         spinner: bool = False,
         adjust_on_resize: bool = False,
+        highlight_on_focus_in: bool = True,
     ):
         super().__init__(parent)
 
         # Attributes
-        self._adjust_on_resize = adjust_on_resize
         self._description = description
+        self._adjust_on_resize = adjust_on_resize
+        self._highlight_on_focus_in = highlight_on_focus_in
         self._is_shown = False
         self._spin = None
         self._min_height = None
         self._is_visible = False
+
+        # This is public so it can be overridden in subclasses
+        self.css = qstylizer.style.StyleSheet()
 
         # This is necessary to make Qt reduce the size of all widgets on
         # vertical resizes
@@ -142,7 +148,7 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         pane_empty_layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(pane_empty_layout)
 
-        # Setup border style
+        # Setup style
         self.setFocusPolicy(Qt.StrongFocus)
         self._apply_stylesheet(False)
 
@@ -189,11 +195,13 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         super().hideEvent(event)
 
     def focusInEvent(self, event):
-        self._apply_stylesheet(True)
+        if self._highlight_on_focus_in:
+            self._apply_stylesheet(True)
         super().focusOutEvent(event)
 
     def focusOutEvent(self, event):
-        self._apply_stylesheet(False)
+        if self._highlight_on_focus_in:
+            self._apply_stylesheet(False)
         super().focusOutEvent(event)
 
     def resizeEvent(self, event):
@@ -209,15 +217,14 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
         else:
             border_color = SpyderPalette.COLOR_BACKGROUND_4
 
-        qss = qstylizer.style.StyleSheet()
-        qss.QFrame.setValues(
+        self.css.QFrame.setValues(
             border=f'1px solid {border_color}',
             margin='0px',
             padding='0px',
             borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
         )
 
-        self.setStyleSheet(qss.toString())
+        self.setStyleSheet(self.css.toString())
 
     def _start_spinner(self):
         """

@@ -84,7 +84,7 @@ class Help(SpyderDockablePlugin):
 
         self.tutorial_action = self.create_action(
             HelpActions.ShowSpyderTutorialAction,
-            text=_("Spyder tutorial"),
+            text=_("Built-in tutorial"),
             triggered=self.show_tutorial,
             register_shortcut=False,
         )
@@ -212,7 +212,8 @@ class Help(SpyderDockablePlugin):
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.Documentation,
                 before=shortcuts_summary_action,
-                before_section=HelpMenuSections.Support)
+                before_section=HelpMenuSections.ExternalDocumentation,
+            )
 
     def _remove_menus(self):
         from spyder.plugins.mainmenu.api import ApplicationMenus
