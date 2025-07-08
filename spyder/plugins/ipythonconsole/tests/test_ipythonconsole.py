@@ -2581,7 +2581,9 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     assert ('00:00:00' in main_widget.time_label.text())
 
     # Wait until the kernel is ready and Wait 5 seconds to let the timer advance
-    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT)
     qtbot.wait(5000)
 
     # Check that elapsed time has advanced (at least to 00:00:04)
@@ -2608,7 +2610,9 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
 
     # Create a new client to test that the global config is applied
     ipyconsole.create_new_client()
-    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT)
 
     # Check the timer starts at 00:00:00 for the new client
     assert ('00:00:00' in main_widget.time_label.text())
@@ -2624,7 +2628,9 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
 
     # Create another new client to verify elapsed time is disabled
     ipyconsole.create_new_client()
-    qtbot.waitUntil(lambda: shell.spyder_kernel_ready, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(
+            lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+            timeout=SHELL_TIMEOUT)
 
     # Check that the elapsed time is not shown
     assert ('' == main_widget.time_label.text())
