@@ -103,7 +103,7 @@ def is_binary_string(bytes_to_check):
 
     # finally use all the check to decide binary or text
     decodable_as_unicode = False
-    if detected_encoding:
+    if detected_encoding and detected_encoding.get('confidence') is not None:
         if (detected_encoding['confidence'] > 0.9 and
                 detected_encoding['encoding'] != 'ascii'):
             try:
