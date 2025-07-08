@@ -104,7 +104,7 @@ def is_binary_string(bytes_to_check):
     if best_match:
         detected_encoding = {
             'encoding': best_match.encoding,
-            'confidence': best_match.fingerprint
+            'confidence': best_match.quality/100
         }
     else:
         detected_encoding = None
