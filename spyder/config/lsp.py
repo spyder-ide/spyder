@@ -127,7 +127,12 @@ PYTHON_CONFIG = {
                     'args': []
                 },
                 'flake8': {
-                    'enabled': True,
+                    'enabled': False,
+                    'exclude': [],
+                    'extendSelect': [],
+                    'extendIgnore': [],
+                    'indentSize': 4,
+                    'max_line_length': 79
                 },
                 'pyls_spyder': {
                     'enable_block_comments': True,

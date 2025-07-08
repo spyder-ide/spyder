@@ -36,6 +36,8 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    ClientType,
+    JupyterHubClientOptions,
     RemoteClientLog,
     SSHClientOptions,
 )
@@ -57,6 +59,7 @@ class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
     invalid_address: bool | None
+    invalid_url: bool | None
 
 
 # =============================================================================
@@ -76,27 +79,38 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if host_id is None:
             self.host_id = str(uuid.uuid4())
             self.status = ConnectionStatus.Inactive
+            self.client_type = None
         else:
             self.host_id = host_id
             self.status = self.get_option(
                 f"{host_id}/status", default=ConnectionStatus.Inactive
             )
+            self.client_type = self.get_option(
+                f"{host_id}/client_type", default=ClientType.SSH
+            )
 
+        self._auth_methods = None
         self._widgets_for_validation = {}
         self._validation_labels = {}
         self._name_widgets = {}
         self._address_widgets = {}
+        self._url_widgets = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
     def auth_method(self, from_gui=False):
         if from_gui:
-            if self._auth_methods.combobox.currentIndex() == 0:
-                auth_method = AuthenticationMethod.Password
-            elif self._auth_methods.combobox.currentIndex() == 1:
-                auth_method = AuthenticationMethod.KeyFile
+            if self.client_type == ClientType.SSH or (
+                self._auth_methods and self._auth_methods.combobox.isVisible()
+            ):
+                if self._auth_methods.combobox.currentIndex() == 0:
+                    auth_method = AuthenticationMethod.Password
+                elif self._auth_methods.combobox.currentIndex() == 1:
+                    auth_method = AuthenticationMethod.KeyFile
+                else:
+                    auth_method = AuthenticationMethod.ConfigFile
             else:
-                auth_method = AuthenticationMethod.ConfigFile
+                auth_method = AuthenticationMethod.JupyterHub
         else:
             auth_method = self.get_option(f"{self.host_id}/auth_method")
 
@@ -136,6 +150,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 if not self._validate_address(address):
                     reasons["invalid_address"] = True
                     widget.status_action.setVisible(True)
+            elif widget == self._url_widgets.get(auth_method):
+                # Validate URL
+                widget.status_action.setVisible(False)
+                url = widget.textbox.text()
+                if not self._validate_url(url):
+                    reasons["invalid_url"] = True
+                    widget.status_action.setVisible(True)
             else:
                 widget.status_action.setVisible(False)
 
@@ -147,10 +168,61 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         return False if reasons else True
 
-    def create_connection_info_widget(self):
+    def create_jupyterhub_connection_info_widget(self):
         """
         Create widget that contains all other widgets to receive or display
-        connection info.
+        JupyterHub server based connection info.
+        """
+        if self.NEW_CONNECTION:
+            # Widgets
+            intro_label = QLabel(
+                _("Configure settings for connecting to a JupyterHub server")
+            )
+            intro_tip_text = _(
+                "Spyder will use this connection to start remote kernels in "
+                "the IPython Console. This allows you to use Spyder locally "
+                "while running code remotely via a JupyterHub server."
+            )
+            intro_tip = TipWidget(
+                tip_text=intro_tip_text,
+                icon=ima.icon('info_tip'),
+                hover_icon=ima.icon('info_tip_hover'),
+                size=AppStyle.ConfigPageIconSize + 2,
+                wrap_text=True,
+            )
+
+            # Increase font size to make it more relevant
+            font = self.get_font(SpyderFontType.Interface)
+            font.setPointSize(font.pointSize() + 1)
+            intro_label.setFont(font)
+
+            # Layout
+            intro_layout = QHBoxLayout()
+            intro_layout.setContentsMargins(0, 0, 0, 0)
+            intro_layout.setSpacing(0)
+            intro_layout.setAlignment(Qt.AlignCenter)
+            intro_layout.addWidget(intro_label)
+            intro_layout.addWidget(intro_tip)
+
+        # Final layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize, 0, 3 * AppStyle.MarginSize, 0
+        )
+        if self.NEW_CONNECTION:
+            layout.addLayout(intro_layout)
+            layout.addSpacing(8 * AppStyle.MarginSize)
+        layout.addWidget(self._create_jupyterhub_subpage())
+
+        jupyterhub_connection_info_widget = QWidget(self)
+        jupyterhub_connection_info_widget.setLayout(layout)
+
+        return jupyterhub_connection_info_widget
+
+    def create_ssh_connection_info_widget(self):
+        """
+        Create widget that contains all other widgets to receive or display
+        SSH based connection info.
         """
         # Show intro text and tip for new connections
         if self.NEW_CONNECTION:
@@ -231,10 +303,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(subpages)
 
-        connection_info_widget = QWidget(self)
-        connection_info_widget.setLayout(layout)
+        ssh_connection_info_widget = QWidget(self)
+        ssh_connection_info_widget.setLayout(layout)
 
-        return connection_info_widget
+        return ssh_connection_info_widget
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -457,6 +529,66 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         return configfile_widget
 
+    def _create_jupyterhub_subpage(self):
+        # Widgets
+        name = self.create_lineedit(
+            text=_("Name *"),
+            option=f"{self.host_id}/{AuthenticationMethod.JupyterHub}/name",
+            tip=_("Introduce a name to identify your connection"),
+            status_icon=ima.icon("error"),
+        )
+
+        url = self.create_lineedit(
+            text=_("Server URL *"),
+            option=f"{self.host_id}/url",
+            tip=_("This is the URL of the JupyterHub server"),
+            validate_callback=self._validate_url,
+            validate_reason=_("The URL is not a valid one"),
+        )
+
+        token = self.create_lineedit(
+            text=_("Token *"),
+            option=f"{self.host_id}/token",
+            tip=(
+                _("Your token will be saved securely by Spyder")
+                if self.NEW_CONNECTION
+                else _("Your token is saved securely by Spyder")
+            ),
+            status_icon=ima.icon("error"),
+            password=True
+        )
+
+        validation_label = MessageLabel(self)
+
+        # Add widgets to their required dicts
+        self._name_widgets[AuthenticationMethod.JupyterHub] = name
+        self._widgets_for_validation[AuthenticationMethod.JupyterHub] = [
+            name,
+            url,
+            token,
+        ]
+        self._url_widgets[f"{AuthenticationMethod.JupyterHub}"] = url
+        self._validation_labels[
+            AuthenticationMethod.JupyterHub
+        ] = validation_label
+
+        # Layout
+        jupyterhub_layout = QVBoxLayout()
+        jupyterhub_layout.setContentsMargins(0, 0, 0, 0)
+        jupyterhub_layout.addWidget(name)
+        jupyterhub_layout.addSpacing(5 * AppStyle.MarginSize)
+        jupyterhub_layout.addWidget(url)
+        jupyterhub_layout.addSpacing(5 * AppStyle.MarginSize)
+        jupyterhub_layout.addWidget(token)
+        jupyterhub_layout.addSpacing(7 * AppStyle.MarginSize)
+        jupyterhub_layout.addWidget(validation_label)
+        jupyterhub_layout.addStretch()
+
+        jupyterhub_widget = QWidget(self)
+        jupyterhub_widget.setLayout(jupyterhub_layout)
+
+        return jupyterhub_widget
+
     def _validate_name(self, name):
         """Check connection name is not taken by a previous connection."""
         servers = self.get_option("servers", default={})
@@ -466,7 +598,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 continue
 
             names = [
-                self.get_option(f"{server}/{method}/name")
+                self.get_option(f"{server}/{method}/name", default="")
                 for method in get_class_values(AuthenticationMethod)
             ]
 
@@ -474,6 +606,19 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 return False
 
         return True
+
+    def _validate_url(self, url):
+        # Regex pattern for a valid URL.
+        # See https://learn.microsoft.com/en-us/previous-versions/msp-n-p/
+        # ff650303(v=pandp.10)#common-regular-expressions
+        url_pattern = (
+            r'^(ht|f)tp(s?)\:\/\/'
+            r'[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)'
+            r'([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$'
+        )
+        url_re = re.compile(url_pattern)
+
+        return True if url_re.match(url) else False
 
     def _validate_address(self, address):
         """Validate if address introduced by users is correct."""
@@ -526,6 +671,11 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 + suffix
             )
 
+        if reasons.get("invalid_url"):
+            text += (
+                prefix + _("The URL you provided is not valid.") + suffix
+            )
+
         if reasons.get("missing_info"):
             text += (
                 prefix
@@ -538,7 +688,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 class NewConnectionPage(BaseConnectionPage):
     """Page to receive SSH credentials for a remote connection."""
 
-    MAX_WIDTH = 540 if MAC else 520
+    MAX_WIDTH = 550 if MAC else 530
     LOAD_FROM_CONFIG = False
     NEW_CONNECTION = True
 
@@ -548,16 +698,45 @@ class NewConnectionPage(BaseConnectionPage):
         return _("New connection")
 
     def setup_page(self):
-        info_widget = self.create_connection_info_widget()
+        ssh_info_widget = self.create_ssh_connection_info_widget()
+        jupyterhub_info_widget = self.create_jupyterhub_connection_info_widget()
 
         # Use a stacked layout so we can hide the current widgets and create
         # new ones in case users want to introduce more connections.
-        self.layout = QStackedLayout()
-        self.layout.addWidget(info_widget)
-        self.setLayout(self.layout)
+        self.ssh_widget = QWidget(self)
+        ssh_layout = QStackedLayout()
+        ssh_layout.addWidget(ssh_info_widget)
+        self.ssh_widget.setLayout(ssh_layout)
+
+        self.jupyterhub_widget = QWidget(self)
+        jupyterhub_layout = QStackedLayout()
+        jupyterhub_layout.addWidget(jupyterhub_info_widget)
+        self.jupyterhub_widget.setLayout(jupyterhub_layout)
+
+        self.create_tab(_("SSH"), self.ssh_widget)
+        self.create_tab(_("JupyterHub"), self.jupyterhub_widget)
 
     def get_icon(self):
         return self.create_icon("add_server")
+
+    def save_to_conf(self):
+        super().save_to_conf()
+
+        if self.NEW_CONNECTION:
+            # Set the client type for new connections following current tab
+            # index
+            client_type = (
+                ClientType.SSH
+                if self.tabs.currentIndex() == 0
+                else ClientType.JupyterHub
+            )
+            self.set_option(f"{self.host_id}/client_type", client_type)
+            if client_type == ClientType.JupyterHub:
+                # Set correct auth_method option following client type detected
+                self.set_option(
+                    f"{self.host_id}/auth_method",
+                    AuthenticationMethod.JupyterHub,
+                )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -571,9 +750,19 @@ class NewConnectionPage(BaseConnectionPage):
             self.reset_widget_dicts()
 
             # Add a new, clean set of widgets to the page
-            clean_info_widget = self.create_connection_info_widget()
-            self.layout.addWidget(clean_info_widget)
-            self.layout.setCurrentWidget(clean_info_widget)
+            ssh_clean_info_widget = self.create_ssh_connection_info_widget()
+            self.ssh_widget.layout().addWidget(ssh_clean_info_widget)
+            self.ssh_widget.layout().setCurrentWidget(ssh_clean_info_widget)
+
+            jupyterhub_clean_info_widget = (
+                self.create_ssh_connection_info_widget()
+            )
+            self.jupyterhub_widget.layout().addWidget(
+                jupyterhub_clean_info_widget
+            )
+            self.jupyterhub_widget.layout().setCurrentWidget(
+                jupyterhub_clean_info_widget
+            )
         else:
             # Change option names associated to all widgets present in the page
             # to reference the new host_id
@@ -601,7 +790,11 @@ class ConnectionPage(BaseConnectionPage):
         return self.get_option(f"{self.host_id}/{self.auth_method()}/name")
 
     def setup_page(self):
-        info_widget = self.create_connection_info_widget()
+        if self.client_type == ClientType.SSH:
+            info_widget = self.create_ssh_connection_info_widget()
+        else:
+            info_widget = self.create_jupyterhub_connection_info_widget()
+
         self.status_widget = ConnectionStatusWidget(self, self.host_id)
 
         self.create_tab(_("Connection status"), self.status_widget)
@@ -613,19 +806,26 @@ class ConnectionPage(BaseConnectionPage):
     # ---- Public API
     # -------------------------------------------------------------------------
     def save_server_info(self):
-        # Mapping from options in our config system to those accepted by
-        # asyncssh
-        options = SSHClientOptions(
-            host=self.get_option(
-                f"{self.host_id}/{self.auth_method()}/address"
-            ),
-            port=self.get_option(f"{self.host_id}/{self.auth_method()}/port"),
-            username=self.get_option(
-                f"{self.host_id}/{self.auth_method()}/username"
-            ),
-            client_keys=self.get_option(f"{self.host_id}/keyfile"),
-            config=self.get_option(f"{self.host_id}/configfile"),
-        )
+        if self.client_type == ClientType.SSH:
+            # Mapping from options in our config system to those accepted by
+            # asyncssh
+            options = SSHClientOptions(
+                host=self.get_option(
+                    f"{self.host_id}/{self.auth_method()}/address"
+                ),
+                port=self.get_option(f"{self.host_id}/{self.auth_method()}/port"),
+                username=self.get_option(
+                    f"{self.host_id}/{self.auth_method()}/username"
+                ),
+                client_keys=self.get_option(f"{self.host_id}/keyfile"),
+                config=self.get_option(f"{self.host_id}/configfile"),
+            )
+        elif self.client_type == ClientType.JupyterHub:
+            # Mapping from options in our config system to those needed to
+            # connect with a JupyterHub server
+            options = JupyterHubClientOptions(
+                url=self.get_option(f"{self.host_id}/url"),
+            )
 
         servers = self.get_option("servers", default={})
         servers[self.host_id] = options
@@ -649,14 +849,20 @@ class ConnectionPage(BaseConnectionPage):
             "keyfile_login/address",
             "keyfile_login/port",
             "keyfile_login/username",
+            "configfile_login/name",
+            "jupyterhub_login/name",
             "keyfile",
             "configfile",
+            "status",
+            "status_message",
+            "url",
+            "client_type",
         ]
         for option in options:
             self.remove_option(f"{self.host_id}/{option}")
 
         # Remove secure options
-        for secure_option in ["password", "passphrase"]:
+        for secure_option in ["password", "passphrase", "token"]:
             # One of these options was saved securely and other as empty in our
             # config system, so we try to remove them both.
             for secure in [True, False]:
