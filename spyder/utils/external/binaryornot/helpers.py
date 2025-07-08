@@ -17,7 +17,7 @@ Adapted from binaryornot/helpers.py of
 `BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
-from charset_normalizer import detect
+from charset_normalizer import detect, from_bytes
 import logging
 
 
@@ -98,12 +98,21 @@ def is_binary_string(bytes_to_check):
 
     # then check for binary for possible encoding detection
     # with charset_normalizer
-    detected_encoding = detect(bytes_to_check)
+    results = from_bytes(bytes_to_check)
+    best_match = results.best()
+
+    if best_match:
+        detected_encoding = {
+            'encoding': best_match.encoding,
+            'confidence': best_match.fingerprint
+        }
+    else:
+        detected_encoding = None
     logger.debug('detected_encoding: %(detected_encoding)r', locals())
 
     # finally use all the check to decide binary or text
     decodable_as_unicode = False
-    if detected_encoding and detected_encoding.get('confidence') is not None:
+    if detected_encoding:
         if (detected_encoding['confidence'] > 0.9 and
                 detected_encoding['encoding'] != 'ascii'):
             try:
