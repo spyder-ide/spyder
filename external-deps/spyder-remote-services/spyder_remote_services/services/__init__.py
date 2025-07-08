@@ -4,9 +4,6 @@ from jupyter_server.auth.decorator import authorized
 from jupyter_server.base.handlers import JupyterHandler
 from tornado import web
 
-from spyder_remote_services.services.envs_manager.handlers import (
-    handlers as envs_manager_handlers,
-)
 from spyder_remote_services.services.files.handlers import (
     handlers as files_handlers,
 )
@@ -28,7 +25,6 @@ class VersionHandler(JupyterHandler):
 
 
 handlers = (
-    envs_manager_handlers +
     files_handlers +
     environ_handlers +
     [(r"/version", VersionHandler)]
