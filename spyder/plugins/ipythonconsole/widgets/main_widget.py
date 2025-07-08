@@ -2693,17 +2693,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             self._remote_consoles_menu.render()
 
     def setup_server_consoles_submenu(self, config_id: str):
-        """Add remote kernel specs to the cached kernels."""
+        """Add remote kernel specs to the remote consoles submenu."""
         if self._remote_consoles_menu is None:
             self._remote_consoles_menu = self.create_menu(
-                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+                RemoteConsolesMenus.RemoteConsoles,
+                _("New console in remote server")
             )
 
         for action in self._remote_consoles_menu.get_actions():
             action_id = getattr(action, "action_id", None)
-            if (action_id is None or
-                action_id == config_id or
-                not action_id.startswith(config_id)):
+            if (
+                action_id is None
+                or action_id == config_id
+                or not action_id.startswith(config_id)
+            ):
                 continue
             self._remote_consoles_menu.remove_action(action_id)
 
@@ -2720,16 +2723,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         for action in self._remote_consoles_menu.get_actions():
             action_id = getattr(action, "action_id", None)
-            if (action_id is None or
-                action_id == config_id or
-                not action_id.startswith(config_id)):
+            if (
+                action_id is None
+                or action_id == config_id
+                or not action_id.startswith(config_id)
+            ):
                 continue
             self._remote_consoles_menu.remove_action(action.action_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
     async def __get_remote_kernel_specs(self, config_id: str):
         """Get kernel specs from remote Jupyter API."""
-        async with self._plugin._remote_client.get_jupyter_api(config_id) as jupyter_api:
+        async with self._plugin._remote_client.get_jupyter_api(
+            config_id
+        ) as jupyter_api:
             return (await jupyter_api.list_kernel_specs(),
                     jupyter_api.options.get("default_kernel_spec"))
 
@@ -2754,16 +2761,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         kernel_specs: dict,
         default_spec_name: str | None = None,
     ):
-        """Add remote kernel spec actions to the cached kernels."""
+        """Add remote kernel spec actions to the remote consoles submenu."""
         default_spec_name = default_spec_name or kernel_specs['default']
         for spec_name, spec_info in kernel_specs['kernelspecs'].items():
             if spec_name == default_spec_name:
                 # Skip the default kernel spec, as it is already handled by the
                 # default action in the remote consoles menu.
                 continue
+
             # Create an action for each kernel spec
-            spec_display_name = (spec_info["spec"].get("display_name") or
-                                 spec_info["name"])
+            spec_display_name = (
+                spec_info["spec"].get("display_name")
+                or spec_info["name"]
+            )
             action = self.create_action(
                 name=f"{config_id}_{spec_name}",
                 text=f"{spec_display_name} ({server_name})",

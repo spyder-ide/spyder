@@ -240,8 +240,10 @@ class JupyterAPI(SpyderBaseJupyterAPI):
         data = {}
         if spyder_kernel:
             data["spyder_kernel"] = True
-        data["name"] = (kernel_spec or
-                        self.manager.options.get("default_kernel_spec"))
+        data["name"] = (
+            kernel_spec
+            or self.manager.options.get("default_kernel_spec")
+        )
 
         async with self.session.post(
             self.api_url / "kernels", json=data

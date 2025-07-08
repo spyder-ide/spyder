@@ -1016,4 +1016,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.__remote_reconnect_requested = True
 
     def start_remote_kernel(self, kernel_spec=None):
-        self._new_remote_kernel(kernel_spec).connect(self._on_remote_kernel_started)
+        self._new_remote_kernel(kernel_spec).connect(
+            self._on_remote_kernel_started
+        )
