@@ -52,6 +52,7 @@ class ConnectionDialog(SidebarDialog):
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
     sig_connections_changed = Signal()
+    sig_import_env_requested = Signal(str, str, str)
 
     def __init__(self, parent=None):
         self.ICON = ima.icon('remote_server')
@@ -187,9 +188,15 @@ class ConnectionDialog(SidebarDialog):
         """Save the connection info stored in a page."""
         page = self.get_page()
 
-        # Validate info
-        if not page.validate_page():
-            return
+        # In this case the validation is done in _on_button_next_clicked
+        if not (
+            ENV_MANAGER
+            and page.NEW_CONNECTION
+            and page.get_current_tab() == "SSH"
+        ):
+            # Validate info
+            if not page.validate_page():
+                return
 
         if page.NEW_CONNECTION:
             # Save info provided by users
@@ -265,7 +272,10 @@ class ConnectionDialog(SidebarDialog):
         page = self.get_page()
 
         # Validate info
-        if not page.validate_page():
+        if ENV_MANAGER and page.NEW_CONNECTION:
+            if not self._new_connection_page.validate_env_creation():
+                return
+        elif not page.validate_page():
             return
 
         # This uses the current host_id in case users want to start a
@@ -280,7 +290,23 @@ class ConnectionDialog(SidebarDialog):
             # TODO: Handle the case when the connection info is active and
             # users change its info.
 
-        self.sig_start_server_requested.emit(host_id)
+        if ENV_MANAGER and page.NEW_CONNECTION:
+            if page.selected_env_creation_method() == CreateEnvMethods.NewEnv:
+                # TODO! Implement later
+                pass
+            elif (
+                page.selected_env_creation_method()
+                == CreateEnvMethods.ImportEnv
+            ):
+                import_file_path, env_name = page.get_create_env_info()
+                self.sig_import_env_requested.emit(
+                    host_id, import_file_path, env_name
+                )
+                page.show_ssh_info_widget()
+            elif page.selected_env_creation_method() == CreateEnvMethods.NoEnv:
+                self.sig_start_server_requested.emit(host_id)
+        else:
+            self.sig_start_server_requested.emit(host_id)
 
     def _stop_server(self):
         """Stop the server corresponding to a given page."""
