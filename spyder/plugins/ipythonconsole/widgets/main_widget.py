@@ -2737,8 +2737,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         async with self._plugin._remote_client.get_jupyter_api(
             config_id
         ) as jupyter_api:
-            return (await jupyter_api.list_kernel_specs(),
-                    jupyter_api.options.get("default_kernel_spec"))
+            return (
+                await jupyter_api.list_kernel_specs(),
+                jupyter_api.manager.options.get("default_kernel_spec")
+            )
 
     def __add_kernels_specs_callback(self, config_id: str, server_name: str):
         """Callback to add remote kernel specs."""
