@@ -10,7 +10,6 @@
 # Standard library imports
 from __future__ import annotations
 from collections import deque
-import functools
 
 # Third-party imports
 from qtpy.QtCore import Signal
@@ -31,6 +30,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 
 class RemoteClientContainer(PluginMainContainer):
+
     sig_start_server_requested = Signal(str)
     """
     This signal is used to request starting a remote server.
@@ -153,6 +153,9 @@ class RemoteClientContainer(PluginMainContainer):
             self.sig_server_changed
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
+        connection_dialog.sig_import_env_requested.connect(
+            self._plugin.sig_import_env_requested
+        )
 
         connection_dialog.show()
 
