@@ -312,6 +312,37 @@ class RemoteClient(SpyderPluginV2):
         )
         raise ValueError(msg)
 
+    def set_default_kernel_spec(self, name: str, server_id: str):
+        """Set the default kernel spec for a remote server.
+
+        This method sets the default kernel spec for a remote server
+        identified by `server_id`. The kernel spec is used to determine
+        which kernel spec is used when starting a new console on that server.
+
+        Parameters
+        ----------
+        name: str
+            Name of the kernel spec to set as default.
+        server_id: str
+            Identifier of the remote server for which to set
+            the default kernel spec.
+
+        Raises
+        ------
+        ValueError
+            If the server_id does not exist in the configuration.
+        """
+        configs = self.get_conf(self.CONF_SECTION_SERVERS, {})
+        if server_id not in configs:
+            msg = f"Configuration for remote server '{server_id}' not found."
+            raise ValueError(msg)
+
+        configs[server_id]["default_kernel_spec"] = name
+
+        if server_id in self._remote_clients:
+            server_options = self._remote_clients[server_id].options
+            server_options["default_kernel_spec"] = name
+
     # --- API Methods
     @staticmethod
     def register_api(kclass: typing.Type[SpyderBaseJupyterAPIType]):
