@@ -49,7 +49,7 @@ from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 
 try:
-    import spyder_env_manager  # noqa
+    from spyder_env_manager.spyder.widgets.new_environment import NewEnvironment
     ENV_MANAGER = True
 except Exception:
     ENV_MANAGER = False
@@ -707,6 +707,13 @@ class NewConnectionPage(BaseConnectionPage):
         return _("New connection")
 
     def setup_page(self):
+        # Attributes
+        self.env_method_group = QButtonGroup(self)
+        self._radio_buttons_to_info_widgets: dict[
+            CreateEnvMethods, QWidget
+        ] = {}
+
+        # Widgets
         self.ssh_info_widget = self.create_ssh_connection_info_widget()
         jupyterhub_info_widget = self.create_jupyterhub_connection_info_widget()
 
@@ -807,6 +814,31 @@ class NewConnectionPage(BaseConnectionPage):
     def selected_env_creation_method(self) -> CreateEnvMethods:
         return self.env_method_group.checkedId()
 
+    def validate_env_creation(self):
+        method_id = self.env_method_group.checkedId()
+        if method_id != CreateEnvMethods.NoEnv:
+            env_method_widget = self._radio_buttons_to_info_widgets[method_id]
+            if env_method_widget.validate_contents(env_names=[]):
+                return True
+            else:
+                return False
+
+        return True
+
+    def get_create_env_info(self):
+        method_id = self.env_method_group.checkedId()
+        env_method_widget = self._radio_buttons_to_info_widgets[method_id]
+        if method_id == CreateEnvMethods.NewEnv:
+            return (
+                env_method_widget.get_env_name(),
+                env_method_widget.get_python_version()
+            )
+        elif method_id == CreateEnvMethods.ImportEnv:
+            return (
+                env_method_widget.get_zip_file(),
+                env_method_widget.get_env_name()
+            )
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _create_env_creation_widget(self):
@@ -842,7 +874,9 @@ class NewConnectionPage(BaseConnectionPage):
         # Available methods
         methods_group = QGroupBox(_("Available methods"))
 
-        self.env_method_group = QButtonGroup(self)
+        self.env_method_group.idToggled.connect(
+            self._on_env_creation_method_changed
+        )
 
         new_env_radio = self.create_radiobutton(
             _("Create a new environment"),
@@ -863,14 +897,59 @@ class NewConnectionPage(BaseConnectionPage):
             id_=CreateEnvMethods.NoEnv,
         )
 
-        new_env_radio.radiobutton.setChecked(True)
-
         methods_layout = QVBoxLayout()
         methods_layout.addSpacing(3)
         methods_layout.addWidget(new_env_radio)
         methods_layout.addWidget(import_env_radio)
         methods_layout.addWidget(no_env_radio)
         methods_group.setLayout(methods_layout)
+
+        # Required info
+        info_group = QGroupBox(_("Required information"))
+
+        new_env_info = NewEnvironment(
+            self,
+            max_width_for_content=470,
+            show_in_remote_connections_dialog=True
+        )
+        new_env_info.setMaximumWidth(470)
+
+        import_env_info = NewEnvironment(
+            self,
+            max_width_for_content=470,
+            import_env=True,
+            show_in_remote_connections_dialog=True
+        )
+        import_env_info.setMaximumWidth(470)
+
+        no_env_info = QLabel(
+            _(
+                "You can set up an environment later by going to the menu "
+                "entry <i>Tools > Environment manager</i>."
+            )
+        )
+        no_env_info.setWordWrap(True)
+
+        info_layout = QVBoxLayout()
+        info_layout.addWidget(new_env_info)
+        info_layout.addWidget(import_env_info)
+        info_layout.addWidget(no_env_info)
+        info_group.setLayout(info_layout)
+
+        # Hide all info widgets to only show the one that's checked
+        for widget in [new_env_info, import_env_info, no_env_info]:
+            widget.setVisible(False)
+
+        # Use the following mapping to show/hide info widgets when the
+        # corresponding radio button is toggled
+        self._radio_buttons_to_info_widgets = {
+            CreateEnvMethods.NewEnv: new_env_info,
+            CreateEnvMethods.ImportEnv: import_env_info,
+            CreateEnvMethods.NoEnv: no_env_info,
+        }
+
+        # Set new env as the default method
+        new_env_radio.radiobutton.setChecked(True)
 
         # Final layout
         layout = QVBoxLayout()
@@ -880,12 +959,18 @@ class NewConnectionPage(BaseConnectionPage):
         layout.addLayout(intro_layout)
         layout.addSpacing(8 * AppStyle.MarginSize)
         layout.addWidget(methods_group)
+        layout.addWidget(info_group)
         layout.addStretch()
 
         env_creation_widget = QWidget(self)
         env_creation_widget.setLayout(layout)
 
         return env_creation_widget
+
+    def _on_env_creation_method_changed(
+        self, id_: CreateEnvMethods, checked: bool
+    ):
+        self._radio_buttons_to_info_widgets[id_].setVisible(checked)
 
 
 class ConnectionPage(BaseConnectionPage):
