@@ -82,7 +82,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         self._shortcut_sequences = set({})
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
-            text=_("Shortcuts Summary"),
+            text=_("Shortcuts summary"),
             triggered=self.show_summary,
             register_shortcut=True,
             context=Qt.ApplicationShortcut,
@@ -104,7 +104,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
             shortcuts_action,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.Documentation,
-            before_section=HelpMenuSections.Support
+            before_section=HelpMenuSections.ExternalDocumentation,
         )
 
     @on_plugin_teardown(plugin=Plugins.Preferences)

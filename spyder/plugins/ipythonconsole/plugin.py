@@ -444,7 +444,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             self.get_widget().ipython_menu,
             menu_id=ApplicationMenus.Help,
             section=HelpMenuSections.ExternalDocumentation,
-            before_section=HelpMenuSections.About,
+            before_section=HelpMenuSections.Support,
         )
 
         # Add remote console submenu
@@ -503,6 +503,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         )
         self._remote_client.sig_server_changed.connect(
             self._on_remote_server_changed
+        )
+        self._remote_client.sig_connection_established.connect(
+            self._on_remote_server_connected
+        )
+        self._remote_client.sig_connection_lost.connect(
+            self._on_remote_server_disconnected
         )
 
         if (
@@ -1133,14 +1139,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         self._is_remote_consoles_menu_added = True
 
-    @Slot()
+    @Slot(str)
     def _close_remote_clients(self, server_id):
         self.get_widget().close_remote_clients(server_id)
 
-    @Slot()
+    @Slot(str)
     def _rename_remote_clients(self, server_id):
         self.get_widget().rename_remote_clients(server_id)
 
     @Slot()
     def _on_remote_server_changed(self):
         self.get_widget().setup_remote_consoles_submenu()
+
+    @Slot(str)
+    def _on_remote_server_connected(self, server_id):
+        self.get_widget().setup_server_consoles_submenu(server_id)
+
+    @Slot(str)
+    def _on_remote_server_disconnected(self, server_id):
+        self.get_widget().clear_server_consoles_submenu(server_id)

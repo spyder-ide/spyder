@@ -17,8 +17,8 @@ from jupyter_core.paths import jupyter_runtime_dir
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QLineEdit, 
-                            QMessageBox, QPushButton, QRadioButton, 
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QMessageBox, QPushButton, QRadioButton,
                             QSpacerItem, QVBoxLayout)
 
 # Local imports
@@ -34,7 +34,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
     def __init__(self, parent=None):
         super(KernelConnectionDialog, self).__init__(parent)
-        self.setWindowTitle(_('Connect to an existing kernel'))
+        self.setWindowTitle(_('Connect to existing kernel'))
 
         main_label = QLabel(_(
             "<p>Please select the JSON connection file (<i>e.g.</i> "
@@ -220,11 +220,16 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     def _validate_connection_file(self):
         cf_path = osp.dirname(self.cf.text())
         cf_filename = osp.basename(self.cf.text())
+
         try:
+            # We do this so that users can paste only the kernel id
+            if not cf_filename.startswith("kernel-"):
+                cf_filename = "kernel-" + cf_filename
             if not cf_filename.endswith(".json"):
                 cf_filename += ".json"
+
             connection_file = find_connection_file(
-                filename=cf_filename, path=cf_path
+                filename=cf_filename, path=cf_path if cf_path else None
             )
         except OSError:
             connection_file = None

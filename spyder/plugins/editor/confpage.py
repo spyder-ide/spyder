@@ -327,9 +327,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             default=False
         )
         eol_combo_choices = (
-            (_("LF (Unix)"), 'LF'),
+            (_("LF (Linux/macOS)"), 'LF'),
             (_("CRLF (Windows)"), 'CRLF'),
-            (_("CR (macOS)"), 'CR'),
+            (_("CR (legacy Mac)"), 'CR'),
         )
         convert_eol_on_save_combo = self.create_combobox(
             "",

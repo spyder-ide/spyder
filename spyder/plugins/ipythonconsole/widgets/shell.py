@@ -134,6 +134,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     # Request plugins to send additional configuration to the Spyder kernel
     sig_config_spyder_kernel = Signal()
 
+    # Kernel ready
+    sig_kernel_is_ready = Signal()
+    """
+    Signal used to inform other Qt objects that the kernel is ready.
+
+    Notes
+    -----
+    * Do not connect directly to the `kernel_handler.sig_kernel_is_ready`
+      signal to receive updates about this because that object is replaced on
+      kernel restarts.
+    * See spyder-ide/spyder#24577 for more context.
+    """
+
     # To notify of kernel connection, disconnection and kernel errors
     sig_shellwidget_created = Signal(object)
     sig_shellwidget_deleted = Signal(object)
@@ -332,6 +345,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         ):
             self.setup_spyder_kernel()
             self._show_banner()
+            self.sig_kernel_is_ready.emit()
 
     def handle_kernel_connection_error(self):
         """An error occurred when connecting to the kernel."""

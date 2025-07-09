@@ -18,3 +18,4 @@ class AuthenticationMethod:
     Password = "password_login"
     KeyFile = "keyfile_login"
     ConfigFile = "configfile_login"
+    JupyterHub = "jupyterhub_login"

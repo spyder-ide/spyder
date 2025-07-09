@@ -37,6 +37,7 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QVBoxLayout, QWidget)
 
 # Local library imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -1291,7 +1292,7 @@ class FigureThumbnail(QWidget):
             drag.exec_(Qt.MoveAction)
 
 
-class FigureCanvas(QFrame):
+class FigureCanvas(QFrame, SpyderConfigurationAccessor):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """
@@ -1374,6 +1375,16 @@ class FigureCanvas(QFrame):
     def paintEvent(self, event):
         """Qt method override to paint a custom image on the Widget."""
         super().paintEvent(event)
+
+        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+            scale_factors = self.get_conf(
+                'high_dpi_custom_scale_factors',
+                section='main'
+            )
+            scale_factor = float(scale_factors.split(":")[0])
+        else:
+            scale_factor = 1
+
         # Prepare the rect on which the image is going to be painted.
         fw = self.frameWidth()
         rect = QRect(0 + fw, 0 + fw,
@@ -1387,8 +1398,14 @@ class FigureCanvas(QFrame):
         if (self._qpix_scaled is None or
                 self._qpix_scaled.size().width() != rect.width()):
             if self.fmt in ['image/png', 'image/jpeg']:
+                if scale_factor == 1:
+                    target_width = rect.width()
+                else:
+                    target_width = int(self._qpix_orig.width() * scale_factor)
                 self._qpix_scaled = self._qpix_orig.scaledToWidth(
-                    rect.width(), mode=Qt.SmoothTransformation)
+                    target_width,
+                    mode=Qt.SmoothTransformation
+                )
             elif self.fmt == 'image/svg+xml':
                 self._qpix_scaled = QPixmap(svg_to_image(
                     self.fig, rect.size()))

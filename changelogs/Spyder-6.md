@@ -33,6 +33,7 @@
 * **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
 * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
 * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
+* Add `set_default_kernel_spec` to `remoteclient` plugin, in order to set default kernel spec used to open default consoles.
 
 #### IPython console
 
@@ -73,6 +74,11 @@
 * **Breaking** - `ExplorerTreeWidgetActions` renamed to `ExplorerWidgetActions`.
 * **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
 * Add `server_id` kwarg to the `chdir` method.
+
+### Main menu
+
+* **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
+* **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
 
 #### SpyderPluginV2
 
