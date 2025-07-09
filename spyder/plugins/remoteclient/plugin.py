@@ -90,6 +90,20 @@ class RemoteClient(SpyderPluginV2):
 
     sig_version_mismatch = Signal(str, str)
 
+    # For remote envs
+    sig_import_env_requested = Signal(str, str, str)
+    """
+    Signal to request importing a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    import_file_path: str
+        Path to the file that will be used to import the environment.
+    env_name: str
+        Environment name.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,6 +134,9 @@ class RemoteClient(SpyderPluginV2):
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
         container.sig_server_renamed.connect(self.sig_server_renamed)
         container.sig_server_changed.connect(self.sig_server_changed)
+        container.sig_import_env_requested.connect(
+            self.sig_import_env_requested
+        )
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
