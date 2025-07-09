@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-07 01:58\n"
+"PO-Revision-Date: 2025-07-09 01:37\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5650,7 +5650,7 @@ msgstr "Schlüsseldatei *"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:443
 msgid "Passphrase"
-msgstr ""
+msgstr "Passphrase"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:446
 msgid "Your passphrase will be saved securely by Spyder"
