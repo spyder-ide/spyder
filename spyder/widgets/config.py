@@ -402,7 +402,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 option in self.changed_options
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
-            ):
+            ) and option is not None:
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
 
