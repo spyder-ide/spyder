@@ -42,7 +42,7 @@ from spyder.plugins.remoteclient.utils.installation import (
 class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
     """Class to manage a remote SSH server and its APIs."""
 
-    _extra_options = ["platform", "id"]
+    _extra_options = ["platform", "id", "default_kernel_spec"]
 
     START_SERVER_COMMAND = (
         f"/${{HOME}}/.local/bin/micromamba run -n {SERVER_ENV} spyder-server"

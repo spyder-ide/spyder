@@ -504,6 +504,12 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self._remote_client.sig_server_changed.connect(
             self._on_remote_server_changed
         )
+        self._remote_client.sig_connection_established.connect(
+            self._on_remote_server_connected
+        )
+        self._remote_client.sig_connection_lost.connect(
+            self._on_remote_server_disconnected
+        )
 
         if (
             self.is_plugin_available(Plugins.MainMenu)
@@ -1144,3 +1150,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @Slot()
     def _on_remote_server_changed(self):
         self.get_widget().setup_remote_consoles_submenu()
+
+    @Slot(str)
+    def _on_remote_server_connected(self, server_id):
+        self.get_widget().setup_server_consoles_submenu(server_id)
+
+    @Slot(str)
+    def _on_remote_server_disconnected(self, server_id):
+        self.get_widget().clear_server_consoles_submenu(server_id)
