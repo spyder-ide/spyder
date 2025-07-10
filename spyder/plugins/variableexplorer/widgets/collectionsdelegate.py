@@ -274,12 +274,21 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         # DataFrameEditor for a pandas dataframe, series or index
         elif (isinstance(value, (pd.DataFrame, pd.Index, pd.Series))
                 and pd.DataFrame is not FakeObject and not object_explorer):
+            try:
+                source_index = index.model().mapToSource(index)
+            except AttributeError:
+                # index.model() is not a QSortFilterProxyModel
+                source_index = index
+            type_of_value = source_index.model().row_type(source_index.row())
+            if type_of_value == 'Polars DataFrame':
+                readonly = True
             # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(
                 parent=parent,
                 namespacebrowser=self.namespacebrowser,
-                data_function=self.make_data_function(index)
+                data_function=self.make_data_function(index),
+                readonly=readonly
             )
             if not editor.setup_and_check(value, title=key):
                 self.sig_editor_shown.emit()
