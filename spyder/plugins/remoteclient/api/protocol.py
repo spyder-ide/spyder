@@ -44,11 +44,13 @@ class SSHClientOptions(typing.TypedDict):
     known_hosts: str | typing.Sequence[str] | None
     config: typing.Sequence[str] | None
     platform: str | None
+    default_kernel_spec: str | None
 
 
 class JupyterHubClientOptions(typing.TypedDict):
     url: str
     token: str
+    default_kernel_spec: str | None
 
 
 class ClientType:
