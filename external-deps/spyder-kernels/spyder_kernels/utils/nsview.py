@@ -380,7 +380,10 @@ def value_to_display(value, minmax=False, level=0):
                 display = '%s  Mode: %s' % (address(value), value.mode)
             else:
                 display = 'Image'
-        elif isinstance(value, pd.DataFrame):
+        elif (
+            isinstance(value, pd.DataFrame)
+            or str(type(value)) == "<class 'polars.dataframe.frame.DataFrame'>"
+        ):
             if level == 0:
                 cols = value.columns
                 cols = [str(c) for c in cols]
@@ -558,7 +561,10 @@ def get_human_readable_type(item):
             return "Image"
         else:
             text = get_type_string(item)
-            return text[text.find('.')+1:]
+            if text == 'polars.dataframe.frame.DataFrame':
+                return 'Polars DataFrame'
+            else:
+                return text[text.find('.')+1:]
     except Exception:
         return 'Unknown'
 
