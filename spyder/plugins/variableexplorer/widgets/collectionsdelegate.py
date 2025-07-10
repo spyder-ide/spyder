@@ -392,7 +392,22 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             index = data['model'].get_index_from_key(data['key'])
             value = data['editor'].get_value()
             conv_func = data.get('conv', lambda v: v)
-            self.set_value(index, conv_func(value))
+            try:
+                self.set_value(index, conv_func(value))
+            except Exception as msg:
+                msg_box = QMessageBox(self.parent())
+                msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
+                msg_box.critical(
+                    self.parent(),
+                    _("Error"),
+                    _(
+                        "Spyder was unable to set this variable in the "
+                        "console to the new value.<br><br>"
+                        "The problem is:<br>"
+                        "%s"
+                    ) % str(msg)
+                )
+
         # This is needed to avoid the problem reported on
         # spyder-ide/spyder#8557.
         try:

@@ -158,13 +158,33 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_value(self, name, value):
         """Set value for a variable"""
+        reason_mismatched_numpy = _(
+            "The '<tt>{}</tt>' module is required to set this variable and "
+            "it's not installed in the current console. To fix this problem, "
+            "please upgrade `numpy` in the console environment to version 2."
+        )
+        msg = _(
+            "<br>%s<br><br>"
+            "<b>Note</b>: If you consider this to be a valid error that needs "
+            "to be fixed by the Spyder team, please report it on "
+            "<a href='{}'>Github</a>."
+        ).format(GH_ISSUES)
+
         # Encode with cloudpickle and base64
         encoded_value = cloudpickle.dumps(value)
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
+
+        try:
+            self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                display_error=True,
             ).set_value(name, encoded_value, encoded=True)
+        except ModuleNotFoundError as e:
+            name = e.args[0].error.name
+            if name.startswith('numpy._core'):
+                raise ValueError(msg % reason_mismatched_numpy.format(name))
+        except Exception:
+            pass  # swallow exception
 
     def remove_value(self, name):
         """Remove a variable"""
