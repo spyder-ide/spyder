@@ -89,6 +89,8 @@ class ConnectionDialog(SidebarDialog):
     def create_buttons(self):
         bbox = SpyderDialogButtonBox(QDialogButtonBox.Cancel)
 
+        self._button_cancel = bbox.button(QDialogButtonBox.Cancel)
+
         self._button_save_connection = QPushButton(_("Save connection"))
         self._button_save_connection.clicked.connect(
             self._save_connection_info
@@ -111,13 +113,13 @@ class ConnectionDialog(SidebarDialog):
             self._button_clear_settings, QDialogButtonBox.ActionRole
         )
 
-        self._button_connect = QPushButton(_("Connect"))
-        self._button_connect.clicked.connect(self._start_server)
-        bbox.addButton(self._button_connect, QDialogButtonBox.ActionRole)
-
         self._button_stop = QPushButton(_("Stop"))
         self._button_stop.clicked.connect(self._stop_server)
         bbox.addButton(self._button_stop, QDialogButtonBox.ActionRole)
+
+        self._button_connect = QPushButton(_("Connect"))
+        self._button_connect.clicked.connect(self._start_server)
+        bbox.addButton(self._button_connect, QDialogButtonBox.ActionRole)
 
         self._button_next = QPushButton(_("Next"))
         self._button_next.clicked.connect(self._on_button_next_clicked)
@@ -140,6 +142,7 @@ class ConnectionDialog(SidebarDialog):
             self._button_clear_settings.setHidden(False)
             self._button_remove_connection.setHidden(True)
             self._button_stop.setHidden(True)
+            self._button_cancel.setText("Cancel")
 
             if ENV_MANAGER:
                 if page.get_current_tab() == "SSH":
@@ -157,8 +160,10 @@ class ConnectionDialog(SidebarDialog):
         else:
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
+                self._button_cancel.setText("Cancel")
             else:
                 self._button_save_connection.setEnabled(False)
+                self._button_cancel.setText("Close")
 
             self._button_clear_settings.setHidden(True)
             self._button_remove_connection.setHidden(False)
@@ -302,9 +307,12 @@ class ConnectionDialog(SidebarDialog):
                 self.sig_import_env_requested.emit(
                     host_id, import_file_path, env_name
                 )
-                page.show_ssh_info_widget()
             elif page.selected_env_creation_method() == CreateEnvMethods.NoEnv:
                 self.sig_start_server_requested.emit(host_id)
+
+            # Show again info widget in case users want to enter another
+            # connection with similar settings.
+            page.show_ssh_info_widget()
         else:
             self.sig_start_server_requested.emit(host_id)
 
@@ -324,7 +332,7 @@ class ConnectionDialog(SidebarDialog):
         # This is necessary to make button_save_connection enabled when there
         # are config changes in the page
         page.apply_button_enabled.connect(
-            self._update_button_save_connection_state
+            self._update_buttons_state_on_info_change
         )
 
         if new:
@@ -353,9 +361,10 @@ class ConnectionDialog(SidebarDialog):
             for id_ in servers.keys():
                 self._add_connection_page(host_id=id_, new=False)
 
-    def _update_button_save_connection_state(self, state: bool):
-        """Update the state of the 'Save connection' button."""
+    def _update_buttons_state_on_info_change(self, state: bool):
+        """Update the state of buttons when connection info changes."""
         self._button_save_connection.setEnabled(state)
+        self._button_cancel.setText("Cancel")
 
     def _update_connection_buttons_state(self, info: ConnectionInfo):
         """Update the state of the 'Connect' button."""
