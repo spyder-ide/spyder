@@ -33,7 +33,6 @@ PLUGIN = 'spyder plugins'
 AIOHTTP_REQVER = '>=3.11.2'
 APPLAUNCHSERVICES_REQVER = '>=0.3.0'
 ASYNCSSH_REQVER = '>=2.14.0,<3.0.0'
-ATOMICWRITES_REQVER = '>=1.2.0'
 BCRYPT_REQVER = ">=4.3.0"
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
@@ -108,10 +107,6 @@ DESCRIPTIONS = [
      'package_name': 'asyncssh',
      'features': _('Connect to remote kernels through SSH'),
      'required_version': ASYNCSSH_REQVER},
-    {'modname': "atomicwrites",
-     'package_name': "atomicwrites",
-     'features': _("Atomic file writes in the Editor"),
-     'required_version': ATOMICWRITES_REQVER},
     {'modname': "bcrypt",
      'package_name': "bcrypt",
      'features': _("Decrypt passphrase of SSH key files"),
