@@ -339,6 +339,8 @@ class RemoteClient(SpyderPluginV2):
 
         configs[server_id]["default_kernel_spec"] = name
 
+        self.set_conf(self.CONF_SECTION_SERVERS, configs)
+
         if server_id in self._remote_clients:
             server_options = self._remote_clients[server_id].options
             server_options["default_kernel_spec"] = name
