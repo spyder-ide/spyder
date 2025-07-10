@@ -17,7 +17,7 @@ Adapted from binaryornot/helpers.py of
 `BinaryOrNot <https://github.com/audreyr/binaryornot>`_.
 """
 
-import chardet
+from charset_normalizer import detect, from_bytes
 import logging
 
 
@@ -96,29 +96,42 @@ def is_binary_string(bytes_to_check):
     )
     logger.debug('is_likely_binary: %(is_likely_binary)r', locals())
 
-    # then check for binary for possible encoding detection with chardet
-    detected_encoding = chardet.detect(bytes_to_check)
+    # then check for binary for possible encoding detection
+    # with charset_normalizer
+    results = from_bytes(bytes_to_check)
+    best_match = results.best()
+
+    if best_match:
+        detected_encoding = {
+            'encoding': best_match.encoding,
+            'confidence': best_match.quality/100
+        }
+    else:
+        detected_encoding = None
     logger.debug('detected_encoding: %(detected_encoding)r', locals())
 
     # finally use all the check to decide binary or text
     decodable_as_unicode = False
-    if (detected_encoding['confidence'] > 0.9 and
-            detected_encoding['encoding'] != 'ascii'):
-        try:
+    if detected_encoding:
+        if (detected_encoding['confidence'] > 0.9 and
+                detected_encoding['encoding'] != 'ascii'):
             try:
-                bytes_to_check.decode(encoding=detected_encoding['encoding'])
-            except TypeError:
-                # happens only on Python 2.6
-                unicode(bytes_to_check, encoding=detected_encoding['encoding'])  # noqa
-            decodable_as_unicode = True
-            logger.debug('success: decodable_as_unicode: '
-                         '%(decodable_as_unicode)r', locals())
-        except LookupError:
-            logger.debug('failure: could not look up encoding %(encoding)s',
-                         detected_encoding)
-        except UnicodeDecodeError:
-            logger.debug('failure: decodable_as_unicode: '
-                         '%(decodable_as_unicode)r', locals())
+                try:
+                    bytes_to_check.decode(
+                        encoding=detected_encoding['encoding'])
+                except TypeError:
+                    # happens only on Python 2.6
+                    unicode(bytes_to_check, encoding=detected_encoding['encoding'])  # noqa
+                decodable_as_unicode = True
+                logger.debug('success: decodable_as_unicode: '
+                             '%(decodable_as_unicode)r', locals())
+            except LookupError:
+                logger.debug(
+                    'failure: could not look up encoding %(encoding)s',
+                    detected_encoding)
+            except UnicodeDecodeError:
+                logger.debug('failure: decodable_as_unicode: '
+                             '%(decodable_as_unicode)r', locals())
 
     logger.debug('failure: decodable_as_unicode: '
                  '%(decodable_as_unicode)r', locals())
