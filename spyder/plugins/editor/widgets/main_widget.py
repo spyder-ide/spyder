@@ -1186,7 +1186,7 @@ class EditorMainWidget(PluginMainWidget):
         action = self.create_action(name, text=text, toggled=toggle)
         action.blockSignals(True)
 
-        if conf_name not in ['flake8', 'pydocstyle']:
+        if conf_name not in ['pydocstyle']:
             action.setChecked(self.get_conf(conf_name))
         else:
             opt = self.get_conf(
@@ -1224,7 +1224,7 @@ class EditorMainWidget(PluginMainWidget):
                         logger.error(e, exc_info=True)
             self.set_conf(conf_name, checked)
         else:
-            if conf_name in ('flake8', 'pydocstyle'):
+            if conf_name in ('pydocstyle'):
                 self.set_conf(
                     ('provider_configuration', 'lsp', 'values', conf_name),
                     checked,
@@ -2962,9 +2962,8 @@ class EditorMainWidget(PluginMainWidget):
 
     @on_conf_change(
         option=[
-            ('provider_configuration', 'lsp', 'values', 'flake8'),
             ('provider_configuration', 'lsp', 'values', 'pydocstyle')
-        ],
+            ],
         section='completions'
     )
     def on_completions_checkable_action_change(self, option, value):
