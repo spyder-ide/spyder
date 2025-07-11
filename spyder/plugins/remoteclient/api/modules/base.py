@@ -36,7 +36,7 @@ SpyderBaseJupyterAPIType = typing.TypeVar(
 
 logger = logging.getLogger(__name__)
 
-REQUEST_TIMEOUT = 5  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 VERIFY_SSL = True
 
 
@@ -132,7 +132,7 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
                 ssl=None if self.verify_ssl else False
             ),
             raise_for_status=self._raise_for_status,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            timeout=aiohttp.ClientTimeout(total=self.request_timeout),
         )
 
     async def __aenter__(self):
@@ -240,8 +240,10 @@ class JupyterAPI(SpyderBaseJupyterAPI):
         data = {}
         if spyder_kernel:
             data["spyder_kernel"] = True
-        if kernel_spec:
-            data["name"] = kernel_spec
+        data["name"] = (
+            kernel_spec
+            or self.manager.options.get("default_kernel_spec")
+        )
 
         async with self.session.post(
             self.api_url / "kernels", json=data

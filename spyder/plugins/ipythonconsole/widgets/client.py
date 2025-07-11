@@ -987,10 +987,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return await self._jupyter_api.get_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
-    async def _new_remote_kernel(self):
+    async def _new_remote_kernel(self, kernel_spec=None):
         logger.debug("Creating new remote kernel for %s", self.get_name())
         await self.jupyter_api.connect()
-        return await self._jupyter_api.create_kernel()
+        return await self._jupyter_api.create_kernel(kernel_spec)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_home_directory(self, future):
@@ -1021,5 +1021,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
         self.__remote_reconnect_requested = True
 
-    def start_remote_kernel(self):
-        self._new_remote_kernel().connect(self._on_remote_kernel_started)
+    def start_remote_kernel(self, kernel_spec=None):
+        self._new_remote_kernel(kernel_spec).connect(
+            self._on_remote_kernel_started
+        )
