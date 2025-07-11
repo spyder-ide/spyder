@@ -764,7 +764,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def create_browsefile(self, text, option, default=NoDefault, section=None,
                           tip=None, filters=None, alignment=Qt.Horizontal,
-                          status_icon=None):
+                          status_icon=None, validate_callback=None,
+                          validate_reason=None):
         widget = self.create_lineedit(
             text,
             option,
@@ -775,6 +776,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             # vertical. If not, it'll be added below when setting the layout.
             tip=tip if (tip and alignment == Qt.Vertical) else None,
             status_icon=status_icon,
+            validate_callback=validate_callback,
+            validate_reason=validate_reason,
         )
 
         for edit in self.lineedits:
@@ -832,6 +835,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                                                **kwargs)
         if filename:
             edit.setText(filename)
+            edit.setFocus()
 
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None,
