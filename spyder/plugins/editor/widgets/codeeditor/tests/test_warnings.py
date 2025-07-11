@@ -31,7 +31,7 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8'),
+             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
              True)
 
     CONF.set('completions',
@@ -89,13 +89,14 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     qtbot.wait(2000)
     warnings = editor.get_current_warnings()
 
-    expected = [['D103: Missing docstring in public function', 1],
-                ['W293 blank line contains whitespace', 2],
+    expected = [['W293 blank line contains whitespace', 2],
                 ["undefined name 's'", 5],
+                ["F821 undefined name 's'", 5],
                 ["undefined name 'undefined_function'", 7],
-                ["W292 no newline at end of file", 7],
+                ["F821 undefined name 'undefined_function'", 7],
                 ["""E305 expected 2 blank lines after class or """
-                 """function definition, found 0""", 7]]
+                 """function definition, found 0""", 7],
+                ["W292 no newline at end of file", 7],]
 
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'pydocstyle/ignore'),
@@ -369,7 +370,8 @@ def test_ignore_warnings_with_comments(
     if ignore_comment == '# no-work':
         expected = [
             ["undefined name 'foo'", 1],
-            ['D100: Missing docstring in public module', 1],
+            ["F821 undefined name 'foo'", 1],
+            ["F821 undefined name 'bar'", 2],
             ['E261 at least two spaces before inline comment', 1],
             ["undefined name 'bar'", 2]
         ]
