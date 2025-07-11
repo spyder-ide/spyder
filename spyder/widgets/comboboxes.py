@@ -136,6 +136,7 @@ class BaseComboBox(SpyderComboBox):
                 self.setCurrentIndex(0)
         else:
             self.setCurrentIndex(0)
+        self.selected_text = text
 
     def set_current_text(self, text):
         """Sets the text of the QLineEdit of the QComboBox."""
