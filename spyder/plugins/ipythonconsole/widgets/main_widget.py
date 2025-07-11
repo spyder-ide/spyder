@@ -800,8 +800,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for idx, client in enumerate(self.clients):
             self._change_client_conf(
                 client,
-                client.get_control().set_help_enabled,
-                value)
+                client.get_control(pager=False).set_help_enabled,
+                value
+            )
 
     @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
     def change_clients_color_scheme(self, option, value):
