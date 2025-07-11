@@ -70,7 +70,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     editor.set_text(TEXT)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
+             ('provider_configuration', 'lsp', 'values', 'pydocstyle/ignore'),
              'D100')
 
     CONF.set('completions',
