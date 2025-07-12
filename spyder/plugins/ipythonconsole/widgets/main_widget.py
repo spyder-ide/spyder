@@ -2486,7 +2486,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                                 clear_variables,
                                 shellwidget=client.shellwidget,
                             )
-                    )
+                        )
             except AttributeError:
                 pass
 
