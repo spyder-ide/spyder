@@ -2465,11 +2465,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
-                    self.execute_code(
-                        line,
-                        current_client,
-                        clear_variables,
-                        shellwidget=client.shellwidget,
+                    # Dedicated console case:
+                    # Since code will be run in a dedicated console, the
+                    # console could be still initializing. If that is the case,
+                    # there is a need to execute the code via signal connection
+                    # when the kernel is detected as not ready
+                    if client.shellwidget.spyder_kernel_ready:
+                        self.execute_code(
+                            line,
+                            current_client,
+                            clear_variables,
+                            shellwidget=client.shellwidget,
+                        )
+                    else:
+                        client.shellwidget.sig_prompt_ready.connect(
+                            lambda: self.execute_code(
+                                line,
+                                current_client,
+                                clear_variables,
+                                shellwidget=client.shellwidget,
+                            )
                     )
             except AttributeError:
                 pass
