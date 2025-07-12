@@ -437,11 +437,6 @@ class EditorMainWidget(PluginMainWidget):
             'show_class_func_dropdown',
             method='set_classfunc_dropdown_visible'
         )
-        self.show_codestyle_warnings_action = self._create_checkable_action(
-            EditorWidgetActions.ShowCodeStyleWarnings,
-            _("Show code style warnings"),
-            'pycodestyle',
-        )
         self.show_docstring_warnings_action = self._create_checkable_action(
             EditorWidgetActions.ShowDoctringWarnings,
             _("Show docstring style warnings"),
@@ -460,7 +455,6 @@ class EditorMainWidget(PluginMainWidget):
             'code_folding': self.showcodefolding_action,
             'show_class_func_dropdown': self.show_classfunc_dropdown_action,
             # TODO: Should these actions be created from the completion plugin?
-            'pycodestyle': self.show_codestyle_warnings_action,
             'pydocstyle': self.show_docstring_warnings_action,
             'underline_errors': self.underline_errors
         }
@@ -1189,7 +1183,7 @@ class EditorMainWidget(PluginMainWidget):
         action = self.create_action(name, text=text, toggled=toggle)
         action.blockSignals(True)
 
-        if conf_name not in ['pycodestyle', 'pydocstyle']:
+        if conf_name not in ['pydocstyle']:
             action.setChecked(self.get_conf(conf_name))
         else:
             opt = self.get_conf(
@@ -1227,7 +1221,7 @@ class EditorMainWidget(PluginMainWidget):
                         logger.error(e, exc_info=True)
             self.set_conf(conf_name, checked)
         else:
-            if conf_name in ('pycodestyle', 'pydocstyle'):
+            if conf_name in ('pydocstyle'):
                 self.set_conf(
                     ('provider_configuration', 'lsp', 'values', conf_name),
                     checked,
@@ -1398,7 +1392,7 @@ class EditorMainWidget(PluginMainWidget):
 
         edge_line_columns = self.get_conf(
             ('provider_configuration', 'lsp', 'values',
-             'pycodestyle/max_line_length'),
+             'flake8/max_line_length'),
             default=79,
             section='completions'
         )
@@ -2965,13 +2959,12 @@ class EditorMainWidget(PluginMainWidget):
 
     @on_conf_change(
         option=[
-            ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
             ('provider_configuration', 'lsp', 'values', 'pydocstyle')
-        ],
+            ],
         section='completions'
     )
     def on_completions_checkable_action_change(self, option, value):
-        option = option[-1]  # Get 'pycodestyle' or 'pydocstyle'
+        option = option[-1]  # Get 'flake8' or 'pydocstyle'
         self._on_checkable_action_change(option, value)
 
     @on_conf_change(

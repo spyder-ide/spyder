@@ -145,7 +145,7 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
                 "provider_configuration",
                 "lsp",
                 "values",
-                "pycodestyle/max_line_length",
+                "flake8/max_line_length",
             ): 79,
         }
 
