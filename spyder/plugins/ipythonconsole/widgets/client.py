@@ -600,11 +600,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             name = self.given_name + u'/' + self.id_['str_id']
         return name
 
-    def get_control(self):
+    def get_control(self, pager=True):
         """Return the text widget (or similar) to give focus to"""
         # page_control is the widget used for paging
         page_control = self.shellwidget._page_control
-        if page_control and page_control.isVisible():
+        if pager and page_control and page_control.isVisible():
             return page_control
         else:
             return self.shellwidget._control
