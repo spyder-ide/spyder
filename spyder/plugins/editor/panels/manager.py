@@ -181,9 +181,9 @@ class PanelsManager(Manager):
             size_hint = panel.sizeHint()
             panel.setGeometry(
                 crect.right() - right - size_hint.width() - w_offset,
-                crect.top() + s_top,
+                crect.top(),
                 size_hint.width(),
-                crect.height() - s_bottom - s_top - h_offset)
+                crect.height() - h_offset)
             right += size_hint.width()
         top = 0
         panels = self.panels_for_zone(Panel.Position.TOP)
@@ -194,7 +194,7 @@ class PanelsManager(Manager):
             size_hint = panel.sizeHint()
             panel.setGeometry(crect.left(),
                               crect.top() + top,
-                              crect.width() - w_offset,
+                              crect.width() - s_right - w_offset,
                               size_hint.height())
             top += size_hint.height()
         bottom = 0
@@ -207,7 +207,7 @@ class PanelsManager(Manager):
             panel.setGeometry(
                 crect.left(),
                 crect.bottom() - bottom - size_hint.height() - h_offset,
-                crect.width() - w_offset,
+                crect.width() - s_right - w_offset,
                 size_hint.height())
             bottom += size_hint.height()
 
