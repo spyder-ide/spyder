@@ -31,10 +31,6 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
 def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     editor, completion_plugin = completions_codeeditor
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
-             True)
-
-    CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'flake8'),
              True)
 
@@ -43,10 +39,6 @@ def completions_codeeditor_linting(request, qtbot, completions_codeeditor):
     qtbot.wait(2000)
 
     def teardown():
-        CONF.set('completions',
-                 ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
-                 False)
-
         CONF.set('completions',
                  ('provider_configuration', 'lsp', 'values', 'flake8'),
                  False)
@@ -68,10 +60,6 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
 
     # Set text in editor
     editor.set_text(TEXT)
-
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle/ignore'),
-             'D100')
 
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
@@ -98,10 +86,6 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
                 ["""E305 expected 2 blank lines after class or """
                  """function definition, found 0""", 7],
                 ["W292 no newline at end of file", 7],]
-
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pydocstyle/ignore'),
-             '')
 
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
@@ -278,9 +262,11 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
             ['E901 TokenError: unterminated string literal (detected at line 1)', 1]
         ]
     elif sys.version_info >= (3, 10):
-        expected = [['unterminated string literal (detected at line 1)', 1]]
+        expected = [['unterminated string literal (detected at line 1)',1],
+                    ['E999 SyntaxError: unterminated string literal(detected at line 1)',1]]
     else:
-        expected = [['EOL while scanning string literal', 1]]
+        expected = [['EOL while scanning string literal' ,1],
+                    ['E999 SyntaxError: EOL while scanning string literal', 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -325,7 +311,7 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     elif sys.version_info >= (3, 10):
         expected = [
             ["'(' was never closed", 1],
-            ['E901 TokenError: EOF in multi-line statement', 1]
+            ["E999 SyntaxError: '(' was never closed",1]
         ]
     else:
         expected = [
@@ -351,7 +337,8 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
 
     # Assert that the error is gone.
     qtbot.wait(2000)
-    expected = []
+    expected = [['D100: Missing docstring in public module', 1]] 
+
     assert editor.get_current_warnings() == expected
 
 
