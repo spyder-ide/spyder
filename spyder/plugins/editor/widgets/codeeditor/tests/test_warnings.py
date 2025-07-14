@@ -77,8 +77,7 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     qtbot.wait(2000)
     warnings = editor.get_current_warnings()
 
-    expected = [['D103: Missing docstring in public function', 1],
-                ['W293 blank line contains whitespace', 2],
+    expected = [['W293 blank line contains whitespace', 2],
                 ["undefined name 's'", 5],
                 ["F821 undefined name 's'", 5],
                 ["undefined name 'undefined_function'", 7],
@@ -186,9 +185,7 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
     # Get current warnings
     warnings = editor.get_current_warnings()
 
-    expected = [['D100: Missing docstring in public module', 1],
-                ['D103: Missing docstring in public function', 1],
-                ['W293 blank line contains whitespace', 2],
+    expected = [['W293 blank line contains whitespace', 2],
                 ['E261 at least two spaces before inline comment', 3],
                 ["undefined name 's'", 5],
                 ["F821 undefined name 's'", 5],
@@ -229,9 +226,7 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
     qtbot.waitSignal(editor.completions_response_signal, timeout=30000)
 
     # Assert that the W293 warning is gone.
-    expected = [['D100: Missing docstring in public module', 1],
-                ['D103: Missing docstring in public function', 1],
-                ['E261 at least two spaces before inline comment', 2],
+    expected = [['E261 at least two spaces before inline comment', 2],
                 ["undefined name 's'", 4],
                 ["F821 undefined name 's'", 4],
                 ["undefined name 'undefined_function'", 6],
@@ -337,7 +332,7 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
 
     # Assert that the error is gone.
     qtbot.wait(2000)
-    expected = [['D100: Missing docstring in public module', 1]] 
+    expected = [] 
 
     assert editor.get_current_warnings() == expected
 
@@ -364,7 +359,6 @@ def test_ignore_warnings_with_comments(
     if ignore_comment == '# no-work':
         expected = [
             ["undefined name 'foo'", 1],
-            ['D100: Missing docstring in public module', 1],
             ["F821 undefined name 'foo'", 1],
             ['E261 at least two spaces before inline comment', 1],
             ["undefined name 'bar'", 2],
