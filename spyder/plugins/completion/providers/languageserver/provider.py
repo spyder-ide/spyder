@@ -67,7 +67,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('flake8/filename', ''),
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
-        ('flake8/extendIgnore', ''),
+        ('flake8/extendIgnore', 'E,W,C90'),
         ('flake8/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
