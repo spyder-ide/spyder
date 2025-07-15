@@ -217,6 +217,18 @@ class EditorMainWidget(PluginMainWidget):
         True if the action should be enabled, False if it should disabled.
     """
 
+    sig_edit_action_enabled = Signal(str, bool)
+    """
+    This signal is emitted to enable or disable a edit action.
+
+    Parameters
+    ----------
+    action_name: str
+        Name of the edit action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
+    """
+
     def __init__(self, name, plugin, parent, ignore_last_opened_files=False):
         super().__init__(name, plugin, parent)
 
@@ -696,36 +708,36 @@ class EditorMainWidget(PluginMainWidget):
             self.text_lowercase_action
         ]
 
-        self.undo_action = self._create_edit_action(
-            EditorWidgetActions.Undo,
-            _('Undo'),
-            self.create_icon('undo')
-        )
-        self.redo_action = self._create_edit_action(
-            EditorWidgetActions.Redo,
-            _('Redo'),
-            self.create_icon('redo')
-        )
-        self.copy_action = self._create_edit_action(
-            EditorWidgetActions.Copy,
-            _('Copy'),
-            self.create_icon('editcopy')
-        )
-        self.cut_action = self._create_edit_action(
-            EditorWidgetActions.Cut,
-            _('Cut'),
-            self.create_icon('editcut')
-        )
-        self.paste_action = self._create_edit_action(
-            EditorWidgetActions.Paste,
-            _('Paste'),
-            self.create_icon('editpaste')
-        )
-        self.selectall_action = self._create_edit_action(
-            EditorWidgetActions.SelectAll,
-            _("Select All"),
-            self.create_icon('selectall')
-        )
+        # self.undo_action = self._create_edit_action(
+        #     EditorWidgetActions.Undo,
+        #     _('Undo'),
+        #     self.create_icon('undo')
+        # )
+        # self.redo_action = self._create_edit_action(
+        #     EditorWidgetActions.Redo,
+        #     _('Redo'),
+        #     self.create_icon('redo')
+        # )
+        # self.copy_action = self._create_edit_action(
+        #     EditorWidgetActions.Copy,
+        #     _('Copy'),
+        #     self.create_icon('editcopy')
+        # )
+        # self.cut_action = self._create_edit_action(
+        #     EditorWidgetActions.Cut,
+        #     _('Cut'),
+        #     self.create_icon('editcut')
+        # )
+        # self.paste_action = self._create_edit_action(
+        #     EditorWidgetActions.Paste,
+        #     _('Paste'),
+        #     self.create_icon('editpaste')
+        # )
+        # self.selectall_action = self._create_edit_action(
+        #     EditorWidgetActions.SelectAll,
+        #     _("Select All"),
+        #     self.create_icon('selectall')
+        # )
 
         # ---- Dockwidget and file dependent actions lists ----
         self.pythonfile_dependent_actions = [
@@ -1048,63 +1060,86 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Update menus
     # -------------------------------------------------------------------------
-    def _base_edit_actions_callback(self):
-        """Callback for base edit actions of text based widgets."""
-        widget = QApplication.focusWidget()
-        action = self.sender()
-        callback = from_qvariant(action.data(), to_text_string)
+    # def _base_edit_actions_callback(self):
+    #     """Callback for base edit actions of text based widgets."""
+    #     widget = QApplication.focusWidget()
+    #     action = self.sender()
+    #     callback = from_qvariant(action.data(), to_text_string)
 
-        if isinstance(widget, BaseEditMixin) and hasattr(widget, callback):
-            getattr(widget, callback)()
-        else:
-            return
+    #     if isinstance(widget, BaseEditMixin) and hasattr(widget, callback):
+    #         getattr(widget, callback)()
+    #     else:
+    #         return
 
     def update_edit_menu(self):
         """
-        Enable edition related actions only when the Editor has focus.
-
-        Also enable actions in case the focused widget has editable properties.
+        Enable edition related actions when the Editor has focus.
         """
-        # Disabling all actions to begin with
-        for child in [
-                self.undo_action, self.redo_action, self.copy_action,
-                self.cut_action, self.paste_action, self.selectall_action
-                ]:
-            child.setEnabled(False)
+        # # Disabling all actions to begin with
+        # for child in [
+        #         self.undo_action, self.redo_action, self.copy_action,
+        #         self.cut_action, self.paste_action, self.selectall_action
+        #         ]:
+        #     child.setEnabled(False)
+
+        undo_action_enabled = False
+        redo_action_enabled = False
+        cut_action_enabled = False
+        copy_action_enabled = False
+        paste_action_enabled = False
+        select_all_action_enabled = False
 
         possible_text_widget = QApplication.focusWidget()
         editor = self.get_current_editor()
-        readwrite_editor = possible_text_widget == editor
+        not_readonly = False
+        has_selection = False
 
         # We need the first validation to avoid a bug at startup. That probably
         # happens when the menu is tried to be rendered automatically in some
         # Linux distros.
         # Fixes spyder-ide/spyder#22432
-        if editor is not None and readwrite_editor and not editor.isReadOnly():
+        if editor is not None and not editor.isReadOnly():
             # Case where the current editor has the focus
-            if not self.is_file_opened():
-                return
+            if self.is_file_opened():
+                # Undo, redo
+                undo_action_enabled = editor.document().isUndoAvailable()
+                redo_action_enabled = editor.document().isRedoAvailable()
 
-            # Undo, redo
-            self.undo_action.setEnabled(editor.document().isUndoAvailable())
-            self.redo_action.setEnabled(editor.document().isRedoAvailable())
-
-            not_readonly = not editor.isReadOnly()
-            has_selection = editor.has_selected_text()
-        elif (isinstance(possible_text_widget, BaseEditMixin) and
-              hasattr(possible_text_widget, "isReadOnly")):
-            # Case when a text based widget has the focus.
-            not_readonly = not possible_text_widget.isReadOnly()
-            has_selection = possible_text_widget.has_selected_text()
-        else:
-            # Case when no text based widget has the focus.
-            return
+                not_readonly = not editor.isReadOnly()
+                has_selection = editor.has_selected_text()
+        # elif (isinstance(possible_text_widget, BaseEditMixin) and
+        #       hasattr(possible_text_widget, "isReadOnly")):
+        #     # Case when a text based widget has the focus.
+        #     not_readonly = not possible_text_widget.isReadOnly()
+        #     has_selection = possible_text_widget.has_selected_text()
+        # else:
+        #     # Case when no text based widget has the focus.
+        #     return
 
         # Copy, cut, paste, select all
-        self.copy_action.setEnabled(has_selection)
-        self.cut_action.setEnabled(has_selection and not_readonly)
-        self.paste_action.setEnabled(not_readonly)
-        self.selectall_action.setEnabled(True)
+        copy_action_enabled = has_selection
+        cut_action_enabled = has_selection and not_readonly
+        paste_action_enabled = not_readonly
+        select_all_action_enabled = True
+
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Undo, undo_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Redo, redo_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Cut, cut_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Copy, copy_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Paste, paste_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.SelectAll, select_all_action_enabled
+        )
 
     def update_search_menu(self):
         """
@@ -1133,38 +1168,38 @@ class EditorMainWidget(PluginMainWidget):
                 comp_widget = finfo.editor.completion_widget
                 comp_widget.setup_appearance(completion_size, font)
 
-    def _create_edit_action(self, name, tr_text, icon):
-        """
-        Helper method to create edit actions.
+    # def _create_edit_action(self, name, tr_text, icon):
+    #     """
+    #     Helper method to create edit actions.
 
-        Parameters
-        ----------
-        name : str
-            Text that will be used to identifiy the method associated with the
-            action and set as action id.
-        tr_text : str
-            Text that the action will show. Usually it will be some
-            translated text.
-        icon : QIcon
-            Icon that the action will have.
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         Text that will be used to identifiy the method associated with the
+    #         action and set as action id.
+    #     tr_text : str
+    #         Text that the action will show. Usually it will be some
+    #         translated text.
+    #     icon : QIcon
+    #         Icon that the action will have.
 
-        Returns
-        -------
-        action : SpyderAction
-            The created action.
-        """
-        nameseq = name.split(' ')
-        method_name = nameseq[0].lower() + "".join(nameseq[1:])
-        action = self.create_action(
-            name,
-            text=tr_text,
-            icon=icon,
-            triggered=self._base_edit_actions_callback,
-            data=method_name,
-            context=Qt.WidgetShortcut,
-            register_shortcut=True
-        )
-        return action
+    #     Returns
+    #     -------
+    #     action : SpyderAction
+    #         The created action.
+    #     """
+    #     nameseq = name.split(' ')
+    #     method_name = nameseq[0].lower() + "".join(nameseq[1:])
+    #     action = self.create_action(
+    #         name,
+    #         text=tr_text,
+    #         icon=icon,
+    #         triggered=self._base_edit_actions_callback,
+    #         data=method_name,
+    #         context=Qt.WidgetShortcut,
+    #         register_shortcut=True
+    #     )
+    #     return action
 
     def _create_checkable_action(self, name, text, conf_name, method=''):
         """
@@ -2289,6 +2324,38 @@ class EditorMainWidget(PluginMainWidget):
                 dest_quoted = dest.replace("\\", r"\\")
                 new_filename = re.sub(source_re, dest_quoted, fname)
                 self.renamed(source=fname, dest=new_filename)
+
+    # ---- Edit
+    # -------------------------------------------------------------------------
+    def undo(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.undo()
+
+    def redo(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.redo()
+
+    def cut(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.cut()
+
+    def copy(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.copy()
+
+    def paste(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.paste()
+
+    def select_all(self):
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.selectAll()
 
     # ---- Source code
     # -------------------------------------------------------------------------

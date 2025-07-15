@@ -435,6 +435,14 @@ DEFAULTS = [
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
               'main/close all': "Ctrl+Shift+W",
+              # -- Edit menu --
+              # (intended context for these is plugins that support them)
+              'main/undo': 'Ctrl+Z',
+              'main/redo': 'Ctrl+Shift+Z',
+              'main/cut': 'Ctrl+X',
+              'main/copy': 'Ctrl+C',
+              'main/paste': 'Ctrl+V',
+              'main/select all': "Ctrl+A",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -702,4 +710,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.3.0'
+CONF_VERSION = '88.0.0'

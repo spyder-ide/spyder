@@ -382,25 +382,25 @@ class Editor(SpyderDockablePlugin):
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
 
-        # UndoRedo section
-        for action in [widget.undo_action, widget.redo_action]:
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit,
-                section=EditMenuSections.UndoRedo,
-                before_section=EditMenuSections.Editor
-            )
+        # # UndoRedo section
+        # for action in [widget.undo_action, widget.redo_action]:
+        #     mainmenu.add_item_to_application_menu(
+        #         action,
+        #         menu_id=ApplicationMenus.Edit,
+        #         section=EditMenuSections.UndoRedo,
+        #         before_section=EditMenuSections.Editor
+        #     )
 
-        # Copy section
-        for action in [
-                widget.cut_action, widget.copy_action, widget.paste_action,
-                widget.selectall_action]:
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit,
-                section=EditMenuSections.Copy,
-                before_section=EditMenuSections.Editor
-            )
+        # # Copy section
+        # for action in [
+        #         widget.cut_action, widget.copy_action, widget.paste_action,
+        #         widget.selectall_action]:
+        #     mainmenu.add_item_to_application_menu(
+        #         action,
+        #         menu_id=ApplicationMenus.Edit,
+        #         section=EditMenuSections.Copy,
+        #         before_section=EditMenuSections.Editor
+        #     )
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -523,23 +523,23 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
+        # edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
 
-        # UndoRedo section
-        for action in [widget.undo_action, widget.redo_action]:
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit
-            )
+        # # UndoRedo section
+        # for action in [widget.undo_action, widget.redo_action]:
+        #     mainmenu.remove_item_from_application_menu(
+        #         action,
+        #         menu_id=ApplicationMenus.Edit
+        #     )
 
-        # Copy section
-        for action in [
-                widget.cut_action, widget.copy_action, widget.paste_action,
-                widget.selectall_action]:
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit
-            )
+        # # Copy section
+        # for action in [
+        #         widget.cut_action, widget.copy_action, widget.paste_action,
+        #         widget.selectall_action]:
+        #     mainmenu.remove_item_from_application_menu(
+        #         action,
+        #         menu_id=ApplicationMenus.Edit
+        #     )
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -739,6 +739,7 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.sig_new_recent_file.connect(application.add_recent_file)
         widget.sig_file_action_enabled.connect(self._enable_file_action)
+        widget.sig_edit_action_enabled.connect(self._enable_edit_action)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
@@ -746,6 +747,7 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_file_action_enabled.disconnect(self._enable_file_action)
+        widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1191,6 +1193,24 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().set_current_project_path(root_path=root_path)
 
+    def undo(self):
+        return self.get_widget().undo()
+
+    def redo(self):
+        return self.get_widget().redo()
+
+    def cut(self):
+        return self.get_widget().cut()
+
+    def copy(self):
+        return self.get_widget().copy()
+
+    def paste(self):
+        return self.get_widget().paste()
+
+    def select_all(self):
+        return self.get_widget().select_all()
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
@@ -1276,3 +1296,11 @@ class Editor(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_file_action(action_name, enabled, self.NAME)
+
+    def _enable_edit_action(self, action_name: str, enabled: bool) -> None:
+        """
+        Enable or disable edit action for this plugin.
+        """
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_edit_action(action_name, enabled, self.NAME)
