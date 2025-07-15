@@ -1063,7 +1063,7 @@ class EditorMainWidget(PluginMainWidget):
         for child in [
                 self.undo_action, self.redo_action, self.copy_action,
                 self.cut_action, self.paste_action, self.selectall_action
-                ] + self.edit_menu_actions:
+                ]:
             child.setEnabled(False)
 
         possible_text_widget = QApplication.focusWidget()
@@ -1083,9 +1083,6 @@ class EditorMainWidget(PluginMainWidget):
             self.undo_action.setEnabled(editor.document().isUndoAvailable())
             self.redo_action.setEnabled(editor.document().isRedoAvailable())
 
-            # Editor only actions
-            for action in self.edit_menu_actions:
-                action.setEnabled(True)
             not_readonly = not editor.isReadOnly()
             has_selection = editor.has_selected_text()
         elif (isinstance(possible_text_widget, BaseEditMixin) and
