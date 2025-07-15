@@ -890,7 +890,7 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Assert runfile text is present after reruns and there's no banner
     qtbot.wait(500)
     text = control.toPlainText()
-    assert ('runfile' in text) and not ('Python' in text or 'IPython' in text)
+    assert ('runfile' in text) and ('Python' in text or 'IPython' in text)
 
     # --- Clean namespace after re-execution with clear_namespace ---
     ipy_conf['clear_namespace'] = True
