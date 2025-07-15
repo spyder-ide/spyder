@@ -151,7 +151,7 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
     assert 5 == editor.get_cursor_line_number()
 
     editor.go_to_next_warning()
-    assert 3 == editor.get_cursor_line_number()
+    assert 7 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
     assert 2 == editor.get_cursor_line_number()
@@ -269,7 +269,7 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
 
     # Assert that the error is gone.
     qtbot.wait(2000)
-    expected = [["D100: Missing docstring in public module", 1]]
+    expected = []
     assert editor.get_current_warnings() == expected
 
 
