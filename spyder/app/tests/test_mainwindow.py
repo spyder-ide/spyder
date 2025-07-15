@@ -3220,6 +3220,10 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
              False)
 
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
+             False)
+
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'completions')
@@ -3271,6 +3275,10 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     # Reset config
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
+             False)
+
+    CONF.set('completions',
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
              False)
 
 
