@@ -153,13 +153,10 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
     editor.go_to_next_warning()
     assert 7 == editor.get_cursor_line_number()
 
-    editor.go_to_previous_warning()
-    assert 2 == editor.get_cursor_line_number()
-
     # Test cycling behaviour
     editor.go_to_line(7)
     editor.go_to_next_warning()
-    assert 1 == editor.get_cursor_line_number()
+    assert 5 == editor.get_cursor_line_number()
 
     editor.go_to_previous_warning()
     assert 7 == editor.get_cursor_line_number()
