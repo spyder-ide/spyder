@@ -83,18 +83,16 @@ from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import file_uri, qapplication, start_file
+from spyder.utils.qthelpers import qapplication
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
-from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 
 #==============================================================================
 # Windows only local imports
@@ -343,7 +341,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         dockable_plugins = []
         for plugin_name in PLUGIN_REGISTRY:
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if isinstance(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
+            if isinstance(plugin, SpyderDockablePlugin):
                 dockable_plugins.append((plugin_name, plugin))
         return dockable_plugins
 
@@ -746,7 +744,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     # See spyder-ide/spyder#16518
                     # The plugins that require QtWebengine must declare
                     # themselves as needing that dependency
-                    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+                    # https://github.com/spyder-ide/spyder/pull/
+                    # 22196#issuecomment-2189377043
                     if PluginClass.REQUIRE_WEB_WIDGETS and (
                         not WEBENGINE or
                         self._cli_options.no_web_widgets
@@ -756,23 +755,14 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass,
                                                     external=False)
 
-        # Instantiate internal Spyder 4 plugins
-        for plugin_name in internal_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = internal_plugins[plugin_name]
-                if issubclass(PluginClass, SpyderPlugin):
-                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=False)
-                    self.preferences.register_plugin_preferences(
-                        plugin_instance)
-
-        # Instantiate external Spyder 5 plugins
+        # Instantiate external Spyder 5+ plugins
         for plugin_name in external_plugins:
             if plugin_name in enabled_plugins:
                 PluginClass = external_plugins[plugin_name]
                 try:
-                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=True)
+                    PLUGIN_REGISTRY.register_plugin(
+                        self, PluginClass, external=True
+                    )
                 except Exception as error:
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -944,10 +934,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             if isinstance(plugin, SpyderDockablePlugin):
                 if plugin.get_conf('undocked_on_window_close', default=False):
                     plugin.create_window()
-            elif isinstance(plugin, SpyderPluginWidget):
-                if plugin.get_option('undocked_on_window_close',
-                                     default=False):
-                    plugin._create_window()
 
     def set_window_title(self):
         """Set window title."""
