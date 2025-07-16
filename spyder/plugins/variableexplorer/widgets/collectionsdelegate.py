@@ -14,6 +14,7 @@ import functools
 import math
 import operator
 import sys
+import traceback
 from typing import Any, Callable, Optional
 
 # Third party imports
@@ -375,7 +376,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         Show error dialog box.
 
         This function is called when an error occurs while getting or setting
-        a variable in the console.
+        a variable in the console. The dialog box has a "Show details" button,
+        which shows the exception traceback.
 
         Parameters
         ----------
@@ -387,10 +389,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         """
         the_problem_is = _('The problem is:')
         contents = f'{msg}<br><br>{the_problem_is}<br>{exception}'
+        details = ''.join(traceback.format_exception(exception))
 
         msg_box = QMessageBox(self.parent())
         msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
         msg_box.setText(contents)
+        msg_box.setDetailedText(details)
         msg_box.setWindowTitle(_('Error'))
         msg_box.setIcon(QMessageBox.Critical)
         msg_box.exec_()
