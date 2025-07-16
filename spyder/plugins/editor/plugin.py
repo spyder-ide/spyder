@@ -1157,22 +1157,22 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().set_current_project_path(root_path=root_path)
 
-    def undo(self):
+    def undo(self) -> None:
         return self.get_widget().undo()
 
-    def redo(self):
+    def redo(self) -> None:
         return self.get_widget().redo()
 
-    def cut(self):
+    def cut(self) -> None:
         return self.get_widget().cut()
 
-    def copy(self):
+    def copy(self) -> None:
         return self.get_widget().copy()
 
-    def paste(self):
+    def paste(self) -> None:
         return self.get_widget().paste()
 
-    def select_all(self):
+    def select_all(self) -> None:
         return self.get_widget().select_all()
 
     # ---- Private API

@@ -2235,32 +2235,32 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Edit
     # -------------------------------------------------------------------------
-    def undo(self):
+    def undo(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.undo()
 
-    def redo(self):
+    def redo(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.redo()
 
-    def cut(self):
+    def cut(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.cut()
 
-    def copy(self):
+    def copy(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.copy()
 
-    def paste(self):
+    def paste(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.paste()
 
-    def select_all(self):
+    def select_all(self) -> None:
         editor = self.get_current_editor()
         if editor is not None:
             editor.selectAll()

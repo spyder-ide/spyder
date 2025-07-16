@@ -37,6 +37,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
@@ -271,6 +272,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     ----------
     path: str
         Path to the new interpreter.
+    """
+
+    sig_edit_action_enabled = Signal(str, bool)
+    """
+    This signal is emitted to enable or disable a edit action.
+
+    Parameters
+    ----------
+    action_name: str
+        Name of the edit action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
@@ -1431,6 +1444,30 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     # ---- General
     # -------------------------------------------------------------------------
+    def update_edit_menu(self) -> None:
+        """
+        Enable edition related actions when a client is available.
+        """
+        cut_action_enabled = False
+        copy_action_enabled = False
+        paste_action_enabled = False
+        client = self.get_current_client()
+
+        if client:
+            cut_action_enabled = client.shellwidget.can_cut()
+            copy_action_enabled = client.shellwidget.can_copy()
+            paste_action_enabled = client.shellwidget.can_paste()
+
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Cut, cut_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Copy, copy_action_enabled
+        )
+        self.sig_edit_action_enabled.emit(
+            ApplicationActions.Paste, paste_action_enabled
+        )
+
     def update_font(self, font, app_font):
         self._font = font
         self._app_font = app_font
