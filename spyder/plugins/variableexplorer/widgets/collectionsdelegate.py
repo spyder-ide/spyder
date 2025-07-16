@@ -279,9 +279,11 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             except AttributeError:
                 # index.model() is not a QSortFilterProxyModel
                 source_index = index
+
             type_of_value = source_index.model().row_type(source_index.row())
             if type_of_value == 'Polars DataFrame':
                 readonly = True
+
             # We need to leave this import here for tests to pass.
             from .dataframeeditor import DataFrameEditor
             editor = DataFrameEditor(

@@ -1824,7 +1824,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     Dialog for displaying and editing DataFrame and related objects.
 
     The main portion of the dialog is a table displaying the data. The column
-    names are displayed above the table nd the row index is displayed to the
+    names are displayed above the table and the row index is displayed to the
     left of the table. Above this all is a toolbar and below it all are buttons
     for closing the dialog and saving the data.
 
