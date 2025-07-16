@@ -86,6 +86,7 @@ from spyder.utils.stylesheet import AppStyle, MAC
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
+    from pandas import DataFrame
     from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser
     )
@@ -214,13 +215,27 @@ def global_max(col_vals, index):
 
 class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
     """
-    DataFrame Table Model.
+    Model encapsulating a dataframe for the datafgrame editor
+
+    This is a model (in the sense of the Qt model/view architecture).
 
     Partly based in ExtDataModel and ExtFrameModel classes
     of the gtabview project.
 
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/models.py
+
+    Parameters
+    ----------
+    dataFrame : DataFrame
+        The dataframe encapsulated by the model.
+    format_spec : str, optional
+        Format specification for floats. The default is DEFAULT_FORMAT.
+    parent : Optional[QWidget], optional
+        The parent widget for the model. The default is None.
+    readonly : bool, optional
+        If True, the underlying dataframe can not be edited by the user.
+        The default is False.
 
     Attributes
     ----------
@@ -234,13 +249,20 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         Format specification for floats
     """
 
-    def __init__(self, dataFrame, format_spec=DEFAULT_FORMAT, parent=None):
+    def __init__(
+        self,
+        dataFrame: DataFrame,
+        format_spec: str = DEFAULT_FORMAT,
+        parent: Optional[QWidget] = None,
+        readonly: bool = False,
+    ):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
         self.df_columns_list = None
         self.df_index_list = None
         self._format_spec = format_spec
+        self.readonly = readonly
         self.complex_intran = None
         self.display_error_idxs = []
 
@@ -573,9 +595,10 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
 
     def flags(self, index):
         """Set flags"""
-        return (
-            QAbstractTableModel.flags(self, index) | Qt.ItemFlag.ItemIsEditable
-        )
+        result = super().flags(index)
+        if not self.readonly:
+            result |= Qt.ItemFlag.ItemIsEditable
+        return result
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -673,7 +696,33 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
 
 class DataFrameView(QTableView, SpyderWidgetMixin):
     """
-    Data Frame view class.
+    View displaying a dataframe in the dataframe editor
+
+    This is a view (in the sense of the Qt model/view architecture) that is
+    used in the dataframe editor to display a dataframe. It only shows the
+    data but not the index (row headings) or header (column names).
+
+    Parameters
+    ----------
+    parent : Optional[QWidget]
+        The parent widget.
+    model : DataFrameModel
+        Model encapsulating the displayed dataframe.
+    header : QHeaderView
+        The header (column names) of the view.
+    hscroll : QScrollBar
+        The horizontal scroll bar.
+    vscroll : QScrollBar
+        The vertical scroll bar.
+    namespacebrowser : Optional[NamespaceBrowser], optional
+        The namespace browser that opened the editor containing this view.
+        The default is None.
+    data_function : Optional[Callable[[], Any]], optional
+        A function which returns the new data frame when the user clicks on
+        the Refresh button. The default is None.
+    readonly : bool, optional
+        If True, then the user can not edit the dataframe. The default is
+        False.
 
     Signals
     -------
@@ -694,10 +743,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         hscroll: QScrollBar,
         vscroll: QScrollBar,
         namespacebrowser: Optional[NamespaceBrowser] = None,
-        data_function: Optional[Callable[[], Any]] = None
+        data_function: Optional[Callable[[], Any]] = None,
+        readonly: bool = False
     ):
-        """Constructor."""
         QTableView.__init__(self, parent)
+
+        self.namespacebrowser = namespacebrowser
+        self.data_function = data_function
+        self.readonly = readonly
 
         self.menu = None
         self.menu_header_h = None
@@ -734,8 +787,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.header_class.customContextMenuRequested.connect(
             self.show_header_menu)
         self.header_class.sectionClicked.connect(self.sortByColumn)
-        self.namespacebrowser = namespacebrowser
-        self.data_function = data_function
         self.horizontalScrollBar().valueChanged.connect(
             self._load_more_columns)
         self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
@@ -820,6 +871,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             triggered=self.edit_header_item,
             register_action=False
         )
+        edit_header_action.setEnabled(not self.readonly)
         menu = self.create_menu(DataframeEditorMenus.Header, register=False)
         self.add_item_to_menu(edit_header_action, menu)
         return menu
@@ -830,8 +882,9 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         # Enable/disable edit actions
         condition_edit = (
-            index.isValid() and
-            (len(self.selectedIndexes()) == 1)
+            index.isValid()
+            and len(self.selectedIndexes()) == 1
+            and not self.readonly
         )
 
         for action in [self.edit_action, self.insert_action_above,
@@ -842,13 +895,18 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         # Enable/disable actions for remove col/row, copy and plot
         condition_copy_remove = (
-            index.isValid() and
-            (len(self.selectedIndexes()) > 0)
+            index.isValid()
+            and len(self.selectedIndexes()) > 0
+            and not self.readonly
         )
 
         for action in [self.copy_action, self.remove_row_action,
                        self.remove_col_action, self.histogram_action]:
             action.setEnabled(condition_copy_remove)
+
+        # Enable/disable action for plot
+        condition_plot = (index.isValid() and len(self.selectedIndexes()) > 0)
+        self.histogram_action.setEnabled(condition_plot)
 
     def setup_menu(self):
         """Setup context menu."""
@@ -1049,13 +1107,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             else:
                 self.parent().table_index.resizeColumnsToContents()
                 self.parent().resize_to_contents()
-
-    def flags(self, index):
-        """Set flags"""
-        return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled |
-                Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.EditRole
-        )
 
     def edit_header_item(self):
         """Edit header item"""
@@ -1772,9 +1823,28 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
+    The main portion of the dialog is a table displaying the data. The column
+    names are displayed above the table and the row index is displayed to the
+    left of the table. Above this all is a toolbar and below it all are buttons
+    for closing the dialog and saving the data.
+
     Based on the gtabview project (ExtTableView).
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
+
+    Parameters
+    ----------
+    parent : Optional[QWidget]
+        The parent widget.
+    namespacebrowser : Optional[NamespaceBrowser], optional
+        The namespace browser that opened the editor containing this view.
+        The default is None.
+    data_function : Optional[Callable[[], Any]], optional
+        A function which returns the new data frame when the user clicks on
+        the Refresh button. The default is None.
+    readonly : bool, optional
+        If True, then the user can not edit the dataframe. The default is
+        False.
     """
     CONF_SECTION = 'variable_explorer'
 
@@ -1782,11 +1852,13 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self,
         parent: Optional[QWidget] = None,
         namespacebrowser: Optional[NamespaceBrowser] = None,
-        data_function: Optional[Callable[[], Any]] = None
+        data_function: Optional[Callable[[], Any]] = None,
+        readonly: bool = False
     ):
         super().__init__(parent)
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
+        self.readonly = readonly
 
         self.refresh_action = self.create_action(
             name=DataframeEditorActions.Refresh,
@@ -1876,7 +1948,11 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         # Create the model and view of the data
         empty_data = EmptyDataFrame()
-        self.dataModel = DataFrameModel(empty_data, parent=self)
+        self.dataModel = DataFrameModel(
+            empty_data,
+            parent=self,
+            readonly=self.readonly
+        )
         self.dataModel.dataChanged.connect(self.save_and_close_enable)
         self.create_data_table()
 
@@ -1900,9 +1976,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        self.btn_save_and_close = QPushButton(_('Save and Close'))
-        self.btn_save_and_close.clicked.connect(self.accept)
-        btn_layout.addWidget(self.btn_save_and_close)
+        if self.readonly:
+            self.btn_save_and_close = None
+        else:
+            self.btn_save_and_close = QPushButton(_('Save and Close'))
+            self.btn_save_and_close.clicked.connect(self.accept)
+            btn_layout.addWidget(self.btn_save_and_close)
 
         self.btn_close = QPushButton(_('Close'))
         self.btn_close.setAutoDefault(True)
@@ -1949,7 +2028,11 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             data = pd.DataFrame(data)
 
         # Create the model and view of the data
-        self.dataModel = DataFrameModel(data, parent=self)
+        self.dataModel = DataFrameModel(
+            data,
+            parent=self,
+            readonly=self.readonly
+        )
         self.dataModel.dataChanged.connect(self.save_and_close_enable)
         self.dataTable.setModel(self.dataModel)
 
@@ -1964,7 +2047,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.setModel(self.dataModel)
         self.resizeColumnsToContents()
 
-        self.btn_save_and_close.setDisabled(True)
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setDisabled(True)
         self.dataModel.set_format_spec(self.get_conf('dataframe_format'))
 
         if self.table_header.rowHeight(0) == 0:
@@ -2031,9 +2115,10 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
     @Slot(QModelIndex, QModelIndex)
     def save_and_close_enable(self, top_left, bottom_right):
         """Handle the data change event to enable the save and close button."""
-        self.btn_save_and_close.setEnabled(True)
-        self.btn_save_and_close.setAutoDefault(True)
-        self.btn_save_and_close.setDefault(True)
+        if self.btn_save_and_close:
+            self.btn_save_and_close.setEnabled(True)
+            self.btn_save_and_close.setAutoDefault(True)
+            self.btn_save_and_close.setDefault(True)
 
     def setup_menu_header(self, header):
         """Setup context header menu."""
@@ -2044,6 +2129,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             triggered=lambda: self.edit_header_item(header=header),
             register_action=False
         )
+        edit_header_action.setEnabled(not self.readonly)
         menu = self.create_menu(DataframeEditorMenus.Index, register=False)
         self.add_item_to_menu(edit_header_action, menu)
         return menu
@@ -2064,14 +2150,6 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         if self.table_index.indexAt(v).isValid():
             self.menu_header_v.popup(event.globalPos())
             event.accept()
-
-    def flags(self, index):
-        """Set flags"""
-        return (QAbstractTableModel.flags(self, index) |
-                Qt.ItemFlag.ItemIsEditable |
-                Qt.ItemFlag.ItemIsEnabled |
-                Qt.ItemFlag.ItemIsSelectable
-        )
 
     def create_table_level(self):
         """Create the QTableView that will hold the level model."""
@@ -2130,7 +2208,8 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.hscroll,
             self.vscroll,
             self.namespacebrowser,
-            self.data_function
+            self.data_function,
+            self.readonly
         )
         self.dataTable.verticalHeader().hide()
         self.dataTable.horizontalHeader().hide()
@@ -2384,7 +2463,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         """
         assert self.data_function is not None
 
-        if self.btn_save_and_close.isEnabled():
+        if self.btn_save_and_close and self.btn_save_and_close.isEnabled():
             if not self.ask_for_refresh_confirmation():
                 return
 

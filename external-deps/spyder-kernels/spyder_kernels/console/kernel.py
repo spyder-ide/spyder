@@ -375,6 +375,11 @@ class SpyderKernel(IPythonKernel):
         """Get the value of a variable"""
         ns = self.shell._get_current_namespace()
         value = ns[name]
+
+        if str(type(value)) == "<class 'polars.dataframe.frame.DataFrame'>":
+            # Convert polars dataframes to pandas
+            value = value.to_pandas()
+
         if encoded:
             # Encode with cloudpickle
             value = cloudpickle.dumps(value)
