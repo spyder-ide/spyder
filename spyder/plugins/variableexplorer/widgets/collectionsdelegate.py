@@ -392,6 +392,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             index = data['model'].get_index_from_key(data['key'])
             value = data['editor'].get_value()
             conv_func = data.get('conv', lambda v: v)
+
             try:
                 self.set_value(index, conv_func(value))
             except Exception as msg:

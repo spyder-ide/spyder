@@ -71,9 +71,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "install it in the same environment that you use to run Spyder."
         )
         reason_mismatched_numpy = _(
-            "The '<tt>{}</tt>' module is required to open this variable and "
-            "it's not installed alongside Spyder. To fix this problem, please "
-            "upgrade `numpy` in the same environment that you use to run "
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade `numpy` in the environment that you use to run "
             "Spyder to version 1.26.1 or higher."
         )
         reason_mismatched_python = _(
@@ -149,7 +149,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             elif is_conda_based_app():
                 reason = reason_missing_package_installer.format(e.name)
             elif e.name.startswith('numpy._core'):
-                reason = reason_mismatched_numpy.format(e.name)
+                reason = reason_mismatched_numpy
             else:
                 reason = reason_missing_package.format(e.name)
             raise ValueError(msg % reason)
@@ -159,8 +159,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     def set_value(self, name, value):
         """Set value for a variable"""
         reason_mismatched_numpy = _(
-            "The '<tt>{}</tt>' module is required to set this variable and "
-            "it's not installed in the current console. To fix this problem, "
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
             "please upgrade `numpy` in the console environment to version 2."
         )
         msg = _(
@@ -182,7 +182,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except ModuleNotFoundError as e:
             name = e.args[0].error.name
             if name.startswith('numpy._core'):
-                raise ValueError(msg % reason_mismatched_numpy.format(name))
+                raise ValueError(msg % reason_mismatched_numpy)
         except Exception:
             pass  # swallow exception
 
