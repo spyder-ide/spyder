@@ -390,7 +390,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
         msg_box = QMessageBox(self.parent())
         msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
-        msg_box.critical(self.parent(), _('Error'), contents)
+        msg_box.setText(contents)
+        msg_box.setWindowTitle(_('Error'))
+        msg_box.setIcon(QMessageBox.Critical)
+        msg_box.exec_()
 
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
