@@ -30,7 +30,7 @@ LINT_DEBOUNCE_S = 0.5  # 500 ms
 PARENT_PROCESS_WATCH_INTERVAL = 10  # 10 s
 MAX_WORKERS = 64
 PYTHON_FILE_EXTENSIONS = (".py", ".pyi")
-CONFIG_FILEs = ("setup.cfg", "tox.ini", ".flake8")
+CONFIG_FILEs = ("pycodestyle.cfg", "setup.cfg", "tox.ini", ".flake8")
 
 
 class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
