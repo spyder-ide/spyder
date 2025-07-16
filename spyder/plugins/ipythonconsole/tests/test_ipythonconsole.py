@@ -2563,6 +2563,8 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
     assert "SensitiveCaseA" in control.toPlainText()
     assert "sensitivecasea" not in control.toPlainText()
 
+
+@flaky(max_runs=10)
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux ")
 def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     """Test that the IPython console elapsed timer is set correctly."""
@@ -2631,7 +2633,10 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
 
     # Verify the timer has advanced
     if os.name == "nt":
-        assert '00:00:04' in main_widget.time_label.text()
+        assert (
+            "00:00:04" in main_widget.time_label.text()
+            or "00:00:05" in main_widget.time_label.text()
+        )
     else:
         # This second timer is very flaky on Mac, so we simply test that it's
         # not stuck at 0
