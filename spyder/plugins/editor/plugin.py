@@ -382,26 +382,6 @@ class Editor(SpyderDockablePlugin):
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
 
-        # # UndoRedo section
-        # for action in [widget.undo_action, widget.redo_action]:
-        #     mainmenu.add_item_to_application_menu(
-        #         action,
-        #         menu_id=ApplicationMenus.Edit,
-        #         section=EditMenuSections.UndoRedo,
-        #         before_section=EditMenuSections.Editor
-        #     )
-
-        # # Copy section
-        # for action in [
-        #         widget.cut_action, widget.copy_action, widget.paste_action,
-        #         widget.selectall_action]:
-        #     mainmenu.add_item_to_application_menu(
-        #         action,
-        #         menu_id=ApplicationMenus.Edit,
-        #         section=EditMenuSections.Copy,
-        #         before_section=EditMenuSections.Editor
-        #     )
-
         # Editor section
         for edit_item in widget.edit_menu_actions:
             mainmenu.add_item_to_application_menu(
@@ -523,23 +503,7 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        # edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
-
-        # # UndoRedo section
-        # for action in [widget.undo_action, widget.redo_action]:
-        #     mainmenu.remove_item_from_application_menu(
-        #         action,
-        #         menu_id=ApplicationMenus.Edit
-        #     )
-
-        # # Copy section
-        # for action in [
-        #         widget.cut_action, widget.copy_action, widget.paste_action,
-        #         widget.selectall_action]:
-        #     mainmenu.remove_item_from_application_menu(
-        #         action,
-        #         menu_id=ApplicationMenus.Edit
-        #     )
+        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
