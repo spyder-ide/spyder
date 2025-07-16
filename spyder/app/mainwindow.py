@@ -804,10 +804,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                plugin_instance.before_mainwindow_visible()
-            except AttributeError:
-                pass
+            plugin_instance.before_mainwindow_visible()
 
         if self.splash is not None:
             self.splash.hide()
@@ -856,11 +853,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         for plugin_name in PLUGIN_REGISTRY:
             if plugin_name not in (Plugins.Layout, Plugins.Application):
                 plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-                try:
-                    plugin.on_mainwindow_visible()
-                    QApplication.processEvents()
-                except AttributeError:
-                    pass
+                plugin.on_mainwindow_visible()
+                QApplication.processEvents()
 
         self.restore_scrollbar_position.emit()
 
@@ -1029,17 +1023,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Reimplement Qt method"""
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
-                # TODO: Remove old API
-                try:
-                    # New API
-                    if plugin.get_widget().isAncestorOf(
-                            self.last_focused_widget):
-                        plugin.change_visibility(True)
-                except AttributeError:
-                    # Old API
-                    if plugin.isAncestorOf(self.last_focused_widget):
-                        plugin._visibility_changed(True)
-
+                if plugin.get_widget().isAncestorOf(self.last_focused_widget):
+                    plugin.change_visibility(True)
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -1173,18 +1158,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """
         Add a plugin QDockWidget to the main window.
         """
-        try:
-            # New API
-            if plugin.is_compatible:
-                dockwidget, location = plugin.create_dockwidget(self)
-                self.addDockWidget(location, dockwidget)
-                self.widgetlist.append(plugin)
-        except AttributeError:
-            # Old API
-            if plugin._is_compatible:
-                dockwidget, location = plugin._create_dockwidget()
-                self.addDockWidget(location, dockwidget)
-                self.widgetlist.append(plugin)
+        if plugin.is_compatible:
+            dockwidget, location = plugin.create_dockwidget(self)
+            self.addDockWidget(location, dockwidget)
+            self.widgetlist.append(plugin)
 
     def redirect_internalshell_stdio(self, state):
         console = self.get_plugin(Plugins.Console, error=False)
@@ -1246,18 +1223,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Update dockwidgets features settings."""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.dockwidget.FEATURES
-
             plugin.dockwidget.setFeatures(features)
 
-            try:
-                # New API
-                margin = 0
-                if self.get_conf('use_custom_margin'):
-                    margin = self.get_conf('custom_margin')
-                plugin.update_margins(margin)
-            except AttributeError:
-                # Old API
-                plugin._update_margins()
+            margin = 0
+            if self.get_conf('use_custom_margin'):
+                margin = self.get_conf('custom_margin')
+            plugin.update_margins(margin)
 
     @Slot()
     def show_preferences(self):

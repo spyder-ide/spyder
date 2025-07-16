@@ -53,12 +53,7 @@ class ConfigDialog(SidebarDialog):
             if page is None:
                 continue
 
-            try:
-                # New API
-                section = page.plugin.NAME
-            except AttributeError:
-                section = page.CONF_SECTION
-
+            section = page.plugin.NAME
             if section == name:
                 return idx
         else:

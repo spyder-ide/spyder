@@ -112,19 +112,10 @@ class PluginConfigPage(SpyderConfigPage):
 
     def _patch_apply_settings(self, plugin):
         self.previous_apply_settings = self.apply_settings
-        try:
-            # New API
-            self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
-            self.get_option = plugin.get_conf
-            self.set_option = plugin.set_conf
-            self.remove_option = plugin.remove_conf
-        except AttributeError:
-            # Old API
-            self.apply_settings = self._wrap_apply_settings(
-                plugin.apply_plugin_settings)
-            self.get_option = plugin.get_option
-            self.set_option = plugin.set_option
-            self.remove_option = plugin.remove_option
+        self.apply_settings = self._wrap_apply_settings(plugin.apply_conf)
+        self.get_option = plugin.get_conf
+        self.set_option = plugin.set_conf
+        self.remove_option = plugin.remove_conf
 
     def aggregate_sections_partials(self, opts):
         """Aggregate options by sections in order to notify observers."""
@@ -170,14 +161,7 @@ class PluginConfigPage(SpyderConfigPage):
         plugin name in preferences page will be the same as the plugin
         title.
         """
-        try:
-            # New API
-            name = self.plugin.get_name()
-        except AttributeError:
-            # Old API
-            name = self.plugin.get_plugin_title()
-
-        return name
+        return self.plugin.get_name()
 
     def get_icon(self):
         """
@@ -187,14 +171,7 @@ class PluginConfigPage(SpyderConfigPage):
         plugin icon in preferences page will be the same as the plugin
         icon.
         """
-        try:
-            # New API
-            icon = self.plugin.get_icon()
-        except AttributeError:
-            # Old API
-            icon = self.plugin.get_plugin_icon()
-
-        return icon
+        return self.plugin.get_icon()
 
     def setup_page(self):
         """
