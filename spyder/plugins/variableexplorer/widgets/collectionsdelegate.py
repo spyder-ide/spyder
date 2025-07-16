@@ -42,6 +42,7 @@ from qtpy.QtWidgets import (
     QStyleOptionButton,
     QTableView,
 )
+from spyder_kernels.comms.commbase import CommsErrorWrapper
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
@@ -377,7 +378,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
         This function is called when an error occurs while getting or setting
         a variable in the console. The dialog box has a "Show details" button,
-        which shows the exception traceback.
+        which shows the exception traceback. If an exception raised in the
+        kernel is the cause, then also show that.
 
         Parameters
         ----------
@@ -390,6 +392,21 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         the_problem_is = _('The problem is:')
         contents = f'{msg}<br><br>{the_problem_is}<br>{exception}'
         details = ''.join(traceback.format_exception(exception))
+
+        while exception:
+            if (
+                exception.args
+                and isinstance(exception.args[0], CommsErrorWrapper)
+            ):
+                wrapper = exception.args[0]
+                details += '\n'
+                details += _('The following kernel error is associated:')
+                details += '\n'
+                details += ''.join(traceback.format_list(wrapper.tb))
+                details += ''.join(
+                    traceback.format_exception_only(wrapper.error)
+                )
+            exception = exception.__context__
 
         msg_box = QMessageBox(self.parent())
         msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
