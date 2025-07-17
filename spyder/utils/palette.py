@@ -78,7 +78,7 @@ class SpyderPaletteDark(DarkPalette):
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
-    SPYDER_LOGO_SNAKE = Logos.B50
+    SPYDER_LOGO_SNAKE = Logos.B40
 
     # For special tabs
     SPECIAL_TABS_SEPARATOR = Gray.B70
