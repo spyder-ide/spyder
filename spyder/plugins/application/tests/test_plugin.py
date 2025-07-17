@@ -68,6 +68,47 @@ def test_edit_actions(
         editor_function.assert_called()
 
 
+def test_enable_edit_action(application_plugin):
+    """
+    Test that enable_edit_action enables or disabled the specified edit action
+    on the plugin, and that switching plugins updates whether actions are
+    enabled according to previous calls to enable_edit_action.
+    """
+    container = application_plugin.get_container()
+    mock_plugin1 = Mock(CAN_HANDLE_EDIT_ACTIONS=True)
+    mock_plugin2 = Mock()
+
+    # Initially, actions are enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
+    assert container.undo_action.isEnabled() is True
+
+    # Disabling the Save action in the active plugin works
+    application_plugin.enable_edit_action(
+        ApplicationActions.Undo, False, mock_plugin1.NAME
+    )
+    assert container.undo_action.isEnabled() is False
+
+    # After changing to another plugin, the Save action is enabled again
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin2)
+    assert container.undo_action.isEnabled() is True
+
+    # Disabling the Save action in the second plugin (which has focus) works
+    application_plugin.enable_edit_action(
+        ApplicationActions.Undo, False, mock_plugin2.NAME
+    )
+    assert container.undo_action.isEnabled() is False
+
+    # Enabling the Save action in the first plugin has no immediate effect
+    application_plugin.enable_edit_action(
+        ApplicationActions.Undo, True, mock_plugin1.NAME
+    )
+    assert container.undo_action.isEnabled() is False
+
+    # When changing to the first plugin, the Save action is enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
+    assert container.undo_action.isEnabled() == True
+
+
 @pytest.mark.parametrize('can_file', [True, False])
 @pytest.mark.parametrize(
     'action_name, editor_function_name, plugin_function_name',
