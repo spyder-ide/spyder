@@ -375,7 +375,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self._enable_edit_action(ApplicationActions.SelectAll, True)
 
     @on_plugin_teardown(plugin=Plugins.Application)
-    def on_application_teardown(self):
+    def on_application_teardown(self) -> None:
         widget = self.get_widget()
         widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
 
@@ -416,7 +416,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
-        # Hook state check/update logic for edit actions
+        # Connect state check/update logic for edit actions
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
 
@@ -556,7 +556,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_application_menu(ApplicationMenus.Consoles)
 
-        # Hook state check/update logic for edit actions
+        # Disconnect state check/update logic for edit actions
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
 

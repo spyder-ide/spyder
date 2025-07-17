@@ -18,6 +18,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown,
 )
 from spyder.api.translations import _
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
@@ -701,9 +702,13 @@ class Editor(SpyderDockablePlugin):
     def on_application_available(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
+
         widget.sig_new_recent_file.connect(application.add_recent_file)
         widget.sig_file_action_enabled.connect(self._enable_file_action)
         widget.sig_edit_action_enabled.connect(self._enable_edit_action)
+
+        # Enable Select All edit action
+        self._enable_edit_action(ApplicationActions.SelectAll, True)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):

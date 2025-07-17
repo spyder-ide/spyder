@@ -31,6 +31,43 @@ def test_focused_plugin(application_plugin):
     assert application_plugin.focused_plugin == mock_plugin
 
 
+@pytest.mark.parametrize('can_edit', [True, False])
+@pytest.mark.parametrize(
+    'action_name, editor_function_name, plugin_function_name',
+    [
+        ('undo_action', 'undo', 'undo'),
+        ('redo_action', 'redo', 'redo'),
+        ('cut_action', 'cut', 'cut'),
+        ('copy_action', 'copy', 'copy'),
+        ('paste_action', 'paste', 'paste'),
+        ('select_all_action', 'select_all', 'select_all'),
+    ],
+)
+def test_edit_actions(
+    application_plugin, action_name, editor_function_name,
+    plugin_function_name, can_edit
+):
+    """
+    Test that triggering edit actions calls the corresponding function in the
+    Editor plugin.
+    """
+    mock_plugin = Mock(CAN_HANDLE_EDIT_ACTIONS=can_edit)
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin)
+
+    container = application_plugin.get_container()
+    action = getattr(container, action_name)
+    action.trigger()
+
+    if can_edit:
+        editor_function = getattr(mock_plugin, plugin_function_name)
+        editor_function.assert_called()
+    else:
+        application_plugin.get_plugin.assert_called_with(Plugins.Editor)
+        editor_plugin = application_plugin.get_plugin.return_value
+        editor_function = getattr(editor_plugin, editor_function_name)
+        editor_function.assert_called()
+
+
 @pytest.mark.parametrize('can_file', [True, False])
 @pytest.mark.parametrize(
     'action_name, editor_function_name, plugin_function_name',

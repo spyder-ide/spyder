@@ -1038,7 +1038,6 @@ class EditorMainWidget(PluginMainWidget):
         cut_action_enabled = False
         copy_action_enabled = False
         paste_action_enabled = False
-        select_all_action_enabled = True
 
         editor = self.get_current_editor()
         not_readonly = False
@@ -1077,9 +1076,6 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.sig_edit_action_enabled.emit(
             ApplicationActions.Paste, paste_action_enabled
-        )
-        self.sig_edit_action_enabled.emit(
-            ApplicationActions.SelectAll, select_all_action_enabled
         )
 
     def update_search_menu(self):
