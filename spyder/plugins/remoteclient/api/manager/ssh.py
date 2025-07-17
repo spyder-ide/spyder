@@ -363,7 +363,11 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
             self._ssh_connection = await asyncssh.connect(
                 **connect_kwargs, client_factory=self.client_factory
             )
-        except (OSError, asyncssh.Error) as e:
+        except (
+            OSError,
+            asyncssh.Error,
+            asyncssh.public_key.KeyImportError,
+        ) as e:
             self.logger.error(f"Failed to open ssh connection: {e}")
             self._emit_connection_status(
                 ConnectionStatus.Error,
