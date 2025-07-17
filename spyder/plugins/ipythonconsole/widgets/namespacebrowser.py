@@ -70,6 +70,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
         )
+        reason_mismatched_numpy = _(
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>numpy</tt> in the environment that you use to "
+            "run Spyder to version 1.26.1 or higher."
+        )
         reason_mismatched_python = _(
             "There is a mismatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
@@ -142,6 +148,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 reason = reason_missing_package_target.format(name)
             elif is_conda_based_app():
                 reason = reason_missing_package_installer.format(e.name)
+            elif e.name.startswith('numpy._core'):
+                reason = reason_mismatched_numpy
             else:
                 reason = reason_missing_package.format(e.name)
             raise ValueError(msg % reason)
@@ -150,13 +158,34 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_value(self, name, value):
         """Set value for a variable"""
+        reason_mismatched_numpy = _(
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>numpy</tt> in the console environment to "
+            "version 2.0 or higher."
+        )
+        msg = _(
+            "<br>%s<br><br>"
+            "<b>Note</b>: If you consider this to be a valid error that needs "
+            "to be fixed by the Spyder team, please report it on "
+            "<a href='{}'>Github</a>."
+        ).format(GH_ISSUES)
+
         # Encode with cloudpickle and base64
         encoded_value = cloudpickle.dumps(value)
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
+
+        try:
+            self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                display_error=True,
             ).set_value(name, encoded_value, encoded=True)
+        except ModuleNotFoundError as e:
+            name = e.args[0].error.name
+            if name.startswith('numpy._core'):
+                raise ValueError(msg % reason_mismatched_numpy)
+        except Exception:
+            pass  # swallow exception
 
     def remove_value(self, name):
         """Remove a variable"""
