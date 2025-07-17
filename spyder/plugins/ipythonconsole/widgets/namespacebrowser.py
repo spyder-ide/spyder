@@ -73,8 +73,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_mismatched_numpy = _(
             "There is a mismatch between the Numpy versions used by Spyder "
             "and the kernel of your current console. To fix this problem, "
-            "please upgrade `numpy` in the environment that you use to run "
-            "Spyder to version 1.26.1 or higher."
+            "please upgrade <tt>numpy</tt> in the environment that you use to "
+            "run Spyder to version 1.26.1 or higher."
         )
         reason_mismatched_python = _(
             "There is a mismatch between the Python versions used by Spyder "
@@ -161,7 +161,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_mismatched_numpy = _(
             "There is a mismatch between the Numpy versions used by Spyder "
             "and the kernel of your current console. To fix this problem, "
-            "please upgrade `numpy` in the console environment to version 2."
+            "please upgrade <tt>numpy</tt> in the console environment to "
+            "version 2.0 or higher."
         )
         msg = _(
             "<br>%s<br><br>"
