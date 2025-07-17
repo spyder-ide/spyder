@@ -101,7 +101,7 @@ def test_fix_indentation(codeeditor_indent):
                 "\tprint(self.b)\n"
                 "\n"
                 )
-    # Fix indentation replaces tabs with indent_chars spaces.
+    # Fix indentation: replace tabs with indent_chars spaces
     fixed = ("  \n"
              "class a():  \n"
              "  self.b = 1\n"
