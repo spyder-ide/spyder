@@ -62,7 +62,7 @@ class Toolbar(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # View menu Toolbar section
+        # Window (formerly View) menu Toolbar section
         mainmenu.add_item_to_application_menu(
             self.toolbars_menu,
             menu_id=ApplicationMenus.View,
@@ -77,7 +77,7 @@ class Toolbar(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # View menu Toolbar section
+        # Window (formerly View) menu Toolbar section
         mainmenu.remove_item_from_application_menu(
             ToolbarMenus.ToolbarsMenu,
             menu_id=ApplicationMenus.View)
