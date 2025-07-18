@@ -58,6 +58,7 @@ logger = logging.getLogger(__name__)
 # ---- Constants
 # -----------------------------------------------------------------------------
 class EditorMainWindowMenus:
+    # Now called "Window" in the UI
     View = "view"
 
 
@@ -498,7 +499,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
         view_menu = self._create_menu(
             menu_id=EditorMainWindowMenus.View,
             parent=self,
-            title=_("&View"),
+            title=_("&Window"),
             register=False,
             MenuClass=ApplicationMenu
         )

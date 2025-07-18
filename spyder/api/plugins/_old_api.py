@@ -574,12 +574,12 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
     def toggle_view(self, checked):
         """
         Toggle dockwidget's visibility when its entry is selected in
-        the menu `View > Panes`.
+        the menu `Window > Panes`.
 
         Parameters
         ----------
         checked: bool
-            Is the entry in `View > Panes` checked or not?
+            Is the entry in `Window > Panes` checked or not?
 
         Notes
         -----

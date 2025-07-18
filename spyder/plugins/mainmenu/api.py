@@ -70,6 +70,7 @@ class ApplicationMenus:
     Consoles = 'consoles_menu'
     Projects = 'projects_menu'
     Tools = 'tools_menu'
+    # Now called "Window" in the UI
     View = 'view_menu'
     Help = 'help_menu'
 
