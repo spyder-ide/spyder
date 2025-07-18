@@ -3221,7 +3221,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
              False)
 
     # Open completion prefences and update options
@@ -3278,7 +3278,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              False)
 
     CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
+             ('provider_configuration', 'lsp', 'values', 'flake8'),
              False)
 
 
