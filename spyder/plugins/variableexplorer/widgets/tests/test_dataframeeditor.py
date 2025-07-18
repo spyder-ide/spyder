@@ -1176,5 +1176,22 @@ def test_dataframeeditor_plot():
     mock_hist.assert_called_once_with(ax=axis, column=['first', 'second'])
 
 
+def test_dataframeeditor_readonly(qtbot):
+    """
+    Test that a read-only dataframe editor has no "Save and Close" button and
+    that the data can not be edited.
+    """
+    df = DataFrame([[0, 10], [1, 20], [2, 40]])
+    editor = DataFrameEditor(readonly=True)
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    view = editor.dataTable
+    view.setCurrentIndex(model.index(0, 0))
+
+    assert editor.btn_save_and_close is None
+    assert not (model.flags(model.index(0, 0)) & Qt.ItemFlag.ItemIsEditable)
+    assert not editor.dataTable.edit_action.isEnabled()
+
+
 if __name__ == "__main__":
     pytest.main()

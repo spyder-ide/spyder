@@ -26,8 +26,12 @@ from spyder_kernels.utils.pythonenv import (
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.config.base import (get_safe_mode, is_conda_based_app,
-                                running_under_pytest)
+from spyder.config.base import (
+    get_safe_mode,
+    is_conda_based_app,
+    running_in_ci,
+    running_under_pytest
+)
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
@@ -275,6 +279,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # This is necessary to restore TMPDIR in the kernel, if it exists
             "SPY_TMPDIR": tmpdir_var,
         })
+
+        # This is necessary so that the kernel checks the Spyder pid for
+        # crashes and gets killed automatically when that happens.
+        # Fixes spyder-ide/spyder#22414
+        if not (running_in_ci() and os.name == "nt"):
+            env_vars["SPY_PARENT_PID"] = str(os.getpid())
 
         # App considerations
         # ??? Do we need this?
