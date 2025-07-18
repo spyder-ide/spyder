@@ -454,11 +454,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
         )
-        self.reset_action = self.create_action(
-            IPythonConsoleWidgetActions.ResetNamespace,
-            text=_("Remove all variables"),
-            icon=self.create_icon('editdelete'),
-            triggered=self.reset_namespace,
+        self.clear_console_action = self.create_action(
+            IPythonConsoleWidgetActions.ClearConsole,
+            text=_("Clear console"),
+            icon=self.create_icon("clear_console"),
+            triggered=self._current_client_clear_console,
             register_shortcut=True
         )
         self.interrupt_action = self.create_action(
@@ -645,7 +645,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
-                self.reset_action,
+                self.clear_console_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
                 item,
@@ -734,7 +734,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
-                self.reset_action,
+                self.clear_console_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
                 item,
@@ -789,7 +789,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ):
                 error_or_loading = not client.is_kernel_active()
                 self.restart_action.setEnabled(not error_or_loading)
-                self.reset_action.setEnabled(not error_or_loading)
+                self.clear_console_action.setEnabled(not error_or_loading)
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
