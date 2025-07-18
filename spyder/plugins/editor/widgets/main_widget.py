@@ -2958,14 +2958,11 @@ class EditorMainWidget(PluginMainWidget):
         # See: spyder-ide/spyder#9915
 
     @on_conf_change(
-        option=[
-            ('provider_configuration', 'lsp', 'values', 'pydocstyle')
-            ],
+        option=('provider_configuration', 'lsp', 'values', 'pydocstyle'),
         section='completions'
     )
-    def on_completions_checkable_action_change(self, option, value):
-        option = option[-1]  # Get 'flake8' or 'pydocstyle'
-        self._on_checkable_action_change(option, value)
+    def on_completions_checkable_action_change(self, value):
+        self._on_checkable_action_change('pydocstyle', value)
 
     @on_conf_change(
         option=[
