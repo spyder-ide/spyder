@@ -480,6 +480,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             triggered=self.tab_name_editor,
         )
 
+        self.register_shortcut_for_widget(
+            IPythonConsoleWidgetActions.GoRight,
+            lambda: self.tabwidget.tab_navigate(+1),
+        )
+
+        self.register_shortcut_for_widget(
+            IPythonConsoleWidgetActions.GoLeft,
+            lambda: self.tabwidget.tab_navigate(-1),
+        )
+
         # --- For the client
         self.env_action = self.create_action(
             IPythonConsoleWidgetActions.ShowEnvironmentVariables,
