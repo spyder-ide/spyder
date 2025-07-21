@@ -1,5 +1,19 @@
 # History of changes
 
+## Version 3.1.0a3 (2025/07/21)
+
+### Pull Requests Merged
+
+* [PR 553](https://github.com/spyder-ide/spyder-kernels/pull/553) - PR: Fix bug when converting JSON to StackSummary, by [@jitseniesen](https://github.com/jitseniesen)
+* [PR 552](https://github.com/spyder-ide/spyder-kernels/pull/552) - PR: Drop support for Python 3.8, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 551](https://github.com/spyder-ide/spyder-kernels/pull/551) - PR: Use our own poller to check if the kernel parent is alive, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 550](https://github.com/spyder-ide/spyder-kernels/pull/550) - PR: Add new security policy, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 549](https://github.com/spyder-ide/spyder-kernels/pull/549) - PR: Support Polars dataframes, by [@jitseniesen](https://github.com/jitseniesen)
+
+In this release 5 pull requests were closed.
+
+----
+
 ## Version 3.1.0a2 (2025/06/05)
 
 ### Pull Requests Merged
