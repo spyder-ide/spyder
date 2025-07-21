@@ -10,6 +10,7 @@ IPython Console plugin based on QtConsole.
 
 # Standard library imports
 from functools import cached_property
+import re
 import sys
 from typing import List, Optional
 
@@ -925,8 +926,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         cell_text = run_input['cell']
 
         if run_input['copy']:
-            import re
-            cell_text = re.sub(r'(^\s*\n)|(\n\s*$)', '', cell_text)  
+            cell_text = re.sub(r'(^\s*\n)|(\n\s*$)', '', cell_text)
             self.run_selection(cell_text)
             return
 
