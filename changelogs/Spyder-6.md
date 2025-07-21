@@ -7,8 +7,9 @@
 * Add support to work with multiple cursors in the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
 * Add a graphical interface to the update process of our standalone installers.
 * Plot histograms from the dataframe viewer.
-* Add support for `frozenset`, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
+* Add support for Polars dataframes, frozen sets, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
 * Show the remote file system in the Files pane when a remote console has focus.
+* Add support to connect to JupyterHub servers.
 * Add support to use Pixi environments in the IPython console.
 * Paths can be added to the front of `sys.path` in the Pythonpath manager.
 * Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
@@ -19,12 +20,17 @@
 
 * Much better support for PyQt6 and PySide6.
 * Make shortcuts to move to different panes work when they are undocked.
+* Remove blank lines around cells when copying their contents to the console.
+* Automatically kill kernels when Spyder crashes.
 * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
 * Drop support for Python 3.8
 
 ### UX/UI improvements
 
+* Reorganize most menus to make them easier to navigate.
+* Add shortcut `Ctrl+W` to close Variable Explorer viewers.
 * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+* Fix plots looking blurred when scaling is enabled in high DPI screens.
 
 ### API changes
 
