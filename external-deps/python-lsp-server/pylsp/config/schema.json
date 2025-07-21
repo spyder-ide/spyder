@@ -270,6 +270,11 @@
       "default": true,
       "description": "If True includes symbols imported from other libraries."
     },
+    "pylsp.plugins.jedi_type_definition.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable the plugin."
+    },
     "pylsp.plugins.mccabe.enabled": {
       "type": "boolean",
       "default": true,

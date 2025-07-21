@@ -38,6 +38,11 @@ def pylsp_definitions(config, workspace, document, position) -> None:
     pass
 
 
+@hookspec(firstresult=True)
+def pylsp_type_definition(config, document, position):
+    pass
+
+
 @hookspec
 def pylsp_dispatchers(config, workspace) -> None:
     pass
