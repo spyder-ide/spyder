@@ -421,7 +421,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         restart_connect_consoles_actions = [
             widget.interrupt_action,
             widget.restart_action,
-            widget.reset_action
+            widget.clear_console_action
         ]
 
         # Console menu

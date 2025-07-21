@@ -2413,7 +2413,7 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     main_widget = ipyconsole.get_widget()
     main_widget._options_menu.aboutToShow.emit()
     assert not main_widget.restart_action.isEnabled()
-    assert not main_widget.reset_action.isEnabled()
+    assert not main_widget.clear_console_action.isEnabled()
     assert not main_widget.env_action.isEnabled()
     assert not main_widget.syspath_action.isEnabled()
     assert not main_widget.show_time_action.isEnabled()
