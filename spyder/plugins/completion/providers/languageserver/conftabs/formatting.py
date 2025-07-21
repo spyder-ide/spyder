@@ -22,7 +22,7 @@ from spyder.config.base import _
 
 
 class FormattingStyleConfigTab(SpyderPreferencesTab):
-    """Code style and formatting tab."""
+    """Code formatting tab."""
 
     TITLE = _('Code formatting')
 

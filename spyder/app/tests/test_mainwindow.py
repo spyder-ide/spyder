@@ -3235,7 +3235,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     tabs = dict(zip(tnames, tabs))
     tab_widgets = {
-        'code style and formatting': 'code_style_check',
+        'code formatting': 'code_style_check',
         'docstring style': 'docstring_style_check'
     }
 
