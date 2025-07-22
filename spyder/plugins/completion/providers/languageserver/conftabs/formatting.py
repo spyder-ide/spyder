@@ -16,7 +16,7 @@ from spyder.api.preferences import SpyderPreferencesTab
 from spyder.config.base import _
 
 
-class FormattingStyleConfigTab(SpyderPreferencesTab):
+class FormattingConfigTab(SpyderPreferencesTab):
     """Code formatting tab."""
 
     TITLE = _('Code formatting')
