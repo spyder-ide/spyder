@@ -3206,8 +3206,8 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10139 regression.
 
-    Enabling codestyle/docstyle on the completion section of preferences,
-    was not updating correctly.
+    Enabling docstyle on the completion section of preferences, was not
+    updating correctly.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3220,10 +3220,6 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
              False)
 
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8'),
-             False)
-
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'completions')
@@ -3234,10 +3230,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
             for i in range(page.tabs.count())]
 
     tabs = dict(zip(tnames, tabs))
-    tab_widgets = {
-        'code formatting': 'code_style_check',
-        'docstring style': 'docstring_style_check'
-    }
+    tab_widgets = {'docstring style': 'docstring_style_check'}
 
     for tabname in tab_widgets:
         tab, idx = tabs[tabname]
@@ -3264,21 +3257,14 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         if menu_item and isinstance(menu_item, QAction):
             print(menu_item.text(), menu_item.isChecked())
 
-            if 'code style' in menu_item.text():
+            if 'docstring style' in menu_item.text():
                 assert menu_item.isChecked()
                 count += 1
-            elif 'docstring style' in menu_item.text():
-                assert menu_item.isChecked()
-                count += 1
-    assert count == 2
+    assert count == 1
 
     # Reset config
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
-             False)
-
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'flake8'),
              False)
 
 
