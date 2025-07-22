@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 
 # Third party imports
 from flaky import flaky
+from pandas import DataFrame
 import pytest
 from qtpy.QtCore import Qt, QPoint, QModelIndex
 
@@ -271,6 +272,41 @@ def test_namespacebrowser_plot_with_mute_inline_plotting_false(namespacebrowser)
     mock_figure.assert_called_once_with()
     mock_plot_function.assert_called_once_with(mock_figure())
     mock_figure().show.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    'type_name, readonly',
+    [('Polars DataFrame', True), ('DataFrame', False)]
+)
+def test_dataframeeditor_readonly(namespacebrowser, type_name, readonly):
+    """
+    Test that opening a dataframe editor makes the editor read-only for Polarrs
+    dataframes but not for Pandas dataframes.
+    """
+    browser = namespacebrowser
+    browser.set_data(
+        {
+            'df': {
+                'type': type_name,
+                'size': [1, 1],
+                'view': 'Column names: label',
+                'python_type': 'dataframe',
+                'numpy_type': 'Unknown',
+            }
+        }
+    )
+    editor = browser.editor
+    value = DataFrame({'label': [42]})
+    name_to_patch = (
+        'spyder.plugins.variableexplorer.widgets.dataframeeditor'
+        '.DataFrameEditor'
+    )
+    with patch(name_to_patch) as MockDataFrameEditor, patch.object(
+        editor, 'get_value', return_value=value
+    ):
+        editor.delegate.createEditor(None, None, editor.model().index(0, 3))
+
+    assert MockDataFrameEditor.call_args.kwargs['readonly'] == readonly
 
 
 if __name__ == "__main__":

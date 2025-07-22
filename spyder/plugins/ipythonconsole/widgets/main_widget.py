@@ -1491,6 +1491,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             show_elapsed_time = client.show_elapsed_time
             self.show_time_action.setChecked(show_elapsed_time)
             client.timer.timeout.connect(client.show_time)
+            client.timer.start(1000)
+            client.timer.timeout.emit()
         else:
             control = None
         self.find_widget.set_editor(control)
@@ -1854,6 +1856,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             client.t0 = master_client.t0
             client.timer.timeout.connect(client.show_time)
             client.timer.start(1000)
+            client.timer.timeout.emit()
 
         if jupyter_api is not None:
             # This is a client created by the RemoteClient plugin. So, we only
@@ -1974,6 +1977,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Show time label
         client.sig_time_label.connect(self.time_label.setText)
+        client.timer.timeout.emit()
 
         # Exception handling
         shellwidget.sig_exception_occurred.connect(
@@ -2466,16 +2470,27 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
-                    if is_new_client:
-                        client.shellwidget.silent_execute('%clear')
-                    else:
-                        client.shellwidget.execute('%clear')
-                    client.shellwidget.sig_prompt_ready.connect(
-                        lambda: self.execute_code(
-                            line, current_client, clear_variables,
-                            shellwidget=client.shellwidget
+                    # Dedicated console case:
+                    # Since code will be run in a dedicated console, the
+                    # console could be still initializing. If that is the case,
+                    # there is a need to execute the code via signal connection
+                    # when the kernel is detected as not ready
+                    if client.shellwidget.spyder_kernel_ready:
+                        self.execute_code(
+                            line,
+                            current_client,
+                            clear_variables,
+                            shellwidget=client.shellwidget,
                         )
-                    )
+                    else:
+                        client.shellwidget.sig_prompt_ready.connect(
+                            lambda: self.execute_code(
+                                line,
+                                current_client,
+                                clear_variables,
+                                shellwidget=client.shellwidget,
+                            )
+                        )
             except AttributeError:
                 pass
 

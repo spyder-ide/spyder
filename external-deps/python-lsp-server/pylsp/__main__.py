@@ -40,7 +40,7 @@ def add_arguments(parser) -> None:
         "--check-parent-process",
         action="store_true",
         help="Check whether parent process is still alive using os.kill(ppid, 0) "
-        "and auto shut down language server process when parent process is not alive."
+        "and auto shut down language server process when parent process is not alive. "
         "Note that this may not work on a Windows machine.",
     )
 
@@ -50,7 +50,7 @@ def add_arguments(parser) -> None:
     )
     log_group.add_argument(
         "--log-file",
-        help="Redirect logs to the given file instead of writing to stderr."
+        help="Redirect logs to the given file instead of writing to stderr. "
         "Has no effect if used with --log-config.",
     )
 
