@@ -8,13 +8,8 @@
 Language Server Protocol configuration tabs.
 """
 
-# Standard library imports
-import re
-
 # Third party imports
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel, QMessageBox,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
@@ -31,7 +26,8 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         newcb = self.create_checkbox
 
         pep_url = (
-            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>')
+            '<a href="https://www.python.org/dev/peps/pep-0008">PEP 8</a>'
+        )
 
         self.code_style_max_line_length = self.create_spinbox(
             _("Maximum allowed line length:"), None,
@@ -92,37 +88,3 @@ class FormattingStyleConfigTab(SpyderPreferencesTab):
         code_style_fmt_layout.addWidget(code_fmt_group)
         code_style_fmt_layout.addWidget(line_length_group)
         self.setLayout(code_style_fmt_layout)
-
-    def report_invalid_regex(self, files=True):
-        """
-        Report that excluded files/directories should be valid regular
-        expressions.
-        """
-        msg = _('Directory patterns listed for exclusion should be valid '
-                'regular expressions')
-        if files:
-            msg = _('File patterns listed for exclusion should be valid '
-                    'regular expressions')
-
-        QMessageBox.critical(self, _("Error"), msg)
-
-    def is_valid(self):
-        # Check regex of code style options
-        try:
-            code_style_filenames_matches = (
-                self.code_style_filenames_match.textbox.text().split(","))
-            for match in code_style_filenames_matches:
-                re.compile(match.strip())
-        except re.error:
-            self.report_invalid_regex()
-            return False
-
-        try:
-            code_style_excludes = (
-                self.code_style_exclude.textbox.text().split(","))
-            for match in code_style_excludes:
-                re.compile(match.strip())
-        except re.error:
-            self.report_invalid_regex(files=False)
-            return False
-        return True
