@@ -98,7 +98,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         self.flake8_exclude = self.create_lineedit(
-            _("Exclude the following files or directories:"),
+            _("Exclude these files or directories:"),
             'flake8/exclude',
             alignment=Qt.Horizontal,
             word_wrap=False,
@@ -106,7 +106,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         flake8_select = self.create_lineedit(
-            _("Show the following errors or warnings:"),
+            _("Show these errors or warnings:"),
             'flake8/extendSelect',
             alignment=Qt.Horizontal,
             word_wrap=False,
@@ -114,11 +114,11 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         flake8_ignore = self.create_lineedit(
-            _("Ignore the following errors or warnings:"),
+            _("Ignore these errors or warnings:"),
             'flake8/extendIgnore',
             alignment=Qt.Horizontal,
             word_wrap=False,
-            placeholder=_("Example codes: E201, E303"),
+            placeholder=_("Default is: E,W,C90"),
         )
 
         flake8_layout = QGridLayout()
