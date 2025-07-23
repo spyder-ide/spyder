@@ -525,7 +525,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Cut,
             text=_("Cut"),
             icon=self.create_icon("editcut"),
-            triggered=self._current_client_cut
+            triggered=self.current_client_cut
         )
         cut_action.setShortcut(QKeySequence.Cut)
 
@@ -533,7 +533,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Copy,
             text=_("Copy"),
             icon=self.create_icon("editcopy"),
-            triggered=self._current_client_copy
+            triggered=self.current_client_copy
         )
         copy_action.setShortcut(QKeySequence.Copy)
 
@@ -547,7 +547,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Paste,
             text=_("Paste"),
             icon=self.create_icon("editpaste"),
-            triggered=self._current_client_paste
+            triggered=self.current_client_paste
         )
         paste_action.setShortcut(QKeySequence.Paste)
 
@@ -555,7 +555,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.SelectAll,
             text=_("Select all"),
             icon=self.create_icon("selectall"),
-            triggered=self._current_client_select_all
+            triggered=self.current_client_select_all
         )
 
         self.create_action(
@@ -2177,12 +2177,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
-    def _current_client_cut(self):
+    def current_client_cut(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.cut()
 
-    def _current_client_copy(self):
+    def current_client_copy(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.copy()
@@ -2192,12 +2192,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client:
             client.shellwidget.copy_raw()
 
-    def _current_client_paste(self):
+    def current_client_paste(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.paste()
 
-    def _current_client_select_all(self):
+    def current_client_select_all(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.select_all_smart()

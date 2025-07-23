@@ -40,7 +40,6 @@
 * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
 * Add "undo", "redo", "cut", "copy", "paste" and "select all" shortcuts to the "main" section.
 * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as`, `revert_file`, `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods.
-* Add `set_default_kernel_spec` to `remoteclient` plugin, in order to set default kernel spec used to open default consoles.
 
 #### IPython console
 
@@ -67,6 +66,7 @@
 * Add `get_jupyter_api` method to get the Jupyter API to interact with a remote Jupyter server.
 * Add `get_file_api` method to get the rest API module to manage remote file systems.
 * Add `get_environ_api` method to get the rest API module to work with environment variables in the remote machine.
+* Add `set_default_kernel_spec` in order to set the kernel spec used to open default consoles.
 
 #### Pythonpath manager
 

@@ -898,16 +898,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                                        ask_recursive=ask_recursive)
 
     def cut(self) -> None:
-        return self.get_widget()._current_client_cut()
+        return self.get_widget().current_client_cut()
 
     def copy(self) -> None:
-        return self.get_widget()._current_client_copy()
+        return self.get_widget().current_client_copy()
 
     def paste(self) -> None:
-        return self.get_widget()._current_client_paste()
+        return self.get_widget().current_client_paste()
 
     def select_all(self) -> None:
-        return self.get_widget()._current_client_select_all()
+        return self.get_widget().current_client_select_all()
 
     # ---- For execution
     @run_execute(context=RunContext.File)
