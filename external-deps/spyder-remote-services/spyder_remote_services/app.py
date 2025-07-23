@@ -110,6 +110,10 @@ class SpyderRemoteServices(ExtensionApp):
         "info": (SpyderServerInfoApp, SpyderServerInfoApp.description),
     }
 
+    settings = {
+        "websocket_max_message_size": 104857600,  # 100 MB
+    }
+
     def initialize_handlers(self):
         """Initialize handlers."""
         self.handlers.extend([(rf"/{self.name}{h[0]}", h[1]) for h in handlers])
