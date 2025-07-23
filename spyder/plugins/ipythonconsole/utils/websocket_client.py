@@ -175,9 +175,27 @@ class _Session:
             The channel name of the message.
         msg: dict
             The message dict.
+
+        Raises
+        ------
+        aiohttp.WSMessageTypeError
+            If the received message is not of type WSMsgType.BINARY.
         """
-        msg = await stream.receive_bytes(timeout=timeout)
-        channel, components = self._deserialize_components_v1_protocol(msg)
+        msg = await stream.receive(timeout=timeout)
+        if msg.type in {aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING}:
+            _LOGGER.debug(
+                "WebSocket connection closed with type %s and code %s",
+                msg.type,
+                msg.data,
+            )
+            return "closed", {}
+
+        if msg.type is not aiohttp.WSMsgType.BINARY:
+            msg = (f"Received message {msg.type}:{msg.data!r}"
+                   " is not WSMsgType.BINARY")
+            raise aiohttp.WSMessageTypeError(msg)
+
+        channel, components = self._deserialize_components_v1_protocol(msg.data)
         return channel, self.deserialize(components)
 
     def serialize(
@@ -720,7 +738,8 @@ class _WebSocketKernelClient(Configurable):
     async def _receiver_loop(self):
         """Receive messages from the websocket stream."""
         try:
-            while True:
+            channel = None
+            while channel != "closed":
                 channel, msg = await self.session.recv(self._ws)
 
                 # TODO(@hlouzada): handle restarts on comms
