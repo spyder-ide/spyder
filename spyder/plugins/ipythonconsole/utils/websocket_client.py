@@ -733,6 +733,8 @@ class _WebSocketKernelClient(Configurable):
             params=qs,
             protocols=("v1.kernel.websocket.jupyter.org",),
             autoping=True,
+            autoclose=True,
+            max_msg_size=104857600,  # 100 MB
         )
 
     async def _receiver_loop(self):
