@@ -1114,7 +1114,7 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
 
     sig_spyder_kernel_info = Signal(object)
 
-    sig_max_channel_msg_size = Signal(int)
+    sig_ws_msg_size_overflow = Signal(int)
 
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
@@ -1131,6 +1131,6 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
                 self.session.session,
                 exc,
             )
-            self.sig_max_channel_msg_size.emit(self._ws._reader._max_msg_size)
+            self.sig_ws_msg_size_overflow.emit(self._ws._reader._max_msg_size)
         else:
             super()._handle_receiver_exception(exc)
