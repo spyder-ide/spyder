@@ -1267,9 +1267,7 @@ class Editor(SpyderDockablePlugin):
             application.enable_file_action(action_name, enabled, self.NAME)
 
     def _enable_edit_action(self, action_name: str, enabled: bool) -> None:
-        """
-        Enable or disable edit action for this plugin.
-        """
+        """Enable or disable edit action for this plugin."""
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_edit_action(action_name, enabled, self.NAME)

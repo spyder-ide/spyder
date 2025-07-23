@@ -371,6 +371,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Disable Undo/Redo edit actions
         self._enable_edit_action(ApplicationActions.Undo, False)
         self._enable_edit_action(ApplicationActions.Redo, False)
+
         # Enable Select All edit action
         self._enable_edit_action(ApplicationActions.SelectAll, True)
 
@@ -1201,9 +1202,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     # ---- Methods related to the Application plugin
     # ------------------------------------------------------------------------
     def _enable_edit_action(self, action_name: str, enabled: bool) -> None:
-        """
-        Enable or disable edit action for this plugin.
-        """
+        """Enable or disable edit action for this plugin."""
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_edit_action(action_name, enabled, self.NAME)

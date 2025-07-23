@@ -998,7 +998,7 @@ class Application(SpyderPluginV2):
         ----------
         action_name : str
             The name of the action to be enabled or disabled. These names
-            are listed in ApplicationActions, for instance "Undo"
+            are listed in ApplicationActions, for instance "Undo".
         enabled : bool
             True to enable the action, False to disable it.
         plugin : str

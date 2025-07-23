@@ -998,10 +998,10 @@ class SpyderDockablePlugin(SpyderPluginV2):
     FILE_EXTENSIONS = []
 
     # Whether the plugin can handle edit actions.
-    # If set to true, then the `create_new_file`, `open_last_closed_file`,
-    # `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` functions will be
-    # called to handle the corresponding actions. Individual actions can be
-    # disabled with `enable_edit_action` in the Applications plugin.
+    # If set to True, then the `undo`, `redo`, `cut`, `copy`, `paste` and
+    # `select_all` functions will be called to handle the corresponding
+    # actions. Individual actions can be disabled with `enable_edit_action` in
+    # the Applications plugin.
     CAN_HANDLE_EDIT_ACTIONS = False
 
     # ---- API: Available signals
@@ -1268,7 +1268,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def select_all(self) -> None:
         """
-        Select all selectable elements from the plugin.
+        Select all text in the plugin.
 
         This function will be called if the `Edit > Select All` menu item is
         selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is

@@ -219,7 +219,7 @@ class EditorMainWidget(PluginMainWidget):
 
     sig_edit_action_enabled = Signal(str, bool)
     """
-    This signal is emitted to enable or disable a edit action.
+    This signal is emitted to enable or disable an edit action.
 
     Parameters
     ----------

@@ -206,7 +206,7 @@ class ApplicationContainer(PluginMainContainer):
 
     sig_select_all_requested = Signal()
     """
-    Signal to request that everything selectable is selected.
+    Signal to request that all text is selected.
     """
 
     def __init__(self, name, plugin, parent=None):
