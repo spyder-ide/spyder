@@ -9,11 +9,18 @@ echo "Environment variables:"
 env | sort
 echo ""
 
+runtime_env="${PREFIX}/envs/spyder-runtime"
+
+# ---- User site-packages
+# Prevent using user site-packages
+# See https://github.com/spyder-ide/spyder/issues/24773
+site=$(find ${runtime_env}/lib/python* -name "site.py")
+sed -i -e 's/^ENABLE_USER_SITE = None/ENABLE_USER_SITE = False/g' "${site}"
+
 # ---- QtWebengine
 # QtWebengine cannot find $prefix/resources directory on a APFS case-sensitive file system.
 # This is not the default macOS file system. To work-around this we rename it to Resources.
 # See https://github.com/spyder-ide/spyder/issues/23415
-runtime_env="${PREFIX}/envs/spyder-runtime"
 if [[ "$OSTYPE" == "darwin"* && ! -e "${runtime_env}/Resources" ]]; then
     # macOS and case-sensitive
     mv -f ${runtime_env}/resources ${runtime_env}/Resources || true
