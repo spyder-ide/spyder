@@ -735,13 +735,18 @@ class _WebSocketKernelClient(Configurable):
                     )
 
                 await self._queues[channel].put(msg)
+        except asyncio.CancelledError:
+            _LOGGER.debug("Receiver loop cancelled for %s", self.session.session)
         except BaseException as exc:
-            if isinstance(exc, asyncio.CancelledError):
-                _LOGGER.debug("Receiver loop cancelled")
-            else:
-                _LOGGER.exception(
-                    "Receiver loop error for %s", self.session.session
-                )
+            await self._ws.close(
+                code=aiohttp.WSCloseCode.INTERNAL_ERROR,
+            )
+            self._handle_receiver_exception(exc)
+
+    @staticmethod
+    def _handle_receiver_exception(exc: BaseException):
+        """Handle exceptions in the receiver loop."""
+        raise exc
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def stop_channels(self):
@@ -1088,8 +1093,23 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
 
     sig_spyder_kernel_info = Signal(object)
 
+    sig_max_channel_msg_size = Signal(int)
+
     def _handle_kernel_info_reply(self, rep):
         """Check spyder-kernels version."""
         super()._handle_kernel_info_reply(rep)
         spyder_kernels_info = rep["content"].get("spyder_kernels_info", None)
         self.sig_spyder_kernel_info.emit(spyder_kernels_info)
+
+    def _handle_receiver_exception(self, exc: BaseException):
+        """Handle exceptions in the receiver loop."""
+        if (isinstance(exc, aiohttp.WebSocketError) and
+            exc.code == aiohttp.WSCloseCode.MESSAGE_TOO_BIG):
+            _LOGGER.error(
+                "WebSocket message too big for %s: %s",
+                self.session.session,
+                exc,
+            )
+            self.sig_max_channel_msg_size.emit(self._ws._reader._max_msg_size)
+        else:
+            super()._handle_receiver_exception(exc)
