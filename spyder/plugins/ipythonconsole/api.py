@@ -134,7 +134,7 @@ class ClientContextMenuActions:
 
 
 class IPythonConsoleWidgetCornerWidgets:
-    ResetButton = "reset_button"
+    ClearButton = "clear_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
 

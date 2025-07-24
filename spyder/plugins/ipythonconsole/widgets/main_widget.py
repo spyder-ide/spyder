@@ -692,12 +692,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             )
 
         # --- Widgets for the tab corner
-        self.reset_button = self.create_toolbutton(
-            IPythonConsoleWidgetCornerWidgets.ResetButton,
-            text=_("Remove all variables"),
-            tip=_("Remove all variables from namespace"),
-            icon=self.create_icon("editdelete"),
-            triggered=self.reset_namespace,
+        self.clear_button = self.create_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.ClearButton,
+            text=_("Clear console"),
+            tip=_("Clear console"),
+            icon=self.create_icon("clear_console"),
+            triggered=self._current_client_clear_console,
         )
         self.stop_button = self.create_toolbutton(
             IPythonConsoleWidgetCornerWidgets.InterruptButton,
@@ -713,7 +713,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
-        self.add_corner_widget(self.reset_button)
+        self.add_corner_widget(self.clear_button)
         self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
