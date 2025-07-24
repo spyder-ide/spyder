@@ -68,7 +68,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
         ('flake8/extendIgnore', 'E,W,C90'),
-        ('pycodestyle/max_line_length', 79),
+        ('flake8/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -726,7 +726,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         
 
         # Flake8
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
+        cs_max_line_length = self.get_conf('flake8/max_line_length', 79)
         f8_exclude = self.get_conf('flake8/exclude', '').split(',')
         f8_filename = self.get_conf('flake8/filename', '').split(',')
         f8_select = self.get_conf('flake8/extendSelect', '').split(',')
