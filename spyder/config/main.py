@@ -556,8 +556,8 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
-              'ipython_console/go to next console': "Shift+Alt+Right",
-              'ipython_console/go to previous console': "Shift+Alt+Left",
+              'ipython_console/switch to next console': "Shift+Alt+Right",
+              'ipython_console/switch to previous console': "Shift+Alt+Left",
               # -- Variable explorer --
               'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
