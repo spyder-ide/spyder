@@ -1,7 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none">
-    <mask id="a" fill="#fff">
-        <path fill-rule="evenodd" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm5 2H5v5h2V7h3zm-5 9v5h5v-2H7v-3zm7-9h7v14h-7z" clip-rule="evenodd"/>
-    </mask>
     <path fill="#fafafa" fill-rule="evenodd" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm5 2H5v5h2V7h3zm-5 9v5h5v-2H7v-3zm7-9h7v14h-7z" clip-rule="evenodd"/>
-    <path fill="#fafafa" d="M5 5V3H3v2zm5 0h2V3h-2zm-5 5H3v2h2zm2 0v2h2v-2zm0-3V5H5v2zm3 0v2h2V7zM5 19H3v2h2zm0-5v-2H3v2zm5 5v2h2v-2zm0-2h2v-2h-2zm-3 0H5v2h2zm0-3h2v-2H7zm12-9h2V3h-2zm-7 0V3h-2v2zm7 14v2h2v-2zm-7 0h-2v2h2zM5 5V1a4 4 0 0 0-4 4zm0 14V5H1v14zm0 0H1a4 4 0 0 0 4 4zm14 0H5v4h14zm0 0v4a4 4 0 0 0 4-4zm0-14v14h4V5zm0 0h4a4 4 0 0 0-4-4zM5 5h14V1H5zm0 2h5V3H5zm2 3V5H3v5zm0-2H5v4h2zM5 7v3h4V7zm5-2H7v4h3zM8 5v2h4V5zM7 19v-5H3v5zm3-2H5v4h5zm-2 0v2h4v-2zm-1 2h3v-4H7zm-2-5v3h4v-3zm0 2h2v-4H5zM19 3h-7v4h7zm2 16V5h-4v14zm-9 2h7v-4h-7zM10 5v14h4V5z" mask="url(#a)"/>
 </svg>
