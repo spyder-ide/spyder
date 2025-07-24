@@ -687,6 +687,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 section=IPythonConsoleWidgetOptionsMenuSections.View,
             )
 
+        for item in [next_console_action, previous_console_action]:
+            self.add_item_to_menu(
+                item,
+                menu=options_menu,
+                section=IPythonConsoleWidgetOptionsMenuSections.Switch,
+            )
+
         create_pylab_action = self.create_action(
             IPythonConsoleWidgetActions.CreatePyLabClient,
             text=_("New Pylab console (data plotting)"),
@@ -764,15 +771,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 item,
                 menu=tabs_context_menu,
                 section=IPythonConsoleWidgetTabsContextMenuSections.Edit,
-            )
-
-        for item in [
-                self.go_right_action,
-                self.go_left_action]:
-            self.add_item_to_menu(
-                item,
-                menu=tabs_context_menu,
-                section=IPythonConsoleWidgetTabsContextMenuSections.Move,
             )
 
         self.tabwidget.menu = tabs_context_menu
