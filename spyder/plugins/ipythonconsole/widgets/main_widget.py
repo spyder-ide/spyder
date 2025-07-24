@@ -479,6 +479,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             icon=self.create_icon('rename'),
             triggered=self.tab_name_editor,
         )
+        self.go_right_action = self.create_action(
+            IPythonConsoleWidgetActions.GoRight,
+            text=_("Go to the next console"),
+            icon=self.create_icon('next_wng'),
+            triggered=lambda: self.tabwidget.tab_navigate(+1),
+            register_shortcut=True
+        )
+        self.go_left_action = self.create_action(
+            IPythonConsoleWidgetActions.GoLeft,
+            text=_("Go to the previous console"),
+            icon=self.create_icon('prev_wng'),
+            triggered=lambda: self.tabwidget.tab_navigate(-1),
+            register_shortcut=True
+        )
 
         self.register_shortcut_for_widget(
             IPythonConsoleWidgetActions.GoRight,
@@ -750,6 +764,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 item,
                 menu=tabs_context_menu,
                 section=IPythonConsoleWidgetTabsContextMenuSections.Edit,
+            )
+
+        for item in [
+                self.go_right_action,
+                self.go_left_action]:
+            self.add_item_to_menu(
+                item,
+                menu=tabs_context_menu,
+                section=IPythonConsoleWidgetTabsContextMenuSections.Move,
             )
 
         self.tabwidget.menu = tabs_context_menu

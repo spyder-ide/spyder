@@ -89,6 +89,7 @@ class IPythonConsoleWidgetOptionsMenuSections:
 class IPythonConsoleWidgetTabsContextMenuSections:
     Consoles = 'tabs_consoles_section'
     Edit = 'tabs_edit_section'
+    Move = 'tabs_move_section'
 
 
 class ClientContextMenuSections:
