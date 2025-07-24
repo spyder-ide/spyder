@@ -62,10 +62,3 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
-
-    Undo = "Undo"
-    Redo = "Redo"
-    Copy = "Copy"
-    Cut = "Cut"
-    Paste = "Paste"
-    SelectAll = "Select All"
