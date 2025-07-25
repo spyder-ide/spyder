@@ -87,6 +87,7 @@
 
 * **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
 * **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
+* **Future Breaking** - Rename the `View` menu to `Window` in `ApplicationMenus` and `ViewMenuSections` to `WindowMenuSections`; aliases are retained for backward compatibility but may be removed in Spyder 7+.
 
 #### SpyderPluginV2
 
