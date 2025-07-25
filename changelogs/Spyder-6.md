@@ -48,6 +48,8 @@
 * **Breaking** - The `save_working_directory` method was made private because it's only used internally.
 * Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
 * Add `server_id` kwarg to the `set_current_client_working_directory` method.
+* Add `Switch` entry to `IPythonConsoleWidgetMenus`.
+* Add `NextConsole` and `PreviousConsole` to `IPythonConsoleWidgetActions`.
 
 #### Working Directory
 
