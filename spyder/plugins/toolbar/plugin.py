@@ -20,7 +20,7 @@ from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
-from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, WindowMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import (
     ToolbarContainer, ToolbarMenus, ToolbarActions)
@@ -62,28 +62,28 @@ class Toolbar(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # Window (formerly View) menu Toolbar section
+        # Window menu Toolbar section
         mainmenu.add_item_to_application_menu(
             self.toolbars_menu,
-            menu_id=ApplicationMenus.View,
-            section=ViewMenuSections.Toolbar,
-            before_section=ViewMenuSections.Layout)
+            menu_id=ApplicationMenus.Window,
+            section=WindowMenuSections.Toolbar,
+            before_section=WindowMenuSections.Layout)
         mainmenu.add_item_to_application_menu(
             self.show_toolbars_action,
-            menu_id=ApplicationMenus.View,
-            section=ViewMenuSections.Toolbar,
-            before_section=ViewMenuSections.Layout)
+            menu_id=ApplicationMenus.Window,
+            section=WindowMenuSections.Toolbar,
+            before_section=WindowMenuSections.Layout)
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # Window (formerly View) menu Toolbar section
+        # Window menu Toolbar section
         mainmenu.remove_item_from_application_menu(
             ToolbarMenus.ToolbarsMenu,
-            menu_id=ApplicationMenus.View)
+            menu_id=ApplicationMenus.Window)
         mainmenu.remove_item_from_application_menu(
             ToolbarActions.ShowToolbars,
-            menu_id=ApplicationMenus.View)
+            menu_id=ApplicationMenus.Window)
 
     def on_mainwindow_visible(self):
         container = self.get_container()

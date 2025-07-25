@@ -70,8 +70,9 @@ class ApplicationMenus:
     Consoles = 'consoles_menu'
     Projects = 'projects_menu'
     Tools = 'tools_menu'
-    # Now called "Window" in the UI
-    View = 'view_menu'
+    Window = 'window_menu'
+    # For backward compat with plugins targeting Spyder <6.1
+    View = 'window_menu'
     Help = 'help_menu'
 
 
@@ -132,12 +133,16 @@ class ToolsMenuSections:
     Preferences = 'preferences_section'
 
 
-class ViewMenuSections:
+class WindowMenuSections:
     Top = 'top_section'
     Pane = 'pane_section'
     Toolbar = 'toolbar_section'
     Layout = 'layout_section'
     Bottom = 'bottom_section'
+
+
+# For backward compat with plugins targeting Spyder <6.1
+ViewMenuSections = WindowMenuSections
 
 
 class HelpMenuSections:
