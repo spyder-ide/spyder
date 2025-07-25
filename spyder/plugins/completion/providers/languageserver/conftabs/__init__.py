@@ -8,7 +8,7 @@
 
 from .advanced import AdvancedConfigTab
 from .docstring import DocstringConfigTab
-from .formatting import FormattingStyleConfigTab
+from .formatting import FormattingConfigTab
 from .introspection import IntrospectionConfigTab
 from .linting import LintingConfigTab
 from .otherlanguages import OtherLanguagesConfigTab
@@ -18,7 +18,7 @@ from .otherlanguages import OtherLanguagesConfigTab
 TABS = [
     LintingConfigTab,
     IntrospectionConfigTab,
-    FormattingStyleConfigTab,
+    FormattingConfigTab,
     DocstringConfigTab,
     AdvancedConfigTab,
     OtherLanguagesConfigTab

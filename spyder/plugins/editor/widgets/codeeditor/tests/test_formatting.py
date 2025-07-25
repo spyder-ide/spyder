@@ -133,7 +133,7 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
     CONF.set(
         'completions',
         ('provider_configuration', 'lsp', 'values',
-         'pycodestyle/max_line_length'),
+         'flake8/max_line_length'),
         max_line_length
     )
     completion_plugin.after_configuration_update([])
