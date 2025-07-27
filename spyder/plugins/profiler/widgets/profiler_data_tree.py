@@ -143,13 +143,13 @@ class ProfilerSubWidget(
             # Do not use /tmp for temporary files
             try:
                 from xdg.BaseDirectory import xdg_data_home
-                tmp_dir = xdg_data_home
+                tmp_dir = osp.join(xdg_data_home, "spyder")
                 os.makedirs(tmp_dir, exist_ok=True)
             except Exception:
                 tmp_dir = None
 
-        with tempfile.TemporaryDirectory(dir=tmp_dir) as dir:
-            filename = os.path.join(dir, "tem.prof")
+        with tempfile.TemporaryDirectory(dir=tmp_dir) as tempdir:
+            filename = os.path.join(tempdir, "profile.prof")
             with open(filename, "bw") as f:
                 f.write(prof_buffer)
             self.data_tree.lib_pathlist = lib_pathlist
