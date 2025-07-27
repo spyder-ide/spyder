@@ -14,6 +14,7 @@ https://docs.python.org/3/library/profile.html
 """
 
 # Standard library imports
+import functools
 import os.path as osp
 
 # Third party imports
@@ -312,9 +313,15 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.sig_refresh.connect(self.update_actions)
         widget.set_context_menu(self.context_menu)
         widget.sig_hide_finder_requested.connect(self.hide_finder)
+        widget.sig_show_empty_message_requested.connect(
+            self.switch_empty_message
+        )
 
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
             "show_profile_file", widget.show_profile_buffer)
+        shellwidget.sig_kernel_is_ready.connect(
+            functools.partial(widget.set_pane_empty, True)
+        )
         widget.shellwidget = shellwidget
 
         return widget

@@ -112,6 +112,7 @@ class ProfilerSubWidget(
         self.data_tree.sig_refresh.connect(self.sig_refresh)
 
         self.finder = FinderWidget(self)
+        self.finder.setVisible(False)
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested)
@@ -123,6 +124,14 @@ class ProfilerSubWidget(
         layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
+
+    def set_pane_empty(self, empty):
+        if empty:
+            self.is_empty = True
+            self.sig_show_empty_message_requested.emit(True)
+        else:
+            self.is_empty = False
+            self.sig_show_empty_message_requested.emit(False)
 
     def show_profile_buffer(self, prof_buffer, lib_pathlist):
         """Show profile file."""
@@ -147,6 +156,7 @@ class ProfilerSubWidget(
             self.data_tree.load_data(filename)
 
         # Show
+        self.set_pane_empty(False)
         self.data_tree._show_tree()
         self.sig_display_requested.emit(self)
 
