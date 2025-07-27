@@ -120,8 +120,8 @@ class ProfilerSubWidget(
         # Setup layout.
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.data_tree)
-        layout.addSpacing(1)
         layout.addWidget(self.finder)
         self.setLayout(layout)
 

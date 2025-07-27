@@ -152,8 +152,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         )
         toggle_builtins_action = self.create_action(
             ProfilerWidgetActions.ToggleBuiltins,
-            text=_("Hide builtins"),
-            tip=_('Hide builtins'),
+            text=_("Hide calls to external libraries"),
+            tip=_('Hide calls to external libraries'),
             icon=self.create_icon('hide'),
             toggled=self.toggle_builtins,
         )
