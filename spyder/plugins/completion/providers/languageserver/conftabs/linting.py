@@ -177,8 +177,3 @@ class LintingConfigTab(SpyderPreferencesTab):
         linting_layout.addWidget(configuration_options_group)
         linting_layout.addWidget(additional_options_group)
         self.setLayout(linting_layout)
-
-        # Update widgets initial visibility
-        grid_widget.hide()
-        pyflakes_conf_options.show()
-        not_select_conf_options.hide()
