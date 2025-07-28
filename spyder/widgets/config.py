@@ -177,11 +177,20 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if self.CONF_SECTION == 'main':
                 self._save_lang()
 
+            restart = False
             for restart_option in self.restart_options:
                 if restart_option in self.changed_options:
-                    self.prompt_restart_required()
+                    restart = self.prompt_restart_required()
                     break  # Ensure a single popup is displayed
-            self.set_modified(False)
+
+            # Don't call set_modified() when restart() is called: The
+            # latter triggers closing of the application. Calling the former
+            # afterwards may result in an error because the underlying C++ Qt
+            # object of 'self' may be deleted at that point.
+            if restart:
+                self.restart()
+            else:
+                self.set_modified(False)
 
     def check_settings(self):
         """This method is called to check settings after configuration
@@ -1168,8 +1177,11 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
         self.tabs.addTab(tab, name)
 
-    def prompt_restart_required(self):
-        """Prompt the user with a request to restart."""
+    def prompt_restart_required(self) -> bool:
+        """
+        Prompt the user with a request to restart. Returns ``True`` when the
+        request is accepted, ``False`` otherwise.
+        """
         message = _(
             "One or more of the settings you changed requires a restart to be "
             "applied.<br><br>"
@@ -1183,8 +1195,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             QMessageBox.Yes | QMessageBox.No
         )
 
-        if answer == QMessageBox.Yes:
-            self.restart()
+        return answer == QMessageBox.Yes
 
     def restart(self):
         """Restart Spyder."""
