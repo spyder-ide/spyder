@@ -48,6 +48,8 @@
 * **Breaking** - The `save_working_directory` method was made private because it's only used internally.
 * Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
 * Add `server_id` kwarg to the `set_current_client_working_directory` method.
+* Add `Switch` entry to `IPythonConsoleWidgetMenus`.
+* Add `NextConsole` and `PreviousConsole` to `IPythonConsoleWidgetActions`.
 * Add `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods.
 
 #### Working Directory
@@ -88,6 +90,7 @@
 
 * **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
 * **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
+* **Future Breaking** - Rename the `View` menu to `Window` in `ApplicationMenus` and `ViewMenuSections` to `WindowMenuSections`; aliases are retained for backward compatibility but may be removed in Spyder 7+.
 
 #### SpyderPluginV2
 

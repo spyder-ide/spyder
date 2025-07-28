@@ -267,7 +267,7 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('advanced'))
         self.support_group_action = self.create_action(
             ApplicationActions.SpyderSupportAction,
-            _("Spyder support"),
+            _("Spyder Google group"),
             triggered=lambda: start_file(__forum_url__))
 
         self.create_action(
