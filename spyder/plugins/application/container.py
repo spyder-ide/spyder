@@ -99,6 +99,14 @@ class ApplicationActions:
     SpyderRestart = "Restart"
     SpyderRestartDebug = "Restart in debug mode"
 
+    # Edit
+    Undo = "Undo"
+    Redo = "Redo"
+    Copy = "Copy"
+    Cut = "Cut"
+    Paste = "Paste"
+    SelectAll = "Select All"
+
 
 class ApplicationContainer(PluginMainContainer):
 
@@ -169,6 +177,36 @@ class ApplicationContainer(PluginMainContainer):
     sig_close_all_requested = Signal()
     """
     Signal to request that all open files be closed.
+    """
+
+    sig_undo_requested = Signal()
+    """
+    Signal to request an undo operation.
+    """
+
+    sig_redo_requested = Signal()
+    """
+    Signal to request a redo operation.
+    """
+
+    sig_cut_requested = Signal()
+    """
+    Signal to request a cut operation.
+    """
+
+    sig_copy_requested = Signal()
+    """
+    Signal to request a copy operation.
+    """
+
+    sig_paste_requested = Signal()
+    """
+    Signal to request a paste operation.
+    """
+
+    sig_select_all_requested = Signal()
+    """
+    Signal to request that all text is selected.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -380,6 +418,56 @@ class ApplicationContainer(PluginMainContainer):
             icon=ima.icon('filecloseall'),
             tip=_("Close all opened files"),
             triggered=self.sig_close_all_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+
+        # Edit actions
+        self.undo_action = self.create_action(
+            ApplicationActions.Undo,
+            text=_('Undo'),
+            icon=self.create_icon('undo'),
+            triggered=self.sig_undo_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.redo_action = self.create_action(
+            ApplicationActions.Redo,
+            text=_('Redo'),
+            icon=self.create_icon('redo'),
+            triggered=self.sig_redo_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.cut_action = self.create_action(
+            ApplicationActions.Cut,
+            text=_('Cut'),
+            icon=self.create_icon('editcut'),
+            triggered=self.sig_cut_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.copy_action = self.create_action(
+            ApplicationActions.Copy,
+            text=_('Copy'),
+            icon=self.create_icon('editcopy'),
+            triggered=self.sig_copy_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.paste_action = self.create_action(
+            ApplicationActions.Paste,
+            text=_('Paste'),
+            icon=self.create_icon('editpaste'),
+            triggered=self.sig_paste_requested.emit,
+            shortcut_context="main",
+            register_shortcut=True
+        )
+        self.select_all_action = self.create_action(
+            ApplicationActions.SelectAll,
+            text=_('Select All'),
+            icon=self.create_icon('selectall'),
+            triggered=self.sig_select_all_requested.emit,
             shortcut_context="main",
             register_shortcut=True
         )
