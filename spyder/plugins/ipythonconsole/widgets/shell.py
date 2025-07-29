@@ -749,11 +749,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
-        if reset:
-            self.reset(clear=True)
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
+        if reset:
+            self.reset(clear=True)
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
         )
