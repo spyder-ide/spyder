@@ -1245,6 +1245,10 @@ overrided by the Sympy module (e.g. plot)
         # Fixes spyder-ide/spyder#22593
         self.banner = banner
 
+        # Ensure banner can not be undone after insertion
+        # See https://github.com/spyder-ide/spyder/pull/24726#discussion_r2229475275
+        self._control.document().clearUndoRedoStacks()
+
         # Only do this once
         self._is_banner_shown = True
 

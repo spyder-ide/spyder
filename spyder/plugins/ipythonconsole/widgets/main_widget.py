@@ -1448,25 +1448,32 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         """
         Enable edition related actions when a client is available.
         """
+        undo_action_enabled = False
+        redo_action_enabled = False
         cut_action_enabled = False
         copy_action_enabled = False
         paste_action_enabled = False
         client = self.get_current_client()
 
         if client:
+            undo_action_enabled = (
+                client.shellwidget._control.document().isUndoAvailable()
+            )
+            redo_action_enabled = (
+                client.shellwidget._control.document().isRedoAvailable()
+            )
             cut_action_enabled = client.shellwidget.can_cut()
             copy_action_enabled = client.shellwidget.can_copy()
             paste_action_enabled = client.shellwidget.can_paste()
 
-        self.sig_edit_action_enabled.emit(
-            ApplicationActions.Cut, cut_action_enabled
-        )
-        self.sig_edit_action_enabled.emit(
-            ApplicationActions.Copy, copy_action_enabled
-        )
-        self.sig_edit_action_enabled.emit(
-            ApplicationActions.Paste, paste_action_enabled
-        )
+        for action, enabled in [
+            (ApplicationActions.Undo, undo_action_enabled),
+            (ApplicationActions.Redo, redo_action_enabled),
+            (ApplicationActions.Cut, cut_action_enabled),
+            (ApplicationActions.Copy, copy_action_enabled),
+            (ApplicationActions.Paste, paste_action_enabled),
+        ]:
+            self.sig_edit_action_enabled.emit(action, enabled)
 
     def update_font(self, font, app_font):
         self._font = font
@@ -2176,6 +2183,16 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             self.close_client(client=client, ask_recursive=False)
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
+
+    def current_client_undo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.undo()
+
+    def current_client_redo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.redo()
 
     def current_client_cut(self):
         client = self.get_current_client()

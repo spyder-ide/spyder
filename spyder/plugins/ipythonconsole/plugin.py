@@ -369,10 +369,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         widget.sig_edit_action_enabled.connect(self._enable_edit_action)
 
-        # Disable Undo/Redo edit actions
-        self._enable_edit_action(ApplicationActions.Undo, False)
-        self._enable_edit_action(ApplicationActions.Redo, False)
-
         # Enable Select All edit action
         self._enable_edit_action(ApplicationActions.SelectAll, True)
 
@@ -896,6 +892,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
+    def undo(self) -> None:
+        return self.get_widget().current_client_undo()
+
+    def redo(self) -> None:
+        return self.get_widget().current_client_redo()
 
     def cut(self) -> None:
         return self.get_widget().current_client_cut()
