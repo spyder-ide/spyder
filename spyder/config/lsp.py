@@ -33,7 +33,8 @@ PYTHON_CONFIG = {
                 "pycodestyle", "pyflakes"],
             'plugins': {
                 'pycodestyle': {
-                    'enabled': False
+                    'enabled': False,
+                    'maxLineLength': 79
                 },
                 'pyflakes': {
                     'enabled': True

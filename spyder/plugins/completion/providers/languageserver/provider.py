@@ -745,6 +745,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
             f8_indent.count(" ") + f8_indent.count("\t") * f8_tab_size
         )
 
+        pycodestyle = {
+            'maxLineLength': cs_max_line_length
+        }
+
         # Linting - Pyflakes
         pyflakes = {
             'enabled': self.get_conf('pyflakes')
@@ -869,6 +873,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Updating options
         plugins = python_config['configurations']['pylsp']['plugins']
         plugins['pyflakes'].update(pyflakes)
+        plugins['pycodestyle'].update(pycodestyle)
         plugins['flake8'].update(flake8)
         plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
