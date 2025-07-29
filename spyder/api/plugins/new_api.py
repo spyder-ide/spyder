@@ -1017,7 +1017,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     has changed.
 
     This is triggered by checking/unchecking the entry for a pane in the
-    `View > Panes` menu.
+    `Window > Panes` menu.
 
     Parameters
     ----------

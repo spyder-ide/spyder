@@ -597,8 +597,8 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.fixindentation_action = self.create_action(
             EditorWidgetActions.FixIndentation,
-            text=_("Fix indentation"),
-            tip=_("Replace tab characters by space characters"),
+            text=_("Convert tabs to spaces"),
+            tip=_("Replace tabs with the configured number of spaces"),
             triggered=self.fix_indentation
         )
 
