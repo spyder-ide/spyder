@@ -843,13 +843,16 @@ class SnippetsExtension(EditorExtension):
 
         self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
+
+        # Put cursor in the middle of braces to improve UX.
+        # Fixes spyder-ide/spyder#21409.
         if text.endswith(('()', '[]', '{}')):
             cursor = QTextCursor(self.editor.textCursor())
             cursor_1 = cursor
             cursor_1.movePosition(
-                        QTextCursor.PreviousCharacter,
-                        QTextCursor.KeepAnchor,
-                    )
+                QTextCursor.PreviousCharacter,
+                QTextCursor.KeepAnchor,
+            )
             new_position = cursor_1.selectionStart()
             cursor.setPosition(new_position)
             self.editor.setTextCursor(cursor)
