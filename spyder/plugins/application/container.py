@@ -107,6 +107,12 @@ class ApplicationActions:
     Paste = "Paste"
     SelectAll = "Select All"
 
+    # Find/Search operations
+    FindText = "Find text"
+    FindNext = "Find next"
+    FindPrevious = "Find previous"
+    ReplaceText = "Replace text"
+
 
 class ApplicationContainer(PluginMainContainer):
 
@@ -207,6 +213,26 @@ class ApplicationContainer(PluginMainContainer):
     sig_select_all_requested = Signal()
     """
     Signal to request that all text is selected.
+    """
+
+    sig_find_requested = Signal()
+    """
+    Signal to request to find text.
+    """
+
+    sig_find_next_requested = Signal()
+    """
+    Signal to request to find next text occurence.
+    """
+
+    sig_find_previous_requested = Signal()
+    """
+    Signal to request to find previous text occurence.
+    """
+
+    sig_replace_requested = Signal()
+    """
+    Signal to request to replace text occurence.
     """
 
     def __init__(self, name, plugin, parent=None):
@@ -470,6 +496,42 @@ class ApplicationContainer(PluginMainContainer):
             triggered=self.sig_select_all_requested.emit,
             shortcut_context="main",
             register_shortcut=True
+        )
+
+        # Search actions
+        self.find_action = self.create_action(
+            ApplicationActions.FindText,
+            text=_("&Find text"),
+            icon=self.create_icon('find'),
+            tip=_("Find text"),
+            triggered=self.sig_find_requested,
+            shortcut_context="find_replace",
+            register_shortcut=True,
+        )
+        self.find_next_action = self.create_action(
+            ApplicationActions.FindNext,
+            text=_("Find &next"),
+            icon=self.create_icon('findnext'),
+            triggered=self.sig_find_next_requested,
+            shortcut_context="find_replace",
+            register_shortcut=True,
+        )
+        self.find_previous_action = self.create_action(
+            ApplicationActions.FindPrevious,
+            text=_("Find &previous"),
+            icon=ima.icon('findprevious'),
+            triggered=self.sig_find_previous_requested,
+            shortcut_context="find_replace",
+            register_shortcut=True,
+        )
+        self.replace_action = self.create_action(
+            ApplicationActions.ReplaceText,
+            text=_("&Replace text"),
+            icon=ima.icon('replace'),
+            tip=_("Replace text"),
+            triggered=self.sig_replace_requested,
+            shortcut_context="find_replace",
+            register_shortcut=True,
         )
 
         # Debug logs

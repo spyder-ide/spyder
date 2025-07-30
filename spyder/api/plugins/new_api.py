@@ -1004,6 +1004,13 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # the Applications plugin.
     CAN_HANDLE_EDIT_ACTIONS = False
 
+    # Whether the plugin can handle search actions.
+    # If set to True, then the `find`, `find_next`, `find_previous` and
+    # `replace` functions will be called to handle the corresponding
+    # actions. Individual actions can be disabled with `enable_search_action`
+    # in the Applications plugin.
+    CAN_HANDLE_SEARCH_ACTIONS = False
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1273,6 +1280,46 @@ class SpyderDockablePlugin(SpyderPluginV2):
         This function will be called if the `Edit > Select All` menu item is
         selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
         set to `True`.
+        """
+        raise NotImplementedError
+
+    def find(self) -> None:
+        """
+        Find text in the plugin.
+
+        This function will be called if the `Search > Find text` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def find_next(self) -> None:
+        """
+        Move to next find text occurence in the plugin.
+
+        This function will be called if the `Search > Find next` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def find_previous(self) -> None:
+        """
+        Move to previous find text occurence in the plugin.
+
+        This function will be called if the `Search > Find previous` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`
+        is set to `True`.
+        """
+        raise NotImplementedError
+
+    def replace(self) -> None:
+        """
+        Replace text occurence in the plugin.
+
+        This function will be called if the `Search > Replace text` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`
+        is set to `True`.
         """
         raise NotImplementedError
 

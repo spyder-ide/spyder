@@ -31,6 +31,82 @@ def test_focused_plugin(application_plugin):
     assert application_plugin.focused_plugin == mock_plugin
 
 
+@pytest.mark.parametrize('can_search', [True, False])
+@pytest.mark.parametrize(
+    'action_name, editor_function_name, plugin_function_name',
+    [
+        ('find_action', 'find', 'find'),
+        ('find_next_action', 'find_next', 'find_next'),
+        ('find_previous_action', 'find_previous', 'find_previous'),
+        ('replace_action', 'replace', 'replace'),
+    ],
+)
+def test_search_actions(
+    application_plugin, action_name, editor_function_name,
+    plugin_function_name, can_search
+):
+    """
+    Test that triggering search actions calls the corresponding function in the
+    Editor plugin.
+    """
+    mock_plugin = Mock(CAN_HANDLE_SEARCH_ACTIONS=can_search)
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin)
+
+    container = application_plugin.get_container()
+    action = getattr(container, action_name)
+    action.trigger()
+
+    if can_search:
+        editor_function = getattr(mock_plugin, plugin_function_name)
+        editor_function.assert_called()
+    else:
+        application_plugin.get_plugin.assert_called_with(Plugins.Editor)
+        editor_plugin = application_plugin.get_plugin.return_value
+        editor_function = getattr(editor_plugin, editor_function_name)
+        editor_function.assert_called()
+
+
+def test_enable_search_action(application_plugin):
+    """
+    Test that enable_search_action enables or disabled the specified search
+    action on the plugin, and that switching plugins updates whether actions
+    are enabled according to previous calls to enable_search_action.
+    """
+    container = application_plugin.get_container()
+    mock_plugin1 = Mock(CAN_HANDLE_EDIT_ACTIONS=True)
+    mock_plugin2 = Mock()
+
+    # Initially, actions are enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
+    assert container.find_action.isEnabled() is True
+
+    # Disabling the Find Text action in the active plugin works
+    application_plugin.enable_search_action(
+        ApplicationActions.FindText, False, mock_plugin1.NAME
+    )
+    assert container.find_action.isEnabled() is False
+
+    # After changing to another plugin, the Save action is enabled again
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin2)
+    assert container.find_action.isEnabled() is True
+
+    # Disabling the Save action in the second plugin (which has focus) works
+    application_plugin.enable_search_action(
+        ApplicationActions.FindText, False, mock_plugin2.NAME
+    )
+    assert container.find_action.isEnabled() is False
+
+    # Enabling the Find Text action in the first plugin has no immediate effect
+    application_plugin.enable_search_action(
+        ApplicationActions.FindText, True, mock_plugin1.NAME
+    )
+    assert container.find_action.isEnabled() is False
+
+    # When changing to the first plugin, the Save action is enabled
+    application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
+    assert container.find_action.isEnabled() == True
+
+
 @pytest.mark.parametrize('can_edit', [True, False])
 @pytest.mark.parametrize(
     'action_name, editor_function_name, plugin_function_name',
