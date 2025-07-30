@@ -50,7 +50,7 @@
 * Add `server_id` kwarg to the `set_current_client_working_directory` method.
 * Add `Switch` entry to `IPythonConsoleWidgetMenus`.
 * Add `NextConsole` and `PreviousConsole` to `IPythonConsoleWidgetActions`.
-* Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next`, `find_previous` and `replace` methods.
+* Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next` and `find_previous` methods.
 
 #### Working Directory
 

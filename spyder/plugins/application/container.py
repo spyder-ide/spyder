@@ -506,7 +506,6 @@ class ApplicationContainer(PluginMainContainer):
             tip=_("Find text"),
             triggered=self.sig_find_requested,
             shortcut_context="find_replace",
-            register_shortcut=True,
         )
         self.find_next_action = self.create_action(
             ApplicationActions.FindNext,
@@ -514,7 +513,6 @@ class ApplicationContainer(PluginMainContainer):
             icon=self.create_icon('findnext'),
             triggered=self.sig_find_next_requested,
             shortcut_context="find_replace",
-            register_shortcut=True,
         )
         self.find_previous_action = self.create_action(
             ApplicationActions.FindPrevious,
@@ -522,7 +520,6 @@ class ApplicationContainer(PluginMainContainer):
             icon=ima.icon('findprevious'),
             triggered=self.sig_find_previous_requested,
             shortcut_context="find_replace",
-            register_shortcut=True,
         )
         self.replace_action = self.create_action(
             ApplicationActions.ReplaceText,
@@ -531,7 +528,6 @@ class ApplicationContainer(PluginMainContainer):
             tip=_("Replace text"),
             triggered=self.sig_replace_requested,
             shortcut_context="find_replace",
-            register_shortcut=True,
         )
 
         # Debug logs
