@@ -101,6 +101,9 @@ def kernel_config():
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
+    # To disable tips (for the moment)
+    spy_cfg.ZMQInteractiveShell.enable_tip = False
+
     # Greedy completer
     greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
     spy_cfg.IPCompleter.greedy = greedy_o
