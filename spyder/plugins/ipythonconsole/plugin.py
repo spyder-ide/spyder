@@ -377,8 +377,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         self._enable_search_action(ApplicationActions.FindText, True)
         self._enable_search_action(ApplicationActions.FindNext, True)
         self._enable_search_action(ApplicationActions.FindPrevious, True)
-        # Replace actions is set disable since the `FindReplace` widget created
-        # by the main widget has that option disabled (`enablde_replace`)
+        # Replace action is set disabled since the `FindReplace` widget created
+        # by the main widget has `enable_replace=False`
         self._enable_search_action(ApplicationActions.ReplaceText, False)
 
     @on_plugin_teardown(plugin=Plugins.Application)
