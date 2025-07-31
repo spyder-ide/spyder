@@ -1709,7 +1709,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             spy_cfg.JupyterWidget.in_prompt = in_prompt_o
         if bool(out_prompt_o):
             spy_cfg.JupyterWidget.out_prompt = out_prompt_o
-        spy_cfg.InteractiveShell.enable_tip = False
 
         # Style
         color_scheme = self.get_conf('selected', section='appearance')
