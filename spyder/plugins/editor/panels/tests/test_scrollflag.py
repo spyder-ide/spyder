@@ -107,7 +107,7 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'pycodestyle', 'range':{
+    analysis = [{'source': 'flake8', 'range':{
                     'start': {'line': 4, 'character': 0},
                     'end': {'line': 4, 'character': 1}},
                  'line': 4, 'code': 'E227','message': 'E227 warning',
@@ -130,7 +130,7 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'pycodestyle', 'range':{
+    analysis = [{'source': 'flake8', 'range':{
                     'start': {'line': 4, 'character': 0},
                     'end': {'line': 4, 'character': 1}},
                  'line': 4, 'code': 'E227','message': 'E227 warning',
