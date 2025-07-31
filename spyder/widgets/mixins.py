@@ -1796,7 +1796,7 @@ class BrowseHistoryMixin(BrowseHistory):
         if cursor_pos < 0:
             cursor_pos = 0
             self.set_cursor_position(self.current_prompt_pos)
-        text, move_cursor = super(BrowseHistoryMixin, self).browse_history(
+        text, move_cursor = super().browse_history(
             line, cursor_pos, backward)
         if text is not None:
             self.clear_line()

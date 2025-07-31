@@ -49,14 +49,14 @@ class RemoteOSError(OSError, RemoteFileServicesError):
     """
     def __init__(self, errno, strerror, filename, url):
         super().__init__(errno, strerror, filename, None)
-        super(OSError, self).__init__(OSError, super().__str__(), url, [])
+        super().__init__(OSError, super().__str__(), url, [])
 
     @classmethod
     def from_json(cls, data, url):
         return cls(data["errno"], data["strerror"], data["filename"], url)
 
     def __str__(self):
-        return super(OSError, self).__str__()
+        return super().__str__()
 
 
 @SpyderRemoteAPIManagerBase.register_api

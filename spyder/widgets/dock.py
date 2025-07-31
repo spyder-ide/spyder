@@ -176,7 +176,7 @@ class DockTitleBar(QWidget):
     """
 
     def __init__(self, parent):
-        super(DockTitleBar, self).__init__(parent)
+        super().__init__(parent)
 
         button_size = QSize(20, 20)
 

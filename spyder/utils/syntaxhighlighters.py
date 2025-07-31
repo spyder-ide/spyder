@@ -1218,7 +1218,7 @@ class MarkdownSH(BaseSH):
         self.highlight_extras(text)
 
     def setup_formats(self, font=None):
-        super(MarkdownSH, self).setup_formats(font)
+        super().setup_formats(font)
 
         font = QTextCharFormat(self.formats['normal'])
         font.setFontItalic(True)

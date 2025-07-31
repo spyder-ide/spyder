@@ -45,7 +45,7 @@ class PythonWorker(QObject):
 
     def __init__(self, func, args, kwargs):
         """Generic python worker for running python code on threads."""
-        super(PythonWorker, self).__init__()
+        super().__init__()
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -102,7 +102,7 @@ class ProcessWorker(QObject):
         environ : dict
             Process environment,
         """
-        super(ProcessWorker, self).__init__(parent)
+        super().__init__(parent)
         self._result = None
         self._cmd_list = cmd_list
         self._fired = False

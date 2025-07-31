@@ -1824,7 +1824,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def showEvent(self, event):
         """Overrides showEvent to update the viewport margins."""
-        super(CodeEditor, self).showEvent(event)
+        super().showEvent(event)
         self.panels.refresh()
 
     # ---- Misc.
@@ -3753,7 +3753,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.timer_syntax_highlight.start()
 
         self._restore_editor_cursor_and_selections()
-        super(CodeEditor, self).keyReleaseEvent(event)
+        super().keyReleaseEvent(event)
         event.ignore()
 
     def event(self, event):
@@ -3762,7 +3762,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             event.ignore()
             return False
         else:
-            return super(CodeEditor, self).event(event)
+            return super().event(event)
 
     def _handle_keypress_event(self, event):
         """Handle keypress events."""
@@ -4547,19 +4547,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                           pygments lexer.
         :param encoding: text encoding
         """
-        super(CodeEditor, self).setPlainText(txt)
+        super().setPlainText(txt)
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
         """Extend Qt method"""
         self.sig_focus_changed.emit()
         self._restore_editor_cursor_and_selections()
-        super(CodeEditor, self).focusOutEvent(event)
+        super().focusOutEvent(event)
 
     def focusInEvent(self, event):
         formatting_enabled = getattr(self, 'formatting_enabled', False)
         self.sig_refresh_formatting.emit(formatting_enabled)
-        super(CodeEditor, self).focusInEvent(event)
+        super().focusInEvent(event)
 
     def leaveEvent(self, event):
         """Extend Qt method"""

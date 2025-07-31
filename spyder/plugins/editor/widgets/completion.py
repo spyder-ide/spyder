@@ -64,7 +64,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
-        super(CompletionWidget, self).__init__(ancestor)
+        super().__init__(ancestor)
         self.textedit = parent
         self._language = None
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)

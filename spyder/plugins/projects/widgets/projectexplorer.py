@@ -53,7 +53,7 @@ class ProxyModel(QSortFilterProxyModel):
 
     def __init__(self, parent):
         """Initialize the proxy model."""
-        super(ProxyModel, self).__init__(parent)
+        super().__init__(parent)
         self.root_path = None
         self.path_list = []
         self.setDynamicSortFilter(True)

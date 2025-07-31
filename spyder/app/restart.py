@@ -86,7 +86,7 @@ class Restarter(QWidget):
     """
 
     def __init__(self):
-        super(Restarter, self).__init__()
+        super().__init__()
         self.ellipsis = ['', '.', '..', '...', '..', '.']
 
         # Widgets

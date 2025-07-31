@@ -78,7 +78,7 @@ class WebPage(QWebEnginePage):
             self.linkClicked.emit(url)
             return False
 
-        return super(WebPage, self).acceptNavigationRequest(
+        return super().acceptNavigationRequest(
             url, navigation_type, isMainFrame)
 
 
@@ -372,9 +372,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         https://bugreports.qt.io/browse/QTBUG-52999
         """
         if WEBENGINE:
-            super(WebView, self).setHtml(html, baseUrl)
+            super().setHtml(html, baseUrl)
         else:
-            super(WebView, self).setHtml(html, baseUrl)
+            super().setHtml(html, baseUrl)
 
         # This is required to catch an error with PyQt 5.9, for which
         # it seems this functionality is not working.

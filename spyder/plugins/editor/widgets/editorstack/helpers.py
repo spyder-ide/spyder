@@ -24,7 +24,7 @@ class AnalysisThread(QThread):
 
     def __init__(self, parent, checker, source_code):
         """Initialize the Analysis thread."""
-        super(AnalysisThread, self).__init__(parent)
+        super().__init__(parent)
         self.checker = checker
         self.results = None
         self.source_code = source_code
@@ -42,7 +42,7 @@ class ThreadManager(QObject):
 
     def __init__(self, parent, max_simultaneous_threads=2):
         """Initialize the ThreadManager."""
-        super(ThreadManager, self).__init__(parent)
+        super().__init__(parent)
         self.max_simultaneous_threads = max_simultaneous_threads
         self.started_threads = {}
         self.pending_threads = []

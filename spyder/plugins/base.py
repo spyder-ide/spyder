@@ -43,7 +43,7 @@ class BasePluginMixin(object):
     _CONF_NAME_MAP = None
 
     def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
+        super().__init__()
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
@@ -164,7 +164,7 @@ class BasePluginWidgetMixin(object):
     """
 
     def __init__(self, parent=None):
-        super(BasePluginWidgetMixin, self).__init__()
+        super().__init__()
 
         # Actions to add to the Options menu
         self._plugin_actions = None

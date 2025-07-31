@@ -498,7 +498,7 @@ class TextEditBaseWidget(
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')
-        return super(TextEditBaseWidget, self).toPlainText()
+        return super().toPlainText()
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -509,7 +509,7 @@ class TextEditBaseWidget(
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
-            super(TextEditBaseWidget, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     # ------Text: get, set, ...
     def get_cell_list(self):
@@ -728,7 +728,7 @@ class TextEditBaseWidget(
         if self._restore_selection_pos is not None:
             self.__restore_selection(*self._restore_selection_pos)
             self._restore_selection_pos = None
-        super(TextEditBaseWidget, self).paintEvent(e)
+        super().paintEvent(e)
 
     def __save_selection(self):
         """Save current cursor selection and return position bounds"""

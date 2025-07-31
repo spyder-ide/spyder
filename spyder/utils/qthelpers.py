@@ -612,7 +612,7 @@ class SpyderAction(QAction):
 
     def __init__(self, *args, action_id=None, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
-        super(SpyderAction, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.action_id = action_id
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
@@ -753,7 +753,7 @@ class QInputDialogMultiline(QDialog):
     """
 
     def __init__(self, parent, title, label, text='', **kwargs):
-        super(QInputDialogMultiline, self).__init__(parent, **kwargs)
+        super().__init__(parent, **kwargs)
         if title is not None:
             self.setWindowTitle(title)
 

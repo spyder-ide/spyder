@@ -63,7 +63,7 @@ class TreeModel(QAbstractItemModel, SpyderFontsMixin):
         :param attr_cols: list of AttributeColumn definitions
         :param parent: the parent widget
         """
-        super(TreeModel, self).__init__(parent)
+        super().__init__(parent)
         self._attr_cols = attr_cols
 
         # Font for members (non-functions)
@@ -509,7 +509,7 @@ class TreeProxyModel(QSortFilterProxyModel):
             will be displayed (in italics). If False they are hidden.
         :param parent: the parent widget
         """
-        super(TreeProxyModel, self).__init__(parent)
+        super().__init__(parent)
 
         self._show_callables = show_callable_attributes
         self._show_special_attributes = show_special_attributes

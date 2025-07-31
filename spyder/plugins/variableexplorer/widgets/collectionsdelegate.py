@@ -523,7 +523,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             height = table_view.rowHeight(row)
             editor.setGeometry(x0, y0, width, height)
         else:
-            super(CollectionsDelegate, self).updateEditorGeometry(
+            super().updateEditorGeometry(
                 editor, option, index)
 
     def paint(self, painter, option, index):
@@ -831,4 +831,4 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def editor_rejected(self, editor_id):
         """Actions to do when the editor was rejected."""
         self.restore_object()
-        super(ToggleColumnDelegate, self).editor_rejected(editor_id)
+        super().editor_rejected(editor_id)

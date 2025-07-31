@@ -46,7 +46,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         """
         Class used to save defaults to a file and as UserConfig base class.
         """
-        super(DefaultsConfig, self).__init__(interpolation=None)
+        super().__init__(interpolation=None)
 
         self._name = name
         self._path = path
@@ -95,7 +95,7 @@ class DefaultsConfig(cp.ConfigParser, object):
             text = '[{}][{}] = {}'.format(section, option, value)
             print(text)  # spyder: test-skip
 
-        super(DefaultsConfig, self).set(section, option, value)
+        super().set(section, option, value)
 
     def _save(self):
         """Save config into the associated .ini file."""
@@ -177,7 +177,7 @@ class UserConfig(DefaultsConfig):
                  backup=False, raw_mode=False, remove_obsolete=False,
                  external_plugin=False):
         """UserConfig class, based on ConfigParser."""
-        super(UserConfig, self).__init__(name=name, path=path)
+        super().__init__(name=name, path=path)
 
         self._load = load
         self._version = self._check_version(version)
@@ -521,7 +521,7 @@ class UserConfig(DefaultsConfig):
                 self.set(section, option, default)
                 return default
 
-        value = super(UserConfig, self).get(section, option, raw=self._raw)
+        value = super().get(section, option, raw=self._raw)
 
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
@@ -582,12 +582,12 @@ class UserConfig(DefaultsConfig):
 
     def remove_section(self, section):
         """Remove `section` and all options within it."""
-        super(UserConfig, self).remove_section(section)
+        super().remove_section(section)
         self._save()
 
     def remove_option(self, section, option):
         """Remove `option` from `section`."""
-        super(UserConfig, self).remove_option(section, option)
+        super().remove_option(section, option)
         self._save()
 
     def cleanup(self):
@@ -674,8 +674,7 @@ class SpyderUserConfig(UserConfig):
                 backup_fpath = "{}-{}{}".format(fpath, version,
                                                 self._backup_suffix)
         else:
-            super_class = super(SpyderUserConfig, self)
-            backup_fpath = super_class.get_backup_fpath_from_version(
+            backup_fpath = super().get_backup_fpath_from_version(
                 version, old_version)
 
         return backup_fpath
@@ -691,12 +690,10 @@ class SpyderUserConfig(UserConfig):
                 name = '{}-{}'.format(self._defaults_name_prefix, old_version)
                 path = osp.join(get_conf_path(), 'defaults')
             else:
-                super_class = super(SpyderUserConfig, self)
-                path, name = super_class.get_defaults_path_name_from_version(
+                path, name = super().get_defaults_path_name_from_version(
                     old_version)
         else:
-            super_class = super(SpyderUserConfig, self)
-            path, name = super_class.get_defaults_path_name_from_version()
+            path, name = super.get_defaults_path_name_from_version()
 
         return path, name
 

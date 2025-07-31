@@ -36,7 +36,7 @@ class PanelsManager(Manager):
     CodeEditor widgets.
     """
     def __init__(self, editor):
-        super(PanelsManager, self).__init__(editor)
+        super().__init__(editor)
         self._cached_cursor_pos = (-1, -1)
         self._margin_sizes = (0, 0, 0, 0)
         self._top = self._left = self._right = self._bottom = -1

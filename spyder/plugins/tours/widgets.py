@@ -64,7 +64,7 @@ class FadingDialog(QDialog):
     sig_key_pressed = Signal()
 
     def __init__(self, parent, opacity, duration, easing_curve):
-        super(FadingDialog, self).__init__(parent)
+        super().__init__(parent)
 
         self.parent = parent
         self.opacity_min = min(opacity)
@@ -158,7 +158,7 @@ class FadingCanvas(FadingDialog):
     def __init__(self, parent, opacity, duration, easing_curve, color,
                  tour=None):
         """Create a black semi transparent canvas that covers the app."""
-        super(FadingCanvas, self).__init__(parent, opacity, duration,
+        super().__init__(parent, opacity, duration,
                                            easing_curve)
         self.parent = parent
         self.tour = tour
@@ -314,7 +314,7 @@ class FadingTipBox(FadingDialog):
     """Dialog that contains the text for each frame in the tour."""
     def __init__(self, parent, opacity, duration, easing_curve, tour=None,
                  color_top=None, color_back=None, combobox_background=None):
-        super(FadingTipBox, self).__init__(parent, opacity, duration,
+        super().__init__(parent, opacity, duration,
                                            easing_curve)
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
@@ -1243,7 +1243,7 @@ class TourTestWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")
 
     def __init__(self):
-        super(TourTestWindow, self).__init__()
+        super().__init__()
         self.setGeometry(300, 100, 400, 600)
         self.setWindowTitle('Exploring QMainWindow')
 

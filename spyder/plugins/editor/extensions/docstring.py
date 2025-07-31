@@ -1032,7 +1032,7 @@ class QMenuOnlyForEnter(SpyderMenu):
 
     def __init__(self, code_editor):
         """Init SpyderMenu."""
-        super(QMenuOnlyForEnter, self).__init__(code_editor)
+        super().__init__(code_editor)
         self.code_editor = code_editor
 
     def keyPressEvent(self, event):
@@ -1042,4 +1042,4 @@ class QMenuOnlyForEnter(SpyderMenu):
             self.code_editor.keyPressEvent(event)
             self.close()
         else:
-            super(QMenuOnlyForEnter, self).keyPressEvent(event)
+            super().keyPressEvent(event)

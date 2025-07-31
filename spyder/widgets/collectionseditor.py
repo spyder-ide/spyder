@@ -698,7 +698,7 @@ class BaseHeaderView(QHeaderView):
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
-        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        super().__init__(Qt.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
         # Needed to enable sorting by column
@@ -706,12 +706,12 @@ class BaseHeaderView(QHeaderView):
         self.setSectionsClickable(True)
 
     def mousePressEvent(self, e):
-        super(BaseHeaderView, self).mousePressEvent(e)
+        super().mousePressEvent(e)
         self._handle_section_is_pressed = (self.cursor().shape() ==
                                            Qt.SplitHCursor)
 
     def mouseReleaseEvent(self, e):
-        super(BaseHeaderView, self).mouseReleaseEvent(e)
+        super().mouseReleaseEvent(e)
         self._handle_section_is_pressed = False
 
     def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
