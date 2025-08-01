@@ -28,7 +28,7 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.utils import get_class_values
-from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
+from spyder.plugins.mainmenu.api import ApplicationMenus, WindowMenuSections
 from spyder.plugins.layout.container import (
     LayoutContainer, LayoutContainerActions, LayoutPluginMenus)
 from spyder.plugins.layout.layouts import (DefaultLayouts,
@@ -128,7 +128,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
         container = self.get_container()
-        # Add Panes related actions to View application menu
+        # Add Panes related actions to Window application menu
         panes_items = [
             container._plugins_menu,
             container._lock_interface_action,
@@ -138,10 +138,10 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for panes_item in panes_items:
             mainmenu.add_item_to_application_menu(
                 panes_item,
-                menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Pane,
-                before_section=ViewMenuSections.Toolbar)
-        # Add layouts menu to View application menu
+                menu_id=ApplicationMenus.Window,
+                section=WindowMenuSections.Pane,
+                before_section=WindowMenuSections.Toolbar)
+        # Add layouts menu to Window application menu
         layout_items = [
             container._layouts_menu,
             container._toggle_next_layout_action,
@@ -149,14 +149,14 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for layout_item in layout_items:
             mainmenu.add_item_to_application_menu(
                 layout_item,
-                menu_id=ApplicationMenus.View,
-                section=ViewMenuSections.Layout,
-                before_section=ViewMenuSections.Bottom)
-        # Add fullscreen action to View application menu
+                menu_id=ApplicationMenus.Window,
+                section=WindowMenuSections.Layout,
+                before_section=WindowMenuSections.Bottom)
+        # Add fullscreen action to Window application menu
         mainmenu.add_item_to_application_menu(
             container._fullscreen_action,
-            menu_id=ApplicationMenus.View,
-            section=ViewMenuSections.Bottom)
+            menu_id=ApplicationMenus.Window,
+            section=WindowMenuSections.Bottom)
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
@@ -173,7 +173,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        # Remove Panes related actions from the View application menu
+        # Remove Panes actions from the Window application menu
         panes_items = [
             LayoutPluginMenus.PluginsMenu,
             LayoutContainerActions.LockDockwidgetsAndToolbars,
@@ -182,8 +182,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for panes_item in panes_items:
             mainmenu.remove_item_from_application_menu(
                 panes_item,
-                menu_id=ApplicationMenus.View)
-        # Remove layouts menu from the View application menu
+                menu_id=ApplicationMenus.Window)
+        # Remove layouts menu from the Window application menu
         layout_items = [
             LayoutPluginMenus.LayoutsMenu,
             LayoutContainerActions.NextLayout,
@@ -191,11 +191,11 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         for layout_item in layout_items:
             mainmenu.remove_item_from_application_menu(
                 layout_item,
-                menu_id=ApplicationMenus.View)
-        # Remove fullscreen action from the View application menu
+                menu_id=ApplicationMenus.Window)
+        # Remove fullscreen action from the Window application menu
         mainmenu.remove_item_from_application_menu(
             LayoutContainerActions.Fullscreen,
-            menu_id=ApplicationMenus.View)
+            menu_id=ApplicationMenus.Window)
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
@@ -218,7 +218,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         self.setup_layout(default=False)
 
     def on_mainwindow_visible(self):
-        # Populate `Panes > View` menu.
+        # Populate `Panes > Window` menu.
         # This **MUST** be done before restoring the last visible plugins, so
         # that works as expected.
         self.create_plugins_menu()
