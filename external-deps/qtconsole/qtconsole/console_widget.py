@@ -488,6 +488,21 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                 pos = event.globalPos()
             QtWidgets.QToolTip.showText(pos, anchor)
 
+        elif etype == QtCore.QEvent.Wheel and \
+            self._control_key_down(event.modifiers()):
+            if sys.platform != 'darwin':
+                if hasattr(event, 'angleDelta'):
+                    if event.angleDelta().y() < 0:
+                        self._decrease_font_size()
+                    elif event.angleDelta().y() > 0:
+                        self._increase_font_size()
+                elif hasattr(event, 'delta'):
+                    if event.delta() < 0:
+                        self._decrease_font_size()
+                    elif event.delta() > 0:
+                        self._increase_font_size()
+            return True
+
         return super().eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
