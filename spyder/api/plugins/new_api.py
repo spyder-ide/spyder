@@ -1295,7 +1295,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def find_next(self) -> None:
         """
-        Move to next find text occurence in the plugin.
+        Move to next find text occurrence in the plugin.
 
         This function will be called if the `Search > Find next` menu item is
         selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS` is
@@ -1305,7 +1305,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def find_previous(self) -> None:
         """
-        Move to previous find text occurence in the plugin.
+        Move to previous find text occurrence in the plugin.
 
         This function will be called if the `Search > Find previous` menu item
         is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`
@@ -1315,7 +1315,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def replace(self) -> None:
         """
-        Replace text occurence in the plugin.
+        Replace text occurrence in the plugin.
 
         This function will be called if the `Search > Replace text` menu item
         is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`

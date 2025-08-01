@@ -529,7 +529,8 @@ class Application(SpyderPluginV2):
         ]:
             mainmenu.remove_item_from_application_menu(
                 action_id,
-                menu_id=ApplicationMenus.Search)
+                menu_id=ApplicationMenus.Search
+            )
 
     def _depopulate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -1085,12 +1086,12 @@ class Application(SpyderPluginV2):
 
     def find_next(self) -> None:
         """
-        Do a find next text occurence in the current plugin.
+        Do a find next text occurrence in the current plugin.
 
         If the plugin that currently has focus, has its
         `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the find
-        next text occurence in that plugin. Otherwise, find next text occurence
-        in the Editor plugin.
+        next text occurrence in that plugin. Otherwise, find next text
+        occurrence in the Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
@@ -1101,12 +1102,12 @@ class Application(SpyderPluginV2):
 
     def find_previous(self) -> None:
         """
-        Do a find previous text occurence in the current plugin.
+        Do a find previous text occurrence in the current plugin.
 
         If the plugin that currently has focus, has its
         `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the find
-        previous text occurence in that plugin. Otherwise, find previous text
-        occurence in the Editor plugin.
+        previous text occurrence in that plugin. Otherwise, find previous text
+        occurrence in the Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
@@ -1117,12 +1118,12 @@ class Application(SpyderPluginV2):
 
     def replace(self) -> None:
         """
-        Do a replace text occurence in the current plugin.
+        Do a replace text occurrence in the current plugin.
 
         If the plugin that currently has focus, has its
         `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the
-        replace text occurence in that plugin. Otherwise, replace text
-        occurence in the Editor plugin.
+        replace text occurrence in that plugin. Otherwise, replace text
+        occurrence in the Editor plugin.
         """
         plugin = self.focused_plugin
         if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
@@ -1138,7 +1139,7 @@ class Application(SpyderPluginV2):
         plugin: str
     ) -> None:
         """
-        Enable or disable search actions for a given plugin.
+        Enable or disable a search action for a given plugin.
 
         Parameters
         ----------

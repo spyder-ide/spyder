@@ -222,17 +222,17 @@ class ApplicationContainer(PluginMainContainer):
 
     sig_find_next_requested = Signal()
     """
-    Signal to request to find next text occurence.
+    Signal to request to find the next text occurrence.
     """
 
     sig_find_previous_requested = Signal()
     """
-    Signal to request to find previous text occurence.
+    Signal to request to find the previous text occurrence.
     """
 
     sig_replace_requested = Signal()
     """
-    Signal to request to replace text occurence.
+    Signal to request to replace a text occurrence.
     """
 
     def __init__(self, name, plugin, parent=None):

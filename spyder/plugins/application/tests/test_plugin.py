@@ -86,11 +86,12 @@ def test_enable_search_action(application_plugin):
     )
     assert container.find_action.isEnabled() is False
 
-    # After changing to another plugin, the Save action is enabled again
+    # After changing to another plugin, the Find Text action is enabled again
     application_plugin.sig_focused_plugin_changed.emit(mock_plugin2)
     assert container.find_action.isEnabled() is True
 
-    # Disabling the Save action in the second plugin (which has focus) works
+    # Disabling the Find Text action in the second plugin (which has focus)
+    # works
     application_plugin.enable_search_action(
         ApplicationActions.FindText, False, mock_plugin2.NAME
     )
@@ -102,7 +103,7 @@ def test_enable_search_action(application_plugin):
     )
     assert container.find_action.isEnabled() is False
 
-    # When changing to the first plugin, the Save action is enabled
+    # When changing to the first plugin, the Find Text action is enabled
     application_plugin.sig_focused_plugin_changed.emit(mock_plugin1)
     assert container.find_action.isEnabled() == True
 
