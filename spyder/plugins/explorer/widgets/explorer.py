@@ -1285,7 +1285,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                     fname = osp.join(dirname, '__init__.py')
                     try:
                         with open(fname, 'wb') as f:
-                            f.write(to_binary_string('#'))
+                            f.write(bytes('#'))
                     except OSError as error:
                         QMessageBox.critical(
                             self,
@@ -1355,7 +1355,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
                 create_script(fname)
             else:
                 with open(fname, 'wb') as f:
-                    f.write(to_binary_string(''))
+                    f.write(bytes(''))
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
             self.open([fname])

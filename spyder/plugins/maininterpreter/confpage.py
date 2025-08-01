@@ -208,7 +208,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             ", ".join(self.get_option('umr/namelist')),
         )
         if valid:
-            arguments = to_text_string(arguments)
+            arguments = str(arguments)
             if arguments:
                 namelist = arguments.replace(' ', '').split(',')
                 fixed_namelist = []

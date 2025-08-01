@@ -200,7 +200,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
-                text = to_text_string(lineedit.text())
+                text = str(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
                                          f"{invalid_msg}:<br><b>{text}</b>",
@@ -288,7 +288,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if getattr(textedit, 'content_type', None) == list:
                 data = ', '.join(data)
             elif getattr(textedit, 'content_type', None) == dict:
-                data = to_text_string(data)
+                data = str(data)
             textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option, sect=sec:
                                          self.has_been_modified(sect, opt))
@@ -310,7 +310,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 # For PyQt API v2, it is necessary to convert `data` to
                 # unicode in case the original type was not a string, like an
                 # integer for example (see qtpy.compat.from_qvariant):
-                if to_text_string(data) == to_text_string(value):
+                if str(data) == str(value):
                     break
             else:
                 if combobox.count() == 0:
@@ -410,7 +410,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 if content_type == list:
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
 
                 self.set_option(
                     option,
@@ -438,7 +438,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 elif content_type in (tuple, list):
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
 
@@ -474,7 +474,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 self.set_option(option,
-                                to_text_string(clayout.lineedit.text()),
+                                str(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
 
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
@@ -484,7 +484,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
             ):
-                color = to_text_string(clayout.lineedit.text())
+                color = str(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
                 self.set_option(option, (color, bold, italic), section=sec,
@@ -754,7 +754,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_directory(self, edit):
         """Select directory"""
-        basedir = to_text_string(edit.text())
+        basedir = str(edit.text())
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         title = _("Select directory")
@@ -822,7 +822,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
-        basedir = osp.dirname(to_text_string(edit.text()))
+        basedir = osp.dirname(str(edit.text()))
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         if filters is None:

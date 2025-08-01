@@ -125,7 +125,7 @@ class DlgGitHubLogin(QDialog):
         return False
 
     def update_btn_state(self):
-        token = to_text_string(self.le_token.text()).strip() != ''
+        token = str(self.le_token.text()).strip() != ''
         self.bt_sign_in.setEnabled(token)
 
     def is_keyring_available(self):

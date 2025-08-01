@@ -377,7 +377,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
                     try:
                         cursor = self.editor.textCursor()
                         cursor.select(QTextCursor.WordUnderCursor)
-                        text = to_text_string(cursor.selectedText())
+                        text = str(cursor.selectedText())
                     except AttributeError:
                         # We can't do this for all widgets, e.g. WebView's
                         pass
@@ -527,7 +527,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
         # selection. Otherwise we show matching items.
         if multiline_replace_check and self.replace_widgets[0].isVisible():
             sel_text = self.editor.get_selected_text()
-            if len(to_text_string(sel_text).splitlines()) > 1:
+            if len(str(sel_text).splitlines()) > 1:
                 return None
         text = self.search_text.currentText()
         if len(text) == 0:
@@ -586,8 +586,8 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
         """Replace and find."""
         if self.editor is None:
             return
-        replace_text = to_text_string(self.replace_text.currentText())
-        search_text = to_text_string(self.search_text.currentText())
+        replace_text = str(self.replace_text.currentText())
+        search_text = str(self.search_text.currentText())
         re_pattern = None
         case = self.case_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
@@ -604,7 +604,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
                 return
 
         # First found
-        seltxt = to_text_string(self.editor.get_selected_text())
+        seltxt = str(self.editor.get_selected_text())
         cmptxt1 = search_text if case else search_text.lower()
         cmptxt2 = seltxt if case else seltxt.lower()
         do_replace = True
@@ -628,7 +628,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
                 cursor.removeSelectedText()
                 cursor.insertText(replace_text)
             else:
-                seltxt = to_text_string(cursor.selectedText())
+                seltxt = str(cursor.selectedText())
 
                 # Note: If the selection obtained from an editor spans a line
                 # break, the text will contain a Unicode U+2029 paragraph
@@ -707,8 +707,8 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
     def replace_find_selection(self, focus_replace_text=False):
         """Replace and find in the current selection"""
         if self.editor is not None:
-            replace_text = to_text_string(self.replace_text.currentText())
-            search_text = to_text_string(self.search_text.currentText())
+            replace_text = str(self.replace_text.currentText())
+            search_text = str(self.search_text.currentText())
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
             re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
@@ -733,7 +733,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
                 # Do nothing with an invalid regexp
                 return
 
-            selected_text = to_text_string(self.editor.get_selected_text())
+            selected_text = str(self.editor.get_selected_text())
             replacement = re_pattern.sub(replace_text, selected_text)
             if replacement != selected_text:
                 cursor = self.editor.textCursor()

@@ -88,15 +88,15 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
     - Letters in two or more words
       Example: 'cls' in 'car lost'
     """
-    original_choice = to_text_string(choice, encoding='utf-8')
+    original_choice = str(choice, encoding='utf-8')
     result = (original_choice, NOT_FOUND_SCORE)
 
     # Handle empty string case
     if not query:
         return result
 
-    query = to_text_string(query, encoding='utf-8')
-    choice = to_text_string(choice, encoding='utf-8')
+    query = str(query, encoding='utf-8')
+    choice = str(choice, encoding='utf-8')
 
     if ignore_case:
         query = query.lower()
@@ -112,7 +112,7 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
         let = u'x'  # Nonmatches (except spaed) will be replaced by this
         score = 0
 
-        exact_words = [query == to_text_string(word, encoding='utf-8')
+        exact_words = [query == str(word, encoding='utf-8')
                        for word in choice.split(u' ')]
         partial_words = [query in word for word in choice.split(u' ')]
 

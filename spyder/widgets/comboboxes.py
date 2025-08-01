@@ -140,7 +140,7 @@ class BaseComboBox(SpyderComboBox):
 
     def set_current_text(self, text):
         """Sets the text of the QLineEdit of the QComboBox."""
-        self.lineEdit().setText(to_text_string(text))
+        self.lineEdit().setText(str(text))
 
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
@@ -316,7 +316,7 @@ class PathComboBox(EditableComboBox):
     # --- Own methods
     def _complete_options(self):
         """Find available completion options."""
-        text = to_text_string(self.currentText())
+        text = str(self.currentText())
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
 
@@ -345,7 +345,7 @@ class PathComboBox(EditableComboBox):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
-        return osp.isdir(to_text_string(qstr))
+        return osp.isdir(str(qstr))
 
     def selected(self):
         """Action to be executed when a valid item has been selected"""
@@ -422,8 +422,8 @@ class FileComboBox(PathComboBox):
         """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        valid = (osp.isfile(to_text_string(qstr)) or
-                 osp.isdir(to_text_string(qstr)))
+        valid = (osp.isfile(str(qstr)) or
+                 osp.isdir(str(qstr)))
         return valid
 
     def tab_complete(self):
@@ -442,7 +442,7 @@ class FileComboBox(PathComboBox):
 
     def _complete_options(self):
         """Find available completion options."""
-        text = to_text_string(self.currentText())
+        text = str(self.currentText())
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts
                        if osp.isdir(opt) or osp.isfile(opt)])
@@ -480,7 +480,7 @@ class PythonModulesComboBox(PathComboBox):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
-        return is_module_or_package(to_text_string(qstr))
+        return is_module_or_package(str(qstr))
 
     def selected(self):
         """Action to be executed when a valid item has been selected"""

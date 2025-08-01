@@ -221,11 +221,11 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write(to_binary_string('\n'))
+            self.interpreter.stdin_write.write(bytes('\n'))
         self.interpreter.restore_stds()
 
     def edit_script(self, filename, external_editor):
-        filename = to_text_string(filename)
+        filename = str(filename)
         if external_editor:
             self.external_editor(filename)
         else:
@@ -298,7 +298,7 @@ class InternalShell(PythonShellWidget):
         """Load file in external Spyder's editor, if available
         This method is used only for embedded consoles
         (could also be useful if we ever implement the magic %edit command)"""
-        match = get_error_match(to_text_string(text))
+        match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
             builtins.open_in_spyder(fname, int(lnb))
@@ -426,8 +426,7 @@ class InternalShell(PythonShellWidget):
                 self.add_to_history(cmd)
         if not self.multithreaded:
             if 'input' not in cmd:
-                self.interpreter.stdin_write.write(
-                                                to_binary_string(cmd + '\n'))
+                self.interpreter.stdin_write.write(bytes(cmd + '\n'))
                 self.interpreter.run_line()
                 self.sig_refreshed.emit()
             else:
@@ -436,7 +435,7 @@ class InternalShell(PythonShellWidget):
                              'option (--multithread) from a system terminal'),
                            error=True)
         else:
-            self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
+            self.interpreter.stdin_write.write(bytes(cmd + '\n'))
 
 
     #------ Code completion / Calltips

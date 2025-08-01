@@ -24,7 +24,6 @@ import logging
 # Local imports
 from spyder.plugins.editor.api.manager import Manager
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import is_text_string
 
 
 logger = logging.getLogger(__name__)
@@ -109,7 +108,7 @@ class PanelsManager(Manager):
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not is_text_string(name_or_class):
+        if not isinstance(name_or_class, str):
             name_or_class = name_or_class.__name__
         for zone in range(5):
             try:

@@ -248,7 +248,7 @@ ATTR_MODEL_UNICODE = AttributeModel(
     doc=_("The unicode representation "
           "of the object. In Python 2 it uses unicode()"
           "In Python 3 the str() function is used."),
-    data_fn=lambda tree_item: to_text_string(tree_item.obj),
+    data_fn=lambda tree_item: str(tree_item.obj),
     col_visible=False,
     width=MEDIUM_COL_WIDTH,
     line_wrap=QTextOption.WrapAtWordBoundaryOrAnywhere)
@@ -293,7 +293,7 @@ ATTR_MODEL_CLASS = AttributeModel(
 ATTR_MODEL_LENGTH = AttributeModel(
     'Size',
     doc=_("The length or shape of the object"),
-    data_fn=lambda tree_item: to_text_string(get_size(tree_item.obj)),
+    data_fn=lambda tree_item: str(get_size(tree_item.obj)),
     col_visible=True,
     alignment=ALIGN_RIGHT,
     width=SMALL_COL_WIDTH)

@@ -843,7 +843,7 @@ def _url_handler(url, content_type="text/html"):
             contents = '<br>'.join(html.escape(line) for line in
                                    format_exception_only(type(exc), exc))
         else:
-            contents = '%s' % to_text_string(exc)
+            contents = '%s' % str(exc)
         contents = heading + html.bigsection(url, contents, css_class="error")
         return "Error - %s" % url, contents
 

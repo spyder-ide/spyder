@@ -318,7 +318,7 @@ class Switcher(QDialog, SpyderFontsMixin):
             titles.append(title)
 
         search_text = clean_string(search_text)
-        scores = get_search_scores(to_text_string(search_text),
+        scores = get_search_scores(str(search_text),
                                    titles, template=u"<b>{0}</b>")
 
         for idx, (title, rich_title, score_value) in enumerate(scores):
@@ -461,7 +461,7 @@ class Switcher(QDialog, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def search_text(self):
         """Get the normalized (lowecase) content of the search text."""
-        return to_text_string(self.edit.text()).lower()
+        return str(self.edit.text()).lower()
 
     def search_text_without_mode(self):
         """Get search text without mode."""

@@ -55,7 +55,7 @@ def text_to_qcolor(text):
     """
     color = QColor()
     text = str(text)
-    if not is_text_string(text):
+    if not isinstance(text, str):
         return color
     if text.startswith('#') and len(text)==7:
         correct = '#0123456789abcdef'

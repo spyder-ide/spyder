@@ -108,7 +108,7 @@ class FadingDialog(QDialog):
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
         self.anim = QPropertyAnimation(
-                    self.effect, to_binary_string("opacity"))
+                    self.effect, bytes("opacity"))
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -1267,7 +1267,7 @@ class TourTestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(effect, bytes("opacity"))
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)

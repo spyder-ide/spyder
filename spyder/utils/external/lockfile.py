@@ -86,7 +86,7 @@ else:
         newvalname = os.path.join(newlinkname, "symlink")
         os.mkdir(newlinkname)
         f = _open(newvalname, 'wb')
-        f.write(to_binary_string(value))
+        f.write(bytes(value))
         f.flush()
         f.close()
         try:

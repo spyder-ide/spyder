@@ -169,7 +169,7 @@ class FileInfo(QObject):
 
     def get_source_code(self):
         """Return associated editor source code."""
-        return to_text_string(self.editor.toPlainText())
+        return str(self.editor.toPlainText())
 
     def run_todo_finder(self):
         """Run TODO finder."""

@@ -80,12 +80,12 @@ class SphinxThread(QThread):
                             msg = _("No documentation available")
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
+                    self.error_msg.emit(str(error))
                     return
             elif self.context is not None:
                 try:
                     html_text = sphinxify(doc, self.context)
                 except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
+                    self.error_msg.emit(str(error))
                     return
         self.html_ready.emit(html_text)

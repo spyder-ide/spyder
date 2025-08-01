@@ -26,7 +26,7 @@ def test_symlinks(tmpdir):
     """
     base_dir = tmpdir.mkdir("symlinks")
     base_file = base_dir.join("symlinks_text.txt")
-    base_file_path = to_text_string(base_file)
+    base_file_path = str(base_file)
 
     # Write base file
     write("Some text for symlink", base_file_path)
@@ -35,7 +35,7 @@ def test_symlinks(tmpdir):
     symlink_file = pathlib.Path(base_dir.join(
         'link-to-symlinks_text.txt'))
     symlink_file.symlink_to(base_file_path)
-    symlink_file_path = to_text_string(symlink_file)
+    symlink_file_path = str(symlink_file)
 
     # Assert the symlink was created
     assert os.path.islink(symlink_file_path)
@@ -52,7 +52,7 @@ def test_symlinks(tmpdir):
 def test_permissions(tmpdir):
     """Check that file permissions are preserved."""
     p_file = tmpdir.mkdir("permissions").join("permissions_text.txt")
-    p_file = to_text_string(p_file)
+    p_file = str(p_file)
 
     # Write file and define execution permissions
     write("Some text", p_file)
@@ -73,7 +73,7 @@ def test_permissions(tmpdir):
 def test_timestamp(tmpdir):
     """Check that the modification timestamp is preserved."""
     tmp_file = tmpdir.mkdir("timestamp").join('test_file.txt')
-    tmp_file = to_text_string(tmp_file)
+    tmp_file = str(tmp_file)
 
     # Write a file
     write("Test text", tmp_file)

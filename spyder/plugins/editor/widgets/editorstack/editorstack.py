@@ -651,7 +651,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @Slot()
     def update_fname_label(self):
         """Update file name label."""
-        filename = to_text_string(self.get_current_filename())
+        filename = str(self.get_current_filename())
         if len(filename) > 100:
             metrics = QFontMetrics(
                 self.default_font
@@ -1210,7 +1210,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\
            and filename == encoding.to_unicode_from_fs(self.tempfile_path):
-            temp_file_str = to_text_string(_("Temporary file"))
+            temp_file_str = str(_("Temporary file"))
             return text % (temp_file_str, self.tempfile_path)
         else:
             return text % (osp.basename(filename), osp.dirname(filename))
@@ -1261,7 +1261,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         new_ext = osp.splitext(new_filename)[1]
         if original_ext != new_ext:
             # Set file language and re-run highlighter
-            txt = to_text_string(finfo.editor.get_text_with_eol())
+            txt = str(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language, new_filename)
             finfo.editor.run_pygments_highlighter()
@@ -1874,7 +1874,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         Returns:
             int: computed hash.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = str(fileinfo.editor.get_text_with_eol())
         return hash(txt)
 
     def _write_to_file(self, fileinfo, filename):
@@ -1887,7 +1887,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = str(fileinfo.editor.get_text_with_eol())
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False, save_new_files=True):
@@ -2026,7 +2026,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             return
         finfo = self.data[index]
         finfo.newly_created = False
-        finfo.filename = to_text_string(filename)
+        finfo.filename = str(filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
@@ -2736,7 +2736,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         editor = self.get_current_editor()
         language = editor.language.lower()
-        signature = to_text_string(signature)
+        signature = str(signature)
         signature = unicodedata.normalize("NFKD", signature)
         parts = signature.split('\n\n')
         definition = parts[0]
@@ -2781,7 +2781,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         This also sets the hash of the loaded file in the autosave component.
         """
-        filename = osp.abspath(to_text_string(filename))
+        filename = osp.abspath(str(filename))
 
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)

@@ -108,7 +108,7 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        objtxt = to_text_string(qstr)
+        objtxt = str(qstr)
         shell_is_defined = False
         if self.help.get_conf('automatic_import'):
             shell = self.help.internal_shell
@@ -890,7 +890,7 @@ class HelpWidget(PluginMainWidget):
         url: QUrl
             QUrl object containing the link to open.
         """
-        url = to_text_string(url.toString())
+        url = str(url.toString())
         if url == "spy://tutorial":
             self.show_tutorial()
         elif url.startswith('http'):
@@ -941,7 +941,7 @@ class HelpWidget(PluginMainWidget):
         self.switch_to_console_source()
         add_to_combo = True
         if text is None:
-            text = to_text_string(self.object_combo.currentText())
+            text = str(self.object_combo.currentText())
             add_to_combo = False
 
         found = self.show_help(text, ignore_unknown=ignore_unknown)
@@ -1055,7 +1055,7 @@ class HelpWidget(PluginMainWidget):
         if shell is None:
             return
 
-        obj_text = to_text_string(obj_text)
+        obj_text = str(obj_text)
 
         if not shell.is_defined(obj_text):
             if (self.get_conf('automatic_import')
@@ -1152,7 +1152,7 @@ class HelpWidget(PluginMainWidget):
         """
         history = []
         for index in range(self.object_combo.count()):
-            history.append(to_text_string(self.object_combo.itemText(index)))
+            history.append(str(self.object_combo.itemText(index)))
 
         return history
 

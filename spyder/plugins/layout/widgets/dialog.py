@@ -194,7 +194,7 @@ class LayoutSaveDialog(QDialog):
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
-        if to_text_string(text) == u'':
+        if str(text) == u'':
             self.button_ok.setEnabled(False)
         else:
             self.button_ok.setEnabled(True)

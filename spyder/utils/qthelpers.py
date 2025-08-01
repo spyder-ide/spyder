@@ -247,11 +247,11 @@ def mimedata2url(source, extlist=None):
     if source.hasUrls():
         for url in source.urls():
             path = _process_mime_path(
-                unquote(to_text_string(url.toString())), extlist)
+                unquote(str(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
-        for rawpath in to_text_string(source.text()).splitlines():
+        for rawpath in str(source.text()).splitlines():
             path = _process_mime_path(rawpath, extlist)
             if path is not None:
                 pathlist.append(path)
@@ -293,7 +293,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if text is not None:
         button.setText(text)
     if icon is not None:
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = ima.get_icon(icon)
         button.setIcon(icon)
     if text is not None or tip is not None:
@@ -377,7 +377,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if toggled is not None:
         setup_toggled_action(action, toggled, section, option)
     if icon is not None:
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = ima.get_icon(icon)
         action.setIcon(icon)
     if tip is not None:
@@ -538,7 +538,7 @@ def create_module_bookmark_actions(parent, bookmarks):
 
 def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
-    if is_text_string(icon):
+    if isinstance(icon, str):
         icon = ima.get_icon(icon)
     if os.name == 'nt' and nt_name is not None:
         name = nt_name
@@ -554,7 +554,7 @@ def create_python_script_action(
     """Create action to run a GUI based Python script"""
     args = [] if args is None else args
 
-    if is_text_string(icon):
+    if isinstance(icon, str):
         icon = ima.get_icon(icon)
     if programs.python_script_exists(package, module):
         return create_action(parent, text, icon=icon,
@@ -576,8 +576,8 @@ class DialogManager(QObject):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
         for dlg in list(self.dialogs.values()):
-            if to_text_string(dlg.windowTitle()) \
-               == to_text_string(dialog.windowTitle()):
+            if str(dlg.windowTitle()) \
+               == str(dialog.windowTitle()):
                 dlg.show()
                 dlg.raise_()
                 break

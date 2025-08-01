@@ -90,7 +90,7 @@ def shorten_paths(path_list, is_unsaved):
                         group = prospective_group
                     break
                 # Only keep going if all n still match on the kth token
-                _, sample_toks = next(iteritems(group))
+                _, sample_toks = next(iter(group))
                 prospective_group = {idx: toks for idx, toks
                                      in group.items()
                                      if toks[k] == sample_toks[k]}
@@ -99,7 +99,7 @@ def shorten_paths(path_list, is_unsaved):
                     k += 1
                 else:
                     break
-            _, sample_toks = next(iteritems(group))
+            _, sample_toks = next(iter(group))
             if k == 0:
                 short_form = ''
             elif k == 1:

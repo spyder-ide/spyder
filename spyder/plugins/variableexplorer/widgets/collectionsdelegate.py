@@ -322,7 +322,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40 and not object_explorer:
+        elif isinstance(value, str) and len(value) > 40 and not object_explorer:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
@@ -451,12 +451,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         """
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
-            if is_binary_string(value):
+            if isinstance(value, bytes):
                 try:
-                    value = to_text_string(value, 'utf8')
+                    value = str(value, 'utf8')
                 except Exception:
                     pass
-            if not is_text_string(value):
+            if not isinstance(value, str):
                 value = repr(value)
             editor.setText(value)
         elif isinstance(editor, QDateEdit):
@@ -782,7 +782,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 )
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40:
+        elif isinstance(value, str) and len(value) > 40:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,

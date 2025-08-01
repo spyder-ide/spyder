@@ -967,7 +967,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         window_title = self._cli_options.window_title
         if window_title is not None:
-            title += u' -- ' + to_text_string(window_title)
+            title += u' -- ' + str(window_title)
 
         # TODO: Remove self.projects reference once there's an API for setting
         # window title.

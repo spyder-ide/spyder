@@ -86,7 +86,7 @@ def create_dialog(obj, obj_name):
         dialog = DataFrameEditor()
         if not dialog.setup_and_check(obj):
             return
-    elif is_text_string(obj):
+    elif isinstance(obj, str):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     else:
         dialog = CollectionsEditor()
@@ -113,7 +113,7 @@ def oedit(obj, modal=True, namespace=None, app=None):
     if modal:
         obj_name = ''
     else:
-        assert is_text_string(obj)
+        assert isinstance(obj, str)
         obj_name = obj
         if namespace is None:
             namespace = globals()

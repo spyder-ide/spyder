@@ -267,7 +267,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
     def get_number_matches(self, pattern, source_text='', case=False,
                            regexp=False, word=False):
         """Get the number of matches for the searched text."""
-        pattern = to_text_string(pattern)
+        pattern = str(pattern)
         if not pattern:
             return 0
         if not regexp:
@@ -275,9 +275,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         if not source_text:
             if WEBENGINE:
                 self.page().toPlainText(self.set_source_text)
-                source_text = to_text_string(self.source_text)
+                source_text = str(self.source_text)
             else:
-                source_text = to_text_string(
+                source_text = str(
                         self.page().mainFrame().toPlainText())
 
         if word:  # match whole words only
@@ -354,7 +354,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         import webbrowser
         # See: spyder-ide/spyder#9849
         try:
-            webbrowser.open(to_text_string(self.url().toString()))
+            webbrowser.open(str(self.url().toString()))
         except ValueError:
             pass
 
@@ -509,7 +509,7 @@ class WebBrowser(QWidget):
 
     def go_to(self, url_or_text):
         """Go to page *address*"""
-        if is_text_string(url_or_text):
+        if isinstance(url_or_text, str):
             url = QUrl(url_or_text)
         else:
             url = url_or_text
@@ -527,7 +527,7 @@ class WebBrowser(QWidget):
 
     def url_combo_activated(self, valid):
         """Load URL from combo box first item"""
-        text = to_text_string(self.url_combo.currentText())
+        text = str(self.url_combo.currentText())
         self.go_to(self.text_to_url(text))
 
     def load_finished(self, ok):

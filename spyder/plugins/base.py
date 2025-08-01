@@ -25,7 +25,6 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import is_text_string, qbytearray_to_str
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
@@ -146,7 +145,8 @@ class PluginWindow(QMainWindow):
         # Save window geometry to restore it when undocking the plugin
         # again.
         geometry = self.saveGeometry()
-        self.plugin.set_option('window_geometry', qbytearray_to_str(geometry))
+        self.plugin.set_option('window_geometry',
+                               str(bytes(geometry.toHex().data()).decode()))
 
         # Close window
         QMainWindow.closeEvent(self, event)
@@ -347,8 +347,9 @@ class BasePluginWidgetMixin(object):
         if self._undocked_window is not None:
             # Save window geometry to restore it when undocking the plugin
             # again.
-            geometry = self._undocked_window.saveGeometry()
-            self.set_option('window_geometry', qbytearray_to_str(geometry))
+             = self._undocked_window.saveGeometry()
+            self.set_option('window_geometry',
+                            str(bytes(geometry.toHex().data()).decode()))
 
             self._undocked_window.close()
             self._undocked_window = None
@@ -364,7 +365,7 @@ class BasePluginWidgetMixin(object):
         self._undocked_window = window = PluginWindow(self)
         window.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = self.get_icon(icon)
 
         window.setWindowIcon(icon)

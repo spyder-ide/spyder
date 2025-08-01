@@ -23,7 +23,6 @@ import time
 
 # Local imports
 from spyder.config.base import get_conf_path, get_module_source_path
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.programs import check_version
 
 
@@ -75,7 +74,7 @@ class DefaultsConfig(cp.ConfigParser, object):
                     continue
 
                 if (value is not None) or (self._optcre == self.OPTCRE):
-                    value = to_text_string(value)
+                    value = str(value)
                     value_plus_end_of_line = value.replace('\n', '\n\t')
                     key = ' = '.join((key, value_plus_end_of_line))
 
@@ -88,7 +87,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         if not self.has_section(section):
             self.add_section(section)
 
-        if not is_text_string(value):
+        if not isinstance(value, str):
             value = repr(value)
 
         if verbose:
@@ -259,10 +258,10 @@ class UserConfig(DefaultsConfig):
         elif isinstance(defaults, list):
             # Check is a list of tuples with strings and dictionaries
             for sec, options in defaults:
-                assert is_text_string(sec)
+                assert isinstance(sec, str)
                 assert isinstance(options, dict)
                 for opt, _ in options.items():
-                    assert is_text_string(opt)
+                    assert isinstance(opt, str)
 
                     if sec == "shortcuts" and (
                         "/" not in opt or len(opt.split("/")) > 2
@@ -300,10 +299,10 @@ class UserConfig(DefaultsConfig):
         """Check section and option types."""
         if section is None:
             section = cls.DEFAULT_SECTION_NAME
-        elif not is_text_string(section):
+        elif not isinstance(section, str):
             raise RuntimeError("Argument 'section' must be a string")
 
-        if not is_text_string(option):
+        if not isinstance(option, str):
             raise RuntimeError("Argument 'option' must be a string")
 
         return section
@@ -363,7 +362,7 @@ class UserConfig(DefaultsConfig):
                 except (cp.NoSectionError, cp.NoOptionError):
                     old_val = None
 
-                if old_val is None or to_text_string(new_value) != old_val:
+                if old_val is None or str(new_value) != old_val:
                     self._set(section, option, new_value, verbose)
 
     def _remove_deprecated_options(self, old_version):
@@ -530,7 +529,7 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif is_text_string(default_value):
+        elif isinstance(default_value, str):
             pass
         else:
             try:
@@ -573,7 +572,7 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif not is_text_string(default_value):
+        elif not isinstance(default_value, str):
             value = repr(value)
 
         self._set(section, option, value, verbose)

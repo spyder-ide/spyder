@@ -957,7 +957,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             # Save window geometry to restore it when undocking the plugin
             # again.
             geometry = self.windowwidget.saveGeometry()
-            self.set_conf('window_geometry', qbytearray_to_str(geometry))
+            self.set_conf('window_geometry',
+                          str(bytes(geometry.toHex().data()).decode()))
 
             # Save undocking state if requested
             if save_undocked:

@@ -466,7 +466,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
     # Get current directory.
@@ -488,7 +488,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     assert shell.get_cwd() != tempdir
 
     # Need to escape \ on Windows.
@@ -539,7 +539,7 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
     # Add a new entry to sys.path
     with qtbot.waitSignal(shell.executed):
-        tmp_dir = to_text_string(tmpdir)
+        tmp_dir = str(tmpdir)
         shell.execute("import sys; sys.path.append('%s')" % tmp_dir)
 
     # Ask for sys.path contents
@@ -965,7 +965,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     client = ipyconsole.get_current_client()
 
     fname = osp.basename(client.connection_file)
-    connection_file = to_text_string(tmpdir.join(fname))
+    connection_file = str(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
     ipyconsole.create_client_for_kernel(connection_file)

@@ -199,7 +199,7 @@ class SnippetsExtension(EditorExtension):
 
         with QMutexLocker(self.event_lock):
             key = event.key()
-            text = to_text_string(event.text())
+            text = str(event.text())
 
             if self.is_snippet_active:
                 line, column = self.editor.get_cursor_line_column()

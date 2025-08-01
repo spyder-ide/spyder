@@ -144,7 +144,7 @@ class EditTabNamePopup(QLineEdit):
 
         if isinstance(self.tab_index, int) and self.tab_index >= 0:
             # We are editing a valid tab, update name
-            tab_text = to_text_string(self.text())
+            tab_text = str(self.text())
             self.main.setTabText(self.tab_index, tab_text)
             self.main.sig_name_changed.emit(tab_text)
 
@@ -368,7 +368,7 @@ class TabBar(QTabBar):
         if index_to == -1:
             index_to = self.count()
         if int(mimeData.data("tabbar-id")) != id(self):
-            tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
+            tabwidget_from = str(mimeData.data("tabwidget-id"))
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -473,9 +473,9 @@ class BaseTabs(QTabWidget):
         dirnames = []
         for index in range(self.count()):
             if self.menu_use_tooltips:
-                text = to_text_string(self.tabToolTip(index))
+                text = str(self.tabToolTip(index))
             else:
-                text = to_text_string(self.tabText(index))
+                text = str(self.tabText(index))
             names.append(text)
             if osp.isfile(text):
                 # Testing if tab names are filenames
@@ -676,7 +676,7 @@ class Tabs(BaseTabs, SpyderShortcutsMixin):
         # depend on the platform: long for 64bit, int for 32bit. Replacing
         # by long all the time is not working on some 32bit platforms.
         # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-        self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
+        self.sig_move_tab.emit(tabwidget_from, str(id(self)),
                                index_from, index_to)
 
     def register_shortcuts(self, parent):

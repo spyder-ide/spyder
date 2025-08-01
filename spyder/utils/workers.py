@@ -31,7 +31,7 @@ def handle_qbytearray(obj, encoding):
     if isinstance(obj, QByteArray):
         obj = obj.data()
 
-    return to_text_string(obj, encoding=encoding)
+    return str(obj, encoding=encoding)
 
 
 class PythonWorker(QObject):

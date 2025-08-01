@@ -202,7 +202,7 @@ class DocstringWriterExtension(object):
         number_of_lines_of_function = 0
 
         for __ in range(min(remain_lines, 20)):
-            cur_text = to_text_string(cursor.block().text()).rstrip()
+            cur_text = str(cursor.block().text()).rstrip()
             cur_text = remove_comments(cur_text)
 
             if is_first_line:
@@ -248,7 +248,7 @@ class DocstringWriterExtension(object):
                 return None
 
             cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_text = to_text_string(cursor.block().text()).rstrip()
+            prev_text = str(cursor.block().text()).rstrip()
             prev_text = remove_comments(prev_text)
 
             if is_first_line:
@@ -279,7 +279,7 @@ class DocstringWriterExtension(object):
         body_list = []
 
         for __ in range(number_of_lines - line_number + 1):
-            text = to_text_string(cursor.block().text())
+            text = str(cursor.block().text())
             text_indent = get_indent(text)
 
             if text.strip() == '':

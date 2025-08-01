@@ -311,7 +311,7 @@ class ConsoleWidget(PluginMainWidget):
             pathlist = mimedata2url(source)
             self.shell.drop_pathlist(pathlist)
         elif source.hasText():
-            lines = to_text_string(source.text())
+            lines = str(source.text())
             self.shell.set_cursor_position('eof')
             self.shell.execute_lines(lines)
 
@@ -536,7 +536,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Go to error if relevant.
         """
-        match = get_error_match(to_text_string(text))
+        match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
@@ -554,7 +554,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Execute lines and give focus to shell.
         """
-        self.shell.execute_lines(to_text_string(lines))
+        self.shell.execute_lines(str(lines))
         self.shell.setFocus()
 
     @Slot()
@@ -592,7 +592,7 @@ class ConsoleWidget(PluginMainWidget):
             )
 
         if valid:
-            self.set_conf('external_editor/path', to_text_string(path))
+            self.set_conf('external_editor/path', str(path))
 
     def set_exit_function(self, func):
         """

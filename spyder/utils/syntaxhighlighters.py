@@ -110,7 +110,7 @@ CUSTOM_EXTENSION_LEXER = {
 custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
     # Single key is mapped unchanged.
-    if is_text_string(key):
+    if isinstance(key, str):
         custom_extension_lexer_mapping[key] = value
     # Tuple of keys is iterated over and each is mapped to value.
     else:
@@ -194,7 +194,7 @@ class BaseSH(QSyntaxHighlighter):
         QSyntaxHighlighter.__init__(self, parent)
 
         self.font = font
-        if is_text_string(color_scheme):
+        if isinstance(color_scheme, str):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
@@ -280,7 +280,7 @@ class BaseSH(QSyntaxHighlighter):
             self.formats[name] = format
 
     def set_color_scheme(self, color_scheme):
-        if is_text_string(color_scheme):
+        if isinstance(color_scheme, str):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
@@ -391,7 +391,7 @@ class TextSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
-        text = to_text_string(text)
+        text = str(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
         self.highlight_extras(text)
 
@@ -403,7 +403,7 @@ class GenericSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement highlight using regex defined in children classes."""
-        text = to_text_string(text)
+        text = str(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         index = 0
@@ -562,7 +562,7 @@ class PythonSH(BaseSH):
             if key == "comment":
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
-                    oedata.text = to_text_string(text).strip()
+                    oedata.text = str(text).strip()
                     # cell_head: string containing the first group
                     # of '%'s in the cell header
                     cell_head = re.search(r"%+|$", text.lstrip()).group()
@@ -578,7 +578,7 @@ class PythonSH(BaseSH):
                     self._cell_list.append(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
-                    oedata.text = to_text_string(text).strip()
+                    oedata.text = str(text).strip()
                     oedata.fold_level = start
                     oedata.def_type = OutlineExplorerData.COMMENT
                     oedata.def_name = text.strip()
@@ -590,10 +590,10 @@ class PythonSH(BaseSH):
                         self.setFormat(start1, end1-start1,
                                        self.formats["definition"])
                         oedata = OutlineExplorerData(self.currentBlock())
-                        oedata.text = to_text_string(text)
+                        oedata.text = str(text)
                         oedata.fold_level = (qstring_length(text)
                                              - qstring_length(text.lstrip()))
-                        oedata.def_type = self.DEF_TYPES[to_text_string(value)]
+                        oedata.def_type = self.DEF_TYPES[str(value)]
                         oedata.def_name = text[start1:end1]
                         oedata.color = self.formats["definition"]
                 elif value in ("elif", "else", "except", "finally",
@@ -601,7 +601,7 @@ class PythonSH(BaseSH):
                                "with"):
                     if text.lstrip().startswith(value):
                         oedata = OutlineExplorerData(self.currentBlock())
-                        oedata.text = to_text_string(text).strip()
+                        oedata.text = str(text).strip()
                         oedata.fold_level = start
                         oedata.def_type = OutlineExplorerData.STATEMENT
                         oedata.def_name = text.strip()
@@ -625,7 +625,7 @@ class PythonSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
-        text = to_text_string(text)
+        text = str(text)
         prev_state = tbh.get_state(self.currentBlock().previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
@@ -797,7 +797,7 @@ class CppSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement highlight specific for C/C++."""
-        text = to_text_string(text)
+        text = str(text)
         inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
         self.setFormat(0, qstring_length(text),
                        self.formats["comment" if inside_comment else "normal"])
@@ -882,7 +882,7 @@ class FortranSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement highlight specific for Fortran."""
-        text = to_text_string(text)
+        text = str(text)
         self.setFormat(0, qstring_length(text), self.formats["normal"])
 
         index = 0
@@ -905,7 +905,7 @@ class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
     def highlight_block(self, text):
         """Implement highlight specific for Fortran77."""
-        text = to_text_string(text)
+        text = str(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, qstring_length(text), self.formats["comment"])
             self.highlight_extras(text)
@@ -953,7 +953,7 @@ class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
     def highlight_block(self, text):
         """Implement highlight specific Diff/Patch files."""
-        text = to_text_string(text)
+        text = str(text)
         if text.startswith("+++"):
             self.setFormat(0, qstring_length(text), self.formats["keyword"])
         elif text.startswith("---"):
@@ -1051,7 +1051,7 @@ class BaseWebSH(BaseSH):
 
     def highlight_block(self, text):
         """Implement highlight specific for CSS and HTML."""
-        text = to_text_string(text)
+        text = str(text)
         previous_state = tbh.get_state(self.currentBlock().previous())
 
         if previous_state == self.COMMENT:
@@ -1173,7 +1173,7 @@ class MarkdownSH(BaseSH):
     CODE = 1
 
     def highlightBlock(self, text):
-        text = to_text_string(text)
+        text = str(text)
         previous_state = self.previousBlockState()
 
         if previous_state == self.CODE:
@@ -1305,7 +1305,7 @@ class PygmentsSH(BaseSH):
                 self.rehighlight()
             self._allow_highlight = False
 
-        text = to_text_string(self.document().toPlainText())
+        text = str(self.document().toPlainText())
         tokens = self._lexer.get_tokens(text)
 
         # Before starting a new worker process make sure to end previous

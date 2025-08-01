@@ -37,7 +37,7 @@ class EOLStatus(StatusBarWidget):
 
     def update_eol(self, os_name):
         """Update end of line status."""
-        os_name = to_text_string(os_name)
+        os_name = str(os_name)
         value = {"nt": "CRLF", "posix": "LF"}.get(os_name, "CR")
         self.set_value(value)
 

@@ -466,7 +466,8 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                     pos=(self.pos().x(), self.pos().y()),
                     is_maximized=self.isMaximized(),
                     is_fullscreen=self.isFullScreen(),
-                    hexstate=qbytearray_to_str(self.saveState()),
+                    hexstate=(
+                        str(bytes(self.saveState().toHex().data()).decode())),
                     splitsettings=splitsettings)
 
     def set_layout_settings(self, settings):
