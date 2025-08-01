@@ -44,7 +44,7 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
-from qtpy.QtGui import QColor, QCursor
+from qtpy.QtGui import QColor, QCursor, QGuiApplication
 from qtpy.QtWidgets import (
     QApplication,
     QDialog,
@@ -83,6 +83,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -1460,6 +1461,21 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 label = label + 1
 
             return label
+    
+    def handle_message_remove_item(self, result, check, index_label, df, axis):
+        if result == QMessageBox.Yes:
+            self.set_conf('show_remove_message', not check)
+            for label in index_label:
+                try:
+                    df.drop(label, inplace=True, axis=axis)
+                except TypeError as e:
+                    QMessageBox.warning(
+                        self.model().dialog,
+                        _("Warning: It was not possible to remove this item!"),
+                        _("ValueError: {} must be removed from index.").format(
+                            str(e))
+                    )
+                    return False
 
     @Slot()
     def remove_item(self, force=False, axis=0):
@@ -1492,16 +1508,33 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                         index_label.append(column_label)
 
         if not force:
-            one = _("Do you want to remove the selected item?")
-            more = _("Do you want to remove all selected items?")
-            answer = QMessageBox.question(
-                self,
-                _("Remove"),
-                one if len(indexes) == 1 else more,
-                QMessageBox.Yes | QMessageBox.No
-            )
-
-        if force or answer == QMessageBox.Yes:
+            if not self.get_conf('show_remove_message'):
+                answer = QMessageBox.Yes
+                self.handle_message_remove_item(
+                        answer, False, index_label, df, axis)
+            else:
+                one = _("Do you want to remove the selected item?")
+                more = _("Do you want to remove all selected items?")
+                answer = MessageCheckBox(icon=QMessageBox.Question,
+                                         parent=self)
+                answer.set_checkbox_text(_("Don't show again."))
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                check = answer.is_checked()
+                answer.finished.connect(
+                    lambda result: self.handle_message_remove_item(
+                        result, check, index_label, df, axis))
+                answer.open()
+                answer_width = answer.rect().width()
+                answer_height = answer.rect().height()
+                screen_geometry = QGuiApplication.primaryScreen().geometry()
+                x = (screen_geometry.width() - answer_width) / 2
+                y = (screen_geometry.height() - answer_height) / 2
+                answer.move(int(x), int(y))
+                answer.adjustSize()
+        else:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)

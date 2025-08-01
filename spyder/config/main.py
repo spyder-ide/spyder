@@ -200,6 +200,7 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
+              'show_remove_message': True,
               'show_special_attributes': False,
               'filter_on': True
              }),
