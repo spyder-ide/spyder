@@ -14,7 +14,6 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.utils.findtasks import find_tasks
-from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
 

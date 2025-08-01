@@ -60,8 +60,6 @@ from spyder_kernels.utils.nsview import (
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
-from spyder.py3compat import (is_binary_string, to_text_string,
-                              is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import mimedata2url

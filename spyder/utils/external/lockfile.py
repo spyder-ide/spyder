@@ -27,7 +27,6 @@ __metaclass__ = type
 import errno, os
 from time import time as _uniquefloat
 
-from spyder.py3compat import to_binary_string
 from spyder.utils.programs import is_spyder_process
 
 def unique():

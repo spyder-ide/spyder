@@ -19,7 +19,6 @@ from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
-from spyder.py3compat import to_text_string
 from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 

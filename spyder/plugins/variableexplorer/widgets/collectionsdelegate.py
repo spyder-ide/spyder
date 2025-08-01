@@ -49,7 +49,6 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
-from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)

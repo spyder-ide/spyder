@@ -13,7 +13,6 @@ import pytest
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 

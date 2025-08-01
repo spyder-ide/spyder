@@ -15,7 +15,6 @@ import sys
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import iteritems
 from spyder.utils.icon_manager import ima
 
 

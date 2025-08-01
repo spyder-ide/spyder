@@ -60,7 +60,6 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.plugins.explorer.widgets.utils import (
     create_script, fixpath, IconProvider, show_in_external_file_explorer)
-from spyder.py3compat import to_binary_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils import misc, programs, vcs

@@ -28,7 +28,6 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
 
 
@@ -124,7 +123,7 @@ class LayoutModel(QAbstractTableModel):
             return True
         elif role == Qt.EditRole:
             self.set_row(
-                row, [from_qvariant(value, to_text_string), name, state])
+                row, [from_qvariant(value, str), name, state])
             self.dataChanged.emit(index, index)
             return True
         return True

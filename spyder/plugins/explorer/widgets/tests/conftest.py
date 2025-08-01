@@ -17,7 +17,6 @@ import sys
 import pytest
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.plugins.explorer.widgets.fileassociations import (
     FileAssociationsWidget)
 

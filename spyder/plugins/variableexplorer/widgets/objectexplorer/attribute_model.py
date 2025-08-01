@@ -23,7 +23,6 @@ from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import TEXT_TYPES, to_text_string
 
 
 # Attribute models constants
@@ -102,7 +101,7 @@ def tio_summary(tree_item):
     For callables and modules an empty string is returned.
     """
     tio = tree_item.obj
-    if isinstance(tio, TEXT_TYPES):
+    if isinstance(tio, (str,)):
         return tio
     elif isinstance(tio, (list, tuple, set, frozenset, dict)):
         n_items = len(tio)

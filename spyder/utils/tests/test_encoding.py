@@ -13,7 +13,6 @@ from flaky import flaky
 import pytest
 
 from spyder.utils.encoding import is_text_file, read, write
-from spyder.py3compat import to_text_string
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))

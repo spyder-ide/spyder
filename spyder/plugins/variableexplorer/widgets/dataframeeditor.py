@@ -1017,7 +1017,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             (_("Complex"), complex, DataframeEditorActions.ConvertToComplex),
             (_("Int"), int, DataframeEditorActions.ConvertToInt),
             (_("Float"), float, DataframeEditorActions.ConvertToFloat),
-            (_("Str"), to_text_string, DataframeEditorActions.ConvertToStr)
+            (_("Str"), str, DataframeEditorActions.ConvertToStr)
         )
         for text, func, name in functions:
             def slot():

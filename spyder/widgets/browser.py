@@ -23,7 +23,6 @@ from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (action2button, create_plugin_layout,

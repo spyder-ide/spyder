@@ -45,7 +45,6 @@ from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _, get_home_dir
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.colors import ColorLayout
@@ -306,7 +305,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for combobox, (sec, option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default, section=sec)
             for index in range(combobox.count()):
-                data = from_qvariant(combobox.itemData(index), to_text_string)
+                data = from_qvariant(combobox.itemData(index), str)
                 # For PyQt API v2, it is necessary to convert `data` to
                 # unicode in case the original type was not a string, like an
                 # integer for example (see qtpy.compat.from_qvariant):
@@ -458,7 +457,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 data = combobox.itemData(combobox.currentIndex())
-                self.set_option(option, from_qvariant(data, to_text_string),
+                self.set_option(option, from_qvariant(data, str),
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):

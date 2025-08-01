@@ -65,7 +65,6 @@ from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
 )
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
-from spyder.py3compat import to_text_string, is_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima

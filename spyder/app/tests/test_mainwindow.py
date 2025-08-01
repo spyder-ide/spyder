@@ -96,7 +96,6 @@ from spyder.plugins.run.api import (
     WorkingDirSource,
 )
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
-from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER

@@ -42,8 +42,6 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
     PreferencesDialog
 )
-from spyder.py3compat import (is_binary_string, is_string, is_text_string,
-                              to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import keybinding, safe_disconnect
 from spyder.utils.stylesheet import AppStyle, MAC

@@ -38,7 +38,6 @@ import sympy
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
-from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,

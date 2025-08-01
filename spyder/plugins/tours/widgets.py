@@ -46,7 +46,6 @@ from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
-from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette

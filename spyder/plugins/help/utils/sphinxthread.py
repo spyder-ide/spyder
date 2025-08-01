@@ -11,7 +11,6 @@ from qtpy.QtCore import QThread, Signal
 
 # Local Imports
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  sphinxify)
 

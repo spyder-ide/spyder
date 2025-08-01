@@ -32,7 +32,6 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match

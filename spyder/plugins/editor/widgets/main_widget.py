@@ -36,7 +36,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action
@@ -1887,7 +1886,7 @@ class EditorMainWidget(PluginMainWidget):
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
-                filenames = from_qvariant(action.data(), to_text_string)
+                filenames = from_qvariant(action.data(), str)
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():

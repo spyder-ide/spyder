@@ -34,7 +34,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerInternalError
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
-from spyder.py3compat import to_text_string
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, getcwd_or_home,
                                remove_backslashes)

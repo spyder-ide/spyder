@@ -16,7 +16,6 @@ from qtpy.QtGui import QStandardItem, QTextDocument
 
 # Local imports
 from spyder.config.utils import is_ubuntu
-from spyder.py3compat import to_text_string
 
 
 class SwitcherBaseItem(QStandardItem):

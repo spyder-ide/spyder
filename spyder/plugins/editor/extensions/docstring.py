@@ -18,7 +18,6 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
 
 
 def is_start_of_function(text):

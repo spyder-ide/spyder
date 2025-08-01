@@ -30,7 +30,6 @@ from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
-from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin

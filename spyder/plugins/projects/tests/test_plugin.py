@@ -31,7 +31,6 @@ from spyder.plugins.projects.api import BaseProjectType
 from spyder.plugins.projects.plugin import Projects
 from spyder.plugins.projects.widgets.main_widget import QMessageBox
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.py3compat import to_text_string
 
 
 # =============================================================================

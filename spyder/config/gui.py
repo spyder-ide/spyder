@@ -21,7 +21,6 @@ from qtpy.QtGui import QFont, QFontDatabase
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
 
 

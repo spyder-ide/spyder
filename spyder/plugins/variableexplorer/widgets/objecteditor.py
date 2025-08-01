@@ -18,7 +18,6 @@ from spyder_kernels.utils.lazymodules import (
 from spyder_kernels.utils.nsview import is_known_type
 
 # Local imports
-from spyder.py3compat import is_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)

@@ -42,7 +42,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.py3compat import to_text_string
 from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import shell_split

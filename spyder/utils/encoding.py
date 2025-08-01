@@ -28,8 +28,6 @@ from chardet.universaldetector import UniversalDetector
 from atomicwrites import atomic_write
 
 # Local imports
-from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_text_string)
 from spyder.utils.external.binaryornot.check import is_binary
 
 

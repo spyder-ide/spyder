@@ -16,7 +16,6 @@ import pytest
 
 # Local imports
 from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
-from spyder.py3compat import to_text_string
 
 
 @pytest.fixture

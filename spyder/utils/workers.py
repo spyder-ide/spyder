@@ -20,7 +20,6 @@ from qtpy.QtCore import (QByteArray, QObject, QProcess, QThread, QTimer,
                          Signal)
 
 # Local imports
-from spyder.py3compat import to_text_string
 
 
 logger = logging.getLogger(__name__)

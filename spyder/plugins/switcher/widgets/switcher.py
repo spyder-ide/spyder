@@ -28,7 +28,6 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.plugins.switcher.widgets.proxymodel import SwitcherProxyModel
 from spyder.plugins.switcher.widgets.item import (
     SwitcherItem, SwitcherSeparatorItem)
-from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.helperwidgets import HTMLDelegate
 from spyder.utils.stringmatching import get_search_scores

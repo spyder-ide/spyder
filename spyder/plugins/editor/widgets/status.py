@@ -12,7 +12,6 @@ import os.path as osp
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.api.translations import _
-from spyder.py3compat import to_text_string
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
 

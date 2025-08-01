@@ -43,7 +43,6 @@ from spyder.api.widgets.menus import (
 )
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.py3compat import qbytearray_to_str
 from spyder.utils.qthelpers import create_waitspinner
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.utils.stylesheet import (

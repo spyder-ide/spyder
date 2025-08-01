@@ -10,8 +10,6 @@ String search and match utilities useful when filtering a list of texts.
 
 import re
 
-from spyder.py3compat import to_text_string
-
 NOT_FOUND_SCORE = -1
 NO_SCORE = 0
 

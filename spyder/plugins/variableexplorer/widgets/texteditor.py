@@ -25,8 +25,6 @@ from qtpy.QtWidgets import (
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 

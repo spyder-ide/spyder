@@ -31,7 +31,6 @@ from spyder.config.base import get_module_source_path
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
-from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette

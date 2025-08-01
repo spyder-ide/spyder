@@ -29,7 +29,6 @@ from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
                         QTextDocument)
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding
 
 

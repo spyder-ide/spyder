@@ -58,7 +58,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -498,7 +497,7 @@ def add_actions(target, actions, insert_before=None):
 
 def get_item_user_text(item):
     """Get QTreeWidgetItem user role string"""
-    return from_qvariant(item.data(0, Qt.UserRole), to_text_string)
+    return from_qvariant(item.data(0, Qt.UserRole), str)
 
 
 def set_item_user_text(item, text):

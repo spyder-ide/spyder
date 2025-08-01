@@ -18,7 +18,6 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable

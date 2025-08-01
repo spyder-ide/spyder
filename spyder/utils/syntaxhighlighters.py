@@ -28,7 +28,6 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData

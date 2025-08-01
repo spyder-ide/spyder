@@ -22,7 +22,6 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFormLayout, QLabel, QLineEdit,
                             QVBoxLayout, QWidget)
 
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 
 
 TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"

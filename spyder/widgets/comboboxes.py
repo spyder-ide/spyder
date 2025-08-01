@@ -27,7 +27,6 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import ClearLineEdit, IconLineEdit
 

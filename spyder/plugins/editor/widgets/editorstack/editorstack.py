@@ -53,7 +53,6 @@ from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.plugins.switcher.api import SwitcherActions
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
