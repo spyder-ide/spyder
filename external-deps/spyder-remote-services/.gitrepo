@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-remote-services
-	branch = fix/websocket-msg-size
-	commit = 6d7ac20cdefc82c0c964df2a66a4a8e1b1e13ee8
-	parent = eb29f0ce052db5d611b0462e04adc7215947771f
+	branch = main
+	commit = ace324ffdf7647ebe000cefc3c63dad801de260f
+	parent = f503e6c7456822d4a7af36efa09b284cea23d40b
 	method = merge
 	cmdver = 0.4.9
