@@ -191,8 +191,10 @@ class _Session:
             return "closed", {}
 
         if msg.type is not aiohttp.WSMsgType.BINARY:
-            msg = (f"Received message {msg.type}:{msg.data!r}"
-                   " is not WSMsgType.BINARY")
+            msg = (
+                f"Received message {msg.type}:{msg.data!r}"
+                f" is not WSMsgType.BINARY"
+            )
             raise aiohttp.WSMessageTypeError(msg)
 
         channel, components = self._deserialize_components_v1_protocol(msg.data)
@@ -757,11 +759,11 @@ class _WebSocketKernelClient(Configurable):
 
                 await self._queues[channel].put(msg)
         except asyncio.CancelledError:
-            _LOGGER.debug("Receiver loop cancelled for %s", self.session.session)
-        except BaseException as exc:
-            await self._ws.close(
-                code=aiohttp.WSCloseCode.INTERNAL_ERROR,
+            _LOGGER.debug(
+                "Receiver loop cancelled for %s", self.session.session
             )
+        except BaseException as exc:
+            await self._ws.close(code=aiohttp.WSCloseCode.INTERNAL_ERROR)
             self._handle_receiver_exception(exc)
 
     @staticmethod
@@ -1124,8 +1126,10 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
 
     def _handle_receiver_exception(self, exc: BaseException):
         """Handle exceptions in the receiver loop."""
-        if (isinstance(exc, aiohttp.WebSocketError) and
-            exc.code == aiohttp.WSCloseCode.MESSAGE_TOO_BIG):
+        if (
+            isinstance(exc, aiohttp.WebSocketError)
+            and exc.code == aiohttp.WSCloseCode.MESSAGE_TOO_BIG
+        ):
             _LOGGER.error(
                 "WebSocket message too big for %s: %s",
                 self.session.session,
