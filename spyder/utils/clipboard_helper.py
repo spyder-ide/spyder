@@ -9,8 +9,6 @@ Clipboard helper module.
 """
 from qtpy.QtWidgets import QApplication
 
-from spyder.py3compat import to_text_string
-
 
 class ClipboardHelper:
     # Clipboard metadata
