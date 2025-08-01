@@ -347,7 +347,7 @@ class BasePluginWidgetMixin(object):
         if self._undocked_window is not None:
             # Save window geometry to restore it when undocking the plugin
             # again.
-             = self._undocked_window.saveGeometry()
+            geometry = self._undocked_window.saveGeometry()
             self.set_option('window_geometry',
                             str(bytes(geometry.toHex().data()).decode()))
 

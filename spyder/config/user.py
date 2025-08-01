@@ -692,7 +692,7 @@ class SpyderUserConfig(UserConfig):
                 path, name = super().get_defaults_path_name_from_version(
                     old_version)
         else:
-            path, name = super.get_defaults_path_name_from_version()
+            path, name = super().get_defaults_path_name_from_version()
 
         return path, name
 
