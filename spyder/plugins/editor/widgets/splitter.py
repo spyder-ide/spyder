@@ -24,7 +24,6 @@ from qtpy.QtWidgets import QSplitter
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.widgets.editorstack.editorstack import EditorStack
-from spyder.py3compat import qbytearray_to_str
 from spyder.utils.palette import SpyderPalette
 
 
@@ -219,8 +218,9 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
                           for finfo in editorstack.data]
                 cfname = editorstack.get_current_filename()
             splitsettings.append((orientation == Qt.Vertical, cfname, clines))
-        return dict(hexstate=qbytearray_to_str(self.saveState()),
-                    sizes=self.sizes(), splitsettings=splitsettings)
+        return dict(
+            hexstate=str(bytes(self.saveState().toHex().data()).decode()),
+            sizes=self.sizes(), splitsettings=splitsettings)
 
     def set_layout_settings(self, settings, dont_goto=None):
         """Restore layout state for the splitter panels.

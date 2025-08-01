@@ -77,7 +77,7 @@ class MessageCheckBox(QMessageBox):
     under the message and on top of the buttons.
     """
     def __init__(self, *args, **kwargs):
-        super(MessageCheckBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.setWindowModality(Qt.NonModal)
         self._checkbox = QCheckBox(self)
@@ -125,7 +125,7 @@ class HTMLDelegate(QStyledItemDelegate):
     """
 
     def __init__(self, parent, margin=0, wrap_text=False, align_vcenter=False):
-        super(HTMLDelegate, self).__init__(parent)
+        super().__init__(parent)
         self._margin = margin
         self._wrap_text = wrap_text
         self._hovered_row = -1

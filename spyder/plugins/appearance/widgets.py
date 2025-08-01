@@ -30,7 +30,7 @@ class SchemeEditor(QDialog):
     """A color scheme editor dialog."""
 
     def __init__(self, parent=None, stack=None):
-        super(SchemeEditor, self).__init__(parent)
+        super().__init__(parent)
         self.parent = parent
         self.stack = stack
         self.order = []    # Uses scheme names

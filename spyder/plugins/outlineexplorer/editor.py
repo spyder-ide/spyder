@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def __init__(self, editor, fname):
-        super(OutlineExplorerProxyEditor, self).__init__()
+        super().__init__()
         self._editor = editor
         self.fname = fname
         editor.sig_cursor_position_changed.connect(

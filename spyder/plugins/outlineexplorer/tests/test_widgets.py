@@ -151,7 +151,7 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     editor = outlineexplorer.treewidget.current_editor
     editor._editor.go_to_line(52)
     assert editor._editor.get_text_line(51) == \
-           "        super(Class1, self).__init__()"
+           "        super().__init__()"
 
     # __init__ is collapsed
     assert outlineexplorer.treewidget.currentItem().text(0) == '__init__'

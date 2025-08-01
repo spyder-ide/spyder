@@ -41,7 +41,7 @@ class BaseDialog(QDialog):
         self.move(x, y)
 
     def show(self):
-        super(BaseDialog, self).show()
+        super().show()
         window = self.window()
         windowHandle = window.windowHandle()
         screen = windowHandle.screen()

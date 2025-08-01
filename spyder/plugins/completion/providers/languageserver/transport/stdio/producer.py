@@ -37,8 +37,7 @@ class StdioLanguageServerClient(LanguageServerClient):
 
     def __init__(self, server_args='', log_file=None,
                  zmq_in_port=7000, zmq_out_port=7001):
-        super(StdioLanguageServerClient, self).__init__(
-            zmq_in_port, zmq_out_port)
+        super().__init__(zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.process = None
 
@@ -57,7 +56,7 @@ class StdioLanguageServerClient(LanguageServerClient):
 
         logger.info('Process pid: {0}'.format(self.process.pid))
         logger.info('Connecting to language server on stdio')
-        super(StdioLanguageServerClient, self).finalize_initialization()
+        super().finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()
         self.reading_thread.initialize(self.process, self.zmq_out_socket,
                                        self.req_status, expectable=True)

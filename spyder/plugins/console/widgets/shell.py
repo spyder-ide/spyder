@@ -32,7 +32,6 @@ from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
-from spyder.py3compat import is_string, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action, keybinding,
@@ -78,7 +77,7 @@ class ShellBaseWidget(
         self.new_input_line = True
 
         # History
-        assert is_text_string(history_filename)
+        assert isinstance(history_filename, str)
         self.history = self.load_history()
 
         # Session
@@ -273,7 +272,7 @@ class ShellBaseWidget(
         if filename:
             filename = osp.normpath(filename)
             try:
-                encoding.write(to_text_string(self.get_text_with_eol()),
+                encoding.write(str(self.get_text_with_eol()),
                                filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
@@ -547,9 +546,9 @@ class ShellBaseWidget(
         """Simulate stdout and stderr"""
         if prompt:
             self.flush()
-        if not is_string(text):
+        if not isinstance(text, (str, bytes)):
             # This test is useful to discriminate QStrings from decoded str
-            text = to_text_string(text)
+            text = str(text)
         self.__buffer.append(text)
         ts = time.time()
         if flush or prompt:
@@ -627,7 +626,7 @@ class ShellBaseWidget(
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
         if (event.mimeData().hasFormat("text/plain")):
-            text = to_text_string(event.mimeData().text())
+            text = str(event.mimeData().text())
             if self.new_input_line:
                 self.on_new_line()
             self.insert_text(text, at_end=True)
@@ -831,7 +830,7 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin, GetHelpMixin):
     #------ Paste
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
-        text = to_text_string(QApplication.clipboard().text())
+        text = str(QApplication.clipboard().text())
         if len(text.splitlines()) > 1:
             # Multiline paste
             if self.new_input_line:
@@ -916,7 +915,7 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin, GetHelpMixin):
     def show_code_completion(self):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
-        text = to_text_string(self.get_current_line_to_cursor())
+        text = str(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
         if not text:
             return

@@ -41,7 +41,6 @@ from spyder.plugins.mainmenu.api import (
 )
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.py3compat import qbytearray_to_str
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.stylesheet import (
@@ -466,7 +465,8 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                     pos=(self.pos().x(), self.pos().y()),
                     is_maximized=self.isMaximized(),
                     is_fullscreen=self.isFullScreen(),
-                    hexstate=qbytearray_to_str(self.saveState()),
+                    hexstate=(
+                        str(bytes(self.saveState().toHex().data()).decode())),
                     splitsettings=splitsettings)
 
     def set_layout_settings(self, settings):

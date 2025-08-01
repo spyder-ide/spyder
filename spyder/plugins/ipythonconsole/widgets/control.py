@@ -100,12 +100,12 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ControlWidget, self).focusInEvent(event)
+        return super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ControlWidget, self).focusOutEvent(event)
+        return super().focusOutEvent(event)
 
 
 class PageControlWidget(QTextEdit, BaseEditMixin):
@@ -140,9 +140,9 @@ class PageControlWidget(QTextEdit, BaseEditMixin):
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(PageControlWidget, self).focusInEvent(event)
+        return super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(PageControlWidget, self).focusOutEvent(event)
+        return super().focusOutEvent(event)
