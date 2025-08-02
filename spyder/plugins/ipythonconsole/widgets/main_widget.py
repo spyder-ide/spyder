@@ -37,6 +37,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
@@ -273,6 +274,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         Path to the new interpreter.
     """
 
+    sig_edit_action_enabled = Signal(str, bool)
+    """
+    This signal is emitted to enable or disable an edit action.
+
+    Parameters
+    ----------
+    action_name: str
+        Name of the edit action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
+    """
+
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
@@ -479,6 +492,30 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             icon=self.create_icon('rename'),
             triggered=self.tab_name_editor,
         )
+        next_console_action = self.create_action(
+            IPythonConsoleWidgetActions.NextConsole,
+            text=_("Switch to next console"),
+            icon=self.create_icon('next_wng'),
+            triggered=lambda: self.tabwidget.tab_navigate(+1),
+            register_shortcut=True
+        )
+        previous_console_action = self.create_action(
+            IPythonConsoleWidgetActions.PreviousConsole,
+            text=_("Switch to previous console"),
+            icon=self.create_icon('prev_wng'),
+            triggered=lambda: self.tabwidget.tab_navigate(-1),
+            register_shortcut=True
+        )
+
+        # Register shortcuts to switch to the right/left console
+        self.register_shortcut_for_widget(
+            IPythonConsoleWidgetActions.NextConsole,
+            lambda: self.tabwidget.tab_navigate(+1),
+        )
+        self.register_shortcut_for_widget(
+            IPythonConsoleWidgetActions.PreviousConsole,
+            lambda: self.tabwidget.tab_navigate(-1),
+        )
 
         # --- For the client
         self.env_action = self.create_action(
@@ -512,7 +549,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Cut,
             text=_("Cut"),
             icon=self.create_icon("editcut"),
-            triggered=self._current_client_cut
+            triggered=self.current_client_cut
         )
         cut_action.setShortcut(QKeySequence.Cut)
 
@@ -520,7 +557,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Copy,
             text=_("Copy"),
             icon=self.create_icon("editcopy"),
-            triggered=self._current_client_copy
+            triggered=self.current_client_copy
         )
         copy_action.setShortcut(QKeySequence.Copy)
 
@@ -534,7 +571,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.Paste,
             text=_("Paste"),
             icon=self.create_icon("editpaste"),
-            triggered=self._current_client_paste
+            triggered=self.current_client_paste
         )
         paste_action.setShortcut(QKeySequence.Paste)
 
@@ -542,7 +579,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             ClientContextMenuActions.SelectAll,
             text=_("Select all"),
             icon=self.create_icon("selectall"),
-            triggered=self._current_client_select_all
+            triggered=self.current_client_select_all
         )
 
         self.create_action(
@@ -663,6 +700,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 section=IPythonConsoleWidgetOptionsMenuSections.View,
             )
 
+        for item in [next_console_action, previous_console_action]:
+            self.add_item_to_menu(
+                item,
+                menu=options_menu,
+                section=IPythonConsoleWidgetOptionsMenuSections.Switch,
+            )
+
         create_pylab_action = self.create_action(
             IPythonConsoleWidgetActions.CreatePyLabClient,
             text=_("New Pylab console (data plotting)"),
@@ -692,12 +736,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             )
 
         # --- Widgets for the tab corner
-        self.reset_button = self.create_toolbutton(
-            IPythonConsoleWidgetCornerWidgets.ResetButton,
-            text=_("Remove all variables"),
-            tip=_("Remove all variables from namespace"),
-            icon=self.create_icon("editdelete"),
-            triggered=self.reset_namespace,
+        self.clear_button = self.create_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.ClearButton,
+            text=_("Clear console"),
+            tip=_("Clear console"),
+            icon=self.create_icon("clear_console"),
+            triggered=self._current_client_clear_console,
         )
         self.stop_button = self.create_toolbutton(
             IPythonConsoleWidgetCornerWidgets.InterruptButton,
@@ -713,7 +757,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
-        self.add_corner_widget(self.reset_button)
+        self.add_corner_widget(self.clear_button)
         self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
@@ -1431,6 +1475,37 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     # ---- General
     # -------------------------------------------------------------------------
+    def update_edit_menu(self) -> None:
+        """
+        Enable edition related actions when a client is available.
+        """
+        undo_action_enabled = False
+        redo_action_enabled = False
+        cut_action_enabled = False
+        copy_action_enabled = False
+        paste_action_enabled = False
+        client = self.get_current_client()
+
+        if client:
+            undo_action_enabled = (
+                client.shellwidget._control.document().isUndoAvailable()
+            )
+            redo_action_enabled = (
+                client.shellwidget._control.document().isRedoAvailable()
+            )
+            cut_action_enabled = client.shellwidget.can_cut()
+            copy_action_enabled = client.shellwidget.can_copy()
+            paste_action_enabled = client.shellwidget.can_paste()
+
+        for action, enabled in [
+            (ApplicationActions.Undo, undo_action_enabled),
+            (ApplicationActions.Redo, redo_action_enabled),
+            (ApplicationActions.Cut, cut_action_enabled),
+            (ApplicationActions.Copy, copy_action_enabled),
+            (ApplicationActions.Paste, paste_action_enabled),
+        ]:
+            self.sig_edit_action_enabled.emit(action, enabled)
+
     def update_font(self, font, app_font):
         self._font = font
         self._app_font = app_font
@@ -2140,12 +2215,22 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
-    def _current_client_cut(self):
+    def current_client_undo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.undo()
+
+    def current_client_redo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.redo()
+
+    def current_client_cut(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.cut()
 
-    def _current_client_copy(self):
+    def current_client_copy(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.copy()
@@ -2155,12 +2240,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client:
             client.shellwidget.copy_raw()
 
-    def _current_client_paste(self):
+    def current_client_paste(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.paste()
 
-    def _current_client_select_all(self):
+    def current_client_select_all(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.select_all_smart()

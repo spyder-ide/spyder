@@ -435,6 +435,14 @@ DEFAULTS = [
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
               'main/close all': "Ctrl+Shift+W",
+              # -- Edit menu --
+              # (intended context for these is plugins that support them)
+              'main/undo': 'Ctrl+Z',
+              'main/redo': 'Ctrl+Shift+Z',
+              'main/cut': 'Ctrl+X',
+              'main/copy': 'Ctrl+C',
+              'main/paste': 'Ctrl+V',
+              'main/select all': "Ctrl+A",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -556,6 +564,8 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
+              'ipython_console/switch to next console': "Shift+Alt+Right",
+              'ipython_console/switch to previous console': "Shift+Alt+Left",
               # -- Variable explorer --
               'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',

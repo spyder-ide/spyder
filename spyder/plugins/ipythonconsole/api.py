@@ -68,6 +68,10 @@ class IPythonConsoleWidgetActions:
     ConsoleHelp = 'console help'
     QuickReference = 'quick reference'
 
+    # Navigation
+    NextConsole = "switch to next console"
+    PreviousConsole = "switch to previous console"
+
 
 class IPythonConsoleWidgetMenus:
     SpecialConsoles = 'special_consoles_submenu'
@@ -80,6 +84,7 @@ class IPythonConsoleWidgetMenus:
 class IPythonConsoleWidgetOptionsMenuSections:
     Edit = 'edit_section'
     View = 'view_section'
+    Switch = 'switch_section'
 
 
 class IPythonConsoleWidgetTabsContextMenuSections:
@@ -134,7 +139,7 @@ class ClientContextMenuActions:
 
 
 class IPythonConsoleWidgetCornerWidgets:
-    ResetButton = "reset_button"
+    ClearButton = "clear_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
 
