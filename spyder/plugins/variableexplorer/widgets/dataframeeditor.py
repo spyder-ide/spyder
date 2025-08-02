@@ -1464,7 +1464,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
     
     def handle_message_remove_item(self, result, check, index_label, df, axis):
         if result == QMessageBox.Yes:
-            self.set_conf('show_remove_message', not check)
+            self.set_conf('show_remove_message_dataframe', not check)
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)
@@ -1508,7 +1508,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                         index_label.append(column_label)
 
         if not force:
-            if not self.get_conf('show_remove_message'):
+            if not self.get_conf('show_remove_message_dataframe'):
                 answer = QMessageBox.Yes
                 self.handle_message_remove_item(
                         answer, False, index_label, df, axis)

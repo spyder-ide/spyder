@@ -1288,7 +1288,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
     def handle_message_remove_item(self, result, check, indexes):
         if result == QMessageBox.Yes:
-            self.set_conf('show_remove_message', not check)
+            self.set_conf('show_remove_message_collections', not check)
             if self.proxy_model:
                 idx_rows = unsorted_unique(
                     [self.proxy_model.mapToSource(idx).row()
@@ -1312,7 +1312,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 return
 
         if not force:
-            if not self.get_conf('show_remove_message'):
+            if not self.get_conf('show_remove_message_collections'):
                 answer = QMessageBox.Yes
                 self.handle_message_remove_item(answer, False, indexes)
             else:
