@@ -366,7 +366,7 @@ class ProfilerWidget(PluginMainWidget):
             else:
                 qba += self.process.readAllStandardOutput()
 
-        text = str(qba.data(), encoding='utf-8')
+        text = str(qba.data())
         if error:
             self.error_output += text
         else:

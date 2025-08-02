@@ -259,10 +259,10 @@ class SwitcherItem(SwitcherBaseItem):
 
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
 
-        title = str(title, encoding='utf-8')
-        section = str(section, encoding='utf-8')
-        description = str(description, encoding='utf-8')
-        shortcut = str(shortcut, encoding='utf-8')
+        title = str(title)
+        section = str(section)
+        description = str(description)
+        shortcut = str(shortcut)
 
         text = self._TEMPLATE.format(width=width, height=height, title=title,
                                      section=section, description=description,
