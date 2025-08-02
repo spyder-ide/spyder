@@ -21,6 +21,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.config.base import get_conf_path
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
 
@@ -35,7 +36,12 @@ class Help(SpyderDockablePlugin):
     Docstrings viewer widget.
     """
     NAME = 'help'
-    REQUIRES = [Plugins.Preferences, Plugins.Console, Plugins.Editor]
+    REQUIRES = [
+        Plugins.Application,
+        Plugins.Console,
+        Plugins.Editor,
+        Plugins.Preferences,
+    ]
     OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
@@ -45,6 +51,7 @@ class Help(SpyderDockablePlugin):
     LOG_PATH = get_conf_path(CONF_SECTION)
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     REQUIRE_WEB_WIDGETS = True
+    CAN_HANDLE_SEARCH_ACTIONS = True
 
     # Signals
     sig_focus_changed = Signal()  # TODO: What triggers this?
@@ -88,6 +95,16 @@ class Help(SpyderDockablePlugin):
             triggered=self.show_tutorial,
             register_shortcut=False,
         )
+
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        # Setup Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        # Replace action is set disabled since the `FindReplace` widget created
+        # by the main widget has `enable_replace=False`
+        self._enable_search_action(ApplicationActions.ReplaceText, False)
 
     @on_plugin_available(plugin=Plugins.Console)
     def on_console_available(self):
@@ -221,6 +238,12 @@ class Help(SpyderDockablePlugin):
         mainmenu.remove_item_from_application_menu(
             HelpActions.ShowSpyderTutorialAction,
             menu_id=ApplicationMenus.Help)
+
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -360,3 +383,14 @@ class Help(SpyderDockablePlugin):
             help_data,
             force_refresh=force_refresh,
         )
+
+    def find(self) -> None:
+        find_widget = self.get_widget().find_widget
+        find_widget.show()
+        find_widget.search_text.setFocus()
+
+    def find_next(self) -> None:
+        self.get_widget().find_widget.find_next()
+
+    def find_previous(self) -> None:
+        self.get_widget().find_widget.find_previous()

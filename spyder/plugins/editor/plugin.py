@@ -406,18 +406,6 @@ class Editor(SpyderDockablePlugin):
             )
 
         # ---- Search menu ----
-        search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-        search_menu.aboutToShow.connect(widget.update_search_menu)
-
-        # Find section
-        for search_item in widget.search_menu_actions:
-            mainmenu.add_item_to_application_menu(
-                search_item,
-                menu_id=ApplicationMenus.Search,
-                section=SearchMenuSections.FindInText,
-                before_section=SearchMenuSections.Cursor,
-            )
-
         # Cursor section
         cursor_actions = [
             widget.previous_edit_cursor_action,
@@ -709,6 +697,12 @@ class Editor(SpyderDockablePlugin):
 
         # Enable Select All edit action
         self._enable_edit_action(ApplicationActions.SelectAll, True)
+
+        # Enable Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        self._enable_search_action(ApplicationActions.ReplaceText, True)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
@@ -1180,6 +1174,18 @@ class Editor(SpyderDockablePlugin):
     def select_all(self) -> None:
         return self.get_widget().select_all()
 
+    def find(self) -> None:
+        return self.get_widget().find()
+
+    def find_next(self) -> None:
+        return self.get_widget().find_next()
+
+    def find_previous(self) -> None:
+        return self.get_widget().find_previous()
+
+    def replace(self) -> None:
+        return self.get_widget().replace()
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
@@ -1271,3 +1277,9 @@ class Editor(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_edit_action(action_name, enabled, self.NAME)
+
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)
