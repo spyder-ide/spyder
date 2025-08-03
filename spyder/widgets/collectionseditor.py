@@ -2401,7 +2401,7 @@ def get_test_data():
     return {'object': foobar,
             'module': np,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': str('éù', 'utf-8'),
+            'unicode': str('éù'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),

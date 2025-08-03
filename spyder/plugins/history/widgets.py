@@ -289,7 +289,7 @@ class HistoryWidget(PluginMainWidget):
             Command to append to history file.
         """
         if not isinstance(filename, str):  # filename is a QString
-            filename = str(filename.toUtf8(), 'utf-8')
+            filename = str(filename.toUtf8())
 
         index = self.filenames.index(filename)
         command = str(command)

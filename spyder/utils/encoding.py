@@ -72,7 +72,7 @@ def to_unicode_from_fs(string):
     Return a unicode version of string decoded using the file system encoding.
     """
     if not isinstance(string, (str, bytes)):  # string is a QString
-        string = str(string.toUtf8(), 'utf-8')
+        string = str(string.toUtf8())
     else:
         if isinstance(string, bytes):
             try:
@@ -169,13 +169,13 @@ def decode(text, default_codec=None):
     try:
         if text.startswith(BOM_UTF8):
             # UTF-8 with BOM
-            return str(text[len(BOM_UTF8):], 'utf-8'), 'utf-8-bom'
+            return str(text[len(BOM_UTF8):]), 'utf-8-bom'
         elif text.startswith(BOM_UTF16):
             # UTF-16 with BOM
-            return str(text[len(BOM_UTF16):], 'utf-16'), 'utf-16'
+            return str(text[len(BOM_UTF16):]), 'utf-16'
         elif text.startswith(BOM_UTF32):
             # UTF-32 with BOM
-            return str(text[len(BOM_UTF32):], 'utf-32'), 'utf-32'
+            return str(text[len(BOM_UTF32):]), 'utf-32'
         coding = get_coding(text, default_codec=default_codec)
         if coding:
             return str(text, coding), coding
@@ -183,7 +183,7 @@ def decode(text, default_codec=None):
         pass
     # Assume UTF-8
     try:
-        return str(text, 'utf-8'), 'utf-8-guessed'
+        return str(text), 'utf-8-guessed'
     except (UnicodeError, LookupError):
         pass
     # Assume Latin-1 (behaviour before 3.7.1)
