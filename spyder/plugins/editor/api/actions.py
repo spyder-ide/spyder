@@ -17,12 +17,6 @@ class EditorWidgetActions:
     GoToNextFile = "Go to next file"
     GoToPreviousFile = "Go to previous file"
 
-    # Find/Search operations
-    FindText = "Find text"
-    FindNext = "Find next"
-    FindPrevious = "Find previous"
-    ReplaceText = "Replace text"
-
     # Source code operations
     ShowTodoList = "show_todo_list_action"
     ShowCodeAnalysisList = "show_code_analaysis_action"

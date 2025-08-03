@@ -365,40 +365,6 @@ class EditorMainWidget(PluginMainWidget):
             )
 
         # ---- Find/Search operations ----
-        self.find_action = self.create_action(
-            EditorWidgetActions.FindText,
-            text=_("&Find text"),
-            icon=self.create_icon('find'),
-            tip=_("Find text"),
-            triggered=self.find,
-            context=Qt.WidgetShortcut,
-            shortcut_context="find_replace",
-        )
-        self.find_next_action = self.create_action(
-            EditorWidgetActions.FindNext,
-            text=_("Find &next"),
-            icon=self.create_icon('findnext'),
-            triggered=self.find_next,
-            context=Qt.WidgetShortcut,
-            shortcut_context="find_replace",
-        )
-        self.find_previous_action = self.create_action(
-            EditorWidgetActions.FindPrevious,
-            text=_("Find &previous"),
-            icon=ima.icon('findprevious'),
-            triggered=self.find_previous,
-            context=Qt.WidgetShortcut,
-            shortcut_context="find_replace",
-        )
-        self.replace_action = self.create_action(
-            EditorWidgetActions.ReplaceText,
-            text=_("&Replace text"),
-            icon=ima.icon('replace'),
-            tip=_("Replace text"),
-            triggered=self.replace,
-            context=Qt.WidgetShortcut,
-            shortcut_context="find_replace",
-        )
         self.gotoline_action = self.create_action(
             EditorWidgetActions.GoToLine,
             text=_("Go to line..."),
@@ -409,10 +375,6 @@ class EditorMainWidget(PluginMainWidget):
         )
 
         self.search_menu_actions = [
-            self.find_action,
-            self.find_next_action,
-            self.find_previous_action,
-            self.replace_action,
             self.gotoline_action
         ]
 
@@ -1077,22 +1039,6 @@ class EditorMainWidget(PluginMainWidget):
         self.sig_edit_action_enabled.emit(
             ApplicationActions.Paste, paste_action_enabled
         )
-
-    def update_search_menu(self):
-        """
-        Enable search related actions only when the Editor has focus.
-        """
-        editor = self.get_current_editor()
-        if editor:
-            editor_focus = (
-                self.find_widget.search_text.lineEdit().hasFocus() or
-                editor.hasFocus()
-            )
-            for search_menu_action in self.search_menu_actions:
-                action_enabled = editor_focus
-                if search_menu_action == self.replace_action:
-                    action_enabled = editor_focus and not editor.isReadOnly()
-                search_menu_action.setEnabled(action_enabled)
 
     def update_font(self, font):
         """Update font from Preferences"""

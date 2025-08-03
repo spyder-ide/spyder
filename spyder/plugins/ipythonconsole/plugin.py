@@ -74,6 +74,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     RAISE_AND_FOCUS = True
     CAN_HANDLE_EDIT_ACTIONS = True
+    CAN_HANDLE_SEARCH_ACTIONS = True
 
     # Signals
     sig_append_to_history_requested = Signal(str, str)
@@ -371,6 +372,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
         # Enable Select All edit action
         self._enable_edit_action(ApplicationActions.SelectAll, True)
+
+        # Setup Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        # Replace action is set disabled since the `FindReplace` widget created
+        # by the main widget has `enable_replace=False`
+        self._enable_search_action(ApplicationActions.ReplaceText, False)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self) -> None:
@@ -910,6 +919,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def select_all(self) -> None:
         return self.get_widget().current_client_select_all()
 
+    def find(self) -> None:
+        find_widget = self.get_widget().find_widget
+        find_widget.show()
+        find_widget.search_text.setFocus()
+
+    def find_next(self) -> None:
+        self.get_widget().find_widget.find_next()
+
+    def find_previous(self) -> None:
+        self.get_widget().find_widget.find_previous()
+
     # ---- For execution
     @run_execute(context=RunContext.File)
     def exec_files(
@@ -1209,3 +1229,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_edit_action(action_name, enabled, self.NAME)
+
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)

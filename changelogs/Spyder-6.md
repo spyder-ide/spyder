@@ -36,10 +36,14 @@
 
 #### Editor
 
-* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile`, `CloseAll`, `Undo`, `Redo`, `Cut`, `Copy`, `Paste`, and `SelectAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
+* **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`,
+  `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile`, `CloseAll`, `Undo`, `Redo`, `Cut`, `Copy`, `Paste`,
+  `SelectAll`, `FindText`, `FindNext`, `FindPrevious` and `ReplaceText` actions were moved to the
+  `ApplicationActions` class in the `Application` plugin.
 * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
 * Add "undo", "redo", "cut", "copy", "paste" and "select all" shortcuts to the "main" section.
-* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as`, `revert_file`, `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods.
+* Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as`, `revert_file`, `undo`,
+  `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next`, `find_previous` and `replace` methods.
 
 #### IPython console
 
@@ -50,7 +54,7 @@
 * Add `server_id` kwarg to the `set_current_client_working_directory` method.
 * Add `Switch` entry to `IPythonConsoleWidgetMenus`.
 * Add `NextConsole` and `PreviousConsole` to `IPythonConsoleWidgetActions`.
-* Add `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods.
+* Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next` and `find_previous` methods.
 
 #### Working Directory
 
@@ -76,8 +80,13 @@
 
 #### Application plugin
 
-* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
-* Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all` and `enable_edit_action` methods to perform edit operations in the appropriate plugin.
+* Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`,
+  `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action`
+  methods to perform file operations in the appropriate plugin.
+* Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all` and `enable_edit_action` methods to perform edit operations
+  in the appropriate plugin.
+* Add `find`, `find_next`, `find_previous`, `replace` and `enable_search_action` methods to perform search operations
+  in the appropriate plugin.
 * Add `focused_plugin` attribute.
 
 #### File Explorer
@@ -94,8 +103,14 @@
 
 #### SpyderPluginV2
 
-* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
-* Add `CAN_HANDLE_EDIT_ACTIONS` attribute and `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods to allow other plugins to hook into edit actions.
+* Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`,
+  `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`,
+  `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins
+  to hook into file actions.
+* Add `CAN_HANDLE_EDIT_ACTIONS` attribute and `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods to allow
+  other plugins to hook into edit actions.
+* Add `CAN_HANDLE_SEARCH_ACTIONS` attribute and `find`, `find_next`, `find_previous` and `replace`  methods to allow
+  other plugins to hook into search actions.
 * Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
 
 #### PluginMainWidget
