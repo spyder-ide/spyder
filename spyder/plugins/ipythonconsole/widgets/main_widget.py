@@ -68,6 +68,7 @@ from spyder.utils.misc import get_error_match, remove_backslashes
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.widgets.tabs import Tabs
 from spyder.widgets.printer import SpyderPrinter
 
@@ -2381,10 +2382,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         do_restart = True
         if ask_before_restart and not running_under_pytest():
-            message = _('Are you sure you want to restart the kernel?')
-            buttons = QMessageBox.Yes | QMessageBox.No
-            result = QMessageBox.question(
-                self, _('Restart kernel?'), message, buttons)
+            message = MessageCheckBox(
+                icon=QMessageBox.Question,
+                parent=self)
+            message.set_checkbox_text(_("Don't show again."))
+            message.set_checked(False)
+            message.set_check_visible(True)
+            message.setText(
+                _('Are you sure you want to restart the kernel?'))
+            message.setStandardButtons(
+                QMessageBox.Yes | QMessageBox.No)
+            result = message.exec_()
+            check = message.is_checked()
+            if check:
+                self.set_conf('ask_before_restart', not check)
+
             do_restart = result == QMessageBox.Yes
 
         if not do_restart:
