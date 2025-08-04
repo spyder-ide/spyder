@@ -102,7 +102,8 @@ def kernel_config():
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # To disable tips (for the moment)
-    spy_cfg.ZMQInteractiveShell.enable_tip = False
+    if sys.version_info[0:2] >= (3, 11):
+        spy_cfg.ZMQInteractiveShell.enable_tip = False
 
     # Greedy completer
     greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
