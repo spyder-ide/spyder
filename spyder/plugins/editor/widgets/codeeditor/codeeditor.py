@@ -2474,7 +2474,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             # Add prefix to current line
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
-            if self.get_character(cursor.position()) == ' ' and '#' in prefix:
+            if (
+                self.get_character(cursor.position()) in (' ', '\t')
+                and '#' in prefix
+            ):
                 cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()

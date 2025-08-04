@@ -34,7 +34,13 @@ from spyder.plugins.application.container import (
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, FileMenuSections, HelpMenuSections, ToolsMenuSections)
+    ApplicationMenus,
+    EditMenuSections,
+    FileMenuSections,
+    HelpMenuSections,
+    SearchMenuSections,
+    ToolsMenuSections,
+)
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import add_actions
@@ -62,6 +68,8 @@ class Application(SpyderPluginV2):
         super().__init__(parent, configuration)
         self.focused_plugin: Optional[SpyderDockablePlugin] = None
         self.file_action_enabled: Dict[Tuple[str, str], bool] = {}
+        self.edit_action_enabled: Dict[Tuple[str, str], bool] = {}
+        self.search_action_enabled: Dict[Tuple[str, str], bool] = {}
 
     @staticmethod
     def get_name():
@@ -95,6 +103,16 @@ class Application(SpyderPluginV2):
         container.sig_revert_file_requested.connect(self.revert_file)
         container.sig_close_file_requested.connect(self.close_file)
         container.sig_close_all_requested.connect(self.close_all)
+        container.sig_undo_requested.connect(self.undo)
+        container.sig_redo_requested.connect(self.redo)
+        container.sig_cut_requested.connect(self.cut)
+        container.sig_copy_requested.connect(self.copy)
+        container.sig_paste_requested.connect(self.paste)
+        container.sig_select_all_requested.connect(self.select_all)
+        container.sig_find_requested.connect(self.find)
+        container.sig_find_next_requested.connect(self.find_next)
+        container.sig_find_previous_requested.connect(self.find_previous)
+        container.sig_replace_requested.connect(self.replace)
         container.set_window(self._window)
         self.sig_focused_plugin_changed.connect(self._update_focused_plugin)
 
@@ -118,6 +136,8 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         self._populate_file_menu()
+        self._populate_edit_menu()
+        self._populate_search_menu()
         self._populate_tools_menu()
 
         if self.is_plugin_enabled(Plugins.IPythonConsole):
@@ -175,6 +195,8 @@ class Application(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
         self._depopulate_file_menu()
+        self._depopulate_edit_menu()
+        self._depopulate_search_menu()
         self._depopulate_tools_menu()
         self._depopulate_help_menu()
         self.report_action.setVisible(False)
@@ -302,6 +324,52 @@ class Application(SpyderPluginV2):
             menu_id=ApplicationMenus.File,
             section=FileMenuSections.Restart
         )
+
+    def _populate_edit_menu(self):
+        container = self.get_container()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Undo/Redo section
+        for action in [container.undo_action, container.redo_action]:
+            mainmenu.add_item_to_application_menu(
+                action,
+                menu_id=ApplicationMenus.Edit,
+                section=EditMenuSections.UndoRedo,
+                before_section=EditMenuSections.Editor
+            )
+
+        # Edit section
+        edit_actions = [
+            container.cut_action,
+            container.copy_action,
+            container.paste_action,
+            container.select_all_action
+        ]
+        for edit_action in edit_actions:
+            mainmenu.add_item_to_application_menu(
+                edit_action,
+                menu_id=ApplicationMenus.Edit,
+                section=EditMenuSections.Copy,
+                before_section=EditMenuSections.Editor
+            )
+
+    def _populate_search_menu(self):
+        container = self.get_container()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Find section
+        for action in [
+            container.find_action,
+            container.find_next_action,
+            container.find_previous_action,
+            container.replace_action,
+        ]:
+            mainmenu.add_item_to_application_menu(
+                action,
+                menu_id=ApplicationMenus.Search,
+                section=SearchMenuSections.FindInText,
+                before_section=SearchMenuSections.Cursor,
+            )
 
     def _populate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
@@ -437,6 +505,33 @@ class Application(SpyderPluginV2):
                 action_id,
                 menu_id=ApplicationMenus.File)
 
+    def _depopulate_edit_menu(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for action_id in [
+            ApplicationActions.Undo,
+            ApplicationActions.Redo,
+            ApplicationActions.Cut,
+            ApplicationActions.Copy,
+            ApplicationActions.Paste,
+            ApplicationActions.SelectAll,
+        ]:
+            mainmenu.remove_item_from_application_menu(
+                action_id,
+                menu_id=ApplicationMenus.File)
+
+    def _depopulate_search_menu(self):
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        for action_id in [
+            ApplicationActions.FindText,
+            ApplicationActions.FindNext,
+            ApplicationActions.FindPrevious,
+            ApplicationActions.ReplaceText,
+        ]:
+            mainmenu.remove_item_from_application_menu(
+                action_id,
+                menu_id=ApplicationMenus.Search
+            )
+
     def _depopulate_tools_menu(self):
         """Add base actions and menus to the Tools menu."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
@@ -459,6 +554,8 @@ class Application(SpyderPluginV2):
         """
         self.focused_plugin = plugin
         self._update_file_actions()
+        self._update_edit_actions()
+        self._update_search_actions()
 
     def _update_file_actions(self) -> None:
         """
@@ -485,6 +582,52 @@ class Application(SpyderPluginV2):
                 action = self.get_action(action_name)
                 key = (plugin.NAME, action_name)
                 state = self.file_action_enabled.get(key, True)
+                action.setEnabled(state)
+
+    def _update_edit_actions(self) -> None:
+        """
+        Update which edit actions are enabled.
+
+        Edit actions are enabled depending on whether the plugin that would
+        currently process the edit action has enabled it or not.
+        """
+        plugin = self.focused_plugin
+        if not plugin or not getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin = self.get_plugin(Plugins.Editor, error=False)
+        if plugin:
+            for action_name in [
+                ApplicationActions.Undo,
+                ApplicationActions.Redo,
+                ApplicationActions.Cut,
+                ApplicationActions.Copy,
+                ApplicationActions.Paste,
+                ApplicationActions.SelectAll,
+            ]:
+                action = self.get_action(action_name)
+                key = (plugin.NAME, action_name)
+                state = self.edit_action_enabled.get(key, True)
+                action.setEnabled(state)
+
+    def _update_search_actions(self) -> None:
+        """
+        Update which search actions are enabled.
+
+        Search actions are enabled depending on whether the plugin that would
+        currently process the search action has enabled it or not.
+        """
+        plugin = self.focused_plugin
+        if not plugin or not getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+            plugin = self.get_plugin(Plugins.Editor, error=False)
+        if plugin:
+            for action_name in [
+                ApplicationActions.FindText,
+                ApplicationActions.FindNext,
+                ApplicationActions.FindPrevious,
+                ApplicationActions.ReplaceText,
+            ]:
+                action = self.get_action(action_name)
+                key = (plugin.NAME, action_name)
+                state = self.search_action_enabled.get(key, True)
                 action.setEnabled(state)
 
     # ---- Public API
@@ -806,11 +949,211 @@ class Application(SpyderPluginV2):
         enabled : bool
             True to enable the action, False to disable it.
         plugin : str
-            The name of the plugin for which the save action needs to be
+            The name of the plugin for which the file action needs to be
             enabled or disabled.
         """
         self.file_action_enabled[(plugin, action_name)] = enabled
         self._update_file_actions()
+
+    def undo(self) -> None:
+        """
+        Do an undo operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the undo
+        operation in that plugin. Otherwise, undo in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.undo()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.undo()
+
+    def redo(self) -> None:
+        """
+        Do a redo operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the redo
+        operation in that plugin. Otherwise, redo in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.redo()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.redo()
+
+    def cut(self) -> None:
+        """
+        Do a cut operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the cut
+        operation in that plugin. Otherwise, cut in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.cut()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.cut()
+
+    def copy(self) -> None:
+        """
+        Do a copy operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the copy
+        operation in that plugin. Otherwise, copy in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.copy()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.copy()
+
+    def paste(self) -> None:
+        """
+        Do a paste operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the paste
+        operation in that plugin. Otherwise, paste in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.paste()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.paste()
+
+    def select_all(self) -> None:
+        """
+        Do a select all operation in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_EDIT_ACTIONS` attribute set to `True`, then do the select
+        all operation in that plugin. Otherwise, select all in the Editor
+        plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_EDIT_ACTIONS', False):
+            plugin.select_all()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.select_all()
+
+    def enable_edit_action(
+        self,
+        action_name: str,
+        enabled: bool,
+        plugin: str
+    ) -> None:
+        """
+        Enable or disable edit actions for a given plugin.
+
+        Parameters
+        ----------
+        action_name : str
+            The name of the action to be enabled or disabled. These names
+            are listed in ApplicationActions, for instance "Undo".
+        enabled : bool
+            True to enable the action, False to disable it.
+        plugin : str
+            The name of the plugin for which the edit action needs to be
+            enabled or disabled.
+        """
+        self.edit_action_enabled[(plugin, action_name)] = enabled
+        self._update_edit_actions()
+
+    def find(self) -> None:
+        """
+        Do a find text in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the find
+        text in that plugin. Otherwise, find text in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+            plugin.find()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.find()
+
+    def find_next(self) -> None:
+        """
+        Do a find next text occurrence in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the find
+        next text occurrence in that plugin. Otherwise, find next text
+        occurrence in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+            plugin.find_next()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.find_next()
+
+    def find_previous(self) -> None:
+        """
+        Do a find previous text occurrence in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the find
+        previous text occurrence in that plugin. Otherwise, find previous text
+        occurrence in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+            plugin.find_previous()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.find_previous()
+
+    def replace(self) -> None:
+        """
+        Do a replace text occurrence in the current plugin.
+
+        If the plugin that currently has focus, has its
+        `CAN_HANDLE_SEARCH_ACTIONS` attribute set to `True`, then do the
+        replace text occurrence in that plugin. Otherwise, replace text
+        occurrence in the Editor plugin.
+        """
+        plugin = self.focused_plugin
+        if plugin and getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+            plugin.replace()
+        elif self.is_plugin_available(Plugins.Editor):
+            editor = self.get_plugin(Plugins.Editor)
+            editor.replace()
+
+    def enable_search_action(
+        self,
+        action_name: str,
+        enabled: bool,
+        plugin: str
+    ) -> None:
+        """
+        Enable or disable a search action for a given plugin.
+
+        Parameters
+        ----------
+        action_name : str
+            The name of the action to be enabled or disabled. These names
+            are listed in ApplicationActions, for instance "FindText".
+        enabled : bool
+            True to enable the action, False to disable it.
+        plugin : str
+            The name of the plugin for which the search action needs to be
+            enabled or disabled.
+        """
+        self.search_action_enabled[(plugin, action_name)] = enabled
+        self._update_search_actions()
 
     @property
     def documentation_action(self):

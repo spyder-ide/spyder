@@ -10,6 +10,7 @@ IPython Console plugin based on QtConsole.
 
 # Standard library imports
 from functools import cached_property
+import re
 import sys
 from typing import List, Optional
 
@@ -23,6 +24,7 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsolePyConfiguration,
     IPythonConsoleWidgetActions,
@@ -51,7 +53,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     # This is required for the new API
     NAME = 'ipython_console'
-    REQUIRES = [Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Editor,
         Plugins.History,
@@ -71,6 +73,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     RAISE_AND_FOCUS = True
+    CAN_HANDLE_EDIT_ACTIONS = True
+    CAN_HANDLE_SEARCH_ACTIONS = True
 
     # Signals
     sig_append_to_history_requested = Signal(str, str)
@@ -361,6 +365,27 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
         ]
 
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self) -> None:
+        widget = self.get_widget()
+        widget.sig_edit_action_enabled.connect(self._enable_edit_action)
+
+        # Enable Select All edit action
+        self._enable_edit_action(ApplicationActions.SelectAll, True)
+
+        # Setup Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        # Replace action is set disabled since the `FindReplace` widget created
+        # by the main widget has `enable_replace=False`
+        self._enable_search_action(ApplicationActions.ReplaceText, False)
+
+    @on_plugin_teardown(plugin=Plugins.Application)
+    def on_application_teardown(self) -> None:
+        widget = self.get_widget()
+        widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
+
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         # Add status widgets
@@ -397,6 +422,10 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_main_menu_available(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Connect state check/update logic for edit actions
+        edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
+        edit_menu.aboutToShow.connect(widget.update_edit_menu)
 
         # Add signal to update actions state before showing the menu
         console_menu = mainmenu.get_application_menu(
@@ -530,8 +559,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
+        widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         mainmenu.remove_application_menu(ApplicationMenus.Consoles)
+
+        # Disconnect state check/update logic for edit actions
+        edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
+        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
 
         # IPython documentation menu
         mainmenu.remove_item_from_application_menu(
@@ -867,6 +901,34 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
+    def undo(self) -> None:
+        return self.get_widget().current_client_undo()
+
+    def redo(self) -> None:
+        return self.get_widget().current_client_redo()
+
+    def cut(self) -> None:
+        return self.get_widget().current_client_cut()
+
+    def copy(self) -> None:
+        return self.get_widget().current_client_copy()
+
+    def paste(self) -> None:
+        return self.get_widget().current_client_paste()
+
+    def select_all(self) -> None:
+        return self.get_widget().current_client_select_all()
+
+    def find(self) -> None:
+        find_widget = self.get_widget().find_widget
+        find_widget.show()
+        find_widget.search_text.setFocus()
+
+    def find_next(self) -> None:
+        self.get_widget().find_widget.find_next()
+
+    def find_previous(self) -> None:
+        self.get_widget().find_widget.find_previous()
 
     # ---- For execution
     @run_execute(context=RunContext.File)
@@ -925,6 +987,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         cell_text = run_input['cell']
 
         if run_input['copy']:
+            cell_text = re.sub(r'(^\s*\n)|(\n\s*$)', '', cell_text)
             self.run_selection(cell_text)
             return
 
@@ -1158,3 +1221,17 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     @Slot(str)
     def _on_remote_server_disconnected(self, server_id):
         self.get_widget().clear_server_consoles_submenu(server_id)
+
+    # ---- Methods related to the Application plugin
+    # ------------------------------------------------------------------------
+    def _enable_edit_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable edit action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_edit_action(action_name, enabled, self.NAME)
+
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)

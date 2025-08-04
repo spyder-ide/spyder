@@ -1,5 +1,39 @@
 # History of changes
 
+## Version 1.13.0 (2025/07/07)
+
+### New features
+* Format signatures in docstrings.
+* Add support for type definition.
+* Send websocket payload using a queue.
+* Fix getting symbols with inline comments that include the `import` word.
+* Drop support for Python 3.8
+
+### Issues Closed
+
+* [Issue 640](https://github.com/python-lsp/python-lsp-server/issues/640) - Should we add `py.typed` marker? ([PR 641](https://github.com/python-lsp/python-lsp-server/pull/641) by [@krassowski](https://github.com/krassowski))
+* [Issue 630](https://github.com/python-lsp/python-lsp-server/issues/630) - Formatting of signatures in docstrings
+* [Issue 627](https://github.com/python-lsp/python-lsp-server/issues/627) - Do not call str.splitlines() twice in the same function
+* [Issue 97](https://github.com/python-lsp/python-lsp-server/issues/97) - Failed to run lsp-goto-type-definition and lsp-goto-implementation.
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 656](https://github.com/python-lsp/python-lsp-server/pull/656) - Add space between punctuation and next sentence, by [@spenserblack](https://github.com/spenserblack)
+* [PR 650](https://github.com/python-lsp/python-lsp-server/pull/650) - Drop Python 3.8, add Python 3.11 to CI and run `pyupgrade`, by [@krassowski](https://github.com/krassowski)
+* [PR 646](https://github.com/python-lsp/python-lsp-server/pull/646) - Enforce `setuptools` 69 or newer to ensure `py.typed` marker gets included, by [@krassowski](https://github.com/krassowski)
+* [PR 645](https://github.com/python-lsp/python-lsp-server/pull/645) - Add support for type definition, by [@Hoblovski](https://github.com/Hoblovski)
+* [PR 641](https://github.com/python-lsp/python-lsp-server/pull/641) - Add `py.typed` marker to `pylsp` imports to be analysed with `mypy`, by [@krassowski](https://github.com/krassowski) ([640](https://github.com/python-lsp/python-lsp-server/issues/640))
+* [PR 639](https://github.com/python-lsp/python-lsp-server/pull/639) - Fix inline comments that include text with `import`, by [@jsbautista](https://github.com/jsbautista)
+* [PR 633](https://github.com/python-lsp/python-lsp-server/pull/633) - Send websocket payload using a queue, by [@Raekkeri](https://github.com/Raekkeri)
+* [PR 631](https://github.com/python-lsp/python-lsp-server/pull/631) - Allow to format signatures in docstrings, by [@krassowski](https://github.com/krassowski)
+* [PR 628](https://github.com/python-lsp/python-lsp-server/pull/628) - Do not call `str.splitlines()` twice in the same function., by [@fukanchik](https://github.com/fukanchik)
+
+In this release 9 pull requests were closed.
+
+----
+
 ## Version 1.12.2 (2025/02/07)
 
 ### Pull Requests Merged

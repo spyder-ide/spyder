@@ -135,10 +135,11 @@ class RemoteClient(SpyderPluginV2):
 
     def on_close(self, cancellable=True):
         """Stops remote server and close any opened connection."""
-        for client in self._remote_clients.values():
+        while self._remote_clients:
+            client = self._remote_clients.popitem()[1]
             AsyncDispatcher(
                 loop="asyncssh",
-                early_return=False
+                early_return=False,
             )(client.close)()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
@@ -191,8 +192,7 @@ class RemoteClient(SpyderPluginV2):
     @AsyncDispatcher(loop="asyncssh")
     async def stop_remote_server(self, config_id):
         """Stop remote server."""
-        if config_id in self._remote_clients:
-            client = self._remote_clients[config_id]
+        if client := self._remote_clients.pop(config_id, None):
             await client.close()
 
     @AsyncDispatcher(loop="asyncssh")
@@ -228,6 +228,11 @@ class RemoteClient(SpyderPluginV2):
         """Load remote server."""
         client = SpyderRemoteSSHAPIManager(config_id, options, _plugin=self)
         self._remote_clients[config_id] = client
+        _logger.debug(
+            "Remote SSH client for '%s' loaded with options: %s",
+            config_id,
+            options,
+        )
 
     def load_jupyterhub_client(
         self, config_id: str, options: JupyterHubClientOptions,
@@ -237,6 +242,11 @@ class RemoteClient(SpyderPluginV2):
             config_id, options, _plugin=self
         )
         self._remote_clients[config_id] = client
+        _logger.debug(
+            "Remote JupyterHub client for '%s' loaded with options: %s",
+            config_id,
+            options,
+        )
 
     def _load_jupyterhub_client_options(self, config_id):
         """Load JupyterHub remote server configuration."""
@@ -246,7 +256,8 @@ class RemoteClient(SpyderPluginV2):
 
         # We couldn't find saved options for config_id
         if not options:
-            return {}
+            msg = f"Configuration for remote server '{config_id}' not found."
+            raise ValueError(msg)
 
         # Password is mandatory in this case
         token = self.get_conf(f"{config_id}/token", secure=True)
@@ -262,7 +273,8 @@ class RemoteClient(SpyderPluginV2):
 
         # We couldn't find saved options for config_id
         if not options:
-            return {}
+            msg = f"Configuration for remote server '{config_id}' not found."
+            raise ValueError(msg)
 
         if options["config"]:
             # Only `host` and list with path to config file as `config`
@@ -362,6 +374,8 @@ class RemoteClient(SpyderPluginV2):
             raise ValueError(msg)
 
         configs[server_id]["default_kernel_spec"] = name
+
+        self.set_conf(self.CONF_SECTION_SERVERS, configs)
 
         if server_id in self._remote_clients:
             server_options = self._remote_clients[server_id].options

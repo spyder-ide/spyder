@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
-from spyder.config.manager import CONF
+from spyder.config.manager import CONF, NoDefault
 from spyder.plugins.shortcuts.utils import ShortcutData
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
@@ -438,7 +438,7 @@ class ShortcutEditor(QDialog):
         """Set the new sequence to the default value defined in the config."""
         sequence = CONF.get_default(
             'shortcuts', "{}/{}".format(self.context, self.name))
-        if sequence:
+        if sequence and sequence is not NoDefault:
             self._qsequences = sequence.split(', ')
             self.update_warning()
         else:

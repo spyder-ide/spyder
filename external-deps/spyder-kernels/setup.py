@@ -58,6 +58,8 @@ TEST_REQUIREMENTS = [
     "mock",
     "numpy",
     "pandas",
+    "polars",
+    "pyarrow",
     "pytest",
     "pytest-cov",
     "scipy",
@@ -85,7 +87,7 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={'test': TEST_REQUIREMENTS},
     include_package_data=True,
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Jupyter',

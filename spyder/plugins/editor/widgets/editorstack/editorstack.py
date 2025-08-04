@@ -450,7 +450,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
             rel_path = osp.relpath(
                 self.get_current_filename(), base_path
-            ).replace(os.sep, "/")
+            )
 
             QApplication.clipboard().setText(rel_path)
 
@@ -2888,11 +2888,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo.editor.add_newline_to_file()
 
     def fix_indentation(self, index=None):
-        """Replace tab characters by spaces"""
+        """Replace tab characters with spaces."""
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        logger.debug(f"Fix indentation for file {finfo.filename}")
+        logger.debug(f"Convert tabs to spaces for file {finfo.filename}")
         finfo.editor.fix_indentation()
 
     def format_document_or_selection(self, index=None):

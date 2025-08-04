@@ -25,9 +25,16 @@ import PIL.Image
 
 # Local imports
 from spyder_kernels.utils.nsview import (
-    sort_against, is_supported, value_to_display, get_size,
-    get_supported_types, get_type_string, get_numpy_type_string,
-    is_editable_type)
+    get_human_readable_type,
+    get_numpy_type_string,
+    get_size,
+    get_supported_types,
+    get_type_string,
+    is_editable_type,
+    is_supported,
+    sort_against,
+    value_to_display,
+)
 
 
 def generate_complex_object():
@@ -477,6 +484,14 @@ def test_get_numpy_type():
     # Pandas objects
     df = pd.DataFrame([1, 2, 3])
     assert get_numpy_type_string(df) == 'Unknown'
+
+
+def test_polars_dataframe():
+    import polars
+    df = polars.DataFrame({'name': ['Alice', 'Bob'], 'height': [1.77, 1.69]})
+    assert value_to_display(df) == 'Column names: name, height'
+    assert value_to_display(df, level=1) == 'Dataframe'
+    assert get_human_readable_type(df) == 'Polars DataFrame'
 
 
 if __name__ == "__main__":

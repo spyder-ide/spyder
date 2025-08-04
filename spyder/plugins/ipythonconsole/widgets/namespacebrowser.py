@@ -54,6 +54,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_comm = _(
             "The channel used to communicate with the kernel is not working."
         )
+        reason_missing_package_target = _(
+            "The '<tt>{}</tt>' module is required to open this variable and "
+            "it's not installed in the console environment. To fix this "
+            "problem, please install it in the environment which you use to "
+            "run your code."
+        )
         reason_missing_package_installer = _(
             "The '<tt>{}</tt>' module is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
@@ -64,8 +70,20 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
         )
+        reason_mismatched_numpy = _(
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>numpy</tt> in the environment that you use to "
+            "run Spyder to version 1.26.1 or higher."
+        )
+        reason_mismatched_pandas = _(
+            "There is a mismatch between the Pandas versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>pandas</tt> in the console environment "
+            "to version 2.0 or higher."
+        )
         reason_mismatched_python = _(
-            "There is a mistmatch between the Python versions used by Spyder "
+            "There is a mismatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
             "To fix it, you need to recreate your console environment with "
             "Python {} or {}."
@@ -78,6 +96,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "<a href='{}'>Github</a>."
         ).format(GH_ISSUES)
 
+        kernel_call_success = False
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -88,6 +107,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 display_error=False,
                 timeout=CALL_KERNEL_TIMEOUT
             ).get_value(name, encoded=True)
+            kernel_call_success = True
             value = cloudpickle.loads(value)
             return value
         except TimeoutError:
@@ -129,24 +149,51 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except CommError:
             raise ValueError(msg % reason_comm)
         except ModuleNotFoundError as e:
-            if is_conda_based_app():
-                raise ValueError(
-                    msg % reason_missing_package_installer.format(e.name)
-                )
+            if not kernel_call_success:
+                name = e.args[0].error.name
+                reason = reason_missing_package_target.format(name)
+            elif is_conda_based_app():
+                reason = reason_missing_package_installer.format(e.name)
+            elif e.name.startswith('numpy._core'):
+                reason = reason_mismatched_numpy
+            elif e.name == 'pandas.core.indexes.numeric':
+                reason = reason_mismatched_pandas
             else:
-                raise ValueError(msg % reason_missing_package.format(e.name))
+                reason = reason_missing_package.format(e.name)
+            raise ValueError(msg % reason)
         except Exception:
             raise ValueError(msg % reason_other)
 
     def set_value(self, name, value):
         """Set value for a variable"""
+        reason_mismatched_numpy = _(
+            "There is a mismatch between the Numpy versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>numpy</tt> in the console environment to "
+            "version 2.0 or higher."
+        )
+        msg = _(
+            "<br>%s<br><br>"
+            "<b>Note</b>: If you consider this to be a valid error that needs "
+            "to be fixed by the Spyder team, please report it on "
+            "<a href='{}'>Github</a>."
+        ).format(GH_ISSUES)
+
         # Encode with cloudpickle and base64
         encoded_value = cloudpickle.dumps(value)
-        self.call_kernel(
-            interrupt=True,
-            blocking=False,
-            display_error=True,
+
+        try:
+            self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                display_error=True,
             ).set_value(name, encoded_value, encoded=True)
+        except ModuleNotFoundError as e:
+            name = e.args[0].error.name
+            if name.startswith('numpy._core'):
+                raise ValueError(msg % reason_mismatched_numpy)
+        except Exception:
+            pass  # swallow exception
 
     def remove_value(self, name):
         """Remove a variable"""

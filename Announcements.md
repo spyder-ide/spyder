@@ -154,13 +154,13 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.1.0a3 is released!
+**Subject**: [ANN] Spyder 6.1.0a4 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the third alpha of our next minor version: Spyder **6.1**.
+I'm pleased to announce the fourth alpha of our next minor version: Spyder **6.1**.
 
 We've been working on this version for around half a year now and it's working
 relatively well. We encourage all people who like the bleeding edge to give it a try.
@@ -171,8 +171,9 @@ Spyder 6.1 comes with the following interesting new features and fixes:
     * Add support to work with multiple cursors in the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
     * Add a graphical interface to the update process of our standalone installers.
     * Plot histograms from the dataframe viewer.
-    * Add support for `frozenset`, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
+    * Add support for Polars dataframes, frozen sets, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
     * Show the remote file system in the Files pane when a remote console has focus.
+    * Add support to connect to JupyterHub servers.
     * Add support to use Pixi environments in the IPython console.
     * Paths can be added to the front of `sys.path` in the Pythonpath manager.
     * Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
@@ -182,17 +183,23 @@ Spyder 6.1 comes with the following interesting new features and fixes:
 - Important fixes
     * Much better support for PyQt6 and PySide6.
     * Make shortcuts to move to different panes work when they are undocked.
+    * Remove blank lines around cells when copying their contents to the console.
+    * Automatically kill kernels when Spyder crashes.
     * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
     * Drop support for Python 3.8
 
 - UX/UI improvements
+    * Reorganize most menus to make them easier to navigate.
+    * Add shortcut `Ctrl+W` to close Variable Explorer viewers.
     * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+    * Fix plots looking blurred when scaling is enabled in high DPI screens.
 
 - API changes
     - Editor
         * **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
         * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
         * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
+        * Add `set_default_kernel_spec` to `remoteclient` plugin, in order to set default kernel spec used to open default consoles.
     - IPython console
         * **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
         * **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
@@ -209,7 +216,8 @@ Spyder 6.1 comes with the following interesting new features and fixes:
         * Add `get_server_name` method to get a server name given its id.
         * Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
         * Add `get_jupyter_api` method to get the Jupyter API to interact with a remote Jupyter server.
-        * Add `get_file_api` method to get the `SpyderRemoteFileServicesAPI` rest API module to manage remote file systems.
+        * Add `get_file_api` method to get the rest API module to manage remote file systems.
+        * Add `get_environ_api` method to get the rest API module to work with environment variables in the remote machine.
     - Pythonpath manager
         * **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
     - Application plugin
@@ -219,11 +227,16 @@ Spyder 6.1 comes with the following interesting new features and fixes:
         * **Breaking** - `ExplorerTreeWidgetActions` renamed to `ExplorerWidgetActions`.
         * **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
         * Add `server_id` kwarg to the `chdir` method.
+    - Main menu
+        * **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
+        * **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
     - SpyderPluginV2
         * Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
         * Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
     - PluginMainWidget
-        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes, and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in the Variable Explorer).
+        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
+  and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in
+  the Variable Explorer).
     - Shellconnect
         * **Breaking** - Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
         * Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.

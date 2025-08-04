@@ -141,12 +141,8 @@ class LintingConfigTab(SpyderPreferencesTab):
         grid_widget.setLayout(flake8_layout)
 
         configuration_options_layout.addWidget(grid_widget)
-        configuration_options_layout.addWidget(pyflakes_conf_options)        
+        configuration_options_layout.addWidget(pyflakes_conf_options)
         configuration_options_layout.addWidget(not_select_conf_options)
-
-        grid_widget.hide()
-        pyflakes_conf_options.show()
-        not_select_conf_options.hide()
 
         flake_linting_radio.radiobutton.toggled.connect(
             lambda checked: (
