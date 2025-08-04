@@ -29,7 +29,7 @@ while '' in sys.path:
 
 # Local imports
 from spyder_kernels.console.kernelapp import SpyderKernelApp
-from spyder_kernels.utils.misc import is_module_installed
+from spyder_kernels.utils.misc import is_module_installed, get_package_version
 
 
 def import_spydercustomize():
@@ -105,7 +105,7 @@ def kernel_config():
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # To disable tips (for the moment)
-    if get_package_version('ipython') and get_package_version('ipython') >= parse_version("9.0"):
+    if get_package_version('ipython') >= parse_version("9.0"):
         spy_cfg.ZMQInteractiveShell.enable_tip = False
 
     # Greedy completer
