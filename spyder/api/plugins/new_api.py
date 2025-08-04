@@ -997,6 +997,20 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # Example: ['.ipynb'] for spyder-notebook
     FILE_EXTENSIONS = []
 
+    # Whether the plugin can handle edit actions.
+    # If set to True, then the `undo`, `redo`, `cut`, `copy`, `paste` and
+    # `select_all` functions will be called to handle the corresponding
+    # actions. Individual actions can be disabled with `enable_edit_action` in
+    # the Applications plugin.
+    CAN_HANDLE_EDIT_ACTIONS = False
+
+    # Whether the plugin can handle search actions.
+    # If set to True, then the `find`, `find_next`, `find_previous` and
+    # `replace` functions will be called to handle the corresponding
+    # actions. Individual actions can be disabled with `enable_search_action`
+    # in the Applications plugin.
+    CAN_HANDLE_SEARCH_ACTIONS = False
+
     # ---- API: Available signals
     # -------------------------------------------------------------------------
     sig_focus_changed = Signal()
@@ -1206,6 +1220,106 @@ class SpyderDockablePlugin(SpyderPluginV2):
         This function will be called if the `File > Close all` menu item is
         selected while the plugin has focus and `CAN_HANDLE_FILE_ACTIONS` is
         set to `True`.
+        """
+        raise NotImplementedError
+
+    def undo(self) -> None:
+        """
+        Undo last edition.
+
+        This function will be called if the `Edit > Undo` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def redo(self) -> None:
+        """
+        Redo last edition.
+
+        This function will be called if the `Edit > Redo` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def cut(self) -> None:
+        """
+        Cut selection.
+
+        This function will be called if the `Edit > Cut` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def copy(self) -> None:
+        """
+        Copy selection.
+
+        This function will be called if the `Edit > Copy` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def paste(self) -> None:
+        """
+        Paste clipboard.
+
+        This function will be called if the `Edit > Paste` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def select_all(self) -> None:
+        """
+        Select all text in the plugin.
+
+        This function will be called if the `Edit > Select All` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_EDIT_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def find(self) -> None:
+        """
+        Find text in the plugin.
+
+        This function will be called if the `Search > Find text` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def find_next(self) -> None:
+        """
+        Move to next find text occurrence in the plugin.
+
+        This function will be called if the `Search > Find next` menu item is
+        selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS` is
+        set to `True`.
+        """
+        raise NotImplementedError
+
+    def find_previous(self) -> None:
+        """
+        Move to previous find text occurrence in the plugin.
+
+        This function will be called if the `Search > Find previous` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`
+        is set to `True`.
+        """
+        raise NotImplementedError
+
+    def replace(self) -> None:
+        """
+        Replace text occurrence in the plugin.
+
+        This function will be called if the `Search > Replace text` menu item
+        is selected while the plugin has focus and `CAN_HANDLE_SEARCH_ACTIONS`
+        is set to `True`.
         """
         raise NotImplementedError
 

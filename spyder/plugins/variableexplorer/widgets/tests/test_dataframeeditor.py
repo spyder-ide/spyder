@@ -1193,5 +1193,47 @@ def test_dataframeeditor_readonly(qtbot):
     assert not editor.dataTable.edit_action.isEnabled()
 
 
+def test_dataframeeditor_remove_column(qtbot):
+    """
+    Test that removing a column from a dataframe works as expected.
+    """
+    df = DataFrame({'num': [1, 2, 3], 'square': [1, 4, 9]})
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    view = editor.dataTable
+    view.setCurrentIndex(model.index(0, 0))
+    view.remove_item(force=True, axis=1)
+
+    expected = DataFrame({'square': [1, 4, 9]})
+    assert_frame_equal(model.df, expected)
+
+
+def test_dataframeeditor_remove_column_with_strings(qtbot):
+    """
+    Test that after removing the first column from a dataframe with a column of
+    numbers and a column of strings, the background color of the remaining
+    cells is the specified color for strings.
+
+    Regression test for spyder-ide/spyder#24796.
+    """
+    df = DataFrame({'num': [1, 2, 3], 'word': ['one', 'two', 'three']})
+    editor = DataFrameEditor()
+    editor.setup_and_check(df)
+    model = editor.dataModel
+    view = editor.dataTable
+    view.setCurrentIndex(model.index(0, 0))
+    view.remove_item(force=True, axis=1)
+
+    expected = DataFrame({'word': ['one', 'two', 'three']})
+    assert_frame_equal(model.df, expected)
+
+    h, s, v, dummy = QColor(
+        dataframeeditor.BACKGROUND_NONNUMBER_COLOR
+    ).getHsvF()
+    a = dataframeeditor.BACKGROUND_STRING_ALPHA
+    assert colorclose(bgcolor(model, 0, 0), (h, s, v, a))
+
+
 if __name__ == "__main__":
     pytest.main()
