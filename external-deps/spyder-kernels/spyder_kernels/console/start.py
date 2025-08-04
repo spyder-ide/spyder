@@ -16,6 +16,9 @@ import os.path as osp
 import sys
 import site
 
+from packaging.version import parse as parse_version
+
+
 # Remove current directory from sys.path to prevent kernel crashes when people
 # name Python files or modules with the same name as standard library modules.
 # See spyder-ide/spyder#8007
@@ -102,7 +105,7 @@ def kernel_config():
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
     # To disable tips (for the moment)
-    if sys.version_info[0:2] >= (3, 11):
+    if get_package_version('ipython') and get_package_version('ipython') >= parse_version("9.0"):
         spy_cfg.ZMQInteractiveShell.enable_tip = False
 
     # Greedy completer

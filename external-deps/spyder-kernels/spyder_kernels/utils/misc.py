@@ -31,6 +31,15 @@ def is_module_installed(module_name):
         return False
 
 
+def get_package_version(package_name):
+    from importlib.metadata import PackageNotFoundError, version as package_version
+    from packaging.version import parse as parse_version
+    try:
+        return parse_version(package_version(package_name))
+    except PackageNotFoundError:
+        return None
+
+
 def fix_reference_name(name, blacklist=None):
     """Return a syntax-valid Python reference name from an arbitrary name"""
     name = "".join(re.split(r'[^0-9a-zA-Z_]', name))
