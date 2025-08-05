@@ -219,8 +219,10 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
                 cfname = editorstack.get_current_filename()
             splitsettings.append((orientation == Qt.Vertical, cfname, clines))
         return dict(
-            hexstate=str(bytes(self.saveState().toHex().data()).decode()),
-            sizes=self.sizes(), splitsettings=splitsettings)
+            hexstate=qbytearray_to_str(self.saveState()),,
+            sizes=self.sizes(),
+            splitsettings=splitsettings,
+        )
 
     def set_layout_settings(self, settings, dont_goto=None):
         """Restore layout state for the splitter panels.

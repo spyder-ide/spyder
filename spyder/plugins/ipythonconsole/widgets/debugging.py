@@ -602,8 +602,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
                     self._reading_callback()
             return
 
-        return super().execute(
-            source, hidden, interactive)
+        return super().execute(source, hidden, interactive)
 
     def pdb_input(self, prompt, password=None, state=None, from_input=False):
         """Get input for a command."""
@@ -685,8 +684,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if prompt == self._pdb_prompt:
             html = True
             prompt = '<span class="in-prompt">%s</span>' % prompt
-        super()._show_prompt(prompt, html, newline,
-                                                  separator)
+        super()._show_prompt(prompt, html, newline, separator)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
@@ -713,8 +711,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             complete, indent = self._is_pdb_complete(source)
             callback(complete, indent)
         else:
-            return super()._register_is_complete_callback(
-                source, callback)
+            return super()._register_is_complete_callback(source, callback)
 
     # ---- Qt methods ---------------------------------------------------------
     def eventFilter(self, obj, event):

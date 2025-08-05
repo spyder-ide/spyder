@@ -707,8 +707,7 @@ class SpyderUserConfig(UserConfig):
         if self._external_plugin:
             return
         if old_version and check_version(old_version, '44.1.0', '<'):
-            run_lines = str(self.get('ipython_console',
-                                     'startup/run_lines'))
+            run_lines = str(self.get('ipython_console', 'startup/run_lines'))
             if run_lines is not NoDefault:
                 run_lines = run_lines.replace(',', '; ')
                 self.set('ipython_console', 'startup/run_lines', run_lines)

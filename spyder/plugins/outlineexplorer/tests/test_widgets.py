@@ -150,8 +150,7 @@ def test_follow_cursor(create_outlineexplorer, qtbot):
     # Move the mouse cursor in the editor to line 52
     editor = outlineexplorer.treewidget.current_editor
     editor._editor.go_to_line(52)
-    assert editor._editor.get_text_line(51) == \
-           "        super().__init__()"
+    assert editor._editor.get_text_line(51) == "        super().__init__()"
 
     # __init__ is collapsed
     assert outlineexplorer.treewidget.currentItem().text(0) == '__init__'

@@ -106,8 +106,7 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(
-                    self.effect, bytes("opacity"))
+        self.anim = QPropertyAnimation(self.effect, b"opacity")
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -157,8 +156,7 @@ class FadingCanvas(FadingDialog):
     def __init__(self, parent, opacity, duration, easing_curve, color,
                  tour=None):
         """Create a black semi transparent canvas that covers the app."""
-        super().__init__(parent, opacity, duration,
-                                           easing_curve)
+        super().__init__(parent, opacity, duration, easing_curve)
         self.parent = parent
         self.tour = tour
 
@@ -313,8 +311,7 @@ class FadingTipBox(FadingDialog):
     """Dialog that contains the text for each frame in the tour."""
     def __init__(self, parent, opacity, duration, easing_curve, tour=None,
                  color_top=None, color_back=None, combobox_background=None):
-        super().__init__(parent, opacity, duration,
-                                           easing_curve)
+        super().__init__(parent, opacity, duration, easing_curve)
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
         self.tour = tour
@@ -1266,7 +1263,7 @@ class TourTestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, bytes("opacity"))
+        self.anim = QPropertyAnimation(effect, b"opacity")
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)

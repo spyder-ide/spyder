@@ -78,7 +78,8 @@ class WebPage(QWebEnginePage):
             return False
 
         return super().acceptNavigationRequest(
-            url, navigation_type, isMainFrame)
+            url, navigation_type, isMainFrame
+        )
 
 
 class WebView(QWebEngineView, SpyderWidgetMixin):
@@ -276,8 +277,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                 self.page().toPlainText(self.set_source_text)
                 source_text = str(self.source_text)
             else:
-                source_text = str(
-                        self.page().mainFrame().toPlainText())
+                source_text = str(self.page().mainFrame().toPlainText())
 
         if word:  # match whole words only
             pattern = r'\b{pattern}\b'.format(pattern=pattern)

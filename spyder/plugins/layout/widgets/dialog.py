@@ -122,8 +122,7 @@ class LayoutModel(QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
-            self.set_row(
-                row, [from_qvariant(value, str), name, state])
+            self.set_row(row, [from_qvariant(value, str), name, state])
             self.dataChanged.emit(index, index)
             return True
         return True
@@ -193,7 +192,7 @@ class LayoutSaveDialog(QDialog):
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
-        if str(text) == u'':
+        if str(text) == '':
             self.button_ok.setEnabled(False)
         else:
             self.button_ok.setEnabled(True)

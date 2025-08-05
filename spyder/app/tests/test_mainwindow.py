@@ -302,8 +302,7 @@ def test_default_plugin_actions(main_window, qtbot):
     main_window.restore_undocked_plugins()
     assert main_widget.windowwidget is not None
     assert (
-        geometry == str(bytes(
-            main_widget.windowwidget.saveGeometry().toHex().data()).decode())
+        geometry == qbytearray_to_str(main_widget.windowwidget.saveGeometry())
     )
     main_widget.windowwidget.close()
 

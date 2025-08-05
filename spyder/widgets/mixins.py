@@ -1306,8 +1306,7 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
         if pattern is not None:
-            text = re.sub(str(pattern),
-                          str(text), str(seltxt))
+            text = re.sub(str(pattern), str(text), str(seltxt))
         if self.sig_will_insert_text is not None:
             self.sig_will_insert_text.emit(text)
         cursor.insertText(text)

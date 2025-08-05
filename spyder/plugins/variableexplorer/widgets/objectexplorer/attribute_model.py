@@ -101,7 +101,7 @@ def tio_summary(tree_item):
     For callables and modules an empty string is returned.
     """
     tio = tree_item.obj
-    if isinstance(tio, (str,)):
+    if isinstance(tio, str):
         return tio
     elif isinstance(tio, (list, tuple, set, frozenset, dict)):
         n_items = len(tio)

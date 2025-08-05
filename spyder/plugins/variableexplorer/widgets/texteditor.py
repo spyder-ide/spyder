@@ -194,9 +194,10 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     def setup_and_check(self, value):
         """Verify if TextEditor is able to display strings passed to it."""
         try:
-            str(value, 'utf8')
+            if not isinstance(obj, str):
+                str(value, 'utf8')
             return True
-        except:
+        except Exception:
             return False
 
 #==============================================================================

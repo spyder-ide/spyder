@@ -522,8 +522,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             height = table_view.rowHeight(row)
             editor.setGeometry(x0, y0, width, height)
         else:
-            super().updateEditorGeometry(
-                editor, option, index)
+            super().updateEditorGeometry(editor, option, index)
 
     def paint(self, painter, option, index):
         """Actions to take when painting a cell."""

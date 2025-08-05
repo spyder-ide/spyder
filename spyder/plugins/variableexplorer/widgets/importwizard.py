@@ -73,7 +73,7 @@ def get_color(value, alpha):
     """Return color depending on value type"""
     colors = {
         bool: SpyderPalette.GROUP_1,
-        tuple([float] + list((int,))): SpyderPalette.GROUP_2,
+        (float, int): SpyderPalette.GROUP_2,
         (str,): SpyderPalette.GROUP_3,
         datetime.date: SpyderPalette.GROUP_4,
         list: SpyderPalette.GROUP_5,
@@ -174,8 +174,11 @@ class ContentsWidget(QWidget):
         other_layout.addWidget(skiprows_label, 0, 0)
         self.skiprows_edt = QLineEdit('0')
         self.skiprows_edt.setMaximumWidth(30)
-        intvalid = QIntValidator(0, len(str(text).splitlines()),
-                                 self.skiprows_edt)
+        intvalid = QIntValidator(
+            0,
+            len(str(text).splitlines()),
+            self.skiprows_edt
+        )
         self.skiprows_edt.setValidator(intvalid)
         self.skiprows_edt.textChanged.connect(
                      lambda text: self.get_skiprows())
@@ -322,7 +325,8 @@ class PreviewTableModel(QAbstractTableModel):
                 self._data[index.row()][index.column()] = eval(_tmp)
             elif kwargs['atype'] == "unicode":
                 self._data[index.row()][index.column()] = str(
-                    self._data[index.row()][index.column()])
+                    self._data[index.row()][index.column()]
+                )
             elif kwargs['atype'] == "int":
                 self._data[index.row()][index.column()] = int(
                     self._data[index.row()][index.column()])

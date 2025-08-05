@@ -620,8 +620,10 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             if isinstance(current_value, (bool, np.bool_)):
                 val = bool_false_check(val)
             supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
-            if (isinstance(current_value, supported_types) or
-                    isinstance(current_value, str)):
+            if (
+                isinstance(current_value, supported_types)
+                or isinstance(current_value, str)
+            ):
                 try:
                     self.df.iloc[row, column] = current_value.__class__(val)
                 except (ValueError, OverflowError) as e:

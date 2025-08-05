@@ -421,8 +421,7 @@ class FileComboBox(PathComboBox):
         """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        valid = (osp.isfile(str(qstr)) or
-                 osp.isdir(str(qstr)))
+        valid = osp.isfile(str(qstr)) or osp.isdir(str(qstr))
         return valid
 
     def tab_complete(self):

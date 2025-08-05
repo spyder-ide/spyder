@@ -220,7 +220,7 @@ class InternalShell(PythonShellWidget):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
         if self.multithreaded:
-            self.interpreter.stdin_write.write(bytes('\n'))
+            self.interpreter.stdin_write.write(b'\n')
         self.interpreter.restore_stds()
 
     def edit_script(self, filename, external_editor):
@@ -425,7 +425,7 @@ class InternalShell(PythonShellWidget):
                 self.add_to_history(cmd)
         if not self.multithreaded:
             if 'input' not in cmd:
-                self.interpreter.stdin_write.write(bytes(cmd + '\n'))
+                self.interpreter.stdin_write.write(bytes(cmd + '\n', "utf-8"))
                 self.interpreter.run_line()
                 self.sig_refreshed.emit()
             else:
@@ -434,7 +434,7 @@ class InternalShell(PythonShellWidget):
                              'option (--multithread) from a system terminal'),
                            error=True)
         else:
-            self.interpreter.stdin_write.write(bytes(cmd + '\n'))
+            self.interpreter.stdin_write.write(bytes(cmd + '\n', "utf-8"))
 
 
     #------ Code completion / Calltips

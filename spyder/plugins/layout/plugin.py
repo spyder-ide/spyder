@@ -614,9 +614,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
         pos = (self.window_position.x(), self.window_position.y())
 
-        hexstate = str(bytes(
-            self.main.saveState(
-                version=WINDOW_STATE_VERSION).toHex().data()).decode())
+        hexstate = qbytearray_to_str(
+            self.main.saveState(version=WINDOW_STATE_VERSION)
+        )
         return (hexstate, window_size, pos, is_maximized, is_fullscreen)
 
     def set_window_settings(self, hexstate, window_size, pos, is_maximized,
@@ -726,7 +726,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             qba = self.main.saveState(version=WINDOW_STATE_VERSION)
             self.set_conf(
                 prefix + 'state',
-                str(bytes(qba.toHex().data()).decode()),
+                qbytearray_to_str(qba),
                 section=section,
             )
 

@@ -784,8 +784,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def on_close(self):
         state = self.splitter.saveState()
-        self.set_conf('splitter_state',
-                      str(bytes(state.toHex().data()).decode()))
+        self.set_conf('splitter_state', qbytearray_to_str(state))
         self.set_conf(
             'layout_settings',
             self.editorsplitter.get_layout_settings()
@@ -1681,8 +1680,7 @@ class EditorMainWidget(PluginMainWidget):
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])
             try:
-                encoding.write(str(text), self.TEMPFILE_PATH,
-                               'utf-8')
+                encoding.write(str(text), self.TEMPFILE_PATH, 'utf-8')
             except EnvironmentError:
                 self.new()
                 return

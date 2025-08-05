@@ -145,8 +145,7 @@ class PluginWindow(QMainWindow):
         # Save window geometry to restore it when undocking the plugin
         # again.
         geometry = self.saveGeometry()
-        self.plugin.set_option('window_geometry',
-                               str(bytes(geometry.toHex().data()).decode()))
+        self.plugin.set_option('window_geometry', qbytearray_to_str(geometry))
 
         # Close window
         QMainWindow.closeEvent(self, event)
@@ -348,8 +347,7 @@ class BasePluginWidgetMixin(object):
             # Save window geometry to restore it when undocking the plugin
             # again.
             geometry = self._undocked_window.saveGeometry()
-            self.set_option('window_geometry',
-                            str(bytes(geometry.toHex().data()).decode()))
+            self.set_option('window_geometry', qbytearray_to_str(geometry))
 
             self._undocked_window.close()
             self._undocked_window = None

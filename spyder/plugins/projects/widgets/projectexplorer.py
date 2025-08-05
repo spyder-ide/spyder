@@ -283,8 +283,7 @@ class ProjectExplorerTreeWidget(FilteredDirView):
 
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
-        src_list = [str(url.toString())
-                    for url in event.mimeData().urls()]
+        src_list = [str(url.toString()) for url in event.mimeData().urls()]
         if len(src_list) > 1:
             buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
                        QMessageBox.No | QMessageBox.NoToAll |

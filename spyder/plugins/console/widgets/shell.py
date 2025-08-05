@@ -272,8 +272,7 @@ class ShellBaseWidget(
         if filename:
             filename = osp.normpath(filename)
             try:
-                encoding.write(str(self.get_text_with_eol()),
-                               filename)
+                encoding.write(str(self.get_text_with_eol()), filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
             except EnvironmentError:

@@ -575,8 +575,7 @@ class DialogManager(QObject):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
         for dlg in list(self.dialogs.values()):
-            if str(dlg.windowTitle()) \
-               == str(dialog.windowTitle()):
+            if str(dlg.windowTitle()) == str(dialog.windowTitle()):
                 dlg.show()
                 dlg.raise_()
                 break

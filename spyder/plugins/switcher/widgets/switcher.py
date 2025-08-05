@@ -317,8 +317,11 @@ class Switcher(QDialog, SpyderFontsMixin):
             titles.append(title)
 
         search_text = clean_string(search_text)
-        scores = get_search_scores(str(search_text),
-                                   titles, template=u"<b>{0}</b>")
+        scores = get_search_scores(
+            str(search_text),
+            titles,
+            template=u"<b>{0}</b>"
+        )
 
         for idx, (title, rich_title, score_value) in enumerate(scores):
             item = self.model.item(idx)
