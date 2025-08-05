@@ -805,39 +805,8 @@ class ConnectionPage(BaseConnectionPage):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def save_server_info(self):
-        if self.client_type == ClientType.SSH:
-            # Mapping from options in our config system to those accepted by
-            # asyncssh
-            options = SSHClientOptions(
-                host=self.get_option(
-                    f"{self.host_id}/{self.auth_method()}/address"
-                ),
-                port=self.get_option(f"{self.host_id}/{self.auth_method()}/port"),
-                username=self.get_option(
-                    f"{self.host_id}/{self.auth_method()}/username"
-                ),
-                client_keys=self.get_option(f"{self.host_id}/keyfile"),
-                config=self.get_option(f"{self.host_id}/configfile"),
-            )
-        elif self.client_type == ClientType.JupyterHub:
-            # Mapping from options in our config system to those needed to
-            # connect with a JupyterHub server
-            options = JupyterHubClientOptions(
-                url=self.get_option(f"{self.host_id}/url"),
-            )
-
-        servers = self.get_option("servers", default={})
-        servers[self.host_id] = options
-        self.set_option("servers", servers)
-
     def remove_config_options(self):
         """Remove config options associated to this connection."""
-        # Remove current server from the dict of them
-        servers = self.get_option("servers")
-        servers.pop(self.host_id)
-        self.set_option("servers", servers)
-
         # Remove regular options
         options = [
             "auth_method",
@@ -1127,9 +1096,6 @@ class ConnectionDialog(SidebarDialog):
         page.apply_button_enabled.connect(
             self._update_button_save_connection_state
         )
-
-        if new:
-            page.save_server_info()
 
         self.add_page(page)
 
