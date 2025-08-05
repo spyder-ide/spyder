@@ -1552,6 +1552,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     )
                     return False
 
+            self.model().max_min_col_update()
             self.parent()._reload()
             index = QModelIndex()
             self.model().dataChanged.emit(index, index)
