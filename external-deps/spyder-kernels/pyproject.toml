@@ -37,6 +37,7 @@ dependencies = [
     "ipykernel>=6.29.3,<7",
     "ipython>=8.13.0,<10,!=8.17.1",
     "jupyter-client>=7.4.9,<9",
+    "packaging",
     "pyxdg>=0.26;platform_system=='Linux'",
     "pyzmq>=24.0.0",
     # We need at least this version of traitlets to fix an error when setting

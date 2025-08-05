@@ -16,6 +16,8 @@ import os.path as osp
 import sys
 import site
 
+# Third-party imports
+from IPython.core import release as ipython_release
 from packaging.version import parse as parse_version
 
 
@@ -104,8 +106,8 @@ def kernel_config():
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
-    # To disable tips (for the moment)
-    if get_package_version('ipython') >= parse_version("9.0"):
+    # To disable tips (for the moment) that are only available in IPython 9.0+
+    if parse_version(ipython_release.version) >= parse_version("9.0"):
         spy_cfg.ZMQInteractiveShell.enable_tip = False
 
     # Greedy completer
