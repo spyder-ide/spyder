@@ -540,9 +540,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
         else:
-            if isinstance(text, str):
+            if isinstance(value, str):
                 display = str(value)
-            elif isinstance(text, bytes):
+            elif isinstance(value, bytes):
                 display = str(value, "utf-8")
             elif not isinstance(value, NUMERIC_TYPES):
                 display = str(value)
