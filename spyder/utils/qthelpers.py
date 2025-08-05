@@ -938,5 +938,10 @@ def safe_disconnect(signal):
         pass
 
 
+def qbytearray_to_str(qba):
+    """Convert QByteArray object to str in a way compatible with Python 3"""
+    return str(bytes(qba.toHex().data()).decode())
+
+
 if __name__ == "__main__":
     show_std_icons()

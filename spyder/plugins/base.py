@@ -28,7 +28,7 @@ from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions, set_menu_icons)
+    toggle_actions, set_menu_icons, qbytearray_to_str)
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 

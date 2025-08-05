@@ -100,6 +100,7 @@ from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
+from spyder.utils.qthelpers import qbytearray_to_str
 from spyder.widgets.dock import DockTitleBar
 
 

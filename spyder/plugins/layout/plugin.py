@@ -38,6 +38,7 @@ from spyder.plugins.layout.layouts import (DefaultLayouts,
 from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.toolbar.api import (
     ApplicationToolbars, MainToolbarSections)
+from spyder.utils.qthelpers import qbytearray_to_str
 
 
 # For logging

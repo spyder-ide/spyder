@@ -25,6 +25,7 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.widgets.editorstack.editorstack import EditorStack
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.qthelpers import qbytearray_to_str
 
 
 logger = logging.getLogger(__name__)
