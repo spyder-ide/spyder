@@ -248,7 +248,8 @@ class KernelComm(CommBase, QObject):
         """
         Handle an error that was raised on the other side and sent back.
         """
-        error_wrapper = CommsErrorWrapper.from_json(error_wrapper)
+        if not isinstance(error_wrapper, CommsErrorWrapper):
+            error_wrapper = CommsErrorWrapper.from_json(error_wrapper)
         for line in error_wrapper.format_error():
             self.sig_exception_occurred.emit(
                 dict(text=line, is_traceback=True)
