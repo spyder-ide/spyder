@@ -64,16 +64,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('no_linting', False),
         ('formatting', 'autopep8'),
         ('format_on_save', False),
-        ('pycodestyle', False),
-        ('pycodestyle/filename', ''),
-        ('pycodestyle/exclude', ''),
-        ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),        
         ('flake8/filename', ''),
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
-        ('flake8/extendIgnore', ''),
-        ('pycodestyle/max_line_length', 79),
+        ('flake8/extendIgnore', 'E,W,C90'),
+        ('flake8/max_line_length', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -95,7 +90,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     #    want to *rename* options, then you need to do a MAJOR update in
     #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
-    CONF_VERSION = "0.2.0"
+    CONF_VERSION = "1.0.0"
     CONF_TABS = TABS
 
     STOPPED = 'stopped'
@@ -728,14 +723,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         host = self.get_conf('advanced/host', '127.0.0.1')
         port = self.get_conf('advanced/port', 2087)
 
-        # Pycodestyle
-        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
-        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
-        cs_select = self.get_conf('pycodestyle/select', '').split(',')
-        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
+        
 
         # Flake8
+        cs_max_line_length = self.get_conf('flake8/max_line_length', 79)
         f8_exclude = self.get_conf('flake8/exclude', '').split(',')
         f8_filename = self.get_conf('flake8/filename', '').split(',')
         f8_select = self.get_conf('flake8/extendSelect', '').split(',')
@@ -755,13 +746,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         )
 
         pycodestyle = {
-            'enabled': self.get_conf('pycodestyle'),
-            'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
-            'filename': [filename.strip()
-                         for filename in cs_filename if filename],
-            'select': [select.strip() for select in cs_select if select],
-            'ignore': [ignore.strip() for ignore in cs_ignore if ignore],
-            'hangClosing': False,
             'maxLineLength': cs_max_line_length
         }
 
@@ -826,7 +810,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Setting max line length for formatters.
         # Notes:
         # 1. The autopep8 plugin shares the same maxLineLength value with the
-        #    pycodestyle one. That's why it's not necessary to set it here.
+        #    flake8 one. That's why it's not necessary to set it here.
         # 2. The yapf pylsp plugin doesn't support this yet.
         formatter_options['black']['line_length'] = cs_max_line_length
 
@@ -888,8 +872,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Updating options
         plugins = python_config['configurations']['pylsp']['plugins']
-        plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
+        plugins['pycodestyle'].update(pycodestyle)
         plugins['flake8'].update(flake8)
         plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
