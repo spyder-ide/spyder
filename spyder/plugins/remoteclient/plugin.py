@@ -120,6 +120,7 @@ class RemoteClient(SpyderPluginV2):
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
         container.sig_server_renamed.connect(self.sig_server_renamed)
         container.sig_server_changed.connect(self.sig_server_changed)
+        container.sig_server_updated.connect(self.load_client_from_id)
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
