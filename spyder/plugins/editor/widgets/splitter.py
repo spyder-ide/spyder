@@ -220,7 +220,7 @@ class EditorSplitter(QSplitter, SpyderWidgetMixin):
                 cfname = editorstack.get_current_filename()
             splitsettings.append((orientation == Qt.Vertical, cfname, clines))
         return dict(
-            hexstate=qbytearray_to_str(self.saveState()),,
+            hexstate=qbytearray_to_str(self.saveState()),
             sizes=self.sizes(),
             splitsettings=splitsettings,
         )

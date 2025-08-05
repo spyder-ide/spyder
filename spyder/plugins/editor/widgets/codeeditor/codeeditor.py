@@ -1554,9 +1554,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.get_selected_text().strip() != text):
             return
 
-        if (self.is_python_like() and
-                (sourcecode.is_keyword(str(text)) or
-                 str(text) == 'self')):
+        if (
+            self.is_python_like()
+            and (sourcecode.is_keyword(str(text))
+            or str(text) == 'self')
+        ):
             return
 
         # Highlighting all occurrences of word *text*
@@ -2942,8 +2944,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.indent()
         else:
             cursor = self.textCursor()
-            if (self.get_selected_text() ==
-                    str(cursor.block().text())):
+            if self.get_selected_text() == str(cursor.block().text()):
                 self.indent()
             else:
                 cursor1 = self.textCursor()
@@ -3967,8 +3968,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
                 ind = lambda txt: len(txt) - len(txt.lstrip())
-                prevtxt = (str(self.textCursor().block().
-                           previous().text()))
+                prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
@@ -3985,8 +3985,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = (str(self.textCursor().block().
-                           previous().text()))
+                prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
