@@ -676,9 +676,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             self.populate_tree(self, children)
             self.setSortingEnabled(True)
             self.sortItems(self.index_dict[sort_time], Qt.AscendingOrder)
-            if len(children) < 100:
-                # Only expand if not too many children are shown
-                self.change_view(1)
             self.resizeColumnToContents(0)
 
         self.sig_refresh.emit()
