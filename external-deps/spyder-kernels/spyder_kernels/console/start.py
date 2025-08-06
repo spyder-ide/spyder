@@ -31,7 +31,7 @@ while '' in sys.path:
 
 # Local imports
 from spyder_kernels.console.kernelapp import SpyderKernelApp
-from spyder_kernels.utils.misc import is_module_installed, get_package_version
+from spyder_kernels.utils.misc import is_module_installed
 
 
 def import_spydercustomize():
