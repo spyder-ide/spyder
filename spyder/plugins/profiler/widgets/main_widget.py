@@ -60,15 +60,9 @@ class ProfilerWidgetContextMenuActions:
 
 
 class ProfilerWidgetMainToolbarSections:
-    Main = 'main_section'
-
-
-class ProfilerWidgetMainToolbarItems:
-    FileCombo = 'file_combo'
-
-
-class ProfilerWidgetInformationToolbarItems:
-    Stretcher = 'stretcher'
+    BrowseView = "view_section"
+    ExpandCollapse = "collapse_section"
+    ChangeView = "change_view_section"
 
 
 # --- Widgets
@@ -188,40 +182,49 @@ class ProfilerWidget(ShellConnectMainWidget):
         undo_action = self.create_action(
             ProfilerWidgetActions.Undo,
             text=_("Previous View"),
-            icon=self.create_icon('undo'),
+            icon=self.create_icon('previous'),
             triggered=self.undo,
             register_shortcut=True
         )
         redo_action = self.create_action(
             ProfilerWidgetActions.Redo,
             text=_("Next View"),
-            icon=self.create_icon('redo'),
+            icon=self.create_icon('next'),
             triggered=self.redo,
             register_shortcut=True
         )
 
         # Main Toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [
-                home_action,
-                undo_action,
-                redo_action,
-                collapse_action,
-                expand_action,
-                toggle_tree_action,
-                toggle_builtins_action,
-                slow_local_action,
-                search_action,
-                self.create_stretcher(
-                    id_=ProfilerWidgetInformationToolbarItems.Stretcher),
-                save_action,
-                load_action,
-                clear_action]:
+        for action in [undo_action, redo_action, home_action]:
             self.add_item_to_toolbar(
-                item,
+                action,
                 toolbar=main_toolbar,
-                section=ProfilerWidgetMainToolbarSections.Main,
+                section=ProfilerWidgetMainToolbarSections.BrowseView,
             )
+
+        for action in [collapse_action, expand_action]:
+            self.add_item_to_toolbar(
+                action,
+                toolbar=main_toolbar,
+                section=ProfilerWidgetMainToolbarSections.ExpandCollapse,
+            )
+
+        for action in [
+            slow_local_action,
+            toggle_builtins_action,
+            toggle_tree_action,
+            search_action
+        ]:
+            self.add_item_to_toolbar(
+                action,
+                toolbar=main_toolbar,
+                section=ProfilerWidgetMainToolbarSections.ChangeView,
+            )
+
+        # Corner widget
+        for action in [save_action, load_action, clear_action]:
+            self.add_corner_widget(action, before=self._options_button)
 
         # ---- Context menu actions
         self.show_callees_action = self.create_action(
