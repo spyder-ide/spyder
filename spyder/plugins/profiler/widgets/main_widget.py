@@ -60,7 +60,7 @@ class ProfilerWidgetContextMenuActions:
 
 
 class ProfilerWidgetMainToolbarSections:
-    BrowseView = "view_section"
+    # BrowseView = "view_section" # To be added later
     ExpandCollapse = "collapse_section"
     ChangeView = "change_view_section"
 
@@ -123,13 +123,6 @@ class ProfilerWidget(ShellConnectMainWidget):
             triggered=lambda x=None: self.current_widget(
                 ).data_tree.change_view(1),
         )
-        home_action = self.create_action(
-            ProfilerWidgetActions.Home,
-            text=_("Reset tree"),
-            tip=_('Go back to full tree'),
-            icon=self.create_icon('home'),
-            triggered=self.home_tree,
-        )
         toggle_tree_action = self.create_action(
             ProfilerWidgetActions.ToggleTreeDirection,
             text=_("Switch tree direction"),
@@ -179,29 +172,41 @@ class ProfilerWidget(ShellConnectMainWidget):
             toggled=self.toggle_finder,
             register_shortcut=True
         )
-        undo_action = self.create_action(
-            ProfilerWidgetActions.Undo,
-            text=_("Previous View"),
-            icon=self.create_icon('previous'),
-            triggered=self.undo,
-            register_shortcut=True
-        )
-        redo_action = self.create_action(
-            ProfilerWidgetActions.Redo,
-            text=_("Next View"),
-            icon=self.create_icon('next'),
-            triggered=self.redo,
-            register_shortcut=True
-        )
+
+        # This needs to be workedd out better because right now is confusing
+        # and kind of unnecessary
+        # undo_action = self.create_action(
+        #     ProfilerWidgetActions.Undo,
+        #     text=_("Previous View"),
+        #     icon=self.create_icon('previous'),
+        #     triggered=self.undo,
+        #     register_shortcut=True
+        # )
+        # redo_action = self.create_action(
+        #     ProfilerWidgetActions.Redo,
+        #     text=_("Next View"),
+        #     icon=self.create_icon('next'),
+        #     triggered=self.redo,
+        #     register_shortcut=True
+        # )
+        # home_action = self.create_action(
+        #     ProfilerWidgetActions.Home,
+        #     text=_("Reset tree"),
+        #     tip=_('Go back to full tree'),
+        #     icon=self.create_icon('home'),
+        #     triggered=self.home_tree,
+        # )
 
         # Main Toolbar
         main_toolbar = self.get_main_toolbar()
-        for action in [undo_action, redo_action, home_action]:
-            self.add_item_to_toolbar(
-                action,
-                toolbar=main_toolbar,
-                section=ProfilerWidgetMainToolbarSections.BrowseView,
-            )
+
+        # To be added later
+        # for action in [undo_action, redo_action, home_action]:
+        #     self.add_item_to_toolbar(
+        #         action,
+        #         toolbar=main_toolbar,
+        #         section=ProfilerWidgetMainToolbarSections.BrowseView,
+        #     )
 
         for action in [collapse_action, expand_action]:
             self.add_item_to_toolbar(
@@ -280,14 +285,17 @@ class ProfilerWidget(ShellConnectMainWidget):
         toggle_builtins_action.setChecked(ignore_builtins)
         slow_local_action.setChecked(show_slow)
 
+        # Home, undo and redo are disabled for now because they are confusing
+        # and kind of unnecessary
+        # can_redo = False
+        # can_undo = False
+
         tree_empty = True
-        can_redo = False
-        can_undo = False
         can_clear = False
         if not widget_inactive:
             tree_empty = widget.data_tree.profdata is None
-            can_undo = len(widget.data_tree.history) > 1
-            can_redo = len(widget.data_tree.redo_history) > 0
+            # can_undo = len(widget.data_tree.history) > 1
+            # can_redo = len(widget.data_tree.redo_history) > 0
             can_clear = widget.data_tree.compare_data is not None
 
         for action_name in [
@@ -295,7 +303,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             ProfilerWidgetActions.Expand,
             ProfilerWidgetActions.ToggleTreeDirection,
             ProfilerWidgetActions.ToggleBuiltins,
-            ProfilerWidgetActions.Home,
+            # ProfilerWidgetActions.Home,
             ProfilerWidgetActions.SlowLocal,
             ProfilerWidgetActions.SaveData,
             ProfilerWidgetActions.Search
@@ -303,11 +311,11 @@ class ProfilerWidget(ShellConnectMainWidget):
             action = self.get_action(action_name)
             action.setEnabled(not tree_empty)
 
-        undo_action = self.get_action(ProfilerWidgetActions.Undo)
-        redo_action = self.get_action(ProfilerWidgetActions.Redo)
+        # undo_action = self.get_action(ProfilerWidgetActions.Undo)
+        # redo_action = self.get_action(ProfilerWidgetActions.Redo)
 
-        undo_action.setEnabled(can_undo)
-        redo_action.setEnabled(can_redo)
+        # undo_action.setEnabled(can_undo)
+        # redo_action.setEnabled(can_redo)
 
         clear_action = self.get_action(ProfilerWidgetActions.Clear)
         clear_action.setEnabled(can_clear)
