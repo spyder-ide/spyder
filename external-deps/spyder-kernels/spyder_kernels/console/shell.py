@@ -117,9 +117,11 @@ class SpyderShell(ZMQInteractiveShell):
             for line in stb:
                 if (
                     # Verbose mode
-                    re.match(r"\x1b(.*)File (.*)", line)
+                    re.match(r"File (.*)", line)  # IPython 8.x
+                    or re.match(r"\x1b(.*)File (.*)", line)  # IPython 9.x
                     # Plain mode
-                    or re.match(r"\x1b(.*)  File (.*)", line)
+                    or re.match(r"\x1b\[(.*)  File (.*)", line)  # IPython 8.x
+                    or re.match(r"  File (.*)", line)  # IPython 9.x
                 ) and (
                     # The file line should not contain a location where
                     # Spyder-kernels is installed

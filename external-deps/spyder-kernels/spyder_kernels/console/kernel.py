@@ -736,11 +736,6 @@ class SpyderKernel(IPythonKernel):
                 "custom_theme",
                 None,
                 extra_style,
-                symbols={
-                    "arrow_body": "\u2500",
-                    "arrow_head": "\u25b6",
-                    "top_line": "\u2500",
-                },
             )
             IPython.utils.PyColorize.theme_table["custom_theme"] = theme
             self.shell.run_line_magic("colors", "custom_theme")
