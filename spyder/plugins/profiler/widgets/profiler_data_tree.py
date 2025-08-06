@@ -417,6 +417,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.compare_data = None
         self.inverted_tree = False
         self.ignore_builtins = False
+        self.show_slow = False
         self.root_key = None
         self.menu = None
         self._last_children = None
@@ -562,7 +563,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         children = [c for c in children if text in c[-1]]
         self._show_tree(children)
 
-    def show_slow(self):
+    def show_slow_items(self):
         """Show slow items."""
         if self.profdata is None:
             # Nothing to show
@@ -572,7 +573,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         children = self.profdata.fcn_list
 
         # Only keep top n_slow_children
-        N_children = self.get_conf('n_slow_children')
+        n_children = self.get_conf('n_slow_children')
         children = sorted(
             children,
             key=lambda item: self.profdata.stats[item][ProfilerKey.LocalTime],
@@ -581,8 +582,8 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
         if self.ignore_builtins:
             children = [c for c in children if not self.is_builtin(c)]
-        children = children[:N_children]
-        self._show_tree(children, max_items=N_children)
+        children = children[:n_children]
+        self._show_tree(children, max_items=n_children, sort_time="local_time")
 
     def refresh_tree(self):
         """Refresh tree."""
@@ -607,8 +608,13 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         if len(self.redo_history) > 0:
             self._show_tree(self.redo_history.pop(-1), reset_redo=False)
 
-    def _show_tree(self, children=None, max_items=None,
-                   reset_redo=True):
+    def _show_tree(
+        self,
+        children=None,
+        max_items=None,
+        reset_redo=True,
+        sort_time="total_time",
+    ):
         """Populate the tree with profiler data and display it."""
         if self.profdata is None:
             # Nothing to show
@@ -669,7 +675,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             # Populate the tree
             self.populate_tree(self, children)
             self.setSortingEnabled(True)
-            self.sortItems(self.index_dict["total_time"], Qt.AscendingOrder)
+            self.sortItems(self.index_dict[sort_time], Qt.AscendingOrder)
             if len(children) < 100:
                 # Only expand if not too many children are shown
                 self.change_view(1)

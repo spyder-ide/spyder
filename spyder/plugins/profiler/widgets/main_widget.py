@@ -142,7 +142,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             text=_("Show items with large local time"),
             tip=_('Show items with large local time'),
             icon=self.create_icon('slow'),
-            triggered=self.slow_local_tree,
+            toggled=self.slow_local_tree,
         )
         toggle_builtins_action = self.create_action(
             ProfilerWidgetActions.ToggleBuiltins,
@@ -254,9 +254,12 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         search_action = self.get_action(ProfilerWidgetActions.Search)
         toggle_tree_action = self.get_action(
-            ProfilerWidgetActions.ToggleTreeDirection)
+            ProfilerWidgetActions.ToggleTreeDirection
+        )
         toggle_builtins_action = self.get_action(
-            ProfilerWidgetActions.ToggleBuiltins)
+            ProfilerWidgetActions.ToggleBuiltins
+        )
+        slow_local_action = self.get_action(ProfilerWidgetActions.SlowLocal)
 
         widget_inactive = (
             widget is None or self.is_current_widget_error_message()
@@ -265,14 +268,17 @@ class ProfilerWidget(ShellConnectMainWidget):
             search = False
             inverted_tree = False
             ignore_builtins = False
+            show_slow = False
         else:
             search = widget.finder_is_visible()
             inverted_tree = widget.data_tree.inverted_tree
             ignore_builtins = widget.data_tree.ignore_builtins
+            show_slow = widget.data_tree.show_slow
 
         search_action.setChecked(search)
         toggle_tree_action.setChecked(inverted_tree)
         toggle_builtins_action.setChecked(ignore_builtins)
+        slow_local_action.setChecked(show_slow)
 
         tree_empty = True
         can_redo = False
@@ -371,12 +377,17 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.data_tree.ignore_builtins = state
         widget.data_tree.refresh_tree()
 
-    def slow_local_tree(self):
+    def slow_local_tree(self, state):
         """Show items with large local times"""
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.show_slow()
+
+        widget.data_tree.show_slow = state
+        if state:
+            widget.data_tree.show_slow_items()
+        else:
+            self.home_tree()
 
     def undo(self):
         """Undo change."""
