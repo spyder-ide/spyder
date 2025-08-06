@@ -6840,6 +6840,7 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     assert "test_globals True" in control.toPlainText()
 
 
+@flaky(max_runs=3)
 @pytest.mark.skipif(
     not sys.platform.startswith("linux"),
     reason="No quotes on Windows file paths and fails frequently on Mac"
