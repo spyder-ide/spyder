@@ -16,15 +16,21 @@ class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
         switch_to_plugin_cb = self.create_checkbox(
             _("Open profiler when profiling finishes"),
-            'switch_to_plugin',
+            "switch_to_plugin",
             tip=_(
                 "This option switches to the profiler plugin "
-                "when a profiling has ended."))
+                "when a profiling has ended."
+            ),
+        )
 
         slow_spin = self.create_spinbox(
             _("Maximum number of items displayed with large local time"),
-            _(""), 'n_slow_children',
-            min_=1, max_=1000000, step=1)
+            _(""),
+            'n_slow_children',
+            min_=1,
+            max_=1000,
+            step=1
+        )
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(switch_to_plugin_cb)

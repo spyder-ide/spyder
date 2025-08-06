@@ -387,7 +387,7 @@ DEFAULTS = [
              {
               'enable': True,
               'switch_to_plugin': True,
-              'n_slow_children': 25
+              'n_slow_children': 15,
               }),
             ('pylint',
              {
