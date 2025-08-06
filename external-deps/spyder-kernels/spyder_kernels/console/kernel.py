@@ -720,16 +720,30 @@ class SpyderKernel(IPythonKernel):
         else:
             # Create theme definition and set it as `_default`
             import IPython.utils.PyColorize
-            from IPython.utils.PyColorize import Theme
+            from IPython.utils.PyColorize import (
+                Theme,
+                linux_theme,
+                lightbg_theme,
+            )
+
+            extra_style = (
+                linux_theme.extra_style
+                if self.shell.get_spyder_theme() == "dark"
+                else lightbg_theme.extra_style
+            )
+            extra_style.update(create_pygments_dict(syntax_style))
             theme = Theme(
                 "custom_theme",
                 None,
-                create_pygments_dict(syntax_style),
+                extra_style,
+                symbols={
+                    "arrow_body": "\u2500",
+                    "arrow_head": "\u25b6",
+                    "top_line": "\u2500",
+                },
             )
             IPython.utils.PyColorize.theme_table["custom_theme"] = theme
-
-            import IPython.core.ultratb
-            IPython.core.ultratb._default = "custom_theme"
+            self.shell.run_line_magic("colors", "custom_theme")
 
     def get_cwd(self):
         """Get current working directory."""

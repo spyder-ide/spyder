@@ -139,11 +139,6 @@ class SpyderShell(ZMQInteractiveShell):
     def set_spyder_theme(self, theme):
         """Set the theme for the console."""
         self._spyder_theme = theme
-        if theme == "dark":
-            # Needed to change the colors of tracebacks
-            self.run_line_magic("colors", "linux")
-        elif theme == "light":
-            self.run_line_magic("colors", "lightbg")
 
     def get_spyder_theme(self):
         """Get the theme for the console."""
