@@ -144,8 +144,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
-            text=_("Profile selection or current line"),
-            tip=_("Profile selection or current line"),
+            text=_("Profile current line or selection"),
+            tip=_("Profile current line or selection"),
             icon=self.create_icon('profile_selection'),
             shortcut_context=self.NAME,
             register_shortcut=True,
