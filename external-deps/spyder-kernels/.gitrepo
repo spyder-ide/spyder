@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/ccordoba12/spyder-kernels.git
 	branch = add-profile-magics
-	commit = 2699fbb187e6e26ce38ec814dadbad072f242d10
-	parent = 3856bd180a1960557777c6cd4551b5f59415893d
+	commit = 2b74b3f27549b83ac86f3ebb3b348b88fb6b7bbe
+	parent = f2ef1f1a23673a8b7eaeeb77b10ca532344da988
 	method = merge
 	cmdver = 0.4.9

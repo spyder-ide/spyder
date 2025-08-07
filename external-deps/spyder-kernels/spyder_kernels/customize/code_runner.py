@@ -321,6 +321,14 @@ class SpyderCodeRunner(Magics):
     @contextmanager
     def _profile_exec(self):
         """Get an exec function for profiling."""
+        # Request the frontend to adjust the UI when profiling is started
+        try:
+            frontend_request(blocking=False).start_profiling()
+        except CommError:
+            logger.debug(
+                "Could not request to start profiling to the frontend."
+            )
+
         tmp_dir = None
         if sys.platform.startswith('linux'):
             # Do not use /tmp for temporary files
