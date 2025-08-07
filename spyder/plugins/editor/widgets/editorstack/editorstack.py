@@ -867,7 +867,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     @on_conf_change(
         option=('provider_configuration', 'lsp', 'values',
-                'pycodestyle/max_line_length'),
+                'flake8/max_line_length'),
         section='completions'
     )
     def set_edgeline_columns(self, columns):
