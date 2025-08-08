@@ -82,6 +82,7 @@ class ProfilerSubWidget(
         # Finder
         self.data_tree = None
         self.finder = None
+        self.is_profiling = False
         self.setup()
 
     def toggle_finder(self, show):

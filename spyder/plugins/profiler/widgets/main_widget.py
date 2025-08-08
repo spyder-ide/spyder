@@ -43,6 +43,7 @@ class ProfilerWidgetActions:
     Search = "find_action"
     Undo = "undo_action"
     Redo = "redo_action"
+    Stop = "stop_action"
 
 
 class ProfilerWidgetMenus:
@@ -63,15 +64,16 @@ class ProfilerWidgetMainToolbarSections:
     # BrowseView = "view_section" # To be added later
     ExpandCollapse = "collapse_section"
     ChangeView = "change_view_section"
+    Stop = "stop_section"
 
 
 # --- Widgets
 # ----------------------------------------------------------------------------
 class ProfilerWidget(ShellConnectMainWidget):
-    """
-    Profiler widget.
-    """
+    """Profiler widget."""
+
     # PluginMainWidget API
+    ENABLE_SPINNER = True
     SHOW_MESSAGE_WHEN_EMPTY = True
     IMAGE_WHEN_EMPTY = "code-profiler"
     MESSAGE_WHEN_EMPTY = _("Code not profiled yet")
@@ -101,12 +103,13 @@ class ProfilerWidget(ShellConnectMainWidget):
     def __init__(self, name=None, plugin=None, parent=None):
         super().__init__(name, plugin, parent)
 
-    # --- PluginMainWidget API
-    # ------------------------------------------------------------------------
+    # ---- PluginMainWidget API
+    # -------------------------------------------------------------------------
     def get_title(self):
         return _('Profiler')
 
     def setup(self):
+        # ---- Toolbar actions
         collapse_action = self.create_action(
             ProfilerWidgetActions.Collapse,
             text=_('Collapse'),
@@ -172,6 +175,12 @@ class ProfilerWidget(ShellConnectMainWidget):
             toggled=self.toggle_finder,
             register_shortcut=True
         )
+        stop_action = self.create_action(
+            ProfilerWidgetActions.Stop,
+            text=_("Stop profiling"),
+            icon=self.create_icon('stop_profile'),
+            triggered=self.stop_profiling,
+        )
 
         # This needs to be workedd out better because right now is confusing
         # and kind of unnecessary
@@ -197,7 +206,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         #     triggered=self.home_tree,
         # )
 
-        # Main Toolbar
+        # ---- Main Toolbar
         main_toolbar = self.get_main_toolbar()
 
         # To be added later
@@ -227,7 +236,13 @@ class ProfilerWidget(ShellConnectMainWidget):
                 section=ProfilerWidgetMainToolbarSections.ChangeView,
             )
 
-        # Corner widget
+        self.add_item_to_toolbar(
+            stop_action,
+            toolbar=main_toolbar,
+            section=ProfilerWidgetMainToolbarSections.Stop,
+        )
+
+        # ---- Corner widget
         for action in [save_action, load_action, clear_action]:
             self.add_corner_widget(action, before=self._options_button)
 
@@ -265,6 +280,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             ProfilerWidgetActions.ToggleBuiltins
         )
         slow_local_action = self.get_action(ProfilerWidgetActions.SlowLocal)
+        stop_action = self.get_action(ProfilerWidgetActions.Stop)
 
         widget_inactive = (
             widget is None or self.is_current_widget_error_message()
@@ -274,16 +290,26 @@ class ProfilerWidget(ShellConnectMainWidget):
             inverted_tree = False
             ignore_builtins = False
             show_slow = False
+            stop = False
+            self.stop_spinner()
         else:
             search = widget.finder_is_visible()
             inverted_tree = widget.data_tree.inverted_tree
             ignore_builtins = widget.data_tree.ignore_builtins
             show_slow = widget.data_tree.show_slow
+            stop = widget.is_profiling
 
         search_action.setChecked(search)
         toggle_tree_action.setChecked(inverted_tree)
         toggle_builtins_action.setChecked(ignore_builtins)
         slow_local_action.setChecked(show_slow)
+        stop_action.setEnabled(stop)
+
+        if widget is not None:
+            if widget.is_profiling:
+                self.start_spinner()
+            else:
+                self.stop_spinner()
 
         # Home, undo and redo are disabled for now because they are confusing
         # and kind of unnecessary
@@ -320,8 +346,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         clear_action = self.get_action(ProfilerWidgetActions.Clear)
         clear_action.setEnabled(can_clear)
 
-    # --- ShellConnectPluginMixin API
-    # ------------------------------------------------------------------------
+    # ---- ShellConnectPluginMixin API
+    # -------------------------------------------------------------------------
     def create_new_widget(self, shellwidget):
         """Create new profiler widget."""
         widget = ProfilerSubWidget(self)
@@ -335,7 +361,11 @@ class ProfilerWidget(ShellConnectMainWidget):
         )
 
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "show_profile_file", widget.show_profile_buffer)
+            "show_profile_file", widget.show_profile_buffer
+        )
+        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+            "start_profiling", self.start_profiling
+        )
         shellwidget.sig_kernel_is_ready.connect(
             functools.partial(widget.set_pane_empty, True)
         )
@@ -360,8 +390,33 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Switch widget."""
         pass
 
-    # --- Public API
-    # ------------------------------------------------------------------------
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def start_profiling(self):
+        self.start_spinner()
+
+        stop_action = self.get_action(ProfilerWidgetActions.Stop)
+        stop_action.setEnabled(True)
+
+        widget = self.current_widget()
+        if widget is None:
+            return
+
+        widget.is_profiling = True
+
+    def stop_profiling(self):
+        self.stop_spinner()
+
+        stop_action = self.get_action(ProfilerWidgetActions.Stop)
+        stop_action.setEnabled(False)
+
+        widget = self.current_widget()
+        if widget is None:
+            return
+
+        widget.shellwidget.request_interrupt_kernel()
+        widget.is_profiling = False
+
     def home_tree(self):
         """Show home tree."""
         widget = self.current_widget()
@@ -489,6 +544,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         Only display if this is the current widget.
         """
         self.update_actions()
+        self.stop_profiling()
+
         if (
             self.current_widget() is widget
             and self.get_conf("switch_to_plugin")

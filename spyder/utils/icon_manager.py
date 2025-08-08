@@ -201,9 +201,6 @@ class IconManager():
             'MessageBoxWarning':       [('mdi.alert',), {'color': self.MAIN_FG_COLOR}],
             'arredit':                 [('mdi.table-edit',), {'color': self.MAIN_FG_COLOR}],
             'home':                    [('mdi.home',), {'color': self.MAIN_FG_COLOR}],
-            'swap':                    [('mdi.swap-vertical',), {'color': self.MAIN_FG_COLOR}],
-            'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
-            'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
             'show':                    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'plot':                    [('mdi.chart-bar',), {'color': self.MAIN_FG_COLOR}],
             'plot.fit_to_pane':        [('mdi6.fit-to-screen',), {'color': self.MAIN_FG_COLOR}],
@@ -350,12 +347,14 @@ class IconManager():
             'tour.previous':           [('mdi.skip-previous',), {'color': self.MAIN_FG_COLOR}],
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
-            # --- Third party plugins ------------------------------------------------
+            # --- Profiler ------------------------------------------------
             'profiler':                [('mdi.timer',), {'color': SpyderPalette.ICON_5}],
-            'condapackages':           [('mdi.archive',), {'color': self.MAIN_FG_COLOR}],
+            'swap':                    [('mdi.swap-vertical',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.2}],
+            'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
+            'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
+            'stop_profile':            [('mdi.stop',), {'color': SpyderPalette.ICON_7}],
+            # --- Other ------------------------------------------------
             'spyder.example':          [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'spyder.autopep8':         [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'spyder.memory_profiler':  [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.line_profiler':    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'symbol_find':             [('mdi.at',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_right':     [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],
