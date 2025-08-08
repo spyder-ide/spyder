@@ -2384,7 +2384,7 @@ def get_test_data():
         test_pd_td = pd.Timedelta(days=2193, hours=12)
         test_dtindex = pd.date_range(start="1939-09-01T",
                                      end="1939-10-06",
-                                     freq="12H")
+                                     freq="12h")
         test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
         test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
                                 "int_col": [0, 1, 2, 3],
@@ -2401,8 +2401,8 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'module': np,
-            'str': 'kjkj kj k j j kj k jkj',
-            'unicode': str('éù'),
+            'bytes': b'kjkj kj k j j kj k jkj',
+            'str': 'éù',
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),
