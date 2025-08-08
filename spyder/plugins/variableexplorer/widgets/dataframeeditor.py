@@ -44,7 +44,7 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
-from qtpy.QtGui import QColor, QCursor
+from qtpy.QtGui import QColor, QCursor, QGuiApplication
 from qtpy.QtWidgets import (
     QApplication,
     QDialog,
@@ -83,6 +83,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -1492,16 +1493,26 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                         index_label.append(column_label)
 
         if not force:
-            one = _("Do you want to remove the selected item?")
-            more = _("Do you want to remove all selected items?")
-            answer = QMessageBox.question(
-                self,
-                _("Remove"),
-                one if len(indexes) == 1 else more,
-                QMessageBox.Yes | QMessageBox.No
-            )
-
-        if force or answer == QMessageBox.Yes:
+            if not self.get_conf('show_remove_message_dataframe'):
+                result = QMessageBox.Yes
+            else:
+                one = _("Do you want to remove the selected item?")
+                more = _("Do you want to remove all selected items?")
+                answer = MessageCheckBox(
+                    icon=QMessageBox.Question,
+                    parent=self)
+                answer.set_checkbox_text(
+                    _("Don't show again."))
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(
+                    QMessageBox.Yes | QMessageBox.No)
+                result = answer.exec_()
+                check = answer.is_checked()
+                if check:
+                    self.set_conf('ask_before_restart', False)
+        if force or result == QMessageBox.Yes:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)
