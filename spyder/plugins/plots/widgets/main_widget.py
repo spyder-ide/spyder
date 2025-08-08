@@ -259,6 +259,20 @@ class PlotsWidget(ShellConnectMainWidget):
             widget.set_pane_empty(not value)
             with signals_blocked(self.fit_action):
                 self.fit_action.setChecked(figviewer.auto_fit_plotting)
+        for __, action in self.get_actions().items():
+            try:
+                if action and action not in [
+                    self.mute_action,
+                    self.outline_action,
+                    self.undock_action,
+                    self.close_action,
+                    self.dock_action,
+                    self.toggle_view_action,
+                    self.lock_unlock_action,
+                ]:
+                    action.setEnabled(value)
+            except (RuntimeError, AttributeError):
+                pass
 
         self.zoom_disp.setEnabled(value)
 
