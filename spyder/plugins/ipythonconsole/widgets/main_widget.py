@@ -545,13 +545,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # --- Context menu actions
         # TODO: Shortcut registration not working
-        self.cut_actio = self.create_action(
+        self.cut_action = self.create_action(
             ClientContextMenuActions.Cut,
             text=_("Cut"),
             icon=self.create_icon("editcut"),
             triggered=self.current_client_cut
         )
-        self.cut_actio.setShortcut(QKeySequence.Cut)
+        self.cut_action.setShortcut(QKeySequence.Cut)
 
         self.copy_action = self.create_action(
             ClientContextMenuActions.Copy,

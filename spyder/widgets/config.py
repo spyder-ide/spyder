@@ -1179,8 +1179,9 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def prompt_restart_required(self) -> bool:
         """
-        Prompt the user with a request to restart. Returns ``True`` when the
-        request is accepted, ``False`` otherwise.
+        Prompt the user with a request to restart.
+        
+        It returns ``True`` when the request is accepted, ``False`` otherwise.
         """
         message = _(
             "One or more of the settings you changed requires a restart to be "
