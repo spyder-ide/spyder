@@ -129,7 +129,7 @@ class OutlineExplorerProxy(QObject):
     sig_start_outline_spinner = Signal()
 
     def __init__(self):
-        super(OutlineExplorerProxy, self).__init__()
+        super().__init__()
         self.fname = None
 
     def is_python(self):
@@ -189,7 +189,7 @@ class OutlineExplorerData(QObject):
             def_name (str)
             color (PyQt.QtGui.QTextCharFormat)
         """
-        super(OutlineExplorerData, self).__init__()
+        super().__init__()
         self.text = text
         self.fold_level = fold_level
         self.def_type = def_type

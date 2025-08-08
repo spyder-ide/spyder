@@ -58,7 +58,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import is_conda_based_app
 from spyder.config.manager import CONF
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
@@ -247,11 +246,11 @@ def mimedata2url(source, extlist=None):
     if source.hasUrls():
         for url in source.urls():
             path = _process_mime_path(
-                unquote(to_text_string(url.toString())), extlist)
+                unquote(str(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
-        for rawpath in to_text_string(source.text()).splitlines():
+        for rawpath in str(source.text()).splitlines():
             path = _process_mime_path(rawpath, extlist)
             if path is not None:
                 pathlist.append(path)
@@ -293,7 +292,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if text is not None:
         button.setText(text)
     if icon is not None:
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = ima.get_icon(icon)
         button.setIcon(icon)
     if text is not None or tip is not None:
@@ -377,7 +376,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if toggled is not None:
         setup_toggled_action(action, toggled, section, option)
     if icon is not None:
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = ima.get_icon(icon)
         action.setIcon(icon)
     if tip is not None:
@@ -498,7 +497,7 @@ def add_actions(target, actions, insert_before=None):
 
 def get_item_user_text(item):
     """Get QTreeWidgetItem user role string"""
-    return from_qvariant(item.data(0, Qt.UserRole), to_text_string)
+    return from_qvariant(item.data(0, Qt.UserRole), str)
 
 
 def set_item_user_text(item, text):
@@ -538,7 +537,7 @@ def create_module_bookmark_actions(parent, bookmarks):
 
 def create_program_action(parent, text, name, icon=None, nt_name=None):
     """Create action to run a program"""
-    if is_text_string(icon):
+    if isinstance(icon, str):
         icon = ima.get_icon(icon)
     if os.name == 'nt' and nt_name is not None:
         name = nt_name
@@ -554,7 +553,7 @@ def create_python_script_action(
     """Create action to run a GUI based Python script"""
     args = [] if args is None else args
 
-    if is_text_string(icon):
+    if isinstance(icon, str):
         icon = ima.get_icon(icon)
     if programs.python_script_exists(package, module):
         return create_action(parent, text, icon=icon,
@@ -576,8 +575,7 @@ class DialogManager(QObject):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
         for dlg in list(self.dialogs.values()):
-            if to_text_string(dlg.windowTitle()) \
-               == to_text_string(dialog.windowTitle()):
+            if str(dlg.windowTitle()) == str(dialog.windowTitle()):
                 dlg.show()
                 dlg.raise_()
                 break
@@ -612,7 +610,7 @@ class SpyderAction(QAction):
 
     def __init__(self, *args, action_id=None, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
-        super(SpyderAction, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.action_id = action_id
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
@@ -753,7 +751,7 @@ class QInputDialogMultiline(QDialog):
     """
 
     def __init__(self, parent, title, label, text='', **kwargs):
-        super(QInputDialogMultiline, self).__init__(parent, **kwargs)
+        super().__init__(parent, **kwargs)
         if title is not None:
             self.setWindowTitle(title)
 
@@ -938,6 +936,11 @@ def safe_disconnect(signal):
     except TypeError:
         # Raised when no slots are connected to the signal
         pass
+
+
+def qbytearray_to_str(qba):
+    """Convert QByteArray object to str in a way compatible with Python 3"""
+    return str(bytes(qba.toHex().data()).decode())
 
 
 if __name__ == "__main__":

@@ -15,7 +15,6 @@ import pytest
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
-from spyder.py3compat import to_text_string
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
@@ -37,7 +36,7 @@ def get_indent_fix(text, indent_chars=" " * 4, tab_stop_width_spaces=4,
         cursor.movePosition(QTextCursor.Left, n=repeat)
     editor.setTextCursor(cursor)
     editor.fix_indent(forward=forward)
-    return to_text_string(editor.toPlainText())
+    return str(editor.toPlainText())
 
 
 # ---- Tests
