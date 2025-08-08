@@ -280,7 +280,8 @@ install_requires += [
     # install in all cases and helps the tests to pass.
     'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
-    'ipython>=8.13.0,<9.0.0,!=8.17.1',
+    # Note that on IPython 9.0.0 Python 3.10 support was dropped
+    'ipython>=8.13.0,<10.0.0,!=8.17.1',
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',

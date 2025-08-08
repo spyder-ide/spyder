@@ -117,9 +117,11 @@ class SpyderShell(ZMQInteractiveShell):
             for line in stb:
                 if (
                     # Verbose mode
-                    re.match(r"File (.*)", line)
+                    re.match(r"File (.*)", line)  # IPython 8.x
+                    or re.match(r"\x1b(.*)File (.*)", line)  # IPython 9.x
                     # Plain mode
-                    or re.match(r"\x1b\[(.*)  File (.*)", line)
+                    or re.match(r"\x1b\[(.*)  File (.*)", line)  # IPython 8.x
+                    or re.match(r"  File (.*)", line)  # IPython 9.x
                 ) and (
                     # The file line should not contain a location where
                     # Spyder-kernels is installed
@@ -139,11 +141,6 @@ class SpyderShell(ZMQInteractiveShell):
     def set_spyder_theme(self, theme):
         """Set the theme for the console."""
         self._spyder_theme = theme
-        if theme == "dark":
-            # Needed to change the colors of tracebacks
-            self.run_line_magic("colors", "linux")
-        elif theme == "light":
-            self.run_line_magic("colors", "lightbg")
 
     def get_spyder_theme(self):
         """Get the theme for the console."""
