@@ -402,6 +402,27 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             self._set_hscrollbar_value
         )
 
+        if parent is not None and parent.parent() is not None:
+            self.register_shortcuts(parent.parent())
+
+    def register_shortcuts(self, parent):
+        """Register shortcuts for this widget."""
+        shortcuts = (
+            ("auto fit", parent.fit_to_pane),
+            ("save", parent.save_plot),
+            ("save all", parent.save_all_plots),
+            ("copy", parent.copy_image),
+            ("close", parent.remove_plot),
+            ("close all", parent.remove_all_plots),
+            ("previous figure", parent.previous_plot),
+            ("next figure", parent.next_plot),
+            ("zoom in", parent.zoom_in),
+            ("zoom out", parent.zoom_out)
+        )
+
+        for name, callback in shortcuts:
+            self.register_shortcut_for_widget(name=name, triggered=callback)
+
     @property
     def auto_fit_plotting(self):
         """
