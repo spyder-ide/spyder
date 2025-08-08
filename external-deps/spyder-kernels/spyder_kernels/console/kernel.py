@@ -718,7 +718,7 @@ class SpyderKernel(IPythonKernel):
             elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
                 VerboseTB._tb_highlight_style = syntax_style
         else:
-            # Create theme definition and set it as `_default`
+            # Create spyder theme definition and set it
             import IPython.utils.PyColorize
             from IPython.utils.PyColorize import (
                 Theme,
@@ -733,12 +733,12 @@ class SpyderKernel(IPythonKernel):
             )
             extra_style.update(create_pygments_dict(syntax_style))
             theme = Theme(
-                "custom_theme",
+                "spyder_theme",
                 None,
                 extra_style,
             )
-            IPython.utils.PyColorize.theme_table["custom_theme"] = theme
-            self.shell.run_line_magic("colors", "custom_theme")
+            IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
+            self.shell.run_line_magic("colors", "spyder_theme")
 
     def get_cwd(self):
         """Get current working directory."""
