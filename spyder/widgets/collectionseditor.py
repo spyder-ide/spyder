@@ -1286,20 +1286,6 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         # TODO: Remove hard coded "Value" column number (3 here)
         self.edit(self.model().index(index.row(), 3))
 
-    def handle_message_remove_item(self, result, indexes, show=True):
-        if result == QMessageBox.Yes:
-            check = (
-                self.answer_messagebox.is_checked() if show else not show)
-            self.set_conf('show_remove_message_collections', not check)
-            if self.proxy_model:
-                idx_rows = unsorted_unique(
-                    [self.proxy_model.mapToSource(idx).row()
-                     for idx in indexes])
-            else:
-                idx_rows = unsorted_unique([idx.row() for idx in indexes])
-            keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
-            self.remove_values(keys)
-
     @Slot()
     def remove_item(self, force=False):
         """Remove item"""
@@ -1315,34 +1301,26 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
 
         if not force:
             if not self.get_conf('show_remove_message_collections'):
-                answer = QMessageBox.Yes
-                self.handle_message_remove_item(answer, indexes, False)
+                result = QMessageBox.Yes
             else:
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
-                self.answer_messagebox = MessageCheckBox(
+                answer = MessageCheckBox(
                     icon=QMessageBox.Question,
                     parent=self)
-                self.answer_messagebox.set_checkbox_text(
+                answer.set_checkbox_text(
                     _("Don't show again."))
-                self.answer_messagebox.set_checked(False)
-                self.answer_messagebox.set_check_visible(True)
-                self.answer_messagebox.setText(
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(
                     one if len(indexes) == 1 else more)
-                self.answer_messagebox.setStandardButtons(
+                answer.setStandardButtons(
                     QMessageBox.Yes | QMessageBox.No)
-                self.answer_messagebox.finished.connect(
-                    lambda result: self.handle_message_remove_item(
-                        result, indexes))
-                self.answer_messagebox.open()
-                answer_width = self.answer_messagebox.rect().width()
-                answer_height = self.answer_messagebox.rect().height()
-                screen_geometry = QGuiApplication.primaryScreen().geometry()
-                x = (screen_geometry.width() - answer_width) / 2
-                y = (screen_geometry.height() - answer_height) / 2
-                self.answer_messagebox.move(int(x), int(y))
-                self.answer_messagebox.adjustSize()
-        else:
+                result = answer.exec_()
+                check = answer.is_checked()
+                if check:
+                    self.set_conf('ask_before_restart', False)
+        if force or result == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
                     [self.proxy_model.mapToSource(idx).row()

@@ -1462,23 +1462,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
             return label
 
-    def handle_message_remove_item(self, result, index, df, axis, show=True):
-        if result == QMessageBox.Yes:
-            check = (
-                self.answer_messagebox.is_checked() if show else not show)
-            self.set_conf('show_remove_message_dataframe', not check)
-            for label in index:
-                try:
-                    df.drop(label, inplace=True, axis=axis)
-                except TypeError as e:
-                    QMessageBox.warning(
-                        self.model().dialog,
-                        _("Warning: It was not possible to remove this item!"),
-                        _("ValueError: {} must be removed from index.").format(
-                            str(e))
-                    )
-                    return False
-
     @Slot()
     def remove_item(self, force=False, axis=0):
         """Remove item."""
@@ -1511,35 +1494,25 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
         if not force:
             if not self.get_conf('show_remove_message_dataframe'):
-                answer = QMessageBox.Yes
-                self.handle_message_remove_item(
-                        answer, index_label, df, axis, False)
+                result = QMessageBox.Yes
             else:
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
-                self.answer_messagebox = MessageCheckBox(
+                answer = MessageCheckBox(
                     icon=QMessageBox.Question,
                     parent=self)
-                self.answer_messagebox.set_checkbox_text(
+                answer.set_checkbox_text(
                     _("Don't show again."))
-                self.answer_messagebox.set_checked(False)
-                self.answer_messagebox.set_check_visible(True)
-                self.answer_messagebox.setText(
-                    one if len(indexes) == 1 else more)
-                self.answer_messagebox.setStandardButtons(
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(
                     QMessageBox.Yes | QMessageBox.No)
-                self.answer_messagebox.finished.connect(
-                    lambda result: self.handle_message_remove_item(
-                        result, index_label, df, axis))
-                self.answer_messagebox.open()
-                answer_width = self.answer_messagebox.rect().width()
-                answer_height = self.answer_messagebox.rect().height()
-                screen_geometry = QGuiApplication.primaryScreen().geometry()
-                x = (screen_geometry.width() - answer_width) / 2
-                y = (screen_geometry.height() - answer_height) / 2
-                self.answer_messagebox.move(int(x), int(y))
-                self.answer_messagebox.adjustSize()
-        else:
+                result = answer.exec_()
+                check = answer.is_checked()
+                if check:
+                    self.set_conf('ask_before_restart', False)
+        if force or result == QMessageBox.Yes:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)
