@@ -707,7 +707,7 @@ class SpyderKernel(IPythonKernel):
     def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
         if parse_version(ipython_release.version) < parse_version("9.0"):
-            # Use `tb_highlight_style` class attribute to set the style
+            # Use `tb_highlight_style` class attribute to set the style (IPython 8.x)
             import IPython.core.ultratb
             from IPython.core.ultratb import VerboseTB
 
@@ -718,7 +718,7 @@ class SpyderKernel(IPythonKernel):
             elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
                 VerboseTB._tb_highlight_style = syntax_style
         else:
-            # Create spyder theme definition and set it
+            # Create spyder theme definition and set it (IPython 9.x+)
             import IPython.utils.PyColorize
             from IPython.utils.PyColorize import (
                 Theme,
