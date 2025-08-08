@@ -401,7 +401,9 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         self.horizontalScrollBar().valueChanged.connect(
             self._set_hscrollbar_value
         )
-        self.register_shortcuts(parent.parent())
+
+        if parent is not None and parent.parent() is not None:
+            self.register_shortcuts(parent.parent())
 
     def register_shortcuts(self, parent):
         """Register shortcuts for this widget."""
