@@ -66,4 +66,4 @@ class FigureBrowserWidget(RichJupyterWidget):
                     )
                     self.sended_render_message = True
                 return
-        return super(FigureBrowserWidget, self)._handle_display_data(msg)
+        return super()._handle_display_data(msg)

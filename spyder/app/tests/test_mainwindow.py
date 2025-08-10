@@ -96,11 +96,11 @@ from spyder.plugins.run.api import (
     WorkingDirSource,
 )
 from spyder.plugins.shortcuts.widgets.table import SEQUENCE
-from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import remove_backslashes, rename_file
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.programs import find_program
+from spyder.utils.qthelpers import qbytearray_to_str
 from spyder.widgets.dock import DockTitleBar
 
 
@@ -141,7 +141,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     p.write(lock_code)
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute('%edit {}'.format(to_text_string(p)))
+        shell.execute('%edit {}'.format(str(p)))
 
     qtbot.wait(3000)
     assert editorstack.get_stack_count() == n_editors + 1
@@ -601,7 +601,7 @@ def test_window_title(main_window, tmpdir, qtbot):
     projects = main_window.projects
 
     # Create a project in non-ascii path
-    path = to_text_string(tmpdir.mkdir(u'測試'))
+    path = str(tmpdir.mkdir(u'測試'))
     projects.open_project(path=path)
 
     # Set non-ascii window title
@@ -1166,7 +1166,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
         timeout=SHELL_TIMEOUT)
 
     # Create temp directory
-    temp_dir = to_text_string(tmpdir.mkdir(test_directory))
+    temp_dir = str(tmpdir.mkdir(test_directory))
 
     # Change directory in the explorer widget
     explorer.chdir(temp_dir)
@@ -1306,7 +1306,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
-    project_dir = to_text_string(tmpdir.mkdir('test'))
+    project_dir = str(tmpdir.mkdir('test'))
 
     # Create an empty notebook in the project dir
     nb = osp.join(LOCATION, 'notebook.ipynb')
@@ -1361,7 +1361,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     editorstack = main_window.editor.get_current_editorstack()
 
     # Create a temp project directory
-    project_dir = to_text_string(tmpdir.mkdir('test'))
+    project_dir = str(tmpdir.mkdir('test'))
 
     # Create an empty file in the project dir
     test_file = osp.join(LOCATION, 'script.py')
@@ -1454,7 +1454,7 @@ def test_run_code(main_window, qtbot, tmpdir):
     # ---- Setup ----
     p = (tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误")
          .join(u"runtest's file èáïü Øαôå 字分误.py"))
-    filepath = to_text_string(p)
+    filepath = str(p)
     shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
 
     # Wait until the window is fully up
@@ -1714,7 +1714,7 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     # ---- Setup ----
     p = (tmpdir.mkdir(u"runtest's folder èáïü Øαôå 字分误")
          .join(u"runtest's file èáïü Øαôå 字分误.py"))
-    filepath = to_text_string(p)
+    filepath = str(p)
     shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
 
     # Wait until the window is fully up
@@ -2262,12 +2262,12 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     html = shell._control.toHtml()
     img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
 
-    ipython_figname = osp.join(to_text_string(tmpdir), 'ipython_img.png')
+    ipython_figname = osp.join(str(tmpdir), 'ipython_img.png')
     ipython_qimg = shell._get_image(img_name)
     ipython_qimg.save(ipython_figname)
 
     # Save the image with the Plots plugin as a png.
-    plots_figname = osp.join(to_text_string(tmpdir), 'plots_img.png')
+    plots_figname = osp.join(str(tmpdir), 'plots_img.png')
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(plots_figname, '.png'))
     figbrowser.save_figure()
@@ -2366,7 +2366,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     working when plotting inline in the IPython console. By default, figures
     are plotted inline with bbox_inches='tight'.
     """
-    tmpdir = to_text_string(tmpdir)
+    tmpdir = str(tmpdir)
 
     # Assert that the default is True.
     assert CONF.get('ipython_console', 'pylab/inline/bbox_inches') is True
@@ -3138,7 +3138,7 @@ def test_break_while_running(main_window, qtbot, tmpdir):
             )
     p = tmpdir.join("loop_script.py")
     p.write(code)
-    test_file = to_text_string(p)
+    test_file = str(p)
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3206,8 +3206,8 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10139 regression.
 
-    Enabling codestyle/docstyle on the completion section of preferences,
-    was not updating correctly.
+    Enabling docstyle on the completion section of preferences, was not
+    updating correctly.
     """
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3220,10 +3220,6 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
              False)
 
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
-             False)
-
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'completions')
@@ -3234,10 +3230,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
             for i in range(page.tabs.count())]
 
     tabs = dict(zip(tnames, tabs))
-    tab_widgets = {
-        'code style and formatting': 'code_style_check',
-        'docstring style': 'docstring_style_check'
-    }
+    tab_widgets = {'docstring style': 'docstring_style_check'}
 
     for tabname in tab_widgets:
         tab, idx = tabs[tabname]
@@ -3264,21 +3257,14 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
         if menu_item and isinstance(menu_item, QAction):
             print(menu_item.text(), menu_item.isChecked())
 
-            if 'code style' in menu_item.text():
+            if 'docstring style' in menu_item.text():
                 assert menu_item.isChecked()
                 count += 1
-            elif 'docstring style' in menu_item.text():
-                assert menu_item.isChecked()
-                count += 1
-    assert count == 2
+    assert count == 1
 
     # Reset config
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'pydocstyle'),
-             False)
-
-    CONF.set('completions',
-             ('provider_configuration', 'lsp', 'values', 'pycodestyle'),
              False)
 
 
@@ -3600,7 +3586,7 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
     code = u"result = 10; fname = __file__"
     p = tmpdir.join("cell-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -3612,7 +3598,7 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         function = 'runcell'
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%{} -i 0 {}".format(function, repr(to_text_string(p))))
+        shell.execute("%{} -i 0 {}".format(function, repr(str(p))))
 
     if debug:
         # Reach the 'name' input
@@ -3642,7 +3628,7 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
             "# %%\n    print(1233 + 1)\n")
     p = tmpdir.join("cell-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -3650,7 +3636,7 @@ def test_runcell_leading_indent(main_window, qtbot, tmpdir):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%runcell -i 1 {}".format(repr(to_text_string(p))))
+        shell.execute("%runcell -i 1 {}".format(repr(str(p))))
 
     assert "1234" in shell._control.toPlainText()
     assert "This is not valid Python code" not in shell._control.toPlainText()
@@ -3666,7 +3652,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     """
     # ---- Setup ----
     p = (tmpdir.mkdir(u"varexp_rename").join(u"script.py"))
-    filepath = to_text_string(p)
+    filepath = str(p)
     shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
 
     # Wait until the window is fully up
@@ -3734,7 +3720,7 @@ def test_varexp_remove(main_window, qtbot, tmpdir):
     """
     # ---- Setup ----
     p = (tmpdir.mkdir(u"varexp_remove").join(u"script.py"))
-    filepath = to_text_string(p)
+    filepath = str(p)
     shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
 
     # Wait until the window is fully up
@@ -3828,7 +3814,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
             '#%%')
     p = tmpdir.join("test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -4205,9 +4191,9 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     """Test the runcell command with cell magic."""
     # Write code with a cell to a file
     write_file = tmpdir.mkdir("foo").join("bar.txt")
-    assert not osp.exists(to_text_string(write_file))
+    assert not osp.exists(str(write_file))
     if test_cell_magic:
-        code = "\n\n%%writefile " + to_text_string(write_file) + "\ntest\n"
+        code = "\n\n%%writefile " + str(write_file) + "\ntest\n"
     else:
         code = "\n\n%debug print()"
     if ipython:
@@ -4216,7 +4202,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
         fn = "cell-test.py"
     p = tmpdir.join(fn)
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -4224,7 +4210,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
 
     # Execute runcell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%runcell -i 0 {}".format(repr(to_text_string(p))))
+        shell.execute("%runcell -i 0 {}".format(repr(str(p))))
     control = main_window.ipyconsole.get_widget().get_focus_widget()
 
     error_text = 'save this file with the .ipy extension'
@@ -4235,15 +4221,15 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
                     lambda: 'Writing' in control.toPlainText())
 
                 # Verify that the code was executed
-                assert osp.exists(to_text_string(write_file))
+                assert osp.exists(str(write_file))
             else:
                 qtbot.waitSignal(shell.executed)
             assert error_text not in control.toPlainText()
         else:
             qtbot.waitUntil(lambda: error_text in control.toPlainText())
     finally:
-        if osp.exists(to_text_string(write_file)):
-            os.remove(to_text_string(write_file))
+        if osp.exists(str(write_file)):
+            os.remove(str(write_file))
 
 
 @flaky(max_runs=3)
@@ -5406,7 +5392,7 @@ def test_goto_find(main_window, qtbot, tmpdir):
     subdir = tmpdir.mkdir("find-sub")
     p = subdir.join("find-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     code_editor = main_window.editor.get_focus_widget()
 
     main_window.explorer.chdir(str(subdir))
@@ -5618,7 +5604,7 @@ def test_locals_globals_var_debug(main_window, qtbot, tmpdir):
     )
     p = tmpdir.join("test_gl.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
 
     # Run file inside a debugger
     with qtbot.waitSignal(shell.executed):
@@ -5665,7 +5651,7 @@ if __name__ == "__main__":
 
     p = tmpdir.join("print-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -5701,7 +5687,7 @@ crash_func()
 
     p = tmpdir.join("print-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -5947,7 +5933,7 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
     p = tmpdir.join("print-test.py")
     p.write(code)
 
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
@@ -6796,7 +6782,7 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
     """Test that namespaces behave correctly when using runfile."""
     baba_file = tmpdir.join("baba.py")
     baba_file.write("baba = 1")
-    baba_path = to_text_string(baba_file)
+    baba_path = str(baba_file)
 
     # Create code
     code = "\n".join([
@@ -6821,7 +6807,7 @@ def test_runfile_namespace(main_window, qtbot, tmpdir):
 
     p = tmpdir.join("test.ipy")
     p.write(code)
-    test_file = to_text_string(p)
+    test_file = str(p)
 
     # Run file
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -6854,7 +6840,7 @@ def test_quotes_rename_ipy(main_window, qtbot, tmp_path):
     path = "a'b\"c\\.py"
     file = tmp_path / path
     file.write_text("print(23 + 780)")
-    path = to_text_string(file)
+    path = str(file)
     main_window.editor.load(path)
 
     # Run file

@@ -93,7 +93,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     def __init__(self, path_to_custom_interpreter=None,
                  **kwargs):
-        super(SpyderKernelSpec, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'

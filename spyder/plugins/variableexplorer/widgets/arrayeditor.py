@@ -42,8 +42,6 @@ from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
     PreferencesDialog
 )
-from spyder.py3compat import (is_binary_string, is_string, is_text_string,
-                              to_binary_string, to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import keybinding, safe_disconnect
 from spyder.utils.stylesheet import AppStyle, MAC
@@ -315,9 +313,9 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
 
         # Tranform binary string to unicode so they are displayed
         # correctly
-        if is_binary_string(value):
+        if isinstance(value, bytes):
             try:
-                value = to_text_string(value, 'utf8')
+                value = str(value, 'utf8')
             except Exception:
                 pass
 
@@ -368,9 +366,9 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
             except ValueError:
                 val = value.lower() == "true"
         elif dtype.startswith("string") or dtype.startswith("bytes"):
-            val = to_binary_string(value, 'utf8')
+            val = bytes(value, 'utf8')
         elif dtype.startswith("unicode") or dtype.startswith("str"):
-            val = to_text_string(value)
+            val = str(value)
         else:
             if value.lower().startswith('e') or value.lower().endswith('e'):
                 return False
@@ -395,7 +393,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         self.changes[(i, j)] = self.test_array[0]
         self.dataChanged.emit(index, index)
 
-        if not is_string(val):
+        if not isinstance(val, (str, bytes)):
             val = self.color_func(val)
 
             if val > self.vmax:
@@ -906,7 +904,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # Set title
         if title:
-            title = to_text_string(title) + " - " + _("NumPy object array")
+            title = str(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
@@ -1031,7 +1029,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                 text = name
                 if len(field) >= 3:
                     title = field[2]
-                    if not is_text_string(title):
+                    if not isinstance(title, str):
                         title = repr(title)
                     text += ' - '+title
                 names.append(text)

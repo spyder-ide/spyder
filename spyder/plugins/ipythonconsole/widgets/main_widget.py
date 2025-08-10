@@ -545,44 +545,44 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # --- Context menu actions
         # TODO: Shortcut registration not working
-        cut_action = self.create_action(
+        self.cut_action = self.create_action(
             ClientContextMenuActions.Cut,
             text=_("Cut"),
             icon=self.create_icon("editcut"),
             triggered=self.current_client_cut
         )
-        cut_action.setShortcut(QKeySequence.Cut)
+        self.cut_action.setShortcut(QKeySequence.Cut)
 
-        copy_action = self.create_action(
+        self.copy_action = self.create_action(
             ClientContextMenuActions.Copy,
             text=_("Copy"),
             icon=self.create_icon("editcopy"),
             triggered=self.current_client_copy
         )
-        copy_action.setShortcut(QKeySequence.Copy)
+        self.copy_action.setShortcut(QKeySequence.Copy)
 
-        self.create_action(
+        self.copy_raw_action = self.create_action(
             ClientContextMenuActions.CopyRaw,
             text=_("Copy (raw text)"),
             triggered=self._current_client_copy_raw
         )
 
-        paste_action = self.create_action(
+        self.paste_action = self.create_action(
             ClientContextMenuActions.Paste,
             text=_("Paste"),
             icon=self.create_icon("editpaste"),
             triggered=self.current_client_paste
         )
-        paste_action.setShortcut(QKeySequence.Paste)
+        self.paste_action.setShortcut(QKeySequence.Paste)
 
-        self.create_action(
+        self.select_all_action = self.create_action(
             ClientContextMenuActions.SelectAll,
             text=_("Select all"),
             icon=self.create_icon("selectall"),
             triggered=self.current_client_select_all
         )
 
-        self.create_action(
+        self.inspect_object_action = self.create_action(
             ClientContextMenuActions.InspectObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
@@ -590,7 +590,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.enter_array_table_action = self.create_action(
             ClientContextMenuActions.ArrayTable,
             text=_("Enter array table"),
             icon=self.create_icon("arredit"),
@@ -598,28 +598,28 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.enter_array_inline_action = self.create_action(
             ClientContextMenuActions.ArrayInline,
             text=_("Enter array inline"),
             triggered=self._current_client_enter_array_inline,
             register_shortcut=True
         )
 
-        self.create_action(
+        self.export_html_action = self.export_action = self.create_action(
             ClientContextMenuActions.Export,
             text=_("Save as html..."),
             icon=self.create_icon("CodeFileIcon"),
             triggered=self._current_client_export
         )
 
-        self.create_action(
+        self.print_action = self.create_action(
             ClientContextMenuActions.Print,
             text=_("Print..."),
             icon=self.create_icon("print"),
             triggered=self._current_client_print
         )
 
-        self.create_action(
+        self.clear_line_action = self.create_action(
             ClientContextMenuActions.ClearLine,
             text=_("Clear line or block"),
             icon=self.create_icon("clear_text"),
@@ -627,7 +627,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.clear_console_action = self.create_action(
             ClientContextMenuActions.ClearConsole,
             text=_("Clear console"),
             icon=self.create_icon("clear_console"),
@@ -635,25 +635,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.copy_image_action = self.create_action(
             ClientContextMenuActions.CopyImage,
             text=_("Copy image"),
             triggered=self._current_client_copy_image
         )
 
-        self.create_action(
+        self.save_image_action = self.create_action(
             ClientContextMenuActions.SaveImage,
             text=_("Save image as..."),
             triggered=self._current_client_save_image
         )
 
-        self.create_action(
+        self.copy_svg_action = self.create_action(
             ClientContextMenuActions.CopySvg,
             text=_("Copy SVG"),
             triggered=self._current_client_copy_svg
         )
 
-        self.create_action(
+        self.save_svg_action = self.create_action(
             ClientContextMenuActions.SaveSvg,
             text=_("Save SVG as..."),
             triggered=self._current_client_save_svg
@@ -662,7 +662,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         # The Quit entry was available in Spyder 5 and before, and some users
         # were accustomed to click on it.
         # Fixes spyder-ide/spyder#24096
-        self.create_action(
+        self.quit_action = self.create_action(
             ClientContextMenuActions.Quit,
             _("&Quit"),
             icon=self.create_icon('exit'),
