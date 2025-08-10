@@ -17,7 +17,7 @@ from textwrap import dedent
 import typing
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
@@ -882,11 +882,6 @@ overrided by the Sympy module (e.g. plot)
         # Stop reading as any input has been removed.
         self._reading = False
 
-    @Slot()
-    def _reset_namespace(self):
-        warning = self.get_conf('show_reset_namespace_warning')
-        self.reset_namespace(warning=warning)
-
     def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
         # Don't show the warning when running our tests.
@@ -935,36 +930,6 @@ overrided by the Sympy module (e.g. plot)
         else:
             self._update_reset_options(message_box)
 
-    def _perform_reset(self, message):
-        """
-        Perform the reset namespace operation.
-
-        Parameters
-        ----------
-        message: bool
-            Whether to show a message in the console telling users the
-            namespace was reset.
-        """
-        try:
-            if self.is_waiting_pdb_input():
-                self.execute('%reset -f')
-            else:
-                if message:
-                    self.reset()
-                    self._append_html(
-                        _("<br><br>Removing all variables...<br>"),
-                        before_prompt=False
-                    )
-                    self.insert_horizontal_ruler()
-                self.silent_execute("%reset -f")
-                self.set_special_kernel()
-
-                if self.spyder_kernel_ready:
-                    self.call_kernel().close_all_mpl_figures()
-                    self.send_spyder_kernel_configuration()
-        except AttributeError:
-            pass
-
     def set_special_kernel(self):
         """Reset special kernel"""
         if not self.special_kernel:
@@ -974,17 +939,6 @@ overrided by the Sympy module (e.g. plot)
         self.set_kernel_configuration(
             "special_kernel", self.special_kernel
         )
-
-    def _update_reset_options(self, message_box):
-        """
-        Update options and variables based on the interaction in the
-        reset warning message box shown to the user.
-        """
-        self.set_conf(
-            'show_reset_namespace_warning',
-            not message_box.is_checked()
-        )
-        self.ipyclient.reset_warning = not message_box.is_checked()
 
     def regiter_shortcuts(self):
         """Register shortcuts for this widget."""
@@ -1251,6 +1205,51 @@ overrided by the Sympy module (e.g. plot)
 
         # Only do this once
         self._is_banner_shown = True
+
+    def _reset_namespace(self):
+        warning = self.get_conf('show_reset_namespace_warning')
+        self.reset_namespace(warning=warning)
+
+    def _perform_reset(self, message):
+        """
+        Perform the reset namespace operation.
+
+        Parameters
+        ----------
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
+        try:
+            if self.is_waiting_pdb_input():
+                self.execute('%reset -f')
+            else:
+                if message:
+                    self.reset()
+                    self._append_html(
+                        _("<br><br>Removing all variables...<br>"),
+                        before_prompt=False
+                    )
+                    self.insert_horizontal_ruler()
+                self.silent_execute("%reset -f")
+                self.set_special_kernel()
+
+                if self.spyder_kernel_ready:
+                    self.call_kernel().close_all_mpl_figures()
+                    self.send_spyder_kernel_configuration()
+        except AttributeError:
+            pass
+
+    def _update_reset_options(self, message_box):
+        """
+        Update options and variables based on the interaction in the
+        reset warning message box shown to the user.
+        """
+        self.set_conf(
+            'show_reset_namespace_warning',
+            not message_box.is_checked()
+        )
+        self.ipyclient.reset_warning = not message_box.is_checked()
 
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
