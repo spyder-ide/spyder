@@ -202,7 +202,7 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         if reasons.get("wrong_name"):
             text += (
                 prefix
-                + _("The project directory name you selected is not valid.")
+                + _("The directory name you selected is not valid.")
             )
 
         if reasons.get("missing_info"):
@@ -289,11 +289,11 @@ class NewDirectoryPage(BaseProjectPage):
             self._name.status_action.setVisible(True)
             self._name.status_action.setToolTip(_("This is empty"))
             reasons["missing_info"] = True
-
         elif re.search(r":", name):
             self._name.status_action.setVisible(True)
             self._name.status_action.setToolTip(
-                _("The project directory can't contain ':'"))
+                _("The project directory can't contain ':'")
+            )
             reasons["wrong_name"] = True
 
         reasons = self._validate_location(location, reasons, name)
