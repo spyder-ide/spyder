@@ -11,6 +11,7 @@
 from __future__ import annotations
 import os
 import os.path as osp
+import re
 import sys
 from typing import TypedDict
 
@@ -63,6 +64,7 @@ class ValidationReasons(TypedDict):
     location_exists: bool | None
     location_not_writable: bool | None
     spyder_project_exists: bool | None
+    wrong_name: bool | None
 
 
 # =============================================================================
@@ -197,6 +199,12 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 + suffix
             )
 
+        if reasons.get("wrong_name"):
+            text += (
+                prefix
+                + _("The project directory name you selected is not valid.")
+            )
+
         if reasons.get("missing_info"):
             text += (
                 prefix
@@ -281,6 +289,12 @@ class NewDirectoryPage(BaseProjectPage):
             self._name.status_action.setVisible(True)
             self._name.status_action.setToolTip(_("This is empty"))
             reasons["missing_info"] = True
+
+        elif re.search(r":", name):
+            self._name.status_action.setVisible(True)
+            self._name.status_action.setToolTip(
+                _("The project directory can't contain ':'"))
+            reasons["wrong_name"] = True
 
         reasons = self._validate_location(location, reasons, name)
         if reasons:
