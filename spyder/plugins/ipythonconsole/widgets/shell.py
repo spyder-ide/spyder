@@ -9,6 +9,7 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+from collections.abc import Callable
 import logging
 import os
 import os.path as osp
@@ -505,6 +506,27 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 ).set_configuration({key: value})
 
         self._kernel_configuration[key] = value
+
+    def register_kernel_call_handler(self, handler_id: str, handler: Callable):
+        """Register a comm handler."""
+        self.kernel_comm_handlers[handler_id] = handler
+
+        # When this class is initialized, not all handlers are passed to its
+        # constructor (i.e. some are registered afterwards). But after a kernel
+        # restart, all handlers should have been registered. So, this check
+        # prevents registering non-init handlers multiple times after a restart
+        if (
+            handler_id
+            not in self.kernel_handler.kernel_comm._remote_call_handlers
+        ):
+            self.kernel_handler.kernel_comm.register_call_handler(
+                handler_id, handler
+            )
+
+    def unregister_kernel_call_handler(self, handler_id: str):
+        """Unregister a comm handler."""
+        self.kernel_comm_handlers.pop(handler_id, None)
+        self.kernel_handler.kernel_comm.unregister_call_handler(handler_id)
 
     def kernel_configure_callback(self, dic):
         """Kernel configuration callback"""
