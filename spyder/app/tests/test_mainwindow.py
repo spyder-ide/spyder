@@ -7454,5 +7454,41 @@ def test_custom_run_config_with_cwd(main_window, qtbot, tmp_path):
     assert f"--wdir {cwd1_str}" in control.toPlainText()
 
 
+@flaky(max_runs=3)
+def test_kernel_call_handlers_after_restart(main_window, qtbot):
+    """
+    Test that kernel handlers remain the same after a restart.
+
+    If this test fails, it means you're using the low level API to register
+    handlers (i.e. through kernel_handler.kernel_comm) instead of using the
+    ShellWidget API. So, please switch to use the latter instead.
+    """
+    ipyconsole = main_window.ipyconsole
+
+    # Wait until the kernel is ready
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Get the list of registered handlers
+    handlers_before_restart = sorted(
+        list(shell.kernel_handler.kernel_comm._remote_call_handlers.keys())
+    )
+
+    # Restart the kernel
+    widget = ipyconsole.get_widget()
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        widget.restart_kernel(shell.ipyclient, False)
+
+    # Get the new list of handlers
+    handlers_after_restart = sorted(
+        list(shell.kernel_handler.kernel_comm._remote_call_handlers.keys())
+    )
+
+    # Check that they are the same.
+    assert handlers_before_restart == handlers_after_restart
+
+
 if __name__ == "__main__":
     pytest.main()
