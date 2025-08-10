@@ -33,7 +33,7 @@ from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer, Signal,
     Slot)
-from qtpy.QtGui import QColor, QKeySequence, QGuiApplication
+from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -1306,20 +1306,18 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
                 answer = MessageCheckBox(
-                    icon=QMessageBox.Question,
-                    parent=self)
-                answer.set_checkbox_text(
-                    _("Don't show again."))
+                    icon=QMessageBox.Question, parent=self
+                )
+                answer.set_checkbox_text(_("Don't ask again."))
                 answer.set_checked(False)
                 answer.set_check_visible(True)
-                answer.setText(
-                    one if len(indexes) == 1 else more)
-                answer.setStandardButtons(
-                    QMessageBox.Yes | QMessageBox.No)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 result = answer.exec_()
                 check = answer.is_checked()
                 if check:
                     self.set_conf('show_remove_message_collections', False)
+
         if force or result == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
@@ -1329,6 +1327,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 idx_rows = unsorted_unique([idx.row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
+
         # This avoids a segfault in our tests that doesn't happen when
         # removing items manually.
         if not running_under_pytest():

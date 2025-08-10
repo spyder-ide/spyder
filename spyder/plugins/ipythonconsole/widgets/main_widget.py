@@ -2382,16 +2382,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         do_restart = True
         if ask_before_restart and not running_under_pytest():
-            message = MessageCheckBox(
-                icon=QMessageBox.Question,
-                parent=self)
-            message.set_checkbox_text(_("Don't show again."))
+            message = MessageCheckBox(icon=QMessageBox.Question, parent=self)
+            message.set_checkbox_text(_("Don't ask again."))
             message.set_checked(False)
             message.set_check_visible(True)
-            message.setText(
-                _('Are you sure you want to restart the kernel?'))
-            message.setStandardButtons(
-                QMessageBox.Yes | QMessageBox.No)
+            message.setText(_('Are you sure you want to restart the kernel?'))
+            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             result = message.exec_()
             check = message.is_checked()
             if check:

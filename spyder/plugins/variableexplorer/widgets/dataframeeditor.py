@@ -44,7 +44,7 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
-from qtpy.QtGui import QColor, QCursor, QGuiApplication
+from qtpy.QtGui import QColor, QCursor
 from qtpy.QtWidgets import (
     QApplication,
     QDialog,
@@ -84,6 +84,7 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.helperwidgets import MessageCheckBox
+
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -1493,22 +1494,22 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                         index_label.append(column_label)
 
         if not force:
-            if (not self.get_conf('show_remove_message_dataframe')
-                    or running_under_pytest()):
+            if (
+                not self.get_conf('show_remove_message_dataframe')
+                or running_under_pytest()
+            ):
                 answer = QMessageBox.Yes
             else:
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
                 answer = MessageCheckBox(
-                    icon=QMessageBox.Question,
-                    parent=self)
-                answer.set_checkbox_text(
-                    _("Don't show again."))
+                    icon=QMessageBox.Question, parent=self
+                )
+                answer.set_checkbox_text(_("Don't ask again."))
                 answer.set_checked(False)
                 answer.set_check_visible(True)
                 answer.setText(one if len(indexes) == 1 else more)
-                answer.setStandardButtons(
-                    QMessageBox.Yes | QMessageBox.No)
+                answer.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
                 answer.exec_()
                 check = answer.is_checked()
