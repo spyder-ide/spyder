@@ -390,6 +390,21 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Switch widget."""
         pass
 
+    def switch_empty_message(self, value: bool):
+        """
+        Override this method to prevent hiding the empty message if profiling
+        finishes in another console but the current one has no content to show.
+        """
+        widget = self.current_widget()
+        if widget is None:
+            return
+
+        if value:
+            self.show_empty_message()
+        else:
+            if widget.data_tree.profdata is not None:
+                self.show_content_widget()
+
     # ---- Public API
     # -------------------------------------------------------------------------
     def start_profiling(self):
