@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-07 01:58\n"
+"PO-Revision-Date: 2025-08-10 10:27\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -319,7 +319,7 @@ msgstr "Atomatic файл записується в редакторі"
 
 #: spyder/dependencies.py:120
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Розшифрувати кодову фразу SSH файлів ключів"
 
 #: spyder/dependencies.py:124
 msgid "Character encoding auto-detection for the Editor"
@@ -375,7 +375,7 @@ msgstr "Покращити завершення коду для об'єктів,
 
 #: spyder/dependencies.py:177
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Порівняти номери версій пакетів Python"
 
 #: spyder/dependencies.py:181
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -699,7 +699,7 @@ msgstr "Зареєструйте Spyder у сервісах запуску"
 
 #: spyder/plugins/application/confpage.py:176
 msgid "Launch Spyder with <code>python.app</code> to enable Apple event integrations."
-msgstr ""
+msgstr "Запустіть Spyder з <code>python.app</code> для включення інтеграції подій Apple."
 
 #: spyder/plugins/application/confpage.py:182
 msgid "Screen resolution"
@@ -707,11 +707,11 @@ msgstr "Роздільна здатність екрану"
 
 #: spyder/plugins/application/confpage.py:184
 msgid "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</a><> for more information about these options (in English)."
-msgstr ""
+msgstr "Конфігурація для екранів з високим DPI<br><br>Будь ласка, дивіться <a href=\"{0}\">{0}</a><> для отримання додаткової інформації (англійською)."
 
 #: spyder/plugins/application/confpage.py:195
 msgid "Normal"
-msgstr ""
+msgstr "Звичайний"
 
 #: spyder/plugins/application/confpage.py:200
 msgid "Enable auto high DPI scaling"
