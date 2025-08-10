@@ -1319,7 +1319,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 result = answer.exec_()
                 check = answer.is_checked()
                 if check:
-                    self.set_conf('ask_before_restart', False)
+                    self.set_conf('show_remove_message_collections', False)
         if force or result == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(

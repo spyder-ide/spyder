@@ -71,7 +71,7 @@ from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
@@ -1493,8 +1493,9 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                         index_label.append(column_label)
 
         if not force:
-            if not self.get_conf('show_remove_message_dataframe'):
-                result = QMessageBox.Yes
+            if (not self.get_conf('show_remove_message_dataframe')
+                    or running_under_pytest()):
+                answer = QMessageBox.Yes
             else:
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
@@ -1508,11 +1509,12 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 answer.setText(one if len(indexes) == 1 else more)
                 answer.setStandardButtons(
                     QMessageBox.Yes | QMessageBox.No)
-                result = answer.exec_()
+
+                answer.exec_()
                 check = answer.is_checked()
                 if check:
-                    self.set_conf('ask_before_restart', False)
-        if force or result == QMessageBox.Yes:
+                    self.set_conf('show_remove_message_dataframe', False)
+        if force or answer == QMessageBox.Yes:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)
