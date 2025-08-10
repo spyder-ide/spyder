@@ -131,55 +131,55 @@ class ProfilerWidget(ShellConnectMainWidget):
             text=_("Switch tree direction"),
             tip=_('Switch tree direction between callers and callees'),
             icon=self.create_icon('swap'),
-            toggled=self.toggle_tree,
+            toggled=self._toggle_tree,
         )
         slow_local_action = self.create_action(
             ProfilerWidgetActions.SlowLocal,
             text=_("Show items with large local time"),
             tip=_('Show items with large local time'),
             icon=self.create_icon('slow'),
-            toggled=self.slow_local_tree,
+            toggled=self._slow_local_tree,
         )
         toggle_builtins_action = self.create_action(
             ProfilerWidgetActions.ToggleBuiltins,
             text=_("Hide calls to external libraries"),
             tip=_('Hide calls to external libraries'),
             icon=self.create_icon('hide'),
-            toggled=self.toggle_builtins,
+            toggled=self._toggle_builtins,
         )
         save_action = self.create_action(
             ProfilerWidgetActions.SaveData,
             text=_("Save data"),
             tip=_('Save profiling data'),
             icon=self.create_icon('filesave'),
-            triggered=self.save_data,
+            triggered=self._save_data,
         )
         load_action = self.create_action(
             ProfilerWidgetActions.LoadData,
             text=_("Load data"),
             tip=_('Load profiling data for comparison'),
             icon=self.create_icon('fileimport'),
-            triggered=self.load_data,
+            triggered=self._load_data,
         )
         clear_action = self.create_action(
             ProfilerWidgetActions.Clear,
             text=_("Clear comparison"),
             tip=_("Clear comparison"),
             icon=self.create_icon('editdelete'),
-            triggered=self.clear,
+            triggered=self._clear,
         )
         search_action = self.create_action(
             ProfilerWidgetActions.Search,
             text=_("Search"),
             icon=self.create_icon('find'),
-            toggled=self.toggle_finder,
+            toggled=self._toggle_finder,
             register_shortcut=True
         )
         stop_action = self.create_action(
             ProfilerWidgetActions.Stop,
             text=_("Stop profiling"),
             icon=self.create_icon('stop_profile'),
-            triggered=self.stop_profiling,
+            triggered=self._stop_profiling,
         )
 
         # This needs to be workedd out better because right now is confusing
@@ -188,14 +188,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         #     ProfilerWidgetActions.Undo,
         #     text=_("Previous View"),
         #     icon=self.create_icon('previous'),
-        #     triggered=self.undo,
+        #     triggered=self._undo,
         #     register_shortcut=True
         # )
         # redo_action = self.create_action(
         #     ProfilerWidgetActions.Redo,
         #     text=_("Next View"),
         #     icon=self.create_icon('next'),
-        #     triggered=self.redo,
+        #     triggered=self._redo,
         #     register_shortcut=True
         # )
         # home_action = self.create_action(
@@ -203,7 +203,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         #     text=_("Reset tree"),
         #     tip=_('Go back to full tree'),
         #     icon=self.create_icon('home'),
-        #     triggered=self.home_tree,
+        #     triggered=self._home_tree,
         # )
 
         # ---- Main Toolbar
@@ -247,25 +247,26 @@ class ProfilerWidget(ShellConnectMainWidget):
             self.add_corner_widget(action, before=self._options_button)
 
         # ---- Context menu actions
-        self.show_callees_action = self.create_action(
+        show_callees_action = self.create_action(
             ProfilerWidgetContextMenuActions.ShowCallees,
             _("Show callees"),
             icon=self.create_icon('2downarrow'),
-            triggered=self.show_callees
+            triggered=self._show_callees
         )
-        self.show_callers_action = self.create_action(
+        show_callers_action = self.create_action(
             ProfilerWidgetContextMenuActions.ShowCallers,
             _("Show callers"),
             icon=self.create_icon('2uparrow'),
-            triggered=self.show_callers
+            triggered=self._show_callers
         )
 
-        self.context_menu = self.create_menu(
-            ProfilerWidgetMenus.PopulatedContextMenu)
-        for item in [self.show_callers_action, self.show_callees_action]:
+        self._context_menu = self.create_menu(
+            ProfilerWidgetMenus.PopulatedContextMenu
+        )
+        for item in [show_callers_action, show_callees_action]:
             self.add_item_to_menu(
                 item,
-                menu=self.context_menu,
+                menu=self._context_menu,
                 section=ProfilerContextMenuSections.Locals,
             )
 
@@ -352,10 +353,10 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Create new profiler widget."""
         widget = ProfilerSubWidget(self)
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
-        widget.sig_display_requested.connect(self.display_request)
+        widget.sig_display_requested.connect(self._display_request)
         widget.sig_refresh.connect(self.update_actions)
-        widget.set_context_menu(self.context_menu)
-        widget.sig_hide_finder_requested.connect(self.hide_finder)
+        widget.set_context_menu(self._context_menu)
+        widget.sig_hide_finder_requested.connect(self._hide_finder)
         widget.sig_show_empty_message_requested.connect(
             self.switch_empty_message
         )
@@ -364,7 +365,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             "show_profile_file", widget.show_profile_buffer
         )
         shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "start_profiling", self.start_profiling
+            "start_profiling", self._start_profiling
         )
         shellwidget.sig_kernel_is_ready.connect(
             functools.partial(widget.set_pane_empty, True)
@@ -377,8 +378,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Close profiler widget."""
         widget.sig_edit_goto_requested.disconnect(self.sig_edit_goto_requested)
         widget.sig_refresh.disconnect(self.update_actions)
-        widget.sig_display_requested.disconnect(self.display_request)
-        widget.sig_hide_finder_requested.disconnect(self.hide_finder)
+        widget.sig_display_requested.disconnect(self._display_request)
+        widget.sig_hide_finder_requested.disconnect(self._hide_finder)
 
         # Unregister
         widget.shellwidget.kernel_handler.kernel_comm.register_call_handler(
@@ -405,9 +406,9 @@ class ProfilerWidget(ShellConnectMainWidget):
             if widget.data_tree.profdata is not None:
                 self.show_content_widget()
 
-    # ---- Public API
+    # ---- Private API
     # -------------------------------------------------------------------------
-    def start_profiling(self):
+    def _start_profiling(self):
         self.start_spinner()
 
         stop_action = self.get_action(ProfilerWidgetActions.Stop)
@@ -419,7 +420,7 @@ class ProfilerWidget(ShellConnectMainWidget):
 
         widget.is_profiling = True
 
-    def stop_profiling(self):
+    def _stop_profiling(self):
         self.stop_spinner()
 
         stop_action = self.get_action(ProfilerWidgetActions.Stop)
@@ -432,14 +433,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.shellwidget.request_interrupt_kernel()
         widget.is_profiling = False
 
-    def home_tree(self):
+    def _home_tree(self):
         """Show home tree."""
         widget = self.current_widget()
         if widget is None:
             return
         widget.data_tree.home_tree()
 
-    def toggle_tree(self, state):
+    def _toggle_tree(self, state):
         """Toggle tree."""
         widget = self.current_widget()
         if widget is None:
@@ -447,7 +448,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.data_tree.inverted_tree = state
         widget.data_tree.refresh_tree()
 
-    def toggle_builtins(self, state):
+    def _toggle_builtins(self, state):
         """Toggle builtins."""
         widget = self.current_widget()
         if widget is None:
@@ -455,7 +456,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.data_tree.ignore_builtins = state
         widget.data_tree.refresh_tree()
 
-    def slow_local_tree(self, state):
+    def _slow_local_tree(self, state):
         """Show items with large local times"""
         widget = self.current_widget()
         if widget is None:
@@ -465,23 +466,23 @@ class ProfilerWidget(ShellConnectMainWidget):
         if state:
             widget.data_tree.show_slow_items()
         else:
-            self.home_tree()
+            self._home_tree()
 
-    def undo(self):
+    def _undo(self):
         """Undo change."""
         widget = self.current_widget()
         if widget is None:
             return
         widget.data_tree.undo()
 
-    def redo(self):
+    def _redo(self):
         """Redo changes."""
         widget = self.current_widget()
         if widget is None:
             return
         widget.data_tree.redo()
 
-    def show_callers(self):
+    def _show_callers(self):
         """Show callers."""
         widget = self.current_widget()
         if widget is None:
@@ -493,7 +494,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         if not toggle_tree_action.isChecked():
             toggle_tree_action.setChecked(True)
 
-    def show_callees(self):
+    def _show_callees(self):
         """Show callees."""
         widget = self.current_widget()
         if widget is None:
@@ -505,7 +506,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         if toggle_tree_action.isChecked():
             toggle_tree_action.setChecked(False)
 
-    def save_data(self):
+    def _save_data(self):
         """Save data."""
         widget = self.current_widget()
         if widget is None:
@@ -526,7 +527,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         if filename:
             widget.data_tree.save_data(filename)
 
-    def load_data(self):
+    def _load_data(self):
         """Compare previous saved run with last run."""
         widget = self.current_widget()
         if widget is None:
@@ -543,7 +544,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             widget.data_tree.home_tree()
             self.update_actions()
 
-    def clear(self):
+    def _clear(self):
         """Clear data in tree."""
         widget = self.current_widget()
         if widget is None:
@@ -552,14 +553,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.data_tree.home_tree()
         self.update_actions()
 
-    def display_request(self, widget):
+    def _display_request(self, widget):
         """
         Display request from ProfilerDataTree.
 
         Only display if this is the current widget.
         """
         self.update_actions()
-        self.stop_profiling()
+        self._stop_profiling()
 
         if (
             self.current_widget() is widget
@@ -567,14 +568,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         ):
             self.get_plugin().switch_to_plugin()
 
-    def toggle_finder(self, checked):
+    def _toggle_finder(self, checked):
         """Show or hide finder."""
         widget = self.current_widget()
         if widget is None:
             return
         widget.toggle_finder(checked)
 
-    def hide_finder(self):
+    def _hide_finder(self):
         """Hide finder."""
         action = self.get_action(ProfilerWidgetActions.Search)
         action.setChecked(False)
