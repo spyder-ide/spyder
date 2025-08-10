@@ -33,7 +33,7 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     CONF_SECTION = 'existing-kernel'
 
     def __init__(self, parent=None):
-        super(KernelConnectionDialog, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle(_('Connect to existing kernel'))
 
         main_label = QLabel(_(

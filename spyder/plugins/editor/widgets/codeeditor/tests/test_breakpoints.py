@@ -16,7 +16,6 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder import version_info
-from spyder.py3compat import to_text_string
 import spyder.plugins.editor.widgets.codeeditor as codeeditor
 from spyder.plugins.debugger.utils import breakpointsmanager
 from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager

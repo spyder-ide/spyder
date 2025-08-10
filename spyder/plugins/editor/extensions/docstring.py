@@ -18,7 +18,6 @@ from qtpy.QtWidgets import QMenu
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
 
 
 def is_start_of_function(text):
@@ -202,7 +201,7 @@ class DocstringWriterExtension(object):
         number_of_lines_of_function = 0
 
         for __ in range(min(remain_lines, 20)):
-            cur_text = to_text_string(cursor.block().text()).rstrip()
+            cur_text = str(cursor.block().text()).rstrip()
             cur_text = remove_comments(cur_text)
 
             if is_first_line:
@@ -248,7 +247,7 @@ class DocstringWriterExtension(object):
                 return None
 
             cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_text = to_text_string(cursor.block().text()).rstrip()
+            prev_text = str(cursor.block().text()).rstrip()
             prev_text = remove_comments(prev_text)
 
             if is_first_line:
@@ -279,7 +278,7 @@ class DocstringWriterExtension(object):
         body_list = []
 
         for __ in range(number_of_lines - line_number + 1):
-            text = to_text_string(cursor.block().text())
+            text = str(cursor.block().text())
             text_indent = get_indent(text)
 
             if text.strip() == '':
@@ -1032,7 +1031,7 @@ class QMenuOnlyForEnter(SpyderMenu):
 
     def __init__(self, code_editor):
         """Init SpyderMenu."""
-        super(QMenuOnlyForEnter, self).__init__(code_editor)
+        super().__init__(code_editor)
         self.code_editor = code_editor
 
     def keyPressEvent(self, event):
@@ -1042,4 +1041,4 @@ class QMenuOnlyForEnter(SpyderMenu):
             self.code_editor.keyPressEvent(event)
             self.close()
         else:
-            super(QMenuOnlyForEnter, self).keyPressEvent(event)
+            super().keyPressEvent(event)

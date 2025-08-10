@@ -17,7 +17,6 @@ import sys
 import pytest
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.plugins.explorer.widgets.fileassociations import (
     FileAssociationsWidget)
 
@@ -31,8 +30,8 @@ from spyder.plugins.explorer.widgets.fileassociations import (
 )
 def create_folders_files(tmpdir, request):
     """A project directory with dirs and files for testing."""
-    project_dir = to_text_string(tmpdir.mkdir('project'))
-    destination_dir = to_text_string(tmpdir.mkdir('destination'))
+    project_dir = str(tmpdir.mkdir('project'))
+    destination_dir = str(tmpdir.mkdir('destination'))
     top_folder = osp.join(project_dir, 'top_folder_in_proj')
     if not osp.exists(top_folder):
         os.mkdir(top_folder)

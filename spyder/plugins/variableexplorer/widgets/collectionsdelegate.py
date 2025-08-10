@@ -49,7 +49,6 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
-from spyder.py3compat import is_binary_string, is_text_string, to_text_string
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)
@@ -322,7 +321,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40 and not object_explorer:
+        elif isinstance(value, str) and len(value) > 40 and not object_explorer:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
@@ -451,12 +450,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         """
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
-            if is_binary_string(value):
+            if isinstance(value, bytes):
                 try:
-                    value = to_text_string(value, 'utf8')
+                    value = str(value, 'utf8')
                 except Exception:
                     pass
-            if not is_text_string(value):
+            if not isinstance(value, str):
                 value = repr(value)
             editor.setText(value)
         elif isinstance(editor, QDateEdit):
@@ -523,8 +522,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             height = table_view.rowHeight(row)
             editor.setGeometry(x0, y0, width, height)
         else:
-            super(CollectionsDelegate, self).updateEditorGeometry(
-                editor, option, index)
+            super().updateEditorGeometry(editor, option, index)
 
     def paint(self, painter, option, index):
         """Actions to take when painting a cell."""
@@ -782,7 +780,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 )
                 return editor
         # TextEditor for a long string
-        elif is_text_string(value) and len(value) > 40:
+        elif isinstance(value, str) and len(value) > 40:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
                 editor = TextEditor(value, key,
@@ -831,4 +829,4 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def editor_rejected(self, editor_id):
         """Actions to do when the editor was rejected."""
         self.restore_object()
-        super(ToggleColumnDelegate, self).editor_rejected(editor_id)
+        super().editor_rejected(editor_id)

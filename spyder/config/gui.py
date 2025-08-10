@@ -21,7 +21,6 @@ from qtpy.QtGui import QFont, QFontDatabase
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
 
 
@@ -75,7 +74,7 @@ def get_font(section='appearance', option='font', font_size_delta=0):
 
 def set_font(font, section='appearance', option='font'):
     """Set font properties in our config system."""
-    CONF.set(section, option+'/family', to_text_string(font.family()))
+    CONF.set(section, option+'/family', str(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
@@ -107,7 +106,7 @@ def set_color_scheme(name, color_scheme, replace=True):
         value = CONF.get(section, option, default=None)
         if value is None or replace or name not in names:
             CONF.set(section, option, color_scheme[key])
-    names.append(to_text_string(name))
+    names.append(str(name))
     CONF.set(section, "names", sorted(list(set(names))))
 
 

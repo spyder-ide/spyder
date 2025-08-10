@@ -42,7 +42,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-from spyder.py3compat import to_text_string
 from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import shell_split
@@ -367,7 +366,7 @@ class ProfilerWidget(PluginMainWidget):
             else:
                 qba += self.process.readAllStandardOutput()
 
-        text = to_text_string(qba.data(), encoding='utf-8')
+        text = str(qba.data(), encoding="utf-8")
         if error:
             self.error_output += text
         else:
@@ -514,7 +513,7 @@ class ProfilerWidget(PluginMainWidget):
         args: list
             Arguments to pass to the profiling process. Default is None.
         """
-        filename = to_text_string(self.filecombo.currentText())
+        filename = str(self.filecombo.currentText())
         if wdir is None:
             wdir = self._last_wdir
             if wdir is None:
@@ -611,7 +610,7 @@ class ProfilerWidget(PluginMainWidget):
         self.log_action.setEnabled(self.output is not None
                                    and len(self.output) > 0)
         self._kill_if_running()
-        filename = to_text_string(self.filecombo.currentText())
+        filename = str(self.filecombo.currentText())
         if not filename:
             return
 
@@ -818,7 +817,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
 
         # For number of calls
         if isinstance(measure, int):
-            return to_text_string(measure)
+            return str(measure)
 
         # For time measurements
         if 1.e-9 < measure <= 1.e-6:
@@ -833,7 +832,7 @@ class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
             m, s = divmod(measure, 3600)
             if s > 60:
                 m, s = divmod(measure, 60)
-                s = to_text_string(s).split(".")[-1]
+                s = str(s).split(".")[-1]
             measure = u"{0:.0f}.{1:.2s} min".format(m, s)
         else:
             h, m = divmod(measure, 3600)

@@ -16,7 +16,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.config.manager import CONF
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.plugins.editor.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
@@ -161,7 +160,7 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
             data.breakpoint = True
             data.breakpoint_condition = str(condition) if condition else None
         if data.breakpoint:
-            text = to_text_string(block.text()).strip()
+            text = str(block.text()).strip()
             if len(text) == 0 or text.startswith(("#", '"', "'")):
                 data.breakpoint = False
             else:
@@ -216,8 +215,8 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
 
     def save_breakpoints(self):
         breakpoints = repr(self.breakpoints)
-        filename = to_text_string(self.filename)
-        breakpoints = to_text_string(breakpoints)
+        filename = str(self.filename)
+        breakpoints = str(breakpoints)
         filename = osp.normpath(osp.abspath(filename))
         if breakpoints:
             breakpoints = eval(breakpoints)

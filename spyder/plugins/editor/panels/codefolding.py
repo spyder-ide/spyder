@@ -403,7 +403,7 @@ class FoldingPanel(Panel):
 
         :param event: event
         """
-        super(FoldingPanel, self).mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
         th = TextHelper(self.editor)
         line = th.line_nbr_from_position(event.pos().y())
 
@@ -457,7 +457,7 @@ class FoldingPanel(Panel):
         if highlight_caret_scope, else simply update the scope decorations to
         match the caret scope.
         """
-        super(FoldingPanel, self).leaveEvent(event)
+        super().leaveEvent(event)
         QApplication.restoreOverrideCursor()
         self._highlight_runner.cancel_requests()
         if not self.highlight_caret_scope:

@@ -16,7 +16,6 @@ import pytest
 
 # Local imports
 from spyder.plugins.projects.widgets.main_widget import ProjectExplorerTest
-from spyder.py3compat import to_text_string
 
 
 @pytest.fixture
@@ -24,7 +23,7 @@ def project_explorer(qtbot, request, tmpdir):
     """Setup Project Explorer widget."""
     directory = request.node.get_closest_marker('change_directory')
     if directory:
-        project_dir = to_text_string(tmpdir.mkdir('project'))
+        project_dir = str(tmpdir.mkdir('project'))
     else:
         project_dir = None
     project_explorer = ProjectExplorerTest(directory=project_dir)

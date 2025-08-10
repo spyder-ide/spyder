@@ -561,7 +561,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._executing:
             self._execute_queue.append((source, hidden, interactive))
             return
-        super(ShellWidget, self).execute(source, hidden, interactive)
+        super().execute(source, hidden, interactive)
 
     def is_running(self):
         """Check if shell is running."""
@@ -1499,7 +1499,7 @@ overrided by the Sympy module (e.g. plot)
 
     def _handle_execute_input(self, msg):
         """Handle an execute_input message"""
-        super(ShellWidget, self)._handle_execute_input(msg)
+        super()._handle_execute_input(msg)
         self.sig_remote_execute.emit()
 
     def _process_execute_error(self, msg):
@@ -1507,7 +1507,7 @@ overrided by the Sympy module (e.g. plot)
         Display a message when using our installers to explain users
         how to use modules that doesn't come with them.
         """
-        super(ShellWidget, self)._process_execute_error(msg)
+        super()._process_execute_error(msg)
         if self.show_modules_message:
             error = msg['content']['traceback']
             if any(['ModuleNotFoundError' in frame or 'ImportError' in frame
@@ -1525,12 +1525,12 @@ overrided by the Sympy module (e.g. plot)
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ShellWidget, self).focusInEvent(event)
+        return super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ShellWidget, self).focusOutEvent(event)
+        return super().focusOutEvent(event)
 
     # ---- Python methods
     def __repr__(self):

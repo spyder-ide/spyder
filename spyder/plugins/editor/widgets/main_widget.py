@@ -36,10 +36,9 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import qbytearray_to_str, to_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.icon_manager import ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.application.api import ApplicationActions
@@ -1584,7 +1583,7 @@ class EditorMainWidget(PluginMainWidget):
         self.update_todo_actions()
 
     def refresh_eol_chars(self, os_name):
-        os_name = to_text_string(os_name)
+        os_name = str(os_name)
         self.__set_eol_chars = False
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
@@ -1653,8 +1652,8 @@ class EditorMainWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def save_bookmarks(self, filename, bookmarks):
         """Receive bookmark changes and save them."""
-        filename = to_text_string(filename)
-        bookmarks = to_text_string(bookmarks)
+        filename = str(filename)
+        bookmarks = str(bookmarks)
         filename = osp.normpath(osp.abspath(filename))
         bookmarks = eval(bookmarks)
         old_slots = self.get_conf('bookmarks', default={})
@@ -1675,8 +1674,7 @@ class EditorMainWidget(PluginMainWidget):
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])
             try:
-                encoding.write(to_text_string(text), self.TEMPFILE_PATH,
-                               'utf-8')
+                encoding.write(str(text), self.TEMPFILE_PATH, 'utf-8')
             except EnvironmentError:
                 self.new()
                 return
@@ -1715,7 +1713,7 @@ class EditorMainWidget(PluginMainWidget):
             self.TEMPLATE_PATH, text=text,
         )
 
-        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)  # noqa
+        create_fname = lambda n: str(_("untitled")) + ("%d.py" % n)  # noqa
 
         # Creating editor widget
         if editorstack is None:
@@ -1762,7 +1760,7 @@ class EditorMainWidget(PluginMainWidget):
             fname = osp.abspath(osp.join(basedir, fname))
         else:
             # QString when triggered by a Qt signal
-            fname = osp.abspath(to_text_string(fname))
+            fname = osp.abspath(str(fname))
             index = current_es.has_filename(fname)
             if index is not None and not current_es.close_file(index):
                 return
@@ -1826,7 +1824,7 @@ class EditorMainWidget(PluginMainWidget):
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
-                filenames = from_qvariant(action.data(), to_text_string)
+                filenames = from_qvariant(action.data(), str)
 
         focus_widget = QApplication.focusWidget()
         if self.editorwindows and not self.dockwidget.isVisible():
@@ -2115,7 +2113,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def close_file_from_name(self, filename):
         """Close file from its name"""
-        filename = osp.abspath(to_text_string(filename))
+        filename = osp.abspath(str(filename))
         index = self.get_filename_index(filename)
         if index is not None:
             self.editorstacks[0].close_file(index)
@@ -2126,7 +2124,7 @@ class EditorMainWidget(PluginMainWidget):
 
     def removed_tree(self, dirname):
         """Directory was removed in project explorer widget"""
-        dirname = osp.abspath(to_text_string(dirname))
+        dirname = osp.abspath(str(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 self.close_file_from_name(fname)
@@ -2141,7 +2139,7 @@ class EditorMainWidget(PluginMainWidget):
         widget or the project explorer. The file may not be opened in the
         editor.
         """
-        filename = osp.abspath(to_text_string(source))
+        filename = osp.abspath(str(source))
         index = self.get_filename_index(filename)
 
         if index is not None or editorstack_id_str is not None:
@@ -2160,8 +2158,8 @@ class EditorMainWidget(PluginMainWidget):
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
-        dirname = osp.abspath(to_text_string(source))
-        tofile = to_text_string(dest)
+        dirname = osp.abspath(str(source))
+        tofile = str(dest)
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 source_re = "^" + re.escape(source)
@@ -2343,7 +2341,7 @@ class EditorMainWidget(PluginMainWidget):
         self.update_cursorpos_actions()
 
     def text_changed_at(self, filename, positions):
-        self.last_edit_cursor_pos = (to_text_string(filename), positions)
+        self.last_edit_cursor_pos = (str(filename), positions)
 
     def current_file_changed(self, filename, position, line, column):
         editor = self.get_current_editor()
@@ -2353,7 +2351,7 @@ class EditorMainWidget(PluginMainWidget):
         if editor:
             cursors = tuple(editor.all_cursors)
             if not editor.multi_cursor_ignore_history:
-                self.add_cursor_to_history(to_text_string(filename), cursors)
+                self.add_cursor_to_history(str(filename), cursors)
 
             # Hide any open tooltips
             current_stack = self.get_current_editorstack()
@@ -2371,7 +2369,7 @@ class EditorMainWidget(PluginMainWidget):
             filename = code_editor.filename
             cursors = tuple(code_editor.all_cursors)
             if not editor.multi_cursor_ignore_history:
-                self.add_cursor_to_history(to_text_string(filename), cursors)
+                self.add_cursor_to_history(str(filename), cursors)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file if the file is closed."""

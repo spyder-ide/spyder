@@ -23,7 +23,7 @@ class MainWindowMock(QMainWindow):
     sig_setup_finished = Signal()
 
     def __init__(self, parent):
-        super(MainWindowMock, self).__init__(parent)
+        super().__init__(parent)
         self.statusbar = Mock()
         self.console = Mock()
 
