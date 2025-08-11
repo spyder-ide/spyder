@@ -361,17 +361,20 @@ class ProfilerWidget(ShellConnectMainWidget):
             self.switch_empty_message
         )
 
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+        shellwidget.register_kernel_call_handler(
             "show_profile_file", widget.show_profile_buffer
         )
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+        shellwidget.register_kernel_call_handler(
             "start_profiling", self._start_profiling
         )
-        shellwidget.sig_kernel_is_ready.connect(
-            functools.partial(widget.set_pane_empty, True)
+        widget.on_kernel_ready_callback = functools.partial(
+            self._on_kernel_ready, widget
         )
-        widget.shellwidget = shellwidget
+        shellwidget.sig_kernel_is_ready.connect(
+            widget.on_kernel_ready_callback
+        )
 
+        widget.shellwidget = shellwidget
         return widget
 
     def close_widget(self, widget):
@@ -382,8 +385,11 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.sig_hide_finder_requested.disconnect(self._hide_finder)
 
         # Unregister
-        widget.shellwidget.kernel_handler.kernel_comm.register_call_handler(
-            "show_profile_file", None)
+        widget.shellwidget.unregister_kernel_call_handler("show_profile_file")
+        widget.shellwidget.unregister_kernel_call_handler("start_profiling")
+        widget.shellwidget.sig_kernel_is_ready.disconnect(
+            widget.on_kernel_ready_callback
+        )
         widget.setParent(None)
         widget.close()
 
@@ -421,17 +427,18 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget.is_profiling = True
 
     def _stop_profiling(self):
-        self.stop_spinner()
-
-        stop_action = self.get_action(ProfilerWidgetActions.Stop)
-        stop_action.setEnabled(False)
-
         widget = self.current_widget()
         if widget is None:
             return
 
-        widget.shellwidget.request_interrupt_kernel()
-        widget.is_profiling = False
+        if widget.is_profiling:
+            self.stop_spinner()
+
+            stop_action = self.get_action(ProfilerWidgetActions.Stop)
+            stop_action.setEnabled(False)
+
+            widget.shellwidget.request_interrupt_kernel()
+            widget.is_profiling = False
 
     def _home_tree(self):
         """Show home tree."""
@@ -579,3 +586,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Hide finder."""
         action = self.get_action(ProfilerWidgetActions.Search)
         action.setChecked(False)
+
+    def _on_kernel_ready(self, widget: ProfilerSubWidget):
+        self._stop_profiling()
+        widget.set_pane_empty(True)

@@ -14,6 +14,7 @@ https://docs.python.org/3/library/profile.html
 """
 
 # Standard library imports
+from collections.abc import Callable
 import os
 import os.path as osp
 import sys
@@ -82,6 +83,7 @@ class ProfilerSubWidget(
         self.data_tree = None
         self.finder = None
         self.is_profiling = False
+        self.on_kernel_ready_callback: Callable | None = None
         self.setup()
 
     def toggle_finder(self, show):
@@ -137,6 +139,9 @@ class ProfilerSubWidget(
         """Show profile file."""
         if not prof_buffer:
             return
+
+        # If we're going to show results, profiling has stopped
+        self.is_profiling = False
 
         tmp_dir = None
         if sys.platform.startswith('linux'):
