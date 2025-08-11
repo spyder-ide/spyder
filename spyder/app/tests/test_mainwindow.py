@@ -11,7 +11,6 @@ Tests for the main window.
 """
 
 # Standard library imports
-from collections import OrderedDict
 import gc
 import os
 import os.path as osp
@@ -5626,7 +5625,7 @@ def test_profiler(main_window, qtbot, tmpdir):
     assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
     assert item == sleep_str
-    profile_tree.slow_local_tree()
+    profile_tree._slow_local_tree(True)
     assert len(profile_tree.current_widget().data_tree.get_items(0)) == 3
 
     # Test profilecell
@@ -5634,11 +5633,11 @@ def test_profiler(main_window, qtbot, tmpdir):
     code = "result = 10; fname = __file__; time.sleep(0); time.time()"
     p = tmpdir.join("cell-test.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
 
     # Execute profile cell
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%profilecell -i 0 " + repr(to_text_string(p)))
+        shell.execute("%profilecell -i 0 " + repr(str(p)))
 
     qtbot.wait(1000)
 
@@ -5663,32 +5662,38 @@ def test_profiler(main_window, qtbot, tmpdir):
         "    if not stop:\n"
         "        g(True)\n"
         "f()"
-        )
+    )
     p = tmpdir.join("cell-test_2.py")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%profilefile " + repr(to_text_string(p)))
+        shell.execute("%profilefile " + repr(str(p)))
     qtbot.wait(1000)
+
     # Check callee tree
     toggle_tree_action.setChecked(False)
+    profile_tree._expand_tree()
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
     values = ["f", sleep_str, "g"]
     for item, val in zip(
-            profile_tree.current_widget().data_tree.get_items(1), values):
-        assert val == item.item_key[2]
+        profile_tree.current_widget().data_tree.get_items(1), values
+    ):
+       assert val == item.item_key[2]
 
     # Check caller tree
     toggle_tree_action.setChecked(True)
+    profile_tree._expand_tree()
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
     values = [sleep_str, "f", "g"]
     for item, val in zip(
-            profile_tree.current_widget().data_tree.get_items(1), values):
+        profile_tree.current_widget().data_tree.get_items(1), values
+    ):
         assert val == item.item_key[2]
 
     # Check local time
-    profile_tree.slow_local_tree()
+    profile_tree._slow_local_tree(True)
+    profile_tree._expand_tree()
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 11
 
     # Check no errors happened
@@ -5705,11 +5710,12 @@ def test_profiler(main_window, qtbot, tmpdir):
 
     assert shell.is_debugging()
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%profilefile " + repr(to_text_string(p)))
+        shell.execute("%profilefile " + repr(str(p)))
     qtbot.wait(1000)
 
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 1
     assert shell.is_debugging()
+
     # Make sure the shell is not broken
     with qtbot.waitSignal(shell.executed):
         shell.execute("13 + 1234")
@@ -5730,15 +5736,16 @@ def test_profiler_namespace(main_window, qtbot, tmpdir):
     code = (
         "result = 10\n"
         "%profile print(result)"
-        )
+    )
     p = tmpdir.join("test_prof.ipy")
     p.write(code)
-    main_window.editor.load(to_text_string(p))
+    main_window.editor.load(str(p))
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug 0")
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%runfile " + repr(to_text_string(p)))
+        shell.execute("%runfile " + repr(str(p)))
+
     # Make sure no errors are shown
     assert "error" not in shell._control.toPlainText().lower()
 
@@ -5750,7 +5757,8 @@ def test_profiler_namespace(main_window, qtbot, tmpdir):
         shell.execute("%reset -f")
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%runfile " + repr(to_text_string(p)))
+        shell.execute("%runfile " + repr(str(p)))
+
     # Make sure no errors are shown
     assert "error" not in shell._control.toPlainText().lower()
 
