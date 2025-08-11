@@ -27,7 +27,6 @@ import warnings
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.config.base import _, DEV
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import to_text_string
 
 
 class CustomHTMLDoc(Doc, SpyderFontsMixin):
@@ -843,7 +842,7 @@ def _url_handler(url, content_type="text/html"):
             contents = '<br>'.join(html.escape(line) for line in
                                    format_exception_only(type(exc), exc))
         else:
-            contents = '%s' % to_text_string(exc)
+            contents = '%s' % str(exc)
         contents = heading + html.bigsection(url, contents, css_class="error")
         return "Error - %s" % url, contents
 

@@ -84,7 +84,6 @@ from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.config.utils import IMPORT_EXT
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import select_port, getcwd_or_home
@@ -967,7 +966,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         window_title = self._cli_options.window_title
         if window_title is not None:
-            title += u' -- ' + to_text_string(window_title)
+            title += u' -- ' + str(window_title)
 
         # TODO: Remove self.projects reference once there's an API for setting
         # window title.

@@ -60,8 +60,6 @@ from spyder_kernels.utils.nsview import (
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _, running_under_pytest
-from spyder.py3compat import (is_binary_string, to_text_string,
-                              is_type_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import mimedata2url
@@ -218,7 +216,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         self.total_rows = None
         self.showndata = None
         self.keys = None
-        self.title = to_text_string(title)  # in case title is not a string
+        self.title = str(title)  # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
         self.sizes = []
@@ -542,10 +540,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
         if index.column() == 3:
             display = value_to_display(value, minmax=self.minmax)
         else:
-            if is_type_text_string(value):
-                display = to_text_string(value, encoding="utf-8")
+            if isinstance(value, str):
+                display = str(value)
+            elif isinstance(value, bytes):
+                display = str(value, "utf-8")
             elif not isinstance(value, NUMERIC_TYPES):
-                display = to_text_string(value)
+                display = str(value)
             else:
                 display = value
         if role == Qt.ToolTipRole:
@@ -698,7 +698,7 @@ class BaseHeaderView(QHeaderView):
     sig_user_resized_section = Signal(int, int, int)
 
     def __init__(self, parent=None):
-        super(BaseHeaderView, self).__init__(Qt.Horizontal, parent)
+        super().__init__(Qt.Horizontal, parent)
         self._handle_section_is_pressed = False
         self.sectionResized.connect(self.sectionResizeEvent)
         # Needed to enable sorting by column
@@ -706,12 +706,12 @@ class BaseHeaderView(QHeaderView):
         self.setSectionsClickable(True)
 
     def mousePressEvent(self, e):
-        super(BaseHeaderView, self).mousePressEvent(e)
+        super().mousePressEvent(e)
         self._handle_section_is_pressed = (self.cursor().shape() ==
                                            Qt.SplitHCursor)
 
     def mouseReleaseEvent(self, e):
-        super(BaseHeaderView, self).mouseReleaseEvent(e)
+        super().mouseReleaseEvent(e)
         self._handle_section_is_pressed = False
 
     def sectionResizeEvent(self, logicalIndex, oldSize, newSize):
@@ -1375,8 +1375,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             new_key, valid = QInputDialog.getText(self, title, field_text,
                                                   QLineEdit.Normal, orig_key)
 
-        if valid and to_text_string(new_key):
-            new_key = try_to_eval(to_text_string(new_key))
+        if valid and str(new_key):
+            new_key = try_to_eval(str(new_key))
             if new_key == orig_key:
                 return
             self.copy_value(orig_key, new_key)
@@ -1422,8 +1422,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         elif isinstance(data, dict):
             key, valid = QInputDialog.getText(self, _('Insert'), _('Key:'),
                                               QLineEdit.Normal)
-            if valid and to_text_string(key):
-                key = try_to_eval(to_text_string(key))
+            if valid and str(key):
+                key = try_to_eval(str(key))
             else:
                 return
         else:
@@ -1432,8 +1432,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         value, valid = QInputDialog.getText(self, _('Insert'), _('Value:'),
                                             QLineEdit.Normal)
 
-        if valid and to_text_string(value):
-            self.new_value(key, try_to_eval(to_text_string(value)))
+        if valid and str(value):
+            self.new_value(key, try_to_eval(str(value)))
 
     @Slot()
     def view_item(self):
@@ -1570,8 +1570,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                     continue
                 obj = output.getvalue()
                 output.close()
-            elif is_binary_string(obj):
-                obj = to_text_string(obj, 'utf8')
+            elif isinstance(obj, bytes):
+                obj = str(obj, 'utf8')
             else:
                 obj = str(obj)
 
@@ -1639,7 +1639,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
         clipboard = QApplication.clipboard()
         cliptext = ''
         if clipboard.mimeData().hasText():
-            cliptext = to_text_string(clipboard.text())
+            cliptext = str(clipboard.text())
         if cliptext.strip():
             self.import_from_string(cliptext, title=_("Import from clipboard"))
         else:
@@ -2193,8 +2193,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         try:
             self.shellwidget.set_value(name, value)
         except TypeError as e:
-            QMessageBox.critical(self, _("Error"),
-                                 "TypeError: %s" % to_text_string(e))
+            QMessageBox.critical(self, _("Error"), "TypeError: %s" % str(e))
         self.namespacebrowser.refresh_namespacebrowser()
 
     def remove_values(self, names):
@@ -2346,8 +2345,8 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         using to columns (name and type).
         """
         model = self.sourceModel()
-        name = to_text_string(model.row_key(row_num))
-        variable_type = to_text_string(model.row_type(row_num))
+        name = str(model.row_key(row_num))
+        variable_type = str(model.row_type(row_num))
         r_name = re.search(self.pattern, name)
         r_type = re.search(self.pattern, variable_type)
 
@@ -2397,7 +2396,7 @@ def get_test_data():
         test_pd_td = pd.Timedelta(days=2193, hours=12)
         test_dtindex = pd.date_range(start="1939-09-01T",
                                      end="1939-10-06",
-                                     freq="12H")
+                                     freq="12h")
         test_series = pd.Series({"series_name": [0, 1, 2, 3, 4, 5]})
         test_df = pd.DataFrame({"string_col": ["a", "b", "c", "d"],
                                 "int_col": [0, 1, 2, 3],
@@ -2414,8 +2413,8 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'module': np,
-            'str': 'kjkj kj k j j kj k jkj',
-            'unicode': to_text_string('éù', 'utf-8'),
+            'bytes': b'kjkj kj k j j kj k jkj',
+            'str': 'éù',
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
             'tuple': ([1, testdate, testdict, test_timedelta], 'kjkj', None),

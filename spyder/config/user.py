@@ -23,7 +23,6 @@ import time
 
 # Local imports
 from spyder.config.base import get_conf_path, get_module_source_path
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.programs import check_version
 
 
@@ -46,7 +45,7 @@ class DefaultsConfig(cp.ConfigParser, object):
         """
         Class used to save defaults to a file and as UserConfig base class.
         """
-        super(DefaultsConfig, self).__init__(interpolation=None)
+        super().__init__(interpolation=None)
 
         self._name = name
         self._path = path
@@ -75,7 +74,7 @@ class DefaultsConfig(cp.ConfigParser, object):
                     continue
 
                 if (value is not None) or (self._optcre == self.OPTCRE):
-                    value = to_text_string(value)
+                    value = str(value)
                     value_plus_end_of_line = value.replace('\n', '\n\t')
                     key = ' = '.join((key, value_plus_end_of_line))
 
@@ -88,14 +87,14 @@ class DefaultsConfig(cp.ConfigParser, object):
         if not self.has_section(section):
             self.add_section(section)
 
-        if not is_text_string(value):
+        if not isinstance(value, str):
             value = repr(value)
 
         if verbose:
             text = '[{}][{}] = {}'.format(section, option, value)
             print(text)  # spyder: test-skip
 
-        super(DefaultsConfig, self).set(section, option, value)
+        super().set(section, option, value)
 
     def _save(self):
         """Save config into the associated .ini file."""
@@ -177,7 +176,7 @@ class UserConfig(DefaultsConfig):
                  backup=False, raw_mode=False, remove_obsolete=False,
                  external_plugin=False):
         """UserConfig class, based on ConfigParser."""
-        super(UserConfig, self).__init__(name=name, path=path)
+        super().__init__(name=name, path=path)
 
         self._load = load
         self._version = self._check_version(version)
@@ -259,10 +258,10 @@ class UserConfig(DefaultsConfig):
         elif isinstance(defaults, list):
             # Check is a list of tuples with strings and dictionaries
             for sec, options in defaults:
-                assert is_text_string(sec)
+                assert isinstance(sec, str)
                 assert isinstance(options, dict)
                 for opt, _ in options.items():
-                    assert is_text_string(opt)
+                    assert isinstance(opt, str)
 
                     if sec == "shortcuts" and (
                         "/" not in opt or len(opt.split("/")) > 2
@@ -300,10 +299,10 @@ class UserConfig(DefaultsConfig):
         """Check section and option types."""
         if section is None:
             section = cls.DEFAULT_SECTION_NAME
-        elif not is_text_string(section):
+        elif not isinstance(section, str):
             raise RuntimeError("Argument 'section' must be a string")
 
-        if not is_text_string(option):
+        if not isinstance(option, str):
             raise RuntimeError("Argument 'option' must be a string")
 
         return section
@@ -363,7 +362,7 @@ class UserConfig(DefaultsConfig):
                 except (cp.NoSectionError, cp.NoOptionError):
                     old_val = None
 
-                if old_val is None or to_text_string(new_value) != old_val:
+                if old_val is None or str(new_value) != old_val:
                     self._set(section, option, new_value, verbose)
 
     def _remove_deprecated_options(self, old_version):
@@ -521,7 +520,7 @@ class UserConfig(DefaultsConfig):
                 self.set(section, option, default)
                 return default
 
-        value = super(UserConfig, self).get(section, option, raw=self._raw)
+        value = super().get(section, option, raw=self._raw)
 
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
@@ -530,7 +529,7 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif is_text_string(default_value):
+        elif isinstance(default_value, str):
             pass
         else:
             try:
@@ -573,7 +572,7 @@ class UserConfig(DefaultsConfig):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif not is_text_string(default_value):
+        elif not isinstance(default_value, str):
             value = repr(value)
 
         self._set(section, option, value, verbose)
@@ -582,12 +581,12 @@ class UserConfig(DefaultsConfig):
 
     def remove_section(self, section):
         """Remove `section` and all options within it."""
-        super(UserConfig, self).remove_section(section)
+        super().remove_section(section)
         self._save()
 
     def remove_option(self, section, option):
         """Remove `option` from `section`."""
-        super(UserConfig, self).remove_option(section, option)
+        super().remove_option(section, option)
         self._save()
 
     def cleanup(self):
@@ -674,8 +673,7 @@ class SpyderUserConfig(UserConfig):
                 backup_fpath = "{}-{}{}".format(fpath, version,
                                                 self._backup_suffix)
         else:
-            super_class = super(SpyderUserConfig, self)
-            backup_fpath = super_class.get_backup_fpath_from_version(
+            backup_fpath = super().get_backup_fpath_from_version(
                 version, old_version)
 
         return backup_fpath
@@ -691,12 +689,10 @@ class SpyderUserConfig(UserConfig):
                 name = '{}-{}'.format(self._defaults_name_prefix, old_version)
                 path = osp.join(get_conf_path(), 'defaults')
             else:
-                super_class = super(SpyderUserConfig, self)
-                path, name = super_class.get_defaults_path_name_from_version(
+                path, name = super().get_defaults_path_name_from_version(
                     old_version)
         else:
-            super_class = super(SpyderUserConfig, self)
-            path, name = super_class.get_defaults_path_name_from_version()
+            path, name = super().get_defaults_path_name_from_version()
 
         return path, name
 
@@ -711,8 +707,7 @@ class SpyderUserConfig(UserConfig):
         if self._external_plugin:
             return
         if old_version and check_version(old_version, '44.1.0', '<'):
-            run_lines = to_text_string(self.get('ipython_console',
-                                                'startup/run_lines'))
+            run_lines = str(self.get('ipython_console', 'startup/run_lines'))
             if run_lines is not NoDefault:
                 run_lines = run_lines.replace(',', '; ')
                 self.set('ipython_console', 'startup/run_lines', run_lines)
