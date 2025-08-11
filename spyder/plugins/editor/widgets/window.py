@@ -41,9 +41,8 @@ from spyder.plugins.mainmenu.api import (
 )
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.py3compat import qbytearray_to_str
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.qthelpers import create_toolbutton, qbytearray_to_str
 from spyder.utils.stylesheet import (
     AppStyle,
     APP_STYLESHEET,
@@ -58,10 +57,10 @@ logger = logging.getLogger(__name__)
 # ---- Constants
 # -----------------------------------------------------------------------------
 class EditorMainWindowMenus:
-    View = "view"
+    Window = "window"
 
 
-class ViewMenuSections:
+class WindowMenuSections:
     Outline = "outline"
     Toolbars = "toolbars"
 
@@ -411,14 +410,14 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             ApplicationMenus.Source,
             ApplicationMenus.Run,
             ApplicationMenus.Tools,
-            EditorMainWindowMenus.View,
+            EditorMainWindowMenus.Window,
             ApplicationMenus.Help
         ]
 
         for menu_id in menu_list:
-            if menu_id == EditorMainWindowMenus.View:
-                view_menu = self._create_view_menu()
-                self.menuBar().addMenu(view_menu)
+            if menu_id == EditorMainWindowMenus.Window:
+                window_menu = self._create_window_menu()
+                self.menuBar().addMenu(window_menu)
             else:
                 # This is necessary to run tests for this widget without
                 # Spyder's main window
@@ -493,12 +492,12 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _create_view_menu(self):
+    def _create_window_menu(self):
         # Create menu
-        view_menu = self._create_menu(
-            menu_id=EditorMainWindowMenus.View,
+        window_menu = self._create_menu(
+            menu_id=EditorMainWindowMenus.Window,
             parent=self,
-            title=_("&View"),
+            title=_("&Window"),
             register=False,
             MenuClass=ApplicationMenu
         )
@@ -511,12 +510,12 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             option="show_outline_in_editor_window"
         )
 
-        view_menu.add_action(
+        window_menu.add_action(
             self.toggle_outline_action,
-            section=ViewMenuSections.Outline
+            section=WindowMenuSections.Outline
         )
 
-        # Add toolbar toggle view actions
+        # Add toolbar toggle window actions
         visible_toolbars = self.get_conf(
             'last_visible_toolbars',
             section='toolbar'
@@ -533,12 +532,12 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                 toolbar_action.setChecked(True)
                 toolbar.setVisible(True)
 
-            view_menu.add_action(
+            window_menu.add_action(
                 toolbar_action,
-                section=ViewMenuSections.Toolbars
+                section=WindowMenuSections.Toolbars
             )
 
-        return view_menu
+        return window_menu
 
 
 class EditorMainWidgetExample(QSplitter):

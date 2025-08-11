@@ -37,6 +37,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
@@ -271,6 +272,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
     ----------
     path: str
         Path to the new interpreter.
+    """
+
+    sig_edit_action_enabled = Signal(str, bool)
+    """
+    This signal is emitted to enable or disable an edit action.
+
+    Parameters
+    ----------
+    action_name: str
+        Name of the edit action to be enabled or disabled.
+    enabled: bool
+        True if the action should be enabled, False if it should disabled.
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
@@ -532,44 +545,44 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # --- Context menu actions
         # TODO: Shortcut registration not working
-        cut_action = self.create_action(
+        self.cut_action = self.create_action(
             ClientContextMenuActions.Cut,
             text=_("Cut"),
             icon=self.create_icon("editcut"),
-            triggered=self._current_client_cut
+            triggered=self.current_client_cut
         )
-        cut_action.setShortcut(QKeySequence.Cut)
+        self.cut_action.setShortcut(QKeySequence.Cut)
 
-        copy_action = self.create_action(
+        self.copy_action = self.create_action(
             ClientContextMenuActions.Copy,
             text=_("Copy"),
             icon=self.create_icon("editcopy"),
-            triggered=self._current_client_copy
+            triggered=self.current_client_copy
         )
-        copy_action.setShortcut(QKeySequence.Copy)
+        self.copy_action.setShortcut(QKeySequence.Copy)
 
-        self.create_action(
+        self.copy_raw_action = self.create_action(
             ClientContextMenuActions.CopyRaw,
             text=_("Copy (raw text)"),
             triggered=self._current_client_copy_raw
         )
 
-        paste_action = self.create_action(
+        self.paste_action = self.create_action(
             ClientContextMenuActions.Paste,
             text=_("Paste"),
             icon=self.create_icon("editpaste"),
-            triggered=self._current_client_paste
+            triggered=self.current_client_paste
         )
-        paste_action.setShortcut(QKeySequence.Paste)
+        self.paste_action.setShortcut(QKeySequence.Paste)
 
-        self.create_action(
+        self.select_all_action = self.create_action(
             ClientContextMenuActions.SelectAll,
             text=_("Select all"),
             icon=self.create_icon("selectall"),
-            triggered=self._current_client_select_all
+            triggered=self.current_client_select_all
         )
 
-        self.create_action(
+        self.inspect_object_action = self.create_action(
             ClientContextMenuActions.InspectObject,
             text=_("Inspect current object"),
             icon=self.create_icon('MessageBoxInformation'),
@@ -577,7 +590,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.enter_array_table_action = self.create_action(
             ClientContextMenuActions.ArrayTable,
             text=_("Enter array table"),
             icon=self.create_icon("arredit"),
@@ -585,28 +598,28 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.enter_array_inline_action = self.create_action(
             ClientContextMenuActions.ArrayInline,
             text=_("Enter array inline"),
             triggered=self._current_client_enter_array_inline,
             register_shortcut=True
         )
 
-        self.create_action(
+        self.export_html_action = self.export_action = self.create_action(
             ClientContextMenuActions.Export,
             text=_("Save as html..."),
             icon=self.create_icon("CodeFileIcon"),
             triggered=self._current_client_export
         )
 
-        self.create_action(
+        self.print_action = self.create_action(
             ClientContextMenuActions.Print,
             text=_("Print..."),
             icon=self.create_icon("print"),
             triggered=self._current_client_print
         )
 
-        self.create_action(
+        self.clear_line_action = self.create_action(
             ClientContextMenuActions.ClearLine,
             text=_("Clear line or block"),
             icon=self.create_icon("clear_text"),
@@ -614,7 +627,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.clear_console_action = self.create_action(
             ClientContextMenuActions.ClearConsole,
             text=_("Clear console"),
             icon=self.create_icon("clear_console"),
@@ -622,25 +635,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             register_shortcut=True
         )
 
-        self.create_action(
+        self.copy_image_action = self.create_action(
             ClientContextMenuActions.CopyImage,
             text=_("Copy image"),
             triggered=self._current_client_copy_image
         )
 
-        self.create_action(
+        self.save_image_action = self.create_action(
             ClientContextMenuActions.SaveImage,
             text=_("Save image as..."),
             triggered=self._current_client_save_image
         )
 
-        self.create_action(
+        self.copy_svg_action = self.create_action(
             ClientContextMenuActions.CopySvg,
             text=_("Copy SVG"),
             triggered=self._current_client_copy_svg
         )
 
-        self.create_action(
+        self.save_svg_action = self.create_action(
             ClientContextMenuActions.SaveSvg,
             text=_("Save SVG as..."),
             triggered=self._current_client_save_svg
@@ -649,7 +662,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         # The Quit entry was available in Spyder 5 and before, and some users
         # were accustomed to click on it.
         # Fixes spyder-ide/spyder#24096
-        self.create_action(
+        self.quit_action = self.create_action(
             ClientContextMenuActions.Quit,
             _("&Quit"),
             icon=self.create_icon('exit'),
@@ -1462,6 +1475,37 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
     # ---- General
     # -------------------------------------------------------------------------
+    def update_edit_menu(self) -> None:
+        """
+        Enable edition related actions when a client is available.
+        """
+        undo_action_enabled = False
+        redo_action_enabled = False
+        cut_action_enabled = False
+        copy_action_enabled = False
+        paste_action_enabled = False
+        client = self.get_current_client()
+
+        if client:
+            undo_action_enabled = (
+                client.shellwidget._control.document().isUndoAvailable()
+            )
+            redo_action_enabled = (
+                client.shellwidget._control.document().isRedoAvailable()
+            )
+            cut_action_enabled = client.shellwidget.can_cut()
+            copy_action_enabled = client.shellwidget.can_copy()
+            paste_action_enabled = client.shellwidget.can_paste()
+
+        for action, enabled in [
+            (ApplicationActions.Undo, undo_action_enabled),
+            (ApplicationActions.Redo, redo_action_enabled),
+            (ApplicationActions.Cut, cut_action_enabled),
+            (ApplicationActions.Copy, copy_action_enabled),
+            (ApplicationActions.Paste, paste_action_enabled),
+        ]:
+            self.sig_edit_action_enabled.emit(action, enabled)
+
     def update_font(self, font, app_font):
         self._font = font
         self._app_font = app_font
@@ -2171,12 +2215,22 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.create_new_client(give_focus=False, cache=False)
         self.create_new_client_if_empty = True
 
-    def _current_client_cut(self):
+    def current_client_undo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.undo()
+
+    def current_client_redo(self):
+        client = self.get_current_client()
+        if client:
+            client.shellwidget.redo()
+
+    def current_client_cut(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.cut()
 
-    def _current_client_copy(self):
+    def current_client_copy(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.copy()
@@ -2186,12 +2240,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client:
             client.shellwidget.copy_raw()
 
-    def _current_client_paste(self):
+    def current_client_paste(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.paste()
 
-    def _current_client_select_all(self):
+    def current_client_select_all(self):
         client = self.get_current_client()
         if client:
             client.shellwidget.select_all_smart()

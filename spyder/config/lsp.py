@@ -34,11 +34,6 @@ PYTHON_CONFIG = {
             'plugins': {
                 'pycodestyle': {
                     'enabled': False,
-                    'exclude': [],
-                    'filename': [],
-                    'select': [],
-                    'ignore': [],
-                    'hangClosing': False,
                     'maxLineLength': 79
                 },
                 'pyflakes': {

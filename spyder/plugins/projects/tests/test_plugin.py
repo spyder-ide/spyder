@@ -31,7 +31,6 @@ from spyder.plugins.projects.api import BaseProjectType
 from spyder.plugins.projects.plugin import Projects
 from spyder.plugins.projects.widgets.main_widget import QMessageBox
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.py3compat import to_text_string
 
 
 # =============================================================================
@@ -125,7 +124,7 @@ def create_projects(projects, mocker):
 def test_open_project(projects, tmpdir, test_directory):
     """Test that we can create a project in a given directory."""
     # Create the directory
-    path = to_text_string(tmpdir.mkdir(test_directory))
+    path = str(tmpdir.mkdir(test_directory))
 
     # Open project in path
     projects.open_project(path=path)
@@ -141,7 +140,7 @@ def test_open_project(projects, tmpdir, test_directory):
 def test_delete_project(projects, tmpdir, mocker, test_directory):
     """Test that we can delete a project."""
     # Create the directory
-    path = to_text_string(tmpdir.mkdir(test_directory))
+    path = str(tmpdir.mkdir(test_directory))
 
     # Open project in path
     projects.open_project(path=path)
@@ -161,7 +160,7 @@ def test_close_project_sets_visible_config(projects, tmpdir, value):
     visible_if_project_open is set to the correct value."""
     # Set config to opposite value so that we can check that it's set correctly
     projects.set_conf('visible_if_project_open', not value)
-    projects.open_project(path=to_text_string(tmpdir))
+    projects.open_project(path=str(tmpdir))
     if value:
         projects._show_main_widget()
     else:
@@ -180,7 +179,7 @@ def test_on_close_sets_visible_config(projects, tmpdir, value):
     # No project is open so config option should remain unchanged
     assert projects.get_conf('visible_if_project_open') == (not value)
 
-    projects.open_project(path=to_text_string(tmpdir))
+    projects.open_project(path=str(tmpdir))
     if value:
         projects._show_main_widget()
     else:
@@ -194,7 +193,7 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     """Test that when a project is opened, the project explorer is only opened
     if the config option visible_if_project_open is set."""
     projects.set_conf('visible_if_project_open', value)
-    projects.open_project(path=to_text_string(tmpdir))
+    projects.open_project(path=str(tmpdir))
     assert projects.get_widget().isVisible() == value
 
 
@@ -204,7 +203,7 @@ def test_switch_to_plugin(projects, tmpdir, value):
     opened, regardless of the config option visible_if_project_open.
     Regression test for spyder-ide/spyder#12491."""
     projects.set_conf('visible_if_project_open', value)
-    projects.open_project(path=to_text_string(tmpdir))
+    projects.open_project(path=str(tmpdir))
     projects.switch_to_plugin()
     assert projects.get_widget().isVisible()
 
@@ -218,7 +217,7 @@ def test_set_get_project_filenames_when_closing_no_files(create_projects,
 
     Regression test for spyder-ide/spyder#10045.
     """
-    path = to_text_string(tmpdir.mkdir('project1'))
+    path = str(tmpdir.mkdir('project1'))
     # Create paths but no actual files
     opened_files = [os.path.join(path, file)
                     for file in ['file1', 'file2', 'file3']]
@@ -246,14 +245,14 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     """
     # Setup tmp dir and files
     dir_object = tmpdir.mkdir('project1')
-    path = to_text_string(dir_object)
+    path = str(dir_object)
 
     # Needed to actually create the files
     opened_files = []
     for file in ['file1', 'file2', 'file3']:
         file_object = dir_object.join(file)
         file_object.write(file)
-        opened_files.append(to_text_string(file_object))
+        opened_files.append(str(file_object))
 
     # Create the projects plugin.
     projects = create_projects(path, opened_files)
@@ -273,15 +272,15 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     Updated for spyder-ide/spyder#10045.
     """
     dir_object1 = tmpdir.mkdir('project1')
-    path1 = to_text_string(dir_object1)
-    path2 = to_text_string(tmpdir.mkdir('project2'))
+    path1 = str(dir_object1)
+    path2 = str(tmpdir.mkdir('project2'))
 
     # Needed to actually create the files
     opened_files = []
     for file in ['file1', 'file2', 'file3']:
         file_object = dir_object1.join(file)
         file_object.write(file)
-        opened_files.append(to_text_string(file_object))
+        opened_files.append(str(file_object))
 
     # Create the projects plugin.
     projects = create_projects(path1, opened_files)
@@ -305,9 +304,9 @@ def test_recent_projects_menu_action(projects, tmpdir):
     Regression test for spyder-ide/spyder#8450.
     """
     # Create the directories.
-    path0 = to_text_string(tmpdir.mkdir('project0'))
-    path1 = to_text_string(tmpdir.mkdir('project1'))
-    path2 = to_text_string(tmpdir.mkdir('project2'))
+    path0 = str(tmpdir.mkdir('project0'))
+    path1 = str(tmpdir.mkdir('project1'))
+    path2 = str(tmpdir.mkdir('project2'))
 
     # Open projects in path0, path1, and path2.
     projects.open_project(path=path0)
@@ -338,8 +337,8 @@ def test_project_explorer_tree_root(projects, tmpdir, qtbot):
     qtbot.addWidget(projects.get_widget())
     projects._show_main_widget()
 
-    ppath1 = to_text_string(tmpdir.mkdir(u'測試'))
-    ppath2 = to_text_string(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
+    ppath1 = str(tmpdir.mkdir(u'測試'))
+    ppath2 = str(tmpdir.mkdir(u'ïèô éàñ').mkdir(u'اختبار'))
     if os.name == 'nt':
         # For an explanation of why this part is necessary to make this test
         # pass for Python2 in Windows, see spyder-ide/spyder#8528.
@@ -479,8 +478,8 @@ def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
     projects.
     """
     dir_object1 = tmpdir.mkdir('project1')
-    path1 = to_text_string(dir_object1)
-    path2 = to_text_string(tmpdir.mkdir('project2'))
+    path1 = str(dir_object1)
+    path2 = str(tmpdir.mkdir('project2'))
 
     mocker.patch.object(ProjectDialog, "exec_", return_value=True)
 
@@ -489,7 +488,7 @@ def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
     for file in ['file1', 'file2', 'file3']:
         file_object = dir_object1.join(file)
         file_object.write(file)
-        opened_files.append(to_text_string(file_object))
+        opened_files.append(str(file_object))
 
     # Create the projects plugin.
     projects = create_projects(path1, opened_files)

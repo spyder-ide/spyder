@@ -12,7 +12,6 @@ import os.path as osp
 # Local imports
 from spyder.api.widgets.status import StatusBarWidget
 from spyder.api.translations import _
-from spyder.py3compat import to_text_string
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
 
@@ -37,7 +36,7 @@ class EOLStatus(StatusBarWidget):
 
     def update_eol(self, os_name):
         """Update end of line status."""
-        os_name = to_text_string(os_name)
+        os_name = str(os_name)
         value = {"nt": "CRLF", "posix": "LF"}.get(os_name, "CR")
         self.set_value(value)
 

@@ -17,12 +17,6 @@ class EditorWidgetActions:
     GoToNextFile = "Go to next file"
     GoToPreviousFile = "Go to previous file"
 
-    # Find/Search operations
-    FindText = "Find text"
-    FindNext = "Find next"
-    FindPrevious = "Find previous"
-    ReplaceText = "Replace text"
-
     # Source code operations
     ShowTodoList = "show_todo_list_action"
     ShowCodeAnalysisList = "show_code_analaysis_action"
@@ -44,7 +38,6 @@ class EditorWidgetActions:
     ShowIndentGuides = "show_indent_guides_action"
     ShowCodeFolding = "show_code_folding_action"
     ShowClassFuncDropdown = "show_class_func_dropdown_action"
-    ShowCodeStyleWarnings = "pycodestyle_action"
     ShowDoctringWarnings = "pydocstyle_action"
     UnderlineErrors = "underline_errors_action"
 
@@ -62,10 +55,3 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
-
-    Undo = "Undo"
-    Redo = "Redo"
-    Copy = "Copy"
-    Cut = "Cut"
-    Paste = "Paste"
-    SelectAll = "Select All"

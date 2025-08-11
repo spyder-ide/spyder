@@ -18,6 +18,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown,
 )
 from spyder.api.translations import _
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
@@ -382,26 +383,6 @@ class Editor(SpyderDockablePlugin):
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
 
-        # UndoRedo section
-        for action in [widget.undo_action, widget.redo_action]:
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit,
-                section=EditMenuSections.UndoRedo,
-                before_section=EditMenuSections.Editor
-            )
-
-        # Copy section
-        for action in [
-                widget.cut_action, widget.copy_action, widget.paste_action,
-                widget.selectall_action]:
-            mainmenu.add_item_to_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit,
-                section=EditMenuSections.Copy,
-                before_section=EditMenuSections.Editor
-            )
-
         # Editor section
         for edit_item in widget.edit_menu_actions:
             mainmenu.add_item_to_application_menu(
@@ -425,18 +406,6 @@ class Editor(SpyderDockablePlugin):
             )
 
         # ---- Search menu ----
-        search_menu = mainmenu.get_application_menu(ApplicationMenus.Search)
-        search_menu.aboutToShow.connect(widget.update_search_menu)
-
-        # Find section
-        for search_item in widget.search_menu_actions:
-            mainmenu.add_item_to_application_menu(
-                search_item,
-                menu_id=ApplicationMenus.Search,
-                section=SearchMenuSections.FindInText,
-                before_section=SearchMenuSections.Cursor,
-            )
-
         # Cursor section
         cursor_actions = [
             widget.previous_edit_cursor_action,
@@ -524,22 +493,6 @@ class Editor(SpyderDockablePlugin):
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
-
-        # UndoRedo section
-        for action in [widget.undo_action, widget.redo_action]:
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit
-            )
-
-        # Copy section
-        for action in [
-                widget.cut_action, widget.copy_action, widget.paste_action,
-                widget.selectall_action]:
-            mainmenu.remove_item_from_application_menu(
-                action,
-                menu_id=ApplicationMenus.Edit
-            )
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -737,8 +690,19 @@ class Editor(SpyderDockablePlugin):
     def on_application_available(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
+
         widget.sig_new_recent_file.connect(application.add_recent_file)
         widget.sig_file_action_enabled.connect(self._enable_file_action)
+        widget.sig_edit_action_enabled.connect(self._enable_edit_action)
+
+        # Enable Select All edit action
+        self._enable_edit_action(ApplicationActions.SelectAll, True)
+
+        # Enable Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        self._enable_search_action(ApplicationActions.ReplaceText, True)
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
@@ -746,6 +710,7 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_file_action_enabled.disconnect(self._enable_file_action)
+        widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1191,6 +1156,36 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().set_current_project_path(root_path=root_path)
 
+    def undo(self) -> None:
+        return self.get_widget().undo()
+
+    def redo(self) -> None:
+        return self.get_widget().redo()
+
+    def cut(self) -> None:
+        return self.get_widget().cut()
+
+    def copy(self) -> None:
+        return self.get_widget().copy()
+
+    def paste(self) -> None:
+        return self.get_widget().paste()
+
+    def select_all(self) -> None:
+        return self.get_widget().select_all()
+
+    def find(self) -> None:
+        return self.get_widget().find()
+
+    def find_next(self) -> None:
+        return self.get_widget().find_next()
+
+    def find_previous(self) -> None:
+        return self.get_widget().find_previous()
+
+    def replace(self) -> None:
+        return self.get_widget().replace()
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
@@ -1276,3 +1271,15 @@ class Editor(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application, error=False)
         if application:
             application.enable_file_action(action_name, enabled, self.NAME)
+
+    def _enable_edit_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable edit action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_edit_action(action_name, enabled, self.NAME)
+
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)

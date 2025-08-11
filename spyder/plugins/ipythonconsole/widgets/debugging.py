@@ -84,7 +84,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         self._pdb_history_index = len(self._pdb_history)
 
         # super init
-        super(DebuggingHistoryWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     # --- Public API --------------------------------------------------
     def new_history_session(self):
@@ -211,7 +211,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Temporary flags
         self._tmp_reading = False
         # super init
-        super(DebuggingWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Adapted from qtconsole/frontend_widget.py
         # This adds the IPdb as a prompt self._highlighter recognises
@@ -320,7 +320,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             password = msg['content']['password']
             self.pdb_input(prompt, password, state, from_input=True)
             return
-        return super(DebuggingWidget, self)._handle_input_request(msg)
+        return super()._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -480,7 +480,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         Resets the widget to its initial state if ``clear`` parameter
         is True
         """
-        super(DebuggingWidget, self).reset(clear)
+        super().reset(clear)
         # Make sure the prompt is printed
         if clear and self.is_waiting_pdb_input():
             prompt = self._pdb_prompt
@@ -515,7 +515,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def _handle_kernel_info_reply(self, rep):
         """Handle kernel info replies."""
-        super(DebuggingWidget, self)._handle_kernel_info_reply(rep)
+        super()._handle_kernel_info_reply(rep)
         pygments_lexer = rep['content']['language_info'].get(
             'pygments_lexer', '')
         try:
@@ -604,8 +604,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
                     self._reading_callback()
             return
 
-        return super(DebuggingWidget, self).execute(
-            source, hidden, interactive)
+        return super().execute(source, hidden, interactive)
 
     def pdb_input(self, prompt, password=None, state=None, from_input=False):
         """Get input for a command."""
@@ -687,8 +686,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if prompt == self._pdb_prompt:
             html = True
             prompt = '<span class="in-prompt">%s</span>' % prompt
-        super(DebuggingWidget, self)._show_prompt(prompt, html, newline,
-                                                  separator)
+        super()._show_prompt(prompt, html, newline, separator)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
@@ -715,8 +713,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             complete, indent = self._is_pdb_complete(source)
             callback(complete, indent)
         else:
-            return super(DebuggingWidget, self)._register_is_complete_callback(
-                source, callback)
+            return super()._register_is_complete_callback(source, callback)
 
     # ---- Qt methods ---------------------------------------------------------
     def eventFilter(self, obj, event):

@@ -45,7 +45,6 @@ from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _, get_home_dir
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.colors import ColorLayout
@@ -177,11 +176,20 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if self.CONF_SECTION == 'main':
                 self._save_lang()
 
+            restart = False
             for restart_option in self.restart_options:
                 if restart_option in self.changed_options:
-                    self.prompt_restart_required()
+                    restart = self.prompt_restart_required()
                     break  # Ensure a single popup is displayed
-            self.set_modified(False)
+
+            # Don't call set_modified() when restart() is called: The
+            # latter triggers closing of the application. Calling the former
+            # afterwards may result in an error because the underlying C++ Qt
+            # object of 'self' may be deleted at that point.
+            if restart:
+                self.restart()
+            else:
+                self.set_modified(False)
 
     def check_settings(self):
         """This method is called to check settings after configuration
@@ -200,7 +208,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
-                text = to_text_string(lineedit.text())
+                text = str(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
                                          f"{invalid_msg}:<br><b>{text}</b>",
@@ -288,7 +296,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if getattr(textedit, 'content_type', None) == list:
                 data = ', '.join(data)
             elif getattr(textedit, 'content_type', None) == dict:
-                data = to_text_string(data)
+                data = str(data)
             textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option, sect=sec:
                                          self.has_been_modified(sect, opt))
@@ -306,11 +314,11 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for combobox, (sec, option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default, section=sec)
             for index in range(combobox.count()):
-                data = from_qvariant(combobox.itemData(index), to_text_string)
+                data = from_qvariant(combobox.itemData(index), str)
                 # For PyQt API v2, it is necessary to convert `data` to
                 # unicode in case the original type was not a string, like an
                 # integer for example (see qtpy.compat.from_qvariant):
-                if to_text_string(data) == to_text_string(value):
+                if str(data) == str(value):
                     break
             else:
                 if combobox.count() == 0:
@@ -410,7 +418,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 if content_type == list:
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
 
                 self.set_option(
                     option,
@@ -438,7 +446,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 elif content_type in (tuple, list):
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
 
@@ -458,7 +466,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 data = combobox.itemData(combobox.currentIndex())
-                self.set_option(option, from_qvariant(data, to_text_string),
+                self.set_option(option, from_qvariant(data, str),
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
@@ -474,7 +482,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 self.set_option(option,
-                                to_text_string(clayout.lineedit.text()),
+                                str(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
 
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
@@ -484,7 +492,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
             ):
-                color = to_text_string(clayout.lineedit.text())
+                color = str(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
                 self.set_option(option, (color, bold, italic), section=sec,
@@ -754,7 +762,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_directory(self, edit):
         """Select directory"""
-        basedir = to_text_string(edit.text())
+        basedir = str(edit.text())
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         title = _("Select directory")
@@ -822,7 +830,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
-        basedir = osp.dirname(to_text_string(edit.text()))
+        basedir = osp.dirname(str(edit.text()))
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         if filters is None:
@@ -1168,8 +1176,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
         self.tabs.addTab(tab, name)
 
-    def prompt_restart_required(self):
-        """Prompt the user with a request to restart."""
+    def prompt_restart_required(self) -> bool:
+        """
+        Prompt the user with a request to restart.
+        
+        It returns ``True`` when the request is accepted, ``False`` otherwise.
+        """
         message = _(
             "One or more of the settings you changed requires a restart to be "
             "applied.<br><br>"
@@ -1183,8 +1195,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             QMessageBox.Yes | QMessageBox.No
         )
 
-        if answer == QMessageBox.Yes:
-            self.restart()
+        return answer == QMessageBox.Yes
 
     def restart(self):
         """Restart Spyder."""

@@ -43,8 +43,7 @@ from spyder.api.widgets.menus import (
 )
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
-from spyder.py3compat import qbytearray_to_str
-from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.qthelpers import create_waitspinner, qbytearray_to_str
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.utils.stylesheet import (
     AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
@@ -235,7 +234,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     has changed.
 
     This is triggered by checking/unchecking the entry for a pane in the
-    `View > Panes` menu.
+    `Window > Panes` menu.
 
     Parameters
     ----------
@@ -927,7 +926,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         * The default behavior is to dock the window, so that new users can
           experiment with the dock/undock functionality without surprises.
         * If the user closes the window by clicking on the `Close` action in
-          the plugin's Options menu or by going to the `View > Panes` menu,
+          the plugin's Options menu or by going to the `Window > Panes` menu,
           then we will hide it when they click on the close button again.
           That gives users the ability to show/hide plugins without
           docking/undocking them first.
@@ -1036,12 +1035,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     def toggle_view(self, checked):
         """
         Toggle dockwidget's visibility when its entry is selected in
-        the menu `View > Panes`.
+        the menu `Window > Panes`.
 
         Parameters
         ----------
         checked: bool
-            Is the entry in `View > Panes` checked or not?
+            Is the entry in `Window > Panes` checked or not?
 
         Notes
         -----
@@ -1102,7 +1101,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         )
 
         if undock:
-            # We undock the plugin at this point so that the View menu is
+            # We undock the plugin at this point so that the Window menu is
             # updated correctly.
             self.create_window()
 

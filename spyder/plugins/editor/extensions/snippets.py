@@ -24,7 +24,6 @@ except Exception:
 
 # Local imports
 from spyder.plugins.editor.api.editorextension import EditorExtension
-from spyder.py3compat import to_text_string
 from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 
@@ -199,7 +198,7 @@ class SnippetsExtension(EditorExtension):
 
         with QMutexLocker(self.event_lock):
             key = event.key()
-            text = to_text_string(event.text())
+            text = str(event.text())
 
             if self.is_snippet_active:
                 line, column = self.editor.get_cursor_line_column()
@@ -843,6 +842,19 @@ class SnippetsExtension(EditorExtension):
 
         self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
+
+        # Put cursor in the middle of braces to improve UX.
+        # Fixes spyder-ide/spyder#21409.
+        if text.endswith(('()', '[]', '{}')):
+            cursor = QTextCursor(self.editor.textCursor())
+            cursor_1 = cursor
+            cursor_1.movePosition(
+                QTextCursor.PreviousCharacter,
+                QTextCursor.KeepAnchor,
+            )
+            new_position = cursor_1.selectionStart()
+            cursor.setPosition(new_position)
+            self.editor.setTextCursor(cursor)
 
         if not self.editor.code_snippets:
             return

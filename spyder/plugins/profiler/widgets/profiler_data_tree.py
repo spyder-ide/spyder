@@ -31,7 +31,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.helperwidgets import FinderWidget
@@ -284,7 +283,7 @@ class TreeWidgetItem(QTreeWidgetItem):
 
         # For number of calls
         if isinstance(measure, int):
-            return to_text_string(measure)
+            return str(measure)
 
         # For time measurements
         if 1.e-9 < measure <= 1.e-6:
@@ -299,7 +298,7 @@ class TreeWidgetItem(QTreeWidgetItem):
             m, s = divmod(measure, 3600)
             if s > 60:
                 m, s = divmod(measure, 60)
-                s = to_text_string(s).split(".")[-1]
+                s = str(s).split(".")[-1]
             measure = u"{0:.0f}.{1:.2s} min".format(m, s)
         else:
             h, m = divmod(measure, 3600)

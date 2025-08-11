@@ -10,8 +10,6 @@ String search and match utilities useful when filtering a list of texts.
 
 import re
 
-from spyder.py3compat import to_text_string
-
 NOT_FOUND_SCORE = -1
 NO_SCORE = 0
 
@@ -88,15 +86,15 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
     - Letters in two or more words
       Example: 'cls' in 'car lost'
     """
-    original_choice = to_text_string(choice, encoding='utf-8')
+    original_choice = str(choice)
     result = (original_choice, NOT_FOUND_SCORE)
 
     # Handle empty string case
     if not query:
         return result
 
-    query = to_text_string(query, encoding='utf-8')
-    choice = to_text_string(choice, encoding='utf-8')
+    query = str(query)
+    choice = str(choice)
 
     if ignore_case:
         query = query.lower()
@@ -112,8 +110,7 @@ def get_search_score(query, choice, ignore_case=True, apply_regex=True,
         let = u'x'  # Nonmatches (except spaed) will be replaced by this
         score = 0
 
-        exact_words = [query == to_text_string(word, encoding='utf-8')
-                       for word in choice.split(u' ')]
+        exact_words = [query == str(word) for word in choice.split(' ')]
         partial_words = [query in word for word in choice.split(u' ')]
 
         if any(exact_words) or any(partial_words):
