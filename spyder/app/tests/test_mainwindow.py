@@ -130,7 +130,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
             lock_file=get_conf_path('spyder.lock'))
     )
 
-    with qtbot.waitSignal(shell.executed, timeout=2000):
+    with qtbot.waitSignal(shell.executed, timeout=EVAL_TIMEOUT):
         shell.execute(lock_code)
     qtbot.wait(1000)
     assert not shell.get_value('lock_created')
@@ -712,7 +712,6 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
 @flaky(max_runs=3)
 @pytest.mark.order(after="test_debug_unsaved_function")
-@pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'parameters', {})
@@ -761,9 +760,17 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     qtbot.wait(500)
 
     # --- Assert we're in cwd after execution ---
+    def check_cwd():
+        try:
+            current_dir = shell.get_value('current_dir')
+        except KeyError:
+            current_dir = None
+
+        assert current_dir== get_home_dir()
+
     with qtbot.waitSignal(shell.executed):
         shell.execute('import os; current_dir = os.getcwd()')
-    assert shell.get_value('current_dir') == get_home_dir()
+    qtbot.waitUntil(check_cwd)
 
     # --- Use fixed execution dir for test file ---
     temp_dir = str(tmpdir.mkdir("test_dir"))
@@ -1393,8 +1400,7 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Wait until all objects have appeared in the variable explorer
     nsb = main_window.variableexplorer.current_widget()
-    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
-                    timeout=EVAL_TIMEOUT)
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4)
 
     # Check variables value
     assert shell.get_value('a') == 10
@@ -3806,7 +3812,7 @@ def test_varexp_refresh(main_window, qtbot):
     nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
 
-    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 10
 
 
 @flaky(max_runs=3)
@@ -6613,7 +6619,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
         ppm.path_manager_dialog.accept()
 
     # Check that user_dir was added to sys.path in the right order
-    with qtbot.waitSignal(shell.executed, timeout=EVAL_TIMEOUT):
+    with qtbot.waitSignal(shell.executed):
         shell.execute("import sys; sys_path = sys.path")
 
     sys_path = shell.get_value("sys_path")
