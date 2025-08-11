@@ -1773,8 +1773,8 @@ def test_code_cache(ipyconsole, qtbot):
     # Same for debugging
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'IPdb [' in shell._control.toPlainText())
 
-    assert 'IPdb [' in shell._control.toPlainText()
     # Send two execute requests and make sure the second one is executed
     shell.execute('time.sleep(.5)')
     shell.execute('var = 318')
@@ -1790,6 +1790,10 @@ def test_code_cache(ipyconsole, qtbot):
     qtbot.wait(1000)
     # Make sure the value of var didn't change
     assert shell.get_value('var') == 318
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -1979,9 +1983,15 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     }
 
     shell.set_kernel_configuration("namespace_view_settings", settings)
-    namespace = shell.call_kernel(blocking=True).get_namespace_view()
+    namespace = shell.call_kernel(
+        blocking=True, timeout=SHELL_TIMEOUT
+    ).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=10)

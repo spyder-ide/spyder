@@ -6613,7 +6613,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
         ppm.path_manager_dialog.accept()
 
     # Check that user_dir was added to sys.path in the right order
-    with qtbot.waitSignal(shell.executed, timeout=2000):
+    with qtbot.waitSignal(shell.executed, timeout=EVAL_TIMEOUT):
         shell.execute("import sys; sys_path = sys.path")
 
     sys_path = shell.get_value("sys_path")
@@ -6626,7 +6626,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
                     timeout=SHELL_TIMEOUT)
 
     # Check user_dir is part of the new console's sys.path
-    with qtbot.waitSignal(shell1.executed, timeout=2000):
+    with qtbot.waitSignal(shell1.executed, timeout=EVAL_TIMEOUT):
         shell1.execute("import sys; sys_path = sys.path")
 
     sys_path = shell1.get_value("sys_path")
@@ -6647,7 +6647,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
         ppm.path_manager_dialog.accept()
 
     for s in [shell, shell1]:
-        with qtbot.waitSignal(s.executed, timeout=2000):
+        with qtbot.waitSignal(s.executed, timeout=EVAL_TIMEOUT):
             s.execute("sys_path = sys.path")
 
         sys_path = shell.get_value("sys_path")
@@ -6665,7 +6665,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
         ppm.path_manager_dialog.accept()
 
     for s in [shell, shell1]:
-        with qtbot.waitSignal(s.executed, timeout=2000):
+        with qtbot.waitSignal(s.executed, timeout=EVAL_TIMEOUT):
             s.execute("import sys; sys_path = sys.path")
 
         sys_path = s.get_value("sys_path")
