@@ -9,7 +9,6 @@
 # Standard library imports
 import functools
 import logging
-import os
 import sys
 import textwrap
 
@@ -25,7 +24,6 @@ from spyder.api.shellconnect.status import ShellConnectStatusBarWidget
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import running_in_ci
-from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils.stylesheet import MAC, WIN
 
 
@@ -123,7 +121,7 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
         self.set_value(text)
 
     def config_spyder_kernel(self, shellwidget):
-        shellwidget.kernel_handler.kernel_comm.register_call_handler(
+        shellwidget.register_kernel_call_handler(
             "update_matplotlib_gui",
             functools.partial(
                 self.update_matplotlib_gui, shellwidget=shellwidget
@@ -167,9 +165,7 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
         """
         Overridden method to remove the call handler registered by this widget.
         """
-        shellwidget.kernel_handler.kernel_comm.unregister_call_handler(
-            "update_matplotlib_gui"
-        )
+        shellwidget.unregister_kernel_call_handler("update_matplotlib_gui")
         super().remove_shellwidget(shellwidget)
 
 
