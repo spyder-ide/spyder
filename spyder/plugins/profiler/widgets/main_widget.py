@@ -115,16 +115,14 @@ class ProfilerWidget(ShellConnectMainWidget):
             text=_('Collapse'),
             tip=_('Collapse one level up'),
             icon=self.create_icon('collapse'),
-            triggered=lambda x=None: self.current_widget(
-                ).data_tree.change_view(-1),
+            triggered=self._collapse_tree,
         )
         expand_action = self.create_action(
             ProfilerWidgetActions.Expand,
             text=_('Expand'),
             tip=_('Expand one level down'),
             icon=self.create_icon('expand'),
-            triggered=lambda x=None: self.current_widget(
-                ).data_tree.change_view(1),
+            triggered=self._expand_tree,
         )
         toggle_tree_action = self.create_action(
             ProfilerWidgetActions.ToggleTreeDirection,
@@ -454,6 +452,12 @@ class ProfilerWidget(ShellConnectMainWidget):
             return
         widget.data_tree.inverted_tree = state
         widget.data_tree.refresh_tree()
+
+    def _collapse_tree(self):
+        self.current_widget().data_tree.change_view(-1)
+
+    def _expand_tree(self):
+        self.current_widget().data_tree.change_view(1)
 
     def _toggle_builtins(self, state):
         """Toggle builtins."""
