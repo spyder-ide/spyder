@@ -130,7 +130,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
             lock_file=get_conf_path('spyder.lock'))
     )
 
-    with qtbot.waitSignal(shell.executed, timeout=EVAL_TIMEOUT):
+    with qtbot.waitSignal(shell.executed):
         shell.execute(lock_code)
     qtbot.wait(1000)
     assert not shell.get_value('lock_created')
