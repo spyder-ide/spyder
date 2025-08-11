@@ -26,6 +26,7 @@ PROJECT_DEFAULTS = [
       'save_data_on_exit': True,
       'save_history': True,
       'save_non_project_files': False,
+      'interpreter': '',
       }
      ),
     (CODESTYLE,
@@ -59,6 +60,7 @@ PROJECT_NAME_MAP = {
             'save_data_on_exit',
             'save_history',
             'save_non_project_files',
+            'interpreter',
             ],
          ),
     ],
