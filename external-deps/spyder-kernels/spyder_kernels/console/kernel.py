@@ -706,18 +706,7 @@ class SpyderKernel(IPythonKernel):
 
     def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
-        if parse_version(ipython_release.version) < parse_version("9.0"):
-            # Use `tb_highlight_style` class attribute to set the style (IPython 8.x)
-            import IPython.core.ultratb
-            from IPython.core.ultratb import VerboseTB
-
-            IPython.core.ultratb.get_style_by_name = create_style_class
-
-            if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
-                VerboseTB.tb_highlight_style = syntax_style
-            elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
-                VerboseTB._tb_highlight_style = syntax_style
-        else:
+        if parse_version(ipython_release.version) >= parse_version("9.0"):
             # Create spyder theme definition and set it (IPython 9.x+)
             import IPython.utils.PyColorize
             from IPython.utils.PyColorize import (
@@ -739,6 +728,17 @@ class SpyderKernel(IPythonKernel):
             )
             IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
             self.shell.run_line_magic("colors", "spyder_theme")
+        else:
+            # Use `tb_highlight_style` class attribute to set the style (IPython 8.x)
+            import IPython.core.ultratb
+            from IPython.core.ultratb import VerboseTB
+
+            IPython.core.ultratb.get_style_by_name = create_style_class
+
+            if getattr(VerboseTB, "tb_highlight_style", None) is not None:
+                VerboseTB.tb_highlight_style = syntax_style
+            elif getattr(VerboseTB, "_tb_highlight_style", None) is not None:
+                VerboseTB._tb_highlight_style = syntax_style
 
     def get_cwd(self):
         """Get current working directory."""
