@@ -217,6 +217,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'show_pdb_output': self.show_pdb_output,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
+            'show_traceback': print,
         })
         self.kernel_comm_handlers = handlers
 
@@ -486,7 +487,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self.call_kernel(
             interrupt=self.is_debugging(),
-            callback=self.kernel_configure_callback
+            callback=self.kernel_configure_callback,
         ).set_configuration(self._kernel_configuration)
 
         self.is_kernel_configured = True
@@ -501,7 +502,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 # Do not send twice
                 self.call_kernel(
                     interrupt=self.is_debugging(),
-                    callback=self.kernel_configure_callback
+                    callback=self.kernel_configure_callback,
+                    blocking=True,
                 ).set_configuration({key: value})
 
         self._kernel_configuration[key] = value
@@ -727,8 +729,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
-        self._style_sheet_changed()
-        self._syntax_style_changed(changed={})
         if reset:
             self.reset(clear=True)
         if not self.spyder_kernel_ready:
@@ -736,6 +736,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             return
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
+        )
+        color_scheme = get_color_scheme(self.syntax_style)
+        self.set_kernel_configuration(
+            "traceback_highlight_style",
+            color_scheme,
         )
 
     def update_syspath(self, new_paths, prioritize):
@@ -1471,12 +1476,6 @@ overrided by the Sympy module (e.g. plot)
             color_scheme = get_color_scheme(self.syntax_style)
             self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
-            if changed is None:
-                return
-            self.set_kernel_configuration(
-                "traceback_highlight_style",
-                color_scheme,
-            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
