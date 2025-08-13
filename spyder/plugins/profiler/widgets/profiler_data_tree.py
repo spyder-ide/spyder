@@ -19,6 +19,7 @@ import os
 import os.path as osp
 import sys
 import tempfile
+import textwrap
 
 # Third party imports
 from qtpy import PYSIDE2
@@ -32,6 +33,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import set_item_user_text
 from spyder.widgets.helperwidgets import FinderWidget
@@ -189,7 +191,7 @@ class TreeWidgetItem(QTreeWidgetItem):
 
         self.set_item_data(filename, line_number)
         self.setIcon(self.index_dict["function_name"], icon_list[node_type])
-        self.set_tooltips()
+        self.set_filename_tooltip()
 
         data = {
             "function_name": function_name,
@@ -237,18 +239,6 @@ class TreeWidgetItem(QTreeWidgetItem):
             "number_calls_diff": Qt.AlignLeft
         }
         self.set_alignment(diff_alignment)
-
-    def set_tooltips(self):
-        """Set tooltips."""
-        tooltips = {
-            "function_name": _('Function or module name'),
-            "total_time": _('Time in function (including sub-functions)'),
-            "local_time": _('Local time in function (not in sub-functions)'),
-            "number_calls": _('Total number of calls (including recursion)'),
-            "file:line": _('File:line where function is defined')
-        }
-        for k, v in tooltips.items():
-            self.setToolTip(self.index_dict[k], v)
 
     def set_data(self, data):
         """Set data in columns."""
@@ -365,6 +355,18 @@ class TreeWidgetItem(QTreeWidgetItem):
                 ancestor = ancestor.parent()
         return False
 
+    def set_filename_tooltip(self):
+        if not self.filename or self.filename == '~':
+            fname = "(built-in)"
+            number = ""
+        else:
+            fname = self.filename
+            number = self.line_number
+
+        self.setToolTip(
+            self.index_dict["function_name"], f"{fname}:{number}"
+        )
+
 
 class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
     """
@@ -434,6 +436,8 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.lib_pathlist = None
         self.history = []
         self.redo_history = []
+
+        self.set_tooltips()
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -762,3 +766,27 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         if self.current_view_depth > 0:
             for item in self.get_items(maxlevel=self.current_view_depth-1):
                 item.setExpanded(True)
+
+    def set_tooltips(self):
+        """Set tooltips."""
+        tooltips = {
+            "function_name": _('Function or module name'),
+            "total_time": _(
+                'Time spent in function (including sub-functions)'
+            ),
+            "local_time": _(
+                'Local time spent in function (not in sub-functions)'
+            ),
+            "number_calls": _('Total number of calls (including recursion)'),
+            "file:line": _('File and line where the function is defined')
+        }
+
+        for column_name, tip_text in tooltips.items():
+            self.headerItem().setIcon(
+                self.index_dict[column_name], ima.icon('question_tip_hover')
+            )
+
+            tip_text = '\n'.join(textwrap.wrap(tip_text, 50))
+            self.headerItem().setToolTip(
+                self.index_dict[column_name], tip_text
+            )
