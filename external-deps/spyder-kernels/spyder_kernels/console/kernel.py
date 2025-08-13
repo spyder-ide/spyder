@@ -712,18 +712,19 @@ class SpyderKernel(IPythonKernel):
             from IPython.utils.PyColorize import (
                 Theme,
                 linux_theme,
-                lightbg_theme,
+                neutral_theme,
             )
 
-            extra_style = (
-                linux_theme.extra_style
-                if self.shell.get_spyder_theme() == "dark"
-                else lightbg_theme.extra_style
-            )
+            base = "default"
+            extra_style = neutral_theme.extra_style
+            if self.shell.get_spyder_theme() == "dark":
+                base = "monokai"
+                extra_style = linux_theme.extra_style
+
             extra_style.update(create_pygments_dict(syntax_style))
             theme = Theme(
                 "spyder_theme",
-                None,
+                base,
                 extra_style,
             )
             IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
