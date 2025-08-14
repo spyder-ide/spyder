@@ -815,7 +815,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_frontend._style_sheet_changed()
         self.active_frontend.reset(clear=True)
         if parse_version(ipython_release.version) >= parse_version("9.0"):
-            colors = colors.replace('nocolor', 'neutral')
+            colors = colors.replace('nocolor', 'nocolors')
             traceback_colors_code = f"""
 import IPython.utils.PyColorize
 from IPython.core.ultratb import VerboseTB
