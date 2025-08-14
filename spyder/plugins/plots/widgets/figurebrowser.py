@@ -12,6 +12,7 @@ This is the main widget used in the Plots plugin
 
 # Standard library imports
 import datetime
+import functools
 import math
 import os.path as osp
 import sys
@@ -38,6 +39,7 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
 
 # Local library imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
@@ -367,6 +369,8 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     sig_figure_loaded = Signal()
     """This signal is emitted when a new figure is loaded."""
 
+    sig_trigger_action = Signal(str, str)
+
     def __init__(self, parent=None, background_color=None):
         if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
@@ -402,26 +406,30 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
             self._set_hscrollbar_value
         )
 
-        if parent is not None and parent.parent() is not None:
-            self.register_shortcuts(parent.parent())
+        self.register_shortcuts()
 
-    def register_shortcuts(self, parent):
+    def register_shortcuts(self):
         """Register shortcuts for this widget."""
         shortcuts = (
-            ("auto fit", parent.fit_to_pane),
-            ("save", parent.save_plot),
-            ("save all", parent.save_all_plots),
-            ("copy", parent.copy_image),
-            ("close", parent.remove_plot),
-            ("close all", parent.remove_all_plots),
-            ("previous figure", parent.previous_plot),
-            ("next figure", parent.next_plot),
-            ("zoom in", parent.zoom_in),
-            ("zoom out", parent.zoom_out)
+            ("auto fit"),
+            ("save"),
+            ("save all"),
+            ("copy"),
+            ("close"),
+            ("close all"),
+            ("previous figure"),
+            ("next figure"),
+            ("zoom in"),
+            ("zoom out")
         )
 
-        for name, callback in shortcuts:
-            self.register_shortcut_for_widget(name=name, triggered=callback)
+        for name in shortcuts:
+            self.register_shortcut_for_widget(name=name,
+                                              triggered=functools.partial(
+                                                self.sig_trigger_action.emit,
+                                                name,
+                                                Plugins.Plots
+                                                ))
 
     @property
     def auto_fit_plotting(self):

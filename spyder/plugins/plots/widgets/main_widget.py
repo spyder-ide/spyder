@@ -246,6 +246,10 @@ class PlotsWidget(ShellConnectMainWidget):
         context_menu = self.create_menu(PluginMainWidgetMenus.Context)
         for item in [save_action, copy_action, remove_action]:
             self.add_item_to_menu(item, menu=context_menu)
+        widget = self.current_widget()
+        if widget and not self.is_current_widget_error_message():
+            figviewer = widget.figviewer
+            figviewer.sig_trigger_action.connect(self.trigger_action)
 
     def update_actions(self):
         value = False
@@ -259,6 +263,7 @@ class PlotsWidget(ShellConnectMainWidget):
             widget.set_pane_empty(not value)
             with signals_blocked(self.fit_action):
                 self.fit_action.setChecked(figviewer.auto_fit_plotting)
+
         for __, action in self.get_actions().items():
             try:
                 if action and action not in [
@@ -473,3 +478,8 @@ class PlotsWidget(ShellConnectMainWidget):
             else:
                 figviewer.auto_fit_plotting = False
                 figviewer.zoom_in(to_full_size=True)
+
+    def trigger_action(self, action_id, plugin):
+        """Trigger an action according to its id and plugin."""
+        action = self.get_action(action_id, plugin=plugin)
+        action.trigger()
