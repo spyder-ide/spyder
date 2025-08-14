@@ -109,7 +109,7 @@ class GithubBackend(BaseBackend):
         :param gh_owner: Name of the owner of the github repository.
         :param gh_repo: Name of the repository on github.
         """
-        super(GithubBackend, self).__init__(
+        super().__init__(
             formatter, "Submit on github",
             "Submit the issue on our issue tracker on github", None,
             parent_widget=parent_widget)

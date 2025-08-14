@@ -35,7 +35,7 @@ class InputTextDialog(QDialog):
 
     def __init__(self, parent=None, title='', label=''):
         """Input text dialog with regex validation."""
-        super(InputTextDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._reg = None
         self._regex = None
 
@@ -103,7 +103,7 @@ class ApplicationsDialog(QDialog):
 
     def __init__(self, parent=None):
         """Dialog for selection of installed system/user applications."""
-        super(ApplicationsDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         # Widgets
         self.label = QLabel()
@@ -285,7 +285,7 @@ class FileAssociationsWidget(QWidget):
 
     def __init__(self, parent=None):
         """Widget to add applications association to file extensions."""
-        super(FileAssociationsWidget, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         # Variables
         self._data = {}

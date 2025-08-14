@@ -37,9 +37,9 @@ class CompletionPluginMock(QObject, MagicMock):
 def lsp_context(is_stdio):
     @pytest.fixture(scope='module')
     def wrapper(qtbot_module, request):
-        # Activate pycodestyle and pydocstyle
+        # Activate flake8 and pydocstyle
         conf = dict(LanguageServerProvider.CONF_DEFAULTS)
-        conf['pycodestyle'] = True
+        conf['flake8'] = True
         conf['pydocstyle'] = True
         conf['stdio'] = is_stdio
 

@@ -58,7 +58,6 @@ from spyder.config.base import (get_conf_path, reset_config_files,
                                 running_under_pytest, is_conda_based_app)
 from spyder.utils.conda import get_conda_root_prefix
 from spyder.utils.external import lockfile
-from spyder.py3compat import is_text_string
 
 # Enforce correct CONDA_EXE environment variable
 # Do not rely on CONDA_PYTHON_EXE or CONDA_PREFIX in case Spyder is started
@@ -118,7 +117,7 @@ def send_args_to_spyder(args):
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                        socket.IPPROTO_TCP)
                 client.connect(("127.0.0.1", port))
-                if is_text_string(arg):
+                if isinstance(arg, str):
                     arg = arg.encode('utf-8')
                 client.send(osp.abspath(arg))
                 client.close()
