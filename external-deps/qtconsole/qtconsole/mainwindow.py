@@ -11,7 +11,9 @@ import webbrowser
 from functools import partial
 from threading import Thread
 
+from IPython.core import release as ipython_release
 from jupyter_core.paths import jupyter_runtime_dir
+from packaging.version import parse as parse_version
 from pygments.styles import get_all_styles
 
 from qtpy import QtGui, QtCore, QtWidgets
@@ -797,31 +799,51 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_syntax_style(self, syntax_style):
         """Set up syntax style for the current console."""
-        if syntax_style=='bw':
-            colors='nocolor'
+        if syntax_style == 'bw':
+            colors = 'nocolor'
+            highlight_color = 'bg:ansiyellow'
         elif styles.dark_style(syntax_style):
-            colors='linux'
-            
+            colors = 'linux'
+            highlight_color = 'bg:ansired'
         else:
-            colors='lightbg'
+            colors = 'lightbg'
+            highlight_color = 'bg:ansiyellow'
         self.active_frontend.syntax_style = syntax_style
         style_sheet = styles.sheet_from_template(syntax_style, colors)
         self.active_frontend.style_sheet = style_sheet
         self.active_frontend._syntax_style_changed()
         self.active_frontend._style_sheet_changed()
         self.active_frontend.reset(clear=True)
-        self.active_frontend._execute(
-f"""
+        if parse_version(ipython_release.version) >= parse_version("9.0"):
+            colors = colors.replace('nocolor', 'neutral')
+            traceback_colors_code = f"""
+import IPython.utils.PyColorize
+from IPython.core.ultratb import VerboseTB
+from IPython.utils.PyColorize import Theme, {colors}_theme
+
+base = '{syntax_style}'
+extra_style = {colors}_theme.extra_style
+theme = Theme(
+    'qtconsole_theme',
+    base,
+    extra_style,
+)
+VerboseTB.tb_highlight = '{highlight_color}'
+IPython.utils.PyColorize.theme_table['qtconsole_theme'] = theme
+get_ipython().run_line_magic('colors', 'qtconsole_theme')
+"""
+        else:
+            traceback_colors_code = f"""
 from IPython.core.ultratb import VerboseTB
 if getattr(VerboseTB, 'tb_highlight_style', None) is not None:
     VerboseTB.tb_highlight_style = '{syntax_style}'
+    VerboseTB.tb_highlight = '{highlight_color}'
 elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
     VerboseTB._tb_highlight_style = '{syntax_style}'
-else:
-    get_ipython().run_line_magic('colors', '{colors}')
-""",
-            True)
-        
+    VerboseTB._tb_highlight = '{highlight_color}'
+get_ipython().run_line_magic('colors', '{colors}')
+            """
+        self.active_frontend._execute(traceback_colors_code, True)
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)
