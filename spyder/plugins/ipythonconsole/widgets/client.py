@@ -508,7 +508,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         # Don't break lines in hyphens
         # From https://stackoverflow.com/q/7691569/438386
-        error = error.replace('-', '&#8209')
+        error = error.replace('-', '&#8209;')
 
         # Create error page
         message = _("An error occurred while starting the kernel")
