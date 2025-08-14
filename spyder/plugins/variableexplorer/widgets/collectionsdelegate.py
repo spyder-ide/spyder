@@ -14,6 +14,7 @@ import functools
 import math
 import operator
 import sys
+import traceback
 from typing import Any, Callable, Optional
 
 # Third party imports
@@ -41,6 +42,7 @@ from qtpy.QtWidgets import (
     QStyleOptionButton,
     QTableView,
 )
+from spyder_kernels.comms.commbase import CommsErrorWrapper
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
 from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
@@ -194,20 +196,13 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             value = self.get_value(index)
             if value is None:
                 return None
-        except Exception as msg:
+        except Exception as exception:
             self.sig_editor_shown.emit()
-            msg_box = QMessageBox(self.parent())
-            msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
-            msg_box.critical(
-                self.parent(),
-                _("Error"),
-                _(
-                    "Spyder was unable to retrieve the value of this variable "
-                    "from the console.<br><br>"
-                    "The problem is:<br>"
-                    "%s"
-                ) % str(msg)
+            msg = _(
+                "Spyder was unable to retrieve the value of this variable "
+                "from the console."
             )
+            self.show_error(exception, msg)
             return
 
         key = index.model().get_key(index)
@@ -376,6 +371,50 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                                             key=key, readonly=readonly))
             return None
 
+    def show_error(self, exception: Exception, msg: str) -> None:
+        """
+        Show error dialog box.
+
+        This function is called when an error occurs while getting or setting
+        a variable in the console. The dialog box has a "Show details" button,
+        which shows the exception traceback. If an exception raised in the
+        kernel is the cause, then also show that.
+
+        Parameters
+        ----------
+        exception : Exception
+            The error that occurred.
+        msg : str
+            Message informing the user of what Spyder was doing when the
+            error occurred.
+        """
+        the_problem_is = _('The problem is:')
+        contents = f'{msg}<br><br>{the_problem_is}<br>{exception}'
+        details = ''.join(traceback.format_exception(exception))
+
+        while exception:
+            if (
+                exception.args
+                and isinstance(exception.args[0], CommsErrorWrapper)
+            ):
+                wrapper = exception.args[0]
+                details += '\n'
+                details += _('The following kernel error is associated:')
+                details += '\n'
+                details += ''.join(traceback.format_list(wrapper.tb))
+                details += ''.join(
+                    traceback.format_exception_only(wrapper.error)
+                )
+            exception = exception.__context__
+
+        msg_box = QMessageBox(self.parent())
+        msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
+        msg_box.setText(contents)
+        msg_box.setDetailedText(details)
+        msg_box.setWindowTitle(_('Error'))
+        msg_box.setIcon(QMessageBox.Critical)
+        msg_box.exec_()
+
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
         editor.accepted.connect(
@@ -394,19 +433,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
             try:
                 self.set_value(index, conv_func(value))
-            except Exception as msg:
-                msg_box = QMessageBox(self.parent())
-                msg_box.setTextFormat(Qt.RichText)  # Needed to enable links
-                msg_box.critical(
-                    self.parent(),
-                    _("Error"),
-                    _(
-                        "Spyder was unable to set this variable in the "
-                        "console to the new value.<br><br>"
-                        "The problem is:<br>"
-                        "%s"
-                    ) % str(msg)
+            except Exception as exception:
+                msg = _(
+                    "Spyder was unable to set this variable in the console "
+                    "to the new value."
                 )
+                self.show_error(exception, msg)
 
         # This is needed to avoid the problem reported on
         # spyder-ide/spyder#8557.
