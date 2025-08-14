@@ -15,5 +15,6 @@ dependencies:
 - coveralls
 - flaky
 - pytest
+- pytest-asyncio
 - pytest-cov
 - pytest-qt

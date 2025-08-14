@@ -38,7 +38,6 @@ class EditorWidgetActions:
     ShowIndentGuides = "show_indent_guides_action"
     ShowCodeFolding = "show_code_folding_action"
     ShowClassFuncDropdown = "show_class_func_dropdown_action"
-    ShowCodeStyleWarnings = "pycodestyle_action"
     ShowDoctringWarnings = "pydocstyle_action"
     UnderlineErrors = "underline_errors_action"
 

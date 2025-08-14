@@ -9,8 +9,6 @@ Clipboard helper module.
 """
 from qtpy.QtWidgets import QApplication
 
-from spyder.py3compat import to_text_string
-
 
 class ClipboardHelper:
     # Clipboard metadata
@@ -20,7 +18,7 @@ class ClipboardHelper:
 
     def get_current_hash(self):
         clipboard = QApplication.clipboard()
-        return hash(to_text_string(clipboard.text()))
+        return hash(str(clipboard.text()))
 
     def get_line_indentation(self, text, tab_stop_width_spaces=None):
         """Get indentation for given line."""
