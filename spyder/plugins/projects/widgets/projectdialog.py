@@ -131,6 +131,9 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         if reasons is None:
             reasons: ValidationReasons = {}
 
+        if os.name("nt") and re.search(r":", name):
+            reasons["wrong_name"] = True
+
         if not location:
             self._location.status_action.setVisible(True)
             self._location.status_action.setToolTip(_("This is empty"))
@@ -289,12 +292,6 @@ class NewDirectoryPage(BaseProjectPage):
             self._name.status_action.setVisible(True)
             self._name.status_action.setToolTip(_("This is empty"))
             reasons["missing_info"] = True
-        elif re.search(r":", name):
-            self._name.status_action.setVisible(True)
-            self._name.status_action.setToolTip(
-                _("The project directory can't contain ':'")
-            )
-            reasons["wrong_name"] = True
 
         reasons = self._validate_location(location, reasons, name)
         if reasons:
@@ -303,7 +300,11 @@ class NewDirectoryPage(BaseProjectPage):
                 self._name.status_action.setToolTip(
                     _("A directory with this name already exists")
                 )
-
+            if reasons.get("wrong_name"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("The project directory can't contain ':'")
+                )
             self._validation_label.set_text(
                 self._compose_failed_validation_text(reasons)
             )
