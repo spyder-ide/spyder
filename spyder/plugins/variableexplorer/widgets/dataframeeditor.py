@@ -1491,11 +1491,11 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     column_label = df.axes[axis][index.column()]
                     if column_label not in index_label:
                         index_label.append(column_label)
-
+        result = None
         if not force:
             if (not self.get_conf('show_remove_message_dataframe')
                     or running_under_pytest()):
-                answer = QMessageBox.Yes
+                result = QMessageBox.Yes
             else:
                 one = _("Do you want to remove the selected item?")
                 more = _("Do you want to remove all selected items?")
@@ -1510,11 +1510,11 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 answer.setStandardButtons(
                     QMessageBox.Yes | QMessageBox.No)
 
-                answer.exec_()
+                result = answer.exec_()
                 check = answer.is_checked()
                 if check:
                     self.set_conf('show_remove_message_dataframe', False)
-        if force or answer == QMessageBox.Yes:
+        if force or result == QMessageBox.Yes:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)
