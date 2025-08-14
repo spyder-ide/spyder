@@ -131,7 +131,7 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         if reasons is None:
             reasons: ValidationReasons = {}
 
-        if os.name("nt") and re.search(r":", name):
+        if os.name == "nt" and re.search(r":", name):
             reasons["wrong_name"] = True
 
         if not location:
