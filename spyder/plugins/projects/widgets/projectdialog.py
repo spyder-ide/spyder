@@ -131,9 +131,6 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         if reasons is None:
             reasons: ValidationReasons = {}
 
-        if os.name == "nt" and re.search(r":", name):
-            reasons["wrong_name"] = True
-
         if not location:
             self._location.status_action.setVisible(True)
             self._location.status_action.setToolTip(_("This is empty"))
@@ -152,6 +149,8 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
             reasons["location_not_writable"] = True
         elif name is not None:
             project_path = osp.join(location, name)
+            if os.name == "nt" and re.search(r":", name):
+                reasons["wrong_name"] = True
             if osp.isdir(project_path):
                 reasons["location_exists"] = True
         else:
