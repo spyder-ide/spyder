@@ -246,10 +246,6 @@ class PlotsWidget(ShellConnectMainWidget):
         context_menu = self.create_menu(PluginMainWidgetMenus.Context)
         for item in [save_action, copy_action, remove_action]:
             self.add_item_to_menu(item, menu=context_menu)
-        widget = self.current_widget()
-        if widget and not self.is_current_widget_error_message():
-            figviewer = widget.figviewer
-            figviewer.sig_trigger_action.connect(self.trigger_action)
 
     def update_actions(self):
         value = False

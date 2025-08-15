@@ -369,8 +369,6 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     sig_figure_loaded = Signal()
     """This signal is emitted when a new figure is loaded."""
 
-    sig_trigger_action = Signal(str, str)
-
     def __init__(self, parent=None, background_color=None):
         if not PYSIDE2:
             super().__init__(parent, class_parent=parent)
@@ -405,31 +403,6 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         self.horizontalScrollBar().valueChanged.connect(
             self._set_hscrollbar_value
         )
-
-        self.register_shortcuts()
-
-    def register_shortcuts(self):
-        """Register shortcuts for this widget."""
-        shortcuts = (
-            ("auto fit"),
-            ("save"),
-            ("save all"),
-            ("copy"),
-            ("close"),
-            ("close all"),
-            ("previous figure"),
-            ("next figure"),
-            ("zoom in"),
-            ("zoom out")
-        )
-
-        for name in shortcuts:
-            self.register_shortcut_for_widget(name=name,
-                                              triggered=functools.partial(
-                                                self.sig_trigger_action.emit,
-                                                name,
-                                                Plugins.Plots
-                                                ))
 
     @property
     def auto_fit_plotting(self):
