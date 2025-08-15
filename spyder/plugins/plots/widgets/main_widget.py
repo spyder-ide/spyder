@@ -475,7 +475,3 @@ class PlotsWidget(ShellConnectMainWidget):
                 figviewer.auto_fit_plotting = False
                 figviewer.zoom_in(to_full_size=True)
 
-    def trigger_action(self, action_id, plugin):
-        """Trigger an action according to its id and plugin."""
-        action = self.get_action(action_id, plugin=plugin)
-        action.trigger()

@@ -12,7 +12,6 @@ This is the main widget used in the Plots plugin
 
 # Standard library imports
 import datetime
-import functools
 import math
 import os.path as osp
 import sys
@@ -39,7 +38,6 @@ from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
 
 # Local library imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
