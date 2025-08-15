@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import os.path as osp
 import re
+from pathlib import Path
 import sys
 from typing import TypedDict
 
@@ -147,7 +148,9 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 _("This directory is not writable")
             )
             reasons["location_not_writable"] = True
-        elif os.name == "nt" and re.search(r":", location):
+        elif os.name == "nt" and any(
+            [re.search(r":", part) for part in Path(location).parts[1:]]
+        ):
             # Prevent creating a project in directory with colons.
             # Fixes spyder-ide/spyder#16942
             reasons["wrong_name"] = True
