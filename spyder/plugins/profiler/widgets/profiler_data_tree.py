@@ -69,7 +69,6 @@ class ProfilerSubWidget(
     """Profiler widget for shellwidget"""
 
     # Signals
-    sig_edit_goto_requested = Signal(str, int, str)
     sig_display_requested = Signal(object)
     sig_hide_finder_requested = Signal()
     sig_refresh = Signal()
@@ -111,8 +110,6 @@ class ProfilerSubWidget(
     def setup(self):
         """Setup widget."""
         self.data_tree = ProfilerDataTree(self)
-        self.data_tree.sig_edit_goto_requested.connect(
-            self.sig_edit_goto_requested)
         self.data_tree.sig_refresh.connect(self.sig_refresh)
 
         self.finder = FinderWidget(self)
@@ -390,7 +387,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
     CONF_SECTION = 'profiler'
 
     # Signals
-    sig_edit_goto_requested = Signal(str, int, str)
     sig_refresh = Signal()
 
     def __init__(self, parent=None):
@@ -431,7 +427,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.setColumnCount(len(self.header_list))
         self.setHeaderLabels(self.header_list)
         self.initialize_view()
-        self.itemActivated.connect(self.item_activated)
         self.itemExpanded.connect(self.item_expanded)
         self.lib_pathlist = None
         self.history = []
@@ -443,7 +438,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         """Reimplement Qt method"""
         if self.menu is None:
             return
-        if self.profdata:
+        if self.profdata and self.indexAt(event.pos()).isValid():
             self.menu.popup(event.globalPos())
             event.accept()
 
@@ -720,10 +715,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             item_compdata = self.compare_data.stats.get(
                 item_key, [0, 0, 0, 0, {}])
         return item_profdata, item_compdata
-
-    def item_activated(self, item):
-        """Request editor to find item."""
-        self.sig_edit_goto_requested.emit(item.filename, item.line_number, '')
 
     def item_expanded(self, item):
         """Fill item children."""

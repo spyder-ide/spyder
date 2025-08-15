@@ -53,9 +53,11 @@ class ProfilerWidgetMenus:
 
 class ProfilerContextMenuSections:
     Locals = 'locals_section'
+    Other = "other_section"
 
 
 class ProfilerWidgetContextMenuActions:
+    GotoDefinition = "goto_definition_action"
     ShowCallees = "show_callees_action"
     ShowCallers = "show_callers_action"
 
@@ -257,6 +259,12 @@ class ProfilerWidget(ShellConnectMainWidget):
             icon=self.create_icon('2uparrow'),
             triggered=self._show_callers
         )
+        goto_definition_action = self.create_action(
+            ProfilerWidgetContextMenuActions.GotoDefinition,
+            _("Go to definition"),
+            icon=self.create_icon("transparent"),
+            triggered=self._goto_definition
+        )
 
         self._context_menu = self.create_menu(
             ProfilerWidgetMenus.PopulatedContextMenu
@@ -267,6 +275,12 @@ class ProfilerWidget(ShellConnectMainWidget):
                 menu=self._context_menu,
                 section=ProfilerContextMenuSections.Locals,
             )
+
+        self.add_item_to_menu(
+            goto_definition_action,
+            menu=self._context_menu,
+            section=ProfilerContextMenuSections.Other,
+        )
 
     def update_actions(self):
         """Update actions."""
@@ -350,7 +364,6 @@ class ProfilerWidget(ShellConnectMainWidget):
     def create_new_widget(self, shellwidget):
         """Create new profiler widget."""
         widget = ProfilerSubWidget(self)
-        widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_display_requested.connect(self._display_request)
         widget.sig_refresh.connect(self.update_actions)
         widget.set_context_menu(self._context_menu)
@@ -377,7 +390,6 @@ class ProfilerWidget(ShellConnectMainWidget):
 
     def close_widget(self, widget):
         """Close profiler widget."""
-        widget.sig_edit_goto_requested.disconnect(self.sig_edit_goto_requested)
         widget.sig_refresh.disconnect(self.update_actions)
         widget.sig_display_requested.disconnect(self._display_request)
         widget.sig_hide_finder_requested.disconnect(self._hide_finder)
@@ -516,6 +528,17 @@ class ProfilerWidget(ShellConnectMainWidget):
             ProfilerWidgetActions.ToggleTreeDirection)
         if toggle_tree_action.isChecked():
             toggle_tree_action.setChecked(False)
+
+    def _goto_definition(self):
+        widget = self.current_widget()
+        if widget is None:
+            return
+
+        item = widget.data_tree.currentItem()
+        if osp.isfile(item.filename):
+            self.sig_edit_goto_requested.emit(
+                item.filename, item.line_number, ""
+            )
 
     def _save_data(self):
         """Save data."""
