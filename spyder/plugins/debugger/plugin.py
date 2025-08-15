@@ -196,8 +196,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
-            text=_("Debug current line/selection"),
-            tip=_("Run the debugger on the current line or selection"),
+            text=_("Debug the current line or selection"),
+            tip=_("Debug the current line or selection"),
             icon=self.create_icon('debug_selection'),
             shortcut_context=self.NAME,
             register_shortcut=True,
