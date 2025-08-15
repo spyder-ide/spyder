@@ -11,6 +11,8 @@
 from __future__ import annotations
 import os
 import os.path as osp
+import re
+from pathlib import Path
 import sys
 from typing import TypedDict
 
@@ -63,6 +65,7 @@ class ValidationReasons(TypedDict):
     location_exists: bool | None
     location_not_writable: bool | None
     spyder_project_exists: bool | None
+    wrong_name: bool | None
 
 
 # =============================================================================
@@ -145,8 +148,18 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 _("This directory is not writable")
             )
             reasons["location_not_writable"] = True
+        elif os.name == "nt" and any(
+            [re.search(r":", part) for part in Path(location).parts[1:]]
+        ):
+            # Prevent creating a project in directory with colons.
+            # Fixes spyder-ide/spyder#16942
+            reasons["wrong_name"] = True
         elif name is not None:
             project_path = osp.join(location, name)
+            if os.name == "nt" and re.search(r":", name):
+                # Prevent creating a project in directory with colons.
+                # Fixes spyder-ide/spyder#16942
+                reasons["wrong_name"] = True
             if osp.isdir(project_path):
                 reasons["location_exists"] = True
         else:
@@ -195,6 +208,12 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 prefix
                 + _("The location you selected doesn't exist.")
                 + suffix
+            )
+
+        if reasons.get("wrong_name"):
+            text += (
+                prefix
+                + _("The directory name you selected is not valid.")
             )
 
         if reasons.get("missing_info"):
@@ -289,7 +308,11 @@ class NewDirectoryPage(BaseProjectPage):
                 self._name.status_action.setToolTip(
                     _("A directory with this name already exists")
                 )
-
+            if reasons.get("wrong_name"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("The project directory can't contain ':'")
+                )
             self._validation_label.set_text(
                 self._compose_failed_validation_text(reasons)
             )
