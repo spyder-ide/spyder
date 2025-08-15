@@ -1492,6 +1492,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     column_label = df.axes[axis][index.column()]
                     if column_label not in index_label:
                         index_label.append(column_label)
+
         result = None
         if not force:
             if (
@@ -1515,6 +1516,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 check = answer.is_checked()
                 if check:
                     self.set_conf('show_remove_message_dataframe', False)
+
         if force or result == QMessageBox.Yes:
             for label in index_label:
                 try:
