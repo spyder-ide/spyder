@@ -147,9 +147,15 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 _("This directory is not writable")
             )
             reasons["location_not_writable"] = True
+        elif os.name == "nt" and re.search(r":", location):
+            # Prevent creating a project in directory with colons.
+            # Fixes spyder-ide/spyder#16942
+            reasons["wrong_name"] = True
         elif name is not None:
             project_path = osp.join(location, name)
             if os.name == "nt" and re.search(r":", name):
+                # Prevent creating a project in directory with colons.
+                # Fixes spyder-ide/spyder#16942
                 reasons["wrong_name"] = True
             if osp.isdir(project_path):
                 reasons["location_exists"] = True
