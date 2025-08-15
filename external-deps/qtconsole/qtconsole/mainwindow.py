@@ -808,12 +808,14 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             colors = 'lightbg'
             highlight_color = 'bg:ansiyellow'
+
         self.active_frontend.syntax_style = syntax_style
         style_sheet = styles.sheet_from_template(syntax_style, colors)
         self.active_frontend.style_sheet = style_sheet
         self.active_frontend._syntax_style_changed()
         self.active_frontend._style_sheet_changed()
         self.active_frontend.reset(clear=True)
+
         if parse_version(ipython_release.version) >= parse_version("9.0"):
             colors = colors.replace('nocolor', 'nocolors')
             traceback_colors_code = f"""

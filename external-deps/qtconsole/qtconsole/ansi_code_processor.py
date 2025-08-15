@@ -282,7 +282,7 @@ class AnsiCodeProcessor(object):
         elif code == 49:
             self.background_color = None
         elif code >= 90 and code <= 97:
-            # Brigth foreground color
+            # Bright foreground color
             self.foreground_color = code - 90
             self.intensity = 1
         elif code >=100 and code <= 107:

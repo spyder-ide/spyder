@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/dalthviz/qtconsole.git
 	branch = bright_ansi_codes
-	commit = cb258e9f37ba2dc97be8c4fb48ea2a6b003ab40d
-	parent = 31be1e7021356411b42c1d811be4f22f75068c46
+	commit = 484be61154528648a596e09cf6c84540c31b5e14
+	parent = 52818a0c7d2672d7bc85cc05f6aeb028970456b0
 	method = merge
 	cmdver = 0.4.3
