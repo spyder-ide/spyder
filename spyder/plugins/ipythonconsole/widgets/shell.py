@@ -503,7 +503,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.call_kernel(
                     interrupt=self.is_debugging(),
                     callback=self.kernel_configure_callback,
-                    blocking=True,
                 ).set_configuration({key: value})
 
         self._kernel_configuration[key] = value
