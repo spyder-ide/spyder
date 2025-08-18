@@ -29,7 +29,6 @@ from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
                         QTextDocument)
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding
 
 
@@ -233,7 +232,7 @@ class TextHelper(object):
             else:
                 self._editor.focus_in.connect(
                     self._editor.center_cursor_on_next_focus)
-            if word and to_text_string(word) in to_text_string(block.text()):
+            if word and str(word) in str(block.text()):
                 self._editor.find(word, QTextDocument.FindCaseSensitively)
         return text_cursor
 

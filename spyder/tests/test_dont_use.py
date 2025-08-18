@@ -14,10 +14,6 @@ root_path = os.path.realpath(os.path.join(os.getcwd(), 'spyder'))
 
 
 @pytest.mark.parametrize("pattern,exclude_patterns,message", [
-    (r"isinstance\(.*,.*str\)", ['py3compat.py', 'example_latin1.py'],
-     ("Don't use builtin isinstance() function,"
-      "use spyder.py3compat.is_text_string() instead")),
-
     (r"^[\s\#]*\bprint\(((?!file=).)*\)", ['.*test.*', 'example.py',
                                            'example_latin1.py', 'binaryornot'],
      ("Don't use the print() function; ",

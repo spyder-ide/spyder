@@ -31,7 +31,7 @@ def c():
 # %% classes
 class Class1:
     def __init__(self):
-        super(Class1, self).__init__()
+        super().__init__()
         self.x = 2
 
     def method3(self):

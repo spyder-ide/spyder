@@ -310,13 +310,13 @@ class LineNumberArea(Panel):
 
     def on_install(self, editor):
         """Clear width cache on font change."""
-        super(LineNumberArea, self).on_install(editor)
+        super().on_install(editor)
         editor.sig_font_changed.connect(self._clear_width_cache)
 
     def on_uninstall(self):
         """Disconnect signal."""
         self.editor.sig_font_changed.disconnect(self._clear_width_cache)
-        super(LineNumberArea, self).on_uninstall()
+        super().on_uninstall()
 
     def get_markers_margin(self):
         """Get marker margins."""

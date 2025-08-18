@@ -34,7 +34,6 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.utils.installers import InstallerInternalError
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
-from spyder.py3compat import to_text_string
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, getcwd_or_home,
                                remove_backslashes)
@@ -311,7 +310,7 @@ class ConsoleWidget(PluginMainWidget):
             pathlist = mimedata2url(source)
             self.shell.drop_pathlist(pathlist)
         elif source.hasText():
-            lines = to_text_string(source.text())
+            lines = str(source.text())
             self.shell.set_cursor_position('eof')
             self.shell.execute_lines(lines)
 
@@ -536,7 +535,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Go to error if relevant.
         """
-        match = get_error_match(to_text_string(text))
+        match = get_error_match(str(text))
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
@@ -554,7 +553,7 @@ class ConsoleWidget(PluginMainWidget):
         """
         Execute lines and give focus to shell.
         """
-        self.shell.execute_lines(to_text_string(lines))
+        self.shell.execute_lines(str(lines))
         self.shell.setFocus()
 
     @Slot()
@@ -592,7 +591,7 @@ class ConsoleWidget(PluginMainWidget):
             )
 
         if valid:
-            self.set_conf('external_editor/path', to_text_string(path))
+            self.set_conf('external_editor/path', str(path))
 
     def set_exit_function(self, func):
         """

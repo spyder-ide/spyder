@@ -18,7 +18,6 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 # Local imports
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
 from spyder.utils.misc import get_python_executable
@@ -208,7 +207,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             ", ".join(self.get_option('umr/namelist')),
         )
         if valid:
-            arguments = to_text_string(arguments)
+            arguments = str(arguments)
             if arguments:
                 namelist = arguments.replace(' ', '').split(',')
                 fixed_namelist = []
