@@ -25,7 +25,6 @@ from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 is_conda_based_app, save_lang_conf)
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import to_text_string
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
@@ -296,7 +295,7 @@ class ApplicationConfigPage(PluginConfigPage):
         for combobox, (sec, opt, _default) in list(self.comboboxes.items()):
             if opt == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
-                value = from_qvariant(data, to_text_string)
+                value = from_qvariant(data, str)
                 break
         try:
             save_lang_conf(value)

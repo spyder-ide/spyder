@@ -99,7 +99,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
 
         .. note:: Use the cursor selection if startPos and endPos are none.
         """
-        super(TextDecoration, self).__init__()
+        super().__init__()
         self.signals = self.Signals()
         self.draw_order = draw_order
         self.tooltip = tooltip

@@ -272,21 +272,6 @@ class PlotsWidget(ShellConnectMainWidget):
                     self.lock_unlock_action,
                 ]:
                     action.setEnabled(value)
-
-                    # IMPORTANT: Since we are defining the main actions in here
-                    # and the context is WidgetWithChildrenShortcut we need to
-                    # assign the same actions to the children widgets in order
-                    # for shortcuts to work
-                    if figviewer:
-                        figviewer_actions = figviewer.actions()
-                        thumbnails_sb = widget.thumbnails_sb
-                        thumbnails_sb_actions = thumbnails_sb.actions()
-
-                        if action not in figviewer_actions:
-                            figviewer.addAction(action)
-
-                        if action not in thumbnails_sb_actions:
-                            thumbnails_sb.addAction(action)
             except (RuntimeError, AttributeError):
                 pass
 
@@ -489,3 +474,4 @@ class PlotsWidget(ShellConnectMainWidget):
             else:
                 figviewer.auto_fit_plotting = False
                 figviewer.zoom_in(to_full_size=True)
+

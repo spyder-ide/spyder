@@ -44,7 +44,7 @@ class TCPLanguageServerClient(LanguageServerClient):
         # self.request_seq = 1
         logger.info('Connecting to language server at {0}:{1}'.format(
             self.host, self.port))
-        super(TCPLanguageServerClient, self).finalize_initialization()
+        super().finalize_initialization()
         self.socket.setblocking(True)
         self.reading_thread = TCPIncomingMessageThread()
         self.reading_thread.initialize(self.socket, self.zmq_out_socket,
