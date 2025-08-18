@@ -6697,8 +6697,8 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
     qtbot.keyClicks(code_editor, '1/0')
 
     # Run test file
-    qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.sig_prompt_ready):
+       qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Find last 'File' line in traceback, which corresponds to the file we
     # opened.
