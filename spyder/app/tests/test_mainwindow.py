@@ -5872,6 +5872,9 @@ def test_debug_unsaved_function(main_window, qtbot):
 
     assert "1---> 2     print(1)" in control.toPlainText()
 
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
 
 @flaky(max_runs=5)
 @pytest.mark.close_main_window
@@ -6698,7 +6701,7 @@ def test_clickable_ipython_tracebacks(main_window, qtbot, tmp_path):
 
     # Run test file
     with qtbot.waitSignal(shell.sig_prompt_ready):
-       qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
+        qtbot.mouseClick(main_window.run_button, Qt.LeftButton)
 
     # Find last 'File' line in traceback, which corresponds to the file we
     # opened.
