@@ -218,7 +218,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'show_pdb_output': self.show_pdb_output,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
-            'show_traceback': print,
         })
         self.kernel_comm_handlers = handlers
 
