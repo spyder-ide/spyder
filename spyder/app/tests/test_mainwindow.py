@@ -6621,7 +6621,7 @@ def test_PYTHONPATH_in_consoles(main_window, qtbot, tmp_path):
                     timeout=SHELL_TIMEOUT)
 
     # Check user_dir is part of the new console's sys.path
-    with qtbot.waitSignal(shell1.executed, timeout=EVAL_TIMEOUT):
+    with qtbot.waitSignal(shell1.executed, timeout=SHELL_TIMEOUT):
         shell1.execute("import sys; sys_path = sys.path")
 
     sys_path = shell1.get_value("sys_path")
