@@ -323,6 +323,7 @@ DEFAULTS = [
               'sort_files_alphabetically': False,
               'show_comments': True,
               'follow_cursor': True,
+              'update_only_save': False,
               'display_variables': False,
               'show_with_maximized_editor': True,
               }),

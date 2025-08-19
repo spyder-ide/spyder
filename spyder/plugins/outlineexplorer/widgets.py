@@ -251,6 +251,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sort_files_alphabetically = self.get_conf(
             'sort_files_alphabetically')
         self.follow_cursor = self.get_conf('follow_cursor')
+        self.update_only_save = self.get_conf('update_only_save')
         self.display_variables = self.get_conf('display_variables')
 
         super().__init__(parent)
@@ -615,6 +616,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 )
                 editor.is_tree_updated = True
                 self.sig_hide_spinner.emit()
+                return False
+            if self.update_only_save:
+                #if editor.parent().file_saved.connect
                 return False
 
         logger.debug(f"Updating tree for file {editor.fname}")
