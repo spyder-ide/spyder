@@ -192,6 +192,14 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
 
+    def on_mainwindow_visible(self):
+        # Make plugin visible in case it's not but only once. For most users
+        # this will display it in the UI when moving from 6.0 to 6.1
+        if not self.get_conf("make_visible", default=False):
+            if not self.get_widget().is_visible:
+                self.get_widget().toggle_view(True)
+            self.set_conf("make_visible", True)
+
     # ---- For execution
     # -------------------------------------------------------------------------
     @run_execute(context=RunContext.File)
