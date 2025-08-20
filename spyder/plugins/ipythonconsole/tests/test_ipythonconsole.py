@@ -1316,9 +1316,9 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     if show_lib:
-        assert 'iostream.py' in control.toPlainText()
+        assert 'write()' in control.toPlainText()
     else:
-        assert 'iostream.py' not in control.toPlainText()
+        assert 'write()' not in control.toPlainText()
     ipyconsole.set_conf('pdb_ignore_lib', True, section="debugger")
 
 
