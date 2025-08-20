@@ -766,7 +766,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
         except KeyError:
             current_dir = None
 
-        assert current_dir== get_home_dir()
+        assert current_dir == get_home_dir()
 
     with qtbot.waitSignal(shell.executed):
         shell.execute('import os; current_dir = os.getcwd()')
