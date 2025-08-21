@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         target-platform: ${{ fromJson(needs.build-matrix.outputs.target_platform) }}
-        python-version: ['3.11']
+        python-version: ['3.12']
         branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
         include: ${{ fromJson(needs.build-matrix.outputs.include) }}
     defaults:
