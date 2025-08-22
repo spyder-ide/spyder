@@ -449,7 +449,7 @@ def get_interface_language():
         else:
             locale_language = DEFAULT_LANGUAGE
     else:
-        # Solves spyder-ide/spyder#3627.
+        # Fixes spyder-ide/spyder#3627.
         try:
             locale_language = locale.getlocale()[0]
         except ValueError:
