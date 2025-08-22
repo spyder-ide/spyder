@@ -437,10 +437,10 @@ def get_interface_language():
     """
     
     if os.name == "nt":
-        # spyder-ide/spyder#23318
-        # changing to locale.getlocale from locale.getdefaultlocale caused some
-        # windows machines to return non BCP47 locale codes. Instead use
+        # Changing to locale.getlocale from locale.getdefaultlocale caused some
+        # Windows machines to return non BCP47 locale codes. Instead use
         # win32 GetUserDefaultLocaleName which does seem to give BCP47 locale.
+        # Fixes spyder-ide/spyder#23318.
         from ctypes import create_unicode_buffer, windll
         bufsize = 85  # LOCALE_NAME_MAX_LENGTH
         buf = create_unicode_buffer(bufsize)
