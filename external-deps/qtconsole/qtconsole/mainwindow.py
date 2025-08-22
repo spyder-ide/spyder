@@ -809,7 +809,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_frontend.style_sheet = style_sheet
         self.active_frontend._syntax_style_changed()
         self.active_frontend._style_sheet_changed()
-        self.active_frontend.reset(clear=True)
+        self.active_frontend.reset(clear=False)
         self.active_frontend._execute(
 f"""
 from IPython.core.ultratb import VerboseTB
@@ -821,7 +821,9 @@ else:
     get_ipython().run_line_magic('colors', '{colors}')
 """,
             True)
-        
+        self.active_frontend._append_plain_text(
+"""\n\nNote: Clearing the console after updating the syntax style
+is recommended for a better user experience.""")
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)
