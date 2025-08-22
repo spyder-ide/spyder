@@ -325,6 +325,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sig_update_configuration.emit()
         self.update_editors(language='python')
 
+    @on_conf_change(option='update_only_save')
+    def toggle_update_only_save(self, state):
+        editor = self.current_editor
+        if state:
+            editor.update_outline_only_save = True
+        else:
+            editor.update_outline_only_save = False
+
     @on_conf_change(option='group_cells')
     def toggle_group_cells(self, state):
         self.group_cells = state
