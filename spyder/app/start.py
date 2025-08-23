@@ -6,16 +6,20 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
-# Remove PYTHONPATH paths from sys.path before other imports to protect against
-# shadowed standard libraries.
 import os
 import sys
+
+# Remove PYTHONPATH paths from sys.path before other imports to protect against
+# shadowed standard libraries.
 if os.environ.get('PYTHONPATH'):
     for path in os.environ['PYTHONPATH'].split(os.pathsep):
         try:
             sys.path.remove(path.rstrip(os.sep))
         except ValueError:
             pass
+
+# Remove PYTHONEXECUTABLE. See spyder-ide/spyder#24743
+os.environ.pop("PYTHONEXECUTABLE", None)
 
 # Standard library imports
 import ctypes
@@ -40,7 +44,7 @@ root_logger.setLevel(logging.ERROR)
 
 # Prevent a race condition with ZMQ
 # See spyder-ide/spyder#5324.
-import zmq
+import zmq  # noqa
 
 # Load GL library to prevent segmentation faults on some Linux systems
 # See spyder-ide/spyder#3226 and spyder-ide/spyder#3332.
@@ -222,7 +226,7 @@ def main():
         sys.stdout.write('\nconfig:' + '\n')
         for path in reversed(get_conf_paths()):
             sys.stdout.write('\t' + path + '\n')
-        sys.stdout.write('\n' )
+        sys.stdout.write('\n')
         return
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
@@ -230,7 +234,7 @@ def main():
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
-        time.sleep(random.randrange(1000, 2000, 90)/10000.)
+        time.sleep(random.randrange(1000, 2000, 90) / 10000.)
 
         # Lock file creation
         lock_file = get_conf_path('spyder.lock')

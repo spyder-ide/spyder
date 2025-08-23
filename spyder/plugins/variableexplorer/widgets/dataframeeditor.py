@@ -71,7 +71,7 @@ from spyder_kernels.utils.lazymodules import numpy as np, pandas as pd
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.preferences import (
@@ -81,6 +81,8 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
+from spyder.widgets.helperwidgets import MessageCheckBox
+
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -1491,17 +1493,31 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                     if column_label not in index_label:
                         index_label.append(column_label)
 
+        result = None
         if not force:
-            one = _("Do you want to remove the selected item?")
-            more = _("Do you want to remove all selected items?")
-            answer = QMessageBox.question(
-                self,
-                _("Remove"),
-                one if len(indexes) == 1 else more,
-                QMessageBox.Yes | QMessageBox.No
-            )
+            if (
+                not self.get_conf('show_remove_message_dataframe')
+                or running_under_pytest()
+            ):
+                result = QMessageBox.Yes
+            else:
+                one = _("Do you want to remove the selected item?")
+                more = _("Do you want to remove all selected items?")
+                answer = MessageCheckBox(
+                    icon=QMessageBox.Question, parent=self
+                )
+                answer.set_checkbox_text(_("Don't ask again."))
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
-        if force or answer == QMessageBox.Yes:
+                result = answer.exec_()
+                check = answer.is_checked()
+                if check:
+                    self.set_conf('show_remove_message_dataframe', False)
+
+        if force or result == QMessageBox.Yes:
             for label in index_label:
                 try:
                     df.drop(label, inplace=True, axis=axis)

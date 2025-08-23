@@ -140,11 +140,13 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
         if running_in_ci() and not sys.platform.startswith("linux"):
             mpl_backend = "inline"
         else:
-            # Needed when the comm is not connected.
+            # CommError: Needed when the comm is not connected.
             # Fixes spyder-ide/spyder#22194
+            # TimeoutError: Prevent error that seems to happen sporadically.
+            # Fixes spyder-ide/spyder#24865
             try:
                 mpl_backend = shellwidget.get_matplotlib_backend()
-            except CommError:
+            except (CommError, TimeoutError):
                 mpl_backend = None
 
         # Associate detected backend to shellwidget

@@ -69,7 +69,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     SELECT_ROW_BUTTON_SIZE,
 )
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
-from spyder.widgets.helperwidgets import CustomSortFilterProxy
+from spyder.widgets.helperwidgets import CustomSortFilterProxy, MessageCheckBox
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
@@ -1300,13 +1300,25 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 return
 
         if not force:
-            one = _("Do you want to remove the selected item?")
-            more = _("Do you want to remove all selected items?")
-            answer = QMessageBox.question(self, _("Remove"),
-                                          one if len(indexes) == 1 else more,
-                                          QMessageBox.Yes | QMessageBox.No)
+            if not self.get_conf('show_remove_message_collections'):
+                result = QMessageBox.Yes
+            else:
+                one = _("Do you want to remove the selected item?")
+                more = _("Do you want to remove all selected items?")
+                answer = MessageCheckBox(
+                    icon=QMessageBox.Question, parent=self
+                )
+                answer.set_checkbox_text(_("Don't ask again."))
+                answer.set_checked(False)
+                answer.set_check_visible(True)
+                answer.setText(one if len(indexes) == 1 else more)
+                answer.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                result = answer.exec_()
+                check = answer.is_checked()
+                if check:
+                    self.set_conf('show_remove_message_collections', False)
 
-        if force or answer == QMessageBox.Yes:
+        if force or result == QMessageBox.Yes:
             if self.proxy_model:
                 idx_rows = unsorted_unique(
                     [self.proxy_model.mapToSource(idx).row()
