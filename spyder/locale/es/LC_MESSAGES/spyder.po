@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-08 01:00\n"
+"PO-Revision-Date: 2025-08-24 22:02\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3348,23 +3348,23 @@ msgstr "Agregar nueva extensión de archivo. Puede agregar varios valores separ�
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External terminal"
-msgstr "Terminal de comandos externa"
+msgstr "Consola de comandos externa"
 
 #: spyder/plugins/externalterminal/plugin.py:56
 msgid "Run scripts in an external system terminal."
-msgstr "Ejecutar scripts en una terminal de comandos del sistema."
+msgstr "Ejecutar archivos en una consola de comandos del sistema."
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in external terminal"
-msgstr "Ejecutar en una terminal externa"
+msgstr "Ejecutar en una consola externa"
 
 #: spyder/plugins/externalterminal/plugin.py:184
 msgid "Run in an operating system terminal"
-msgstr "Ejecutar en una terminal del sistema operativo"
+msgstr "Ejecutar en una consola del sistema operativo"
 
 #: spyder/plugins/externalterminal/plugin.py:244
 msgid "Running an external system terminal is not supported on platform %s."
-msgstr "Ejecutar en una terminal externa del sistema no está soportado en la plataforma %s."
+msgstr "Ejecutar en una consola externa del sistema no está soportado en la plataforma %s."
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:48 spyder/plugins/maininterpreter/confpage.py:68 spyder/plugins/maininterpreter/plugin.py:69
 msgid "Python interpreter"
@@ -5047,7 +5047,7 @@ msgstr "Los resultados del perfilador (es decir la salida de profile o cProfile)
 
 #: spyder/plugins/profiler/plugin.py:61 spyder/plugins/profiler/widgets/main_widget.py:204 spyder/plugins/tours/tours.py:186
 msgid "Profiler"
-msgstr "Perfilador (Profiler)"
+msgstr "Perfilador"
 
 #: spyder/plugins/profiler/plugin.py:65
 msgid "Profile Python files to find execution bottlenecks."
@@ -7385,11 +7385,11 @@ msgstr "Si acepta los cambios, se modificarán las variables de entorno del usua
 
 #: spyder/utils/programs.py:764 spyder/utils/programs.py:877
 msgid "It was not possible to run this file in an external terminal"
-msgstr "No fue posible ejecutar este archivo en una terminal del sistema"
+msgstr "No fue posible ejecutar este archivo en una consola del sistema"
 
 #: spyder/utils/programs.py:861
 msgid "External terminals does not support a UNC file path as the working directory."
-msgstr "Las terminales externas no soportan una ruta de archivo UNC como el directorio de trabajo."
+msgstr "Las consolas externas no soportan una ruta de archivo UNC como directorio de trabajo."
 
 #: spyder/utils/syntaxhighlighters.py:57
 msgid "Background:"

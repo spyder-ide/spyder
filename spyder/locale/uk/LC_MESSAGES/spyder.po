@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-05-06 19:52-0500\n"
-"PO-Revision-Date: 2025-05-07 01:58\n"
+"PO-Revision-Date: 2025-08-10 11:30\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -319,7 +319,7 @@ msgstr "Atomatic файл записується в редакторі"
 
 #: spyder/dependencies.py:120
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Розшифрувати кодову фразу SSH файлів ключів"
 
 #: spyder/dependencies.py:124
 msgid "Character encoding auto-detection for the Editor"
@@ -375,7 +375,7 @@ msgstr "Покращити завершення коду для об'єктів,
 
 #: spyder/dependencies.py:177
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Порівняти номери версій пакетів Python"
 
 #: spyder/dependencies.py:181
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -699,7 +699,7 @@ msgstr "Зареєструйте Spyder у сервісах запуску"
 
 #: spyder/plugins/application/confpage.py:176
 msgid "Launch Spyder with <code>python.app</code> to enable Apple event integrations."
-msgstr ""
+msgstr "Запустіть Spyder з <code>python.app</code> для включення інтеграції подій Apple."
 
 #: spyder/plugins/application/confpage.py:182
 msgid "Screen resolution"
@@ -707,32 +707,33 @@ msgstr "Роздільна здатність екрану"
 
 #: spyder/plugins/application/confpage.py:184
 msgid "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</a><> for more information about these options (in English)."
-msgstr ""
+msgstr "Конфігурація для екранів з високим DPI<br><br>Будь ласка, дивіться <a href=\"{0}\">{0}</a><> для отримання додаткової інформації (англійською)."
 
 #: spyder/plugins/application/confpage.py:195
 msgid "Normal"
-msgstr ""
+msgstr "Звичайний"
 
 #: spyder/plugins/application/confpage.py:200
 msgid "Enable auto high DPI scaling"
-msgstr ""
+msgstr "Автоматичне масштабування з високим DPI"
 
 #: spyder/plugins/application/confpage.py:203
 msgid "Set this for high DPI displays"
-msgstr ""
+msgstr "Встановлюйте для дисплеїв з високим DPI"
 
 #: spyder/plugins/application/confpage.py:208
 msgid "Set a custom high DPI scaling"
-msgstr ""
+msgstr "Встановити власний масштаб для високого DPI"
 
 #: spyder/plugins/application/confpage.py:211
 msgid "Set this for high DPI displays when auto scaling does not work"
-msgstr ""
+msgstr "Встановіть це для дисплеїв з високим DPI, коли автоматичне масштабування не працює"
 
 #: spyder/plugins/application/confpage.py:219
 msgid "Enter values for different screens separated by semicolons ';'.\n"
 " Float values are supported"
-msgstr ""
+msgstr "Введіть значення для різних екранів, розділені крапкою з комою ';'.\n"
+" Підтримуються дробові значення"
 
 #: spyder/plugins/application/confpage.py:267 spyder/plugins/editor/confpage.py:351 spyder/plugins/ipythonconsole/confpage.py:438 spyder/plugins/ipythonconsole/widgets/run_conf.py:52
 msgid "Advanced settings"
@@ -740,7 +741,7 @@ msgstr "Розширені налаштування"
 
 #: spyder/plugins/application/confpage.py:302
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "На жаль, під час спроби налаштувати вибрану мову сталася помилка:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/application/container.py:106
 msgid "Spyder documentation"
@@ -768,7 +769,7 @@ msgstr "Підтримка Spyder..."
 
 #: spyder/plugins/application/container.py:143
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Допомогти Spyder..."
 
 #: spyder/plugins/application/container.py:151
 msgid "About %s..."
@@ -780,7 +781,7 @@ msgstr "Показати і редагувати поточні змінні с�
 
 #: spyder/plugins/application/container.py:161
 msgid "Show current user environment variables (i.e. for all sessions)"
-msgstr ""
+msgstr "Показати поточні змінні середовища користувача (для всіх сеансів)"
 
 #: spyder/plugins/application/container.py:165
 msgid "Current user environment variables..."
@@ -796,35 +797,35 @@ msgstr "Перезавантажити"
 
 #: spyder/plugins/application/container.py:183
 msgid "&Restart in debug mode"
-msgstr ""
+msgstr "&Перезавантажити в режимі налагодження"
 
 #: spyder/plugins/application/container.py:184
 msgid "Restart in debug mode"
-msgstr ""
+msgstr "Перезавантажити в режимі налагодження"
 
 #: spyder/plugins/application/container.py:194
 msgid "Debug logs"
-msgstr ""
+msgstr "Журнали налагодження"
 
 #: spyder/plugins/application/container.py:275
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>У вас відсутні залежності!</b><br><br><tt>%s</tt><br><b>Встановіть їх, щоб уникнути цього повідомлення.</b><br><br><i>Примітка</i>: Spyder може працювати без деяких із цих залежностей, однак для безперебійного використання Spyder ми <i>наполегливо</i> рекомендуємо вам інсталювати всі перелічені відсутні залежності.<br><br>Якщо не встановити ці залежності, можуть виникнути помилки. Перш ніж повідомляти про нову проблему, переконайтеся, що будь-які знайдені помилки не є прямим наслідком відсутніх залежностей."
 
 #: spyder/plugins/application/container.py:312
 msgid "Question"
-msgstr ""
+msgstr "Запитання"
 
 #: spyder/plugins/application/container.py:315
 msgid "Which debug mode do you want Spyder to restart in?"
-msgstr ""
+msgstr "У якому режимі налагодження ви бажаєте перезапустити Spyder?"
 
 #: spyder/plugins/application/container.py:318
 msgid "Verbose"
-msgstr ""
+msgstr "Детальний"
 
 #: spyder/plugins/application/container.py:319
 msgid "Minimal"
-msgstr ""
+msgstr "Мінімальний"
 
 #: spyder/plugins/application/container.py:435 spyder/plugins/ipythonconsole/widgets/shell.py:879
 msgid "Don't show again."
@@ -848,31 +849,31 @@ msgstr "Вкажіть базові дії основної програми."
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "Про Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
-msgstr ""
+msgstr "Огляд"
 
 #: spyder/plugins/application/widgets/about.py:229
 msgid "Community"
-msgstr ""
+msgstr "Спільнота"
 
 #: spyder/plugins/application/widgets/about.py:230
 msgid "Legal"
-msgstr ""
+msgstr "Правова інформація"
 
 #: spyder/plugins/application/widgets/about.py:236
 msgid "Copy version info"
-msgstr ""
+msgstr "Копіювати інформацію про версію"
 
 #: spyder/plugins/application/widgets/status.py:45
 msgid "Help Spyder"
-msgstr ""
+msgstr "Допомогти Spyder"
 
 #: spyder/plugins/application/widgets/status.py:156
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Допомогти Spyder!"
 
 #: spyder/plugins/completion/confpage.py:28
 msgid "Providers"
@@ -884,7 +885,7 @@ msgstr "Увімкнути {0} постачальника"
 
 #: spyder/plugins/completion/confpage.py:38
 msgid "Time to wait for all providers to return (ms):"
-msgstr ""
+msgstr "Час очікування повернення всіх постачальників (мс):"
 
 #: spyder/plugins/completion/confpage.py:40
 msgid "Beyond this timeout the first available provider will be returned"
@@ -904,7 +905,7 @@ msgstr "Показувати автоматичні завершення піс�
 
 #: spyder/plugins/completion/confpage.py:53
 msgid "Default is 1"
-msgstr ""
+msgstr "Типово 1"
 
 #: spyder/plugins/completion/confpage.py:55
 msgid "Enable code snippets"
@@ -912,11 +913,11 @@ msgstr "Увімкнути фрагменти коду"
 
 #: spyder/plugins/completion/confpage.py:57
 msgid "Show completion details after keyboard idle (ms):"
-msgstr ""
+msgstr "Показувати автоматичні завершення після простою клавіатури (мс):"
 
 #: spyder/plugins/completion/confpage.py:59
 msgid "Default is 500 milliseconds"
-msgstr ""
+msgstr "Типово 500 мілісекунд"
 
 #: spyder/plugins/completion/confpage.py:62
 msgid "Completions"
@@ -928,7 +929,7 @@ msgstr "Завершення та підкладка"
 
 #: spyder/plugins/completion/plugin.py:266
 msgid "Handle code completion, analysis, formatting, introspection, folding and more via the Language Server Protocol and other providers."
-msgstr ""
+msgstr "Обробляйте автозавершення коду, аналіз, форматування, самоаналіз, згортання та багато іншого за допомогою протоколу Language Server Protocol та інших постачальників."
 
 #: spyder/plugins/completion/providers/fallback/provider.py:42
 msgid "Fallback"
@@ -952,11 +953,11 @@ msgstr "Увімкнути розширені налаштування"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:47
 msgid "Module for the Python language server: "
-msgstr ""
+msgstr "Модуль для сервера мови Python: "
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:51
 msgid "IP Address and port to bind the server to: "
-msgstr ""
+msgstr "IP-адреса та порт для прив'язки сервера: "
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:57
 msgid "This is an external server"
@@ -964,15 +965,15 @@ msgstr "Це зовнішній сервер"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:60
 msgid "Use stdio pipes to communicate with server"
-msgstr ""
+msgstr "Використовувати канали stdio для зв'язку з сервером"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset Spyder to factory defaults</tt><br><br>instead of reporting a bug."
-msgstr ""
+msgstr "<b>Зміна цих параметрів може порушити автозавершення коду!!</b><br><br>У такому разі, будь ласка, скиньте налаштування Spyder, перейшовши до меню<br><br><tt>Інструменти > Скинути Spyder до заводських налаштувань</tt><br><br>замість того, щоб повідомляти про помилку."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
-msgstr ""
+msgstr "Здається, за адресою:<br><br><tt>{host}:{port}</tt><br><br> немає запущеного мовного сервера {language}. Перевірте правильність наданої інформації та повторіть спробу."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:225
 msgid "The address of the external server you are trying to connect to is the same as the one of the current internal server started by Spyder.<br><br>Please provide a different address!"
