@@ -360,6 +360,14 @@ In this release 25 pull requests were closed.
 
 ----
 
+## Version 6.0.8 (Unreleased)
+
+### API changes
+
+* Add `spyder_conf_version` and `old_spyder_conf_version` properties to `SpyderConfigurationAccessor`.
+
+----
+
 ## Version 6.0.7 (2025/05/22)
 
 ### Important fixes
