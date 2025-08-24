@@ -14,7 +14,7 @@ from typing import Any, Callable, Optional, Union
 import warnings
 
 # Local imports
-from spyder.config.manager import CONF
+from spyder.config.manager import CONF, CONF_VERSION
 from spyder.config.types import ConfigurationKey
 from spyder.config.user import NoDefault
 
@@ -201,9 +201,17 @@ class SpyderConfigurationAccessor:
         return CONF.get_default(section, option)
 
     @property
-    def old_conf_version(self):
-        """Get old Spyder configuration version."""
+    def spyder_conf_version(self):
+        """Get current version for the Spyder configuration system."""
+        return CONF_VERSION
+
+    @property
+    def old_spyder_conf_version(self):
+        """Get old version for the Spyder configuration system."""
         return CONF.old_spyder_version
+
+    old_conf_version = old_spyder_conf_version
+    """To be removed in 6.1.0 because it was incorrectly named."""
 
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
