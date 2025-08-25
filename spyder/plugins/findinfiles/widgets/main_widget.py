@@ -14,7 +14,7 @@ import re
 from qtpy import PYSIDE2
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetricsF
-from qtpy.QtWidgets import QInputDialog, QLabel
+from qtpy.QtWidgets import QInputDialog, QLabel, QAction, QLineEdit
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -25,6 +25,7 @@ from spyder.plugins.findinfiles.widgets.results_browser import (
 from spyder.plugins.findinfiles.widgets.combobox import (
     MAX_PATH_HISTORY, SearchInComboBox)
 from spyder.plugins.findinfiles.widgets.search_thread import SearchThread
+from spyder.utils.icon_manager import ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle
@@ -152,6 +153,7 @@ class FindInFilesWidget(PluginMainWidget):
         self._exclude_label_width = None
         self._is_shown = False
         self._is_first_time = False
+        self.error_icon = ima.icon('error')
 
         search_text = self.get_conf('search_text', '')
         path_history = self.get_conf('path_history', [])
@@ -186,6 +188,11 @@ class FindInFilesWidget(PluginMainWidget):
         # Fixes spyder-ide/spyder#24188
         self.search_text_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
 
+        self.messages_action = QAction(self)
+        self.messages_action.setVisible(False)
+        self.search_text_edit.lineEdit().addAction(
+            self.messages_action, QLineEdit.TrailingPosition)
+
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
 
@@ -212,6 +219,11 @@ class FindInFilesWidget(PluginMainWidget):
             MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
         )
         self.exclude_pattern_edit.setMaximumWidth(MAX_COMBOBOX_WIDTH)
+
+        self.messages_exclude_action = QAction(self)
+        self.messages_exclude_action.setVisible(False)
+        self.exclude_pattern_edit.lineEdit().addAction(
+            self.messages_exclude_action, QLineEdit.TrailingPosition)
 
         self.result_browser = ResultsBrowser(
             self,
@@ -462,10 +474,8 @@ class FindInFilesWidget(PluginMainWidget):
         case_sensitive = self.case_action.isChecked()
 
         # Clear fields
-        self.search_text_edit.lineEdit().setStyleSheet("")
-        self.exclude_pattern_edit.lineEdit().setStyleSheet("")
-        self.exclude_pattern_edit.setToolTip("")
-        self.search_text_edit.setToolTip("")
+        self.messages_action.setVisible(False)
+        self.messages_exclude_action.setVisible(False)
 
         utext = str(self.search_text_edit.currentText())
         if not utext:
@@ -499,10 +509,7 @@ class FindInFilesWidget(PluginMainWidget):
         if exclude:
             error_msg = regexp_error_msg(exclude)
             if error_msg:
-                exclude_edit = self.exclude_pattern_edit.lineEdit()
-                exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
-                self.exclude_pattern_edit.setToolTip(tooltip)
+                self.show_error(str(error_msg), True)
                 return None
             else:
                 exclude = re.compile(exclude)
@@ -511,10 +518,7 @@ class FindInFilesWidget(PluginMainWidget):
         if text_re:
             error_msg = regexp_error_msg(texts[0][0])
             if error_msg:
-                self.search_text_edit.lineEdit().setStyleSheet(
-                    self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
-                self.search_text_edit.setToolTip(tooltip)
+                self.show_error(str(error_msg), False)
                 return None
             else:
                 texts = [(re.compile(x[0]), x[1]) for x in texts]
@@ -758,6 +762,33 @@ class FindInFilesWidget(PluginMainWidget):
             dialog.show()
         else:
             self.set_conf('max_results', value)
+
+    def show_error(self, error_msg, exclude):
+        """Show a regexp error message with an icon."""
+        self._show_icon_message(extra_info=error_msg, exclude=exclude)
+
+    def _show_icon_message(self, extra_info=None, exclude=False):
+        """
+        Show a message to users with an icon when there's an error in the passed regexp.
+
+        Parameters
+        ----------
+        extra_info:
+            Extra info to add to the icon's tooltip.
+        """
+        tooltip = self.REGEX_ERROR
+        icon = self.error_icon
+
+        if extra_info:
+            tooltip = tooltip + ': ' + extra_info
+        if exclude:
+            self.messages_exclude_action.setIcon(icon)
+            self.messages_exclude_action.setToolTip(tooltip)
+            self.messages_exclude_action.setVisible(True)
+        else:
+            self.messages_action.setIcon(icon)
+            self.messages_action.setToolTip(tooltip)
+            self.messages_action.setVisible(True)
 
 
 # ---- Test
