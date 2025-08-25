@@ -148,7 +148,11 @@ jobs:
           .github/scripts/run_tests.sh -n 0 || \
           .github/scripts/run_tests.sh -n 1 || \
           .github/scripts/run_tests.sh -n 2 || \
-          .github/scripts/run_tests.sh -n 3
+          .github/scripts/run_tests.sh -n 3 || \
+          .github/scripts/run_tests.sh -n 4 || \
+          .github/scripts/run_tests.sh -n 5 || \
+          .github/scripts/run_tests.sh -n 6 || \
+          .github/scripts/run_tests.sh -n 7
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:
