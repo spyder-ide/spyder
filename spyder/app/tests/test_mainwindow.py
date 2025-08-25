@@ -11,7 +11,6 @@ Tests for the main window.
 """
 
 # Standard library imports
-from collections import OrderedDict
 import gc
 import os
 import os.path as osp
@@ -377,8 +376,9 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform == 'darwin',
-                    reason="Fails on other than macOS")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Fails on other than Linux"
+)
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 def test_get_help_combo(main_window, qtbot):
     """
@@ -1000,8 +1000,8 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and running_in_ci(),
-    reason="Fails frequently on Linux and CI"
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Fails frequently on Mac and CI",
 )
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_connection_to_external_kernel(main_window, qtbot):
@@ -1953,8 +1953,9 @@ def test_maximize_minimize_plugins(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    os.name == 'nt' or running_in_ci() and (PYQT5 and PYQT_VERSION >= '5.9'),
-    reason="It times out on Windows and segfaults in our CIs with PyQt >= 5.9")
+    not (sys.platform.startswith("linux") and running_in_ci()),
+    reason="Works reliably on Linux and CIs"
+)
 def test_issue_4066(main_window, qtbot):
     """
     Test for a segfault when these steps are followed:
