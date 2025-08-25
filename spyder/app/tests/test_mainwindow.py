@@ -377,8 +377,7 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform == 'darwin',
-                    reason="Fails on other than macOS")
+@pytest.mark.skipif(not os.name == 'nt', reason="Fails on other than Windows")
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 def test_get_help_combo(main_window, qtbot):
     """
