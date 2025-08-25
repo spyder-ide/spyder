@@ -1000,8 +1000,8 @@ def test_shell_execution(main_window, qtbot, tmpdir):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    sys.platform.startswith('linux') and running_in_ci(),
-    reason="Fails frequently on Linux and CI"
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Fails frequently on Mac and CI",
 )
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_connection_to_external_kernel(main_window, qtbot):
