@@ -780,6 +780,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    @on_conf_change(section='outline_explorer', option='update_only_save')
+    def on_outlineexplorer_update_change(self, value):
+        self.set_outline_update(value)
+
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
@@ -929,6 +933,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     def set_help_enabled(self, state):
         self.help_enabled = state
+
+    def set_outline_update(self, state):
+        for finfo in self.data:
+            editor = finfo.editor
+            editor.change_update_outline(state)
 
     def set_default_font(self, font, color_scheme=None):
         self.default_font = font
