@@ -785,6 +785,10 @@ class FindInFilesWidget(PluginMainWidget):
             self.messages_exclude_action.setIcon(icon)
             self.messages_exclude_action.setToolTip(tooltip)
             self.messages_exclude_action.setVisible(True)
+            tooltip_search = _("Regular expression error in exclude")
+            self.messages_action.setIcon(icon)
+            self.messages_action.setToolTip(tooltip_search)
+            self.messages_action.setVisible(True)
         else:
             self.messages_action.setIcon(icon)
             self.messages_action.setToolTip(tooltip)
