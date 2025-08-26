@@ -1,10 +1,28 @@
 # History of changes for Spyder 6
 
-## Version 6.0.8 (Unreleased)
+## Version 6.0.8 (2025/08/26)
+
+### Important fixes
+
+* Fix input method positioning for the Editor and IPython Console.
 
 ### API changes
 
 * Add `spyder_conf_version` and `old_spyder_conf_version` properties to `SpyderConfigurationAccessor`.
+
+### Issues Closed
+
+* [Issue 24561](https://github.com/spyder-ide/spyder/issues/24561) - Input method is not located in the right position in Spyder 6 ([PR 24575](https://github.com/spyder-ide/spyder/pull/24575) by [@athompson673](https://github.com/athompson673))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 24888](https://github.com/spyder-ide/spyder/pull/24888) - PR: Recreate run config parameters if necessary (Profiler), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24693](https://github.com/spyder-ide/spyder/pull/24693) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 24575](https://github.com/spyder-ide/spyder/pull/24575) - PR: Fix input method positioning (Editor/IPython console), by [@athompson673](https://github.com/athompson673) ([24561](https://github.com/spyder-ide/spyder/issues/24561))
+
+In this release 3 pull requests were closed.
 
 ----
 
