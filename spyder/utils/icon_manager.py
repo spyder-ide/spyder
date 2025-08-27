@@ -348,7 +348,6 @@ class IconManager():
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
             # --- Profiler ------------------------------------------------
-            'profiler':                [('mdi.timer',), {'color': SpyderPalette.ICON_5}],
             'swap':                    [('mdi.swap-vertical',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.2}],
             'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
             'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],

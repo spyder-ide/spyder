@@ -201,6 +201,8 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
+              'show_remove_message_dataframe': True,
+              'show_remove_message_collections': True,
               'show_special_attributes': False,
               'filter_on': True
              }),
