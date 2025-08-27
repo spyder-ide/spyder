@@ -40,7 +40,7 @@ signing_certificate: {{ WIN_SIGN_CERT }}  # [win]
 
 # ---- Payload parameters
 
-default_prefix: $HOME/.local/spyder-6  # [linux or osx]
+default_prefix: $HOME/.local/spyder-6  # [linux]
 default_prefix: '%LOCALAPPDATA%\spyder-6'  # [win]
 default_prefix_domain_user: '%LOCALAPPDATA%\spyder-6'  # [win]
 default_prefix_all_users: '%ALLUSERSPROFILE%\spyder-6'  # [win]

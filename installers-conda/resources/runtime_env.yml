@@ -5,7 +5,7 @@ channels:
   - conda-forge/label/spyder_kernels_rc
   - conda-forge/label/spyder_kernels_dev
 dependencies:
-  - python=3.11
+  - python =3.12.11
   - spyder
   - cython
   - matplotlib-base

@@ -12,6 +12,7 @@ Profiler Plugin.
 from typing import List
 
 # Third party imports
+from packaging.version import parse
 from qtpy.QtCore import Qt, Signal
 
 # Local imports
@@ -106,6 +107,30 @@ class Profiler(SpyderDockablePlugin, RunExecutor):
     @on_plugin_available(plugin=Plugins.Run)
     def on_run_available(self):
         run = self.get_plugin(Plugins.Run)
+
+        # Remove current parameters to recreate them due to the new
+        # architecture for profiling introduced in PR spyder-ide/spyder#24794
+        if (
+            # This is needed when updgrading from Spyder 6.0 to 6.1
+            (
+                parse(self.old_spyder_conf_version) <= parse("87.3.0")
+                and parse(self.spyder_conf_version) > parse("87.3.0")
+            )
+            # And this when downgrading from Spyder 6.1 to 6.0
+            or (
+                parse(self.old_spyder_conf_version) > parse("87.3.0")
+                and parse(self.spyder_conf_version) <= parse("87.3.0")
+            )
+        ):
+            all_execution_params = self.get_conf(
+                "parameters", section="run", default={}
+            )
+            if self.NAME in all_execution_params:
+                all_execution_params.pop(self.NAME)
+                self.set_conf(
+                    "parameters", all_execution_params, section="run"
+                )
+
         run.register_executor_configuration(self, self.executor_configuration)
 
         if is_profiler_installed():

@@ -1,21 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.7 is released!
+**Subject**: [ANN] Spyder 6.0.8 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.7** has been released and is available for
+I'm pleased to announce that Spyder **6.0.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one week after version 6.0.6 and it contains the
-following important fixes:
+This release comes three months after version 6.0.7 and it contains the
+following important fixes and API changes:
 
-* Fix crash at startup on Windows when Conda is not available.
-* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
+* Fix input method positioning for the Editor and IPython Console.
+* Add `spyder_conf_version` and `old_spyder_conf_version` properties to `SpyderConfigurationAccessor`.
 
-In this release we fixed 2 issues and merged 5 pull requests. For a full
+In this release we fixed 1 issue and merged 3 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
