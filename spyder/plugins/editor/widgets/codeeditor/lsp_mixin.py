@@ -1318,7 +1318,7 @@ class LSPMixin:
 
         self.folding_in_sync = True
 
-    def change_update_outline(self, state):
+    def update_outline_on_save(self, state):
         if state:
             self._timer_sync_symbols_and_folding.timeout.disconnect()
         else:
@@ -1340,8 +1340,7 @@ class LSPMixin:
     @handles(CompletionRequestTypes.DOCUMENT_DID_SAVE)
     def process_save(self):
         if self.oe_proxy is not None:
-            state = self.oe_proxy.update_outline_only_save
-            if state:
+            if self.oe_proxy.update_on_save:
                 self.sync_symbols_and_folding()
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,

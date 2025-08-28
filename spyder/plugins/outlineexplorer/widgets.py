@@ -251,7 +251,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sort_files_alphabetically = self.get_conf(
             'sort_files_alphabetically')
         self.follow_cursor = self.get_conf('follow_cursor')
-        self.update_only_save = self.get_conf('update_only_save')
+        self.update_on_save = self.get_conf('update_on_save')
         self.display_variables = self.get_conf('display_variables')
 
         super().__init__(parent)
@@ -325,13 +325,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sig_update_configuration.emit()
         self.update_editors(language='python')
 
-    @on_conf_change(option='update_only_save')
-    def toggle_update_only_save(self, state):
+    @on_conf_change(option='update_on_save')
+    def toggle_update_on_save(self, state):
         editor = self.current_editor
         if state:
-            editor.update_outline_only_save = True
+            editor.update_outline_on_save = True
         else:
-            editor.update_outline_only_save = False
+            editor.update_outline_on_save = False
 
     @on_conf_change(option='group_cells')
     def toggle_group_cells(self, state):
@@ -625,8 +625,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 editor.is_tree_updated = True
                 self.sig_hide_spinner.emit()
                 return False
-            if self.update_only_save:
-                #if editor.parent().file_saved.connect
+
+            if self.update_on_save:
                 return False
 
         logger.debug(f"Updating tree for file {editor.fname}")
