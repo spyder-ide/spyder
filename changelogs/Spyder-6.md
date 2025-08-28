@@ -142,7 +142,6 @@
 * [Issue 24674](https://github.com/spyder-ide/spyder/issues/24674) - Selector for classes and functions displaces and misaligns scrollflags ([PR 24710](https://github.com/spyder-ide/spyder/pull/24710) by [@athompson673](https://github.com/athompson673))
 * [Issue 24623](https://github.com/spyder-ide/spyder/issues/24623) - Add graphical interface to connect to JupyterHub ([PR 24645](https://github.com/spyder-ide/spyder/pull/24645) by [@dalthviz](https://github.com/dalthviz))
 * [Issue 24589](https://github.com/spyder-ide/spyder/issues/24589) - The "Show elapsed time" option doesn't seem to work ([PR 24641](https://github.com/spyder-ide/spyder/pull/24641) by [@jsbautista](https://github.com/jsbautista))
-* [Issue 24561](https://github.com/spyder-ide/spyder/issues/24561) - Input method is not located in the right position in Spyder 6 ([PR 24575](https://github.com/spyder-ide/spyder/pull/24575) by [@athompson673](https://github.com/athompson673))
 * [Issue 24557](https://github.com/spyder-ide/spyder/issues/24557) - Unable to view numpy variable due to a mismatch of versions ([PR 24704](https://github.com/spyder-ide/spyder/pull/24704) by [@jitseniesen](https://github.com/jitseniesen))
 * [Issue 24539](https://github.com/spyder-ide/spyder/issues/24539) - Mute Inline Plot option not being taken into account for new consoles  ([PR 24569](https://github.com/spyder-ide/spyder/pull/24569) by [@ccordoba12](https://github.com/ccordoba12))
 * [Issue 24538](https://github.com/spyder-ide/spyder/issues/24538) - Interpreter status bar inconsistency when changing interpreter selection config and restarting kernel ([PR 24577](https://github.com/spyder-ide/spyder/pull/24577) by [@dalthviz](https://github.com/dalthviz))
@@ -198,7 +197,6 @@ In this release 23 issues were closed.
 * [PR 24587](https://github.com/spyder-ide/spyder/pull/24587) - PR: Add security policy to repo, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
 * [PR 24585](https://github.com/spyder-ide/spyder/pull/24585) - PR: Fix plots looking blurred when scaling is enabled on high DPI-screens (Plots), by [@jsbautista](https://github.com/jsbautista) ([22039](https://github.com/spyder-ide/spyder/issues/22039))
 * [PR 24577](https://github.com/spyder-ide/spyder/pull/24577) - PR: Fix signal connection to trigger status bar update after kernel restart (IPython Console), by [@dalthviz](https://github.com/dalthviz) ([24538](https://github.com/spyder-ide/spyder/issues/24538))
-* [PR 24575](https://github.com/spyder-ide/spyder/pull/24575) - PR: Fix input method positioning (Editor/IPython console), by [@athompson673](https://github.com/athompson673) ([24561](https://github.com/spyder-ide/spyder/issues/24561))
 * [PR 24569](https://github.com/spyder-ide/spyder/pull/24569) - PR: Always call `switch_widget` in `ShellConnectMainWidget.set_shellwidget` (API), by [@ccordoba12](https://github.com/ccordoba12) ([24539](https://github.com/spyder-ide/spyder/issues/24539))
 * [PR 24558](https://github.com/spyder-ide/spyder/pull/24558) - PR: Support Polars data frames in Variable Explorer, by [@jitseniesen](https://github.com/jitseniesen) ([20281](https://github.com/spyder-ide/spyder/issues/20281))
 * [PR 24555](https://github.com/spyder-ide/spyder/pull/24555) - PR: Remove blank lines and white space characters when running cells if their contents are copied (IPython console), by [@SimpleZion](https://github.com/SimpleZion)
@@ -357,6 +355,32 @@ In this release 6 issues were closed.
 * [PR 21769](https://github.com/spyder-ide/spyder/pull/21769) - PR: Add option to prepend or append Pythonpath Manager paths to `sys.path`, by [@mrclary](https://github.com/mrclary) ([17066](https://github.com/spyder-ide/spyder/issues/17066))
 
 In this release 25 pull requests were closed.
+
+----
+
+## Version 6.0.8 (2025/08/26)
+
+### Important fixes
+
+* Fix input method positioning for the Editor and IPython Console.
+
+### API changes
+
+* Add `spyder_conf_version` and `old_spyder_conf_version` properties to `SpyderConfigurationAccessor`.
+
+### Issues Closed
+
+* [Issue 24561](https://github.com/spyder-ide/spyder/issues/24561) - Input method is not located in the right position in Spyder 6 ([PR 24575](https://github.com/spyder-ide/spyder/pull/24575) by [@athompson673](https://github.com/athompson673))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 24888](https://github.com/spyder-ide/spyder/pull/24888) - PR: Recreate run config parameters if necessary (Profiler), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24693](https://github.com/spyder-ide/spyder/pull/24693) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 24575](https://github.com/spyder-ide/spyder/pull/24575) - PR: Fix input method positioning (Editor/IPython console), by [@athompson673](https://github.com/athompson673) ([24561](https://github.com/spyder-ide/spyder/issues/24561))
+
+In this release 3 pull requests were closed.
 
 ----
 
