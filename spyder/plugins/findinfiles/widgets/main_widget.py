@@ -14,7 +14,7 @@ import re
 from qtpy import PYSIDE2
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetricsF
-from qtpy.QtWidgets import QInputDialog, QLabel, QAction, QLineEdit
+from qtpy.QtWidgets import QAction, QInputDialog, QLabel, QLineEdit
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -191,7 +191,8 @@ class FindInFilesWidget(PluginMainWidget):
         self.messages_action = QAction(self)
         self.messages_action.setVisible(False)
         self.search_text_edit.lineEdit().addAction(
-            self.messages_action, QLineEdit.TrailingPosition)
+            self.messages_action, QLineEdit.TrailingPosition
+        )
 
         self.search_in_label = QLabel(_('Search in:'))
         self.search_in_label.ID = FindInFilesWidgetToolbarItems.SearchInLabel
@@ -223,7 +224,8 @@ class FindInFilesWidget(PluginMainWidget):
         self.messages_exclude_action = QAction(self)
         self.messages_exclude_action.setVisible(False)
         self.exclude_pattern_edit.lineEdit().addAction(
-            self.messages_exclude_action, QLineEdit.TrailingPosition)
+            self.messages_exclude_action, QLineEdit.TrailingPosition
+        )
 
         self.result_browser = ResultsBrowser(
             self,
@@ -509,7 +511,7 @@ class FindInFilesWidget(PluginMainWidget):
         if exclude:
             error_msg = regexp_error_msg(exclude)
             if error_msg:
-                self.show_error(str(error_msg), True)
+                self._show_error(str(error_msg), True)
                 return None
             else:
                 exclude = re.compile(exclude)
@@ -518,7 +520,7 @@ class FindInFilesWidget(PluginMainWidget):
         if text_re:
             error_msg = regexp_error_msg(texts[0][0])
             if error_msg:
-                self.show_error(str(error_msg), False)
+                self._show_error(str(error_msg), False)
                 return None
             else:
                 texts = [(re.compile(x[0]), x[1]) for x in texts]
@@ -763,29 +765,28 @@ class FindInFilesWidget(PluginMainWidget):
         else:
             self.set_conf('max_results', value)
 
-    def show_error(self, error_msg, exclude):
-        """Show a regexp error message with an icon."""
-        self._show_icon_message(extra_info=error_msg, exclude=exclude)
-
-    def _show_icon_message(self, extra_info=None, exclude=False):
+    # ---- Private API
+    # ------------------------------------------------------------------------
+    def _show_error(self, error_msg, exclude):
         """
-        Show a message to users with an icon when there's an error in the passed regexp.
+        Show a regexp error message with an icon.
 
         Parameters
         ----------
-        extra_info:
-            Extra info to add to the icon's tooltip.
+        error_msg:
+            Message to add to the action icon's tooltip.
+        exclude: bool
+            Whether to show the error in the exclude pattern combobox.
         """
-        tooltip = self.REGEX_ERROR
+        tooltip = self.REGEX_ERROR + ': ' + error_msg
         icon = self.error_icon
 
-        if extra_info:
-            tooltip = tooltip + ': ' + extra_info
         if exclude:
             self.messages_exclude_action.setIcon(icon)
             self.messages_exclude_action.setToolTip(tooltip)
             self.messages_exclude_action.setVisible(True)
-            tooltip_search = _("Regular expression error in exclude")
+
+            tooltip_search = _("Regular expression error in Exclude field")
             self.messages_action.setIcon(icon)
             self.messages_action.setToolTip(tooltip_search)
             self.messages_action.setVisible(True)
