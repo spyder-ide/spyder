@@ -100,7 +100,6 @@ class FindInFilesWidget(PluginMainWidget):
     )
 
     # Other constants
-    REGEX_INVALID = f"background-color:{SpyderPalette.COLOR_ERROR_2};"
     REGEX_ERROR = _("Regular expression error")
 
     # Signals
