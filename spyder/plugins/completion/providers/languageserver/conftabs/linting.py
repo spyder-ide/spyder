@@ -61,17 +61,22 @@ class LintingConfigTab(SpyderPreferencesTab):
             'flake8',
             button_group=linting_bg
         )
-        
+        ruff_linting_radio = self.create_radiobutton(
+            _("ruff (Intermediate)"),
+            'ruff',
+            button_group=linting_bg
+        )
         disable_linting_radio = self.create_radiobutton(
             _("Disable linting"),
             'no_linting',
             button_group=linting_bg
         )
-        
+
         linting_select_layout = QVBoxLayout()
         linting_select_layout.addSpacing(3 * AppStyle.MarginSize)
         linting_select_layout.addWidget(basic_linting_radio)
         linting_select_layout.addWidget(flake_linting_radio)
+        linting_select_layout.addWidget(ruff_linting_radio)
         linting_select_layout.addWidget(disable_linting_radio)
         linting_select_group.setLayout(linting_select_layout)
 
@@ -89,6 +94,10 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_group = QGroupBox(_("Provider options"))
         configuration_options_layout = QVBoxLayout()
 
+        # ruff options
+        # TODO
+
+        # Flake8 options
         self.flake8_filenames_match = self.create_lineedit(
             _("Only check these filenames:"),
             'flake8/filename',
@@ -131,9 +140,12 @@ class LintingConfigTab(SpyderPreferencesTab):
         flake8_layout.addWidget(flake8_ignore.label, 4, 0)
         flake8_layout.addWidget(flake8_ignore.textbox, 4, 1)
 
+        # pyflakes options
         pyflakes_conf_options = QLabel(
             _("There are no configuration options for Pyflakes")
         )
+
+        # Disabled linting options
         not_select_conf_options = QLabel(_("Linting is disabled"))
 
         grid_widget = QWidget()

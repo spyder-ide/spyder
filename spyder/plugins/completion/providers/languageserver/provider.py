@@ -61,6 +61,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('pyflakes', True),
         ('mccabe', False),
         ('flake8', False),
+        ('ruff', False),
         ('no_linting', False),
         ('formatting', 'autopep8'),
         ('format_on_save', False),
@@ -69,6 +70,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('flake8/extendSelect', ''),
         ('flake8/extendIgnore', 'E,W,C90'),
         ('flake8/max_line_length', 79),
+        ('ruff/exclude', ''),
+        ('ruff/extendSelect', ''),
+        ('ruff/extendIgnore', 'E,W,C90'),
+        ('ruff/lineLength', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -745,15 +750,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
             f8_indent.count(" ") + f8_indent.count("\t") * f8_tab_size
         )
 
-        pycodestyle = {
-            'maxLineLength': cs_max_line_length
-        }
-
-        # Linting - Pyflakes
-        pyflakes = {
-            'enabled': self.get_conf('pyflakes')
-        }
-
         flake8 = {
             "enabled": self.get_conf("flake8"),
             "filename": [
@@ -766,6 +762,37 @@ class LanguageServerProvider(SpyderCompletionProvider):
             "maxLineLength": cs_max_line_length,
         }
 
+        # pycodestyle
+        pycodestyle = {
+            'maxLineLength': cs_max_line_length
+        }
+
+        # Linting - Pyflakes
+        pyflakes = {
+            'enabled': self.get_conf('pyflakes')
+        }
+
+        # Linting - ruff
+        ruff_exclude = self.get_conf('ruff/exclude', '').split(',')
+        ruff_select = self.get_conf('ruff/extendSelect', '').split(',')
+        ruff_ignore = self.get_conf('ruff/extendIgnore', '').split(',')
+        ruff_line_length = self.get_conf('ruff/lineLength', 79)
+
+        ruff = {
+            "enabled": self.get_conf("ruff"),
+            "exclude": [
+                exclude.strip() for exclude in ruff_exclude if exclude
+            ],
+            "extendSelect": [
+                select.strip() for select in ruff_select if select
+            ],
+            "extendIgnore": [
+                ignore.strip() for ignore in ruff_ignore if ignore
+            ],
+            "lineLength": ruff_line_length,
+        }
+
+        # Linting disabled
         no_linting = {"enabled": self.get_conf("no_linting")}
 
         # Pydocstyle
@@ -875,6 +902,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         plugins['pyflakes'].update(pyflakes)
         plugins['pycodestyle'].update(pycodestyle)
         plugins['flake8'].update(flake8)
+        plugins['ruff'].update(ruff)
         plugins['no_linting'].update(no_linting)
         plugins['pydocstyle'].update(pydocstyle)
         plugins['pyls_spyder'].update(pyls_spyder_options)
