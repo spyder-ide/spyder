@@ -60,6 +60,7 @@ PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
 PYLSP_REQVER = '>=1.13.0,<1.14.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
+PYLSP_RUFF_REQVER = '>=2.2.2,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
@@ -220,6 +221,11 @@ DESCRIPTIONS = [
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
      'required_version': PYLSP_BLACK_REQVER},
+    {'modname': 'pylsp_ruff',
+     'package_name': 'python-lsp-ruff',
+     'features': _("linting, code actions and formatting capabilities that "
+                   "are provided by ruff"),
+     'required_version': PYLSP_RUFF_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python LSP Server'),
