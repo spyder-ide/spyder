@@ -281,6 +281,14 @@ class AnsiCodeProcessor(object):
                 params[:3] = []
         elif code == 49:
             self.background_color = None
+        elif code >= 90 and code <= 97:
+            # Bright foreground color
+            self.foreground_color = code - 90
+            self.intensity = 1
+        elif code >=100 and code <= 107:
+            # Bright background color
+            self.background_color = code - 100
+            self.intensity = 1
 
         # Recurse with unconsumed parameters.
         self.set_sgr_code(params)
