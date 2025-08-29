@@ -329,9 +329,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_update_on_save(self, state):
         editor = self.current_editor
         if state:
-            editor.update_outline_on_save = True
+            editor.update_on_save = True
         else:
-            editor.update_outline_on_save = False
+            editor.update_on_save = False
 
     @on_conf_change(option='group_cells')
     def toggle_group_cells(self, state):
