@@ -32,7 +32,8 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         # latest info available here
         self.is_tree_updated = False
 
-        # To decide if the outline has be updated when saving the file
+        # To decide if the outline needs to be updated only when saving the
+        # file
         self.update_on_save = False
 
     def update_outline_info(self, info):
