@@ -73,7 +73,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('ruff/exclude', ''),
         ('ruff/extendSelect', ''),
         ('ruff/extendIgnore', 'E,W,C90'),
-        ('ruff/lineLength', 79),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -728,8 +727,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         host = self.get_conf('advanced/host', '127.0.0.1')
         port = self.get_conf('advanced/port', 2087)
 
-        
-
         # Flake8
         cs_max_line_length = self.get_conf('flake8/max_line_length', 79)
         f8_exclude = self.get_conf('flake8/exclude', '').split(',')
@@ -776,7 +773,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ruff_exclude = self.get_conf('ruff/exclude', '').split(',')
         ruff_select = self.get_conf('ruff/extendSelect', '').split(',')
         ruff_ignore = self.get_conf('ruff/extendIgnore', '').split(',')
-        ruff_line_length = self.get_conf('ruff/lineLength', 79)
 
         ruff = {
             "enabled": self.get_conf("ruff"),
@@ -789,7 +785,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
             "extendIgnore": [
                 ignore.strip() for ignore in ruff_ignore if ignore
             ],
-            "lineLength": ruff_line_length,
+            "lineLength": cs_max_line_length,
         }
 
         # Linting disabled
