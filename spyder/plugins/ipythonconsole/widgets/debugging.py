@@ -11,11 +11,12 @@ mode and Spyder
 
 # Standard library imports
 import atexit
+import logging
 import pdb
 import re
 
 # Third-party imports
-from IPython.core.history import HistoryManager
+from IPython.core.history import HistoryManager, Instance
 from IPython.core.inputtransformer2 import TransformerManager
 from ipython_pygments_lexers import IPython3Lexer
 from pygments.lexer import bygroups, using
@@ -31,6 +32,9 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import get_conf_path
 
 
+logger = logging.getLogger(__name__)
+
+
 class SpyderIPy3Lexer(IPython3Lexer):
     # Detect !cmd command and highlight them
     tokens = IPython3Lexer.tokens
@@ -42,6 +46,13 @@ class SpyderIPy3Lexer(IPython3Lexer):
 
 
 class PdbHistory(HistoryManager):
+
+    # Need to override `shell` definition to allow it to be `None`
+    # Starting with IPython 9.x `shell` is required (`allow_none=False`)
+    # See ipython/ipython#14616
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True,
+    )
 
     def _get_hist_file_name(self, profile=None):
         """
@@ -69,12 +80,16 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         # file to avoid errors.
         # Fixes spyder-ide/spyder#18531
         try:
-            self._pdb_history_file = PdbHistory()
+            # Need to pass `shell` as `None` explicitly due to changes done
+            # for IPython 9.x.
+            # See ipython/ipython#14616
+            self._pdb_history_file = PdbHistory(shell=None)
             self._pdb_history = [
                 line[-1] for line in self._pdb_history_file.get_tail(
                     self.PDB_HIST_MAX, include_latest=True)
             ]
-        except Exception:
+        except Exception as error:
+            logger.error(error)
             self._pdb_history_file = None
             self._pdb_history = []
 
@@ -93,7 +108,8 @@ class DebuggingHistoryWidget(RichJupyterWidget):
             # Fixes spyder-ide/spyder#24504
             try:
                 self._pdb_history_file.new_session()
-            except Exception:
+            except Exception as error:
+                logger.error(error)
                 self._pdb_history_file = None
                 self._pdb_history = []
 
