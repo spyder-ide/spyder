@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/jsbautista/qtconsole.git
 	branch = restartSetSyntaxStyle
-	commit = 071a5e4ad18dedacfca7eb1e10772cd6d250db62
-	parent = 03c7d3598d26fc2773608b2a76938dff0ae5b70c
+	commit = 60188442f8a19eb30f7fd0b2bacd19e09fd86f47
+	parent = e62ff9b341036eb4973b42720833654154137167
 	method = merge
 	cmdver = 0.4.9
