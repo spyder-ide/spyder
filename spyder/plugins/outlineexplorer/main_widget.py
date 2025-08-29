@@ -34,6 +34,7 @@ class OutlineExplorerActions:
     DisplayVariables = 'display_variables'
     FollowCursor = 'follow_cursor'
     SortFiles = 'sort_files_alphabetically'
+    UpdateOnSave = 'update_on_save'
 
 
 # ---- Main widget
@@ -141,6 +142,13 @@ class OutlineExplorerWidget(PluginMainWidget):
             option='follow_cursor'
         )
 
+        update_on_save_act = self.create_action(
+            OutlineExplorerActions.UpdateOnSave,
+            text=_("Update when saving the file"),
+            toggled=True,
+            option='update_on_save'
+        )
+
         sort_files_alphabetically_act = self.create_action(
             OutlineExplorerActions.SortFiles,
             text=_('Sort files alphabetically'),
@@ -150,7 +158,8 @@ class OutlineExplorerWidget(PluginMainWidget):
 
         actions = [fullpath_act, allfiles_act, group_cells_act,
                    display_variables_act, follow_cursor_act, comment_act,
-                   sort_files_alphabetically_act, fromcursor_act]
+                   update_on_save_act, sort_files_alphabetically_act,
+                   fromcursor_act]
 
         option_menu = self.get_options_menu()
         for action in actions:

@@ -1318,6 +1318,14 @@ class LSPMixin:
 
         self.folding_in_sync = True
 
+    def update_outline_on_save(self, state):
+        if state:
+            self._timer_sync_symbols_and_folding.timeout.disconnect()
+        else:
+            self._timer_sync_symbols_and_folding.timeout.connect(
+                self.sync_symbols_and_folding, Qt.UniqueConnection
+            )
+
     # ---- Save/close file
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
@@ -1328,6 +1336,12 @@ class LSPMixin:
         if self.save_include_text:
             params['text'] = self.get_text_with_eol()
         return params
+    
+    @handles(CompletionRequestTypes.DOCUMENT_DID_SAVE)
+    def process_save(self):
+        if self.oe_proxy is not None:
+            if self.oe_proxy.update_on_save:
+                self.sync_symbols_and_folding()
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
