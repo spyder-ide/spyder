@@ -419,6 +419,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         self.current_view_depth = None
         self.compare_data = None
         self.inverted_tree = False
+        self.callers_or_callees_enabled = False
         self.ignore_builtins = False
         self.show_slow = False
         self.root_key = None
@@ -599,6 +600,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
     def show_selected(self):
         """Show current item."""
+        self.callers_or_callees_enabled = True
         self._show_tree([self.currentItem().item_key])
 
     def undo(self):

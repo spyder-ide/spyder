@@ -348,10 +348,12 @@ class IconManager():
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
             # --- Profiler ------------------------------------------------
-            'swap':                    [('mdi.swap-vertical',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.2}],
             'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
             'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
             'stop_profile':            [('mdi.stop',), {'color': SpyderPalette.ICON_7}],
+            'callers_or_callees':      [('mdi6.call-made', 'mdi6.call-received'), {'options': [{'color': self.MAIN_FG_COLOR, 'offset': (-0.2, -0.2)}, {'color': self.MAIN_FG_COLOR, 'offset': (0.2, 0.2)}]}],
+            'callers':                 [('mdi6.call-received',), {'color': self.MAIN_FG_COLOR}],
+            'callees':                 [('mdi6.call-made',), {'color': self.MAIN_FG_COLOR}],
             # --- Other ------------------------------------------------
             'spyder.example':          [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.line_profiler':    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],

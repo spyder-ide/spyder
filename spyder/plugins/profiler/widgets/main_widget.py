@@ -20,13 +20,16 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtCore import Signal
+from superqt.utils import signals_blocked
 
 # Local imports
 from spyder.api.translations import _
-from spyder.utils.misc import getcwd_or_home
 from spyder.api.shellconnect.main_widget import ShellConnectMainWidget
 from spyder.plugins.profiler.widgets.profiler_data_tree import (
-    ProfilerSubWidget)
+    ProfilerSubWidget
+)
+from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 
 
 class ProfilerWidgetActions:
@@ -34,7 +37,7 @@ class ProfilerWidgetActions:
     Clear = 'clear_action'
     Collapse = 'collapse_action'
     Expand = 'expand_action'
-    ToggleTreeDirection = "tree_direction_action"
+    CallersOrCallees = "callers_or_callees_action"
     ToggleBuiltins = "toggle_builtins_action"
     Home = "HomeAction"
     SlowLocal = 'slow_local_action'
@@ -85,6 +88,13 @@ class ProfilerWidget(ShellConnectMainWidget):
         "optimize it."
     )
 
+    # Other
+    TIP_CALLERS = _("Show functions or modules that call the root item")
+    TIP_CALLEES = _("Show functions or modules called by the root item")
+    TIP_CALLERS_OR_CALLEES = _(
+        "Show functions or modules that call an item or are called by it"
+    )
+
     # --- Signals
     # ------------------------------------------------------------------------
     sig_edit_goto_requested = Signal(str, int, str)
@@ -126,12 +136,12 @@ class ProfilerWidget(ShellConnectMainWidget):
             icon=self.create_icon('expand'),
             triggered=self._expand_tree,
         )
-        toggle_tree_action = self.create_action(
-            ProfilerWidgetActions.ToggleTreeDirection,
-            text=_("Switch tree direction"),
-            tip=_('Switch tree direction between callers and callees'),
-            icon=self.create_icon('swap'),
-            toggled=self._toggle_tree,
+        callers_or_callees_action = self.create_action(
+            ProfilerWidgetActions.CallersOrCallees,
+            text=self.TIP_CALLERS_OR_CALLEES,
+            tip=self.TIP_CALLERS_OR_CALLEES,
+            icon=self.create_icon("callers_or_callees"),
+            toggled=self._toggle_callers_or_callees,
         )
         slow_local_action = self.create_action(
             ProfilerWidgetActions.SlowLocal,
@@ -227,7 +237,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         for action in [
             slow_local_action,
             toggle_builtins_action,
-            toggle_tree_action,
+            callers_or_callees_action,
             search_action
         ]:
             self.add_item_to_toolbar(
@@ -249,14 +259,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         # ---- Context menu actions
         show_callees_action = self.create_action(
             ProfilerWidgetContextMenuActions.ShowCallees,
-            _("Show callees"),
-            icon=self.create_icon('2downarrow'),
+            _("Show functions or modules called by this item"),
+            icon=self.create_icon('callees'),
             triggered=self._show_callees
         )
         show_callers_action = self.create_action(
             ProfilerWidgetContextMenuActions.ShowCallers,
-            _("Show callers"),
-            icon=self.create_icon('2uparrow'),
+            _("Show functions or modules that call this item"),
+            icon=self.create_icon('callers'),
             triggered=self._show_callers
         )
         goto_definition_action = self.create_action(
@@ -286,8 +296,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         """Update actions."""
         widget = self.current_widget()
         search_action = self.get_action(ProfilerWidgetActions.Search)
-        toggle_tree_action = self.get_action(
-            ProfilerWidgetActions.ToggleTreeDirection
+        callers_or_callees_action = self.get_action(
+            ProfilerWidgetActions.CallersOrCallees
         )
         toggle_builtins_action = self.get_action(
             ProfilerWidgetActions.ToggleBuiltins
@@ -300,23 +310,78 @@ class ProfilerWidget(ShellConnectMainWidget):
         )
         if widget_inactive:
             search = False
-            inverted_tree = False
+            callers_or_callees_enabled = False
             ignore_builtins = False
             show_slow = False
             stop = False
             self.stop_spinner()
         else:
             search = widget.finder_is_visible()
-            inverted_tree = widget.data_tree.inverted_tree
+            callers_or_callees_enabled = (
+                widget.data_tree.callers_or_callees_enabled
+            )
             ignore_builtins = widget.data_tree.ignore_builtins
             show_slow = widget.data_tree.show_slow
             stop = widget.is_profiling
 
-        search_action.setChecked(search)
-        toggle_tree_action.setChecked(inverted_tree)
         toggle_builtins_action.setChecked(ignore_builtins)
-        slow_local_action.setChecked(show_slow)
         stop_action.setEnabled(stop)
+
+        # Showing callers/callees can't be combined with slow locals and search
+        # because they give different views, so we need to disable them.
+        if callers_or_callees_enabled:
+            # Automatically toggle the action
+            callers_or_callees_action.setEnabled(True)
+            callers_or_callees_action.setChecked(True)
+
+            # This prevents an additional call to update_actions because
+            # data_tree.refresh_tree emits at end data_tree.sig_refresh
+            with signals_blocked(widget.data_tree):
+                widget.data_tree.refresh_tree()
+
+            # Adjust button's tooltip and icon
+            show_callers = widget.data_tree.inverted_tree
+            callers_or_callees_action.setToolTip(
+                self.TIP_CALLERS if show_callers else self.TIP_CALLEES
+            )
+            callers_or_callees_action.setIcon(
+                ima.icon("callers" if show_callers else "callees")
+            )
+
+            # Disable slow locals
+            widget.data_tree.show_slow = False
+            with signals_blocked(slow_local_action):
+                slow_local_action.setChecked(False)
+                slow_local_action.setEnabled(False)
+
+            # Disable search and hide finder widget
+            with signals_blocked(search_action):
+                search_action.setChecked(False)
+                search_action.setEnabled(False)
+
+            with signals_blocked(widget.finder):
+                widget.finder.set_visible(False)
+
+            # We expand the tree so that users can easily inspect callers or
+            # callees
+            self._expand_tree()
+        else:
+            search_action.setChecked(search)
+            slow_local_action.setChecked(show_slow)
+
+            if callers_or_callees_action.isEnabled():
+                # Change icon and tooltip when the button is inactive
+                callers_or_callees_action.setToolTip(
+                    self.TIP_CALLERS_OR_CALLEES
+                )
+                callers_or_callees_action.setIcon(
+                    ima.icon("callers_or_callees")
+                )
+
+                # Untoggle the button
+                with signals_blocked(callers_or_callees_action):
+                    callers_or_callees_action.setChecked(False)
+                    callers_or_callees_action.setEnabled(False)
 
         if widget is not None:
             if widget.is_profiling:
@@ -340,7 +405,6 @@ class ProfilerWidget(ShellConnectMainWidget):
         for action_name in [
             ProfilerWidgetActions.Collapse,
             ProfilerWidgetActions.Expand,
-            ProfilerWidgetActions.ToggleTreeDirection,
             ProfilerWidgetActions.ToggleBuiltins,
             # ProfilerWidgetActions.Home,
             ProfilerWidgetActions.SlowLocal,
@@ -348,7 +412,15 @@ class ProfilerWidget(ShellConnectMainWidget):
             ProfilerWidgetActions.Search
         ]:
             action = self.get_action(action_name)
-            action.setEnabled(not tree_empty)
+            if action_name in [
+                ProfilerWidgetActions.SlowLocal,
+                ProfilerWidgetActions.Search,
+            ]:
+                action.setEnabled(
+                    not tree_empty and not callers_or_callees_enabled
+                )
+            else:
+                action.setEnabled(not tree_empty)
 
         # undo_action = self.get_action(ProfilerWidgetActions.Undo)
         # redo_action = self.get_action(ProfilerWidgetActions.Redo)
@@ -457,13 +529,23 @@ class ProfilerWidget(ShellConnectMainWidget):
             return
         widget.data_tree.home_tree()
 
-    def _toggle_tree(self, state):
-        """Toggle tree."""
+    def _toggle_callers_or_callees(self, state):
+        """
+        Toggle filter for callers or callees.
+
+        Notes
+        -----
+        * The toogle state is handled automatically by update_actions.
+        * After users untoggle the button, they'll return to the initial view.
+        """
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.inverted_tree = state
-        widget.data_tree.refresh_tree()
+
+        if not state:
+            widget.data_tree.callers_or_callees_enabled = False
+            widget.data_tree.inverted_tree = False
+            self._home_tree()
 
     def _collapse_tree(self):
         self.current_widget().data_tree.change_view(-1)
@@ -510,24 +592,18 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.show_selected()
 
-        toggle_tree_action = self.get_action(
-            ProfilerWidgetActions.ToggleTreeDirection)
-        if not toggle_tree_action.isChecked():
-            toggle_tree_action.setChecked(True)
+        widget.data_tree.inverted_tree = True
+        widget.data_tree.show_selected()
 
     def _show_callees(self):
         """Show callees."""
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.show_selected()
 
-        toggle_tree_action = self.get_action(
-            ProfilerWidgetActions.ToggleTreeDirection)
-        if toggle_tree_action.isChecked():
-            toggle_tree_action.setChecked(False)
+        widget.data_tree.inverted_tree = False
+        widget.data_tree.show_selected()
 
     def _goto_definition(self):
         widget = self.current_widget()
