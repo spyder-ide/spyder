@@ -36,7 +36,7 @@ from numpy.testing import assert_array_equal
 from packaging.version import parse
 import pylint
 import pytest
-from qtpy import PYQT_VERSION, PYQT5, PYQT6
+from qtpy import PYQT6
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (
@@ -5595,6 +5595,10 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     assert example_widget.toPlainText() == "Another text"
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 12),
+    reason="Fails with Python versions older than 3.12"
+)
 def test_profiler(main_window, qtbot, tmpdir):
     """Test if profiler works."""
     ipyconsole = main_window.ipyconsole
@@ -5604,37 +5608,36 @@ def test_profiler(main_window, qtbot, tmpdir):
     control = ipyconsole.get_widget().get_focus_widget()
     profiler = main_window.profiler
     profile_tree = profiler.get_widget()
+    factorial_str = '<built-in method math.factorial>'
 
-    sleep_str = '<built-in method time.sleep>'
+    # This makes the test more stable
+    qtbot.wait(1000)
 
     # Test simple profile
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import time")
+        shell.execute("import time, math")
 
     assert len(profile_tree.current_widget().data_tree.get_items(2)) == 0
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("%profile time.sleep(0.1)")
+        shell.execute("%profile math.factorial(2000)")
     qtbot.wait(1000)
 
     assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
-    assert item == sleep_str
-
-    toggle_tree_action = profile_tree.get_action(
-        ProfilerWidgetActions.ToggleTreeDirection)
+    assert item == factorial_str
 
     # Make sure the ordering methods don't reveal the root element.
-    toggle_tree_action.setChecked(True)
-    assert len(profile_tree.current_widget().data_tree.get_items(0)) == 1
-    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
-    assert item == sleep_str
-    toggle_tree_action.setChecked(False)
     assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
     item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
-    assert item == sleep_str
-    profile_tree._slow_local_tree(True)
+    assert item == factorial_str
+
+    slow_local_action = profile_tree.get_action(
+        ProfilerWidgetActions.SlowLocal
+    )
+    slow_local_action.setChecked(True)
     assert len(profile_tree.current_widget().data_tree.get_items(0)) == 3
+    slow_local_action.setChecked(False)
 
     # Test profilecell
     # Write code with a cell to a file
@@ -5661,12 +5664,12 @@ def test_profiler(main_window, qtbot, tmpdir):
 
     # Test profilefile
     code = (
-        "import time\n"
+        "import math\n"
         "def f():\n"
         "    g()\n"
-        "    time.sleep(1)\n"
+        "    math.factorial(3000)\n"
         "def g(stop=False):\n"
-        "    time.sleep(1)\n"
+        "    math.factorial(4000)\n"
         "    if not stop:\n"
         "        g(True)\n"
         "f()"
@@ -5675,37 +5678,63 @@ def test_profiler(main_window, qtbot, tmpdir):
     p.write(code)
     main_window.editor.load(str(p))
 
-    with qtbot.waitSignal(shell.executed):
-        shell.execute("%profilefile " + repr(str(p)))
-    qtbot.wait(1000)
+    # We need to run this twice on Mac to remove a spurious call that appears
+    # in the first run
+    for __ in range(2 if sys.platform == "darwin" else 1):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("%profilefile " + repr(str(p)))
+        qtbot.wait(1000)
 
     # Check callee tree
-    toggle_tree_action.setChecked(False)
     profile_tree._expand_tree()
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
-    values = ["f", sleep_str, "g"]
+    values = ["f", factorial_str, "g"]
     for item, val in zip(
         profile_tree.current_widget().data_tree.get_items(1), values
     ):
        assert val == item.item_key[2]
 
+    callers_or_callees_action = profile_tree.get_action(
+        ProfilerWidgetActions.CallersOrCallees
+    )
+    assert not callers_or_callees_action.isEnabled()
+
     # Check caller tree
-    toggle_tree_action.setChecked(True)
-    profile_tree._expand_tree()
+    items = profile_tree.current_widget().data_tree.get_items(1)
+    for item in items:
+        if item.item_key[2] == "g":
+            profile_tree.current_widget().data_tree.setCurrentItem(item)
+    profile_tree._show_callers()
     assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
-    values = [sleep_str, "f", "g"]
+    values = ["g", "f", "g"]
     for item, val in zip(
         profile_tree.current_widget().data_tree.get_items(1), values
     ):
         assert val == item.item_key[2]
 
-    # Check local time
-    profile_tree._slow_local_tree(True)
-    profile_tree._expand_tree()
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 11
+    assert callers_or_callees_action.isEnabled()
+    assert callers_or_callees_action.isChecked()
+
+    search_action = profile_tree.get_action(
+        ProfilerWidgetActions.Search
+    )
+    assert not slow_local_action.isEnabled()
+    assert not search_action.isEnabled()
+
+    callers_or_callees_action.setChecked(False)
+
+    assert slow_local_action.isEnabled()
+    assert search_action.isEnabled()
+    assert not callers_or_callees_action.isEnabled()
+
+    # Check slow locals
+    slow_local_action.setChecked(True)
+    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 5
 
     # Check no errors happened
     assert "error" not in control.toPlainText().lower()
+
+    slow_local_action.setChecked(False)
 
     # Test profiling while debugging
     # Reset the tree
