@@ -386,6 +386,11 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'profiler'
 
+    # List of internal functions to exclude
+    FUNCTIONS_TO_EXCLUDE = [
+        ('~', 0, "<method 'disable' of '_lsprof.Profiler' objects>")
+    ]
+
     # Signals
     sig_refresh = Signal()
 
@@ -628,11 +633,6 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
 
         self._last_children = children
 
-        # List of internal functions to exclude
-        internal_list = [
-            ('~', 0, "<method 'disable' of '_lsprof.Profiler' objects>")
-        ]
-
         # List of frames to hide at the top
         head_list = [self.root_key, ]
         head_list += list(
@@ -644,7 +644,7 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
                 self.tree_state = None
                 children = []
                 for key, value in self.profdata.all_callees.items():
-                    if key in internal_list or key in head_list:
+                    if key in self.FUNCTIONS_TO_EXCLUDE or key in head_list:
                         continue
                     if self.ignore_builtins:
                         if not self.is_builtin(key):
@@ -664,7 +664,9 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         else:
             if self.ignore_builtins:
                 children = [c for c in children if not self.is_builtin(c)]
-            children = [c for c in children if c not in internal_list]
+            children = [
+                c for c in children if c not in self.FUNCTIONS_TO_EXCLUDE
+            ]
             if max_items is not None:
                 children = children[:max_items]
 
@@ -691,6 +693,10 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
         Recursive method to create each item (and associated data)
         in the tree.
         """
+        children_list = [
+            c for c in children_list if c not in self.FUNCTIONS_TO_EXCLUDE
+        ]
+
         for child_key in children_list:
             item_profdata, item_compdata = self.get_item_data(child_key)
             child_item = TreeWidgetItem(
