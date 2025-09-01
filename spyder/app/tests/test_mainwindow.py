@@ -6164,7 +6164,7 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # a in framesbrowser
-    assert frames_browser.stack_dict['Frames'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['Frames'][-1]["name"] == 'a'
 
     # Recursive debug
     with qtbot.waitSignal(shell.executed):
@@ -6172,13 +6172,13 @@ def test_recursive_debug(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('s')
     # b in framesbrowser
-    assert frames_browser.stack_dict['Frames'][2]["name"] == 'b'
+    assert frames_browser.stack_dict['Frames'][-1]["name"] == 'b'
 
     # Quit recursive debugger
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
     # a in framesbrowser
-    assert frames_browser.stack_dict['Frames'][2]["name"] == 'a'
+    assert frames_browser.stack_dict['Frames'][-1]["name"] == 'a'
 
     # quit debugger
     with qtbot.waitSignal(shell.executed):
