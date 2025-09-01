@@ -99,7 +99,10 @@ class ProfilerSubWidget(
     def do_find(self, text):
         """Search for text."""
         if self.data_tree is not None:
-            self.data_tree.do_find(text)
+            if text:
+                self.data_tree.do_find(text)
+            else:
+                self.data_tree._show_tree()
 
     def finder_is_visible(self):
         """Check if the finder is visible."""

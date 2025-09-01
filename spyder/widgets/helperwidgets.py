@@ -540,15 +540,15 @@ class FinderWidget(QWidget):
         text = self.text_finder.text()
         if not text:
             text = ''
-        if text:
-            self.sig_find_text.emit(text)
+        self.sig_find_text.emit(text)
 
     def set_visible(self, visible):
         """Set visibility of widget."""
         self.setVisible(visible)
         if visible:
             self.text_finder.setFocus()
-            self.do_find()
+            if self.text_finder.text():
+                self.do_find()
         else:
             self.sig_find_text.emit("")
 
