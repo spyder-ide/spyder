@@ -12,7 +12,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QColor, QIcon, QImage, QPainter
+from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -20,6 +20,7 @@ from spyder.config.manager import CONF
 from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.svg_colorizer import SVGColorize
 import qtawesome as qta
 
 
@@ -106,6 +107,18 @@ class IconManager():
                 osp.dirname(osp.realpath(__file__)), '../fonts'),
             'loaded': False,
         }
+
+        self.ICON_COLORS = {
+            'ICON_1':            SpyderPalette.ICON_1,
+            'ICON_2':            SpyderPalette.ICON_2,
+            'ICON_3':            SpyderPalette.ICON_3,
+            'ICON_4':            SpyderPalette.ICON_4,
+            'SPYDER_LOGO_WEB':   SpyderPalette.SPYDER_LOGO_WEB,
+            'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE
+        }
+
+        # Cache for processed icons
+        self._icon_cache = {}
 
         self._qtaargs = {
             'environment':             [('mdi.cube-outline',), {'color': self.MAIN_FG_COLOR}],
@@ -410,10 +423,106 @@ class IconManager():
             (16, 24, 32, 48, 96, 128, 256). This is recommended for
             QMainWindow icons created from SVG images on non-Windows
             platforms due to a Qt bug. See spyder-ide/spyder#1314.
+
+        Returns
+        -------
+        QIcon
+            Icon object with the requested image.
+
+        Notes
+        -----
+        For SVG files, this method will automatically apply theme-based
+        colorization if the SVG contains elements with semantic class names
+        like 'ICON_1', 'ICON_2', 'ICON_3', etc. These classes
+        correspond to color definitions in SpyderPalette.
+
+        This allows icons to automatically adapt to the current theme's
+        color scheme, supporting both dark and light themes as well as
+        custom user themes.
         """
-        # Icon image path
+        # Check cache first
+        cache_key = f"{name}_{resample}"
+        if cache_key in self._icon_cache:
+            return self._icon_cache[cache_key]
+
+        # Get the icon's file path
         icon_path = get_image_path(name)
 
+        # Process the icon
+        if icon_path.endswith('.svg'):
+            icon = self._process_svg_icon(icon_path, resample)
+        else:
+            icon = self._process_regular_icon(icon_path, resample)
+
+        # Cache the result
+        self._icon_cache[cache_key] = icon
+        return icon
+
+    def _process_svg_icon(self, icon_path, resample):
+        """Process an SVG icon with colorization."""
+        try:
+            # Apply colorization
+            svg_data = SVGColorize.colorize_icon_from_theme(
+                icon_path,
+                self.ICON_COLORS
+            )
+
+            # Create QIcon from the SVG data
+            if svg_data:
+                # Create a QByteArray with the SVG data
+                svg_bytes = QByteArray(svg_data.encode())
+
+                # Create a QIcon from the QByteArray
+                svg_image = QImage.fromData(svg_bytes, "SVG")
+                wrapping_icon = QIcon()
+                wrapping_icon.addPixmap(QPixmap.fromImage(svg_image))
+
+                # Store the SVG as a QByteArray for high-resolution rendering
+                setattr(wrapping_icon, '_svg_data', svg_bytes)
+
+                # Process the icon based on resample parameter
+                if resample:
+                    # This only applies to the Spyder 2 icons
+                    icon = QIcon()
+                    for size in (16, 24, 32, 48, 96, 128, 256, 512):
+                        icon.addPixmap(wrapping_icon.pixmap(size, size))
+                    return icon
+                else:
+                    # These are the necessary adjustments for our SVG icons.
+                    icon = QIcon()
+
+                    # -- Normal state
+                    # NOTE: We take pixmaps as large as the ones below to not have
+                    # pixelated icons on high dpi screens.
+                    # Fixes spyder-ide/spyder#19520
+                    normal_state = wrapping_icon.pixmap(512, 512)
+                    icon.addPixmap(normal_state, QIcon.Normal)
+
+                    # -- Disabled state
+                    # Taken from https://stackoverflow.com/a/65618075/438386
+                    disabled_color = QColor(SpyderPalette.COLOR_DISABLED)
+                    disabled_state = wrapping_icon.pixmap(512, 512)
+                    qp = QPainter(disabled_state)
+                    qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
+                    qp.fillRect(disabled_state.rect(), disabled_color)
+                    qp.end()
+                    icon.addPixmap(disabled_state, QIcon.Disabled)
+
+                    # -- Selected state
+                    # We use the normal state pixmap for the selected state as well.
+                    icon.addPixmap(normal_state, QIcon.Selected)
+
+                    return icon
+            else:
+                # Fallback to regular processing if colorization fails
+                return self._process_regular_icon(icon_path, resample)
+
+        except Exception as e:
+            # Fallback to regular processing if there's an error
+            return self._process_regular_icon(icon_path, resample)
+
+    def _process_regular_icon(self, icon_path, resample):
+        """Process a regular (non-SVG) icon."""
         # This is used to wrap the image into a QIcon container so we can get
         # pixmaps for it.
         wrapping_icon = QIcon(icon_path)
