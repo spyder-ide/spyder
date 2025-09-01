@@ -119,7 +119,9 @@ class ProfilerSubWidget(
         self.finder.setVisible(False)
         self.finder.sig_find_text.connect(self.do_find)
         self.finder.sig_hide_finder_requested.connect(
-            self.sig_hide_finder_requested)
+            self.sig_hide_finder_requested
+        )
+        self.finder.sig_text_cleared.connect(self.data_tree._show_tree)
 
         # Setup layout.
         layout = QVBoxLayout()
