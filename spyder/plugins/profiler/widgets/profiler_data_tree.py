@@ -96,7 +96,7 @@ class ProfilerSubWidget(
         self.finder.set_visible(show)
         if not show:
             self.data_tree.setFocus()
-            self.data_tree._show_tree()
+            self._reset()
 
     def do_find(self, text):
         """Search for text."""
@@ -104,7 +104,7 @@ class ProfilerSubWidget(
             if text:
                 self.data_tree.do_find(text)
             else:
-                self.data_tree._show_tree()
+                self._reset()
 
     def finder_is_visible(self):
         """Check if the finder is visible."""
@@ -124,7 +124,7 @@ class ProfilerSubWidget(
         self.finder.sig_hide_finder_requested.connect(
             self.sig_hide_finder_requested
         )
-        self.finder.sig_text_cleared.connect(self.data_tree._show_tree)
+        self.finder.sig_text_cleared.connect(self._reset)
 
         # Setup layout.
         layout = QVBoxLayout()
@@ -237,6 +237,13 @@ class ProfilerSubWidget(
             "compare",
         ]:
             setattr(self, method, getattr(self.data_tree, method))
+
+    def _reset(self):
+        """Reset view to its initial state."""
+        if self.data_tree.show_slow:
+            self.data_tree.show_slow_items()
+        else:
+            self.data_tree._show_tree()
 
 
 class TreeWidgetItem(QTreeWidgetItem):
@@ -640,30 +647,44 @@ class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
             # Nothing to show
             return
 
+        if self.show_slow:
+            children = self.get_slow_items()
+            children = [c for c in children if text in c[-1]]
+            self.show_slow_items(children)
+        else:
+            children = self.profdata.fcn_list
+            children = [c for c in children if text in c[-1]]
+            self._show_tree(children)
+
+    def get_slow_items(self):
+        """Get items with large local time."""
         children = self.profdata.fcn_list
-        children = [c for c in children if text in c[-1]]
-        self._show_tree(children)
 
-    def show_slow_items(self):
-        """Show slow items."""
-        if self.profdata is None:
-            # Nothing to show
-            return
-
-        # Show items with large local time
-        children = self.profdata.fcn_list
-
-        # Only keep top n_slow_children
-        n_children = self.get_conf('n_slow_children')
+        # Get slow items
         children = sorted(
             children,
             key=lambda item: self.profdata.stats[item][ProfilerKey.LocalTime],
             reverse=True
         )
 
+        # Ignore builtins
         if self.ignore_builtins:
             children = [c for c in children if not self.is_builtin(c)]
-        children = children[:n_children]
+
+        # Only keep top n_slow_children
+        n_children = self.get_conf('n_slow_children')
+        return children[:n_children]
+
+    def show_slow_items(self, children=None):
+        """Show slow items."""
+        if self.profdata is None:
+            # Nothing to show
+            return
+
+        if children is None:
+            children = self.get_slow_items()
+
+        n_children = self.get_conf('n_slow_children')
         self._show_tree(children, max_items=n_children, sort_time="local_time")
 
     def refresh_tree(self):
