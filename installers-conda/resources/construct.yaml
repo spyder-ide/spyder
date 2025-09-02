@@ -56,6 +56,7 @@ extra_files:
   - {{ RESOURCE_PATH }}/condarc: .condarc
   - {{ RESOURCE_PATH }}/menuinst_cli.py: bin/menuinst_cli.py  # [linux or osx]
   - {{ RESOURCE_PATH }}/menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
+  - {{ RESOURCE_PATH }}/uninstall-spyder.sh: uninstall-spyder.sh  # [linux or osx]
 
 initialize_by_default: false
 initialize_conda: false
