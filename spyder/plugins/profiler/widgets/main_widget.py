@@ -367,6 +367,19 @@ class ProfilerWidget(ShellConnectMainWidget):
             search_action.setChecked(search)
             slow_local_action.setChecked(show_slow)
 
+            # Recreate custom view if we're showing slow locals or searching
+            # for something
+            if not widget_inactive and widget.recreate_custom_view:
+                # Reset state for next time
+                widget.recreate_custom_view = False
+
+                if search:
+                    search_text = widget.finder_text()
+                    if search_text:
+                        widget.do_find(search_text)
+                elif show_slow:
+                    self._slow_local_tree(True)
+
             if callers_or_callees_action.isEnabled():
                 # Change icon and tooltip when the button is inactive
                 callers_or_callees_action.setToolTip(
@@ -509,6 +522,18 @@ class ProfilerWidget(ShellConnectMainWidget):
             return
 
         widget.is_profiling = True
+
+        # Check if we're showing slow locals or searching for something to
+        # recreate the custom view after new results arrive.
+        if widget.show_slow or (
+            widget.finder_is_visible() and widget.finder_text()
+        ):
+            widget.recreate_custom_view = True
+
+        # Reset state of callers/callees view because the new results couldn't
+        # contain the selected item.
+        widget.callers_or_callees_enabled = False
+        widget.inverted_tree = False
 
     def _stop_profiling(self):
         widget = self.current_widget()

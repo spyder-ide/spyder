@@ -555,6 +555,10 @@ class FinderWidget(QWidget):
         else:
             self.sig_find_text.emit("")
 
+    def text(self):
+        """Get current text."""
+        return self.text_finder.text()
+
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
     """Custom row filter based on regex."""

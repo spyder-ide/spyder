@@ -83,6 +83,7 @@ class ProfilerSubWidget(
         self.data_tree: ProfilerDataTree | None = None
         self.finder: FinderWidget | None = None
         self.is_profiling = False
+        self.recreate_custom_view = False
         self.on_kernel_ready_callback: Callable | None = None
 
         self.setup()
@@ -111,6 +112,9 @@ class ProfilerSubWidget(
         if self.finder is None:
             return False
         return self.finder.isVisible()
+
+    def finder_text(self):
+        return self.finder.text()
 
     def setup(self):
         """Setup widget."""
