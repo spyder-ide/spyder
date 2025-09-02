@@ -317,11 +317,9 @@ class ProfilerWidget(ShellConnectMainWidget):
             self.stop_spinner()
         else:
             search = widget.finder_is_visible()
-            callers_or_callees_enabled = (
-                widget.data_tree.callers_or_callees_enabled
-            )
-            ignore_builtins = widget.data_tree.ignore_builtins
-            show_slow = widget.data_tree.show_slow
+            callers_or_callees_enabled = widget.callers_or_callees_enabled
+            ignore_builtins = widget.ignore_builtins
+            show_slow = widget.show_slow
             stop = widget.is_profiling
 
         toggle_builtins_action.setChecked(ignore_builtins)
@@ -335,12 +333,12 @@ class ProfilerWidget(ShellConnectMainWidget):
             callers_or_callees_action.setChecked(True)
 
             # This prevents an additional call to update_actions because
-            # data_tree.refresh_tree emits at end data_tree.sig_refresh
-            with signals_blocked(widget.data_tree):
-                widget.data_tree.refresh_tree()
+            # refresh_tree emits at the end sig_refresh
+            with signals_blocked(widget):
+                widget.refresh_tree()
 
             # Adjust button's tooltip and icon
-            show_callers = widget.data_tree.inverted_tree
+            show_callers = widget.inverted_tree
             callers_or_callees_action.setToolTip(
                 self.TIP_CALLERS if show_callers else self.TIP_CALLEES
             )
@@ -349,7 +347,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             )
 
             # Disable slow locals
-            widget.data_tree.show_slow = False
+            widget.show_slow = False
             with signals_blocked(slow_local_action):
                 slow_local_action.setChecked(False)
                 slow_local_action.setEnabled(False)
@@ -397,10 +395,10 @@ class ProfilerWidget(ShellConnectMainWidget):
         tree_empty = True
         can_clear = False
         if not widget_inactive:
-            tree_empty = widget.data_tree.profdata is None
+            tree_empty = widget.profdata is None
             # can_undo = len(widget.data_tree.history) > 1
             # can_redo = len(widget.data_tree.redo_history) > 0
-            can_clear = widget.data_tree.compare_data is not None
+            can_clear = widget.compare_data is not None
 
         for action_name in [
             ProfilerWidgetActions.Collapse,
@@ -491,8 +489,12 @@ class ProfilerWidget(ShellConnectMainWidget):
         if value:
             self.show_empty_message()
         else:
-            if widget.data_tree.profdata is not None:
+            if widget.profdata is not None:
                 self.show_content_widget()
+
+    def current_widget(self) -> ProfilerSubWidget:
+        """Override to add typing."""
+        return super().current_widget()
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -527,7 +529,7 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.home_tree()
+        widget.home_tree()
 
     def _toggle_callers_or_callees(self, state):
         """
@@ -543,23 +545,23 @@ class ProfilerWidget(ShellConnectMainWidget):
             return
 
         if not state:
-            widget.data_tree.callers_or_callees_enabled = False
-            widget.data_tree.inverted_tree = False
+            widget.callers_or_callees_enabled = False
+            widget.inverted_tree = False
             self._home_tree()
 
     def _collapse_tree(self):
-        self.current_widget().data_tree.change_view(-1)
+        self.current_widget().change_view(-1)
 
     def _expand_tree(self):
-        self.current_widget().data_tree.change_view(1)
+        self.current_widget().change_view(1)
 
     def _toggle_builtins(self, state):
         """Toggle builtins."""
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.ignore_builtins = state
-        widget.data_tree.refresh_tree()
+        widget.ignore_builtins = state
+        widget.refresh_tree()
 
     def _slow_local_tree(self, state):
         """Show items with large local times"""
@@ -567,9 +569,9 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
 
-        widget.data_tree.show_slow = state
+        widget.show_slow = state
         if state:
-            widget.data_tree.show_slow_items()
+            widget.show_slow_items()
         else:
             self._home_tree()
 
@@ -578,14 +580,14 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.undo()
+        widget.undo()
 
     def _redo(self):
         """Redo changes."""
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.redo()
+        widget.redo()
 
     def _show_callers(self):
         """Show callers."""
@@ -593,8 +595,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
 
-        widget.data_tree.inverted_tree = True
-        widget.data_tree.show_selected()
+        widget.inverted_tree = True
+        widget.show_selected()
 
     def _show_callees(self):
         """Show callees."""
@@ -602,15 +604,15 @@ class ProfilerWidget(ShellConnectMainWidget):
         if widget is None:
             return
 
-        widget.data_tree.inverted_tree = False
-        widget.data_tree.show_selected()
+        widget.inverted_tree = False
+        widget.show_selected()
 
     def _goto_definition(self):
         widget = self.current_widget()
         if widget is None:
             return
 
-        item = widget.data_tree.currentItem()
+        item = widget.currentItem()
         if osp.isfile(item.filename):
             self.sig_edit_goto_requested.emit(
                 item.filename, item.line_number, ""
@@ -635,7 +637,7 @@ class ProfilerWidget(ShellConnectMainWidget):
             filename = filename + '.prof'
 
         if filename:
-            widget.data_tree.save_data(filename)
+            widget.save_data(filename)
 
     def _load_data(self):
         """Compare previous saved run with last run."""
@@ -650,8 +652,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         )
 
         if filename:
-            widget.data_tree.compare(filename)
-            widget.data_tree.home_tree()
+            widget.compare(filename)
+            widget.home_tree()
             self.update_actions()
 
     def _clear(self):
@@ -659,8 +661,8 @@ class ProfilerWidget(ShellConnectMainWidget):
         widget = self.current_widget()
         if widget is None:
             return
-        widget.data_tree.compare(None)
-        widget.data_tree.home_tree()
+        widget.compare(None)
+        widget.home_tree()
         self.update_actions()
 
     def _display_request(self, widget):

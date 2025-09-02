@@ -80,13 +80,15 @@ class ProfilerSubWidget(
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
 
-        # Finder
-        self.data_tree = None
-        self.finder = None
+        self.data_tree: ProfilerDataTree | None = None
+        self.finder: FinderWidget | None = None
         self.is_profiling = False
         self.on_kernel_ready_callback: Callable | None = None
+
         self.setup()
 
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def toggle_finder(self, show):
         """Show and hide the finder."""
         if self.finder is None:
@@ -114,6 +116,7 @@ class ProfilerSubWidget(
         """Setup widget."""
         self.data_tree = ProfilerDataTree(self)
         self.data_tree.sig_refresh.connect(self.sig_refresh)
+        self._bind_data_tree_methods()
 
         self.finder = FinderWidget(self)
         self.finder.setVisible(False)
@@ -171,6 +174,69 @@ class ProfilerSubWidget(
 
     def set_context_menu(self, menu):
         self.data_tree.menu = menu
+
+    # ---- ProfilerDataTree API
+    # -------------------------------------------------------------------------
+    @property
+    def inverted_tree(self):
+        return self.data_tree.inverted_tree
+
+    @inverted_tree.setter
+    def inverted_tree(self, state):
+        self.data_tree.inverted_tree = state
+
+    @property
+    def callers_or_callees_enabled(self):
+        return self.data_tree.callers_or_callees_enabled
+
+    @callers_or_callees_enabled.setter
+    def callers_or_callees_enabled(self, state):
+        self.data_tree.callers_or_callees_enabled = state
+
+    @property
+    def ignore_builtins(self):
+        return self.data_tree.ignore_builtins
+
+    @ignore_builtins.setter
+    def ignore_builtins(self, state):
+        self.data_tree.ignore_builtins = state
+
+    @property
+    def show_slow(self):
+        return self.data_tree.show_slow
+
+    @show_slow.setter
+    def show_slow(self, state):
+        self.data_tree.show_slow = state
+
+    @property
+    def profdata(self):
+        return self.data_tree.profdata
+
+    @property
+    def compare_data(self):
+        return self.data_tree.compare_data
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _bind_data_tree_methods(self):
+        """
+        Bind some methods from ProfilerDataTree to this widget so they can be
+        easily called in ProfilerWidget.
+        """
+        for method in [
+            "refresh_tree",
+            "home_tree",
+            "change_view",
+            "show_slow_items",
+            "undo",
+            "redo",
+            "show_selected",
+            "currentItem",
+            "save_data",
+            "compare",
+        ]:
+            setattr(self, method, getattr(self.data_tree, method))
 
 
 class TreeWidgetItem(QTreeWidgetItem):
