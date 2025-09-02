@@ -1336,7 +1336,7 @@ class LSPMixin:
         if self.save_include_text:
             params['text'] = self.get_text_with_eol()
         return params
-    
+
     @handles(CompletionRequestTypes.DOCUMENT_DID_SAVE)
     def process_save(self):
         if self.oe_proxy is not None:
