@@ -62,7 +62,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             button_group=linting_bg
         )
         ruff_linting_radio = self.create_radiobutton(
-            _("ruff (Intermediate)"),
+            _("Ruff (Advanced)"),
             'ruff',
             button_group=linting_bg
         )

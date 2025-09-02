@@ -223,8 +223,7 @@ DESCRIPTIONS = [
      'required_version': PYLSP_BLACK_REQVER},
     {'modname': 'pylsp_ruff',
      'package_name': 'python-lsp-ruff',
-     'features': _("linting, code actions and formatting capabilities that "
-                   "are provided by ruff"),
+     'features': _("Provide linting with the Ruff package"),
      'required_version': PYLSP_RUFF_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
