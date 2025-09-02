@@ -83,73 +83,18 @@ for shell_init in ${shell_init_list[@]}; do
 done
 
 # ---- Uninstall script
-echo "Creating uninstall script..."
-cat <<END > ${u_spy_exe}
-#!/bin/bash
-
-if [[ ! -w ${PREFIX} || ! -w "$shortcut_path" ]]; then
-    echo "Uninstalling Spyder requires sudo privileges."
-    exit 1
-fi
-
-while getopts "f" option; do
-    case "\$option" in
-        (f) force=true ;;
-    esac
-done
-shift \$((\$OPTIND - 1))
-
-if [[ -z \$force ]]; then
-    cat <<EOF
-You are about to uninstall Spyder.
-If you proceed, aliases will be removed from:
-  ${shell_init_list[@]}
-and the following will be removed:
-  ${shortcut_path}
-  ${PREFIX}
-
-Do you wish to continue?
-EOF
-    read -p " [yes|NO]: " confirm
-    confirm=\$(echo \$confirm | tr '[:upper:]' '[:lower:]')
-    if [[ ! "\$confirm" =~ ^y(es)?$ ]]; then
-        echo "Uninstall aborted."
-        exit 1
-    fi
-fi
-
-# Quit Spyder
-echo "Quitting Spyder..."
-if [[ "\$OSTYPE" == "darwin"* ]]; then
-    osascript -e 'quit app "$(basename "$shortcut_path")"' 2>/dev/null
-else
-    pkill spyder 2>/dev/null
-fi
-sleep 1
-while [[ \$(pgrep spyder 2>/dev/null) ]]; do
-    echo "Waiting for Spyder to quit..."
-    sleep 1
-done
-
-# Remove aliases from shell startup
-for x in ${shell_init_list[@]}; do
-    # Resolve possible symlink
-    [[ ! -f "\$x" ]] && continue || x=\$(readlink -f \$x)
-
-    echo "Removing Spyder shell commands from \$x..."
-    sed -i.bak -e "/$m1/,/$m2/d" \$x
-    rm \$x.bak
-done
-
-# Remove shortcut and environment
-echo "Removing Spyder shortcut and environment..."
-$pythonexe $menuinst remove
-
-rm -rf ${PREFIX}
-
-echo "Spyder successfully uninstalled."
-END
+echo "Updating uninstall script..."
+sed -i.bak \
+    -e "s|__PREFIX__|${PREFIX}|g" \
+    -e "s|__SHORTCUT_PATH__|${shortcut_path}|g" \
+    -e "s|__SHELL_INIT_LIST__|(${shell_init_list[*]/#/ } )|g" \
+    -e "s|__M1__|${m1}|g" \
+    -e "s|__M2__|${m2}|g" \
+    -e "s|__PYTHONEXE__|${pythonexe}|g" \
+    -e "s|__MENUINST__|${menuinst}|g" \
+    ${u_spy_exe}
 chmod +x ${u_spy_exe}
+rm ${u_spy_exe}.bak
 
 # ---- Linux post-install notes
 if [[ "$OSTYPE" == "linux"* ]]; then
