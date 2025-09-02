@@ -1335,13 +1335,10 @@ class LSPMixin:
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.get_text_with_eol()
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_DID_SAVE)
-    def process_save(self):
         if self.oe_proxy is not None:
             if self.oe_proxy.update_on_save:
                 self.sync_symbols_and_folding()
+        return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
              requires_response=False)
