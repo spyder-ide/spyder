@@ -1335,9 +1335,13 @@ class LSPMixin:
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.get_text_with_eol()
-        if self.oe_proxy is not None:
-            if self.oe_proxy.update_on_save:
-                self.sync_symbols_and_folding()
+
+        # Update symbols and folding on save to avoid sending requests for that
+        # while typing, which improves performance.
+        # Fixes spyder-ide/spyder#15078
+        if self.oe_proxy is not None and self.oe_proxy.update_on_save:
+            self.sync_symbols_and_folding()
+
         return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
