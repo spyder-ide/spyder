@@ -116,7 +116,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             'ruff/extendIgnore',
             alignment=Qt.Horizontal,
             word_wrap=False,
-            placeholder=_("Default is: E,W,C90"),
+            placeholder=_("Default is: D,DOC,E,W,C90"),
         )
 
         ruff_layout = QGridLayout()
