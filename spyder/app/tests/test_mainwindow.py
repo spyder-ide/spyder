@@ -5608,6 +5608,7 @@ def test_profiler(main_window, qtbot, tmpdir):
     control = ipyconsole.get_widget().get_focus_widget()
     profiler = main_window.profiler
     profile_tree = profiler.get_widget()
+    data_tree = profile_tree.current_widget().data_tree
     factorial_str = '<built-in method math.factorial>'
 
     # This makes the test more stable
@@ -5617,26 +5618,26 @@ def test_profiler(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute("import time, math")
 
-    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 0
+    assert len(data_tree.get_items(2)) == 0
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%profile math.factorial(2000)")
     qtbot.wait(1000)
 
-    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
-    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
+    assert len(data_tree.get_items(2)) == 1
+    item = data_tree.get_items(2)[0].item_key[2]
     assert item == factorial_str
 
     # Make sure the ordering methods don't reveal the root element.
-    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 1
-    item = profile_tree.current_widget().data_tree.get_items(2)[0].item_key[2]
+    assert len(data_tree.get_items(2)) == 1
+    item = data_tree.get_items(2)[0].item_key[2]
     assert item == factorial_str
 
     slow_local_action = profile_tree.get_action(
         ProfilerWidgetActions.SlowLocal
     )
     slow_local_action.setChecked(True)
-    assert len(profile_tree.current_widget().data_tree.get_items(0)) == 3
+    assert len(data_tree.get_items(0)) == 3
     slow_local_action.setChecked(False)
 
     # Test profilecell
@@ -5660,7 +5661,7 @@ def test_profiler(main_window, qtbot, tmpdir):
 
     # Verify that two elements are in the profiler
     # Actually 3 because globals is included too
-    assert len(profile_tree.current_widget().data_tree.get_items(2)) == 3
+    assert len(data_tree.get_items(2)) == 3
 
     # Test profilefile
     code = (
@@ -5687,11 +5688,9 @@ def test_profiler(main_window, qtbot, tmpdir):
 
     # Check callee tree
     profile_tree._expand_tree()
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    assert len(data_tree.get_items(1)) == 3
     values = ["f", factorial_str, "g"]
-    for item, val in zip(
-        profile_tree.current_widget().data_tree.get_items(1), values
-    ):
+    for item, val in zip(data_tree.get_items(1), values):
        assert val == item.item_key[2]
 
     callers_or_callees_action = profile_tree.get_action(
@@ -5700,16 +5699,14 @@ def test_profiler(main_window, qtbot, tmpdir):
     assert not callers_or_callees_action.isEnabled()
 
     # Check caller tree
-    items = profile_tree.current_widget().data_tree.get_items(1)
+    items = data_tree.get_items(1)
     for item in items:
         if item.item_key[2] == "g":
-            profile_tree.current_widget().data_tree.setCurrentItem(item)
+            data_tree.setCurrentItem(item)
     profile_tree._show_callers()
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 3
+    assert len(data_tree.get_items(1)) == 3
     values = ["g", "f", "g"]
-    for item, val in zip(
-        profile_tree.current_widget().data_tree.get_items(1), values
-    ):
+    for item, val in zip(data_tree.get_items(1), values):
         assert val == item.item_key[2]
 
     assert callers_or_callees_action.isEnabled()
@@ -5729,18 +5726,49 @@ def test_profiler(main_window, qtbot, tmpdir):
 
     # Check slow locals
     slow_local_action.setChecked(True)
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 5
+    assert len(data_tree.get_items(1)) == 5
 
     # Check no errors happened
     assert "error" not in control.toPlainText().lower()
 
+    # Profile again and check we still show slow locals
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(str(p)))
+    assert len(data_tree.get_items(1)) == 5
+
+    # Check search is working
+    search_action.setChecked(True)
+    qtbot.keyClicks(profile_tree.current_widget().finder.text_finder, "fact")
+    qtbot.keyClick(
+        profile_tree.current_widget().finder.text_finder, Qt.Key_Enter
+    )
+    assert len(data_tree.get_items(1)) == 1
+
+    # Check we preserved the slow locals view
+    assert data_tree.sortColumn() == data_tree.index_dict["local_time"]
+
+    # Check untoggle search gives the slow locals view
+    search_action.setChecked(False)
+    assert len(data_tree.get_items(1)) == 5
+
+    # Check toggling search again filters the view with the search text
+    search_action.setChecked(True)
+    assert len(data_tree.get_items(1)) == 1
+
+    # Check we still show slow locals and search after new results arrive
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(str(p)))
+    assert len(data_tree.get_items(1)) == 1
+    assert data_tree.sortColumn() == data_tree.index_dict["local_time"]
+
+    search_action.setChecked(False)
     slow_local_action.setChecked(False)
 
     # Test profiling while debugging
     # Reset the tree
     with qtbot.waitSignal(shell.executed):
         shell.execute("%profile 0")
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 0
+    assert len(data_tree.get_items(1)) == 0
 
     with qtbot.waitSignal(shell.executed):
         shell.execute("%debug 0")
@@ -5750,7 +5778,7 @@ def test_profiler(main_window, qtbot, tmpdir):
         shell.execute("%profilefile " + repr(str(p)))
     qtbot.wait(1000)
 
-    assert len(profile_tree.current_widget().data_tree.get_items(1)) == 1
+    assert len(data_tree.get_items(1)) == 1
     assert shell.is_debugging()
 
     # Make sure the shell is not broken
