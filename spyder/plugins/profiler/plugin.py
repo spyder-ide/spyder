@@ -230,7 +230,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     # ---- For execution
     # -------------------------------------------------------------------------
     @run_execute(context=RunContext.File)
-    def profile_files(
+    def profile_file(
         self,
         input: RunConfiguration,
         conf: ExtendedRunExecutionParameters
