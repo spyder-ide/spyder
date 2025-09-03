@@ -270,7 +270,7 @@ class TreeWidgetItem(QTreeWidgetItem):
 
         self.set_item_data(filename, line_number)
         self.setIcon(self.index_dict["function_name"], icon_list[node_type])
-        self.set_filename_tooltip()
+        self.set_tooltips()
 
         data = {
             "function_name": function_name,
@@ -434,17 +434,16 @@ class TreeWidgetItem(QTreeWidgetItem):
                 ancestor = ancestor.parent()
         return False
 
-    def set_filename_tooltip(self):
-        if not self.filename or self.filename == '~':
-            fname = "(built-in)"
-            number = ""
-        else:
-            fname = self.filename
-            number = self.line_number
+    def set_tooltips(self):
+        """Set item tooltips."""
+        self.setToolTip(self.index_dict["function_name"], self.function_name)
 
-        self.setToolTip(
-            self.index_dict["function_name"], f"{fname}:{number}"
-        )
+        if not self.filename or self.filename == '~':
+            fname_tip = "(built-in)"
+        else:
+            fname_tip = f"{self.filename}:{self.line_number}"
+
+        self.setToolTip(self.index_dict["file:line"], fname_tip)
 
 
 class ProfilerDataTree(QTreeWidget, SpyderConfigurationAccessor):
