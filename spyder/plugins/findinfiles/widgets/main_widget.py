@@ -12,10 +12,15 @@ import re
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.QtCore import Signal, QEvent, Qt
+from qtpy.QtCore import QEvent, Qt, Signal
 from qtpy.QtGui import QFontMetricsF
-from qtpy.QtWidgets import (QAction, QInputDialog, QLabel, QLineEdit,
-                            QToolButton)
+from qtpy.QtWidgets import (
+    QAction,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QToolButton,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -276,7 +281,6 @@ class FindInFilesWidget(PluginMainWidget):
         -----
         * Reduce space between the messages_button and the clear one.
         """
-
         # Type check: Prevent error in PySide where 'event' may be of type
         # QtGui.QPainter (for whatever reason).
         if not isinstance(event, QEvent):
