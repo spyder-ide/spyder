@@ -90,7 +90,7 @@ def _process_extra_specs(extra_specs, no_local=False):
     return new_extra_specs, specs.get("spyder")[1]
 
 
-def _generate_background_images(install_type):
+def _generate_background_images(install_type, spy_ver):
     """This requires Pillow."""
     if install_type == "sh":
         # shell installers are text-based, no graphics
@@ -128,6 +128,17 @@ def _generate_background_images(install_type):
         (BUILD / welcome_text.name).write_text(
             welcome_text.read_text().replace("__VERSION__", str(spy_ver))
         )
+
+
+def _uninstall_shortcut(spy_ver):
+    """Modify the uninstall shortcut specification file."""
+    # TODO: replace __PKG_MAJOR_VER__ with Spyder major version
+    menu_file = RESOURCES / "uninstall-menu.json"
+    menu_text = menu_file.read_text()
+    menu_file = BUILD / "uninstall-menu.json"
+    menu_file.write_text(
+        menu_text.replace("__PKG_MAJOR_VER__", str(parse(spy_ver).major))
+    )
 
 
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
@@ -216,7 +227,7 @@ def _cleanup_build(debug=False):
         # Do not clean the build directory
         return
 
-    exts = (".exe", ".sh", ".pkg", ".yml", ".rtf", ".lock", ".png")
+    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
     for f in BUILD.glob("*"):
         if f.suffix in exts:
             f.unlink()
@@ -228,7 +239,9 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
 
     _cleanup_build()
 
-    _generate_background_images(install_type)
+    _generate_background_images(install_type, spy_ver)
+
+    _uninstall_shortcut(spy_ver)
 
     t0 = time()
     try:
@@ -236,7 +249,7 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
         _create_conda_lock('runtime', extra_specs, no_local)
     finally:
         elapse = timedelta(seconds=int(time() - t0))
-        logger.info(f"Build time: {elapse}")
+        logger.info(f"Build lock files time: {elapse} s")
 
     t0 = time()
     try:
@@ -244,7 +257,7 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
         logger.info(f"Created {_output_file(args.install_type)}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
-        logger.info(f"Build time: {elapse}")
+        logger.info(f"Build installer time: {elapse} s")
 
     _cleanup_build(debug)
 

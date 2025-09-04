@@ -45,18 +45,19 @@ default_prefix: '%LOCALAPPDATA%\spyder-6'  # [win]
 default_prefix_domain_user: '%LOCALAPPDATA%\spyder-6'  # [win]
 default_prefix_all_users: '%ALLUSERSPROFILE%\spyder-6'  # [win]
 
-pre_install: {{ RESOURCE_PATH }}/pre-install.sh  # [linux or osx]
+pre_install: {{ RESOURCE_PATH }}/pre-install.sh  # [unix]
 pre_install: {{ RESOURCE_PATH }}/pre-install.bat  # [win]
 
-post_install: {{ RESOURCE_PATH }}/post-install.sh  # [linux or osx]
+post_install: {{ RESOURCE_PATH }}/post-install.sh  # [unix]
 post_install: {{ RESOURCE_PATH }}/post-install.bat  # [win]
 
 extra_files:
   - {{ RESOURCE_PATH }}/bundle_readme.md: README.txt
   - {{ RESOURCE_PATH }}/condarc: .condarc
-  - {{ RESOURCE_PATH }}/menuinst_cli.py: bin/menuinst_cli.py  # [linux or osx]
+  - {{ RESOURCE_PATH }}/menuinst_cli.py: bin/menuinst_cli.py  # [unix]
   - {{ RESOURCE_PATH }}/menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
-  - {{ RESOURCE_PATH }}/uninstall-spyder.sh: uninstall-spyder.sh  # [linux or osx]
+  - {{ RESOURCE_PATH }}/uninstall-spyder.sh: uninstall-spyder.sh  # [unix]
+  - {{ BUILD_PATH }}/uninstall-menu.json: Menu/uninstall-menu.json  # [unix]
 
 initialize_by_default: false
 initialize_conda: false
