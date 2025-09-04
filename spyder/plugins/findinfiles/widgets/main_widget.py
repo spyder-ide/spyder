@@ -12,9 +12,10 @@ import re
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.QtCore import Signal, Qt
+from qtpy.QtCore import Signal, QEvent, Qt
 from qtpy.QtGui import QFontMetricsF
-from qtpy.QtWidgets import QAction, QInputDialog, QLabel, QLineEdit
+from qtpy.QtWidgets import (QAction, QInputDialog, QLabel, QLineEdit,
+                            QToolButton)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -177,11 +178,11 @@ class FindInFilesWidget(PluginMainWidget):
         )
         self.search_text_edit.lineEdit().setPlaceholderText(
             _('Write text to search'))
-        
+
         self.search_text_edit.setMinimumSize(
             MIN_COMBOBOX_WIDTH, AppStyle.FindHeight
-        )        
-        
+        )
+
         # This is necessary to prevent the width of search_text_edit to control
         # the width of the pane.
         # Fixes spyder-ide/spyder#24188
@@ -191,6 +192,10 @@ class FindInFilesWidget(PluginMainWidget):
         self.messages_action.setVisible(False)
         self.search_text_edit.lineEdit().addAction(
             self.messages_action, QLineEdit.TrailingPosition
+        )
+
+        self.messages_button = (
+            self.search_text_edit.lineEdit().findChildren(QToolButton)[1]
         )
 
         self.search_in_label = QLabel(_('Search in:'))
@@ -226,6 +231,10 @@ class FindInFilesWidget(PluginMainWidget):
             self.messages_exclude_action, QLineEdit.TrailingPosition
         )
 
+        self.messages_button_exclude = (
+            self.exclude_pattern_edit.lineEdit().findChildren(QToolButton)[1]
+        )
+
         self.result_browser = ResultsBrowser(
             self,
             text_color=self.text_color,
@@ -243,6 +252,10 @@ class FindInFilesWidget(PluginMainWidget):
         self.path_selection_combo.set_current_searchpath_index(
             search_in_index)
 
+        # Install event filter for search_text_edit & exclude_pattern_edit
+        self.search_text_edit.installEventFilter(self)
+        self.exclude_pattern_edit.installEventFilter(self)
+
         # Signals
         self.path_selection_combo.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
@@ -254,6 +267,33 @@ class FindInFilesWidget(PluginMainWidget):
             self.sig_max_results_reached)
         self.result_browser.sig_max_results_reached.connect(
             self._stop_and_reset_thread)
+
+    def eventFilter(self, widget, event):
+        """
+        Event filter for search_text_edit & exclude_pattern_edit widget.
+
+        Notes
+        -----
+        * Reduce space between the messages_button and the clear one.
+        """
+
+        # Type check: Prevent error in PySide where 'event' may be of type
+        # QtGui.QPainter (for whatever reason).
+        if not isinstance(event, QEvent):
+            return True
+        if event.type() == QEvent.Paint:
+            if widget == self.exclude_pattern_edit:
+                self.messages_button_exclude.move(
+                    self.exclude_pattern_edit.lineEdit().width() - 42,
+                    self.messages_button_exclude.y()
+                )
+            elif widget == self.search_text_edit:                
+                self.messages_button.move(
+                    self.search_text_edit.lineEdit().width() - 42,
+                    self.messages_button.y()
+                )
+
+        return super().eventFilter(widget, event)
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
