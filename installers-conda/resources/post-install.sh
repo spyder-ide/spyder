@@ -23,7 +23,10 @@ fi
 pythonexe=${PREFIX}/bin/python
 menuinst=${PREFIX}/bin/menuinst_cli.py
 mode=$([[ -e "${PREFIX}/.nonadmin" ]] && echo "user" || echo "system")
-shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
+spyder_menu=${PREFIX}/envs/spyder-runtime/Menu/spyder-menu.json
+uninstall_menu=${PREFIX}/Menu/uninstall-menu.json
+shortcut_path="$($pythonexe $menuinst shortcut --mode=$mode --menu=$spyder_menu)"
+shortcut_uninstall_path="$($pythonexe $menuinst shortcut --mode=$mode --menu=$uninstall_menu)"
 
 # ---- Aliases
 spy_exe="${PREFIX}/envs/spyder-runtime/bin/spyder"
@@ -86,7 +89,7 @@ done
 echo "Updating uninstall script..."
 sed -i.bak \
     -e "s|__PREFIX__|${PREFIX}|g" \
-    -e "s|__SHORTCUT_PATH__|${shortcut_path}|g" \
+    -e "s|__MODE__|${mode}|g" \
     -e "s|__SHELL_INIT_LIST__|(${shell_init_list[*]/#/ } )|g" \
     -e "s|__M1__|${m1}|g" \
     -e "s|__M2__|${m2}|g" \
@@ -161,14 +164,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 while pgrep -fq Installer.app; do
     sleep 1
 done
-open -a "$shortcut_path"
+open -a "${shortcut_path}"
 EOF
     chmod +x $launch_script
     cat $launch_script
 
     nohup $launch_script &>/dev/null &
 elif [[ -n "$(which gtk-launch)" ]]; then
-    gtk-launch $(basename $shortcut_path)
+    gtk-launch $(basename ${shortcut_path})
 else
     nohup $spy_exe &>/dev/null &
 fi
