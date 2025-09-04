@@ -26,8 +26,13 @@ from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.ipythonconsole.api import IPythonConsolePyConfiguration
 from spyder.plugins.run.api import (
-    RunContext, RunExecutor, RunConfiguration,
-    ExtendedRunExecutionParameters, RunResult, run_execute)
+    ExtendedRunExecutionParameters,
+    RunConfiguration,
+    RunContext,
+    RunExecutor,
+    RunResult,
+    run_execute,
+)
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
@@ -187,7 +192,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_run_teardown(self):
         run = self.get_plugin(Plugins.Run)
         run.deregister_executor_configuration(
-            self, self.executor_configuration)
+            self, self.executor_configuration
+        )
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
@@ -195,7 +201,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.add_supported_run_configuration(
-            self.python_editor_run_configuration)
+            self.python_editor_run_configuration
+        )
 
         widget.sig_edit_goto_requested.connect(editor.load)
 
@@ -205,7 +212,8 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.remove_supported_run_configuration(
-            self.python_editor_run_configuration)
+            self.python_editor_run_configuration
+        )
 
         widget.sig_edit_goto_requested.disconnect(editor.load)
 
@@ -262,6 +270,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             if not code.strip():
                 # Empty cell
                 return
+
             console.run_selection("%%profile\n" + code)
             return
 
@@ -287,6 +296,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         if not code.strip():
             # No selection
             return
+
         run_input['selection'] = "%%profile\n" + code
 
         return console.exec_selection(input, conf)
