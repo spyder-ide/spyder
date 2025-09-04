@@ -46,25 +46,30 @@ check_uninstall() {
 check_shortcut() {
     pythonexe=${base_prefix}/bin/python
     menuinst=${base_prefix}/bin/menuinst_cli.py
-    shortcut=$($pythonexe $menuinst shortcut --mode=user)
-    if [[ -e "${shortcut}" ]]; then
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            echo -e "\nContents of ${shortcut}/Contents/MacOS:"
-            ls -al "${shortcut}/Contents/MacOS"
-            echo -e "\nContents of $shortcut/Contents/Info.plist:"
-            cat "${shortcut}/Contents/Info.plist"
-            script=$(compgen -G "${shortcut}/Contents/MacOS/spyder"*-script)
-            echo -e "\nContents of ${script}:"
-            cat "${script}"
-            echo ""
-        elif [[ "$OSTYPE" == "linux"* ]]; then
-            echo -e "\nContents of ${shortcut}:"
-            cat $shortcut
+    for menu in \
+        ${base_prefix}/envs/spyder-runtime/Menu/spyder-menu.json \
+        ${base_prefix}/Menu/uninstall-menu.json;
+    do
+        shortcut=$($pythonexe $menuinst shortcut --mode=user --menu=$menu)
+        if [[ -e "${shortcut}" ]]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                echo -e "\nContents of ${shortcut}/Contents/MacOS:"
+                ls -al "${shortcut}/Contents/MacOS"
+                echo -e "\nContents of $shortcut/Contents/Info.plist:"
+                cat "${shortcut}/Contents/Info.plist"
+                script=$(compgen -G "${shortcut}/Contents/MacOS/spyder"*-script)
+                echo -e "\nContents of ${script}:"
+                cat "${script}"
+                echo ""
+            elif [[ "$OSTYPE" == "linux"* ]]; then
+                echo -e "\nContents of ${shortcut}:"
+                cat $shortcut
+            fi
+        else
+            echo "$shortcut does not exist"
+            exit_status=1
         fi
-    else
-        echo "$shortcut does not exist"
-        exit_status=1
-    fi
+    done
 }
 
 check_spyder_version() {
