@@ -811,6 +811,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     reason='Fails sometimes on Linux and CIs'
 )
 @pytest.mark.skipif(sys.platform == "darwin", reason="Fails sometimes on Mac")
+@pytest.mark.close_main_window
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -1004,6 +1005,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     reason="Fails frequently on Mac and CI",
 )
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1068,13 +1070,13 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('q')
 
     # Try quitting the kernels
-    shell.execute('quit()')
-    python_shell.execute('quit()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
+    with qtbot.waitSignal(python_shell.executed):
+        python_shell.execute('quit()')
 
     # Make sure everything quit properly
-    qtbot.waitUntil(lambda: not km.is_alive())
     assert not km.is_alive()
-    qtbot.waitUntil(lambda: not spykm.is_alive())
     assert not spykm.is_alive()
 
     # Close the channels
@@ -1196,6 +1198,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
      parse(ipy_release.version) == parse('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # Wait until the window is fully up
@@ -1215,6 +1218,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(1500)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1238,6 +1242,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,

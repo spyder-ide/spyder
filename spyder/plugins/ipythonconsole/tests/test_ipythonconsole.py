@@ -1399,7 +1399,10 @@ def test_kernel_kill(ipyconsole, qtbot, external_interpreter):
     shell = ipyconsole.get_current_shellwidget()
 
     # Wait for the restarter to start
-    qtbot.wait(3000)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
     crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
 
     # Check only one comm is open
