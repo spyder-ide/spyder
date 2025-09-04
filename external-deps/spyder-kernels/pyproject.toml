@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "spyder_kernels._version.__version__"}
+
+[tool.setuptools.packages.find]
+exclude = ["docs", "*tests"]
+
+[project]
+name = "spyder-kernels"
+dynamic = ["version"]
+description = "Jupyter kernels for Spyder's console"
+keywords = ["spyder jupyter kernel ipython console"]
+readme = "README.md"
+authors = [
+    {name = "Spyder Development Team", email = "spyderlib@googlegroups.com"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Interpreters",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "cloudpickle",
+    "ipykernel>=6.29.3,<7",
+    "ipython>=8.13.0,<10,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0",
+    "jupyter-client>=7.4.9,<9",
+    "packaging",
+    "pyxdg>=0.26;platform_system=='Linux'",
+    "pyzmq>=24.0.0",
+    # We need at least this version of traitlets to fix an error when setting
+    # the Matplotlib inline backend formats.
+    # Fixes spyder-ide/spyder#24390
+    "traitlets>=5.14.3",
+    "wurlitzer>=1.0.3;platform_system!='Windows'",
+]
+license = "MIT"
+
+[project.urls]
+Homepage = "https://github.com/spyder-ide/spyder-kernels"
+
+[project.optional-dependencies]
+test = [
+    "anyio",
+    "cython",
+    "dask[distributed]",
+    "django",
+    "flaky",
+    "h5py",
+    "matplotlib",
+    "mock",
+    "numpy",
+    "pandas",
+    "pillow",
+    "polars",
+    "pyarrow",
+    "pydicom",
+    "pytest",
+    "pytest-cov",
+    "scipy",
+    "xarray",
+]
