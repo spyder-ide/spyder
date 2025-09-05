@@ -28,7 +28,7 @@ check_prefix() {
         echo -e "\nContents of ${base_prefix}:"
         ls -al $base_prefix
     else
-        echo "Base prefix does not exist!"
+        echo "ERROR: Base prefix does not exist!"
         exit 1
     fi
 }
@@ -38,7 +38,7 @@ check_uninstall() {
         echo -e "\nContents of ${base_prefix}/uninstall-spyder.sh:"
         cat $base_prefix/uninstall-spyder.sh
     else
-        echo "${base_prefix}/uninstall-spyder.sh does not exist!"
+        echo "ERROR: ${base_prefix}/uninstall-spyder.sh does not exist!"
         exit_status=1
     fi
 }
@@ -66,7 +66,7 @@ check_shortcut() {
                 cat $shortcut
             fi
         else
-            echo "$shortcut does not exist"
+            echo "ERROR: $shortcut does not exist"
             exit_status=1
         fi
     done
@@ -78,7 +78,7 @@ check_spyder_version() {
     echo -e "\nExpected version = ${SPYVER}"
     echo "Actual version   = ${actual_version}"
     if [[ "${SPYVER}" != "${actual_version}" ]]; then
-        echo "Error: installed Spyder version is incorrect!"
+        echo "ERROR: installed Spyder version is incorrect!"
         exit_status=1
     fi
 }
