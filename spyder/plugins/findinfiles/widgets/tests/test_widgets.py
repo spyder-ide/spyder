@@ -299,7 +299,7 @@ def test_search_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("\\")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
-    tooltip = findinfiles.search_text_edit.toolTip()
+    tooltip = findinfiles.messages_action.toolTip()
     assert findinfiles.REGEX_ERROR in tooltip
 
 
@@ -310,7 +310,7 @@ def test_exclude_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("foo")
     findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
-    tooltip = findinfiles.exclude_pattern_edit.toolTip()
+    tooltip = findinfiles.messages_exclude_action.toolTip()
     assert findinfiles.REGEX_ERROR in tooltip
 
 
