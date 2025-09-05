@@ -1,6 +1,6 @@
 cloudpickle
 ipykernel>=6.29.3,<7
-ipython>=8.12.2,<9
+ipython>=8.13.0,<10,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0
 jupyter_client>=7.4.9,<9
 pyzmq>=24.0.0
 traitlets>=5.14.3
