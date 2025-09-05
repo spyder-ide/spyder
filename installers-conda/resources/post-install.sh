@@ -85,7 +85,7 @@ for shell_init in ${shell_init_list[@]}; do
     add_alias
 done
 
-# ---- Uninstall script
+# ---- Uninstall
 echo "Updating uninstall script..."
 sed -i.bak \
     -e "s|__PREFIX__|${PREFIX}|g" \
@@ -98,6 +98,9 @@ sed -i.bak \
     ${u_spy_exe}
 chmod +x ${u_spy_exe}
 rm ${u_spy_exe}.bak
+
+# Create shortcut for the uninstaller
+$pythonexe $menuinst install --target=${PREFIX} --menu=$uninstall_menu
 
 # ---- Linux post-install notes
 if [[ "$OSTYPE" == "linux"* ]]; then
