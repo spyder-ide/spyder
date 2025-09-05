@@ -127,7 +127,8 @@ $ sudo $PREFIX/uninstall-spyder.sh
 EOF
     else
         cat <<EOF
-To uninstall Spyder, run the following from the command line:
+To uninstall Spyder, open the application "Spyder ${INSTALLER_VER%%.} Uninstaller",
+or run the following from the command line:
 
 $ uninstall-spyder
 

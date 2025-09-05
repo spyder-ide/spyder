@@ -124,10 +124,14 @@ def _generate_background_images(install_type, spy_ver):
         output = BUILD / "welcome_img_mac.png"
         background.save(output, format="png")
 
-        welcome_text = RESOURCES / "osx_pkg_welcome.rtf"
-        (BUILD / welcome_text.name).write_text(
-            welcome_text.read_text().replace("__VERSION__", str(spy_ver))
+        welcome_file = RESOURCES / "osx_pkg_welcome.rtf"
+        welcome_text = welcome_file.read_text()
+        welcome_file = BUILD / welcome_file.name
+        welcome_text = (
+            welcome_text.replace("__VERSION__", str(spy_ver))
+                        .replace("__MAJ_VER__", str(parse(spy_ver).major))
         )
+        welcome_file.write_text(welcome_text)
 
 
 def _uninstall_shortcut(spy_ver):
