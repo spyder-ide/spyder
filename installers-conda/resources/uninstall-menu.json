@@ -6,7 +6,7 @@
         {
             "name": "Spyder __PKG_MAJOR_VER__ Uninstaller",
             "description": "Spyder Uninstaller",
-            "icon": "{{ MENU_DIR }}/spyder.{{ ICON_EXT }}",
+            "icon": "{{ MENU_DIR }}/uninstall.{{ ICON_EXT }}",
             "activate": false,
             "terminal": true,
             "command": ["{{ BASE_PREFIX }}/uninstall-spyder.sh"],
