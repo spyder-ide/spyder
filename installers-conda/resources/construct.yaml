@@ -2,6 +2,7 @@
 {% set ARCH = environ["ARCH"] or "x86_64" %}
 {% set INSTALL_TYPE = environ["INSTALL_TYPE"] or "exe" %}
 {% set INSTALL_VER = environ["INSTALL_VER"] %}
+{% set REPO_PATH = environ["REPO_PATH"] %}
 {% set RESOURCE_PATH = environ["REPO_PATH"] + '/installers-conda/resources' %}
 {% set BUILD_PATH = environ["REPO_PATH"] + '/installers-conda/build' %}
 {% set CERT_ID = environ["CERT_ID"] %}  # [osx]
@@ -58,6 +59,8 @@ extra_files:
   - {{ RESOURCE_PATH }}/menuinst_cli.py: Scripts/menuinst_cli.py  # [win]
   - {{ RESOURCE_PATH }}/uninstall-spyder.sh: uninstall-spyder.sh  # [unix]
   - {{ BUILD_PATH }}/uninstall-menu.json: Menu/uninstall-menu.json  # [unix]
+  - {{ RESOURCE_PATH }}/uninstall.icns: Menu/uninstall.icns  # [osx]
+  - {{ RESOURCE_PATH }}/uninstall.png: Menu/uninstall.png  # [linux]
 
 initialize_by_default: false
 initialize_conda: false
