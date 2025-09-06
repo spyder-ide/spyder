@@ -36,7 +36,7 @@ from numpy.testing import assert_array_equal
 from packaging.version import parse
 import pylint
 import pytest
-from qtpy import PYQT_VERSION, PYQT5, PYQT6
+from qtpy import PYQT6
 from qtpy.QtCore import QPoint, Qt, QTimer, QUrl
 from qtpy.QtGui import QImage, QTextCursor
 from qtpy.QtWidgets import (
@@ -85,6 +85,7 @@ from spyder.plugins.ipythonconsole.api import (
 )
 from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.layout.layouts import DefaultLayouts
+from spyder.plugins.profiler.widgets.main_widget import ProfilerWidgetActions
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import (
     ExtendedRunExecutionParameters,
@@ -5592,6 +5593,239 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
 
     qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
     assert example_widget.toPlainText() == "Another text"
+
+
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 12),
+    reason="Fails with Python versions older than 3.12"
+)
+def test_profiler(main_window, qtbot, tmpdir):
+    """Test if profiler works."""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_widget().get_focus_widget()
+    profiler = main_window.profiler
+    profile_tree = profiler.get_widget()
+    data_tree = profile_tree.current_widget().data_tree
+    factorial_str = '<built-in method math.factorial>'
+
+    # This makes the test more stable
+    qtbot.wait(1000)
+
+    # Test simple profile
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("import time, math")
+
+    assert len(data_tree.get_items(2)) == 0
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profile math.factorial(2000)")
+    qtbot.wait(1000)
+
+    assert len(data_tree.get_items(2)) == 1
+    item = data_tree.get_items(2)[0].item_key[2]
+    assert item == factorial_str
+
+    # Make sure the ordering methods don't reveal the root element.
+    assert len(data_tree.get_items(2)) == 1
+    item = data_tree.get_items(2)[0].item_key[2]
+    assert item == factorial_str
+
+    slow_local_action = profile_tree.get_action(
+        ProfilerWidgetActions.SlowLocal
+    )
+    slow_local_action.setChecked(True)
+    assert len(data_tree.get_items(0)) == 3
+    slow_local_action.setChecked(False)
+
+    # Test profilecell
+    # Write code with a cell to a file
+    code = "result = 10; fname = __file__; time.sleep(0); time.time()"
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(str(p))
+
+    # Execute profile cell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilecell -i 0 " + repr(str(p)))
+
+    qtbot.wait(1000)
+
+    # Verify that the `result` variable is defined
+    assert shell.get_value('result') == 10
+
+    # Verify that the `fname` variable is `cell-test.py`
+    assert "cell-test.py" in shell.get_value('fname')
+
+    # Verify that two elements are in the profiler
+    # Actually 3 because globals is included too
+    assert len(data_tree.get_items(2)) == 3
+
+    # Test profilefile
+    code = (
+        "import math\n"
+        "def f():\n"
+        "    g()\n"
+        "    math.factorial(3000)\n"
+        "def g(stop=False):\n"
+        "    math.factorial(4000)\n"
+        "    if not stop:\n"
+        "        g(True)\n"
+        "f()"
+    )
+    p = tmpdir.join("cell-test_2.py")
+    p.write(code)
+    main_window.editor.load(str(p))
+
+    # We need to run this twice on Mac to remove a spurious call that appears
+    # in the first run
+    for __ in range(2 if sys.platform == "darwin" else 1):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("%profilefile " + repr(str(p)))
+        qtbot.wait(1000)
+
+    # Check callee tree
+    profile_tree._expand_tree()
+    assert len(data_tree.get_items(1)) == 3
+    values = ["f", factorial_str, "g"]
+    for item, val in zip(data_tree.get_items(1), values):
+       assert val == item.item_key[2]
+
+    callers_or_callees_action = profile_tree.get_action(
+        ProfilerWidgetActions.CallersOrCallees
+    )
+    assert not callers_or_callees_action.isEnabled()
+
+    # Check caller tree
+    items = data_tree.get_items(1)
+    for item in items:
+        if item.item_key[2] == "g":
+            data_tree.setCurrentItem(item)
+    profile_tree._show_callers()
+    assert len(data_tree.get_items(1)) == 3
+    values = ["g", "f", "g"]
+    for item, val in zip(data_tree.get_items(1), values):
+        assert val == item.item_key[2]
+
+    assert callers_or_callees_action.isEnabled()
+    assert callers_or_callees_action.isChecked()
+
+    search_action = profile_tree.get_action(
+        ProfilerWidgetActions.Search
+    )
+    assert not slow_local_action.isEnabled()
+    assert not search_action.isEnabled()
+
+    callers_or_callees_action.setChecked(False)
+
+    assert slow_local_action.isEnabled()
+    assert search_action.isEnabled()
+    assert not callers_or_callees_action.isEnabled()
+
+    # Check slow locals
+    slow_local_action.setChecked(True)
+    assert len(data_tree.get_items(1)) == 5
+
+    # Check no errors happened
+    assert "error" not in control.toPlainText().lower()
+
+    # Profile again and check we still show slow locals
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(str(p)))
+    assert len(data_tree.get_items(1)) == 5
+
+    # Check search is working
+    search_action.setChecked(True)
+    qtbot.keyClicks(profile_tree.current_widget().finder.text_finder, "fact")
+    qtbot.keyClick(
+        profile_tree.current_widget().finder.text_finder, Qt.Key_Enter
+    )
+    assert len(data_tree.get_items(1)) == 1
+
+    # Check we preserved the slow locals view
+    assert data_tree.sortColumn() == data_tree.index_dict["local_time"]
+
+    # Check untoggle search gives the slow locals view
+    search_action.setChecked(False)
+    assert len(data_tree.get_items(1)) == 5
+
+    # Check toggling search again filters the view with the search text
+    search_action.setChecked(True)
+    assert len(data_tree.get_items(1)) == 1
+
+    # Check we still show slow locals and search after new results arrive
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(str(p)))
+    assert len(data_tree.get_items(1)) == 1
+    assert data_tree.sortColumn() == data_tree.index_dict["local_time"]
+
+    search_action.setChecked(False)
+    slow_local_action.setChecked(False)
+
+    # Test profiling while debugging
+    # Reset the tree
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profile 0")
+    assert len(data_tree.get_items(1)) == 0
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug 0")
+
+    assert shell.is_debugging()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%profilefile " + repr(str(p)))
+    qtbot.wait(1000)
+
+    assert len(data_tree.get_items(1)) == 1
+    assert shell.is_debugging()
+
+    # Make sure the shell is not broken
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("13 + 1234")
+    assert shell.is_debugging()
+    assert "1247" in shell._control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+    assert not shell.is_debugging()
+
+
+def test_profiler_namespace(main_window, qtbot, tmpdir):
+    """Test that the profile magic finds the right namespace"""
+    ipyconsole = main_window.ipyconsole
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Test profilefile
+    code = (
+        "result = 10\n"
+        "%profile print(result)"
+    )
+    p = tmpdir.join("test_prof.ipy")
+    p.write(code)
+    main_window.editor.load(str(p))
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug 0")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runfile " + repr(str(p)))
+
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("q")
+
+    # Test in main namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%reset -f")
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%runfile " + repr(str(p)))
+
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
 
 
 def test_locals_globals_var_debug(main_window, qtbot, tmpdir):

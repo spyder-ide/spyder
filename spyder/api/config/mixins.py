@@ -213,9 +213,6 @@ class SpyderConfigurationAccessor:
         """Get old version for the Spyder configuration system."""
         return CONF.old_spyder_version
 
-    old_conf_version = old_spyder_conf_version
-    """To be removed in 6.1.0 because it was incorrectly named."""
-
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """

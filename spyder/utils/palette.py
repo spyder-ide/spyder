@@ -45,6 +45,7 @@ class SpyderPaletteDark(DarkPalette):
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
+    ICON_7 = GroupDark.B90
 
     # Colors for icons and variable explorer in dark mode
     GROUP_1 = GroupDark.B10
@@ -116,6 +117,7 @@ class SpyderPaletteLight(LightPalette):
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B140
+    ICON_7 = GroupLight.B90
 
     # Colors for icons and variable explorer in light mode
     GROUP_1 = GroupLight.B10

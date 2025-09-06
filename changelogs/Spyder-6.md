@@ -40,7 +40,8 @@
   `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile`, `CloseAll`, `Undo`, `Redo`, `Cut`, `Copy`, `Paste`,
   `SelectAll`, `FindText`, `FindNext`, `FindPrevious` and `ReplaceText` actions were moved to the
   `ApplicationActions` class in the `Application` plugin.
-* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
+* **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1",
+  "close file 2" and "close all" were moved to the "main" section.
 * Add "undo", "redo", "cut", "copy", "paste" and "select all" shortcuts to the "main" section.
 * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as`, `revert_file`, `undo`,
   `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next`, `find_previous` and `replace` methods.
@@ -61,7 +62,6 @@
 * **Breaking** - The `sig_current_directory_changed` signal now emits three strings instead of a single one.
 * **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
 * Add `server_id` kwarg to the `chdir` method.
-
 
 #### Remote Client
 
@@ -95,11 +95,25 @@
 * **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
 * Add `server_id` kwarg to the `chdir` method.
 
-### Main menu
+#### Profiler
 
-* **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
+* **Breaking** - Remove `sig_started` and `sig_finished` signals, and `run_profiler`, `stop_profiler` and `run_file` methods.
+* **Breaking** - Remove `ProfilerWidgetToolbars` and `ProfilerWidgetInformationToolbarSections` enums
+* Add `ProfilerWidgetMenus`, `ProfilerContextMenuSections` and `ProfilerWidgetContextMenuActions` enums.
+* Add `profile_file`, `profile_cell` and `profile_selection` methods.
+
+#### Main menu
+
+* **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to
+  `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
 * **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
-* **Future Breaking** - Rename the `View` menu to `Window` in `ApplicationMenus` and `ViewMenuSections` to `WindowMenuSections`; aliases are retained for backward compatibility but may be removed in Spyder 7+.
+* **Future Breaking** - Rename the `View` menu to `Window` in `ApplicationMenus` and `ViewMenuSections` to `WindowMenuSections`;
+  aliases are retained for backward compatibility but may be removed in Spyder 7+.
+* Add `Profile` constant to `RunMenuSections`.
+
+### Toolbar
+
+* Add `Profile` constant to `ApplicationToolbars`.
 
 #### SpyderPluginV2
 
@@ -128,8 +142,13 @@
 #### AsyncDispatcher
 
 * **Breaking** - Remove `dispatch` method to use it directly as decorator.
-* Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
+* Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected
+  methods can be run inside the main Qt event loop.
 * Add `early_return` and `return_awaitable` kwargs its constructor.
+
+#### General API
+
+* **Breaking** - Remove `old_conf_version` method from `SpyderConfigurationAccessor`.
 
 ----
 
