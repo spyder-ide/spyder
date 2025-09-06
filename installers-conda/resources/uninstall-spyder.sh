@@ -1,5 +1,35 @@
 #!/bin/bash
 
+help(){
+    cat <<HELP
+uninstall-spyder.sh [OPTIONS]
+
+Uninstall Spyder by removing the application shortcut, removing aliases in shell
+startup files, and removing the base environment directory.
+
+Options:
+  -h  Display this help and exit.
+  -b  Run in batch mode (non-interactive).
+
+HELP
+    exit 0
+}
+
+while getopts "bh" option; do
+    case "$option" in
+        (b) batch=true ;;
+        (h) help ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+interactive_exit(){
+    if [[ -z $batch ]]; then
+        read -p "Press enter to exit... "
+    fi
+    exit $1
+}
+
 # Variables set at install time
 PREFIX=__PREFIX__
 mode=__MODE__
@@ -17,17 +47,10 @@ shortcut_uninstall_path="$($pythonexe $menuinst shortcut --mode=$mode --menu=$un
 
 if [[ ! -w ${PREFIX} || ! -w "${shortcut_path}" ]]; then
     echo "Uninstalling Spyder requires sudo privileges."
-    exit 1
+    interactive_exit 1
 fi
 
-while getopts "f" option; do
-    case "$option" in
-        (f) force=true ;;
-    esac
-done
-shift $(($OPTIND - 1))
-
-if [[ -z $force ]]; then
+if [[ -z $batch ]]; then
     cat <<EOF
 You are about to uninstall Spyder.
 If you proceed, aliases will be removed from:
@@ -44,7 +67,7 @@ EOF
     confirm=$(echo $confirm | tr '[:upper:]' '[:lower:]')
     if [[ ! "$confirm" =~ ^y(es)?$ ]]; then
         echo "Uninstall aborted."
-        exit 1
+        interactive_exit 0
     fi
 fi
 
@@ -79,3 +102,5 @@ $pythonexe $menuinst remove --menu=${uninstall_menu}
 rm -rf ${PREFIX}
 
 echo "Spyder successfully uninstalled."
+
+interactive_exit 0
