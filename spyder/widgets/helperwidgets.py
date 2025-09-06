@@ -486,6 +486,7 @@ class FinderWidget(QWidget):
 
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
+    sig_text_cleared = Signal()
 
     def __init__(
         self,
@@ -514,7 +515,9 @@ class FinderWidget(QWidget):
                 _("Type and press Enter to search")
             )
         self.text_finder.sig_hide_requested.connect(
-            self.sig_hide_finder_requested)
+            self.sig_hide_finder_requested
+        )
+        self.text_finder.clear_action.triggered.connect(self.sig_text_cleared)
 
         if show_close_button:
             finder_close_button = QToolButton(self)
@@ -547,9 +550,14 @@ class FinderWidget(QWidget):
         self.setVisible(visible)
         if visible:
             self.text_finder.setFocus()
-            self.do_find()
+            if self.text_finder.text():
+                self.do_find()
         else:
             self.sig_find_text.emit("")
+
+    def text(self):
+        """Get current text."""
+        return self.text_finder.text()
 
 
 class CustomSortFilterProxy(QSortFilterProxyModel):
