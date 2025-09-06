@@ -11,6 +11,7 @@ Script for running Spyder tests programmatically.
 # Standard library imports
 import argparse
 import os
+import sys
 
 # To activate/deactivate certain things for pytests only
 # NOTE: Please leave this before any other import here!!
@@ -41,9 +42,9 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
         # Show coverage
         pytest_args += ['--cov=spyder', '--no-cov-on-fail', '--cov-report=xml']
 
-        # To display nice tests resume in Azure's web page
-        if os.environ.get('AZURE', None) is not None:
-            pytest_args += ['--cache-clear', '--junitxml=result.xml']
+        # Restart suite after a failure to prevent hangs
+        if sys.platform == "darwin":
+            pytest_args += ["-x"]
     if run_slow or RUN_SLOW:
         pytest_args += ['--run-slow']
     # Allow user to pass a custom test path to pytest to e.g. run just one test

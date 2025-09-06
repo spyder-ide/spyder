@@ -150,7 +150,14 @@ jobs:
           .github/scripts/run_tests.sh -n 4 || \
           .github/scripts/run_tests.sh -n 5 || \
           .github/scripts/run_tests.sh -n 6 || \
-          .github/scripts/run_tests.sh -n 7
+          .github/scripts/run_tests.sh -n 7 || \
+          .github/scripts/run_tests.sh -n 8 || \
+          .github/scripts/run_tests.sh -n 9 || \
+          .github/scripts/run_tests.sh -n 10 || \
+          .github/scripts/run_tests.sh -n 11 || \
+          .github/scripts/run_tests.sh -n 12 || \
+          .github/scripts/run_tests.sh -n 13 || \
+          .github/scripts/run_tests.sh -n 14
 
       - name: Coverage
         uses: codecov/codecov-action@v4
