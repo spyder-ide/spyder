@@ -61,17 +61,22 @@ class LintingConfigTab(SpyderPreferencesTab):
             'flake8',
             button_group=linting_bg
         )
-        
+        ruff_linting_radio = self.create_radiobutton(
+            _("Ruff (Advanced)"),
+            'ruff',
+            button_group=linting_bg
+        )
         disable_linting_radio = self.create_radiobutton(
             _("Disable linting"),
             'no_linting',
             button_group=linting_bg
         )
-        
+
         linting_select_layout = QVBoxLayout()
         linting_select_layout.addSpacing(3 * AppStyle.MarginSize)
         linting_select_layout.addWidget(basic_linting_radio)
         linting_select_layout.addWidget(flake_linting_radio)
+        linting_select_layout.addWidget(ruff_linting_radio)
         linting_select_layout.addWidget(disable_linting_radio)
         linting_select_group.setLayout(linting_select_layout)
 
@@ -89,6 +94,43 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_group = QGroupBox(_("Provider options"))
         configuration_options_layout = QVBoxLayout()
 
+        # ruff options
+        self.ruff_exclude = self.create_lineedit(
+            _("Exclude these files or directories:"),
+            'ruff/exclude',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Exclude test files: (?!test_).*\\.py"),
+        )
+
+        ruff_select = self.create_lineedit(
+            _("Show these errors or warnings:"),
+            'ruff/extendSelect',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Example codes: E113, W391"),
+        )
+
+        ruff_ignore = self.create_lineedit(
+            _("Ignore these errors or warnings:"),
+            'ruff/extendIgnore',
+            alignment=Qt.Horizontal,
+            word_wrap=False,
+            placeholder=_("Default is: E"),
+        )
+
+        ruff_layout = QGridLayout()
+        ruff_layout.addWidget(self.ruff_exclude.label, 1, 0)
+        ruff_layout.addWidget(self.ruff_exclude.textbox, 1, 1)
+        ruff_layout.addWidget(ruff_select.label, 2, 0)
+        ruff_layout.addWidget(ruff_select.textbox, 2, 1)
+        ruff_layout.addWidget(ruff_ignore.label, 3, 0)
+        ruff_layout.addWidget(ruff_ignore.textbox, 3, 1)
+
+        ruff_grid_widget = QWidget()
+        ruff_grid_widget.setLayout(ruff_layout)
+
+        # Flake8 options
         self.flake8_filenames_match = self.create_lineedit(
             _("Only check these filenames:"),
             'flake8/filename',
@@ -130,30 +172,44 @@ class LintingConfigTab(SpyderPreferencesTab):
         flake8_layout.addWidget(flake8_select.textbox, 3, 1)
         flake8_layout.addWidget(flake8_ignore.label, 4, 0)
         flake8_layout.addWidget(flake8_ignore.textbox, 4, 1)
+        flake8_grid_widget = QWidget()
+        flake8_grid_widget.setLayout(flake8_layout)
 
+        # pyflakes options
         pyflakes_conf_options = QLabel(
             _("There are no configuration options for Pyflakes")
         )
+
+        # Disabled linting options
         not_select_conf_options = QLabel(_("Linting is disabled"))
 
-        grid_widget = QWidget()
-        grid_widget.setLayout(flake8_layout)
-
-        configuration_options_layout.addWidget(grid_widget)
+        configuration_options_layout.addWidget(ruff_grid_widget)
+        configuration_options_layout.addWidget(flake8_grid_widget)
         configuration_options_layout.addWidget(pyflakes_conf_options)
         configuration_options_layout.addWidget(not_select_conf_options)
 
+        ruff_linting_radio.radiobutton.toggled.connect(
+            lambda checked: (
+                ruff_grid_widget.setVisible(checked),
+                flake8_grid_widget.setVisible(False),
+                pyflakes_conf_options.setVisible(False),
+                not_select_conf_options.setVisible(False)
+            ) if checked else None
+        )
+
         flake_linting_radio.radiobutton.toggled.connect(
             lambda checked: (
-                grid_widget.setVisible(checked),
-                pyflakes_conf_options.setVisible(not checked),
+                ruff_grid_widget.setVisible(False),
+                flake8_grid_widget.setVisible(checked),
+                pyflakes_conf_options.setVisible(False),
                 not_select_conf_options.setVisible(False)
             ) if checked else None
         )
 
         basic_linting_radio.radiobutton.toggled.connect(
             lambda checked: (
-                grid_widget.setVisible(False),
+                ruff_grid_widget.setVisible(False),
+                flake8_grid_widget.setVisible(False),
                 pyflakes_conf_options.setVisible(checked),
                 not_select_conf_options.setVisible(False)
             ) if checked else None
@@ -161,7 +217,8 @@ class LintingConfigTab(SpyderPreferencesTab):
 
         disable_linting_radio.radiobutton.toggled.connect(
             lambda checked: (
-                grid_widget.setVisible(False),
+                ruff_grid_widget.setVisible(False),
+                flake8_grid_widget.setVisible(False),
                 pyflakes_conf_options.setVisible(False),
                 not_select_conf_options.setVisible(checked)
             ) if checked else None
@@ -207,9 +264,16 @@ class LintingConfigTab(SpyderPreferencesTab):
             return False
 
         try:
+            # flake8 check
             flake8_excludes = self.flake8_exclude.textbox.text().split(",")
             for match in flake8_excludes:
                 re.compile(match.strip())
+
+            # ruff check
+            ruff_excludes = self.ruff_exclude.textbox.text().split(",")
+            for match in ruff_excludes:
+                re.compile(match.strip())
+
         except re.error:
             self.report_invalid_regex(files=False)
             return False
