@@ -136,7 +136,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             'flake8/filename',
             alignment=Qt.Horizontal,
             word_wrap=False,
-            placeholder=_("Check test files: test_.*\.py"),
+            placeholder=_("Check test files: test_.*\\.py"),
         )
 
         self.flake8_exclude = self.create_lineedit(
