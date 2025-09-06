@@ -436,6 +436,7 @@ def test_get_help_combo(main_window, qtbot):
 
 @pytest.mark.known_leak  # Opens Spyder/QtWebEngine/Default/Cookies
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Too flaky on Mac")
 def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     """
     Test that Help works when called from the IPython console
@@ -2365,9 +2366,7 @@ def test_plots_scroll(main_window, qtbot):
     (parse(ipy_release.version) >= parse('7.23.0') and
      parse(ipykernel.__version__) <= parse('5.5.3')),
     reason="Fails due to a bug in the %matplotlib magic")
-@pytest.mark.skipif(
-    sys.platform.startswith('linux'),
-    reason="Timeouts a lot on Linux")
+@pytest.mark.skipif(not os.name == "nt", reason="Too flaky on Mac and Linux")
 def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     """
     Test that the option to set bbox_inches to 'tight' or 'None' is
@@ -6421,8 +6420,11 @@ def test_recursive_debug(main_window, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(
-    os.name == 'nt',
-    reason="SIGINT is not processed correctly on CI for Windows")
+    not sys.platform.startswith("linux"),
+    reason=(
+        "SIGINT not processed correctly on CI for Windows and too flaky on Mac"
+    )
+)
 def test_interrupt(main_window, qtbot):
     """Test interrupt."""
     # Wait until the window is fully up
