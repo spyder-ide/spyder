@@ -44,12 +44,17 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
     ConnectionStatusWidget,
 )
 from spyder.utils.icon_manager import ima
-from spyder.utils.stylesheet import AppStyle, MAC
+from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 
 try:
-    from spyder_env_manager.spyder.widgets.new_environment import NewEnvironment
+    from spyder_env_manager.spyder.widgets.new_environment import (
+        NewEnvironment,
+    )
+    from spyder_env_manager.spyder.widgets.edit_environment import (
+        EditEnvironment,
+    )
     ENV_MANAGER = True
 except Exception:
     ENV_MANAGER = False
@@ -301,9 +306,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             self._auth_methods.combobox.setCurrentIndex(0)
 
         # Final layout
+        right_margin = 3
+        if ENV_MANAGER and self.NEW_CONNECTION:
+            right_margin = 4 if MAC else (6 if WIN else 5)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(
-            3 * AppStyle.MarginSize, 0, 3 * AppStyle.MarginSize, 0
+            3 * AppStyle.MarginSize, 0, right_margin * AppStyle.MarginSize, 0
         )
         if self.NEW_CONNECTION:
             layout.addLayout(intro_layout)
@@ -719,6 +728,7 @@ class NewConnectionPage(BaseConnectionPage):
 
         if ENV_MANAGER:
             self.env_creation_widget = self._create_env_creation_widget()
+            self.env_packages_widget = self._create_env_packages_widget()
 
         # Use a stacked widget/layout so we can hide the current widgets and
         # create new ones in case users want to introduce more connections.
@@ -726,6 +736,7 @@ class NewConnectionPage(BaseConnectionPage):
         self.ssh_widget.addWidget(self.ssh_info_widget)
         if ENV_MANAGER:
             self.ssh_widget.addWidget(self.env_creation_widget)
+            self.ssh_widget.addWidget(self.env_packages_widget)
 
         self.jupyterhub_widget = QWidget(self)
         jupyterhub_layout = QStackedLayout()
@@ -802,14 +813,23 @@ class NewConnectionPage(BaseConnectionPage):
         else:
             return "JupyterHub"
 
-    def show_env_creation_widget(self):
-        self.ssh_widget.setCurrentWidget(self.env_creation_widget)
-
     def show_ssh_info_widget(self):
         self.ssh_widget.setCurrentWidget(self.ssh_info_widget)
 
+    def show_env_creation_widget(self):
+        self.ssh_widget.setCurrentWidget(self.env_creation_widget)
+
+    def show_env_packages_widget(self):
+        self.ssh_widget.setCurrentWidget(self.env_packages_widget)
+
     def is_ssh_info_widget_shown(self) -> bool:
         return self.ssh_widget.currentWidget() == self.ssh_info_widget
+
+    def is_env_creation_widget_shown(self) -> bool:
+        return self.ssh_widget.currentWidget() == self.env_creation_widget
+
+    def is_env_packages_widget_shown(self) -> bool:
+        return self.ssh_widget.currentWidget() == self.env_packages_widget
 
     def selected_env_creation_method(self) -> CreateEnvMethods:
         return self.env_method_group.checkedId()
@@ -839,6 +859,14 @@ class NewConnectionPage(BaseConnectionPage):
                 env_method_widget.get_env_name()
             )
 
+    def setup_env_packages_widget(self):
+        env_name, python_version = self.get_create_env_info()
+        self._packages_info.setup(
+            env_name,
+            python_version,
+            f"~/.envs-manager/backends/pixi/{env_name}"
+        )
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _create_env_creation_widget(self):
@@ -847,8 +875,8 @@ class NewConnectionPage(BaseConnectionPage):
             _("Create a Python environment on the remote host")
         )
         intro_tip_text = _(
-            "Select the packages that will be used to run your code on the "
-            "remote machine"
+            "Decide whether you want to create a remote environment to run "
+            "your code and how to do it"
         )
         intro_tip = TipWidget(
             tip_text=intro_tip_text,
@@ -971,6 +999,61 @@ class NewConnectionPage(BaseConnectionPage):
         self, id_: CreateEnvMethods, checked: bool
     ):
         self._radio_buttons_to_info_widgets[id_].setVisible(checked)
+
+    def _create_env_packages_widget(self):
+        # Intro text
+        intro_label = QLabel(_("Select packages for your remote environment"))
+        intro_tip_text = _(
+            "Choose the packages you want to install in your remote Python "
+            "environment"
+        )
+        intro_tip = TipWidget(
+            tip_text=intro_tip_text,
+            icon=ima.icon("info_tip"),
+            hover_icon=ima.icon("info_tip_hover"),
+            size=AppStyle.ConfigPageIconSize + 2,
+            wrap_text=True,
+        )
+
+        # Increase font size to make it more relevant
+        font = self.get_font(SpyderFontType.Interface)
+        font.setPointSize(font.pointSize() + 1)
+        intro_label.setFont(font)
+
+        # Layout
+        intro_layout = QHBoxLayout()
+        intro_layout.setContentsMargins(0, 0, 0, 0)
+        intro_layout.setSpacing(0)
+        intro_layout.setAlignment(Qt.AlignCenter)
+        intro_layout.addWidget(intro_label)
+        intro_layout.addWidget(intro_tip)
+
+        self._packages_info = EditEnvironment(
+            self, show_in_remote_connections_dialog=True
+        )
+        self._packages_info.set_empty_message_visible(True)
+        self._packages_info.setMaximumWidth(
+            525 if MAC else (485 if WIN else 500)
+        )
+
+        # Final layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(
+            3 * AppStyle.MarginSize,
+            0,
+            3 * AppStyle.MarginSize,
+            # Add bottom margin to let the packages table take the available
+            # vertical space
+            (2 if MAC else (3 if WIN else 4)) * AppStyle.MarginSize,
+        )
+        layout.addLayout(intro_layout)
+        layout.addSpacing(8 * AppStyle.MarginSize)
+        layout.addWidget(self._packages_info)
+
+        env_packages_widget = QWidget(self)
+        env_packages_widget.setLayout(layout)
+
+        return env_packages_widget
 
 
 class ConnectionPage(BaseConnectionPage):

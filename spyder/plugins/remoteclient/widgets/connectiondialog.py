@@ -151,8 +151,10 @@ class ConnectionDialog(SidebarDialog):
                         self._button_next.setHidden(False)
                         self._button_back.setHidden(True)
                         self._button_save_connection.setEnabled(False)
-                    else:
+                    elif page.is_env_creation_widget_shown():
                         self._set_buttons_for_env_creation_method()
+                    else:
+                        self._set_buttons_for_env_packages_list()
                 else:
                     self._button_connect.setHidden(False)
                     self._button_next.setHidden(True)
@@ -414,21 +416,51 @@ class ConnectionDialog(SidebarDialog):
         # The back button will always be visible in this case.
         self._button_back.setHidden(False)
 
+    def _set_buttons_for_env_packages_list(self):
+        # We can create a connection at this point
+        self._button_connect.setHidden(False)
+
+        # There are no additional subpages to go with Next
+        self._button_next.setHidden(True)
+
+        # We can't save the connection info if users are selecting packages for
+        # their remote env.
+        self._button_save_connection.setEnabled(False)
+
+        # The back button will always be visible in this case.
+        self._button_back.setHidden(False)
+
     def _on_button_next_clicked(self):
         page = self._new_connection_page
 
-        # Validate info
-        if not page.validate_page():
-            return
+        if page.is_ssh_info_widget_shown():
+            # Validate info
+            if not page.validate_page():
+                return
 
-        page.show_env_creation_widget()
-        self._set_buttons_for_env_creation_method()
+            page.show_env_creation_widget()
+            self._set_buttons_for_env_creation_method()
+        else:
+            # Validate env creation info
+            if not page.validate_env_creation():
+                return
+
+            page.setup_env_packages_widget()
+            page.show_env_packages_widget()
+            self._set_buttons_for_env_packages_list()
 
     def _on_back_button_clicked(self):
-        self._new_connection_page.show_ssh_info_widget()
-        self._button_back.setHidden(True)
-        self._button_connect.setHidden(True)
-        self._button_next.setHidden(False)
+        page = self._new_connection_page
+
+        if page.is_env_packages_widget_shown():
+            page.show_env_creation_widget()
+            self._set_buttons_for_env_creation_method()
+        else:
+            page.show_ssh_info_widget()
+            self._button_back.setHidden(True)
+            self._button_connect.setHidden(True)
+            self._button_next.setHidden(False)
+
         self._button_save_connection.setEnabled(False)
 
     def _on_new_connection_page_tab_changed(self, index):
@@ -439,8 +471,10 @@ class ConnectionDialog(SidebarDialog):
                 self._button_next.setHidden(False)
                 self._button_back.setHidden(True)
                 self._button_save_connection.setEnabled(False)
-            else:
+            elif page.is_env_creation_widget_shown():
                 self._set_buttons_for_env_creation_method()
+            else:
+                self._set_buttons_for_env_packages_list()
         else:
             self._button_connect.setHidden(False)
             self._button_next.setHidden(True)
