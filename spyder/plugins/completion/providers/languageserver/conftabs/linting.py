@@ -95,6 +95,30 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_layout = QVBoxLayout()
 
         # ruff options
+        docstring_style_check = self.create_checkbox(
+            _("Enable docstring style linting"), "pydocstyle"
+        )
+        docstring_style_convention = self.create_combobox(
+            _("Choose the convention used to lint docstrings: "),
+            (
+                ("Numpy", "numpy"),
+                ("PEP 257", "pep257"),
+            ),
+            "pydocstyle/convention",
+        )
+        docstring_style_convention.label.setEnabled(
+            self.get_option('pydocstyle')
+        )
+        docstring_style_convention.combobox.setEnabled(
+            self.get_option('pydocstyle')
+        )
+        docstring_style_check.checkbox.toggled.connect(
+            docstring_style_convention.label.setEnabled
+        )
+        docstring_style_check.checkbox.toggled.connect(
+            docstring_style_convention.combobox.setEnabled
+        )
+
         self.ruff_exclude = self.create_lineedit(
             _("Exclude these files or directories:"),
             'ruff/exclude',
@@ -120,12 +144,15 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         ruff_layout = QGridLayout()
-        ruff_layout.addWidget(self.ruff_exclude.label, 1, 0)
-        ruff_layout.addWidget(self.ruff_exclude.textbox, 1, 1)
-        ruff_layout.addWidget(ruff_select.label, 2, 0)
-        ruff_layout.addWidget(ruff_select.textbox, 2, 1)
-        ruff_layout.addWidget(ruff_ignore.label, 3, 0)
-        ruff_layout.addWidget(ruff_ignore.textbox, 3, 1)
+        ruff_layout.addWidget(docstring_style_check)
+        ruff_layout.addWidget(docstring_style_convention.label, 1, 0)
+        ruff_layout.addWidget(docstring_style_convention.combobox, 1, 1)
+        ruff_layout.addWidget(self.ruff_exclude.label, 2, 0)
+        ruff_layout.addWidget(self.ruff_exclude.textbox, 2, 1)
+        ruff_layout.addWidget(ruff_select.label, 3, 0)
+        ruff_layout.addWidget(ruff_select.textbox, 3, 1)
+        ruff_layout.addWidget(ruff_ignore.label, 4, 0)
+        ruff_layout.addWidget(ruff_ignore.textbox, 4, 1)
 
         ruff_grid_widget = QWidget()
         ruff_grid_widget.setLayout(ruff_layout)
