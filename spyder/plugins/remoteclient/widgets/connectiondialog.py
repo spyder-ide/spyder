@@ -91,7 +91,7 @@ class ConnectionDialog(SidebarDialog):
 
         self._button_cancel = bbox.button(QDialogButtonBox.Cancel)
 
-        self._button_save_connection = QPushButton(_("Save connection"))
+        self._button_save_connection = QPushButton(_("Save"))
         self._button_save_connection.clicked.connect(
             self._save_connection_info
         )
@@ -99,7 +99,7 @@ class ConnectionDialog(SidebarDialog):
             self._button_save_connection, QDialogButtonBox.ResetRole
         )
 
-        self._button_remove_connection = QPushButton(_("Remove connection"))
+        self._button_remove_connection = QPushButton(_("Remove"))
         self._button_remove_connection.clicked.connect(
             self._remove_connection_info
         )
@@ -107,7 +107,7 @@ class ConnectionDialog(SidebarDialog):
             self._button_remove_connection, QDialogButtonBox.ResetRole
         )
 
-        self._button_clear_settings = QPushButton(_("Clear settings"))
+        self._button_clear_settings = QPushButton(_("Clear"))
         self._button_clear_settings.clicked.connect(self._clear_settings)
         bbox.addButton(
             self._button_clear_settings, QDialogButtonBox.ActionRole
@@ -150,13 +150,18 @@ class ConnectionDialog(SidebarDialog):
                         self._button_connect.setHidden(True)
                         self._button_next.setHidden(False)
                         self._button_back.setHidden(True)
+                        self._button_save_connection.setEnabled(False)
                     else:
-                        self._button_back.setHidden(False)
                         self._set_buttons_for_env_creation_method()
                 else:
                     self._button_connect.setHidden(False)
                     self._button_next.setHidden(True)
                     self._button_back.setHidden(True)
+                    self._button_save_connection.setEnabled(True)
+            else:
+                self._button_connect.setHidden(False)
+                self._button_next.setHidden(True)
+                self._button_back.setHidden(True)
         else:
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
@@ -172,20 +177,20 @@ class ConnectionDialog(SidebarDialog):
             self._button_next.setHidden(True)
             self._button_back.setHidden(True)
 
-        if page.status in [
-            ConnectionStatus.Inactive,
-            ConnectionStatus.Error,
-        ]:
-            self._button_connect.setEnabled(True)
-        else:
-            self._button_connect.setEnabled(False)
+            if page.status in [
+                ConnectionStatus.Inactive,
+                ConnectionStatus.Error,
+            ]:
+                self._button_connect.setHidden(False)
+            else:
+                self._button_connect.setHidden(True)
 
         # TODO: Check if it's possible to stop a connection while it's
         # connecting
         if page.status == ConnectionStatus.Active:
-            self._button_stop.setEnabled(True)
+            self._button_stop.setHidden(False)
         else:
-            self._button_stop.setEnabled(False)
+            self._button_stop.setHidden(True)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -322,7 +327,7 @@ class ConnectionDialog(SidebarDialog):
 
         # The stop button is not visible in the new connection page
         if not page.NEW_CONNECTION:
-            self._button_stop.setEnabled(False)
+            self._button_stop.setHidden(True)
             self.sig_stop_server_requested.emit(page.host_id)
 
     def _add_connection_page(self, host_id: str, new: bool):
@@ -367,23 +372,23 @@ class ConnectionDialog(SidebarDialog):
         self._button_cancel.setText("Cancel")
 
     def _update_connection_buttons_state(self, info: ConnectionInfo):
-        """Update the state of the 'Connect' button."""
+        """Update the state of the Connect/Stop buttons."""
         page = self.get_page()
         if page.host_id == info["id"]:
             if info["status"] in [
                 ConnectionStatus.Inactive,
                 ConnectionStatus.Error,
             ]:
-                self._button_connect.setEnabled(True)
+                self._button_connect.setHidden(False)
             else:
-                self._button_connect.setEnabled(False)
+                self._button_connect.setHidden(True)
 
             # TODO: Check if it's possible to stop a connection while it's
             # connecting
             if info["status"] == ConnectionStatus.Active:
-                self._button_stop.setEnabled(True)
+                self._button_stop.setHidden(False)
             else:
-                self._button_stop.setEnabled(False)
+                self._button_stop.setHidden(True)
 
     def _set_buttons_for_env_creation_method(
         self, id_: CreateEnvMethods | None = None
@@ -391,6 +396,8 @@ class ConnectionDialog(SidebarDialog):
         if id_ is None:
             id_ = self._new_connection_page.selected_env_creation_method()
 
+        # When creating a new env, users need to provide a list of packages for
+        # it, so the connection can't be established yet
         if id_ == CreateEnvMethods.NewEnv:
             self._button_connect.setHidden(True)
             self._button_next.setHidden(False)
@@ -398,6 +405,13 @@ class ConnectionDialog(SidebarDialog):
             self._button_connect.setHidden(False)
             self._button_next.setHidden(True)
 
+        # Connection info can be saved if users decide to create no env
+        if id_ == CreateEnvMethods.NoEnv:
+            self._button_save_connection.setEnabled(True)
+        else:
+            self._button_save_connection.setEnabled(False)
+
+        # The back button will always be visible in this case.
         self._button_back.setHidden(False)
 
     def _on_button_next_clicked(self):
@@ -408,11 +422,14 @@ class ConnectionDialog(SidebarDialog):
             return
 
         page.show_env_creation_widget()
-        self._button_back.setHidden(False)
+        self._set_buttons_for_env_creation_method()
 
     def _on_back_button_clicked(self):
         self._new_connection_page.show_ssh_info_widget()
         self._button_back.setHidden(True)
+        self._button_connect.setHidden(True)
+        self._button_next.setHidden(False)
+        self._button_save_connection.setEnabled(False)
 
     def _on_new_connection_page_tab_changed(self, index):
         page = self._new_connection_page
@@ -421,12 +438,14 @@ class ConnectionDialog(SidebarDialog):
                 self._button_connect.setHidden(True)
                 self._button_next.setHidden(False)
                 self._button_back.setHidden(True)
+                self._button_save_connection.setEnabled(False)
             else:
                 self._set_buttons_for_env_creation_method()
         else:
             self._button_connect.setHidden(False)
             self._button_next.setHidden(True)
             self._button_back.setHidden(True)
+            self._button_save_connection.setEnabled(True)
 
 
 def test():
