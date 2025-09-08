@@ -95,7 +95,9 @@ class LintingConfigTab(SpyderPreferencesTab):
         configuration_options_layout = QVBoxLayout()
 
         # ruff options
-        docstring_style_check = self.create_checkbox(
+        # This needs to be an attribute of the config page since it is used
+        # for `test_mainwindow.py::test_preferences_checkboxes_not_checked_regression`
+        self.docstring_style_check = self.create_checkbox(
             _("Enable docstring style linting"), "pydocstyle"
         )
         docstring_style_convention = self.create_combobox(
@@ -112,10 +114,10 @@ class LintingConfigTab(SpyderPreferencesTab):
         docstring_style_convention.combobox.setEnabled(
             self.get_option('pydocstyle')
         )
-        docstring_style_check.checkbox.toggled.connect(
+        self.docstring_style_check.checkbox.toggled.connect(
             docstring_style_convention.label.setEnabled
         )
-        docstring_style_check.checkbox.toggled.connect(
+        self.docstring_style_check.checkbox.toggled.connect(
             docstring_style_convention.combobox.setEnabled
         )
 
@@ -144,7 +146,7 @@ class LintingConfigTab(SpyderPreferencesTab):
         )
 
         ruff_layout = QGridLayout()
-        ruff_layout.addWidget(docstring_style_check)
+        ruff_layout.addWidget(self.docstring_style_check)
         ruff_layout.addWidget(docstring_style_convention.label, 1, 0)
         ruff_layout.addWidget(docstring_style_convention.combobox, 1, 1)
         ruff_layout.addWidget(self.ruff_exclude.label, 2, 0)
