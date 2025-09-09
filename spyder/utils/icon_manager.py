@@ -113,6 +113,9 @@ class IconManager():
             'ICON_2':            SpyderPalette.ICON_2,
             'ICON_3':            SpyderPalette.ICON_3,
             'ICON_4':            SpyderPalette.ICON_4,
+            'ICON_5':            SpyderPalette.ICON_5,
+            'ICON_6':            SpyderPalette.ICON_6,
+            'ICON_7':            SpyderPalette.ICON_7,
             'SPYDER_LOGO_WEB':   SpyderPalette.SPYDER_LOGO_WEB,
             'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE
         }
@@ -414,7 +417,7 @@ class IconManager():
         else:
             return QIcon(icon.pixmap(size, size))
 
-    def get_icon(self, name, resample=False):
+    def get_icon(self, name, resample=True):
         """Return image inside a QIcon object.
 
         Parameters
