@@ -52,6 +52,7 @@ class ConnectionDialog(SidebarDialog):
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
     sig_connections_changed = Signal()
+    sig_create_env_requested = Signal(str, str, str, list)
     sig_import_env_requested = Signal(str, str, str)
 
     def __init__(self, parent=None):
@@ -200,15 +201,9 @@ class ConnectionDialog(SidebarDialog):
         """Save the connection info stored in a page."""
         page = self.get_page()
 
-        # In this case the validation is done in _on_button_next_clicked
-        if not (
-            ENV_MANAGER
-            and page.NEW_CONNECTION
-            and page.get_current_tab() == "SSH"
-        ):
-            # Validate info
-            if not page.validate_page():
-                return
+        # Validate info
+        if not page.validate_page():
+            return
 
         if page.NEW_CONNECTION:
             # Save info provided by users
@@ -285,7 +280,15 @@ class ConnectionDialog(SidebarDialog):
 
         # Validate info
         if ENV_MANAGER and page.NEW_CONNECTION:
-            if not self._new_connection_page.validate_env_creation():
+            if (
+                self._new_connection_page.is_env_creation_widget_shown()
+                and not self._new_connection_page.validate_env_creation()
+            ):
+                return
+            elif (
+                self._new_connection_page.is_env_packages_widget_shown()
+                and not self._new_connection_page.get_env_packages_list()
+            ):
                 return
         elif not page.validate_page():
             return
@@ -304,8 +307,11 @@ class ConnectionDialog(SidebarDialog):
 
         if ENV_MANAGER and page.NEW_CONNECTION:
             if page.selected_env_creation_method() == CreateEnvMethods.NewEnv:
-                # TODO! Implement later
-                pass
+                env_name, python_version = page.get_create_env_info()
+                packages_list = page.get_env_packages_list()
+                self.sig_create_env_requested.emit(
+                    host_id, env_name, python_version, packages_list
+                )
             elif (
                 page.selected_env_creation_method()
                 == CreateEnvMethods.ImportEnv

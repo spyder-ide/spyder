@@ -91,6 +91,22 @@ class RemoteClient(SpyderPluginV2):
     sig_version_mismatch = Signal(str, str)
 
     # For remote envs
+    sig_create_env_requested = Signal(str, str, str, list)
+    """
+    Signal to request creating a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    env_name: str
+        Environment name.
+    python_version: str
+        Python version of the environment.
+    packages_list: list[str]
+        List of packages.
+    """
+
     sig_import_env_requested = Signal(str, str, str)
     """
     Signal to request importing a Python environment in the remote machine.

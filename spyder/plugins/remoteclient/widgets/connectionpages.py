@@ -132,8 +132,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def validate_page(self):
         """Validate contents before saving the connection."""
-        # Hide label and clear status actions from all pages!
-
         # Get widgets we're going to interact with
         auth_method = self.auth_method(from_gui=True)
         widgets = self._widgets_for_validation[auth_method]
@@ -749,6 +747,8 @@ class NewConnectionPage(BaseConnectionPage):
     def get_icon(self):
         return self.create_icon("add_server")
 
+    # ---- SpyderConfigPage API
+    # -------------------------------------------------------------------------
     def save_to_conf(self):
         super().save_to_conf()
 
@@ -767,6 +767,19 @@ class NewConnectionPage(BaseConnectionPage):
                     f"{self.host_id}/auth_method",
                     AuthenticationMethod.JupyterHub,
                 )
+
+    # ---- BaseConnectionPage API
+    # -------------------------------------------------------------------------
+    def validate_page(self):
+        # Skip this because it means the info validation was already done
+        if (
+            ENV_MANAGER
+            and self.get_current_tab() == "SSH"
+            and not self.is_ssh_info_widget_shown()
+        ):
+            return True
+        else:
+            return super().validate_page()
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -858,6 +871,9 @@ class NewConnectionPage(BaseConnectionPage):
                 env_method_widget.get_zip_file(),
                 env_method_widget.get_env_name()
             )
+
+    def get_env_packages_list(self):
+        return self._packages_info.get_changed_packages()
 
     def setup_env_packages_widget(self):
         env_name, python_version = self.get_create_env_info()

@@ -153,6 +153,9 @@ class RemoteClientContainer(PluginMainContainer):
             self.sig_server_changed
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
+        connection_dialog.sig_create_env_requested.connect(
+            self._plugin.sig_create_env_requested
+        )
         connection_dialog.sig_import_env_requested.connect(
             self._plugin.sig_import_env_requested
         )
