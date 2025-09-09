@@ -101,7 +101,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             _("Enable docstring style linting"), "pydocstyle"
         )
         docstring_style_convention = self.create_combobox(
-            _("Choose the convention used to lint docstrings: "),
+            _("Convention used to lint docstrings: "),
             (
                 ("Numpy", "numpy"),
                 ("PEP 257", "pep257"),

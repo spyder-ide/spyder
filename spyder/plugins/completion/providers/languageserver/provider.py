@@ -775,21 +775,21 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ruff_ignore = self.get_conf('ruff/extendIgnore', '').split(',')
 
         ruff = {
-            'enabled': self.get_conf('ruff'),
-            'exclude': [
+            "enabled": self.get_conf("ruff"),
+            "exclude": [
                 exclude.strip() for exclude in ruff_exclude if exclude
             ],
-            'extendSelect': [
+            "extendSelect": [
                 select.strip() for select in ruff_select if select
             ],
-            'extendIgnore': [
+            "extendIgnore": [
                 ignore.strip() for ignore in ruff_ignore if ignore
             ],
-            'lineLength': cs_max_line_length,
+            "lineLength": cs_max_line_length,
         }
 
         # Linting disabled
-        no_linting = {'enabled': self.get_conf('no_linting')}
+        no_linting = {"enabled": self.get_conf("no_linting")}
 
         # ruff - pydocstyle docstring linting
         pydocstyle_enabled = self.get_conf('pydocstyle')
