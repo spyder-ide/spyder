@@ -41,7 +41,7 @@ COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = ">=8.13.0,<9.0.0,!=8.17.1"
+IPYTHON_REQVER = ">=8.13.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
@@ -60,6 +60,7 @@ PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
 PYLSP_REQVER = '>=1.13.0,<1.14.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
+PYLSP_RUFF_REQVER = '>=2.2.2,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
@@ -220,6 +221,10 @@ DESCRIPTIONS = [
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
      'required_version': PYLSP_BLACK_REQVER},
+    {'modname': 'pylsp_ruff',
+     'package_name': 'python-lsp-ruff',
+     'features': _("Provide linting with the Ruff package"),
+     'required_version': PYLSP_RUFF_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python LSP Server'),
