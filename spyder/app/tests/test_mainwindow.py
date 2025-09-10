@@ -5598,6 +5598,10 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     sys.version_info[:2] < (3, 12),
     reason="Fails with Python versions older than 3.12"
 )
+@pytest.mark.skipif(
+    running_in_ci_with_conda(),
+    reason="Fails with Conda packages on CIs",
+)
 def test_profiler(main_window, qtbot, tmpdir):
     """Test if profiler works."""
     ipyconsole = main_window.ipyconsole
