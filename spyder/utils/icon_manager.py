@@ -465,67 +465,171 @@ class IconManager():
         return icon
 
     def _process_svg_icon(self, icon_path, resample):
-        """Process an SVG icon with colorization."""
+        """
+        Process an SVG icon with proper colorization for multi-color icons.
+        
+        This method handles SVG icons with multiple colored paths, each defined
+        by a class attribute that maps to a color in ICON_COLORS. It supports
+        high DPI displays by generating icons at multiple resolutions.
+        
+        Parameters
+        ----------
+        icon_path : str
+            Path to the SVG icon file
+        resample : bool
+            Whether to resample the icon for various sizes
+            
+        Returns
+        -------
+        QIcon
+            A properly colored icon with support for normal, disabled and selected states
+        """
         try:
-            # Apply colorization
-            svg_data = SVGColorize.colorize_icon_from_theme(
-                icon_path,
-                self.ICON_COLORS
-            )
-
-            # Create QIcon from the SVG data
-            if svg_data:
-                # Create a QByteArray with the SVG data
-                svg_bytes = QByteArray(svg_data.encode())
-
-                # Create a QIcon from the QByteArray
-                svg_image = QImage.fromData(svg_bytes, "SVG")
-                wrapping_icon = QIcon()
-                wrapping_icon.addPixmap(QPixmap.fromImage(svg_image))
-
-                # Store the SVG as a QByteArray for high-resolution rendering
-                setattr(wrapping_icon, '_svg_data', svg_bytes)
-
-                # Process the icon based on resample parameter
-                if resample:
-                    # This only applies to the Spyder 2 icons
-                    icon = QIcon()
-                    for size in (16, 24, 32, 48, 96, 128, 256, 512):
-                        icon.addPixmap(wrapping_icon.pixmap(size, size))
-                    return icon
-                else:
-                    # These are the necessary adjustments for our SVG icons.
-                    icon = QIcon()
-
-                    # -- Normal state
-                    # NOTE: We take pixmaps as large as the ones below to not have
-                    # pixelated icons on high dpi screens.
-                    # Fixes spyder-ide/spyder#19520
-                    normal_state = wrapping_icon.pixmap(512, 512)
-                    icon.addPixmap(normal_state, QIcon.Normal)
-
-                    # -- Disabled state
-                    # Taken from https://stackoverflow.com/a/65618075/438386
-                    disabled_color = QColor(SpyderPalette.COLOR_DISABLED)
-                    disabled_state = wrapping_icon.pixmap(512, 512)
-                    qp = QPainter(disabled_state)
-                    qp.setCompositionMode(QPainter.CompositionMode_SourceIn)
-                    qp.fillRect(disabled_state.rect(), disabled_color)
-                    qp.end()
-                    icon.addPixmap(disabled_state, QIcon.Disabled)
-
-                    # -- Selected state
-                    # We use the normal state pixmap for the selected state as well.
-                    icon.addPixmap(normal_state, QIcon.Selected)
-
-                    return icon
-            else:
-                # Fallback to regular processing if colorization fails
+            # Import needed in _render_colored_svg but imported here for error handling
+            from qtpy.QtSvg import QSvgRenderer  # noqa
+            
+            # Use SVGColorize to extract paths with their associated colors
+            svg_paths_data = SVGColorize.get_colored_paths(icon_path, self.ICON_COLORS)
+            if not svg_paths_data:
                 return self._process_regular_icon(icon_path, resample)
-
-        except Exception as e:
-            # Fallback to regular processing if there's an error
+                
+            # Define standard icon sizes for high DPI support
+            sizes = [16, 24, 32, 48, 96, 128, 256, 512]
+            icon = QIcon()
+            
+            # Extract SVG metadata
+            width = svg_paths_data.get('width', 24)
+            height = svg_paths_data.get('height', 24)
+            viewbox = svg_paths_data.get('viewbox')
+            paths = svg_paths_data.get('paths', [])
+            
+            # Process each size to ensure proper scaling on all displays
+            for size in sizes:
+                # Create the base pixmap for this size
+                pixmap = self._render_colored_svg(
+                    paths, size, width, height, viewbox
+                )
+                
+                # Add pixmap for normal state
+                icon.addPixmap(pixmap, QIcon.Normal)
+                
+                # Create disabled version (grayed out)
+                disabled_pixmap = self._create_disabled_pixmap(pixmap)
+                icon.addPixmap(disabled_pixmap, QIcon.Disabled)
+                
+                # Use normal state for selected state as well
+                icon.addPixmap(pixmap, QIcon.Selected)
+            
+            return icon
+            
+        except Exception:
+            # Any error, fall back to regular processing
             return self._process_regular_icon(icon_path, resample)
+    
+    def _render_colored_svg(self, paths, size, width, height, viewbox=None):
+        """
+        Render colored SVG paths to a pixmap.
+        
+        Parameters
+        ----------
+        paths : list
+            List of path dictionaries with 'path_data' and 'color'
+        size : int
+            Size of the pixmap to create
+        width : int
+            Original SVG width
+        height : int
+            Original SVG height
+        viewbox : str or None
+            SVG viewBox attribute if available
+            
+        Returns
+        -------
+        QPixmap
+            A pixmap with all paths rendered with their respective colors
+        """
+        from qtpy.QtSvg import QSvgRenderer
+        
+        # Create transparent pixmap for the icon
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
+        
+        # Painter for compositing all parts
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Process each path
+        for path_data in paths:
+            path_d = path_data.get('path_data', '')
+            color = QColor(path_data.get('color', self.MAIN_FG_COLOR))
+            
+            if not path_d:
+                continue
+            
+            # Create a temporary SVG with just this path
+            svg_template = (
+                f'<svg xmlns="http://www.w3.org/2000/svg" '
+                f'width="{width}" height="{height}"'
+            )
+            
+            # Add viewBox if available
+            if viewbox:
+                svg_template += f' viewBox="{viewbox}"'
+                
+            svg_template += f'><path d="{path_d}"/></svg>'
+            
+            # Render the path and apply color
+            temp_bytes = QByteArray(svg_template.encode('utf-8'))
+            temp_pixmap = QPixmap(size, size)
+            temp_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
+            
+            # Render the path
+            temp_renderer = QSvgRenderer(temp_bytes)
+            temp_painter = QPainter(temp_pixmap)
+            temp_renderer.render(temp_painter)
+            temp_painter.end()
+            
+            # Apply color to the path
+            temp_painter = QPainter(temp_pixmap)
+            temp_painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+            temp_painter.fillRect(temp_pixmap.rect(), color)
+            temp_painter.end()
+            
+            # Composite this path onto the main pixmap
+            painter.drawPixmap(0, 0, temp_pixmap)
+        
+        # Finish compositing
+        painter.end()
+        return pixmap
+    
+    def _create_disabled_pixmap(self, source_pixmap):
+        """
+        Create a disabled (grayed out) version of a pixmap.
+        
+        Parameters
+        ----------
+        source_pixmap : QPixmap
+            Source pixmap to create disabled version from
+            
+        Returns
+        -------
+        QPixmap
+            Disabled version of the pixmap
+        """
+        disabled_pixmap = QPixmap(source_pixmap.size())
+        disabled_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
+        
+        # Draw the source pixmap first
+        disabled_painter = QPainter(disabled_pixmap)
+        disabled_painter.drawPixmap(0, 0, source_pixmap)
+        
+        # Apply disabled color overlay
+        disabled_painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+        disabled_painter.fillRect(disabled_pixmap.rect(), 
+                                  QColor(SpyderPalette.COLOR_DISABLED))
+        disabled_painter.end()
+        
+        return disabled_pixmap
 
     def _process_regular_icon(self, icon_path, resample):
         """Process a regular (non-SVG) icon."""
