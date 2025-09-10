@@ -17,7 +17,6 @@ from qtpy.QtCore import Signal
 from spyder.api.translations import _
 from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.config.base import get_conf_path
-from spyder.plugins.pythonpath.utils import get_system_pythonpath
 from spyder.plugins.pythonpath.widgets.pathmanager import PathManager
 
 
@@ -128,19 +127,6 @@ class PythonpathContainer(PluginMainContainer):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _get_system_paths(self):
-        system_paths = get_system_pythonpath()
-        conf_system_paths = self.get_conf('system_paths', {})
-
-        # If a system path already exists in the configuration, use the
-        # configuration active state. If it does not exist in the
-        # configuration, then set the active state to True.
-        system_paths = OrderedDict(
-            {p: conf_system_paths.get(p, True) for p in system_paths}
-        )
-
-        return system_paths
-
     def _save_paths(self, user_paths=None, system_paths=None, prioritize=None):
         """
         Save user and system path dictionaries and prioritize to config.
