@@ -4685,7 +4685,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         Inform Qt about the types of data that the widget accepts.
         """
         logger.debug("dragEnterEvent was received")
-        self._drag_cursor = self.cursorForPosition(event.pos())
         all_urls = mimedata2url(event.mimeData())
         if all_urls:
             # Let the parent widget handle this
@@ -4693,6 +4692,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             event.ignore()
         else:
             logger.debug("Call TextEditBaseWidget dragEnterEvent method")
+            self._drag_cursor = self.cursorForPosition(event.pos())
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dragMoveEvent(self, event):
