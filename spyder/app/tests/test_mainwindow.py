@@ -3237,7 +3237,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
             for i in range(page.tabs.count())]
 
     tabs = dict(zip(tnames, tabs))
-    tab_widgets = {'docstring style': 'docstring_style_check'}
+    tab_widgets = {'linting': 'docstring_style_check'}
 
     for tabname in tab_widgets:
         tab, idx = tabs[tabname]

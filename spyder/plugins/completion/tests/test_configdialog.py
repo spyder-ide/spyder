@@ -34,8 +34,7 @@ class MainWindowMock(QMainWindow):
     indirect=True)
 def test_config_dialog(config_dialog):
     expected_titles = {'General', 'Snippets', 'Linting', 'Introspection',
-                       'Code formatting', 'Docstring style',
-                       'Advanced', 'Other languages'}
+                       'Code formatting', 'Advanced', 'Other languages'}
 
     configpage = config_dialog.get_page()
     assert configpage
