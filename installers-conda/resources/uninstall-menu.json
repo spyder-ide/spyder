@@ -1,0 +1,30 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://schemas.conda.io/menuinst-1.schema.json",
+    "menu_name": "{{ DISTRIBUTION_NAME }} spyder uninstaller",
+    "menu_items": [
+        {
+            "name": "Spyder __PKG_MAJOR_VER__ Uninstaller",
+            "description": "Spyder Uninstaller",
+            "icon": "{{ MENU_DIR }}/uninstall.{{ ICON_EXT }}",
+            "activate": false,
+            "terminal": true,
+            "command": ["{{ BASE_PREFIX }}/uninstall-spyder.sh"],
+            "platforms": {
+                "linux": {
+                    "Categories": [
+                        "Development",
+                        "Science"
+                    ],
+                    "StartupWMClass": "Spyder-__PKG_MAJOR_VER__-Uninstaller",
+                    "SingleMainWindow": true
+                },
+                "osx": {
+                    "CFBundleName": "Spyder __PKG_MAJOR_VER__ Uninstaller",
+                    "CFBundleIdentifier": "org.spyder-ide.spyder-__PKG_MAJOR_VER__-uninstaller",
+                    "CFBundleVersion": "__PKG_MAJOR_VER__"
+                }
+            }
+        }
+    ]
+}
