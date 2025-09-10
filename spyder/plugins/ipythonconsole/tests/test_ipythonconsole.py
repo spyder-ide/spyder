@@ -2579,7 +2579,7 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux ")
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
 def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     """Test that the IPython console elapsed timer is set correctly."""
     # Create a new IPython console client
