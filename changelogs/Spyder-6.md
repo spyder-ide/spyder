@@ -72,6 +72,8 @@
 
 * **Breaking** - The `create_ipyclient_for_server` and `get_kernels` methods were removed.
 * Add `sig_server_changed` signal to report when a server was added or removed.
+* Add `sig_create_env_requested` and `sig_import_env_requested` to request creating or importing a remote environment (they work if the
+  Spyder-env-manager plugin is installed).
 * Add `get_server_name` method to get a server name given its id.
 * Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
 * Add `get_jupyter_api` method to get the Jupyter API to interact with a remote Jupyter server.
@@ -116,7 +118,7 @@
   aliases are retained for backward compatibility but may be removed in Spyder 7+.
 * Add `Profile` constant to `RunMenuSections`.
 
-### Toolbar
+#### Toolbar
 
 * Add `Profile` constant to `ApplicationToolbars`.
 
@@ -154,6 +156,7 @@
 #### General API
 
 * **Breaking** - Remove `old_conf_version` method from `SpyderConfigurationAccessor`.
+* Add `OptionalPlugins` enum for plugins that Spyder can rely on to provide additional functionality.
 
 ----
 
