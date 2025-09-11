@@ -1,5 +1,25 @@
 # History of changes
 
+## Version 3.1.0b1 (2025/09/10)
+
+### Issues Closed
+
+* [Issue 555](https://github.com/spyder-ide/spyder-kernels/issues/555) - Replace `setup.py` with `pyproject.toml` ([PR 557](https://github.com/spyder-ide/spyder-kernels/pull/557) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 543](https://github.com/spyder-ide/spyder-kernels/issues/543) - Support IPython 9.x ([PR 559](https://github.com/spyder-ide/spyder-kernels/pull/559) by [@dalthviz](https://github.com/dalthviz))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 559](https://github.com/spyder-ide/spyder-kernels/pull/559) - PR: Add support for IPython 9, by [@dalthviz](https://github.com/dalthviz) ([543](https://github.com/spyder-ide/spyder-kernels/issues/543))
+* [PR 558](https://github.com/spyder-ide/spyder-kernels/pull/558) - PR: Add `profile`, `profilefile` and `profilecell` magics, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 557](https://github.com/spyder-ide/spyder-kernels/pull/557) - PR: Replace `setup.py` with `pyproject.toml`, by [@dalthviz](https://github.com/dalthviz) ([555](https://github.com/spyder-ide/spyder-kernels/issues/555))
+* [PR 556](https://github.com/spyder-ide/spyder-kernels/pull/556) - PR: Replace `@flaky` decorator with pytest marker, by [@mgorny](https://github.com/mgorny)
+
+In this release 4 pull requests were closed.
+
+----
+
 ## Version 3.1.0a3 (2025/07/21)
 
 ### Pull Requests Merged
