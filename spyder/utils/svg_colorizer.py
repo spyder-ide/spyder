@@ -229,7 +229,7 @@ class SVGColorize:
             return None
     
     @classmethod
-    def get_colored_paths(cls, icon_path, theme_colors):
+    def get_colored_paths(cls, icon_path, theme_colors, debug=False):
         """
         Class method to extract colored paths from an SVG icon.
         
@@ -251,7 +251,8 @@ class SVGColorize:
             A dictionary containing SVG metadata and colored paths.
             See extract_colored_paths() for the structure.
         """
-        log.debug(f"Extracting colored paths from SVG: {icon_path}")
+        if debug:
+            log.debug(f"Extracting colored paths from SVG: {icon_path}")
         
         # Create a new colorizer instance
         icon = cls(icon_path)
