@@ -14,7 +14,6 @@ import sys
 from qtpy.QtCore import QBuffer, QByteArray
 from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
-from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.manager import CONF
@@ -507,8 +506,9 @@ class IconManager():
             
             # Process each size to ensure proper scaling on all displays
             for size in sizes:
-                # Create the base pixmap for this size
-                pixmap = self._render_colored_svg(
+                # Create the base pixmap for this size using SVGColorize
+                svg_colorizer = SVGColorize(icon_path)
+                pixmap = svg_colorizer.render_colored_svg(
                     paths, size, width, height, viewbox
                 )
                 
@@ -528,91 +528,6 @@ class IconManager():
             # Any error, fall back to regular processing
             return self._process_regular_icon(icon_path, resample)
     
-    def _render_colored_svg(self, paths, size, width, height, viewbox=None):
-        """
-        Render colored SVG paths to a pixmap.
-        
-        Parameters
-        ----------
-        paths : list
-            List of path dictionaries with 'path_data' and 'color'
-        size : int
-            Size of the pixmap to create (used as the maximum dimension)
-        width : int
-            Original SVG width
-        height : int
-            Original SVG height
-        viewbox : str or None
-            SVG viewBox attribute if available
-            
-        Returns
-        -------
-        QPixmap
-            A pixmap with all paths rendered with their respective colors
-        """
-        
-        # Calculate proper dimensions preserving aspect ratio
-        aspect_ratio = width / height
-        if width > height:
-            # Width is larger, use size as width
-            pixmap_width = size
-            pixmap_height = int(size / aspect_ratio)
-        else:
-            # Height is larger or equal, use size as height
-            pixmap_height = size
-            pixmap_width = int(size * aspect_ratio)
-        
-        # Create transparent pixmap for the icon with proper aspect ratio
-        pixmap = QPixmap(pixmap_width, pixmap_height)
-        pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
-        
-        # Painter for compositing all parts
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-        
-        # Process each path
-        for path_data in paths:
-            path_d = path_data.get('path_data', '')
-            color = QColor(path_data.get('color', self.MAIN_FG_COLOR))
-            
-            if not path_d:
-                continue
-            
-            # Create a temporary SVG with just this path
-            svg_template = (
-                f'<svg xmlns="http://www.w3.org/2000/svg" '
-                f'width="{width}" height="{height}"'
-            )
-            
-            # Add viewBox if available
-            if viewbox:
-                svg_template += f' viewBox="{viewbox}"'
-                
-            svg_template += f'><path d="{path_d}"/></svg>'
-            
-            # Render the path and apply color
-            temp_bytes = QByteArray(svg_template.encode('utf-8'))
-            temp_pixmap = QPixmap(pixmap_width, pixmap_height)
-            temp_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
-            
-            # Render the path
-            temp_renderer = QSvgRenderer(temp_bytes)
-            temp_painter = QPainter(temp_pixmap)
-            temp_renderer.render(temp_painter)
-            temp_painter.end()
-            
-            # Apply color to the path
-            temp_painter = QPainter(temp_pixmap)
-            temp_painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
-            temp_painter.fillRect(temp_pixmap.rect(), color)
-            temp_painter.end()
-            
-            # Composite this path onto the main pixmap
-            painter.drawPixmap(0, 0, temp_pixmap)
-        
-        # Finish compositing
-        painter.end()
-        return pixmap
     
     def _create_disabled_pixmap(self, source_pixmap):
         """
