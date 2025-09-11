@@ -9,6 +9,9 @@ import logging
 
 # Third party imports
 from lxml import etree
+from qtpy.QtCore import QByteArray
+from qtpy.QtGui import QColor, QPainter, QPixmap
+from qtpy.QtSvg import QSvgRenderer
 
 log = logging.getLogger(__name__)
 
@@ -279,9 +282,6 @@ class SVGColorize:
         QPixmap
             A pixmap with all paths rendered with their respective colors
         """
-        from qtpy.QtCore import QByteArray
-        from qtpy.QtGui import QColor, QPainter, QPixmap
-        from qtpy.QtSvg import QSvgRenderer
         
         # Calculate proper dimensions preserving aspect ratio
         aspect_ratio = width / height
