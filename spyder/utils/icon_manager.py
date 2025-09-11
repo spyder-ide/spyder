@@ -14,6 +14,7 @@ import sys
 from qtpy.QtCore import QBuffer, QByteArray
 from qtpy.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
+from qtpy.QtSvg import QSvgRenderer
 
 # Local imports
 from spyder.config.manager import CONF
@@ -22,7 +23,6 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.svg_colorizer import SVGColorize
 import qtawesome as qta
-
 
 class IconManager():
     """Class that manages all the icons."""
@@ -550,7 +550,6 @@ class IconManager():
         QPixmap
             A pixmap with all paths rendered with their respective colors
         """
-        from qtpy.QtSvg import QSvgRenderer
         
         # Calculate proper dimensions preserving aspect ratio
         aspect_ratio = width / height

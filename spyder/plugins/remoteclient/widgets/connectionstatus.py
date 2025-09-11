@@ -10,7 +10,7 @@ from collections.abc import Iterable
 import logging
 
 import qstylizer.style
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QPixmap, QTextCursor
 from qtpy.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -32,10 +32,10 @@ from spyder.plugins.remoteclient.api.protocol import (
     RemoteClientLog,
 )
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
+from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
-
 
 # ---- Constants
 # -----------------------------------------------------------------------------
@@ -311,10 +311,7 @@ class ConnectionStatusWidget(
         icon = ima.get_icon(STATUS_TO_ICON[status])
         if icon and not icon.isNull():
             # Calculate the same size as the original svg_to_scaled_pixmap method
-            # Get the original SVG dimensions
-            from spyder.utils.image_path_manager import get_image_path
-            from qtpy.QtGui import QPixmap
-            
+            # Get the original SVG dimension
             image_path = get_image_path(STATUS_TO_ICON[status])
             pm = QPixmap(image_path)
             width = pm.width()
