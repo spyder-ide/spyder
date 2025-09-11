@@ -32,15 +32,6 @@ class ImagePathManager():
             return
 
         for dirpath, __, _filenames in os.walk(path):
-            # Skip light/dark directories based on theme
-            if is_dark_interface() and osp.basename(dirpath) == 'light':
-                continue
-            elif not is_dark_interface() and osp.basename(dirpath) == 'dark':
-                continue
-            # Prioritize svg directory for SVG files
-            elif osp.basename(dirpath) == 'svg':
-                # Process SVG files with higher priority
-                pass
             for filename in _filenames:
                 if filename.startswith('.'):
                     continue
@@ -49,6 +40,9 @@ class ImagePathManager():
                 
                 # Prioritize SVG directory over light/dark
                 if name in self.IMG_PATH:
+                    warnings.warn(
+                        f'The icon located in {complete_path} is overriding '
+                        f'the existing {name}')
                     existing_path = self.IMG_PATH[name]
                     # If current file is from svg directory, it has priority
                     if osp.basename(dirpath) == 'svg':
