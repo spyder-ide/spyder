@@ -177,8 +177,8 @@ class SVGColorize:
             
         try:
             # Get SVG dimensions
-            width = int(self.root.get('width', '24'))
-            height = int(self.root.get('height', '24'))
+            width = int(float(self.root.get('width', '24')))
+            height = int(float(self.root.get('height', '24')))
             viewbox = self.root.get('viewBox')
             
             # Result structure

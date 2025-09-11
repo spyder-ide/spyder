@@ -117,7 +117,12 @@ class IconManager():
             'ICON_6':            SpyderPalette.ICON_6,
             'ICON_7':            SpyderPalette.ICON_7,
             'SPYDER_LOGO_WEB':   SpyderPalette.SPYDER_LOGO_WEB,
-            'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE
+            'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE,
+            # Connection status colors
+            'active':            SpyderPalette.COLOR_SUCCESS_3,
+            'inactive':          SpyderPalette.COLOR_OCCURRENCE_5,
+            'error':             SpyderPalette.COLOR_ERROR_2,
+            'connecting':        SpyderPalette.COLOR_WARN_4,
         }
 
         # Cache for processed icons
@@ -485,9 +490,6 @@ class IconManager():
             A properly colored icon with support for normal, disabled and selected states
         """
         try:
-            # Import needed in _render_colored_svg but imported here for error handling
-            from qtpy.QtSvg import QSvgRenderer  # noqa
-            
             # Use SVGColorize to extract paths with their associated colors
             svg_paths_data = SVGColorize.get_colored_paths(icon_path, self.ICON_COLORS)
             if not svg_paths_data:
@@ -535,7 +537,7 @@ class IconManager():
         paths : list
             List of path dictionaries with 'path_data' and 'color'
         size : int
-            Size of the pixmap to create
+            Size of the pixmap to create (used as the maximum dimension)
         width : int
             Original SVG width
         height : int
@@ -550,8 +552,19 @@ class IconManager():
         """
         from qtpy.QtSvg import QSvgRenderer
         
-        # Create transparent pixmap for the icon
-        pixmap = QPixmap(size, size)
+        # Calculate proper dimensions preserving aspect ratio
+        aspect_ratio = width / height
+        if width > height:
+            # Width is larger, use size as width
+            pixmap_width = size
+            pixmap_height = int(size / aspect_ratio)
+        else:
+            # Height is larger or equal, use size as height
+            pixmap_height = size
+            pixmap_width = int(size * aspect_ratio)
+        
+        # Create transparent pixmap for the icon with proper aspect ratio
+        pixmap = QPixmap(pixmap_width, pixmap_height)
         pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
         
         # Painter for compositing all parts
@@ -580,7 +593,7 @@ class IconManager():
             
             # Render the path and apply color
             temp_bytes = QByteArray(svg_template.encode('utf-8'))
-            temp_pixmap = QPixmap(size, size)
+            temp_pixmap = QPixmap(pixmap_width, pixmap_height)
             temp_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
             
             # Render the path

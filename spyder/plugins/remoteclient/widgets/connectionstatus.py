@@ -24,6 +24,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SvgToScaledPixmap
+from spyder.utils.icon_manager import ima
 from spyder.plugins.remoteclient.api import MAX_CLIENT_MESSAGES
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
@@ -306,9 +307,46 @@ class ConnectionStatusWidget(
         )
 
     def _set_icon(self, status):
-        self._image_label.setPixmap(
-            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
-        )
+        # Use the icon manager to get properly colorized icons
+        icon = ima.get_icon(STATUS_TO_ICON[status])
+        if icon and not icon.isNull():
+            # Calculate the same size as the original svg_to_scaled_pixmap method
+            # Get the original SVG dimensions
+            from spyder.utils.image_path_manager import get_image_path
+            from qtpy.QtGui import QPixmap
+            
+            image_path = get_image_path(STATUS_TO_ICON[status])
+            pm = QPixmap(image_path)
+            width = pm.width()
+            height = pm.height()
+            
+            # Apply rescale factor (same as original method with rescale=1)
+            rescale = 1
+            if rescale is not None:
+                aspect_ratio = width / height
+                width = int(width * rescale)
+                height = int(width / aspect_ratio)
+            
+            # Get user's DPI scale factor
+            if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+                scale_factors = self.get_conf(
+                    'high_dpi_custom_scale_factors',
+                    section='main'
+                )
+                scale_factor = float(scale_factors.split(":")[0])
+            else:
+                scale_factor = 1
+            
+            # Get a properly scaled pixmap from the icon
+            # Use the maximum dimension to maintain aspect ratio
+            max_dimension = max(int(width * scale_factor), int(height * scale_factor))
+            pixmap = icon.pixmap(max_dimension, max_dimension)
+            self._image_label.setPixmap(pixmap)
+        else:
+            # Fallback to the old method if icon loading fails
+            self._image_label.setPixmap(
+                self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
+            )
 
     @property
     def _auth_method(self):
