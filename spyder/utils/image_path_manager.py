@@ -11,7 +11,6 @@ import warnings
 
 # Local imports
 from spyder.config.base import get_module_data_path
-from spyder.config.gui import is_dark_interface
 
 # =============================================================================
 # Image path list
