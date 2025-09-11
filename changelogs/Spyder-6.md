@@ -5,7 +5,9 @@
 ### New features
 
 * Add support to work with multiple cursors in the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
-* Add a graphical interface to the update process of our standalone installers.
+* Rearchitect Profiler to run through the IPython console and add `%profilefile`, `%profilecell` and `%profile` magics for that.
+* Add a graphical interface to the update process of our standalone installers and base them in Python 3.12.
+* Add support to use Ruff and Flake8 for linting in the Editor.
 * Plot histograms from the dataframe viewer.
 * Add support for Polars dataframes, frozen sets, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
 * Show the remote file system in the Files pane when a remote console has focus.
@@ -23,11 +25,14 @@
 * Remove blank lines around cells when copying their contents to the console.
 * Automatically kill kernels when Spyder crashes.
 * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
+* Add support for IPython 9.
 * Drop support for Python 3.8
 
 ### UX/UI improvements
 
 * Reorganize most menus to make them easier to navigate.
+* Allow to zoom in/out with Ctrl + mouse wheel in the IPython console.
+* Add `Shift+Alt+Right/Left` shortcuts to move to the next/previous console.
 * Add shortcut `Ctrl+W` to close Variable Explorer viewers.
 * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
 * Fix plots looking blurred when scaling is enabled in high DPI screens.
