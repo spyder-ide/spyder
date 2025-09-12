@@ -752,9 +752,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if reset:
             self.reset(clear=False)
             self._append_plain_text(
-            "\n\nNote: Clearing the console is necessary to fully apply the "
-            "new syntax style you selected."
-        )
+                "\n\nNote: Clearing the console is necessary to fully apply "
+                "the new syntax style you selected.")
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
