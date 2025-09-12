@@ -86,6 +86,7 @@ DEFAULTS = [
               'show_dpi_message': True,
               'show_message_when_panes_are_empty': True,
               'max_recent_files': 20,
+              'disable_zoom_mouse': False,
               }),
             ('update_manager',
              {
