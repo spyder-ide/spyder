@@ -1320,7 +1320,10 @@ class LSPMixin:
 
     def update_outline_on_save(self, state):
         if state:
-            self._timer_sync_symbols_and_folding.timeout.disconnect()
+            try:
+                self._timer_sync_symbols_and_folding.timeout.disconnect()
+            except (TypeError, RuntimeError):
+                pass
         else:
             self._timer_sync_symbols_and_folding.timeout.connect(
                 self.sync_symbols_and_folding, Qt.UniqueConnection
