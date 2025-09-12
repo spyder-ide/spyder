@@ -1318,6 +1318,17 @@ class LSPMixin:
 
         self.folding_in_sync = True
 
+    def update_outline_on_save(self, state):
+        if state:
+            try:
+                self._timer_sync_symbols_and_folding.timeout.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+        else:
+            self._timer_sync_symbols_and_folding.timeout.connect(
+                self.sync_symbols_and_folding, Qt.UniqueConnection
+            )
+
     # ---- Save/close file
     # -------------------------------------------------------------------------
     @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
@@ -1327,6 +1338,13 @@ class LSPMixin:
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.get_text_with_eol()
+
+        # Update symbols and folding on save to avoid sending requests for that
+        # while typing, which improves performance.
+        # Fixes spyder-ide/spyder#15078
+        if self.oe_proxy is not None and self.oe_proxy.update_on_save:
+            self.sync_symbols_and_folding()
+
         return params
 
     @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
