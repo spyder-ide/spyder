@@ -24,7 +24,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
     QFileDialog,
-    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -403,7 +402,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 option in self.changed_options
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
-            ):
+            ) and option is not None:
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
 
@@ -552,7 +551,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None,
-                           restart=False, section=None):
+                           restart=False, section=None, id_=None):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         radiobutton = QRadioButton(text)
@@ -560,12 +559,19 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
         if button_group is None:
             if self.default_button_group is None:
                 self.default_button_group = QButtonGroup(self)
             button_group = self.default_button_group
-        button_group.addButton(radiobutton)
+
+        if id_ is None:
+            button_group.addButton(radiobutton)
+        else:
+            button_group.addButton(radiobutton, id=id_)
+
         self.radiobuttons[radiobutton] = (section, option, default)
+
         if msg_warning is not None or msg_info is not None:
             def show_message(is_checked):
                 if is_checked or not msg_if_enabled:
@@ -576,15 +582,18 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         QMessageBox.information(self, self.get_name(),
                                                 msg_info, QMessageBox.Ok)
             radiobutton.toggled.connect(show_message)
+
         radiobutton.restart_required = restart
         radiobutton.label_text = text
 
         if tip is not None:
             layout, help_label = self.add_help_info_label(layout, tip)
             radiobutton.help_label = help_label
+
         widget = QWidget(self)
         widget.radiobutton = radiobutton
         widget.setLayout(layout)
+
         return widget
 
     def create_lineedit(self, text, option, default=NoDefault,
@@ -732,14 +741,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
@@ -800,14 +810,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.

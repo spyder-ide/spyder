@@ -367,8 +367,9 @@ class JupyterWidget(IPythonWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            if self._prompt_requested:
+            if self._prompt_requested or self.kernel_client is None:
                 # Already asked for prompt, avoid multiple prompts.
+                # Or kernel is not created yet.
                 return
             self._prompt_requested = True
             msg_id = self.kernel_client.execute('', silent=True)
