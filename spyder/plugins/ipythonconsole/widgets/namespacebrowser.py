@@ -31,6 +31,9 @@ CALL_KERNEL_TIMEOUT = 30
 
 # URL to our Github issues
 GH_ISSUES = "https://github.com/spyder-ide/spyder/issues/new"
+VAREXP_DONATIONS = (
+    "https://www.spyder-ide.org/donate/variable-explorer-improvements"
+)
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -63,12 +66,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_missing_package_installer = _(
             "The '<tt>{}</tt>' module is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
-            "variable can't be displayed by Spyder."
+            "variable can't be displayed by Spyder.<br><br>"
+            "If you want to see this fixed in the future, please donate to "
+            "this <a href='{}'>project</a>."
         )
         reason_missing_package = _(
             "The '<tt>{}</tt>' module is required to open this variable and "
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
+            "<br><br>"
+            "If you want to see this addressed in the future, please donate "
+            "to this <a href='{}'>project</a>."
         )
         reason_mismatched_numpy = _(
             "There is a mismatch between the Numpy versions used by Spyder "
@@ -102,8 +110,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "to be fixed by the Spyder team, please report it on "
             "<a href='{}'>Github</a>."
         ).format(GH_ISSUES)
+        msg_without_note = "<br>%s"
 
         kernel_call_success = False
+        show_full_msg = True
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -194,14 +204,31 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 name = e.args[0].error.name
                 reason = reason_missing_package_target.format(name)
             elif is_conda_based_app():
-                reason = reason_missing_package_installer.format(e.name)
+                # We don't show the full message in this case so people don't
+                # report this problem to Github and instead encourage them to
+                # donate to the project that will solve the problem.
+                # See spyder-ide/spyder#24922 for the details.
+                show_full_msg = False
+                reason = reason_missing_package_installer.format(
+                    e.name, VAREXP_DONATIONS
+                )
             elif e.name.startswith('numpy._core'):
                 reason = reason_mismatched_numpy
             elif e.name == 'pandas.core.indexes.numeric':
                 reason = reason_mismatched_pandas
             else:
-                reason = reason_missing_package.format(e.name)
-            raise ValueError(msg % reason)
+                # We don't show the full message in this case so people don't
+                # report this problem to Github and instead encourage them to
+                # donate to the project that will solve the problem.
+                show_full_msg = False
+                reason = reason_missing_package.format(
+                    e.name, VAREXP_DONATIONS
+                )
+
+            if show_full_msg:
+                raise ValueError(msg % reason)
+            else:
+                raise ValueError(msg_without_note % reason)
         except Exception:
             raise ValueError(msg % reason_other)
 
