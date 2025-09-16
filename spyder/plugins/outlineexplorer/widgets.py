@@ -266,7 +266,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self._current_editor = None
         self._languages = []
         self.is_visible = False
-        self.symbol_expanded = {}
+        self._symbols_expanded_state: dict[str, bool] = {}
 
         self.currentItemChanged.connect(self.selection_switched)
         self.itemExpanded.connect(self.tree_item_expanded)
@@ -598,10 +598,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             symbol_end = symbol_range['end']['line']
             symbol_repr = SymbolStatus(symbol_name, symbol_kind,
                                        (symbol_start, symbol_end), None)
-            if self.symbol_expanded.get(symbol_name):
+            if self._symbols_expanded_state.get(symbol_name):
                 symbol_repr.status = True
             else:
-                self.symbol_expanded[symbol_name] = False
+                self._symbols_expanded_state[symbol_name] = False
                 symbol_repr.status = False
             tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
 
@@ -823,12 +823,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def tree_item_collapsed(self, item):
         ref = item.ref
         ref.status = False
-        self.symbol_expanded[ref.name] = False
+        self._symbols_expanded_state[ref.name] = False
 
     def tree_item_expanded(self, item):
         ref = item.ref
         ref.status = True
-        self.symbol_expanded[ref.name] = True
+        self._symbols_expanded_state[ref.name] = True
 
     def set_editors_to_update(self, language, reset_info=False):
         """Set editors to update per language."""
