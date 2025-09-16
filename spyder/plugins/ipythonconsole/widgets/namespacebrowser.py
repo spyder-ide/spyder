@@ -82,10 +82,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "please upgrade <tt>pandas</tt> in the console environment "
             "to version 2.0 or higher."
         )
-        reason_mismatched_python = _(
+        reason_mismatched_python_installer = _(
             "There is a mismatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
             "To fix it, you need to recreate your console environment with "
+            "Python {} or {}."
+        )
+        reason_mismatched_python = _(
+            "There is a mismatch between the Python versions used by Spyder "
+            "({}) and the kernel of your current console ({}).<br><br>"
+            "To fix it, you need to either install Spyder in an environment "
+            "with Python {} or {}, or recreate your console environment with "
             "Python {} or {}."
         )
 
@@ -121,25 +128,59 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 # cloudpickle can't deserialize the objects sent from the
                 # kernel and we need to inform users about it.
                 # Fixes spyder-ide/spyder#24125.
+                # Fixes spyder-ide/spyder#24950.
                 py_spyder_version = ".".join(
                     [str(n) for n in sys.version_info[:3]]
                 )
                 py_kernel_version = self.get_pythonenv_info()["python_version"]
 
                 if parse(py_spyder_version) < parse(py_kernel_version):
-                    py_good_version, compatible_versions  = "3.10", _("lower")
-                else:
-                    py_good_version, compatible_versions = "3.11", _("greater")
-
-                raise ValueError(
-                    msg
-                    % reason_mismatched_python.format(
-                        py_spyder_version,
-                        py_kernel_version,
-                        py_good_version,
-                        compatible_versions,
+                    (
+                        py_spyder_good_version,
+                        py_spyder_compatible_versions,
+                        py_kernel_good_version,
+                        py_kernel_compatible_versions,
+                    ) = (
+                        "3.11",
+                        _("greater"),
+                        "3.10",
+                        _("lower"),
                     )
-                )
+                else:
+                    (
+                        py_spyder_good_version,
+                        py_spyder_compatible_versions,
+                        py_kernel_good_version,
+                        py_kernel_compatible_versions,
+                    ) = (
+                        "3.10",
+                        _("lower"),
+                        "3.11",
+                        _("greater"),
+                    )
+
+                if is_conda_based_app():
+                    raise ValueError(
+                        msg
+                        % reason_mismatched_python_installer.format(
+                            py_spyder_version,
+                            py_kernel_version,
+                            py_kernel_good_version,
+                            py_kernel_compatible_versions,
+                        )
+                    )
+                else:
+                    raise ValueError(
+                        msg
+                        % reason_mismatched_python.format(
+                            py_spyder_version,
+                            py_kernel_version,
+                            py_spyder_good_version,
+                            py_spyder_compatible_versions,
+                            py_kernel_good_version,
+                            py_kernel_compatible_versions,
+                        )
+                    )
 
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
