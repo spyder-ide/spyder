@@ -270,6 +270,12 @@ def validate_download(file: str, checksum: str) -> bool:
     valid = checksum.lstrip("sha256:") == _checksum.hexdigest()
     logger.debug(f"Valid {file}: {valid}")
 
+    # Extract validated zip files
+    if valid and file.endswith('.zip'):
+        with ZipFile(file, 'r') as f:
+            f.extractall(osp.dirname(file))
+        logger.debug(f"{file} extracted.")
+
     return valid
 
 
@@ -510,8 +516,6 @@ class WorkerUpdateUpdater(BaseWorker):
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
-            with ZipFile(self.installer_path, 'r') as f:
-                f.extractall(dirname)
         else:
             raise UpdateDownloadError("Download failed!")
 
@@ -647,10 +651,6 @@ class WorkerDownloadInstaller(BaseWorker):
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
-
-            if self.installer_path.endswith('.zip'):
-                with ZipFile(self.installer_path, 'r') as f:
-                    f.extractall(dirname)
         else:
             raise UpdateDownloadError("Download failed!")
 
