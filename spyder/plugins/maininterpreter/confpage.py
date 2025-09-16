@@ -20,7 +20,7 @@ from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs_cache
-from spyder.utils.misc import get_python_executable
+from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
 
@@ -34,6 +34,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None
+        self.conda_edit = None
 
         conda_env = get_list_conda_envs_cache()
         pyenv_env = get_list_pyenv_envs_cache()
@@ -159,6 +160,34 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_layout.addWidget(umr_verbose_box)
         umr_layout.addWidget(umr_namelist_btn)
         umr_group.setLayout(umr_layout)
+
+        # Path anaconda executor
+        conda_group = QGroupBox(_("Path Conda executor"))
+        conda_label = QLabel(
+            _(
+                "Select the conda executor path"
+            )
+        )
+        conda_label.setWordWrap(True)
+
+        if os.name == 'nt':
+            filters = _("Executables") + " (*.exe)"
+        else:
+            filters = None
+
+        conda_layout = QVBoxLayout()
+        conda_layout.addWidget(conda_label)
+        self.conda_path = self.create_browsefile(
+            _('Conda executor path'),
+            'conda_path'
+        )
+        self.conda_path.setStyleSheet("margin-left: 3px")
+        self.conda_path.lineEdit.setMinimumWidth(400)
+
+        conda_layout.addWidget(self.conda_path)
+        conda_group.setLayout(conda_layout)
+
+        self.conda_edit = self.conda_path.lineEdit()
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)

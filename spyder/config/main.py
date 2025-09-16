@@ -700,6 +700,7 @@ NAME_MAP = {
         ('workingdir', [
             'console/fixed_directory',
             'startup/fixed_directory',
+            'conda_path',
           ]
          ),
         ('pylint', [
