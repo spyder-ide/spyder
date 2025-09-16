@@ -356,7 +356,7 @@ class LSPMixin:
         # It is an error if this happens because as per LSP specification
         # `didOpen` “must not be sent more than once without a corresponding
         # close notification send before”.
-        if not self.oe_proxy.update_on_save:
+        if not self.get_conf('update_on_save', section='outline_explorer'):
             self._timer_sync_symbols_and_folding.timeout.connect(
                 self.sync_symbols_and_folding, Qt.UniqueConnection
             )
