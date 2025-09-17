@@ -20,7 +20,7 @@
 
 ### Important fixes
 
-* Much better support for PyQt6 and PySide6.
+* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now. 
 * Make shortcuts to move to different panes work when they are undocked.
 * Remove blank lines around cells when copying their contents to the console.
 * Automatically kill kernels when Spyder crashes.

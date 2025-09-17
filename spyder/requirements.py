@@ -32,10 +32,10 @@ def show_warning(message):
 def check_qt():
     """Check Qt binding requirements"""
     qt_infos = dict(
-        pyqt5=("PyQt5", "5.15"),
-        pyside2=("PySide2", "5.15"),
-        pyqt6=("PyQt6", "6.5"),
-        pyside6=("PySide6", "6.5")
+        pyqt5=("PyQt5", ("5.15.0", "5.16")),
+        pyside2=("PySide2", ("5.15.0", "5.16")),
+        pyqt6=("PyQt6", ("6.9.0", "7.0.0")),
+        pyside6=("PySide6", ("6.8.0", "6.9.0")),
     )
 
     try:
@@ -43,13 +43,19 @@ def check_qt():
         package_name, required_ver = qt_infos[qtpy.API]
         actual_ver = qtpy.QT_VERSION
 
-        if (
-            actual_ver is None
-            or parse(actual_ver) < parse(required_ver)
+        if actual_ver is None or not (
+            parse(required_ver[0])
+            <= parse(actual_ver)
+            < parse(required_ver[1])
         ):
-            show_warning("Please check Spyder installation requirements:\n"
-                         "%s %s+ is required (found %s)."
-                         % (package_name, required_ver, actual_ver))
+            show_warning(
+                (
+                    "Please check Spyder installation requirements:\n\n"
+                    "{} >={},<{} is required but version {} was found."
+                ).format(
+                    package_name, required_ver[0], required_ver[1], actual_ver
+                )
+            )
     except ImportError:
         show_warning("Failed to import qtpy.\n"
                      "Please check Spyder installation requirements:\n\n"
