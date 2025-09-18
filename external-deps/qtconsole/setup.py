@@ -13,8 +13,8 @@ name = 'qtconsole'
 import sys
 
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 7):
-    error = "ERROR: %s requires Python version 3.8 or above." % name
+if v[0] >= 3 and v[:2] < (3, 8):
+    error = "ERROR: %s requires Python version 3.9 or above." % name
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -63,7 +63,7 @@ setup_args = dict(
     license                       = 'BSD',
     platforms                     = "Linux, Mac OS X, Windows",
     keywords                      = ['Interactive', 'Interpreter', 'Shell'],
-    python_requires               = '>= 3.8',
+    python_requires               = '>= 3.9',
     install_requires = [
         'traitlets!=5.2.1,!=5.2.2',
         'jupyter_core',
@@ -90,11 +90,11 @@ setup_args = dict(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
     ],
 )
 

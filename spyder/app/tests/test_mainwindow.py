@@ -3237,7 +3237,7 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
             for i in range(page.tabs.count())]
 
     tabs = dict(zip(tnames, tabs))
-    tab_widgets = {'docstring style': 'docstring_style_check'}
+    tab_widgets = {'linting': 'docstring_style_check'}
 
     for tabname in tab_widgets:
         tab, idx = tabs[tabname]
@@ -5597,6 +5597,10 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
 @pytest.mark.skipif(
     sys.version_info[:2] < (3, 12),
     reason="Fails with Python versions older than 3.12"
+)
+@pytest.mark.skipif(
+    running_in_ci_with_conda(),
+    reason="Fails with Conda packages on CIs",
 )
 def test_profiler(main_window, qtbot, tmpdir):
     """Test if profiler works."""

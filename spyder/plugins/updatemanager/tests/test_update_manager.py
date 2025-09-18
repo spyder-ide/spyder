@@ -128,6 +128,7 @@ def test_update_no_asset(qtbot, mocker):
     "app,version,release,update_type",
     [
         (True, "6.0.0", "6.0.7", UpdateType.Micro),
+        (True, "6.0.0b3", "6.0.0rc1", UpdateType.Minor),
         (True, "6.0.0", "6.1.0a3", UpdateType.Minor),
         (True, "5.0.0", "6.0.7", UpdateType.Major),
         (False, "6.0.0", "6.0.7", UpdateType.Major),
