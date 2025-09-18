@@ -342,9 +342,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             # generated over the remote server.
             future.result()
         except (RemoteOSError, OSError) as error:
+            logger.debug(error)
             error_message = f"{error_message}<br><br>{error.message}"
             QMessageBox.critical(self, error_title, error_message)
-            logger.error(error)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_new_package(self, future, package_name):
@@ -494,17 +494,17 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 zip_data.write(data)
             zip_data.seek(0)
         except RemoteFileServicesError as download_error:
+            logger.debug(f"Unable to download {path}")
+            logger.debug(
+                f"Error while trying to download directory (compressed): "
+                f"{download_error.message}"
+            )
             error_message = _(
                 "An error occured while trying to download {path}".format(
                     path=path
                 )
             )
             QMessageBox.critical(self, _("Download error"), error_message)
-            logger.debug(f"Unable to download {path}")
-            logger.error(
-                f"Error while trying to download directory (compressed): "
-                f"{download_error.message}"
-            )
 
         return zip_data.getbuffer()
 
@@ -528,17 +528,17 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 async for data in file_manager:
                     file_data += data
             except RemoteFileServicesError as download_error:
+                logger.debug(f"Unable to download {path}")
+                logger.debug(
+                    f"Error while trying to download file: "
+                    f"{download_error.message}"
+                )
                 error_message = _(
                     "An error occured while trying to download {path}".format(
                         path=path
                     )
                 )
                 QMessageBox.critical(self, _("Download error"), error_message)
-                logger.debug(f"Unable to download {path}")
-                logger.error(
-                    f"Error while trying to download file: "
-                    f"{download_error.message}"
-                )
 
         await file_manager.close()
         return file_data
@@ -639,7 +639,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         except RemoteOSError as error:
             # TODO: Should the error be shown in some way?
-            logger.error(error)
+            logger.debug(error)
         except SpyderRemoteSessionClosed:
             self.remote_files_manager = None
 
