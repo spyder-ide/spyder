@@ -245,6 +245,9 @@ class ConnectionDialog(SidebarDialog):
             page.set_modified(False)
             self._button_save_connection.setEnabled(False)
 
+            # Update connection info if necessary
+            page.update_connection_info()
+
         # Inform container that a change in connections took place
         self.sig_connections_changed.emit()
         self.sig_server_updated.emit(page.host_id)

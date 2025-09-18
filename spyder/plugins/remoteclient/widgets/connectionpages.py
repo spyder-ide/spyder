@@ -1157,3 +1157,6 @@ class ConnectionPage(BaseConnectionPage):
         else:
             self.new_name = None
             return False
+
+    def update_connection_info(self):
+        self.status_widget.update_info()
