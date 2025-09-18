@@ -2762,7 +2762,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         if self._remote_consoles_menu is None:
             self._remote_consoles_menu = self.create_menu(
-                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+                RemoteConsolesMenus.RemoteConsoles,
+                _("New console in remote server")
             )
 
         self._remote_consoles_menu.clear_actions()

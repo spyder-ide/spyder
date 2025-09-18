@@ -255,7 +255,9 @@ class RemoteClient(SpyderPluginV2):
     # --- Configuration Methods
     def load_client_from_id(self, config_id):
         """Load remote server from configuration id."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             options = self._load_ssh_client_options(config_id)
             self.load_ssh_client(config_id, options)
@@ -274,7 +276,9 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             self._remote_clients[config_id].options.update(options)
         else:
-            self._remote_clients[config_id] = SpyderRemoteSSHAPIManager(config_id, options, _plugin=self)
+            self._remote_clients[config_id] = SpyderRemoteSSHAPIManager(
+                config_id, options, _plugin=self
+            )
 
         _logger.debug(
             "Remote SSH client for '%s' loaded with options: %s",
@@ -289,7 +293,9 @@ class RemoteClient(SpyderPluginV2):
         if config_id in self._remote_clients:
             self._remote_clients[config_id].options.update(options)
         else:
-            self._remote_clients[config_id] = SpyderRemoteJupyterHubAPIManager(config_id, options, _plugin=self)
+            self._remote_clients[config_id] = SpyderRemoteJupyterHubAPIManager(
+                config_id, options, _plugin=self
+            )
 
         _logger.debug(
             "Remote JupyterHub client for '%s' loaded with options: %s",
@@ -322,8 +328,9 @@ class RemoteClient(SpyderPluginV2):
 
         if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
             options["client_keys"] = [client_keys]
-            if passphrase := self.get_conf(f"{config_id}/passphrase",
-                                           "", secure=True):
+            if passphrase := self.get_conf(
+                f"{config_id}/passphrase", "", secure=True
+            ):
                 options["passphrase"] = passphrase
         elif config := self.get_conf(f"{config_id}/configfile"):
             options["config"] = config
@@ -350,7 +357,9 @@ class RemoteClient(SpyderPluginV2):
 
     def get_server_name(self, config_id):
         """Get configured remote server name."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             auth_method = self.get_conf(f"{config_id}/auth_method")
             return self.get_conf(f"{config_id}/{auth_method}/name")

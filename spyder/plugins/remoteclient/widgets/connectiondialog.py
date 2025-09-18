@@ -210,9 +210,7 @@ class ConnectionDialog(SidebarDialog):
 
         if page.NEW_CONNECTION:
             # Save info provided by users
-
             options = page.get_options()
-
             self.update_configuration(options)
 
             # Add separator if needed
