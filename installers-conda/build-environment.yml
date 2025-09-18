@@ -2,12 +2,8 @@ name: spy-inst
 channels:
   - conda-forge
 dependencies:
-  - conda =24.7.1
-  - conda-build =24.7.1
-  - conda-lock =2.5.7
-  - conda-standalone =24.7.1
-  - constructor =3.9.2
+  - conda-build =25.7.0
+  - conda-lock =3.0.4
+  - constructor =3.12.2
   - gitpython
-  - menuinst =2.1.2
-  - ruamel.yaml.jinja2
   - setuptools_scm

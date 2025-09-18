@@ -57,7 +57,7 @@ class EmojiPanel(Panel):
         """Override Qt method.
         Paint emojis.
         """
-        super(EmojiPanel, self).paintEvent(event)
+        super().paintEvent(event)
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
         for top, __, __ in self.editor.visible_blocks:

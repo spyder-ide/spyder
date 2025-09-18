@@ -74,13 +74,13 @@ class RecoveryDialog(QDialog):
         """Reimplement Qt method."""
         if self.splash is not None:
             self.splash.show()
-        super(RecoveryDialog, self).accept()
+        super().accept()
 
     def reject(self):
         """Reimplement Qt method."""
         if self.splash is not None:
             self.splash.show()
-        super(RecoveryDialog, self).reject()
+        super().reject()
 
     def gather_file_data(self, name):
         """
@@ -308,7 +308,7 @@ class RecoveryDialog(QDialog):
         """Execute dialog window."""
         if running_under_pytest():
             return QDialog.Accepted
-        return super(RecoveryDialog, self).exec_()
+        return super().exec_()
 
 
 def make_temporary_files(tempdir):

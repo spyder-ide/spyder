@@ -14,7 +14,6 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.utils.findtasks import find_tasks
-from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class AnalysisThread(QThread):
 
     def __init__(self, parent, checker, source_code):
         """Initialize the Analysis thread."""
-        super(AnalysisThread, self).__init__(parent)
+        super().__init__(parent)
         self.checker = checker
         self.results = None
         self.source_code = source_code
@@ -42,7 +41,7 @@ class ThreadManager(QObject):
 
     def __init__(self, parent, max_simultaneous_threads=2):
         """Initialize the ThreadManager."""
-        super(ThreadManager, self).__init__(parent)
+        super().__init__(parent)
         self.max_simultaneous_threads = max_simultaneous_threads
         self.started_threads = {}
         self.pending_threads = []
@@ -169,7 +168,7 @@ class FileInfo(QObject):
 
     def get_source_code(self):
         """Return associated editor source code."""
-        return to_text_string(self.editor.toPlainText())
+        return str(self.editor.toPlainText())
 
     def run_todo_finder(self):
         """Run TODO finder."""

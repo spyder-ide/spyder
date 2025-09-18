@@ -21,5 +21,5 @@ There are two types of plugins available:
    Spyder's main window.
 """
 
-from .enum import Plugins, DockablePlugins  # noqa
+from .enum import DockablePlugins, OptionalPlugins, Plugins  # noqa
 from .new_api import SpyderDockablePlugin, SpyderPluginV2  # noqa

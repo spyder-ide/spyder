@@ -733,7 +733,9 @@ class PreferencesTabBarStyleSheet(SpecialTabBarStyleSheet, SpyderFontsMixin):
         # Remove border and add padding for content inside tabs
         css['QTabWidget::pane'].setValues(
             border='0px',
-            padding=f'{AppStyle.InnerContentPadding}px',
+            paddingTop=f'{AppStyle.InnerContentPadding}px',
+            paddingLeft=f'{3 * AppStyle.MarginSize}px',
+            paddingRight=f'{3 * AppStyle.MarginSize}px',
         )
 
 

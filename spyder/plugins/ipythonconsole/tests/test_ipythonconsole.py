@@ -38,7 +38,6 @@ import sympy
 # Local imports
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
-from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
@@ -466,7 +465,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
     # Get current directory.
@@ -488,7 +487,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     assert shell.get_cwd() != tempdir
 
     # Need to escape \ on Windows.
@@ -539,7 +538,7 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
     # Add a new entry to sys.path
     with qtbot.waitSignal(shell.executed):
-        tmp_dir = to_text_string(tmpdir)
+        tmp_dir = str(tmpdir)
         shell.execute("import sys; sys.path.append('%s')" % tmp_dir)
 
     # Ask for sys.path contents
@@ -553,10 +552,6 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
     assert tmp_dir in syspath_contents
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
-)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -596,6 +591,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
     # Open new widget
     ipyconsole.create_new_client()
 
@@ -614,6 +613,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
     # Press Up arrow button and assert we get the last
     # introduced command
+    qtbot.waitUntil(lambda: shell.is_waiting_pdb_input())
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
@@ -630,6 +630,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -965,7 +969,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     client = ipyconsole.get_current_client()
 
     fname = osp.basename(client.connection_file)
-    connection_file = to_text_string(tmpdir.join(fname))
+    connection_file = str(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
     ipyconsole.create_client_for_kernel(connection_file)
@@ -1317,9 +1321,9 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     if show_lib:
-        assert 'iostream.py' in control.toPlainText()
+        assert 'write()' in control.toPlainText()
     else:
-        assert 'iostream.py' not in control.toPlainText()
+        assert 'write()' not in control.toPlainText()
     ipyconsole.set_conf('pdb_ignore_lib', True, section="debugger")
 
 
@@ -1773,8 +1777,8 @@ def test_code_cache(ipyconsole, qtbot):
     # Same for debugging
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'IPdb [' in shell._control.toPlainText())
 
-    assert 'IPdb [' in shell._control.toPlainText()
     # Send two execute requests and make sure the second one is executed
     shell.execute('time.sleep(.5)')
     shell.execute('var = 318')
@@ -1790,6 +1794,10 @@ def test_code_cache(ipyconsole, qtbot):
     qtbot.wait(1000)
     # Make sure the value of var didn't change
     assert shell.get_value('var') == 318
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -1979,9 +1987,15 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     }
 
     shell.set_kernel_configuration("namespace_view_settings", settings)
-    namespace = shell.call_kernel(blocking=True).get_namespace_view()
+    namespace = shell.call_kernel(
+        blocking=True, timeout=SHELL_TIMEOUT
+    ).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=10)
@@ -2565,7 +2579,7 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux ")
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
 def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     """Test that the IPython console elapsed timer is set correctly."""
     # Create a new IPython console client

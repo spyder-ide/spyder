@@ -25,7 +25,6 @@ import time
 import uuid
 
 # Test imports
-from flaky import flaky
 from IPython.core import release as ipython_release
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
@@ -512,7 +511,7 @@ libc.printf(('Hello from C\\n').encode('utf8'))
     assert captured.out == "Hello from C\n"
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_cwd_in_sys_path():
     """
     Test that cwd stays as the first element in sys.path after the
@@ -550,7 +549,7 @@ def test_prioritize(kernel):
     assert new_syspath == prepend_path + syspath
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_multiprocessing(tmpdir):
     """
     Test that multiprocessing works.
@@ -589,7 +588,7 @@ if __name__ == '__main__':
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_multiprocessing_2(tmpdir):
     """
     Test that multiprocessing works.
@@ -634,7 +633,7 @@ if __name__ == '__main__':
         assert "[11, 12, 13]" in content['data']['text/plain']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
     sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
     reason="Fails on Mac with Python 3.8")
@@ -681,7 +680,7 @@ if __name__=='__main__':
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_runfile(tmpdir):
     """
     Test that runfile uses the proper name space for execution.
@@ -756,7 +755,7 @@ def test_runfile(tmpdir):
         assert not content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
     sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
     reason="Fails on Mac with Python 3.8")
@@ -827,7 +826,7 @@ f = np.get_printoptions()['formatter']
         )
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
     not TURTLE_ACTIVE,
     reason="Doesn't work on non-interactive settings or Python without Tk")
@@ -892,7 +891,7 @@ turtle.bye()
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_matplotlib_inline(kernel):
     """Test that the default backend for our kernels is 'inline'."""
     # Command to start the kernel
@@ -1181,7 +1180,7 @@ def test_locals_globals_in_pdb(kernel):
     pdb_obj.curframe_locals = None
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
@@ -1271,7 +1270,7 @@ def test_global_message(tmpdir):
         assert found
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_debug_namespace(tmpdir):
     """
     Test that the kernel uses the proper namespace while debugging.

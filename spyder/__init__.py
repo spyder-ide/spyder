@@ -31,7 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 from packaging.version import parse
 
-version_info = (6, 1, 0, "b1", "dev0")
+version_info = (6, 1, 0, "b2", "dev0")
 
 __version__ = str(parse('.'.join(map(str, version_info))))
 __installer_version__ = __version__
@@ -87,8 +87,11 @@ def get_versions(reporev=True):
         'bitness': 64 if sys.maxsize > 2**32 else 32,
         'qt': qtpy.QtCore.__version__,
         'qt_api': qtpy.API_NAME,      # PyQt5
-        'qt_api_ver': (qtpy.PYSIDE_VERSION if qtpy.API == "pyside2"
-                       else qtpy.PYQT_VERSION),
+        'qt_api_ver': (
+            qtpy.PYSIDE_VERSION
+            if qtpy.API.startswith("pyside")
+            else qtpy.PYQT_VERSION
+        ),
         'system': platform.system(),   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
         'revision': revision,  # '9fdf926eccce',

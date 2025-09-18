@@ -24,7 +24,6 @@ from qtpy.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
     QFileDialog,
-    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -45,7 +44,6 @@ from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
 from spyder.config.base import _, get_home_dir
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.colors import ColorLayout
@@ -177,11 +175,20 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if self.CONF_SECTION == 'main':
                 self._save_lang()
 
+            restart = False
             for restart_option in self.restart_options:
                 if restart_option in self.changed_options:
-                    self.prompt_restart_required()
+                    restart = self.prompt_restart_required()
                     break  # Ensure a single popup is displayed
-            self.set_modified(False)
+
+            # Don't call set_modified() when restart() is called: The
+            # latter triggers closing of the application. Calling the former
+            # afterwards may result in an error because the underlying C++ Qt
+            # object of 'self' may be deleted at that point.
+            if restart:
+                self.restart()
+            else:
+                self.set_modified(False)
 
     def check_settings(self):
         """This method is called to check settings after configuration
@@ -200,7 +207,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
-                text = to_text_string(lineedit.text())
+                text = str(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
                                          f"{invalid_msg}:<br><b>{text}</b>",
@@ -288,7 +295,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             if getattr(textedit, 'content_type', None) == list:
                 data = ', '.join(data)
             elif getattr(textedit, 'content_type', None) == dict:
-                data = to_text_string(data)
+                data = str(data)
             textedit.setPlainText(data)
             textedit.textChanged.connect(lambda opt=option, sect=sec:
                                          self.has_been_modified(sect, opt))
@@ -306,11 +313,11 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         for combobox, (sec, option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default, section=sec)
             for index in range(combobox.count()):
-                data = from_qvariant(combobox.itemData(index), to_text_string)
+                data = from_qvariant(combobox.itemData(index), str)
                 # For PyQt API v2, it is necessary to convert `data` to
                 # unicode in case the original type was not a string, like an
                 # integer for example (see qtpy.compat.from_qvariant):
-                if to_text_string(data) == to_text_string(value):
+                if str(data) == str(value):
                     break
             else:
                 if combobox.count() == 0:
@@ -395,7 +402,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 option in self.changed_options
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
-            ):
+            ) and option is not None:
                 self.set_option(option, radiobutton.isChecked(), section=sec,
                                 recursive_notification=False)
 
@@ -410,7 +417,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 if content_type == list:
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
 
                 self.set_option(
                     option,
@@ -438,7 +445,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 elif content_type in (tuple, list):
                     data = [item.strip() for item in data.split(',')]
                 else:
-                    data = to_text_string(data)
+                    data = str(data)
                 self.set_option(option, data, section=sec,
                                 recursive_notification=False)
 
@@ -458,7 +465,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 data = combobox.itemData(combobox.currentIndex())
-                self.set_option(option, from_qvariant(data, to_text_string),
+                self.set_option(option, from_qvariant(data, str),
                                 section=sec, recursive_notification=False)
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
@@ -474,7 +481,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or not self.LOAD_FROM_CONFIG
             ):
                 self.set_option(option,
-                                to_text_string(clayout.lineedit.text()),
+                                str(clayout.lineedit.text()),
                                 section=sec, recursive_notification=False)
 
         for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
@@ -484,7 +491,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                 or (sec, option) in self.changed_options
                 or not self.LOAD_FROM_CONFIG
             ):
-                color = to_text_string(clayout.lineedit.text())
+                color = str(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
                 italic = cb_italic.isChecked()
                 self.set_option(option, (color, bold, italic), section=sec,
@@ -544,7 +551,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None,
-                           restart=False, section=None):
+                           restart=False, section=None, id_=None):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         radiobutton = QRadioButton(text)
@@ -552,12 +559,19 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
         if section is not None and section != self.CONF_SECTION:
             self.cross_section_options[option] = section
+
         if button_group is None:
             if self.default_button_group is None:
                 self.default_button_group = QButtonGroup(self)
             button_group = self.default_button_group
-        button_group.addButton(radiobutton)
+
+        if id_ is None:
+            button_group.addButton(radiobutton)
+        else:
+            button_group.addButton(radiobutton, id=id_)
+
         self.radiobuttons[radiobutton] = (section, option, default)
+
         if msg_warning is not None or msg_info is not None:
             def show_message(is_checked):
                 if is_checked or not msg_if_enabled:
@@ -568,15 +582,18 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                         QMessageBox.information(self, self.get_name(),
                                                 msg_info, QMessageBox.Ok)
             radiobutton.toggled.connect(show_message)
+
         radiobutton.restart_required = restart
         radiobutton.label_text = text
 
         if tip is not None:
             layout, help_label = self.add_help_info_label(layout, tip)
             radiobutton.help_label = help_label
+
         widget = QWidget(self)
         widget.radiobutton = radiobutton
         widget.setLayout(layout)
+
         return widget
 
     def create_lineedit(self, text, option, default=NoDefault,
@@ -724,14 +741,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
@@ -754,7 +772,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_directory(self, edit):
         """Select directory"""
-        basedir = to_text_string(edit.text())
+        basedir = str(edit.text())
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         title = _("Select directory")
@@ -792,14 +810,15 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         )
 
         if alignment == Qt.Vertical:
-            # This is necessary to position browse_btn vertically centered with
-            # respect to the lineedit.
-            browse_btn.setStyleSheet("margin-top: 28px")
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 0, 0, 0)
+            button_layout.addWidget(QLabel(""))
+            button_layout.addWidget(browse_btn)
 
-            layout = QGridLayout()
+            layout = QHBoxLayout()
             layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(widget, 0, 0)
-            layout.addWidget(browse_btn, 0, 1)
+            layout.addWidget(widget)
+            layout.addLayout(button_layout)
         else:
             # This is necessary to position browse_btn vertically centered with
             # respect to the lineedit.
@@ -822,7 +841,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
     def select_file(self, edit, filters=None, **kwargs):
         """Select File"""
-        basedir = osp.dirname(to_text_string(edit.text()))
+        basedir = osp.dirname(str(edit.text()))
         if not osp.isdir(basedir):
             basedir = get_home_dir()
         if filters is None:
@@ -1168,8 +1187,12 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
 
         self.tabs.addTab(tab, name)
 
-    def prompt_restart_required(self):
-        """Prompt the user with a request to restart."""
+    def prompt_restart_required(self) -> bool:
+        """
+        Prompt the user with a request to restart.
+        
+        It returns ``True`` when the request is accepted, ``False`` otherwise.
+        """
         message = _(
             "One or more of the settings you changed requires a restart to be "
             "applied.<br><br>"
@@ -1183,8 +1206,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             QMessageBox.Yes | QMessageBox.No
         )
 
-        if answer == QMessageBox.Yes:
-            self.restart()
+        return answer == QMessageBox.Yes
 
     def restart(self):
         """Restart Spyder."""

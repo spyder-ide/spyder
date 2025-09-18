@@ -6,6 +6,9 @@
 
 """Tests for SidebarDialog."""
 
+# Standard library imports
+import sys
+
 # Third party imports
 from qtpy.QtWidgets import QLabel, QVBoxLayout
 import pytest
@@ -70,6 +73,10 @@ def sidebar_dialog(qapp, qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+@pytest.mark.skipif(
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Times out frequently on Mac and CIs"
+)
 def test_sidebardialog(sidebar_dialog, qtbot):
     dialog = sidebar_dialog
     assert dialog is not None

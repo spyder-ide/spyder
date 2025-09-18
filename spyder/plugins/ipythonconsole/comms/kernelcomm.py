@@ -33,7 +33,7 @@ class KernelComm(CommBase, QObject):
     sig_comm_ready = Signal()
 
     def __init__(self):
-        super(KernelComm, self).__init__()
+        super().__init__()
         self.kernel_client = None
 
         # Register handlers
@@ -75,7 +75,7 @@ class KernelComm(CommBase, QObject):
             if is_error and (get_debug_level() or running_under_pytest()):
                 # Disable error muting when debugging or testing
                 call_dict['settings']['display_error'] = True
-            super(KernelComm, self)._set_call_return_value(
+            super()._set_call_return_value(
                 call_dict, return_value, is_error=is_error
             )
 
@@ -122,7 +122,7 @@ class KernelComm(CommBase, QObject):
     def remote_call(self, interrupt=False, blocking=False, callback=None,
                     comm_id=None, timeout=None, display_error=False):
         """Get a handler for remote calls."""
-        return super(KernelComm, self).remote_call(
+        return super().remote_call(
             interrupt=interrupt, blocking=blocking, callback=callback,
             comm_id=comm_id, timeout=timeout, display_error=display_error)
 
@@ -159,7 +159,7 @@ class KernelComm(CommBase, QObject):
 
         with self.comm_channel_manager(
                 comm_id, queue_message=queue_message):
-            return super(KernelComm, self)._send_call(
+            return super()._send_call(
                 call_dict, comm_id, buffers
             )
 
@@ -168,7 +168,7 @@ class KernelComm(CommBase, QObject):
         Catch exception if call is not blocking.
         """
         try:
-            return super(KernelComm, self)._get_call_return_value(
+            return super()._get_call_return_value(
                 call_dict, comm_id)
         except RuntimeError as e:
             settings = call_dict['settings']
@@ -241,14 +241,15 @@ class KernelComm(CommBase, QObject):
         """
         A blocking call received a reply.
         """
-        super(KernelComm, self)._handle_remote_call_reply(*args, **kwargs)
+        super()._handle_remote_call_reply(*args, **kwargs)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):
         """
         Handle an error that was raised on the other side and sent back.
         """
-        error_wrapper = CommsErrorWrapper.from_json(error_wrapper)
+        if not isinstance(error_wrapper, CommsErrorWrapper):
+            error_wrapper = CommsErrorWrapper.from_json(error_wrapper)
         for line in error_wrapper.format_error():
             self.sig_exception_occurred.emit(
                 dict(text=line, is_traceback=True)

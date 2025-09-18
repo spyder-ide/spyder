@@ -16,6 +16,11 @@ import os.path as osp
 import sys
 import site
 
+# Third-party imports
+from IPython.core import release as ipython_release
+from packaging.version import parse as parse_version
+
+
 # Remove current directory from sys.path to prevent kernel crashes when people
 # name Python files or modules with the same name as standard library modules.
 # See spyder-ide/spyder#8007
@@ -100,6 +105,10 @@ def kernel_config():
 
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
+
+    # To disable tips (for the moment) that are only available in IPython 9.0+
+    if parse_version(ipython_release.version) >= parse_version("9.0"):
+        spy_cfg.ZMQInteractiveShell.enable_tip = False
 
     # Greedy completer
     greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
