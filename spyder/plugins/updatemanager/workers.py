@@ -174,7 +174,7 @@ def get_asset_info(
 
     if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
-    elif current_version.minor < release.minor:
+    elif current_version.minor < release.minor or current_version.is_prerelease:
         update_type = UpdateType.Minor
     else:
         update_type = UpdateType.Micro
