@@ -32,7 +32,6 @@ from spyder_kernels.utils.dochelpers import (getargspecfromtext, getobj,
                                              getsignaturefromtext)
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
@@ -961,7 +960,7 @@ class BaseEditMixin(object):
         cursor = QTextCursor(block)
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
-        return to_text_string(cursor.selectedText())
+        return str(cursor.selectedText())
 
     def get_text_region(self, start_line, end_line, lines=None):
         """
@@ -997,7 +996,7 @@ class BaseEditMixin(object):
               be moved closer to where the problem occurs.
         """
         cursor = self._select_text(position_from, position_to)
-        text = to_text_string(cursor.selectedText())
+        text = str(cursor.selectedText())
         if remove_newlines:
             remove_newlines = position_from != 'sof' or position_to != 'eof'
         if text and remove_newlines:
@@ -1014,7 +1013,7 @@ class BaseEditMixin(object):
             cursor.setPosition(position)
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor)
-            return to_text_string(cursor.selectedText())
+            return str(cursor.selectedText())
         else:
             return ''
 
@@ -1115,13 +1114,13 @@ class BaseEditMixin(object):
             def is_space(move):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
-                return not to_text_string(curs.selectedText()).strip()
+                return not str(curs.selectedText()).strip()
 
             def is_special_character(move):
                 """Check if a character is a non-letter including numbers."""
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
-                text_cursor = to_text_string(curs.selectedText()).strip()
+                text_cursor = str(curs.selectedText()).strip()
                 return len(
                     re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
 
@@ -1142,7 +1141,7 @@ class BaseEditMixin(object):
                     cursor.movePosition(QTextCursor.WordLeft)
 
         cursor.select(QTextCursor.WordUnderCursor)
-        text = to_text_string(cursor.selectedText())
+        text = str(cursor.selectedText())
         startpos = cursor.selectionStart()
 
         # Find a valid Python variable name
@@ -1180,7 +1179,7 @@ class BaseEditMixin(object):
         """Return current line's text."""
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText())
+        return str(cursor.selectedText())
 
     def get_current_line_bounds(self):
         """Return the (line, column) bounds for the current line."""
@@ -1207,14 +1206,14 @@ class BaseEditMixin(object):
         """Return line at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText()).replace(u'\u2029', '')
+        return str(cursor.selectedText()).replace(u'\u2029', '')
 
     def get_word_at(self, coordinates):
         """Return word at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
         if self._is_point_inside_word_rect(coordinates):
-            word = to_text_string(cursor.selectedText())
+            word = str(cursor.selectedText())
         else:
             word = ''
 
@@ -1227,7 +1226,7 @@ class BaseEditMixin(object):
 
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)."""
-        text = to_text_string(self.document().findBlockByNumber(block_nb).text())
+        text = str(self.document().findBlockByNumber(block_nb).text())
         return self.get_line_indentation(text)
 
     def get_selection_bounds(self, cursor=None):
@@ -1263,7 +1262,7 @@ class BaseEditMixin(object):
 
     def has_selected_text(self):
         """Returns True if some text is selected."""
-        return bool(to_text_string(self.textCursor().selectedText()))
+        return bool(str(self.textCursor().selectedText()))
 
     def get_selected_text(self, cursor=None):
         """
@@ -1274,7 +1273,7 @@ class BaseEditMixin(object):
         """
         if cursor is None:
             cursor = self.textCursor()
-        return to_text_string(cursor.selectedText()).replace(
+        return str(cursor.selectedText()).replace(
             u"\u2029", self.get_line_separator()
         )
 
@@ -1301,14 +1300,13 @@ class BaseEditMixin(object):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         if pattern is not None:
-            seltxt = to_text_string(cursor.selectedText())
+            seltxt = str(cursor.selectedText())
         if self.sig_will_remove_selection is not None:
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
         if pattern is not None:
-            text = re.sub(to_text_string(pattern),
-                          to_text_string(text), to_text_string(seltxt))
+            text = re.sub(str(pattern), str(text), str(seltxt))
         if self.sig_will_insert_text is not None:
             self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
@@ -1322,8 +1320,8 @@ class BaseEditMixin(object):
         """Reimplement QTextDocument's find method.
 
         Add support for *multiline* regular expressions."""
-        pattern = to_text_string(regexp.pattern())
-        text = to_text_string(self.toPlainText())
+        pattern = str(regexp.pattern())
+        text = str(self.toPlainText())
         try:
             regobj = re.compile(pattern)
         except re.error:
@@ -1370,7 +1368,7 @@ class BaseEditMixin(object):
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
             if changed:
-                if to_text_string(cursor.selectedText()):
+                if str(cursor.selectedText()):
                     new_position = min([cursor.selectionStart(),
                                         cursor.selectionEnd()])
                     cursor.setPosition(new_position)
@@ -1380,9 +1378,9 @@ class BaseEditMixin(object):
             moves += [QTextCursor.End]
 
         if regexp:
-            text = to_text_string(text)
+            text = str(text)
         else:
-            text = re.escape(to_text_string(text))
+            text = re.escape(str(text))
 
         pattern = QRegularExpression(u"\\b{}\\b".format(text) if word else
                                      text)
@@ -1420,7 +1418,7 @@ class BaseEditMixin(object):
     def get_number_matches(self, pattern, source_text='', case=False,
                            regexp=False, word=False):
         """Get the number of matches for the searched text."""
-        pattern = to_text_string(pattern)
+        pattern = str(pattern)
         if not pattern:
             return 0
 
@@ -1428,7 +1426,7 @@ class BaseEditMixin(object):
             pattern = re.escape(pattern)
 
         if not source_text:
-            source_text = to_text_string(self.toPlainText())
+            source_text = str(self.toPlainText())
 
         if word:  # match whole words only
             pattern = r'\b{pattern}\b'.format(pattern=pattern)
@@ -1630,7 +1628,7 @@ class GetHelpMixin(object):
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""
-        text = to_text_string(text)
+        text = str(text)
 
         # Show docstring
         help_enabled = self.help_enabled or force
@@ -1700,7 +1698,7 @@ class SaveHistoryMixin(object):
 
     def add_to_history(self, command):
         """Add command to history"""
-        command = to_text_string(command)
+        command = str(command)
         if command in ['', '\n'] or command.startswith('Traceback'):
             return
         if command.endswith('\n'):
@@ -1796,7 +1794,7 @@ class BrowseHistoryMixin(BrowseHistory):
         if cursor_pos < 0:
             cursor_pos = 0
             self.set_cursor_position(self.current_prompt_pos)
-        text, move_cursor = super(BrowseHistoryMixin, self).browse_history(
+        text, move_cursor = super().browse_history(
             line, cursor_pos, backward)
         if text is not None:
             self.clear_line()

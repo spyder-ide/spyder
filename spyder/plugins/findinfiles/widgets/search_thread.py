@@ -130,9 +130,15 @@ class SearchThread(QThread):
 
                     dirname = os.path.join(path, d)
 
-                    # Only search in regular directories
-                    st_dir_mode = os.stat(dirname).st_mode
-                    if not stat.S_ISDIR(st_dir_mode):
+                    # Only search in regular directories.
+                    # The try/except is necessary to catch an error when Python
+                    # can't access a directory with junctions on Windows.
+                    # Fixes spyder-ide/spyder#24898
+                    try:
+                        st_dir_mode = os.stat(dirname).st_mode
+                        if not stat.S_ISDIR(st_dir_mode):
+                            dirs.remove(d)
+                    except OSError:
                         dirs.remove(d)
 
                     if (self.exclude and

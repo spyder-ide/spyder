@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        PYTHON_VERSION: ['3.9', '3.10', '3.11', '3.12', '3.13']
         INSTALL_TYPE: ['conda', 'pip']
         QT_LIB: ['pyqt5', 'pyqt6']
         exclude:

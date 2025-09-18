@@ -20,7 +20,6 @@ from spyder_kernels.utils.dochelpers import isdefined
 
 # Local imports:
 from spyder.utils import encoding, programs
-from spyder.py3compat import is_text_string
 from spyder.utils.misc import remove_backslashes, getcwd_or_home
 
 # Force Python to search modules in the current directory first:
@@ -282,7 +281,7 @@ has the same effect as typing a particular string at the help> prompt.
         Run filename
         args: command line arguments (string)
         """
-        if args is not None and not is_text_string(args):
+        if args is not None and not isinstance(args, str):
             raise TypeError("expected a character buffer object")
         self.namespace['__file__'] = filename
         sys.argv = [filename]
@@ -299,7 +298,7 @@ has the same effect as typing a particular string at the help> prompt.
         where *obj* is the object represented by *text*
         and *valid* is True if object evaluation did not raise any exception
         """
-        assert is_text_string(text)
+        assert isinstance(text, str)
         try:
             return eval(text, self.locals), True
         except:

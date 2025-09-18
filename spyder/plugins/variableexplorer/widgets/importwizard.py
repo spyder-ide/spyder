@@ -29,7 +29,6 @@ from spyder_kernels.utils.lazymodules import (
 # Local import
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.base import _
-from spyder.py3compat import INT_TYPES, TEXT_TYPES, to_text_string
 from spyder.utils import programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action
@@ -74,8 +73,8 @@ def get_color(value, alpha):
     """Return color depending on value type"""
     colors = {
         bool: SpyderPalette.GROUP_1,
-        tuple([float] + list(INT_TYPES)): SpyderPalette.GROUP_2,
-        TEXT_TYPES: SpyderPalette.GROUP_3,
+        (float, int): SpyderPalette.GROUP_2,
+        (str,): SpyderPalette.GROUP_3,
         datetime.date: SpyderPalette.GROUP_4,
         list: SpyderPalette.GROUP_5,
         set: SpyderPalette.GROUP_6,
@@ -175,8 +174,11 @@ class ContentsWidget(QWidget):
         other_layout.addWidget(skiprows_label, 0, 0)
         self.skiprows_edt = QLineEdit('0')
         self.skiprows_edt.setMaximumWidth(30)
-        intvalid = QIntValidator(0, len(to_text_string(text).splitlines()),
-                                 self.skiprows_edt)
+        intvalid = QIntValidator(
+            0,
+            len(str(text).splitlines()),
+            self.skiprows_edt
+        )
         self.skiprows_edt.setValidator(intvalid)
         self.skiprows_edt.textChanged.connect(
                      lambda text: self.get_skiprows())
@@ -230,17 +232,17 @@ class ContentsWidget(QWidget):
             return u"\t"
         elif self.ws_btn.isChecked():
             return None
-        return to_text_string(self.line_edt.text())
+        return str(self.line_edt.text())
 
     def get_row_sep(self):
         """Return the row separator"""
         if self.eol_btn.isChecked():
             return u"\n"
-        return to_text_string(self.line_edt_row.text())
+        return str(self.line_edt_row.text())
 
     def get_skiprows(self):
         """Return number of lines to be skipped"""
-        skip_rows = to_text_string(self.skiprows_edt.text())
+        skip_rows = str(self.skiprows_edt.text())
         # QIntValidator does not handle '+' sign
         # See spyder-ide/spyder#20070
         if skip_rows and skip_rows != '+':
@@ -251,7 +253,7 @@ class ContentsWidget(QWidget):
 
     def get_comments(self):
         """Return comment string"""
-        return to_text_string(self.comments_edt.text())
+        return str(self.comments_edt.text())
 
     @Slot(bool)
     def set_as_data(self, as_data):
@@ -322,8 +324,9 @@ class PreviewTableModel(QAbstractTableModel):
                 _tmp = self._data[index.row()][index.column()].replace(",", "")
                 self._data[index.row()][index.column()] = eval(_tmp)
             elif kwargs['atype'] == "unicode":
-                self._data[index.row()][index.column()] = to_text_string(
-                    self._data[index.row()][index.column()])
+                self._data[index.row()][index.column()] = str(
+                    self._data[index.row()][index.column()]
+                )
             elif kwargs['atype'] == "int":
                 self._data[index.row()][index.column()] = int(
                     self._data[index.row()][index.column()])
@@ -384,12 +387,12 @@ class PreviewTable(QTableView):
         assert skiprows < len(text_rows), 'Skip Rows > Line Count'
         text_rows = text_rows[skiprows:]
         for row in text_rows:
-            stripped = to_text_string(row).strip()
+            stripped = str(row).strip()
             if len(stripped) == 0 or (comments and
                                       stripped.startswith(comments)):
                 continue
-            line = to_text_string(row).split(colsep)
-            line = [try_to_parse(to_text_string(x)) for x in line]
+            line = str(row).split(colsep)
+            line = [try_to_parse(str(x)) for x in line]
             out.append(line)
         # Replace missing elements with np.nan's or None's
         if programs.is_module_installed('numpy'):
@@ -636,14 +639,14 @@ class ImportWizard(BaseDialog):
         try:
             self.var_name = str(var_name)
         except UnicodeEncodeError:
-            self.var_name = to_text_string(var_name)
+            self.var_name = str(var_name)
         if self.text_widget.get_as_data():
             self.clip_data = self._get_table_data()
         elif self.text_widget.get_as_code():
             self.clip_data = try_to_eval(
-                to_text_string(self._get_plain_text()))
+                str(self._get_plain_text()))
         else:
-            self.clip_data = to_text_string(self._get_plain_text())
+            self.clip_data = str(self._get_plain_text())
         self.accept()
 
 

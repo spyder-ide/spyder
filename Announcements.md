@@ -1,21 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.0.7 is released!
+**Subject**: [ANN] Spyder 6.0.8 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.0.7** has been released and is available for
+I'm pleased to announce that Spyder **6.0.8** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes one week after version 6.0.6 and it contains the
-following important fixes:
+This release comes three months after version 6.0.7 and it contains the
+following important fixes and API changes:
 
-* Fix crash at startup on Windows when Conda is not available.
-* Fix failure to show plots in the Plots pane due to faulty `traitlets` versions.
+* Fix input method positioning for the Editor and IPython Console.
+* Add `spyder_conf_version` and `old_spyder_conf_version` properties to `SpyderConfigurationAccessor`.
 
-In this release we fixed 2 issues and merged 5 pull requests. For a full
+In this release we fixed 1 issue and merged 3 pull requests. For a full
 list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/6.x/CHANGELOG.md).
 
@@ -154,7 +154,7 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.1.0a4 is released!
+**Subject**: [ANN] Spyder 6.1.0b1 is released!
 
 
 Hi all,
@@ -162,14 +162,16 @@ Hi all,
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
 I'm pleased to announce the fourth alpha of our next minor version: Spyder **6.1**.
 
-We've been working on this version for around half a year now and it's working
+We've been working on this version for more than half a year now and it's working
 relatively well. We encourage all people who like the bleeding edge to give it a try.
 
 Spyder 6.1 comes with the following interesting new features and fixes:
 
 - New features
     * Add support to work with multiple cursors in the Editor. Options to configure them are available in `Preferences > Editor > Advanced settings`.
-    * Add a graphical interface to the update process of our standalone installers.
+    * Rearchitect Profiler to run through the IPython console and add `%profilefile`, `%profilecell` and `%profile` magics for that.
+    * Add a graphical interface to the update process of our standalone installers and base them in Python 3.12.
+    * Add support to use Ruff and Flake8 for linting in the Editor.
     * Plot histograms from the dataframe viewer.
     * Add support for Polars dataframes, frozen sets, Numpy string arrays and `pathlib.Path` objects to the Variable Explorer.
     * Show the remote file system in the Files pane when a remote console has focus.
@@ -186,26 +188,32 @@ Spyder 6.1 comes with the following interesting new features and fixes:
     * Remove blank lines around cells when copying their contents to the console.
     * Automatically kill kernels when Spyder crashes.
     * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
+    * Add support for IPython 9.
     * Drop support for Python 3.8
 
 - UX/UI improvements
     * Reorganize most menus to make them easier to navigate.
+    * Allow to zoom in/out with Ctrl + mouse wheel in the IPython console.
+    * Add `Shift+Alt+Right/Left` shortcuts to move to the next/previous console.
     * Add shortcut `Ctrl+W` to close Variable Explorer viewers.
     * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
     * Fix plots looking blurred when scaling is enabled in high DPI screens.
 
 - API changes
     - Editor
-        * **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile` and `CloseAll` actions were moved to the `ApplicationActions` class in the `Application` plugin.
+        * **Breaking** - The `NewFile`, `OpenFile`, `OpenLastClosed`, `MaxRecentFiles`, `ClearRecentFiles`, `SaveFile`, `SaveAll`, `SaveAs`, `SaveCopyAs`, `RevertFile`, `CloseFile`, `CloseAll`, `Undo`, `Redo`, `Cut`, `Copy`, `Paste`, `SelectAll`, `FindText`, `FindNext`, `FindPrevious` and `ReplaceText` actions were moved to the `ApplicationActions` class in the `Application` plugin.
         * **Breaking** - The shortcuts "new file", "open file", "open last closed", "save file", "save all", "save as", "close file 1", "close file 2" and "close all" were moved to the "main" section.
-        * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as` and `revert_file` methods.
-        * Add `set_default_kernel_spec` to `remoteclient` plugin, in order to set default kernel spec used to open default consoles.
+        * Add "undo", "redo", "cut", "copy", "paste" and "select all" shortcuts to the "main" section.
+        * Add `open_last_closed`, `current_file_is_temporary`, `save_all`, `save_as`, `save_copy_as`, `revert_file`, `undo`, `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next`, `find_previous` and `replace` methods.
     - IPython console
         * **Breaking** - The `sig_current_directory_changed` signal now emits two strings instead of a single one.
         * **Breaking** - Remove `set_working_directory` method. You can use `set_current_client_working_directory` instead, which does the same.
         * **Breaking** - The `save_working_directory` method was made private because it's only used internally.
         * Add `sender_plugin` kwarg to the `set_current_client_working_directory` method.
         * Add `server_id` kwarg to the `set_current_client_working_directory` method.
+        * Add `Switch` entry to `IPythonConsoleWidgetMenus`.
+        * Add `NextConsole` and `PreviousConsole` to `IPythonConsoleWidgetActions`.
+        * Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all`, `find`, `find_next` and `find_previous` methods.
     - Working Directory
         * **Breaking** - The `sig_current_directory_changed` signal now emits three strings instead of a single one.
         * **Breaking** - The `sender_plugin` kwarg of the `chdir` method now expects a string instead of a `SpyderPluginV2` object.
@@ -213,30 +221,43 @@ Spyder 6.1 comes with the following interesting new features and fixes:
     - Remote Client
         * **Breaking** - The `create_ipyclient_for_server` and `get_kernels` methods were removed.
         * Add `sig_server_changed` signal to report when a server was added or removed.
+        * Add `sig_create_env_requested` and `sig_import_env_requested` to request creating or importing a remote environment (they work if the Spyder-env-manager plugin is installed).
         * Add `get_server_name` method to get a server name given its id.
         * Add `register_api` and `get_api` methods in order to get and register new rest API modules for the remote client.
         * Add `get_jupyter_api` method to get the Jupyter API to interact with a remote Jupyter server.
         * Add `get_file_api` method to get the rest API module to manage remote file systems.
         * Add `get_environ_api` method to get the rest API module to work with environment variables in the remote machine.
+        * Add `set_default_kernel_spec` in order to set the kernel spec used to open default consoles.
     - Pythonpath manager
         * **Breaking** - The `sig_pythonpath_changed` signal now emits a list of strings and a bool, instead of two dictionaries.
     - Application plugin
         * Add `create_new_file`, `open_file_using_dialog`, `open_file_in_plugin`, `open_last_closed_file`, `add_recent_file`, `save_file`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file`, `close_all` and `enable_file_action` methods to perform file operations in the appropriate plugin.
+        * Add `undo`, `redo`, `cut`, `copy`, `paste`, `select_all` and `enable_edit_action` methods to perform edit operations in the appropriate plugin.
+        * Add `find`, `find_next`, `find_previous`, `replace` and `enable_search_action` methods to perform search operations in the appropriate plugin.
         * Add `focused_plugin` attribute.
     - File Explorer
         * **Breaking** - `ExplorerTreeWidgetActions` renamed to `ExplorerWidgetActions`.
         * **Breaking** - The `sig_dir_opened` signal now emits two strings instead of a single one.
         * Add `server_id` kwarg to the `chdir` method.
+    - Profiler
+        * **Breaking** - Remove `sig_started` and `sig_finished` signals, and `run_profiler`, `stop_profiler` and `run_file` methods.
+        * **Breaking** - Remove `ProfilerWidgetToolbars` and `ProfilerWidgetInformationToolbarSections` enums
+        * Add `ProfilerWidgetMenus`, `ProfilerContextMenuSections` and `ProfilerWidgetContextMenuActions` enums.
+        * Add `profile_file`, `profile_cell` and `profile_selection` methods.
     - Main menu
         * **Breaking** - From `SourceMenuSections`, move the `Formatting` section to `EditMenuSections` and `Cursor` to `SearchMenuSections`, remove the `CodeAnalysis` section and add the `Autofix` section.
         * **Breaking** - Replace the `Tools`, `External` and `Extras` sections in `ToolsMenuSections` with `Managers` and `Preferences`.
+        * **Future Breaking** - Rename the `View` menu to `Window` in `ApplicationMenus` and `ViewMenuSections` to `WindowMenuSections`; aliases are retained for backward compatibility but may be removed in Spyder 7+.
+        * Add `Profile` constant to `RunMenuSections`.
+    - Toolbar
+        * Add `Profile` constant to `ApplicationToolbars`.
     - SpyderPluginV2
         * Add `CAN_HANDLE_FILE_ACTIONS` and `FILE_EXTENSIONS` attributes and `create_new_file`, `open_file`, `get_current_filename`, `current_file_is_temporary`, `open_last_closed_file`, `save_file`, `save_all`, `save_file_as`, `save_copy_as`, `revert_file`, `close_file` and `close all` methods to allow other plugins to hook into file actions.
+        * Add `CAN_HANDLE_EDIT_ACTIONS` attribute and `undo`, `redo`, `cut`, `copy`, `paste` and `select_all` methods to allow other plugins to hook into edit actions.
+        * Add `CAN_HANDLE_SEARCH_ACTIONS` attribute and `find`, `find_next`, `find_previous` and `replace`  methods to allow other plugins to hook into search actions.
         * Add `sig_focused_plugin_changed` signal to signal that the plugin with focus has changed.
     - PluginMainWidget
-        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes,
-  and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in
-  the Variable Explorer).
+        * Add `SHOW_MESSAGE_WHEN_EMPTY`, `MESSAGE_WHEN_EMPTY`, `IMAGE_WHEN_EMPTY`, `DESCRIPTION_WHEN_EMPTY` and `SET_LAYOUT_WHEN_EMPTY` class attributes, and `set_content_widget`, `show_content_widget` and `show_empty_message` methods to display a message when it's empty (like the one shown in the Variable Explorer).
     - Shellconnect
         * **Breaking** - Rename `is_current_widget_empty` to `is_current_widget_error_message` in `ShellConnectMainWidget`.
         * Add `switch_empty_message` to `ShellConnectMainWidget` to switch between the empty message widget and the one with content.
@@ -245,13 +266,16 @@ Spyder 6.1 comes with the following interesting new features and fixes:
         * **Breaking** - Remove `dispatch` method to use it directly as decorator.
         * Add class `DispatcherFuture` to `spyder.api.asyncdispatcher` and `QtSlot` method to `AsyncDispatcher` so that connected methods can be run inside the main Qt event loop.
         * Add `early_return` and `return_awaitable` kwargs its constructor.
+    - General API
+        * **Breaking** - Remove `old_conf_version` method from `SpyderConfigurationAccessor`.
+        * Add `OptionalPlugins` enum for plugins that Spyder can rely on to provide additional functionality.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0a3
+    conda install -c conda-forge/label/spyder_dev -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0b1
 
 Or you can use pip with this command:
 

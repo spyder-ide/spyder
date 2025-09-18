@@ -9,6 +9,7 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+from collections.abc import Callable
 import logging
 import os
 import os.path as osp
@@ -17,7 +18,7 @@ from textwrap import dedent
 import typing
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
@@ -506,6 +507,27 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
         self._kernel_configuration[key] = value
 
+    def register_kernel_call_handler(self, handler_id: str, handler: Callable):
+        """Register a comm handler."""
+        self.kernel_comm_handlers[handler_id] = handler
+
+        # When this class is initialized, not all handlers are passed to its
+        # constructor (i.e. some are registered afterwards). But after a kernel
+        # restart, all handlers should have been registered. So, this check
+        # prevents registering non-init handlers multiple times after a restart
+        if (
+            handler_id
+            not in self.kernel_handler.kernel_comm._remote_call_handlers
+        ):
+            self.kernel_handler.kernel_comm.register_call_handler(
+                handler_id, handler
+            )
+
+    def unregister_kernel_call_handler(self, handler_id: str):
+        """Unregister a comm handler."""
+        self.kernel_comm_handlers.pop(handler_id, None)
+        self.kernel_handler.kernel_comm.unregister_call_handler(handler_id)
+
     def kernel_configure_callback(self, dic):
         """Kernel configuration callback"""
         for key, value in dic.items():
@@ -561,7 +583,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._executing:
             self._execute_queue.append((source, hidden, interactive))
             return
-        super(ShellWidget, self).execute(source, hidden, interactive)
+        super().execute(source, hidden, interactive)
 
     def is_running(self):
         """Check if shell is running."""
@@ -727,15 +749,25 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
-        self._style_sheet_changed()
-        self._syntax_style_changed(changed={})
         if reset:
-            self.reset(clear=True)
+            # Don't clear console and show a message instead to prevent
+            # removing important content from users' consoles.
+            # Fixes spyder-ide/spyder#9896
+            self.reset(clear=False)
+            self._append_plain_text(
+                "\n\nNote: Clearing the console is necessary to fully apply "
+                "the new syntax style you selected."
+            )
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
+        )
+        color_scheme = get_color_scheme(self.syntax_style)
+        self.set_kernel_configuration(
+            "traceback_highlight_style",
+            color_scheme,
         )
 
     def update_syspath(self, new_paths, prioritize):
@@ -882,11 +914,6 @@ overrided by the Sympy module (e.g. plot)
         # Stop reading as any input has been removed.
         self._reading = False
 
-    @Slot()
-    def _reset_namespace(self):
-        warning = self.get_conf('show_reset_namespace_warning')
-        self.reset_namespace(warning=warning)
-
     def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
         # Don't show the warning when running our tests.
@@ -935,36 +962,6 @@ overrided by the Sympy module (e.g. plot)
         else:
             self._update_reset_options(message_box)
 
-    def _perform_reset(self, message):
-        """
-        Perform the reset namespace operation.
-
-        Parameters
-        ----------
-        message: bool
-            Whether to show a message in the console telling users the
-            namespace was reset.
-        """
-        try:
-            if self.is_waiting_pdb_input():
-                self.execute('%reset -f')
-            else:
-                if message:
-                    self.reset()
-                    self._append_html(
-                        _("<br><br>Removing all variables...<br>"),
-                        before_prompt=False
-                    )
-                    self.insert_horizontal_ruler()
-                self.silent_execute("%reset -f")
-                self.set_special_kernel()
-
-                if self.spyder_kernel_ready:
-                    self.call_kernel().close_all_mpl_figures()
-                    self.send_spyder_kernel_configuration()
-        except AttributeError:
-            pass
-
     def set_special_kernel(self):
         """Reset special kernel"""
         if not self.special_kernel:
@@ -974,17 +971,6 @@ overrided by the Sympy module (e.g. plot)
         self.set_kernel_configuration(
             "special_kernel", self.special_kernel
         )
-
-    def _update_reset_options(self, message_box):
-        """
-        Update options and variables based on the interaction in the
-        reset warning message box shown to the user.
-        """
-        self.set_conf(
-            'show_reset_namespace_warning',
-            not message_box.is_checked()
-        )
-        self.ipyclient.reset_warning = not message_box.is_checked()
 
     def regiter_shortcuts(self):
         """Register shortcuts for this widget."""
@@ -1252,6 +1238,51 @@ overrided by the Sympy module (e.g. plot)
         # Only do this once
         self._is_banner_shown = True
 
+    def _reset_namespace(self):
+        warning = self.get_conf('show_reset_namespace_warning')
+        self.reset_namespace(warning=warning)
+
+    def _perform_reset(self, message):
+        """
+        Perform the reset namespace operation.
+
+        Parameters
+        ----------
+        message: bool
+            Whether to show a message in the console telling users the
+            namespace was reset.
+        """
+        try:
+            if self.is_waiting_pdb_input():
+                self.execute('%reset -f')
+            else:
+                if message:
+                    self.reset()
+                    self._append_html(
+                        _("<br><br>Removing all variables...<br>"),
+                        before_prompt=False
+                    )
+                    self.insert_horizontal_ruler()
+                self.silent_execute("%reset -f")
+                self.set_special_kernel()
+
+                if self.spyder_kernel_ready:
+                    self.call_kernel().close_all_mpl_figures()
+                    self.send_spyder_kernel_configuration()
+        except AttributeError:
+            pass
+
+    def _update_reset_options(self, message_box):
+        """
+        Update options and variables based on the interaction in the
+        reset warning message box shown to the user.
+        """
+        self.set_conf(
+            'show_reset_namespace_warning',
+            not message_box.is_checked()
+        )
+        self.ipyclient.reset_warning = not message_box.is_checked()
+
     # ---- Private API (overrode by us)
     def _event_filter_console_keypress(self, event):
         """Filter events to send to qtconsole code."""
@@ -1471,12 +1502,6 @@ overrided by the Sympy module (e.g. plot)
             color_scheme = get_color_scheme(self.syntax_style)
             self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
-            if changed is None:
-                return
-            self.set_kernel_configuration(
-                "traceback_highlight_style",
-                color_scheme,
-            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 
@@ -1499,7 +1524,7 @@ overrided by the Sympy module (e.g. plot)
 
     def _handle_execute_input(self, msg):
         """Handle an execute_input message"""
-        super(ShellWidget, self)._handle_execute_input(msg)
+        super()._handle_execute_input(msg)
         self.sig_remote_execute.emit()
 
     def _process_execute_error(self, msg):
@@ -1507,7 +1532,7 @@ overrided by the Sympy module (e.g. plot)
         Display a message when using our installers to explain users
         how to use modules that doesn't come with them.
         """
-        super(ShellWidget, self)._process_execute_error(msg)
+        super()._process_execute_error(msg)
         if self.show_modules_message:
             error = msg['content']['traceback']
             if any(['ModuleNotFoundError' in frame or 'ImportError' in frame
@@ -1525,12 +1550,12 @@ overrided by the Sympy module (e.g. plot)
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ShellWidget, self).focusInEvent(event)
+        return super().focusInEvent(event)
 
     def focusOutEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
-        return super(ShellWidget, self).focusOutEvent(event)
+        return super().focusOutEvent(event)
 
     # ---- Python methods
     def __repr__(self):

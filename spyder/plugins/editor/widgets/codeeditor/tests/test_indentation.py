@@ -13,7 +13,6 @@ import pytest
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.py3compat import to_text_string
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
@@ -26,7 +25,7 @@ def make_indent(editor, single_line=True, start_line=1):
         editor.moveCursor(QTextCursor.End, mode=QTextCursor.KeepAnchor)
     editor.indent()
     text = editor.toPlainText()
-    return to_text_string(text)
+    return str(text)
 
 
 def make_unindent(editor, single_line=True, start_line=1):
@@ -36,7 +35,7 @@ def make_unindent(editor, single_line=True, start_line=1):
         editor.moveCursor(QTextCursor.End, mode=QTextCursor.KeepAnchor)
     editor.unindent()
     text = editor.toPlainText()
-    return to_text_string(text)
+    return str(text)
 
 # --- Fixtures
 # -----------------------------------------------------------------------------
@@ -110,14 +109,14 @@ def test_fix_indentation(codeeditor_indent):
              )
     editor.set_text(original)
     editor.fix_indentation()
-    assert to_text_string(editor.toPlainText()) == fixed
+    assert str(editor.toPlainText()) == fixed
     assert editor.document().isModified()
     # Test that undo/redo works - spyder-ide/spyder#1754.
     editor.undo()
-    assert to_text_string(editor.toPlainText()) == original
+    assert str(editor.toPlainText()) == original
     assert not editor.document().isModified()
     editor.redo()
-    assert to_text_string(editor.toPlainText()) == fixed
+    assert str(editor.toPlainText()) == fixed
     assert editor.document().isModified()
 
 

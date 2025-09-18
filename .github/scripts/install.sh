@@ -47,10 +47,13 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
-    # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
-    # 0.19.2, although it passes locally
     if [ "$OS" = "linux" ]; then
+        # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
+        # 0.19.2, although it passes locally
         micromamba install jedi=0.19.1
+    elif [ "$OS" = "win" ]; then
+        # Build 8 of this version makes tests fail in odd ways.
+        micromamba install bzip2=1.0.8=h2466b09_7
     fi
 
 else

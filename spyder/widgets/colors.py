@@ -9,9 +9,6 @@ from qtpy.QtCore import Property, QSize, Signal, Slot
 from qtpy.QtGui import QColor, QIcon, QPixmap
 from qtpy.QtWidgets import QColorDialog, QHBoxLayout, QLineEdit, QToolButton
 
-# Local imports
-from spyder.py3compat import is_text_string
-
 
 class ColorButton(QToolButton):
     """
@@ -55,7 +52,7 @@ def text_to_qcolor(text):
     """
     color = QColor()
     text = str(text)
-    if not is_text_string(text):
+    if not isinstance(text, str):
         return color
     if text.startswith('#') and len(text)==7:
         correct = '#0123456789abcdef'

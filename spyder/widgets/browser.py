@@ -23,7 +23,6 @@ from qtpy.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QWidget
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (action2button, create_plugin_layout,
@@ -78,8 +77,9 @@ class WebPage(QWebEnginePage):
             self.linkClicked.emit(url)
             return False
 
-        return super(WebPage, self).acceptNavigationRequest(
-            url, navigation_type, isMainFrame)
+        return super().acceptNavigationRequest(
+            url, navigation_type, isMainFrame
+        )
 
 
 class WebView(QWebEngineView, SpyderWidgetMixin):
@@ -267,7 +267,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
     def get_number_matches(self, pattern, source_text='', case=False,
                            regexp=False, word=False):
         """Get the number of matches for the searched text."""
-        pattern = to_text_string(pattern)
+        pattern = str(pattern)
         if not pattern:
             return 0
         if not regexp:
@@ -275,10 +275,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         if not source_text:
             if WEBENGINE:
                 self.page().toPlainText(self.set_source_text)
-                source_text = to_text_string(self.source_text)
+                source_text = str(self.source_text)
             else:
-                source_text = to_text_string(
-                        self.page().mainFrame().toPlainText())
+                source_text = str(self.page().mainFrame().toPlainText())
 
         if word:  # match whole words only
             pattern = r'\b{pattern}\b'.format(pattern=pattern)
@@ -354,7 +353,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         import webbrowser
         # See: spyder-ide/spyder#9849
         try:
-            webbrowser.open(to_text_string(self.url().toString()))
+            webbrowser.open(str(self.url().toString()))
         except ValueError:
             pass
 
@@ -372,9 +371,9 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         https://bugreports.qt.io/browse/QTBUG-52999
         """
         if WEBENGINE:
-            super(WebView, self).setHtml(html, baseUrl)
+            super().setHtml(html, baseUrl)
         else:
-            super(WebView, self).setHtml(html, baseUrl)
+            super().setHtml(html, baseUrl)
 
         # This is required to catch an error with PyQt 5.9, for which
         # it seems this functionality is not working.
@@ -509,7 +508,7 @@ class WebBrowser(QWidget):
 
     def go_to(self, url_or_text):
         """Go to page *address*"""
-        if is_text_string(url_or_text):
+        if isinstance(url_or_text, str):
             url = QUrl(url_or_text)
         else:
             url = url_or_text
@@ -527,7 +526,7 @@ class WebBrowser(QWidget):
 
     def url_combo_activated(self, valid):
         """Load URL from combo box first item"""
-        text = to_text_string(self.url_combo.currentText())
+        text = str(self.url_combo.currentText())
         self.go_to(self.text_to_url(text))
 
     def load_finished(self, ok):

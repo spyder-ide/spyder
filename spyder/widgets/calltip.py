@@ -420,7 +420,7 @@ class CallTipWidget(QLabel):
             elif etype == QEvent.WindowBlocked:
                 self.hide()
 
-        return super(CallTipWidget, self).eventFilter(obj, event)
+        return super().eventFilter(obj, event)
 
     def timerEvent(self, event):
         """ Reimplemented to hide the widget when the hide timer fires.
@@ -432,7 +432,7 @@ class CallTipWidget(QLabel):
     def enterEvent(self, event):
         """ Reimplemented to cancel the hide timer.
         """
-        super(CallTipWidget, self).enterEvent(event)
+        super().enterEvent(event)
         if self.as_tooltip:
             self.hide()
 
@@ -443,7 +443,7 @@ class CallTipWidget(QLabel):
     def hideEvent(self, event):
         """ Reimplemented to disconnect signal handlers and event filter.
         """
-        super(CallTipWidget, self).hideEvent(event)
+        super().hideEvent(event)
         # This is needed for issue spyder-ide/spyder#9221,
         try:
             self._text_edit.cursorPositionChanged.disconnect(
@@ -456,11 +456,11 @@ class CallTipWidget(QLabel):
     def leaveEvent(self, event):
         """ Reimplemented to start the hide timer.
         """
-        super(CallTipWidget, self).leaveEvent(event)
+        super().leaveEvent(event)
         self._leave_event_hide()
 
     def mousePressEvent(self, event):
-        super(CallTipWidget, self).mousePressEvent(event)
+        super().mousePressEvent(event)
         self.hide()
 
     def paintEvent(self, event):
@@ -472,17 +472,17 @@ class CallTipWidget(QLabel):
         painter.drawPrimitive(QStyle.PE_PanelTipLabel, option)
         painter.end()
 
-        super(CallTipWidget, self).paintEvent(event)
+        super().paintEvent(event)
 
     def setFont(self, font):
         """ Reimplemented to allow use of this method as a slot.
         """
-        super(CallTipWidget, self).setFont(font)
+        super().setFont(font)
 
     def showEvent(self, event):
         """ Reimplemented to connect signal handlers and event filter.
         """
-        super(CallTipWidget, self).showEvent(event)
+        super().showEvent(event)
         self._text_edit.cursorPositionChanged.connect(
             self._cursor_position_changed)
         self._text_edit.installEventFilter(self)

@@ -11,16 +11,17 @@ mode and Spyder
 
 # Standard library imports
 import atexit
+import logging
 import pdb
 import re
 
 # Third-party imports
-from IPython.core.history import HistoryManager
+from IPython.core.history import HistoryManager, Instance
 from IPython.core.inputtransformer2 import TransformerManager
 from ipython_pygments_lexers import IPython3Lexer
 from pygments.lexer import bygroups, using
 from pygments.lexers import Python3Lexer
-from pygments.token import Keyword, Operator
+from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtpy.QtCore import QEvent
@@ -31,17 +32,29 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import get_conf_path
 
 
+logger = logging.getLogger(__name__)
+
+
 class SpyderIPy3Lexer(IPython3Lexer):
     # Detect !cmd command and highlight them
     tokens = IPython3Lexer.tokens
     spyder_tokens = [
         (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
         (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, using(Python3Lexer))),
+        (r'(?s)(\s*)(%%profile)([^\n]*\n)(.*)', bygroups(
+            Text, Operator, Text, using(Python3Lexer))),
     ]
     tokens['root'] = spyder_tokens + tokens['root']
 
 
 class PdbHistory(HistoryManager):
+
+    # Need to override `shell` definition to allow it to be `None`
+    # Starting with IPython 9.x `shell` is required (`allow_none=False`)
+    # See ipython/ipython#14616
+    shell = Instance(
+        "IPython.core.interactiveshell.InteractiveShellABC", allow_none=True,
+    )
 
     def _get_hist_file_name(self, profile=None):
         """
@@ -69,12 +82,16 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         # file to avoid errors.
         # Fixes spyder-ide/spyder#18531
         try:
-            self._pdb_history_file = PdbHistory()
+            # Need to pass `shell` as `None` explicitly due to changes done
+            # for IPython 9.x.
+            # See ipython/ipython#14616
+            self._pdb_history_file = PdbHistory(shell=None)
             self._pdb_history = [
                 line[-1] for line in self._pdb_history_file.get_tail(
                     self.PDB_HIST_MAX, include_latest=True)
             ]
-        except Exception:
+        except Exception as error:
+            logger.error(error)
             self._pdb_history_file = None
             self._pdb_history = []
 
@@ -82,7 +99,7 @@ class DebuggingHistoryWidget(RichJupyterWidget):
         self._pdb_history_index = len(self._pdb_history)
 
         # super init
-        super(DebuggingHistoryWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     # --- Public API --------------------------------------------------
     def new_history_session(self):
@@ -93,7 +110,8 @@ class DebuggingHistoryWidget(RichJupyterWidget):
             # Fixes spyder-ide/spyder#24504
             try:
                 self._pdb_history_file.new_session()
-            except Exception:
+            except Exception as error:
+                logger.error(error)
                 self._pdb_history_file = None
                 self._pdb_history = []
 
@@ -209,7 +227,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         # Temporary flags
         self._tmp_reading = False
         # super init
-        super(DebuggingWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Adapted from qtconsole/frontend_widget.py
         # This adds the IPdb as a prompt self._highlighter recognises
@@ -318,7 +336,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             password = msg['content']['password']
             self.pdb_input(prompt, password, state, from_input=True)
             return
-        return super(DebuggingWidget, self)._handle_input_request(msg)
+        return super()._handle_input_request(msg)
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -478,7 +496,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         Resets the widget to its initial state if ``clear`` parameter
         is True
         """
-        super(DebuggingWidget, self).reset(clear)
+        super().reset(clear)
         # Make sure the prompt is printed
         if clear and self.is_waiting_pdb_input():
             prompt = self._pdb_prompt
@@ -513,7 +531,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
     def _handle_kernel_info_reply(self, rep):
         """Handle kernel info replies."""
-        super(DebuggingWidget, self)._handle_kernel_info_reply(rep)
+        super()._handle_kernel_info_reply(rep)
         pygments_lexer = rep['content']['language_info'].get(
             'pygments_lexer', '')
         try:
@@ -602,8 +620,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
                     self._reading_callback()
             return
 
-        return super(DebuggingWidget, self).execute(
-            source, hidden, interactive)
+        return super().execute(source, hidden, interactive)
 
     def pdb_input(self, prompt, password=None, state=None, from_input=False):
         """Get input for a command."""
@@ -685,8 +702,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
         if prompt == self._pdb_prompt:
             html = True
             prompt = '<span class="in-prompt">%s</span>' % prompt
-        super(DebuggingWidget, self)._show_prompt(prompt, html, newline,
-                                                  separator)
+        super()._show_prompt(prompt, html, newline, separator)
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
@@ -713,8 +729,7 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
             complete, indent = self._is_pdb_complete(source)
             callback(complete, indent)
         else:
-            return super(DebuggingWidget, self)._register_is_complete_callback(
-                source, callback)
+            return super()._register_is_complete_callback(source, callback)
 
     # ---- Qt methods ---------------------------------------------------------
     def eventFilter(self, obj, event):

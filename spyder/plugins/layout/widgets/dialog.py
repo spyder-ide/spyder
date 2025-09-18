@@ -28,7 +28,6 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
 from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
 
 
@@ -41,7 +40,7 @@ class LayoutSettingsToolButtons:
 class LayoutModel(QAbstractTableModel):
     """ """
     def __init__(self, parent, names, ui_names, order, active, read_only):
-        super(LayoutModel, self).__init__(parent)
+        super().__init__(parent)
 
         # variables
         self._parent = parent
@@ -123,8 +122,7 @@ class LayoutModel(QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
         elif role == Qt.EditRole:
-            self.set_row(
-                row, [from_qvariant(value, to_text_string), name, state])
+            self.set_row(row, [from_qvariant(value, str), name, state])
             self.dataChanged.emit(index, index)
             return True
         return True
@@ -153,7 +151,7 @@ class LayoutSaveDialog(QDialog):
     """Dialog to save a custom layout with a given name."""
 
     def __init__(self, parent, order):
-        super(LayoutSaveDialog, self).__init__(parent)
+        super().__init__(parent)
 
         # variables
         self._parent = parent
@@ -194,7 +192,7 @@ class LayoutSaveDialog(QDialog):
 
     def check_text(self, text):
         """Disable empty layout name possibility"""
-        if to_text_string(text) == u'':
+        if str(text) == '':
             self.button_ok.setEnabled(False)
         else:
             self.button_ok.setEnabled(True)
@@ -207,7 +205,7 @@ class LayoutSettingsDialog(QDialog, SpyderWidgetMixin):
     CONF_SECTION = ""
 
     def __init__(self, parent, names, ui_names, order, active, read_only):
-        super(LayoutSettingsDialog, self).__init__(parent)
+        super().__init__(parent)
         # variables
         self._parent = parent
         self._selection_model = None

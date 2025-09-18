@@ -25,11 +25,10 @@ from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
-from spyder.py3compat import is_text_string, qbytearray_to_str
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions, set_menu_icons)
+    toggle_actions, set_menu_icons, qbytearray_to_str)
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 
@@ -43,7 +42,7 @@ class BasePluginMixin(object):
     _CONF_NAME_MAP = None
 
     def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
+        super().__init__()
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
@@ -164,7 +163,7 @@ class BasePluginWidgetMixin(object):
     """
 
     def __init__(self, parent=None):
-        super(BasePluginWidgetMixin, self).__init__()
+        super().__init__()
 
         # Actions to add to the Options menu
         self._plugin_actions = None
@@ -364,7 +363,7 @@ class BasePluginWidgetMixin(object):
         self._undocked_window = window = PluginWindow(self)
         window.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
-        if is_text_string(icon):
+        if isinstance(icon, str):
             icon = self.get_icon(icon)
 
         window.setWindowIcon(icon)

@@ -19,7 +19,6 @@ from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import CompletionItemKind
-from spyder.py3compat import to_text_string
 from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
@@ -64,7 +63,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
-        super(CompletionWidget, self).__init__(ancestor)
+        super().__init__(ancestor)
         self.textedit = parent
         self._language = None
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
@@ -277,8 +276,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                                      height=COMPLETION_ITEM_HEIGHT,
                                      width=COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
-        height = to_text_string(height)
-        width = to_text_string(width)
+        height = str(height)
+        width = str(width)
 
         # Unfortunately, both old- and new-style Python string formatting
         # have poor performance due to being implemented as functions that
@@ -299,8 +298,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             '</td>',
         ]
         if icon_provider is not None:
-            img_height = to_text_string(img_height)
-            img_width = to_text_string(img_width)
+            img_height = str(img_height)
+            img_width = str(img_width)
 
             parts.extend([
                 '<td valign="top" align="right" float="right" width="',
@@ -443,8 +442,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         if not current_word:
             return True
 
-        return to_text_string(filter_text).lower().startswith(
-                to_text_string(current_word).lower())
+        return str(filter_text).lower().startswith(str(current_word).lower())
 
     def is_position_correct(self):
         """Check if the position is correct."""
@@ -469,7 +467,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
                 return False
 
         completion_text, text_position = completion_text
-        completion_text = to_text_string(completion_text)
+        completion_text = str(completion_text)
 
         # The position of text must compatible with completion_position
         if not text_position <= self.completion_position <= (

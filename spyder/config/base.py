@@ -435,12 +435,25 @@ def get_interface_language():
     2.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
-
-    # Solves spyder-ide/spyder#3627.
-    try:
-        locale_language = locale.getdefaultlocale()[0]
-    except ValueError:
-        locale_language = DEFAULT_LANGUAGE
+    
+    if os.name == "nt":
+        # Changing to locale.getlocale from locale.getdefaultlocale caused some
+        # Windows machines to return non BCP47 locale codes. Instead use
+        # win32 GetUserDefaultLocaleName which does seem to give BCP47 locale.
+        # Fixes spyder-ide/spyder#23318.
+        from ctypes import create_unicode_buffer, windll
+        bufsize = 85  # LOCALE_NAME_MAX_LENGTH
+        buf = create_unicode_buffer(bufsize)
+        if windll.kernel32.GetUserDefaultLocaleName(buf, bufsize):
+            locale_language = buf.value
+        else:
+            locale_language = DEFAULT_LANGUAGE
+    else:
+        # Fixes spyder-ide/spyder#3627.
+        try:
+            locale_language = locale.getlocale()[0]
+        except ValueError:
+            locale_language = DEFAULT_LANGUAGE
 
     # Tests expect English as the interface language
     if running_under_pytest():

@@ -61,19 +61,18 @@ class LanguageServerProvider(SpyderCompletionProvider):
         ('pyflakes', True),
         ('mccabe', False),
         ('flake8', False),
+        ('ruff', False),
         ('no_linting', False),
         ('formatting', 'autopep8'),
         ('format_on_save', False),
-        ('pycodestyle', False),
-        ('pycodestyle/filename', ''),
-        ('pycodestyle/exclude', ''),
-        ('pycodestyle/select', ''),
-        ('pycodestyle/ignore', ''),        
         ('flake8/filename', ''),
         ('flake8/exclude', ''),
         ('flake8/extendSelect', ''),
-        ('flake8/extendIgnore', ''),
-        ('pycodestyle/max_line_length', 79),
+        ('flake8/extendIgnore', 'E,W,C90'),
+        ('flake8/max_line_length', 79),
+        ('ruff/exclude', ''),
+        ('ruff/extendSelect', ''),
+        ('ruff/extendIgnore', 'E'),
         ('pydocstyle', False),
         ('pydocstyle/convention', 'numpy'),
         ('pydocstyle/select', ''),
@@ -95,7 +94,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     #    want to *rename* options, then you need to do a MAJOR update in
     #    version, e.g. from 0.1.0 to 1.0.0
     # 3. You don't need to touch this value if you're just adding a new option
-    CONF_VERSION = "0.2.0"
+    CONF_VERSION = "1.0.0"
     CONF_TABS = TABS
 
     STOPPED = 'stopped'
@@ -728,14 +727,8 @@ class LanguageServerProvider(SpyderCompletionProvider):
         host = self.get_conf('advanced/host', '127.0.0.1')
         port = self.get_conf('advanced/port', 2087)
 
-        # Pycodestyle
-        cs_exclude = self.get_conf('pycodestyle/exclude', '').split(',')
-        cs_filename = self.get_conf('pycodestyle/filename', '').split(',')
-        cs_select = self.get_conf('pycodestyle/select', '').split(',')
-        cs_ignore = self.get_conf('pycodestyle/ignore', '').split(',')
-        cs_max_line_length = self.get_conf('pycodestyle/max_line_length', 79)
-
         # Flake8
+        cs_max_line_length = self.get_conf('flake8/max_line_length', 79)
         f8_exclude = self.get_conf('flake8/exclude', '').split(',')
         f8_filename = self.get_conf('flake8/filename', '').split(',')
         f8_select = self.get_conf('flake8/extendSelect', '').split(',')
@@ -754,22 +747,6 @@ class LanguageServerProvider(SpyderCompletionProvider):
             f8_indent.count(" ") + f8_indent.count("\t") * f8_tab_size
         )
 
-        pycodestyle = {
-            'enabled': self.get_conf('pycodestyle'),
-            'exclude': [exclude.strip() for exclude in cs_exclude if exclude],
-            'filename': [filename.strip()
-                         for filename in cs_filename if filename],
-            'select': [select.strip() for select in cs_select if select],
-            'ignore': [ignore.strip() for ignore in cs_ignore if ignore],
-            'hangClosing': False,
-            'maxLineLength': cs_max_line_length
-        }
-
-        # Linting - Pyflakes
-        pyflakes = {
-            'enabled': self.get_conf('pyflakes')
-        }
-
         flake8 = {
             "enabled": self.get_conf("flake8"),
             "filename": [
@@ -782,34 +759,52 @@ class LanguageServerProvider(SpyderCompletionProvider):
             "maxLineLength": cs_max_line_length,
         }
 
+        # pycodestyle
+        pycodestyle = {
+            'maxLineLength': cs_max_line_length
+        }
+
+        # Linting - Pyflakes
+        pyflakes = {
+            'enabled': self.get_conf('pyflakes')
+        }
+
+        # Linting - ruff
+        ruff_exclude = self.get_conf('ruff/exclude', '').split(',')
+        ruff_select = self.get_conf('ruff/extendSelect', '').split(',')
+        ruff_ignore = self.get_conf('ruff/extendIgnore', '').split(',')
+
+        ruff = {
+            "enabled": self.get_conf("ruff"),
+            "exclude": [
+                exclude.strip() for exclude in ruff_exclude if exclude
+            ],
+            "extendSelect": [
+                select.strip() for select in ruff_select if select
+            ],
+            "extendIgnore": [
+                ignore.strip() for ignore in ruff_ignore if ignore
+            ],
+            "lineLength": cs_max_line_length,
+        }
+
+        # Linting disabled
         no_linting = {"enabled": self.get_conf("no_linting")}
 
-        # Pydocstyle
+        # ruff - pydocstyle docstring linting
+        pydocstyle_enabled = self.get_conf('pydocstyle')
+        if pydocstyle_enabled:
+            if 'D' not in ruff['extendSelect']:
+                ruff['extendSelect'].append('D')
+            if 'D' in ruff['extendIgnore']:
+                ruff['extendIgnore'].remove('D')
+
         convention = self.get_conf('pydocstyle/convention')
-
-        if convention == 'Custom':
-            ds_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
-            ds_select = self.get_conf('pydocstyle/select', '').split(',')
-            ds_add_ignore = []
-            ds_add_select = []
-        else:
-            ds_ignore = []
-            ds_select = []
-            ds_add_ignore = self.get_conf('pydocstyle/ignore', '').split(',')
-            ds_add_select = self.get_conf('pydocstyle/select', '').split(',')
-
-        pydocstyle = {
-            'enabled': self.get_conf('pydocstyle'),
-            'convention': convention,
-            'addIgnore': [ignore.strip()
-                          for ignore in ds_add_ignore if ignore],
-            'addSelect': [select.strip()
-                          for select in ds_add_select if select],
-            'ignore': [ignore.strip() for ignore in ds_ignore if ignore],
-            'select': [select.strip() for select in ds_select if select],
-            'match': self.get_conf('pydocstyle/match'),
-            'matchDir': self.get_conf('pydocstyle/match_dir')
-        }
+        ruff.update(
+            {
+                'config': f"lint.pydocstyle.convention = '{convention}'",
+            }
+        )
 
         # Autoformatting configuration
         formatter = self.get_conf('formatting')
@@ -826,7 +821,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         # Setting max line length for formatters.
         # Notes:
         # 1. The autopep8 plugin shares the same maxLineLength value with the
-        #    pycodestyle one. That's why it's not necessary to set it here.
+        #    flake8 one. That's why it's not necessary to set it here.
         # 2. The yapf pylsp plugin doesn't support this yet.
         formatter_options['black']['line_length'] = cs_max_line_length
 
@@ -888,11 +883,11 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
         # Updating options
         plugins = python_config['configurations']['pylsp']['plugins']
-        plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
+        plugins['pycodestyle'].update(pycodestyle)
         plugins['flake8'].update(flake8)
+        plugins['ruff'].update(ruff)
         plugins['no_linting'].update(no_linting)
-        plugins['pydocstyle'].update(pydocstyle)
         plugins['pyls_spyder'].update(pyls_spyder_options)
         plugins['jedi'].update(jedi)
         plugins['jedi_completion'].update(jedi_completion)

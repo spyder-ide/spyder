@@ -27,7 +27,6 @@ __metaclass__ = type
 import errno, os
 from time import time as _uniquefloat
 
-from spyder.py3compat import to_binary_string
 from spyder.utils.programs import is_spyder_process
 
 def unique():
@@ -86,7 +85,7 @@ else:
         newvalname = os.path.join(newlinkname, "symlink")
         os.mkdir(newlinkname)
         f = _open(newvalname, 'wb')
-        f.write(to_binary_string(value))
+        f.write(bytes(value, 'utf-8'))
         f.flush()
         f.close()
         try:

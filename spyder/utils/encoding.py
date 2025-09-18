@@ -28,8 +28,6 @@ from chardet.universaldetector import UniversalDetector
 from atomicwrites import atomic_write
 
 # Local imports
-from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_text_string)
 from spyder.utils.external.binaryornot.check import is_binary
 
 
@@ -73,10 +71,10 @@ def to_unicode_from_fs(string):
     """
     Return a unicode version of string decoded using the file system encoding.
     """
-    if not is_string(string):  # string is a QString
-        string = to_text_string(string.toUtf8(), 'utf-8')
+    if not isinstance(string, (str, bytes)):  # string is a QString
+        string = str(string.toUtf8())
     else:
-        if is_binary_string(string):
+        if isinstance(string, bytes):
             try:
                 unic = string.decode(FS_ENCODING)
             except (UnicodeError, TypeError):
@@ -91,7 +89,7 @@ def to_fs_from_unicode(unic):
     Return a byte string version of unic encoded using the file
     system encoding.
     """
-    if is_text_string(unic):
+    if isinstance(unic, str):
         try:
             string = unic.encode(FS_ENCODING)
         except (UnicodeError, TypeError):
@@ -134,7 +132,7 @@ def get_coding(text, force_chardet=False, default_codec=None):
     if not force_chardet:
         for line in text.splitlines()[:2]:
             try:
-                result = CODING_RE.search(to_text_string(line))
+                result = CODING_RE.search(str(line))
             except UnicodeDecodeError:
                 # This could fail because to_text_string assume the text
                 # is utf8-like and we don't know the encoding to give
@@ -149,7 +147,7 @@ def get_coding(text, force_chardet=False, default_codec=None):
                         return codec
 
     # Fallback using chardet
-    if is_binary_string(text) and (force_chardet or default_codec is None):
+    if isinstance(text, bytes) and (force_chardet or default_codec is None):
         detector = UniversalDetector()
         for line in text.splitlines()[:2]:
             detector.feed(line)
@@ -171,25 +169,25 @@ def decode(text, default_codec=None):
     try:
         if text.startswith(BOM_UTF8):
             # UTF-8 with BOM
-            return to_text_string(text[len(BOM_UTF8):], 'utf-8'), 'utf-8-bom'
+            return str(text[len(BOM_UTF8):]), 'utf-8-bom'
         elif text.startswith(BOM_UTF16):
             # UTF-16 with BOM
-            return to_text_string(text[len(BOM_UTF16):], 'utf-16'), 'utf-16'
+            return str(text[len(BOM_UTF16):]), 'utf-16'
         elif text.startswith(BOM_UTF32):
             # UTF-32 with BOM
-            return to_text_string(text[len(BOM_UTF32):], 'utf-32'), 'utf-32'
+            return str(text[len(BOM_UTF32):]), 'utf-32'
         coding = get_coding(text, default_codec=default_codec)
         if coding:
-            return to_text_string(text, coding), coding
+            return str(text, coding), coding
     except (UnicodeError, LookupError):
         pass
     # Assume UTF-8
     try:
-        return to_text_string(text, 'utf-8'), 'utf-8-guessed'
+        return str(text), 'utf-8-guessed'
     except (UnicodeError, LookupError):
         pass
     # Assume Latin-1 (behaviour before 3.7.1)
-    return to_text_string(text, "latin-1"), 'latin-1-guessed'
+    return str(text, "latin-1"), 'latin-1-guessed'
 
 
 def encode(text, orig_coding):
@@ -231,10 +229,10 @@ def encode(text, orig_coding):
 
 def to_unicode(string):
     """Convert a string to unicode"""
-    if not is_text_string(string):
+    if not isinstance(string, str):
         for codec in CODECS:
             try:
-                unic = to_text_string(string, codec)
+                unic = str(string, codec)
             except UnicodeError:
                 pass
             except TypeError:
@@ -255,7 +253,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         try:
             absolute_path_filename = pathlib.Path(filename).resolve()
             if absolute_path_filename.exists():
-                absolute_filename = to_text_string(absolute_path_filename)
+                absolute_filename = str(absolute_path_filename)
             else:
                 absolute_filename = osp.realpath(filename)
         except (OSError, RuntimeError):

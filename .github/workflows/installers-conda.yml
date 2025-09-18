@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         target-platform: ${{ fromJson(needs.build-matrix.outputs.target_platform) }}
-        python-version: ['3.11']
+        python-version: ['3.12']
         branch: ${{ fromJson(needs.build-matrix.outputs.branch) }}
         include: ${{ fromJson(needs.build-matrix.outputs.include) }}
     defaults:
@@ -290,8 +290,6 @@ jobs:
 
       - name: Build Package Installer
         run: |
-          export CONDA_SHORTCUTS=false  # Don't create shortcuts while building
-
           python build_installers.py
 
           SPYVER=$(python build_installers.py --version)
@@ -387,7 +385,7 @@ jobs:
       - name: Create Checksums
         run: |
           # TODO: Remove this step for Spyder 7
-          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt
+          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt || true
 
       - name: Upload Lock Files
         uses: actions/upload-artifact@v4

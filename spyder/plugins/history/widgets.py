@@ -19,7 +19,6 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
@@ -289,11 +288,11 @@ class HistoryWidget(PluginMainWidget):
         command: str
             Command to append to history file.
         """
-        if not is_text_string(filename):  # filename is a QString
-            filename = to_text_string(filename.toUtf8(), 'utf-8')
+        if not isinstance(filename, str):  # filename is a QString
+            filename = str(filename.toUtf8())
 
         index = self.filenames.index(filename)
-        command = to_text_string(command)
+        command = str(command)
         self.editors[index].append(command)
 
         if self.get_conf('go_to_eof'):

@@ -65,7 +65,6 @@ from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
 )
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
-from spyder.py3compat import to_text_string, is_string
 from spyder.utils import encoding, sourcecode
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
 from spyder.utils.icon_manager import ima
@@ -1284,7 +1283,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         cursor.movePosition(QTextCursor.Start)
         while True:
             cursor.movePosition(QTextCursor.EndOfBlock)
-            text = to_text_string(cursor.block().text())
+            text = str(cursor.block().text())
             length = len(text)-len(text.rstrip())
             if length > 0:
                 cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
@@ -1344,7 +1343,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def fix_indentation(self):
         """Replace tabs by spaces."""
-        text_before = to_text_string(self.toPlainText())
+        text_before = str(self.toPlainText())
         text_after = sourcecode.fix_indentation(text_before, self.indent_chars)
         if text_before != text_after:
             # We do the following rather than using self.setPlainText
@@ -1356,7 +1355,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def get_current_object(self):
         """Return current object (string) """
-        source_code = to_text_string(self.toPlainText())
+        source_code = str(self.toPlainText())
         offset = self.get_position('cursor')
         return sourcecode.get_primary_at(source_code, offset)
 
@@ -1555,9 +1554,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.get_selected_text().strip() != text):
             return
 
-        if (self.is_python_like() and
-                (sourcecode.is_keyword(to_text_string(text)) or
-                 to_text_string(text) == 'self')):
+        if (
+            self.is_python_like()
+            and (sourcecode.is_keyword(str(text))
+            or str(text) == 'self')
+        ):
             return
 
         # Highlighting all occurrences of word *text*
@@ -1603,13 +1604,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             'case': case,
         }
 
-        pattern = to_text_string(pattern)
+        pattern = str(pattern)
         if not pattern:
             return
         if not regexp:
-            pattern = re.escape(to_text_string(pattern))
+            pattern = re.escape(str(pattern))
         pattern = r"\b%s\b" % pattern if word else pattern
-        text = to_text_string(self.toPlainText())
+        text = str(self.toPlainText())
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
         try:
             regobj = re.compile(pattern, flags=re_flags)
@@ -1824,7 +1825,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def showEvent(self, event):
         """Overrides showEvent to update the viewport margins."""
-        super(CodeEditor, self).showEvent(event)
+        super().showEvent(event)
         self.panels.refresh()
 
     # ---- Misc.
@@ -1951,7 +1952,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         clipboard content.
         """
         clipboard = QApplication.clipboard()
-        text = to_text_string(clipboard.text())
+        text = str(clipboard.text())
         if self.extra_cursors:
             self.multi_cursor_paste(text)
             return
@@ -2350,7 +2351,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         If the cell doesn't exist, raises an exception
         """
         selected_block = None
-        if is_string(cell):
+        if isinstance(cell, (str, bytes)):
             for oedata in self.cell_list():
                 if oedata.def_name == cell:
                     selected_block = oedata.block
@@ -2377,7 +2378,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         If the cell doesn't exist, raise an exception.
         """
         selected_block = None
-        if is_string(cell):
+        if isinstance(cell, (str, bytes)):
             for oedata in self.cell_list():
                 if oedata.def_name == cell:
                     selected_block = oedata.block
@@ -2453,7 +2454,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                line_text = to_text_string(cursor.block().text())
+                line_text = str(cursor.block().text())
                 if (self.get_character(cursor.position()) == ' '
                         and '#' in prefix and not line_text.isspace()
                         or (not line_text.startswith(' ')
@@ -2506,7 +2507,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             number_spaces = -1
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                line_text = to_text_string(cursor.block().text())
+                line_text = str(cursor.block().text())
                 start_with_space = line_text.startswith(' ')
                 left_number_spaces = self.__number_of_spaces(line_text)
                 if not start_with_space:
@@ -2530,7 +2531,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         cursor = self.textCursor()
         cursor.setPosition(cursor.position() - qstring_length(suffix),
                            QTextCursor.KeepAnchor)
-        if to_text_string(cursor.selectedText()) == suffix:
+        if str(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
 
     def remove_prefix(self, prefix):
@@ -2560,14 +2561,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                     break
                 else:
                     old_pos = new_pos
-                line_text = to_text_string(cursor.block().text())
+                line_text = str(cursor.block().text())
                 self.__remove_prefix(prefix, cursor, line_text)
                 cursor.movePosition(QTextCursor.PreviousBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
-            line_text = to_text_string(cursor.block().text())
+            line_text = str(cursor.block().text())
             self.__remove_prefix(prefix, cursor, line_text)
 
     def __remove_prefix(self, prefix, cursor, line_text):
@@ -2684,7 +2685,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         prev_block = self.document().findBlockByNumber(block_nb - 1)
-        prevline = to_text_string(prev_block.text())
+        prevline = str(prev_block.text())
 
         indentation = re.match(r"\s*", prevline).group()
         # Unident
@@ -2730,7 +2731,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         closing_brackets = []
         for prevline in range(block_nb - 1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
-            prevtext = to_text_string(cursor.block().text()).rstrip()
+            prevtext = str(cursor.block().text()).rstrip()
 
             bracket_stack, closing_brackets, comment_pos = self.__get_brackets(
                 prevtext, closing_brackets)
@@ -2897,7 +2898,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             QMessageBox.critical(self, _('Removal error'),
                            _("It was not possible to remove outputs from "
                              "this notebook. The error is:\n\n") + \
-                             to_text_string(e))
+                             str(e))
             return
 
     @Slot()
@@ -2910,7 +2911,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
                                  "notebook. The error is:\n\n") + \
-                                 to_text_string(e))
+                                 str(e))
             return
         self.sig_new_file.emit(script)
 
@@ -2943,8 +2944,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.indent()
         else:
             cursor = self.textCursor()
-            if (self.get_selected_text() ==
-                    to_text_string(cursor.block().text())):
+            if self.get_selected_text() == str(cursor.block().text()):
                 self.indent()
             else:
                 cursor1 = self.textCursor()
@@ -3006,7 +3006,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         is_comment_or_whitespace = True
         at_least_one_comment = False
         for _line_nb in range(first_line, last_line+1):
-            text = to_text_string(cursor.block().text()).lstrip()
+            text = str(cursor.block().text()).lstrip()
             is_comment = text.startswith(self.comment_string)
             is_whitespace = (text == '')
             is_comment_or_whitespace *= (is_comment or is_whitespace)
@@ -3025,7 +3025,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         """
         if block is None:
             return False
-        text = to_text_string(block.text()).lstrip()
+        text = str(block.text()).lstrip()
         return text.startswith(self.comment_string)
 
     def comment(self):
@@ -3053,12 +3053,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         """Change to uppercase current line or selection."""
         cursor = self.textCursor()
         prev_pos = cursor.position()
-        selected_text = to_text_string(cursor.selectedText())
+        selected_text = str(cursor.selectedText())
 
         if len(selected_text) == 0:
             prev_pos = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = to_text_string(cursor.selectedText())
+            selected_text = str(cursor.selectedText())
 
         s = selected_text.upper()
         cursor.insertText(s)
@@ -3068,12 +3068,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         """Change to lowercase current line or selection."""
         cursor = self.textCursor()
         prev_pos = cursor.position()
-        selected_text = to_text_string(cursor.selectedText())
+        selected_text = str(cursor.selectedText())
 
         if len(selected_text) == 0:
             prev_pos = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = to_text_string(cursor.selectedText())
+            selected_text = str(cursor.selectedText())
 
         s = selected_text.lower()
         cursor.insertText(s)
@@ -3123,7 +3123,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     def __unblockcomment(self, compatibility=False):
         """Un-block comment current line or selection helper."""
         def __is_comment_bar(cursor):
-            return to_text_string(cursor.block().text()).startswith(
+            return str(cursor.block().text()).startswith(
                 self.__blockcomment_bar(compatibility=compatibility)
             )
         # Finding first comment bar
@@ -3139,7 +3139,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         def __in_block_comment(cursor):
             cs = self.comment_string
-            return to_text_string(cursor.block().text()).startswith(cs)
+            return str(cursor.block().text()).startswith(cs)
         # Finding second comment bar
         cursor2 = QTextCursor(cursor1)
         cursor2.movePosition(QTextCursor.NextBlock)
@@ -3396,7 +3396,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.NextCharacter,
                             QTextCursor.KeepAnchor)
-        next_char = to_text_string(cursor.selectedText())
+        next_char = str(cursor.selectedText())
         return next_char
 
     def in_comment(self, cursor=None, position=None):
@@ -3753,7 +3753,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.timer_syntax_highlight.start()
 
         self._restore_editor_cursor_and_selections()
-        super(CodeEditor, self).keyReleaseEvent(event)
+        super().keyReleaseEvent(event)
         event.ignore()
 
     def event(self, event):
@@ -3762,7 +3762,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             event.ignore()
             return False
         else:
-            return super(CodeEditor, self).event(event)
+            return super().event(event)
 
     def _handle_keypress_event(self, event):
         """Handle keypress events."""
@@ -3770,7 +3770,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         # Trigger the following actions only if the event generates
         # a text change.
-        text = to_text_string(event.text())
+        text = str(event.text())
         if text:
             # The next three lines are a workaround for a quirk of
             # QTextEdit on Linux with Qt < 5.15, MacOs and Windows.
@@ -3807,7 +3807,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.sig_key_pressed.emit(event)
 
         self._last_pressed_key = key = event.key()
-        self._last_key_pressed_text = text = to_text_string(event.text())
+        self._last_key_pressed_text = text = str(event.text())
         has_selection = self.has_selected_text()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
@@ -3968,8 +3968,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
                 ind = lambda txt: len(txt) - len(txt.lstrip())
-                prevtxt = (to_text_string(self.textCursor().block().
-                           previous().text()))
+                prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
@@ -3986,8 +3985,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = (to_text_string(self.textCursor().block().
-                           previous().text()))
+                prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
@@ -4029,7 +4027,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         cursor = self.textCursor()
         pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
-        text = to_text_string(cursor.selectedText())
+        text = str(cursor.selectedText())
 
         key = self._last_pressed_key
         if key is not None:
@@ -4043,7 +4041,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if key == Qt.Key_Backspace:
             cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
-            prev_text = to_text_string(cursor.selectedText())
+            prev_text = str(cursor.selectedText())
             cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.setPosition(pos, QTextCursor.KeepAnchor)
             prev_char = cursor.selectedText()
@@ -4054,7 +4052,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if text == '':
             cursor.setPosition(max(0, pos - 1), QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
+            text = str(cursor.selectedText())
             if text != '.':
                 text = ''
 
@@ -4063,7 +4061,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if text.startswith((')', ']', '}')):
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
+            text = str(cursor.selectedText())
 
         is_backspace = (
             self.is_completion_widget_visible() and key == Qt.Key_Backspace)
@@ -4188,7 +4186,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     def _handle_goto_definition_event(self, pos):
         """Check if goto definition can be applied and apply highlight."""
         text = self.get_word_at(pos)
-        if text and not sourcecode.is_keyword(to_text_string(text)):
+        if text and not sourcecode.is_keyword(str(text)):
             if not self.__cursor_changed:
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 self.__cursor_changed = True
@@ -4547,19 +4545,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                           pygments lexer.
         :param encoding: text encoding
         """
-        super(CodeEditor, self).setPlainText(txt)
+        super().setPlainText(txt)
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
         """Extend Qt method"""
         self.sig_focus_changed.emit()
         self._restore_editor_cursor_and_selections()
-        super(CodeEditor, self).focusOutEvent(event)
+        super().focusOutEvent(event)
 
     def focusInEvent(self, event):
         formatting_enabled = getattr(self, 'formatting_enabled', False)
         self.sig_refresh_formatting.emit(formatting_enabled)
-        super(CodeEditor, self).focusInEvent(event)
+        super().focusInEvent(event)
 
     def leaveEvent(self, event):
         """Extend Qt method"""
@@ -4656,10 +4654,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         # Code duplication go_to_definition_from_cursor and mouse_move_event
         cursor = self.textCursor()
-        text = to_text_string(cursor.selectedText())
+        text = str(cursor.selectedText())
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
+            text = str(cursor.selectedText())
 
         self.undo_action.setEnabled(self.document().isUndoAvailable())
         self.redo_action.setEnabled(self.document().isRedoAvailable())
@@ -4687,7 +4685,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         Inform Qt about the types of data that the widget accepts.
         """
         logger.debug("dragEnterEvent was received")
-        self._drag_cursor = self.cursorForPosition(event.pos())
         all_urls = mimedata2url(event.mimeData())
         if all_urls:
             # Let the parent widget handle this
@@ -4695,6 +4692,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             event.ignore()
         else:
             logger.debug("Call TextEditBaseWidget dragEnterEvent method")
+            self._drag_cursor = self.cursorForPosition(event.pos())
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dragMoveEvent(self, event):

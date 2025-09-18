@@ -25,8 +25,6 @@ from qtpy.QtWidgets import (
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
-from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string)
 from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
@@ -82,9 +80,9 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
 
         # Display text as unicode if it comes as bytes, so users see
         # its right representation
-        if is_binary_string(text):
+        if isinstance(text, bytes):
             self.is_binary = True
-            text = to_text_string(text, 'utf8')
+            text = str(text, 'utf8')
         else:
             self.is_binary = False
 
@@ -134,7 +132,7 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         self.setWindowIcon(ima.icon('edit'))
         if title:
             try:
-                unicode_title = to_text_string(title)
+                unicode_title = str(title)
             except UnicodeEncodeError:
                 unicode_title = u''
         else:
@@ -179,9 +177,9 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         """Text has changed"""
         # Save text as bytes, if it was initially bytes
         if self.is_binary:
-            self.text = to_binary_string(self.edit.toPlainText(), 'utf8')
+            self.text = bytes(self.edit.toPlainText(), 'utf8')
         else:
-            self.text = to_text_string(self.edit.toPlainText())
+            self.text = str(self.edit.toPlainText())
         if self.btn_save_and_close:
             self.btn_save_and_close.setEnabled(True)
             self.btn_save_and_close.setAutoDefault(True)
@@ -196,9 +194,10 @@ class TextEditor(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     def setup_and_check(self, value):
         """Verify if TextEditor is able to display strings passed to it."""
         try:
-            to_text_string(value, 'utf8')
+            if not isinstance(obj, str):
+                str(value, 'utf8')
             return True
-        except:
+        except Exception:
             return False
 
 #==============================================================================

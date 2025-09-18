@@ -30,7 +30,6 @@ from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
-from spyder.py3compat import to_text_string
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
@@ -438,7 +437,7 @@ class TextEditBaseWidget(
             return
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
-        text = to_text_string(cursor.selectedText())
+        text = str(cursor.selectedText())
         if text in (')', ']', '}'):
             forward = False
         elif text in ('(', '[', '{'):
@@ -498,7 +497,7 @@ class TextEditBaseWidget(
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
                        .replace('\u0085', '\n')
-        return super(TextEditBaseWidget, self).toPlainText()
+        return super().toPlainText()
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -509,7 +508,7 @@ class TextEditBaseWidget(
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
-            super(TextEditBaseWidget, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     # ------Text: get, set, ...
     def get_cell_list(self):
@@ -728,7 +727,7 @@ class TextEditBaseWidget(
         if self._restore_selection_pos is not None:
             self.__restore_selection(*self._restore_selection_pos)
             self._restore_selection_pos = None
-        super(TextEditBaseWidget, self).paintEvent(e)
+        super().paintEvent(e)
 
     def __save_selection(self):
         """Save current cursor selection and return position bounds"""
@@ -749,13 +748,13 @@ class TextEditBaseWidget(
         cur_pos = cursor.position()
         start_pos, end_pos = self.__save_selection()
         end_pos_orig = end_pos
-        if to_text_string(cursor.selectedText()):
+        if str(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
             # changes from the previous block
             cursor.movePosition(QTextCursor.StartOfBlock,
                                 QTextCursor.KeepAnchor)
-            if not to_text_string(cursor.selectedText()):
+            if not str(cursor.selectedText()):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 end_pos = cursor.position()
 
@@ -849,12 +848,12 @@ class TextEditBaseWidget(
             return
 
         # ------ Move text
-        sel_text = to_text_string(cursor.selectedText())
+        sel_text = str(cursor.selectedText())
         cursor.removeSelectedText()
 
         if after_current_line:
             # Shift selection down
-            text = to_text_string(cursor.block().text())
+            text = str(cursor.block().text())
             sel_text = os.linesep + sel_text[0:-1]  # Move linesep at the start
             cursor.movePosition(QTextCursor.EndOfBlock)
             start_pos += len(text)+1
@@ -871,7 +870,7 @@ class TextEditBaseWidget(
                 end_pos += 1
             else:
                 cursor.movePosition(QTextCursor.PreviousBlock)
-            text = to_text_string(cursor.block().text())
+            text = str(cursor.block().text())
             start_pos -= len(text)+1
             end_pos -= len(text)+1
 

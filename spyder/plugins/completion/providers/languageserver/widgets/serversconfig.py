@@ -130,7 +130,7 @@ class LSPServerEditor(QDialog, SpyderFontsMixin):
                  port=2084, args='', external=False, stdio=False,
                  configurations={}, get_option=None, set_option=None,
                  remove_option=None, **kwargs):
-        super(LSPServerEditor, self).__init__(parent)
+        super().__init__(parent)
 
         description = _(
             "To create a new server configuration, you need to select a "
@@ -596,11 +596,11 @@ class LSPServerTable(QTableView):
         """Qt Override."""
         # self.source_model.update_active_row()
         # self._parent.delete_btn.setEnabled(False)
-        super(LSPServerTable, self).focusOutEvent(e)
+        super().focusOutEvent(e)
 
     def focusInEvent(self, e):
         """Qt Override."""
-        super(LSPServerTable, self).focusInEvent(e)
+        super().focusInEvent(e)
         self.selectRow(self.currentIndex().row())
 
     def selection(self, index):
@@ -702,9 +702,9 @@ class LSPServerTable(QTableView):
         elif key in [Qt.Key_Backtab]:
             self.parent().reset_btn.setFocus()
         elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
-            super(LSPServerTable, self).keyPressEvent(event)
+            super().keyPressEvent(event)
         else:
-            super(LSPServerTable, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         """Qt Override."""

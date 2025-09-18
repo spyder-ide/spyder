@@ -3,6 +3,27 @@
 Changes in Jupyter Qt console
 =============================
 
+.. _5.7:
+
+5.7
+~~~
+
+5.7.0
+-----
+
+`5.7.0 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.7.0>`__
+
+Additions
++++++++++
+
+* Zoom in/out with Ctrl + mouse wheel.
+* Add support for IPython 9 theme and colors handling.
+
+Changes
++++++++
+
+* Drop support for Python 3.8.
+
 .. _5.6:
 
 5.6

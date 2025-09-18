@@ -19,7 +19,6 @@ from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox
 
 # Local imports
 from spyder.api.translations import _
-from spyder.py3compat import to_text_string
 from spyder.utils import misc
 from spyder.plugins.explorer.widgets.explorer import DirView
 
@@ -53,7 +52,7 @@ class ProxyModel(QSortFilterProxyModel):
 
     def __init__(self, parent):
         """Initialize the proxy model."""
-        super(ProxyModel, self).__init__(parent)
+        super().__init__(parent)
         self.root_path = None
         self.path_list = []
         self.setDynamicSortFilter(True)
@@ -284,8 +283,7 @@ class ProjectExplorerTreeWidget(FilteredDirView):
 
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
-        src_list = [to_text_string(url.toString())
-                    for url in event.mimeData().urls()]
+        src_list = [str(url.toString()) for url in event.mimeData().urls()]
         if len(src_list) > 1:
             buttons = (QMessageBox.Yes | QMessageBox.YesToAll |
                        QMessageBox.No | QMessageBox.NoToAll |
