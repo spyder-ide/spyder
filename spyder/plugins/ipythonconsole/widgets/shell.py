@@ -18,7 +18,7 @@ from textwrap import dedent
 import typing
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, Signal, QEvent
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
@@ -1292,6 +1292,9 @@ overrided by the Sympy module (e.g. plot)
                 # Do not use ctrl + . to restart kernel
                 # Handled by IPythonConsoleWidget
                 return False
+            if self.get_conf('disable_zoom_mouse', section='main'):
+                if event.type == QEvent.Wheel:
+                    return False
         return super()._event_filter_console_keypress(event)
 
     def _handle_execute_reply(self, msg):
