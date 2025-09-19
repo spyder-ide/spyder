@@ -108,8 +108,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         # General attributes
         self.remote_files_manager = None
-        self.server_id = None
-        self.root_prefix = ""
+        self.server_id: str | None = None
+        self.root_prefix: dict[str, str] = {}
 
         self.background_files_load = set()
         self.extra_files = []
@@ -559,7 +559,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             return
 
         remote_file = posixpath.join(
-            self.root_prefix, os.path.basename(local_path)
+            self.root_prefix[self.server_id], os.path.basename(local_path)
         )
         file_content = None
 
@@ -607,7 +607,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             init_files_display = self.get_conf("init_files_display")
             generator = self.remote_files_manager.ls(path)
             async for file in generator:
-                file_name = os.path.relpath(file["name"], self.root_prefix)
+                file_name = os.path.relpath(
+                    file["name"], self.root_prefix[self.server_id]
+                )
                 file_type = file["type"]
                 if len(files) < init_files_display:
                     if not self.get_conf(
@@ -655,7 +657,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.more_files_available = True
                 break
 
-            file_name = os.path.relpath(file["name"], self.root_prefix)
+            file_name = os.path.relpath(
+                file["name"], self.root_prefix[self.server_id]
+            )
             file_type = file["type"]
             if not self.get_conf("show_hidden") and file_name.startswith("."):
                 continue
@@ -679,7 +683,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         )
 
     def _new_item(self, new_name, for_file=False, with_content=False):
-        new_path = posixpath.join(self.root_prefix, new_name)
+        new_path = posixpath.join(self.root_prefix[self.server_id], new_name)
         if not with_content:
             self._do_remote_new(new_path, for_file=for_file).connect(
                 self._on_remote_new
@@ -725,11 +729,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.history.append(directory)
             self.histindex = len(self.history) - 1
 
-        if directory == self.root_prefix:
+        if directory == self.root_prefix.get(server_id):
             return
-        self.root_prefix = directory
+
         if server_id:
             self.server_id = server_id
+        self.root_prefix[self.server_id] = directory
         if remote_files_manager:
             self.remote_files_manager = remote_files_manager
         self.refresh(force_current=True)
@@ -762,7 +767,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
             for file in files:
                 path = file["name"]
-                name = os.path.relpath(path, self.root_prefix)
+                name = os.path.relpath(path, self.root_prefix[self.server_id])
 
                 file_type = file["type"]
                 icon = ima.icon("FileIcon")
@@ -827,16 +832,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         )
 
     def set_current_folder(self, folder):
-        self.root_prefix = folder
+        self.root_prefix[self.server_id] = folder
         return self.model.invisibleRootItem()
 
     def get_current_folder(self):
-        return self.root_prefix
+        return self.root_prefix[self.server_id]
 
     def go_to_parent_directory(self):
-        parent_directory = os.path.dirname(self.root_prefix)
+        parent_directory = os.path.dirname(self.root_prefix[self.server_id])
         logger.debug(
-            f"Going to parent directory of {self.root_prefix}: "
+            f"Going to parent directory of {self.root_prefix[self.server_id]}: "
             f"{parent_directory}"
         )
         self.chdir(parent_directory)
@@ -859,7 +864,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def refresh(self, new_path=None, force_current=False):
         if force_current:
             if new_path is None:
-                new_path = self.root_prefix
+                new_path = self.root_prefix.get(self.server_id)
             self._do_remote_ls(new_path, self.server_id).connect(
                 self._on_remote_ls
             )
@@ -941,7 +946,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         data = self.model.data(data_index, Qt.UserRole + 1)
         if data:
             old_path = data["name"]
-            relpath = os.path.relpath(old_path, self.root_prefix)
+            relpath = os.path.relpath(
+                old_path, self.root_prefix[self.server_id]
+            )
             new_relpath, valid = QInputDialog.getText(
                 self,
                 _("Copy and Paste"),
@@ -950,7 +957,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 relpath,
             )
             if valid:
-                new_path = posixpath.join(self.root_prefix, new_relpath)
+                new_path = posixpath.join(
+                    self.root_prefix[self.server_id], new_relpath
+                )
                 self._do_remote_copy_paste(old_path, new_path).connect(
                     self._on_remote_copy_paste
                 )
@@ -968,12 +977,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         data = self.model.data(data_index, Qt.UserRole + 1)
         if data:
             old_path = data["name"]
-            relpath = os.path.relpath(old_path, self.root_prefix)
+            relpath = os.path.relpath(
+                old_path, self.root_prefix[self.server_id]
+            )
             new_relpath, valid = QInputDialog.getText(
                 self, _("Rename"), _("New name:"), QLineEdit.Normal, relpath
             )
             if valid:
-                new_path = posixpath.join(self.root_prefix, new_relpath)
+                new_path = posixpath.join(
+                    self.root_prefix[self.server_id], new_relpath
+                )
                 self._do_remote_rename(old_path, str(new_path)).connect(
                     self._on_remote_rename
                 )
@@ -984,7 +997,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             not self.view.currentIndex()
             or not self.view.currentIndex().isValid()
         ):
-            path = self.root_prefix
+            path = self.root_prefix[self.server_id]
         else:
             source_index = self.proxy_model.mapToSource(
                 self.view.currentIndex()
@@ -1009,7 +1022,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         data = self.model.data(data_index, Qt.UserRole + 1)
         if data:
             path = data["name"]
-            filename = os.path.relpath(path, self.root_prefix)
+            filename = os.path.relpath(path, self.root_prefix[self.server_id])
             result = QMessageBox.warning(
                 self,
                 _("Delete"),
@@ -1037,7 +1050,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         data = self.model.data(data_index, Qt.UserRole + 1)
         if data:
             path = data["name"]
-            filename = os.path.relpath(path, self.root_prefix)
+            filename = os.path.relpath(path, self.root_prefix[self.server_id])
             is_file = data["type"] == "file"
             remote_filename = filename if is_file else f"{filename}.zip"
 
