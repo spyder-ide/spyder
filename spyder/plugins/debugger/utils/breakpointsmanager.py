@@ -177,7 +177,7 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
             block = self._breakpoint_blocks[block_id]
             if block.isValid():
                 data = block.userData()
-                if data and data.breakpoint:
+                if data and getattr(data, "breakpoint", None):
                     pruned_breakpoint_blocks[block_id] = block
                     line_number = block.blockNumber() + 1
                     breakpoints.append(

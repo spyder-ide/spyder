@@ -173,6 +173,18 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.download_thread.quit()
             self.download_thread.wait()
 
+    def handle_exception(self, exc):
+        """Cleanup if exception occurs"""
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+            self.progress_dialog = None
+
+        self.cleanup_threads()
+
+        self.set_status(NO_STATUS)
+
+        self.sig_exception_occurred.emit(exc)
+
     # ---- Check Update
 
     def start_check_update(self, startup=False):
@@ -205,7 +217,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self.update_thread = QThread(None)
         self.update_worker = WorkerUpdate(self.get_conf('check_stable_only'))
         self.update_worker.sig_exception_occurred.connect(
-            self.sig_exception_occurred
+            self.handle_exception
         )
         self.update_worker.sig_ready.connect(self._process_check_update)
         self.update_worker.sig_ready.connect(self.update_thread.quit)
@@ -346,7 +358,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.get_conf('check_stable_only')
         )
         self.update_updater_worker.sig_exception_occurred.connect(
-            self.sig_exception_occurred
+            self.handle_exception
         )
 
         self.update_updater_worker.sig_ready.connect(
@@ -393,7 +405,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
         self.download_thread = QThread(None)
         self.download_worker.sig_exception_occurred.connect(
-            self.sig_exception_occurred
+            self.handle_exception
         )
         self.download_worker.sig_ready.connect(self._confirm_install)
         self.download_worker.sig_ready.connect(self.download_thread.quit)
@@ -536,7 +548,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
     def _start_updater(self):
         """
         Start updater application.
-        
+
         For minor/micro updates, Spyder Updater provides the GUI showing
         progress for updating the runtime environment.
         """
