@@ -11,7 +11,6 @@ Explorer Main Widget.
 # Standard library imports
 import logging
 import os.path as osp
-import sys
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
