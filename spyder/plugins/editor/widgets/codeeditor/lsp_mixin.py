@@ -356,11 +356,11 @@ class LSPMixin:
         # It is an error if this happens because as per LSP specification
         # `didOpen` “must not be sent more than once without a corresponding
         # close notification send before”.
-        if not self.get_conf('update_on_save', section='outline_explorer'):
-            self._timer_sync_symbols_and_folding.timeout.connect(
-                self.sync_symbols_and_folding, Qt.UniqueConnection
-            )
-        self._update_first_time = True
+        #if not self.get_conf('update_on_save', section='outline_explorer'):
+        self._timer_sync_symbols_and_folding.timeout.connect(
+            self.sync_symbols_and_folding, Qt.UniqueConnection
+        )
+        #self._update_first_time = True
 
         cursor = self.textCursor()
         text = self.get_text_with_eol()
@@ -510,6 +510,11 @@ class LSPMixin:
             self.request_folding()
         if not self.symbols_in_sync:
             self.request_symbols()
+        if not self._update_first_time:
+            self._update_first_time = True
+            state = self.get_conf('update_on_save', section='outline_explorer')
+            if state:
+                self.update_outline_on_save(state)
 
     def process_code_analysis(self, diagnostics):
         """Process code analysis results in a thread."""
@@ -1347,7 +1352,8 @@ class LSPMixin:
         # Update symbols and folding on save to avoid sending requests for that
         # while typing, which improves performance.
         # Fixes spyder-ide/spyder#15078
-        if self.oe_proxy is not None and self.oe_proxy.update_on_save:
+        state = self.get_conf('update_on_save', section='outline_explorer')
+        if state:
             self.sync_symbols_and_folding()
 
         return params
