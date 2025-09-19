@@ -165,7 +165,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             if not conda_exe:
                 conda_exe = self.get_conf(
                     'conda_path',
-                    section='workingdir'
+                    section='main_interpreter'
                     )
                 if conda_exe is None:
                     # Raise error since we were unable to determine the path to

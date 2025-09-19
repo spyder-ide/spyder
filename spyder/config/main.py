@@ -150,7 +150,8 @@ DEFAULTS = [
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
-              'last_envs': {}
+              'last_envs': {},
+              'conda_path': ''
               }),
             ('ipython_console',
              {
@@ -700,7 +701,6 @@ NAME_MAP = {
         ('workingdir', [
             'console/fixed_directory',
             'startup/fixed_directory',
-            'conda_path',
           ]
          ),
         ('pylint', [

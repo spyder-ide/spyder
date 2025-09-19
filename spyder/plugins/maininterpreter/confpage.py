@@ -170,11 +170,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
         )
         conda_label.setWordWrap(True)
 
-        if os.name == 'nt':
-            filters = _("Executables") + " (*.exe)"
-        else:
-            filters = None
-
         conda_layout = QVBoxLayout()
         conda_layout.addWidget(conda_label)
         self.conda_path = self.create_browsefile(
@@ -182,16 +177,17 @@ class MainInterpreterConfigPage(PluginConfigPage):
             'conda_path'
         )
         self.conda_path.setStyleSheet("margin-left: 3px")
-        self.conda_path.lineEdit.setMinimumWidth(400)
+        self.conda_path.textbox.setMinimumWidth(400)
 
         conda_layout.addWidget(self.conda_path)
         conda_group.setLayout(conda_layout)
 
-        self.conda_edit = self.conda_path.lineEdit()
+        self.conda_edit = self.conda_path.textbox
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)
         vlayout.addWidget(umr_group)
+        vlayout.addWidget(conda_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
