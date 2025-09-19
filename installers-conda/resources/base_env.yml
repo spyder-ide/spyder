@@ -1,7 +1,7 @@
 channels:
   - conda-forge
 dependencies:
-  - python =3.12.11
+  - python =3.11.13
   - conda =25.7.0
   - menuinst =2.3.1
   - mamba =2.3.1  # Remove for Spyder 7
