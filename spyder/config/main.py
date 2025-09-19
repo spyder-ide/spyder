@@ -150,7 +150,8 @@ DEFAULTS = [
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
-              'last_envs': {}
+              'last_envs': {},
+              'conda_path': ''
               }),
             ('ipython_console',
              {
