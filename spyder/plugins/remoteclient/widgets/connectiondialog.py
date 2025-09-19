@@ -398,9 +398,16 @@ class ConnectionDialog(SidebarDialog):
             # connecting
             if info["status"] == ConnectionStatus.Active:
                 self._button_stop.setHidden(False)
-                self._button_remove_connection.setEnabled(False)
             else:
                 self._button_stop.setHidden(True)
+
+            if info["status"] in [
+                ConnectionStatus.Active,
+                ConnectionStatus.Connecting,
+                ConnectionStatus.Stopping,
+            ]:
+                self._button_remove_connection.setEnabled(False)
+            else:
                 self._button_remove_connection.setEnabled(True)
 
     def _set_buttons_for_env_creation_method(
