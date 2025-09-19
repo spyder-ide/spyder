@@ -1081,3 +1081,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self._on_remote_upload_file
             )
             self.sig_start_spinner_requested.emit()
+
+    def reset(self, server_id):
+        self.root_prefix[server_id] = None

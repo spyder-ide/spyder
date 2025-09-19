@@ -505,6 +505,8 @@ class ExplorerWidget(PluginMainWidget):
         """
         self.treewidget.update_history(directory)
 
+    def reset_remote_treewidget(self, server_id):
+        self.remote_treewidget.reset(server_id)
 
 # =============================================================================
 # Tests
