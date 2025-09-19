@@ -63,3 +63,7 @@ class DockablePlugins:
     Projects = 'project_explorer'
     Pylint = 'pylint'
     VariableExplorer = 'variable_explorer'
+
+
+class OptionalPlugins:
+    EnvManager = "spyder_env_manager"

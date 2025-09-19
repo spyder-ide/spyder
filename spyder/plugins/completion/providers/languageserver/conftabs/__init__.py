@@ -7,7 +7,6 @@
 """Language Server Protocol configuration tabs."""
 
 from .advanced import AdvancedConfigTab
-from .docstring import DocstringConfigTab
 from .formatting import FormattingConfigTab
 from .introspection import IntrospectionConfigTab
 from .linting import LintingConfigTab
@@ -19,7 +18,6 @@ TABS = [
     LintingConfigTab,
     IntrospectionConfigTab,
     FormattingConfigTab,
-    DocstringConfigTab,
     AdvancedConfigTab,
     OtherLanguagesConfigTab
 ]

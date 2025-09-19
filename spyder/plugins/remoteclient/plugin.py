@@ -23,7 +23,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
 )
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import OptionalPlugins, Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
@@ -71,7 +71,7 @@ class RemoteClient(SpyderPluginV2):
     """
 
     NAME = "remoteclient"
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, OptionalPlugins.EnvManager]
     CONF_SECTION = NAME
     CONTAINER_CLASS = RemoteClientContainer
     CONF_FILE = False
@@ -90,6 +90,36 @@ class RemoteClient(SpyderPluginV2):
 
     sig_version_mismatch = Signal(str, str)
 
+    # For remote envs
+    sig_create_env_requested = Signal(str, str, str, list)
+    """
+    Signal to request creating a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    env_name: str
+        Environment name.
+    python_version: str
+        Python version of the environment.
+    packages_list: list[str]
+        List of packages.
+    """
+
+    sig_import_env_requested = Signal(str, str, str)
+    """
+    Signal to request importing a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    import_file_path: str
+        Path to the file that will be used to import the environment.
+    env_name: str
+        Environment name.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -161,6 +191,20 @@ class RemoteClient(SpyderPluginV2):
         mainmenu.remove_item_from_application_menu(
             RemoteClientActions.ManageConnections,
             menu_id=ApplicationMenus.Tools,
+        )
+
+    @on_plugin_available(plugin=OptionalPlugins.EnvManager)
+    def on_envmanager_available(self):
+        envmanager = self.get_plugin(OptionalPlugins.EnvManager)
+        envmanager.sig_set_default_kernel_spec_requested.connect(
+            self.set_default_kernel_spec
+        )
+
+    @on_plugin_teardown(plugin=OptionalPlugins.EnvManager)
+    def on_envmanager_teardown(self):
+        envmanager = self.get_plugin(OptionalPlugins.EnvManager)
+        envmanager.sig_set_default_kernel_spec_requested.disconnect(
+            self.set_default_kernel_spec
         )
 
     # ---- Public API

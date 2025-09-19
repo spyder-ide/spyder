@@ -749,15 +749,25 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
-        self._style_sheet_changed()
-        self._syntax_style_changed(changed={})
         if reset:
-            self.reset(clear=True)
+            # Don't clear console and show a message instead to prevent
+            # removing important content from users' consoles.
+            # Fixes spyder-ide/spyder#9896
+            self.reset(clear=False)
+            self._append_plain_text(
+                "\n\nNote: Clearing the console is necessary to fully apply "
+                "the new syntax style you selected."
+            )
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
+        )
+        color_scheme = get_color_scheme(self.syntax_style)
+        self.set_kernel_configuration(
+            "traceback_highlight_style",
+            color_scheme,
         )
 
     def update_syspath(self, new_paths, prioritize):
@@ -1492,12 +1502,6 @@ overrided by the Sympy module (e.g. plot)
             color_scheme = get_color_scheme(self.syntax_style)
             self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
-            if changed is None:
-                return
-            self.set_kernel_configuration(
-                "traceback_highlight_style",
-                color_scheme,
-            )
         else:
             self._highlighter.set_style_sheet(self.style_sheet)
 

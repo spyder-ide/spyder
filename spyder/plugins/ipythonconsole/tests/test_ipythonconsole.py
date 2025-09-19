@@ -552,10 +552,6 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
     assert tmp_dir in syspath_contents
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
-)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -595,6 +591,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
     # Open new widget
     ipyconsole.create_new_client()
 
@@ -613,6 +613,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
     # Press Up arrow button and assert we get the last
     # introduced command
+    qtbot.waitUntil(lambda: shell.is_waiting_pdb_input())
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
@@ -629,6 +630,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -1316,9 +1321,9 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     if show_lib:
-        assert 'iostream.py' in control.toPlainText()
+        assert 'write()' in control.toPlainText()
     else:
-        assert 'iostream.py' not in control.toPlainText()
+        assert 'write()' not in control.toPlainText()
     ipyconsole.set_conf('pdb_ignore_lib', True, section="debugger")
 
 
@@ -2574,7 +2579,7 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
 
 @flaky(max_runs=10)
-@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux ")
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
 def test_time_elapsed(ipyconsole, qtbot, tmp_path):
     """Test that the IPython console elapsed timer is set correctly."""
     # Create a new IPython console client

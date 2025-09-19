@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/spyder-ide/qtconsole.git
 	branch = main
-	commit = 9a035aae9743b2f6ebc8e8ec95b17f8fddbfe89c
-	parent = edf6fef4424144bb2e237fe762c4ce2575c525f9
+	commit = a2f1c420ab5f63c2768a6dd86594b7b99ebe6554
+	parent = 68d58aafc0d6de964b66141be3a0862b5167b69d
 	method = merge
-	cmdver = 0.4.9
+	cmdver = 0.4.3

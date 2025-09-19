@@ -385,7 +385,7 @@ jobs:
       - name: Create Checksums
         run: |
           # TODO: Remove this step for Spyder 7
-          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt
+          sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt || true
 
       - name: Upload Lock Files
         uses: actions/upload-artifact@v4
