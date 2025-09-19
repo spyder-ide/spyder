@@ -210,8 +210,7 @@ class ConnectionDialog(SidebarDialog):
 
         if page.NEW_CONNECTION:
             # Save info provided by users
-            options = page.get_options()
-            self.update_configuration(options)
+            page.save_to_conf()
 
             # Add separator if needed
             if self.number_of_pages() == 1:
@@ -247,10 +246,10 @@ class ConnectionDialog(SidebarDialog):
 
             # Update connection info if necessary
             page.update_connection_info()
+            self.sig_server_updated.emit(page.host_id)
 
         # Inform container that a change in connections took place
         self.sig_connections_changed.emit()
-        self.sig_server_updated.emit(page.host_id)
 
     def _remove_connection_info(self):
         """
@@ -351,6 +350,9 @@ class ConnectionDialog(SidebarDialog):
         page.apply_button_enabled.connect(
             self._update_buttons_state_on_info_change
         )
+
+        if new:
+            page.save_server_id()
 
         self.add_page(page)
 

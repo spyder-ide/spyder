@@ -1100,8 +1100,18 @@ class ConnectionPage(BaseConnectionPage):
 
     # ---- Public API
     # -------------------------------------------------------------------------
+    def save_server_id(self):
+        servers = self.get_option("servers", default={})
+        servers[self.host_id] = {}
+        self.set_option("servers", servers)
+
     def remove_config_options(self):
         """Remove config options associated to this connection."""
+        # Remove current server from the dict of them
+        servers = self.get_option("servers")
+        servers.pop(self.host_id)
+        self.set_option("servers", servers)
+
         # Remove regular options
         options = [
             "auth_method",
