@@ -757,7 +757,7 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
     def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
         """
         Transform svg to a QPixmap that is scaled according to the factor set
-        by users in Preferences.
+        by users in Preferences. Uses the icon manager for proper colorization.
 
         Parameters
         ----------
@@ -771,6 +771,62 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
         if in_package:
             image_path = get_image_path(svg_file)
 
+        # Check if the SVG has colorization classes before colorization
+        should_colorize = False
+        try:
+            from spyder.utils.svg_colorizer import SVGColorize
+            svg_paths_data = SVGColorize.get_colored_paths(image_path, ima.ICON_COLORS)
+            if svg_paths_data and svg_paths_data.get('paths'):
+                # Check if any of the paths have colorization classes 
+                # (not just default colors)
+                paths = svg_paths_data.get('paths', [])
+                for path in paths:
+                    # If a path has a color that's not the default color, 
+                    # it means it has a colorization class
+                    default_color = ima.ICON_COLORS.get(
+                        'ICON_1', '#FF0000' # Get default color from palette
+                    )
+                    if path.get('color') != default_color:
+                        should_colorize = True
+                        break
+        except Exception:
+            should_colorize = False
+
+        # Try to use the icon manager for colorization only if SVG supports it
+        if should_colorize:
+            icon = ima.get_icon(svg_file)
+            if icon and not icon.isNull():
+                # Get the original SVG dimensions
+                pm = QPixmap(image_path)
+                width = pm.width()
+                height = pm.height()
+                
+                # Apply rescale factor
+                if rescale is not None:
+                    aspect_ratio = width / height
+                    width = int(width * rescale)
+                    height = int(width / aspect_ratio)
+                
+                # Get user's DPI scale factor
+                if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+                    scale_factors = self.get_conf(
+                        'high_dpi_custom_scale_factors',
+                        section='main'
+                    )
+                    scale_factor = float(scale_factors.split(":")[0])
+                else:
+                    scale_factor = 1
+                
+                # Get a properly scaled pixmap from the icon
+                # Use the maximum dimension to maintain aspect ratio
+                max_dimension = max(
+                    int(width * scale_factor), 
+                    int(height * scale_factor)
+                )
+                return icon.pixmap(max_dimension, max_dimension)
+
+        # Fallback to original method for icons without colorization classes
+        # Get user's DPI scale factor
         if self.get_conf('high_dpi_custom_scale_factor', section='main'):
             scale_factors = self.get_conf(
                 'high_dpi_custom_scale_factors',
