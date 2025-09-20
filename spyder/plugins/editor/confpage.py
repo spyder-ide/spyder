@@ -133,48 +133,46 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # ---- Source code tab
         # -- Setting widgets
         closepar_box = newcb(
-            _("Automatic insertion of parentheses, braces and brackets"),
+            _("Automatically insert closing parentheses, brackets and braces"),
             'close_parentheses')
         close_quotes_box = newcb(
-            _("Automatic insertion of closing quotes"),
+            _("Automatically insert closing quotes"),
             'close_quotes')
         add_colons_box = newcb(
-            _("Automatic insertion of colons after 'for', 'if', 'def', etc"),
+            _("Automatically insert colons after 'for', 'if', 'def', etc"),
             'add_colons')
         autounindent_box = newcb(
-            _("Automatic indentation after 'else', 'elif', etc."),
+            _("Automatically un-indent 'else', 'elif', etc"),
             'auto_unindent')
         tab_mode_box = newcb(
-            _("Tab always indent"),
+            _("Tab always indents"),
             'tab_always_indent', default=False,
-            tip=_("If enabled, pressing Tab will always indent,\n"
-                  "even when the cursor is not at the beginning\n"
-                  "of a line (when this option is enabled, code\n"
-                  "completion may be triggered using the alternate\n"
-                  "shortcut: Ctrl+Space)"))
+            tip=_("If enabled, pressing <kbd>Tab</kbd> will always indent,\n"
+                  "even when the cursor is not at the beginning of a line.\n"
+                  "Code completion can still be triggered using the shortcut\n"
+                  "<kbd>Ctrl+Space</kbd>."))
         strip_mode_box = newcb(
-            _("Automatic stripping of trailing spaces on changed lines"),
+            _("Strip trailing spaces on changed lines"),
             'strip_trailing_spaces_on_modify', default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
-                  "will have their trailing whitespace stripped when leaving them.\n"
+                  "will have trailing whitespace stripped when leaving them.\n"
                   "If disabled, only whitespace added by Spyder will be stripped."))
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
-            tip=_("Make the backspace key automatically remove the amount of "
+            tip=_("Make the backspace key automatically remove the number of "
                   "indentation characters set above."),
             default=True)
         self.removetrail_box = newcb(
-            _("Automatic removal of trailing spaces when saving files"),
+            _("Strip all trailing spaces on save"),
             'always_remove_trailing_spaces',
             default=False)
         self.add_newline_box = newcb(
-            _("Insert a newline at the end if one does not exist when saving "
-              "a file"),
+            _("Automatically add missing end-of-file newline on save"),
             'add_newline',
             default=False)
         self.remove_trail_newline_box = newcb(
-            _("Trim all newlines after the final one when saving a file"),
+            _("Strip blank lines at end of file on save"),
             'always_remove_trailing_newlines',
             default=False)
 
@@ -200,9 +198,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'check_eol_chars',
             default=True,
             tip=_(
-                "When opening a file containing mixed end-of-line characters "
-                "(which may raise syntax errors in the console on Windows), "
-                "Spyder will fix the file automatically."
+                "When opening a file containing mixed end-of-line characters\n"
+                "(which may raise syntax errors in the console on Windows),\n"
+                "Spyder will convert them automatically if enabled."
             ),
         )
         convert_eol_on_save_box = newcb(
