@@ -128,6 +128,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         highlight_group.setLayout(highlight_layout)
 
         # ---- Source code tab
+        # -- Setting widgets
         closepar_box = newcb(
             _("Automatic insertion of parentheses, braces and brackets"),
             'close_parentheses')
@@ -191,6 +192,33 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'tab_stop_width_spaces',
             default=4, min_=1, max_=8, step=1)
 
+        check_eol_box = newcb(
+            _("Fix mixed EOLs automatically and show warning"),
+            'check_eol_chars',
+            default=True,
+            tip=_(
+                "When opening a file containing mixed end-of-line characters "
+                "(which may raise syntax errors in the console on Windows), "
+                "Spyder will fix the file automatically."
+            ),
+        )
+        convert_eol_on_save_box = newcb(
+            _("Convert end-of-line characters to the following on save:"),
+            'convert_eol_on_save',
+            default=False,
+        )
+        eol_combo_choices = (
+            (_("LF (Linux/macOS)"), 'LF'),
+            (_("CRLF (Windows)"), 'CRLF'),
+            (_("CR (legacy Mac)"), 'CR'),
+        )
+        convert_eol_on_save_combo = self.create_combobox(
+            "",
+            eol_combo_choices,
+            'convert_eol_on_save_to',
+        )
+
+        # -- Buisness logic
         format_on_save = CONF.get(
             'completions',
             ('provider_configuration', 'lsp', 'values', 'format_on_save'),
@@ -209,6 +237,12 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indent_chars_box.combobox.currentIndexChanged.connect(
             enable_tabwidth_spin)
 
+        convert_eol_on_save_box.checkbox.toggled.connect(
+                convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_combo.setEnabled(
+                self.get_option('convert_eol_on_save'))
+
+        # -- Horizontal sub-layouts
         indent_tab_grid_layout = QGridLayout()
         indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
         indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
@@ -220,6 +254,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indent_tab_layout.addLayout(indent_tab_grid_layout)
         indent_tab_layout.addStretch(1)
 
+        eol_on_save_layout = QHBoxLayout()
+        eol_on_save_layout.addWidget(convert_eol_on_save_box)
+        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
+
+        # -- Vertical layout
         automatic_group = QGroupBox(_("Automatic changes"))
         automatic_layout = QVBoxLayout()
         automatic_layout.addWidget(closepar_box)
@@ -242,6 +281,12 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout.addWidget(ibackspace_box)
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
+
+        eol_group = QGroupBox(_("End-of-line characters"))
+        eol_layout = QVBoxLayout()
+        eol_layout.addWidget(check_eol_box)
+        eol_layout.addLayout(eol_on_save_layout)
+        eol_group.setLayout(eol_layout)
 
         # ---- Advanced tab
         # -- Templates
@@ -303,47 +348,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_layout.addWidget(docstring_label)
         docstring_layout.addWidget(docstring_combo)
         docstring_group.setLayout(docstring_layout)
-
-        # -- EOL
-        eol_group = QGroupBox(_("End-of-line characters"))
-        eol_label = QLabel(_("When opening a text file containing "
-                             "mixed end-of-line characters (this may "
-                             "raise syntax errors in the consoles "
-                             "on Windows platforms), Spyder may fix the "
-                             "file automatically."))
-        eol_label.setWordWrap(True)
-        check_eol_box = newcb(_("Fix automatically and show warning "
-                                "message box"),
-                              'check_eol_chars', default=True)
-        convert_eol_on_save_box = newcb(
-            _("Convert end-of-line characters to the following on save:"),
-            'convert_eol_on_save',
-            default=False
-        )
-        eol_combo_choices = (
-            (_("LF (Linux/macOS)"), 'LF'),
-            (_("CRLF (Windows)"), 'CRLF'),
-            (_("CR (legacy Mac)"), 'CR'),
-        )
-        convert_eol_on_save_combo = self.create_combobox(
-            "",
-            eol_combo_choices,
-            'convert_eol_on_save_to',
-        )
-        convert_eol_on_save_box.checkbox.toggled.connect(
-                convert_eol_on_save_combo.setEnabled)
-        convert_eol_on_save_combo.setEnabled(
-                self.get_option('convert_eol_on_save'))
-
-        eol_on_save_layout = QHBoxLayout()
-        eol_on_save_layout.addWidget(convert_eol_on_save_box)
-        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
-
-        eol_layout = QVBoxLayout()
-        eol_layout.addWidget(eol_label)
-        eol_layout.addWidget(check_eol_box)
-        eol_layout.addLayout(eol_on_save_layout)
-        eol_group.setLayout(eol_layout)
 
         # -- Multi-cursor
         multicursor_group = QGroupBox(_("Multi-Cursor"))
@@ -427,6 +431,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 automatic_group,
                 whitespace_group,
                 indentation_group,
+                eol_group,
             ],
         )
 
@@ -436,7 +441,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 templates_group,
                 autosave_group,
                 docstring_group,
-                eol_group,
                 multicursor_group,
                 multicursor_paste_group,
                 mouse_shortcuts_group,
