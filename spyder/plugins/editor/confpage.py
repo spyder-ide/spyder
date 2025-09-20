@@ -50,18 +50,23 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         show_filename_box = newcb(
-            _("Show full file name on top of tab bar"),
+            _("Show full file path above editor"),
             'show_filename_toolbar'
         )
         showclassfuncdropdown_box = newcb(
-                _("Show selector for classes and functions"),
+                _("Show class/function selector"),
                 'show_class_func_dropdown')
+        scroll_past_end_box = newcb(_("Allow scrolling past file end"),
+                                    'scroll_past_end')
         showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
         showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
-        breakpoints_box = newcb(_("Show breakpoints"), 'editor_debugger_panel',
-                                section='debugger')
+        breakpoints_box = newcb(
+            _("Show debugger breakpoints"),
+            'editor_debugger_panel',
+            section='debugger',
+        )
         todolist_box = newcb(
             _("Show code annotations"),
             'todo_list',
@@ -76,11 +81,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
-        scroll_past_end_box = newcb(_("Scroll past the end"),
-                                    'scroll_past_end')
-
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
+
         occurrence_spin = self.create_spinbox(
             "", _(" ms"),
             'occurrence_highlighting/timeout',
