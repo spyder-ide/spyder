@@ -62,6 +62,16 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(_("Show breakpoints"), 'editor_debugger_panel',
                                 section='debugger')
+        todolist_box = newcb(
+            _("Show code annotations"),
+            'todo_list',
+            tip=_(
+                "Display a marker to the left of line numbers when the "
+                "following annotations appear at the beginning of a comment: "
+                "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
+                "!!!, ???</tt>"
+            ),
+        )
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
@@ -107,6 +117,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         helpers_layout.addWidget(showcodefolding_box)
         helpers_layout.addWidget(linenumbers_box)
         helpers_layout.addWidget(breakpoints_box)
+        helpers_layout.addWidget(todolist_box)
         helpers_group.setLayout(helpers_layout)
 
         highlight_group = QGroupBox(_("Highlight"))
@@ -293,23 +304,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_layout.addWidget(docstring_combo)
         docstring_group.setLayout(docstring_layout)
 
-        # -- Annotations
-        annotations_group = QGroupBox(_("Annotations"))
-        annotations_label = QLabel(
-            _("Display a marker to the left of line numbers when the "
-              "following annotations appear at the beginning of a comment: "
-              "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
-              "!!!, ???</tt>"))
-        annotations_label.setWordWrap(True)
-        todolist_box = newcb(
-            _("Display code annotations"),
-            'todo_list')
-
-        annotations_layout = QVBoxLayout()
-        annotations_layout.addWidget(annotations_label)
-        annotations_layout.addWidget(todolist_box)
-        annotations_group.setLayout(annotations_layout)
-
         # -- EOL
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
@@ -437,10 +431,16 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         self.create_tab(
-            _("Advanced settings"),
-            [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group, multicursor_group,
-             multicursor_paste_group, mouse_shortcuts_group]
+            _("Advanced"),
+            [
+                templates_group,
+                autosave_group,
+                docstring_group,
+                eol_group,
+                multicursor_group,
+                multicursor_paste_group,
+                mouse_shortcuts_group,
+            ],
         )
 
     @on_conf_change(
