@@ -290,9 +290,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # ---- Advanced tab
         # -- Templates
-        templates_group = QGroupBox(_('Templates'))
+        templates_group = QGroupBox(_('Template'))
         template_btn = self.create_button(
-            text=_("Edit template for new files"),
+            text=_("Edit new file template"),
             callback=self.plugin.edit_template,
             set_modified_on_click=True
         )
@@ -305,7 +305,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # -- Autosave
         autosave_group = QGroupBox(_('Autosave'))
         autosave_checkbox = newcb(
-            _('Automatically save a copy of files with unsaved changes'),
+            _('Automatically save a backup copy of unsaved files'),
             'autosave_enabled')
         autosave_spinbox = self.create_spinbox(
             _('Autosave interval: '),
@@ -320,28 +320,33 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autosave_group.setLayout(autosave_layout)
 
         # -- Docstring
-        docstring_group = QGroupBox(_('Docstring type'))
+        docstring_group = QGroupBox(_('Docstring style'))
 
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
         sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Here you can select the type of docstrings ({}, {} or {}) you "
-              "want the editor to automatically introduce when pressing "
-              "<tt>{}</tt> after a function, method or class "
-              "declaration.").format(
-                  numpy_url, googledoc_url, sphinx_url, DOCSTRING_SHORTCUT)
+            _("Select the style of docstrings ({numpy}, {google} or {sphinx}) "
+              "to generate when pressing <kbd>{shortcut}</kbd> after a "
+              "function, method or class declaration").format(
+                  numpy=numpy_url,
+                  google=googledoc_url,
+                  sphinx=sphinx_url,
+                  shortcut=DOCSTRING_SHORTCUT,
+              ),
         )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
 
-        docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
-                                   (_("Google"), 'Googledoc'),
-                                   (_("Sphinx"), 'Sphinxdoc'),)
+        docstring_combo_choices = (
+            (_("Numpy"), 'Numpydoc'),
+            (_("Google"), 'Googledoc'),
+            (_("Sphinx"), 'Sphinxdoc'),
+        )
         docstring_combo = self.create_combobox(
-            _("Type:"),
+            _("Style:"),
             docstring_combo_choices,
-            'docstring_type'
+            'docstring_type',
         )
 
         docstring_layout = QVBoxLayout()
@@ -350,24 +355,26 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_group.setLayout(docstring_layout)
 
         # -- Multi-cursor
-        multicursor_group = QGroupBox(_("Multi-Cursor"))
+        multicursor_group = QGroupBox(_("Multi-cursor"))
         multicursor_label = QLabel(
-            _("Enable adding multiple cursors for simultaneous editing. "
-              "Additional cursors and a column of cursors can be added using "
-              "the mouse shortcuts that can be configured below.")
+            _("Shortcuts for multi-cursor can be configured "
+              "in the Mouse Shortcuts section below")
         )
         multicursor_label.setWordWrap(True)
         multicursor_box = newcb(
-            _("Enable Multi-Cursor "),
-            'multicursor_support')
+            _("Enable multi-cursor support"),
+            'multicursor_support',
+            tip=_("Allows adding additional cursors and columns of cursors "
+                  "for simultaneous editing"),
+        )
 
         multicursor_layout = QVBoxLayout()
         multicursor_layout.addWidget(multicursor_label)
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 
-        # -- Multicursor Paste
-        multicursor_paste_group = QGroupBox(_("Multi-Cursor paste behavior"))
+        # -- Multi-cursor paste
+        multicursor_paste_group = QGroupBox(_("Multi-cursor paste behavior"))
         multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
 
         entire_clip_radio = self.create_radiobutton(
@@ -377,7 +384,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
         conditional_spread_radio = self.create_radiobutton(
             _(
-                "Paste one line per cursor if the number of of lines and cursors "
+                "Paste one line per cursor if the number of lines and cursors "
                 "match"
             ),
             "multicursor_paste/conditional_spread",
@@ -404,7 +411,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_paste_layout.addWidget(always_spread_radio)
         multicursor_paste_group.setLayout(multicursor_paste_layout)
 
-        # -- Mouse Shortcuts
+        # -- Mouse shortcuts
         mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
         mouse_shortcuts_button = self.create_button(
             lambda: MouseShortcutEditor(self).exec_(),
