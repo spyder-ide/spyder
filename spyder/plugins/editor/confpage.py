@@ -62,12 +62,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(_("Show breakpoints"), 'editor_debugger_panel',
                                 section='debugger')
-        blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
-        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         scroll_past_end_box = newcb(_("Scroll past the end"),
                                     'scroll_past_end')
 
@@ -95,17 +93,21 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         occurrence_layout.addLayout(occurrence_glayout)
         occurrence_layout.addStretch(1)
 
-        display_group = QGroupBox(_("Display"))
+        display_group = QGroupBox(_("Interface"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(show_filename_box)
         display_layout.addWidget(showclassfuncdropdown_box)
-        display_layout.addWidget(showindentguides_box)
-        display_layout.addWidget(showcodefolding_box)
-        display_layout.addWidget(linenumbers_box)
-        display_layout.addWidget(breakpoints_box)
-        display_layout.addWidget(blanks_box)
+        display_layout.addWidget(scroll_past_end_box)
         display_group.setLayout(display_layout)
+
+        helpers_group = QGroupBox(_("Helpers"))
+        helpers_layout = QVBoxLayout()
+        helpers_layout.addWidget(showindentguides_box)
+        helpers_layout.addWidget(showcodefolding_box)
+        helpers_layout.addWidget(linenumbers_box)
+        helpers_layout.addWidget(breakpoints_box)
+        helpers_group.setLayout(helpers_layout)
 
         highlight_group = QGroupBox(_("Highlight"))
         highlight_layout = QVBoxLayout()
@@ -113,12 +115,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         highlight_layout.addWidget(currentcell_box)
         highlight_layout.addLayout(occurrence_layout)
         highlight_group.setLayout(highlight_layout)
-
-        other_group = QGroupBox(_("Other"))
-        other_layout = QVBoxLayout()
-        other_layout.addWidget(wrap_mode_box)
-        other_layout.addWidget(scroll_past_end_box)
-        other_group.setLayout(other_layout)
 
         # ---- Source code tab
         closepar_box = newcb(
@@ -419,8 +415,12 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # --- Tabs ---
         self.create_tab(
-            _("Interface"),
-            [display_group, highlight_group, other_group]
+            _("Display"),
+            [
+                display_group,
+                helpers_group,
+                highlight_group,
+            ],
         )
 
         self.create_tab(_("Source code"), [automatic_group, indentation_group])
