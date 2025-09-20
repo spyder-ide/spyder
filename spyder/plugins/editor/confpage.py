@@ -215,11 +215,15 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         automatic_layout.addWidget(autounindent_box)
         automatic_layout.addWidget(add_colons_box)
         automatic_layout.addWidget(close_quotes_box)
-        automatic_layout.addWidget(self.removetrail_box)
-        automatic_layout.addWidget(strip_mode_box)
-        automatic_layout.addWidget(self.add_newline_box)
-        automatic_layout.addWidget(self.remove_trail_newline_box)
         automatic_group.setLayout(automatic_layout)
+
+        whitespace_group = QGroupBox(_("Trailing whitespace"))
+        whitespace_layout = QVBoxLayout()
+        whitespace_layout.addWidget(self.removetrail_box)
+        whitespace_layout.addWidget(strip_mode_box)
+        whitespace_layout.addWidget(self.add_newline_box)
+        whitespace_layout.addWidget(self.remove_trail_newline_box)
+        whitespace_group.setLayout(whitespace_layout)
 
         indentation_group = QGroupBox(_("Indentation"))
         indentation_layout = QVBoxLayout()
@@ -423,7 +427,14 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             ],
         )
 
-        self.create_tab(_("Source code"), [automatic_group, indentation_group])
+        self.create_tab(
+            _("Source code"),
+            [
+                automatic_group,
+                whitespace_group,
+                indentation_group,
+            ],
+        )
 
         self.create_tab(
             _("Advanced settings"),
