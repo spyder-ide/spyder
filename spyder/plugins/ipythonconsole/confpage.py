@@ -284,13 +284,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         matplotlib_box.checkbox.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
-        # Run lines Group
+        # Run lines group
         run_lines_group = QGroupBox(_("Run code"))
-        run_lines_label = QLabel(_("You can run several lines of code when "
-                                   "a console is started. Please introduce "
-                                   "each one separated by semicolons and a "
-                                   "space, for example:<br>"
-                                   "<i>import os; import sys</i>"))
+        run_lines_label = QLabel(_(
+            "Enter a code snippit to run when a new console is started.\n"
+            "Separate multiple lines by semicolons, for example:<br>"
+            "<tt>import os; import sys</tt>"
+        ))
         run_lines_label.setWordWrap(True)
         run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
                                               '', alignment=Qt.Horizontal)
@@ -300,14 +300,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_layout.addWidget(run_lines_edit)
         run_lines_group.setLayout(run_lines_layout)
 
-        # Run file Group
+        # Run file group
         run_file_group = QGroupBox(_("Run a file"))
-        run_file_label = QLabel(_("You can also run a whole file at startup "
-                                  "instead of just some lines (This is "
-                                  "similar to have a PYTHONSTARTUP file)."))
+        run_file_label = QLabel(_(
+            "Specify a Python file to execute at startup, "
+            "similar to <tt>PYTHONSTARTUP</tt>"
+        ))
         run_file_label.setWordWrap(True)
-        file_radio = newcb(_("Use the following file:"),
-                           'startup/use_run_file', False)
+        file_radio = newcb(
+            _("Execute the following file:"), 'startup/use_run_file', False
+        )
         run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
         file_radio.checkbox.toggled.connect(run_file_browser.setEnabled)
