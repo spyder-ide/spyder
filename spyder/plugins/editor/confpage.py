@@ -50,29 +50,40 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # ---- Display tab
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         show_filename_box = newcb(
-            _("Show full file name on top of tab bar"),
+            _("Show full file path above editor"),
             'show_filename_toolbar'
         )
         showclassfuncdropdown_box = newcb(
-                _("Show selector for classes and functions"),
+                _("Show class/function selector"),
                 'show_class_func_dropdown')
+        scroll_past_end_box = newcb(_("Allow scrolling past file end"),
+                                    'scroll_past_end')
         showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
         showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
-        breakpoints_box = newcb(_("Show breakpoints"), 'editor_debugger_panel',
-                                section='debugger')
-        blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
+        breakpoints_box = newcb(
+            _("Show debugger breakpoints"),
+            'editor_debugger_panel',
+            section='debugger',
+        )
+        todolist_box = newcb(
+            _("Show code annotations"),
+            'todo_list',
+            tip=_(
+                "Display a marker to the left of line numbers when the "
+                "following annotations appear at the beginning of a comment: "
+                "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
+                "!!!, ???</tt> (and their lowercase variants)"
+            ),
+        )
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
                                 'highlight_current_cell')
-        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
-        scroll_past_end_box = newcb(_("Scroll past the end"),
-                                    'scroll_past_end')
-
         occurrence_box = newcb(_("Highlight occurrences after"),
                                'occurrence_highlighting')
+
         occurrence_spin = self.create_spinbox(
             "", _(" ms"),
             'occurrence_highlighting/timeout',
@@ -95,17 +106,22 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         occurrence_layout.addLayout(occurrence_glayout)
         occurrence_layout.addStretch(1)
 
-        display_group = QGroupBox(_("Display"))
+        display_group = QGroupBox(_("Interface"))
         display_layout = QVBoxLayout()
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(show_filename_box)
         display_layout.addWidget(showclassfuncdropdown_box)
-        display_layout.addWidget(showindentguides_box)
-        display_layout.addWidget(showcodefolding_box)
-        display_layout.addWidget(linenumbers_box)
-        display_layout.addWidget(breakpoints_box)
-        display_layout.addWidget(blanks_box)
+        display_layout.addWidget(scroll_past_end_box)
         display_group.setLayout(display_layout)
+
+        helpers_group = QGroupBox(_("Helpers"))
+        helpers_layout = QVBoxLayout()
+        helpers_layout.addWidget(showindentguides_box)
+        helpers_layout.addWidget(showcodefolding_box)
+        helpers_layout.addWidget(linenumbers_box)
+        helpers_layout.addWidget(breakpoints_box)
+        helpers_layout.addWidget(todolist_box)
+        helpers_group.setLayout(helpers_layout)
 
         highlight_group = QGroupBox(_("Highlight"))
         highlight_layout = QVBoxLayout()
@@ -114,56 +130,49 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         highlight_layout.addLayout(occurrence_layout)
         highlight_group.setLayout(highlight_layout)
 
-        other_group = QGroupBox(_("Other"))
-        other_layout = QVBoxLayout()
-        other_layout.addWidget(wrap_mode_box)
-        other_layout.addWidget(scroll_past_end_box)
-        other_group.setLayout(other_layout)
-
         # ---- Source code tab
+        # -- Setting widgets
         closepar_box = newcb(
-            _("Automatic insertion of parentheses, braces and brackets"),
+            _("Automatically insert closing parentheses, brackets and braces"),
             'close_parentheses')
         close_quotes_box = newcb(
-            _("Automatic insertion of closing quotes"),
+            _("Automatically insert closing quotes"),
             'close_quotes')
         add_colons_box = newcb(
-            _("Automatic insertion of colons after 'for', 'if', 'def', etc"),
+            _("Automatically insert colons after 'for', 'if', 'def', etc"),
             'add_colons')
         autounindent_box = newcb(
-            _("Automatic indentation after 'else', 'elif', etc."),
+            _("Automatically un-indent 'else', 'elif', etc"),
             'auto_unindent')
         tab_mode_box = newcb(
-            _("Tab always indent"),
+            _("Tab always indents"),
             'tab_always_indent', default=False,
-            tip=_("If enabled, pressing Tab will always indent,\n"
-                  "even when the cursor is not at the beginning\n"
-                  "of a line (when this option is enabled, code\n"
-                  "completion may be triggered using the alternate\n"
-                  "shortcut: Ctrl+Space)"))
+            tip=_("If enabled, pressing <kbd>Tab</kbd> will always indent,\n"
+                  "even when the cursor is not at the beginning of a line.\n"
+                  "Code completion can still be triggered using the shortcut\n"
+                  "<kbd>Ctrl+Space</kbd>."))
         strip_mode_box = newcb(
-            _("Automatic stripping of trailing spaces on changed lines"),
+            _("Strip trailing spaces on changed lines"),
             'strip_trailing_spaces_on_modify', default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
-                  "will have their trailing whitespace stripped when leaving them.\n"
+                  "will have trailing whitespace stripped when leaving them.\n"
                   "If disabled, only whitespace added by Spyder will be stripped."))
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
-            tip=_("Make the backspace key automatically remove the amount of "
+            tip=_("Make the backspace key automatically remove the number of "
                   "indentation characters set above."),
             default=True)
         self.removetrail_box = newcb(
-            _("Automatic removal of trailing spaces when saving files"),
+            _("Strip all trailing spaces on save"),
             'always_remove_trailing_spaces',
             default=False)
         self.add_newline_box = newcb(
-            _("Insert a newline at the end if one does not exist when saving "
-              "a file"),
+            _("Automatically add missing end-of-file newline on save"),
             'add_newline',
             default=False)
         self.remove_trail_newline_box = newcb(
-            _("Trim all newlines after the final one when saving a file"),
+            _("Strip blank lines at end of file on save"),
             'always_remove_trailing_newlines',
             default=False)
 
@@ -184,6 +193,33 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'tab_stop_width_spaces',
             default=4, min_=1, max_=8, step=1)
 
+        check_eol_box = newcb(
+            _("Fix mixed end-of-lines automatically and show warning dialog"),
+            'check_eol_chars',
+            default=True,
+            tip=_(
+                "When opening a file containing mixed end-of-line characters\n"
+                "(which may raise syntax errors in the console on Windows),\n"
+                "Spyder will convert them automatically if enabled."
+            ),
+        )
+        convert_eol_on_save_box = newcb(
+            _("Convert end-of-line characters to the following on save:"),
+            'convert_eol_on_save',
+            default=False,
+        )
+        eol_combo_choices = (
+            ("LF (Linux/macOS)", 'LF'),
+            ("CRLF (Windows)", 'CRLF'),
+            (_("CR (legacy Mac)"), 'CR'),
+        )
+        convert_eol_on_save_combo = self.create_combobox(
+            "",
+            eol_combo_choices,
+            'convert_eol_on_save_to',
+        )
+
+        # -- Buisness logic
         format_on_save = CONF.get(
             'completions',
             ('provider_configuration', 'lsp', 'values', 'format_on_save'),
@@ -202,6 +238,12 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indent_chars_box.combobox.currentIndexChanged.connect(
             enable_tabwidth_spin)
 
+        convert_eol_on_save_box.checkbox.toggled.connect(
+                convert_eol_on_save_combo.setEnabled)
+        convert_eol_on_save_combo.setEnabled(
+                self.get_option('convert_eol_on_save'))
+
+        # -- Horizontal sub-layouts
         indent_tab_grid_layout = QGridLayout()
         indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
         indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
@@ -213,17 +255,26 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indent_tab_layout.addLayout(indent_tab_grid_layout)
         indent_tab_layout.addStretch(1)
 
+        eol_on_save_layout = QHBoxLayout()
+        eol_on_save_layout.addWidget(convert_eol_on_save_box)
+        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
+
+        # -- Vertical layout
         automatic_group = QGroupBox(_("Automatic changes"))
         automatic_layout = QVBoxLayout()
         automatic_layout.addWidget(closepar_box)
         automatic_layout.addWidget(autounindent_box)
         automatic_layout.addWidget(add_colons_box)
         automatic_layout.addWidget(close_quotes_box)
-        automatic_layout.addWidget(self.removetrail_box)
-        automatic_layout.addWidget(strip_mode_box)
-        automatic_layout.addWidget(self.add_newline_box)
-        automatic_layout.addWidget(self.remove_trail_newline_box)
         automatic_group.setLayout(automatic_layout)
+
+        whitespace_group = QGroupBox(_("Trailing whitespace"))
+        whitespace_layout = QVBoxLayout()
+        whitespace_layout.addWidget(self.removetrail_box)
+        whitespace_layout.addWidget(strip_mode_box)
+        whitespace_layout.addWidget(self.add_newline_box)
+        whitespace_layout.addWidget(self.remove_trail_newline_box)
+        whitespace_group.setLayout(whitespace_layout)
 
         indentation_group = QGroupBox(_("Indentation"))
         indentation_layout = QVBoxLayout()
@@ -232,11 +283,17 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
 
+        eol_group = QGroupBox(_("End-of-line characters"))
+        eol_layout = QVBoxLayout()
+        eol_layout.addWidget(check_eol_box)
+        eol_layout.addLayout(eol_on_save_layout)
+        eol_group.setLayout(eol_layout)
+
         # ---- Advanced tab
         # -- Templates
-        templates_group = QGroupBox(_('Templates'))
+        templates_group = QGroupBox(_('Template'))
         template_btn = self.create_button(
-            text=_("Edit template for new files"),
+            text=_("Edit new file template"),
             callback=self.plugin.edit_template,
             set_modified_on_click=True
         )
@@ -249,7 +306,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # -- Autosave
         autosave_group = QGroupBox(_('Autosave'))
         autosave_checkbox = newcb(
-            _('Automatically save a copy of files with unsaved changes'),
+            _('Automatically save a backup copy of unsaved files'),
             'autosave_enabled')
         autosave_spinbox = self.create_spinbox(
             _('Autosave interval: '),
@@ -264,28 +321,33 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autosave_group.setLayout(autosave_layout)
 
         # -- Docstring
-        docstring_group = QGroupBox(_('Docstring type'))
+        docstring_group = QGroupBox(_('Docstring style'))
 
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
         sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Here you can select the type of docstrings ({}, {} or {}) you "
-              "want the editor to automatically introduce when pressing "
-              "<tt>{}</tt> after a function, method or class "
-              "declaration.").format(
-                  numpy_url, googledoc_url, sphinx_url, DOCSTRING_SHORTCUT)
+            _("Select the style of docstrings ({numpy}, {google} or {sphinx}) "
+              "to generate when pressing <kbd>{shortcut}</kbd> after a "
+              "function, method or class declaration").format(
+                  numpy=numpy_url,
+                  google=googledoc_url,
+                  sphinx=sphinx_url,
+                  shortcut=DOCSTRING_SHORTCUT,
+              ),
         )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
 
-        docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
-                                   (_("Google"), 'Googledoc'),
-                                   (_("Sphinx"), 'Sphinxdoc'),)
+        docstring_combo_choices = (
+            ("Numpy", 'Numpydoc'),
+            ("Google", 'Googledoc'),
+            ("Sphinx", 'Sphinxdoc'),
+        )
         docstring_combo = self.create_combobox(
-            _("Type:"),
+            _("Style:"),
             docstring_combo_choices,
-            'docstring_type'
+            'docstring_type',
         )
 
         docstring_layout = QVBoxLayout()
@@ -293,83 +355,21 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_layout.addWidget(docstring_combo)
         docstring_group.setLayout(docstring_layout)
 
-        # -- Annotations
-        annotations_group = QGroupBox(_("Annotations"))
-        annotations_label = QLabel(
-            _("Display a marker to the left of line numbers when the "
-              "following annotations appear at the beginning of a comment: "
-              "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
-              "!!!, ???</tt>"))
-        annotations_label.setWordWrap(True)
-        todolist_box = newcb(
-            _("Display code annotations"),
-            'todo_list')
-
-        annotations_layout = QVBoxLayout()
-        annotations_layout.addWidget(annotations_label)
-        annotations_layout.addWidget(todolist_box)
-        annotations_group.setLayout(annotations_layout)
-
-        # -- EOL
-        eol_group = QGroupBox(_("End-of-line characters"))
-        eol_label = QLabel(_("When opening a text file containing "
-                             "mixed end-of-line characters (this may "
-                             "raise syntax errors in the consoles "
-                             "on Windows platforms), Spyder may fix the "
-                             "file automatically."))
-        eol_label.setWordWrap(True)
-        check_eol_box = newcb(_("Fix automatically and show warning "
-                                "message box"),
-                              'check_eol_chars', default=True)
-        convert_eol_on_save_box = newcb(
-            _("Convert end-of-line characters to the following on save:"),
-            'convert_eol_on_save',
-            default=False
-        )
-        eol_combo_choices = (
-            (_("LF (Linux/macOS)"), 'LF'),
-            (_("CRLF (Windows)"), 'CRLF'),
-            (_("CR (legacy Mac)"), 'CR'),
-        )
-        convert_eol_on_save_combo = self.create_combobox(
-            "",
-            eol_combo_choices,
-            'convert_eol_on_save_to',
-        )
-        convert_eol_on_save_box.checkbox.toggled.connect(
-                convert_eol_on_save_combo.setEnabled)
-        convert_eol_on_save_combo.setEnabled(
-                self.get_option('convert_eol_on_save'))
-
-        eol_on_save_layout = QHBoxLayout()
-        eol_on_save_layout.addWidget(convert_eol_on_save_box)
-        eol_on_save_layout.addWidget(convert_eol_on_save_combo)
-
-        eol_layout = QVBoxLayout()
-        eol_layout.addWidget(eol_label)
-        eol_layout.addWidget(check_eol_box)
-        eol_layout.addLayout(eol_on_save_layout)
-        eol_group.setLayout(eol_layout)
-
         # -- Multi-cursor
-        multicursor_group = QGroupBox(_("Multi-Cursor"))
-        multicursor_label = QLabel(
-            _("Enable adding multiple cursors for simultaneous editing. "
-              "Additional cursors and a column of cursors can be added using "
-              "the mouse shortcuts that can be configured below.")
-        )
-        multicursor_label.setWordWrap(True)
+        multicursor_group = QGroupBox(_("Multi-cursor"))
         multicursor_box = newcb(
-            _("Enable Multi-Cursor "),
-            'multicursor_support')
+            _("Enable multi-cursor support"),
+            'multicursor_support',
+            tip=_("Allows adding additional cursors and columns of cursors "
+                  "for simultaneous editing"),
+        )
 
         multicursor_layout = QVBoxLayout()
-        multicursor_layout.addWidget(multicursor_label)
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 
-        # -- Multicursor Paste
-        multicursor_paste_group = QGroupBox(_("Multi-Cursor paste behavior"))
+        # -- Multi-cursor paste
+        multicursor_paste_group = QGroupBox(_("Multi-cursor paste behavior"))
         multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
 
         entire_clip_radio = self.create_radiobutton(
@@ -379,7 +379,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
         conditional_spread_radio = self.create_radiobutton(
             _(
-                "Paste one line per cursor if the number of of lines and cursors "
+                "Paste one line per cursor if the number of lines and cursors "
                 "match"
             ),
             "multicursor_paste/conditional_spread",
@@ -406,7 +406,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_paste_layout.addWidget(always_spread_radio)
         multicursor_paste_group.setLayout(multicursor_paste_layout)
 
-        # -- Mouse Shortcuts
+        # -- Mouse shortcuts
         mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
         mouse_shortcuts_button = self.create_button(
             lambda: MouseShortcutEditor(self).exec_(),
@@ -419,17 +419,34 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # --- Tabs ---
         self.create_tab(
-            _("Interface"),
-            [display_group, highlight_group, other_group]
+            _("Display"),
+            [
+                display_group,
+                helpers_group,
+                highlight_group,
+            ],
         )
 
-        self.create_tab(_("Source code"), [automatic_group, indentation_group])
+        self.create_tab(
+            _("Source code"),
+            [
+                automatic_group,
+                whitespace_group,
+                indentation_group,
+                eol_group,
+            ],
+        )
 
         self.create_tab(
-            _("Advanced settings"),
-            [templates_group, autosave_group, docstring_group,
-             annotations_group, eol_group, multicursor_group,
-             multicursor_paste_group, mouse_shortcuts_group]
+            _("Advanced"),
+            [
+                templates_group,
+                autosave_group,
+                docstring_group,
+                multicursor_group,
+                multicursor_paste_group,
+                mouse_shortcuts_group,
+            ],
         )
 
     @on_conf_change(
