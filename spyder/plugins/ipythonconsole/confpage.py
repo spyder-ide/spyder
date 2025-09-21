@@ -141,32 +141,33 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         output_layout.addWidget(sympy_box)
         output_group.setLayout(output_layout)
 
-        # --- Graphics ---
-        # Pylab Group
-        pylab_group = QGroupBox(_("Support for graphics (Matplotlib)"))
-        pylab_box = newcb(_("Activate support"), 'pylab')
-        autoload_pylab_box = newcb(
-            _("Automatically load Matplotlib and NumPy modules"),
+        # --- Plotting ---
+        # Matplotlib group
+        matplotlib_group = QGroupBox(_("Matplotlib support"))
+        matplotlib_box = newcb(_("Activate support"), 'pylab')
+        autoload_matplotlib_box = newcb(
+            _("Automatically import NumPy and Matplotlib modules"),
             'pylab/autoload',
             tip=_(
-                "This lets you generate graphics and work with arrays "
-                "<b>without</b> importing the commands to do it. It's also "
-                "useful to develop GUIs with Spyder."
+                "This is a convinience to use NumPy and Matplotlib\n"
+                "in the Console without explictly importing the modules."
             )
         )
-        autoload_pylab_box.setEnabled(self.get_option('pylab'))
-        pylab_box.checkbox.toggled.connect(autoload_pylab_box.setEnabled)
+        autoload_matplotlib_box.setEnabled(self.get_option('pylab'))
+        matplotlib_box.checkbox.toggled.connect(
+            autoload_matplotlib_box.setEnabled
+        )
 
-        pylab_layout = QVBoxLayout()
-        pylab_layout.addWidget(pylab_box)
-        pylab_layout.addWidget(autoload_pylab_box)
-        pylab_group.setLayout(pylab_layout)
+        matplotlib_layout = QVBoxLayout()
+        matplotlib_layout.addWidget(matplotlib_box)
+        matplotlib_layout.addWidget(autoload_matplotlib_box)
+        matplotlib_group.setLayout(matplotlib_layout)
 
-        # Pylab backend Group
+        # Graphics backend group
         inline = _("Inline")
         automatic = _("Automatic")
         backend_group = QGroupBox(_("Graphics backend"))
-        bend_label = QLabel(_("Decide how Matplotlib graphics are displayed"))
+        backend_label = QLabel(_("Choose how figures are displayed"))
 
         backends = [
             (inline, 'inline'),
@@ -180,37 +181,48 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backends = tuple(backends)
 
         backend_box = self.create_combobox(
-            _("Backend:") + "   ",
+            _("Backend:"),
             backends,
-            'pylab/backend', default='inline',
+            'pylab/backend',
+            default='inline',
             tip=_(
-                "If unsure, select <b>%s</b> to put graphics in the Plots "
-                "pane or <b>%s</b> to interact with them (through zooming and "
-                "panning) in a separate window."
-            ) % (inline, automatic)
+                "If unsure, select {inline} to show figures in the Plots pane"
+                "\nor {auto} to interact with them (zoom and pan) "
+                "in a new window."
+            ).format(inline=inline, auto=automatic),
         )
 
         backend_layout = QVBoxLayout()
-        backend_layout.addWidget(bend_label)
+        backend_layout.addWidget(backend_label)
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
         backend_group.setEnabled(self.get_option('pylab'))
-        pylab_box.checkbox.toggled.connect(backend_group.setEnabled)
+        matplotlib_box.checkbox.toggled.connect(backend_group.setEnabled)
 
-        # Inline backend Group
+        # Inline backend group
         inline_group = QGroupBox(_("Inline backend"))
-        inline_label = QLabel(_("Decide how to render the figures created by "
-                                "this backend"))
+        inline_label = QLabel(_("Settings for figures in the Plots pane"))
         inline_label.setWordWrap(True)
         formats = (("PNG", 'png'), ("SVG", 'svg'))
-        format_box = self.create_combobox(_("Format:")+"   ", formats,
-                                          'pylab/inline/figure_format',
-                                          default='png')
+        format_box = self.create_combobox(
+            _("Format:") + "   ",
+            formats,
+            'pylab/inline/figure_format',
+            default='png',
+            tip=_(
+                "PNG is more widely supported, "
+                "while SVG is resolution-independent and easier to edit"
+            ),
+        )
         resolution_spin = self.create_spinbox(
-                        _("Resolution:")+"  ", " "+_("dpi"),
-                        'pylab/inline/resolution', min_=50, max_=999, step=0.1,
-                        tip=_("Only used when the format is PNG. Default is "
-                              "72"))
+            _("Resolution:") + "  ",
+            " " + _("DPI"),
+            'pylab/inline/resolution',
+            min_=50,
+            max_=999,
+            step=0.1,
+            tip=_("Only used when the format is PNG. Default is 144."),
+        )
         width_spin = self.create_spinbox(
                           _("Width:")+"  ", " "+_("inches"),
                           'pylab/inline/width', min_=2, max_=20, step=1,
@@ -235,24 +247,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             min_=0,
             max_=0.3,
             step=0.01,
-            tip=_("The position of the bottom edge of the subplots,\nas a "
-                  "fraction of the figure height.\nThe default is 0.11.")
+            tip=_("The position of the bottom edge of the subplots,\n"
+                  "as a fraction of the figure height (default is 0.11).")
         )
         bottom_spin.spinbox.setDecimals(2)
         bbox_inches_box = newcb(
             _("Use a tight layout for inline plots"),
             'pylab/inline/bbox_inches',
-            tip=_("Sets bbox_inches to \"tight\" when\n"
-                  "plotting inline with matplotlib.\n"
-                  "When enabled, can cause discrepancies\n"
-                  "between the image displayed inline and\n"
-                  "that created using savefig."))
+            tip=_("Sets 'bbox_inches' to 'tight' for inline plots.\n"
+                  "When enabled, figures displayed in the Plots pane\n"
+                  "may look different from those output with 'savefig'."))
 
         inline_v_layout = QVBoxLayout()
         inline_v_layout.addWidget(inline_label)
         inline_layout = QGridLayout()
         inline_layout.addWidget(format_box.label, 1, 0)
         inline_layout.addWidget(format_box.combobox, 1, 1)
+        inline_layout.addWidget(format_box.help_label, 1, 3)
 
         spinboxes = [resolution_spin, width_spin, height_spin,
                      fontsize_spin, bottom_spin]
@@ -270,7 +281,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_v_layout.addLayout(inline_h_layout)
         inline_group.setLayout(inline_v_layout)
         inline_group.setEnabled(self.get_option('pylab'))
-        pylab_box.checkbox.toggled.connect(inline_group.setEnabled)
+        matplotlib_box.checkbox.toggled.connect(inline_group.setEnabled)
 
         # --- Startup ---
         # Run lines Group
@@ -409,8 +420,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         )
 
         self.create_tab(
-            _("Graphics"),
-            [pylab_group, backend_group, inline_group]
+            _("Plotting"),
+            [matplotlib_group, backend_group, inline_group]
         )
 
         self.create_tab(
