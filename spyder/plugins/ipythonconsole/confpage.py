@@ -101,8 +101,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_layout.addWidget(greedy_box)
         comp_group.setLayout(comp_layout)
 
-        # Source Code Group
-        source_code_group = QGroupBox(_("Source code"))
+        # Output group
+        output_group = QGroupBox(_("Output"))
 
         # Note: The maximum here is set to a relatively small value because
         # larger ones make Spyder sluggish.
@@ -113,10 +113,20 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                 tip=_("Set the maximum number of lines of text shown in the\n"
                       "console before truncation. Specifying -1 disables it\n"
                       "(not recommended!)"))
+        sympy_box = newcb(
+            _("Render SymPy symbolic math"),
+            "symbolic_math",
+            tip=_(
+                "Pretty-print the outputs of SymPy symbolic computations\n"
+                "(requires SymPy installed in the Console environment).\n"
+                "Refer to SymPy's documentation for more on using it."
+            ),
+        )
 
-        source_code_layout = QVBoxLayout()
-        source_code_layout.addWidget(buffer_spin)
-        source_code_group.setLayout(source_code_layout)
+        output_layout = QVBoxLayout()
+        output_layout.addWidget(buffer_spin)
+        output_layout.addWidget(sympy_box)
+        output_group.setLayout(output_layout)
 
         # --- Graphics ---
         # Pylab Group
@@ -336,24 +346,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autoreload_layout.addWidget(autoreload_box)
         autoreload_group.setLayout(autoreload_layout)
 
-        # Sympy group
-        sympy_group = QGroupBox(_("Symbolic mathematics"))
-        sympy_label = QLabel(_("Perfom symbolic operations in the console "
-                               "(e.g. integrals, derivatives, vector "
-                               "calculus, etc) and get the outputs in a "
-                               "beautifully printed style (it requires the "
-                               "Sympy module)."))
-        sympy_label.setWordWrap(True)
-        sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
-                          tip=_("This option loads the Sympy library to work "
-                                "with.<br>Please refer to its documentation "
-                                "to learn how to use it."))
-
-        sympy_layout = QVBoxLayout()
-        sympy_layout.addWidget(sympy_label)
-        sympy_layout.addWidget(sympy_box)
-        sympy_group.setLayout(sympy_layout)
-
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
         prompts_label = QLabel(_("Modify how Input and Output prompts are "
@@ -400,7 +392,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # --- Tabs organization ---
         self.create_tab(
             _("Interface"),
-            [display_group, confirmations_group, comp_group, source_code_group]
+            [display_group, confirmations_group, comp_group, output_group]
         )
 
         self.create_tab(
@@ -415,6 +407,5 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         self.create_tab(
             _("Advanced settings"),
-            [autocall_group, autoreload_group,
-             sympy_group, prompts_group, windows_group]
+            [autocall_group, autoreload_group, prompts_group, windows_group]
         )
