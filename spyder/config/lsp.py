@@ -37,7 +37,7 @@ PYTHON_CONFIG = {
                     'maxLineLength': 79
                 },
                 'pyflakes': {
-                    'enabled': True
+                    "enabled": False
                 },
                 'autopep8': {
                     'enabled': True
@@ -122,7 +122,7 @@ PYTHON_CONFIG = {
                     'args': []
                 },
                 'flake8': {
-                    'enabled': False,
+                    "enabled": True,
                     'exclude': [],
                     'extendSelect': [],
                     'extendIgnore': [],
