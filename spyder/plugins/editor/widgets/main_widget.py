@@ -19,7 +19,6 @@ import os.path as osp
 from pathlib import Path
 import re
 import sys
-import time
 from typing import Dict, Optional
 import uuid
 
@@ -37,7 +36,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import _, get_conf_path
 from spyder.plugins.editor.api.panel import Panel
 from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
@@ -61,7 +59,6 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
 from spyder.plugins.run.api import (
     RunContext, RunConfigurationMetadata, RunConfiguration,
     SupportedExtensionContexts, ExtendedContext)
-from spyder.widgets.mixins import BaseEditMixin
 from spyder.widgets.printer import SpyderPrinter, SpyderPrintPreviewDialog
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
