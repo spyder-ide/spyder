@@ -323,23 +323,29 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # ---- Advanced settings ----
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
-        autocall_label = QLabel(_("Autocall makes IPython automatically call "
-                                  "any callable object even if you didn't "
-                                  "type explicit parentheses.<br>"
-                                  "For example, if you type <i>str 43</i> it "
-                                  "becomes <i>str(43)</i> automatically."))
+        autocall_label = QLabel(_(
+            "Implictly insert parethesis after any callable object, "
+            "treating anything following it as arguments.<br>"
+            "For example, typing <tt>print 'Number:', 42</tt> will execute "
+            "<tt>print('Number:', 42)</tt>."
+        ))
         autocall_label.setWordWrap(True)
 
         smart = _('Smart')
         full = _('Full')
         autocall_opts = ((_('Off'), 0), (smart, 1), (full, 2))
         autocall_box = self.create_combobox(
-                       _("Autocall:  "), autocall_opts, 'autocall', default=0,
-                       tip=_("On <b>%s</b> mode, Autocall is not applied if "
-                             "there are no arguments after the callable. On "
-                             "<b>%s</b> mode, all callable objects are "
-                             "automatically called (even if no arguments are "
-                             "present).") % (smart, full))
+            _("Autocall:  "),
+            autocall_opts,
+            'autocall',
+            default=0,
+            tip=_(
+                "In {smart} mode, Autocall is not applied if "
+                "there are no arguments after the callable.\n"
+                "In {full} mode, callable objects are called "
+                "even if no arguments are present."
+            ).format(smart=smart, full=full),
+        )
 
         autocall_layout = QVBoxLayout()
         autocall_layout.addWidget(autocall_label)
@@ -348,22 +354,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Autoreload group
         autoreload_group = QGroupBox(_("Autoreload"))
-        autoreload_label = QLabel(
-            _("Autoreload reloads modules automatically every time before "
-              "executing your Python code.<br>"
-              "This is a different mechanism than the User Module Reloader "
-              "(UMR) and it can be slow on Windows due to limitations of its "
-              "file system."
-            )
-        )
+        autoreload_label = QLabel(_(
+            "Reload imported modules automatically before running code. "
+            "This is a different mechanism than the User Module Reloader"
+            "and can be slow on Windows due to limitations of its file system."
+        ))
         autoreload_label.setWordWrap(True)
 
         autoreload_box = newcb(
             _("Use autoreload"),
             "autoreload",
             tip=_(
-                "This option enables the autoreload magic.<br>"
-                "Please refer to its documentation to learn how to use it."
+                "Enables the autoreload magic. "
+                "Refer to its documentation to learn how to use it."
             )
         )
 
@@ -374,23 +377,26 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
-        prompts_label = QLabel(_("Modify how Input and Output prompts are "
-                                 "shown in the console."))
+        prompts_label = QLabel(_(
+            "Modify how input and output prompts are shown in the console."
+        ))
         prompts_label.setWordWrap(True)
         in_prompt_edit = self.create_lineedit(
             _("Input prompt:"),
-            'in_prompt', '',
+            'in_prompt',
+            "",
             _('Default is<br>'
-              'In [&lt;span class="in-prompt-number"&gt;'
-              '%i&lt;/span&gt;]:'),
-            alignment=Qt.Horizontal)
+              '<tt>In [&lt;span class="in-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
+            alignment=Qt.Horizontal,
+        )
         out_prompt_edit = self.create_lineedit(
             _("Output prompt:"),
-            'out_prompt', '',
+            'out_prompt',
+            "",
             _('Default is<br>'
-              'Out[&lt;span class="out-prompt-number"&gt;'
-              '%i&lt;/span&gt;]:'),
-            alignment=Qt.Horizontal)
+              '<tt>Out[&lt;span class="out-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
+            alignment=Qt.Horizontal,
+        )
 
         prompts_g_layout = QGridLayout()
         prompts_g_layout.addWidget(in_prompt_edit.label, 0, 0)
@@ -409,8 +415,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         windows_group = QGroupBox(_("Windows adjustments"))
         hide_cmd_windows = newcb(
             _("Hide command line output windows "
-              "generated by the subprocess module."),
-            'hide_cmd_windows')
+              "generated by the subprocess module"),
+            'hide_cmd_windows',
+        )
         windows_layout = QVBoxLayout()
         windows_layout.addWidget(hide_cmd_windows)
         windows_group.setLayout(windows_layout)
@@ -432,6 +439,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         )
 
         self.create_tab(
-            _("Advanced settings"),
+            _("Advanced"),
             [autocall_group, autoreload_group, prompts_group, windows_group]
         )
