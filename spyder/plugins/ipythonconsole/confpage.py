@@ -64,16 +64,41 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         confirmations_layout.addWidget(ask_restart_box)
         confirmations_group.setLayout(confirmations_layout)
 
-        comp_group = QGroupBox(_("Completion type"))
-        comp_label = QLabel(_("Decide what type of completion to use"))
-        comp_label.setWordWrap(True)
+        # Completion group
+        comp_group = QGroupBox(_("Completion"))
         completers = [(_("Graphical"), 0), (_("Terminal"), 1), (_("Plain"), 2)]
-        comp_box = self.create_combobox(_("Completion:")+"   ", completers,
-                                        'completion_type')
+        comp_box = self.create_combobox(
+            _("Display:"), completers, 'completion_type')
+        jedi_box = newcb(
+            _("Use Jedi completion"),
+            "jedi_completer",
+            tip=_(
+                "Enable Jedi-based tab-completion in the IPython console; "
+                "similar to the greedy completer, "
+                "but without evaluating the code. "
+                "Allows completion of nested lists and similar.<br>"
+                "<b>Warning</b>: "
+                "Slows down the console when working with large dataframes"
+            ),
+        )
+        greedy_box = newcb(
+            _("Use greedy completion"),
+            "greedy_completer",
+            tip=_(
+                "Enable <tt>Tab</tt> completion on elements of lists, "
+                "results of function calls and similar "
+                "<i>without</i> assigning them to a variable, "
+                "like <tt>li[0].&lt;Tab&gt;</tt> or "
+                "<tt>ins.meth().&lt;Tab&gt;</tt><br>"
+                "<b>Warning</b>: This can be unsafe because your code "
+                "is actually executed when you press <tt>Tab</tt>."
+            ),
+        )
 
         comp_layout = QVBoxLayout()
-        comp_layout.addWidget(comp_label)
         comp_layout.addWidget(comp_box)
+        comp_layout.addWidget(jedi_box)
+        comp_layout.addWidget(greedy_box)
         comp_group.setLayout(comp_layout)
 
         # Source Code Group
@@ -260,52 +285,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_group.setLayout(run_file_layout)
 
         # ---- Advanced settings ----
-        # Enable Jedi completion
-        jedi_group = QGroupBox(_("Jedi completion"))
-        jedi_label = QLabel(_("Enable Jedi-based <tt>Tab</tt> completion "
-                              "in the IPython console; similar to the "
-                              "greedy completer, but without evaluating "
-                              "the code.<br>"
-                              "<b>Warning:</b> Slows down your console "
-                              "when working with large dataframes!"))
-        jedi_label.setWordWrap(True)
-        jedi_box = newcb(_("Use Jedi completion in the IPython console"),
-                         "jedi_completer",
-                         tip=_("<b>Warning</b>: "
-                               "Slows down your console when working with "
-                               "large dataframes!<br>"
-                               "Allows completion of nested lists etc."))
-
-        jedi_layout = QVBoxLayout()
-        jedi_layout.addWidget(jedi_label)
-        jedi_layout.addWidget(jedi_box)
-        jedi_group.setLayout(jedi_layout)
-
-        # Greedy completer group
-        greedy_group = QGroupBox(_("Greedy completion"))
-        greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
-                                "of lists, results of function calls, etc, "
-                                "<i>without</i> assigning them to a variable, "
-                                "like <tt>li[0].&lt;Tab&gt;</tt> or "
-                                "<tt>ins.meth().&lt;Tab&gt;</tt> <br>"
-                                "<b>Warning:</b> Due to a bug, IPython's "
-                                "greedy completer requires a leading "
-                                "<tt>&lt;Space&gt;</tt> for some completions; "
-                                "e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;"
-                                "</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
-                                "</tt> doesn't."))
-        greedy_label.setWordWrap(True)
-        greedy_box = newcb(_("Use greedy completion in the IPython console"),
-                           "greedy_completer",
-                           tip="<b>Warning</b>: It can be unsafe because the "
-                               "code is actually evaluated when you press "
-                               "<tt>Tab</tt>.")
-
-        greedy_layout = QVBoxLayout()
-        greedy_layout.addWidget(greedy_label)
-        greedy_layout.addWidget(greedy_box)
-        greedy_group.setLayout(greedy_layout)
-
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
@@ -436,6 +415,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         self.create_tab(
             _("Advanced settings"),
-            [jedi_group, greedy_group, autocall_group, autoreload_group,
+            [autocall_group, autoreload_group,
              sympy_group, prompts_group, windows_group]
         )
