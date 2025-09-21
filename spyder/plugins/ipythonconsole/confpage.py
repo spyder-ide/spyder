@@ -26,42 +26,49 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Display group
         display_group = QGroupBox(_("Display"))
-        banner_box = newcb(_("Display initial banner"), 'show_banner',
-                           tip=_("This option lets you hide the message "
-                                 "shown at\nthe top of the console when "
-                                 "it's opened."))
-        calltips_box = newcb(_("Show calltips"), 'show_calltips')
-        show_time_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
+        banner_box = newcb(
+            _("Show welcome message"),
+            'show_banner',
+            tip=_("Print the startup message when opening a new console"),
+        )
+        calltips_box = newcb(
+            _("Show calltips"),
+            'show_calltips',
+            tip=_("Show a summary help popup when typing an open parenthesis "
+                  "after a callable function"),
+        )
+        show_time_box = newcb(
+            _("Show elapsed time"),
+            'show_elapsed_time',
+            tip=_("Display the time since the current console was started "
+                  "in the tab bar"),
+            )
 
         display_layout = QVBoxLayout()
-        display_layout .addWidget(banner_box)
-        display_layout .addWidget(calltips_box)
+        display_layout.addWidget(banner_box)
+        display_layout.addWidget(calltips_box)
         display_layout.addWidget(show_time_box)
         display_group.setLayout(display_layout)
 
-        # Confirmations group
-        confirmations_group = QGroupBox(_("Confirmations"))
+        # Confirmation group
+        confirmations_group = QGroupBox(_("Confirmation"))
         ask_box = newcb(
-            _("Ask for confirmation before closing"), 'ask_before_closing'
+            _("Ask for confirmation before closing"),
+            'ask_before_closing',
         )
         reset_namespace_box = newcb(
-            _("Ask for confirmation before removing all user-defined "
-              "variables"),
+            _("Ask for confirmation before removing all variables"),
             'show_reset_namespace_warning',
-            tip=_("This option lets you hide the warning message shown\n"
-                  "when resetting the namespace from Spyder.")
         )
         ask_restart_box = newcb(
             _("Ask for confirmation before restarting"),
             'ask_before_restart',
-            tip=_("This option lets you hide the warning message shown\n"
-                  "when restarting the kernel.")
         )
 
         confirmations_layout = QVBoxLayout()
         confirmations_layout.addWidget(ask_box)
-        confirmations_layout.addWidget(reset_namespace_box)
         confirmations_layout.addWidget(ask_restart_box)
+        confirmations_layout.addWidget(reset_namespace_box)
         confirmations_group.setLayout(confirmations_layout)
 
         # Completion group
@@ -73,11 +80,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Use Jedi completion"),
             "jedi_completer",
             tip=_(
-                "Enable Jedi-based tab-completion in the IPython console; "
+                "Enable Jedi-based tab-completion in the IPython console;\n"
                 "similar to the greedy completer, "
-                "but without evaluating the code. "
-                "Allows completion of nested lists and similar.<br>"
-                "<b>Warning</b>: "
+                "but without evaluating the code.\n"
+                "Allows completion of nested lists and similar.\n"
+                "Warning: "
                 "Slows down the console when working with large dataframes"
             ),
         )
@@ -108,11 +115,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # larger ones make Spyder sluggish.
         # Fixes spyder-ide/spyder#19091
         buffer_spin = self.create_spinbox(
-                _("Buffer:  "), _(" lines"),
-                'buffer_size', min_=-1, max_=5000, step=100,
-                tip=_("Set the maximum number of lines of text shown in the\n"
-                      "console before truncation. Specifying -1 disables it\n"
-                      "(not recommended!)"))
+            _("Buffer:"),
+            _(" lines"),
+            'buffer_size',
+            min_=-1,
+            max_=5000,
+            step=100,
+            tip=_(
+                "The maximum number of scrollback lines shown in the Console."
+                "\nSpecifying -1 means no limit (not recommended)."
+            ),
+        )
         sympy_box = newcb(
             _("Render SymPy symbolic math"),
             "symbolic_math",
