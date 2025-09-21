@@ -673,7 +673,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.shutdown(is_last_client, close_console=close_console)
 
         # Close jupyter api regardless of the kernel state
-        if self.is_remote():
+        if self.is_remote() and not self._jupyter_api.closed:
             AsyncDispatcher(
                 loop=self._jupyter_api.session._loop, early_return=False
             )(self._jupyter_api.close)()

@@ -1120,7 +1120,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if self.already_closed or self.is_starting_up:
             return True
 
-        self.layouts.save_visible_plugins()
+        if self.layouts is not None:
+            self.layouts.save_visible_plugins()
 
         self.plugin_registry = PLUGIN_REGISTRY
 

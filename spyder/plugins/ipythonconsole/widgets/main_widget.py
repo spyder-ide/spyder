@@ -2186,13 +2186,20 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         """
         Get all other clients that are connected to the same kernel as `client`
         """
+        # At the moment it's not possible to have two clients connected to the
+        # same remote kernel.
+        if client.is_remote():
+            return []
+
         if clients_list is None:
             clients_list = self.clients
+
         related_clients = []
         for cl in clients_list:
             if (cl.connection_file == client.connection_file and
                     cl is not client):
                 related_clients.append(cl)
+
         return related_clients
 
     def close_related_clients(self, client):
@@ -2762,7 +2769,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         if self._remote_consoles_menu is None:
             self._remote_consoles_menu = self.create_menu(
-                RemoteConsolesMenus.RemoteConsoles, _("New console in remote server")
+                RemoteConsolesMenus.RemoteConsoles,
+                _("New console in remote server")
             )
 
         self._remote_consoles_menu.clear_actions()
