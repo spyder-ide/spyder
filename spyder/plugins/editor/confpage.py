@@ -74,7 +74,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 "Display a marker to the left of line numbers when the "
                 "following annotations appear at the beginning of a comment: "
                 "<tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, "
-                "!!!, ???</tt>"
+                "!!!, ???</tt> (and their lowercase variants)"
             ),
         )
         currentline_box = newcb(_("Highlight current line"),
@@ -194,7 +194,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             default=4, min_=1, max_=8, step=1)
 
         check_eol_box = newcb(
-            _("Fix mixed EOLs automatically and show warning"),
+            _("Fix mixed end-of-lines automatically and show warning dialog"),
             'check_eol_chars',
             default=True,
             tip=_(
@@ -209,8 +209,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             default=False,
         )
         eol_combo_choices = (
-            (_("LF (Linux/macOS)"), 'LF'),
-            (_("CRLF (Windows)"), 'CRLF'),
+            ("LF (Linux/macOS)", 'LF'),
+            ("CRLF (Windows)", 'CRLF'),
             (_("CR (legacy Mac)"), 'CR'),
         )
         convert_eol_on_save_combo = self.create_combobox(
@@ -340,9 +340,9 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_label.setWordWrap(True)
 
         docstring_combo_choices = (
-            (_("Numpy"), 'Numpydoc'),
-            (_("Google"), 'Googledoc'),
-            (_("Sphinx"), 'Sphinxdoc'),
+            ("Numpy", 'Numpydoc'),
+            ("Google", 'Googledoc'),
+            ("Sphinx", 'Sphinxdoc'),
         )
         docstring_combo = self.create_combobox(
             _("Style:"),
@@ -357,11 +357,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # -- Multi-cursor
         multicursor_group = QGroupBox(_("Multi-cursor"))
-        multicursor_label = QLabel(
-            _("Shortcuts for multi-cursor can be configured "
-              "in the Mouse Shortcuts section below")
-        )
-        multicursor_label.setWordWrap(True)
         multicursor_box = newcb(
             _("Enable multi-cursor support"),
             'multicursor_support',
@@ -370,7 +365,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         multicursor_layout = QVBoxLayout()
-        multicursor_layout.addWidget(multicursor_label)
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 

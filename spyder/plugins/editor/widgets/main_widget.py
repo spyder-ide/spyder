@@ -516,12 +516,12 @@ class EditorMainWidget(PluginMainWidget):
         # EOL menu
         self.win_eol_action = self.create_action(
             EditorWidgetActions.WinEOL,
-            text=_("CRLF (Windows)"),
+            text="CRLF (Windows)",
             toggled=lambda checked: self.toggle_eol_chars('nt', checked)
         )
         self.linux_eol_action = self.create_action(
             EditorWidgetActions.LinuxEOL,
-            text=_("LF (Linux/macOS)"),
+            text="LF (Linux/macOS)",
             toggled=lambda checked: self.toggle_eol_chars('posix', checked)
         )
         self.mac_eol_action = self.create_action(
