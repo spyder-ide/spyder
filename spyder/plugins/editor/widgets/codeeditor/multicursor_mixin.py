@@ -111,8 +111,9 @@ class MultiCursorMixin:
                 p_col = min(len(block.text()), pos_col)
                 cursor.setPosition(block.position() + p_col,
                                    QTextCursor.MoveMode.KeepAnchor)
-                self.add_cursor(cursor)
+                self.extra_cursors.append(cursor)
 
+        self.merge_extra_cursors(True)
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
 
