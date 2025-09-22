@@ -50,11 +50,24 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # ---- Display tab
         # -- Interface group
         interface_group = QGroupBox(_("Interface"))
-        showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
+        showtabbar_box = newcb(
+            _("Show tab bar"),
+            'show_tab_bar',
+            tip=_("If hidden, the Outline pane, Ctrl-Tab and file switcher\n"
+                  "can still be used to navigate between open files."),
+        )
         show_filename_box = newcb(
-            _("Show full file path above editor"), 'show_filename_toolbar')
+            _("Show full file path above editor"),
+            'show_filename_toolbar',
+            tip=_("If hidden, the full file path is still shown when hovering "
+                  "over its tab."),
+        )
         showclassfuncdropdown_box = newcb(
-            _("Show class/function selector"), 'show_class_func_dropdown')
+            _("Show class/function selector"),
+            'show_class_func_dropdown',
+            tip=_("For quick browsing and switching between classes/functions "
+                  "in a file.")
+        )
         scroll_past_end_box = newcb(
             _("Allow scrolling past file end"), 'scroll_past_end')
 
@@ -69,7 +82,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         helpers_group = QGroupBox(_("Helpers"))
         showindentguides_box = newcb(
             _("Show indent guides"), 'indent_guides')
-        showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
+        showcodefolding_box = newcb(
+            _("Show code folding"),
+            'code_folding',
+            tip=_("Allow collapsing and uncollapsing code by indent level"),
+        )
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(
             _("Show debugger breakpoints"),
@@ -102,14 +119,16 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         currentcell_box = newcb(
             _("Highlight current cell"), 'highlight_current_cell')
         occurrence_box = newcb(
-            _("Highlight occurrences after"), 'occurrence_highlighting')
+            _("Highlight occurrences of selected text after"),
+            'occurrence_highlighting',
+        )
         occurrence_spin = self.create_spinbox(
             "",
-            _(" ms"),
+            _(" milliseconds"),
             'occurrence_highlighting/timeout',
-            min_=100,
-            max_=1000000,
-            step=100,
+            min_=100,  # 0.1 seconds
+            max_=60_000,  # 1 minute
+            step=100,  # 0.1 seconds
         )
 
         occurrence_box.checkbox.toggled.connect(
