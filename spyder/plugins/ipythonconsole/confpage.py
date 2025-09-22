@@ -75,17 +75,25 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         comp_group = QGroupBox(_("Completion"))
         completers = [(_("Graphical"), 0), (_("Terminal"), 1), (_("Plain"), 2)]
         comp_box = self.create_combobox(
-            _("Display:"), completers, 'completion_type')
+            _("Display:"),
+            completers,
+            'completion_type',
+            tip=_(
+                "Graphical shows a list of completion matches in a GUI.\n"
+                "Plain displays matches in the Console output, like Bash.\n"
+                "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
+            ),
+        )
         jedi_box = newcb(
             _("Use Jedi completion"),
             "jedi_completer",
             tip=_(
-                "Enable Jedi-based tab-completion in the IPython console;\n"
-                "similar to the greedy completer, "
-                "but without evaluating the code.\n"
-                "Allows completion of nested lists and similar.\n"
-                "Warning: "
-                "Slows down the console when working with large dataframes"
+                "Enable Jedi-based tab-completion in the IPython console.\n"
+                "Similar to the greedy completer, but without evaluating "
+                "the code and allows completion of dictionary keys, "
+                "nested lists and similar.\n"
+                "Warning: Can slow down the Console when working with "
+                "large dataframes."
             ),
         )
         greedy_box = newcb(
@@ -122,7 +130,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             max_=5000,
             step=100,
             tip=_(
-                "The maximum number of scrollback lines shown in the Console."
+                "The maximum number of output lines "
+                "retained in each console at a time."
                 "\nSpecifying -1 means no limit (not recommended)."
             ),
         )
@@ -131,8 +140,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             "symbolic_math",
             tip=_(
                 "Pretty-print the outputs of SymPy symbolic computations\n"
-                "(requires SymPy installed in the Console environment).\n"
-                "Refer to SymPy's documentation for more on using it."
+                "(requires SymPy installed in the console environment).\n"
+                "Refer to SymPy's documentation for details on using it."
             ),
         )
 
@@ -150,7 +159,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             'pylab/autoload',
             tip=_(
                 "This is a convinience to use NumPy and Matplotlib\n"
-                "in the Console without explictly importing the modules."
+                "in the console without explicitly importing the modules."
             )
         )
         autoload_matplotlib_box.setEnabled(self.get_option('pylab'))
@@ -211,7 +220,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             default='png',
             tip=_(
                 "PNG is more widely supported, "
-                "while SVG is resolution-independent and easier to edit"
+                "while SVG is resolution-independent and easier to edit "
+                "but complex plots may not be displayed correctly."
             ),
         )
         resolution_spin = self.create_spinbox(
@@ -287,7 +297,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Run lines group
         run_lines_group = QGroupBox(_("Run code"))
         run_lines_label = QLabel(_(
-            "Enter a code snippit to run when a new console is started.\n"
+            "Enter a code snippet to run when a new console is started.\n"
             "Separate multiple lines by semicolons, for example:<br>"
             "<tt>import os; import sys</tt>"
         ))
