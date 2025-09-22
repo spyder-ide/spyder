@@ -786,7 +786,17 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         username = username_textbox.text() if username_textbox.text() else ()
         keyfile_textbox = widgets[4].textbox
         keyfile = keyfile_textbox.text()
-        config = asyncssh.config.SSHClientConfig.load(None, config_filepath, True, True, False, "local_user", username, host, ())
+        config = asyncssh.config.SSHClientConfig.load(
+            None,
+            config_filepath,
+            True,
+            True,
+            False,
+            "local_user",
+            username,
+            host,
+            ()
+        )
         logger.info(config.get_options(False))
 
         if not config.get_options(False):
@@ -985,7 +995,9 @@ class ConnectionPage(BaseConnectionPage):
                     f"{self.host_id}/{self.auth_method()}/username",
                     default=""
                 ),
-                client_keys=self.get_option(f"{self.host_id}/keyfile", default=""),
+                client_keys=self.get_option(
+                    f"{self.host_id}/keyfile", default=""
+                ),
                 config=self.get_option(f"{self.host_id}/configfile"),
             )
         elif self.client_type == ClientType.JupyterHub:
