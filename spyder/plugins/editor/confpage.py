@@ -137,69 +137,145 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         highlight_group.setLayout(highlight_layout)
 
         # ---- Source code tab
-        # -- Setting widgets
+        # -- Automatic changes group
+        automatic_group = QGroupBox(_("Automatic changes"))
         closepar_box = newcb(
             _("Automatically insert closing parentheses, brackets and braces"),
-            'close_parentheses')
-        close_quotes_box = newcb(
-            _("Automatically insert closing quotes"),
-            'close_quotes')
-        add_colons_box = newcb(
-            _("Automatically insert colons after 'for', 'if', 'def', etc"),
-            'add_colons')
+            'close_parentheses',
+        )
         autounindent_box = newcb(
             _("Automatically un-indent 'else', 'elif', etc"),
-            'auto_unindent')
-        tab_mode_box = newcb(
-            _("Tab always indents"),
-            'tab_always_indent', default=False,
-            tip=_("If enabled, pressing <kbd>Tab</kbd> will always indent,\n"
-                  "even when the cursor is not at the beginning of a line.\n"
-                  "Code completion can still be triggered using the shortcut\n"
-                  "<kbd>Ctrl+Space</kbd>."))
+            'auto_unindent',
+        )
+        add_colons_box = newcb(
+            _("Automatically insert colons after 'for', 'if', 'def', etc"),
+            'add_colons',
+        )
+        close_quotes_box = newcb(
+            _("Automatically insert closing quotes"),
+            'close_quotes',
+        )
+
+        automatic_layout = QVBoxLayout()
+        automatic_layout.addWidget(closepar_box)
+        automatic_layout.addWidget(autounindent_box)
+        automatic_layout.addWidget(add_colons_box)
+        automatic_layout.addWidget(close_quotes_box)
+        automatic_group.setLayout(automatic_layout)
+
+        # -- Trailing whitespace group
+        whitespace_group = QGroupBox(_("Trailing whitespace"))
+        self.removetrail_box = newcb(
+            _("Strip all trailing spaces on save"),
+            'always_remove_trailing_spaces',
+            default=False,
+        )
         strip_mode_box = newcb(
             _("Strip trailing spaces on changed lines"),
             'strip_trailing_spaces_on_modify', default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
                   "will have trailing whitespace stripped when leaving them.\n"
-                  "If disabled, only whitespace added by Spyder will be stripped."))
+                  "If disabled, only whitespace added by Spyder "
+                  "will be stripped."),
+        )
+        self.add_newline_box = newcb(
+            _("Automatically add missing end-of-file newline on save"),
+            'add_newline',
+            default=False,
+        )
+        self.remove_trail_newline_box = newcb(
+            _("Strip blank lines at end of file on save"),
+            'always_remove_trailing_newlines',
+            default=False,
+        )
+
+        format_on_save = CONF.get(
+            'completions',
+            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
+            False,
+        )
+        self.on_format_save_state(format_on_save)
+
+        whitespace_layout = QVBoxLayout()
+        whitespace_layout.addWidget(self.removetrail_box)
+        whitespace_layout.addWidget(strip_mode_box)
+        whitespace_layout.addWidget(self.add_newline_box)
+        whitespace_layout.addWidget(self.remove_trail_newline_box)
+        whitespace_group.setLayout(whitespace_layout)
+
+        # -- Identation group
+        indentation_group = QGroupBox(_("Indentation"))
+        indent_chars_box = self.create_combobox(
+            _("Indentation characters: "),
+            (
+                (_("2 spaces"), "*  *"),
+                (_("3 spaces"), "*   *"),
+                (_("4 spaces"), "*    *"),
+                (_("5 spaces"), "*     *"),
+                (_("6 spaces"), "*      *"),
+                (_("7 spaces"), "*       *"),
+                (_("8 spaces"), "*        *"),
+                (_("Tabulations"), "*\t*"),
+            ),
+            "indent_chars",
+        )
+        tabwidth_spin = self.create_spinbox(
+            _("Tab stop width:"),
+            _("spaces"),
+            "tab_stop_width_spaces",
+            default=4,
+            min_=1,
+            max_=8,
+            step=1,
+        )
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
             tip=_("Make the backspace key automatically remove the number of "
                   "indentation characters set above."),
-            default=True)
-        self.removetrail_box = newcb(
-            _("Strip all trailing spaces on save"),
-            'always_remove_trailing_spaces',
-            default=False)
-        self.add_newline_box = newcb(
-            _("Automatically add missing end-of-file newline on save"),
-            'add_newline',
-            default=False)
-        self.remove_trail_newline_box = newcb(
-            _("Strip blank lines at end of file on save"),
-            'always_remove_trailing_newlines',
-            default=False)
+            default=True,
+        )
+        tab_mode_box = newcb(
+            _("Tab always indents"),
+            'tab_always_indent',
+            default=False,
+            tip=_("If enabled, pressing <kbd>Tab</kbd> will always indent,\n"
+                  "even when the cursor is not at the beginning of a line.\n"
+                  "Code completion can still be triggered using the shortcut\n"
+                  "<kbd>Ctrl+Space</kbd>."),
+        )
 
-        indent_chars_box = self.create_combobox(
-            _("Indentation characters: "),
-            ((_("2 spaces"), '*  *'),
-             (_("3 spaces"), '*   *'),
-             (_("4 spaces"), '*    *'),
-             (_("5 spaces"), '*     *'),
-             (_("6 spaces"), '*      *'),
-             (_("7 spaces"), '*       *'),
-             (_("8 spaces"), '*        *'),
-             (_("Tabulations"), '*\t*')),
-            'indent_chars')
-        tabwidth_spin = self.create_spinbox(
-            _("Tab stop width:"),
-            _("spaces"),
-            'tab_stop_width_spaces',
-            default=4, min_=1, max_=8, step=1)
+        def enable_tabwidth_spin(index):
+            if index == 7:  # Tabulations
+                tabwidth_spin.plabel.setEnabled(True)
+                tabwidth_spin.spinbox.setEnabled(True)
+            else:
+                tabwidth_spin.plabel.setEnabled(False)
+                tabwidth_spin.spinbox.setEnabled(False)
 
-        check_eol_box = newcb(
+        indent_chars_box.combobox.currentIndexChanged.connect(
+            enable_tabwidth_spin)
+
+        indent_tab_grid_layout = QGridLayout()
+        indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
+        indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.plabel, 1, 0)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.spinbox, 1, 1)
+        indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
+
+        indent_tab_layout = QHBoxLayout()
+        indent_tab_layout.addLayout(indent_tab_grid_layout)
+        indent_tab_layout.addStretch(1)
+
+        indentation_layout = QVBoxLayout()
+        indentation_layout.addLayout(indent_tab_layout)
+        indentation_layout.addWidget(ibackspace_box)
+        indentation_layout.addWidget(tab_mode_box)
+        indentation_group.setLayout(indentation_layout)
+
+        # -- EOL group
+        eol_group = QGroupBox(_("End-of-line characters"))
+        fix_eol_box = newcb(
             _("Fix mixed end-of-lines automatically and show warning dialog"),
             'check_eol_chars',
             default=True,
@@ -225,73 +301,17 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'convert_eol_on_save_to',
         )
 
-        # -- Buisness logic
-        format_on_save = CONF.get(
-            'completions',
-            ('provider_configuration', 'lsp', 'values', 'format_on_save'),
-            False
-        )
-        self.on_format_save_state(format_on_save)
-
-        def enable_tabwidth_spin(index):
-            if index == 7:  # Tabulations
-                tabwidth_spin.plabel.setEnabled(True)
-                tabwidth_spin.spinbox.setEnabled(True)
-            else:
-                tabwidth_spin.plabel.setEnabled(False)
-                tabwidth_spin.spinbox.setEnabled(False)
-
-        indent_chars_box.combobox.currentIndexChanged.connect(
-            enable_tabwidth_spin)
-
         convert_eol_on_save_box.checkbox.toggled.connect(
                 convert_eol_on_save_combo.setEnabled)
         convert_eol_on_save_combo.setEnabled(
                 self.get_option('convert_eol_on_save'))
 
-        # -- Horizontal sub-layouts
-        indent_tab_grid_layout = QGridLayout()
-        indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
-        indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.plabel, 1, 0)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.spinbox, 1, 1)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
-
-        indent_tab_layout = QHBoxLayout()
-        indent_tab_layout.addLayout(indent_tab_grid_layout)
-        indent_tab_layout.addStretch(1)
-
         eol_on_save_layout = QHBoxLayout()
         eol_on_save_layout.addWidget(convert_eol_on_save_box)
         eol_on_save_layout.addWidget(convert_eol_on_save_combo)
 
-        # -- Vertical layout
-        automatic_group = QGroupBox(_("Automatic changes"))
-        automatic_layout = QVBoxLayout()
-        automatic_layout.addWidget(closepar_box)
-        automatic_layout.addWidget(autounindent_box)
-        automatic_layout.addWidget(add_colons_box)
-        automatic_layout.addWidget(close_quotes_box)
-        automatic_group.setLayout(automatic_layout)
-
-        whitespace_group = QGroupBox(_("Trailing whitespace"))
-        whitespace_layout = QVBoxLayout()
-        whitespace_layout.addWidget(self.removetrail_box)
-        whitespace_layout.addWidget(strip_mode_box)
-        whitespace_layout.addWidget(self.add_newline_box)
-        whitespace_layout.addWidget(self.remove_trail_newline_box)
-        whitespace_group.setLayout(whitespace_layout)
-
-        indentation_group = QGroupBox(_("Indentation"))
-        indentation_layout = QVBoxLayout()
-        indentation_layout.addLayout(indent_tab_layout)
-        indentation_layout.addWidget(ibackspace_box)
-        indentation_layout.addWidget(tab_mode_box)
-        indentation_group.setLayout(indentation_layout)
-
-        eol_group = QGroupBox(_("End-of-line characters"))
         eol_layout = QVBoxLayout()
-        eol_layout.addWidget(check_eol_box)
+        eol_layout.addWidget(fix_eol_box)
         eol_layout.addLayout(eol_on_save_layout)
         eol_group.setLayout(eol_layout)
 
