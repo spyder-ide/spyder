@@ -18,8 +18,15 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QListWidget,
-    QListWidgetItem, QMessageBox, QStackedWidget, QVBoxLayout
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QStackedWidget,
+    QVBoxLayout,
 )
 
 # Local imports
@@ -29,7 +36,9 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import (
-    get_user_environment_variables, get_user_env, set_user_env
+    get_user_environment_variables,
+    get_user_env,
+    set_user_env,
 )
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
@@ -100,7 +109,6 @@ class PathManager(QDialog, SpyderWidgetMixin):
         # Create a loading message
         self.loading_pane = EmptyMessageWidget(
             parent=self,
-            icon_filename="dependencies",
             text=_("Retrieving environment variables..."),
             bottom_stretch=1,
             spinner=True,

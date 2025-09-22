@@ -253,44 +253,6 @@ def run_shell_command(cmdstr, asynchronous=False, **subprocess_kwargs):
     return popen(cmdstr, **subprocess_kwargs)
 
 
-def async_run_shell_command(cmdstr, **subprocess_kwargs):
-    """
-    Execute the given shell command asynchronously in the main thread.
-
-    Note that *args and **kwargs will be passed to the subprocess call.
-
-    If 'shell' is given in subprocess_kwargs it must be True,
-    otherwise ProgramError will be raised.
-    .
-    If 'executable' is not given in subprocess_kwargs, it will
-    be set to the value of the SHELL environment variable.
-
-    Note that stdin, stdout and stderr will be set by default
-    to PIPE unless specified in subprocess_kwargs.
-
-    :str cmdstr: The string run as a shell command.
-    :subprocess_kwargs: These will be passed to subprocess.Popen.
-    """
-    if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
-        raise ProgramError('The "shell" kwarg may be omitted, but if '
-                           'provided it must be True.')
-    else:
-        subprocess_kwargs['shell'] = True
-
-    # Don't pass SHELL to subprocess on Windows because it makes this
-    # fumction fail in Git Bash (where SHELL is declared; other Windows
-    # shells don't set it).
-    if not os.name == 'nt':
-        if 'executable' not in subprocess_kwargs:
-            subprocess_kwargs['executable'] = os.getenv('SHELL')
-
-    for stream in ['stdin', 'stdout', 'stderr']:
-        subprocess_kwargs.setdefault(stream, asyncio.subprocess.PIPE)
-    subprocess_kwargs = alter_subprocess_kwargs_by_platform(
-        **subprocess_kwargs)
-    return asyncio.create_subprocess_shell(cmdstr, **subprocess_kwargs)
-
-
 def run_program(program, args=None, **subprocess_kwargs):
     """
     Run program in a separate process.

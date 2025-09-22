@@ -749,9 +749,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_bracket_matcher_color_scheme(color_scheme)
         self.style_sheet, dark_color = create_qss_style(color_scheme)
         self.syntax_style = color_scheme
+
         if not self.spyder_kernel_ready:
             # Will be sent later
             return
+
         if reset:
             # Don't clear console and show a message instead to prevent
             # removing important content from users' consoles.

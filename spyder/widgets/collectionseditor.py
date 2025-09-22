@@ -31,8 +31,13 @@ import warnings
 # Third party imports
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (
-    QAbstractTableModel, QItemSelectionModel, QModelIndex, Qt, QTimer,
-    Signal, Slot
+    QAbstractTableModel,
+    QItemSelectionModel,
+    QModelIndex,
+    Qt,
+    QTimer,
+    Signal,
+    Slot
 )
 from qtpy.QtGui import QColor, QKeySequence
 from qtpy.QtWidgets import (
@@ -1939,7 +1944,9 @@ class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
 
     def __init__(
-        self, parent=None, namespacebrowser=None,
+        self,
+        parent=None,
+        namespacebrowser=None,
         data_function: Optional[Callable[[], Any]] = None,
     ):
         super().__init__(parent)
@@ -1960,8 +1967,15 @@ class CollectionsEditor(BaseDialog):
         self.loading_pane = None
 
     def setup(
-        self, data, title='', readonly=False, remote=False,
-        icon=None, parent=None, loading_msg=None, loading_img=None
+        self,
+        data,
+        title='',
+        readonly=False,
+        remote=False,
+        icon=None,
+        parent=None,
+        loading_msg=None,
+        loading_img=None,
     ):
         """Setup editor."""
         if isinstance(data, (dict, set, frozenset)):
@@ -2012,7 +2026,6 @@ class CollectionsEditor(BaseDialog):
 
         # Create a QStackedWidget
         self.stacked_widget = QStackedWidget()
-
         self.stacked_widget.addWidget(self.widget)
 
         # Create a loading message

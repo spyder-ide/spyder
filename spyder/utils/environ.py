@@ -305,6 +305,7 @@ class UserEnvDialog(RemoteEnvDialog):
         if os.name == 'nt':
             title = _(r"User environment variables in Windows registry")
             readonly = False
+
         super().__init__(parent=parent, title=title, readonly=readonly)
 
         if os.name == 'nt':

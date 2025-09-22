@@ -245,6 +245,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
         message = _("Connecting to kernel...")
+
         if env:
             message = _("Retrieving environment variables...")
         page = loading_template.substitute(
@@ -252,6 +253,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             loading_img=loading_img,
             message=message
         )
+
         return page
 
     def _create_blank_page(self):
