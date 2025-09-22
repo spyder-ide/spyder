@@ -161,25 +161,29 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         closepar_box = newcb(
             _("Automatically insert closing parentheses, brackets and braces"),
             'close_parentheses',
+            tip=_("Insert a matching closing bracket when typing an open one"),
         )
-        autounindent_box = newcb(
-            _("Automatically un-indent 'else', 'elif', etc"),
-            'auto_unindent',
+        close_quotes_box = newcb(
+            _("Automatically insert closing quotes"),
+            'close_quotes',
+            tip=_("Insert a matching closing quote when typing an open one"),
         )
         add_colons_box = newcb(
             _("Automatically insert colons after 'for', 'if', 'def', etc"),
             'add_colons',
         )
-        close_quotes_box = newcb(
-            _("Automatically insert closing quotes"),
-            'close_quotes',
+        autounindent_box = newcb(
+            _("Automatically un-indent 'else', 'elif', etc"),
+            'auto_unindent',
+            tip=_("Un-indent further block-level keywords "
+                  "when added inside an 'if', etc block"),
         )
 
         automatic_layout = QVBoxLayout()
         automatic_layout.addWidget(closepar_box)
-        automatic_layout.addWidget(autounindent_box)
-        automatic_layout.addWidget(add_colons_box)
         automatic_layout.addWidget(close_quotes_box)
+        automatic_layout.addWidget(add_colons_box)
+        automatic_layout.addWidget(autounindent_box)
         automatic_group.setLayout(automatic_layout)
 
         # -- Trailing whitespace group
@@ -191,7 +195,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
         strip_mode_box = newcb(
             _("Strip trailing spaces on changed lines"),
-            'strip_trailing_spaces_on_modify', default=True,
+            'strip_trailing_spaces_on_modify',
+            default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
                   "will have trailing whitespace stripped when leaving them.\n"
                   "If disabled, only whitespace added by Spyder "
@@ -201,13 +206,20 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Automatically add missing end-of-file newline on save"),
             'add_newline',
             default=False,
+            tip=_("If enabled, a trailing newline character (line break) will "
+                  "automatically be appended to the end of the file\n"
+                  "if the file does not already end with one, "
+                  "to conform to standard text file convention.")
         )
         self.remove_trail_newline_box = newcb(
             _("Strip blank lines at end of file on save"),
             'always_remove_trailing_newlines',
             default=False,
+            tip=_("Any extra newlines at the end of the file besides the first "
+                  "one will be stripped.")
         )
 
+        # Disable the fix-on-save options if autoformatting is enabled
         format_on_save = CONF.get(
             'completions',
             ('provider_configuration', 'lsp', 'values', 'format_on_save'),
@@ -258,10 +270,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Tab always indents"),
             'tab_always_indent',
             default=False,
-            tip=_("If enabled, pressing <kbd>Tab</kbd> will always indent,\n"
+            tip=_("If enabled, pressing Tab will always add an indent,\n"
                   "even when the cursor is not at the beginning of a line.\n"
-                  "Code completion can still be triggered using the shortcut\n"
-                  "<kbd>Ctrl+Space</kbd>."),
+                  "Code completion can still be triggered using the shortcut "
+                  "Ctrl+Space."),
         )
 
         def enable_tabwidth_spin(index):
