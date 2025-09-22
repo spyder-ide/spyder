@@ -163,6 +163,13 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             tip=_("Make the backspace key automatically remove the number of "
                   "indentation characters set above."),
             default=True)
+        ipaste_box = newcb(
+            _("Intelligent paste"),
+            'intelligent_paste',
+            tip=_("Make the paste shortcut automatically adjust the "
+                  "indentation level of the clipboard based on the "
+                  "surrounding text."),
+            default=True)
         self.removetrail_box = newcb(
             _("Strip all trailing spaces on save"),
             'always_remove_trailing_spaces',
@@ -280,6 +287,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         indentation_layout = QVBoxLayout()
         indentation_layout.addLayout(indent_tab_layout)
         indentation_layout.addWidget(ibackspace_box)
+        indentation_layout.addWidget(ipaste_box)
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
 
