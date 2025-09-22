@@ -316,29 +316,33 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         eol_group.setLayout(eol_layout)
 
         # ---- Advanced tab
-        # -- Templates
-        templates_group = QGroupBox(_('Template'))
-        template_btn = self.create_button(
+        # -- Template group
+        template_group = QGroupBox(_('Template'))
+        template_button = self.create_button(
             text=_("Edit new file template"),
             callback=self.plugin.edit_template,
-            set_modified_on_click=True
+            set_modified_on_click=True,
         )
 
-        templates_layout = QVBoxLayout()
-        templates_layout.addSpacing(3)
-        templates_layout.addWidget(template_btn)
-        templates_group.setLayout(templates_layout)
+        template_layout = QVBoxLayout()
+        template_layout.addSpacing(3)
+        template_layout.addWidget(template_button)
+        template_group.setLayout(template_layout)
 
-        # -- Autosave
+        # -- Autosave group
         autosave_group = QGroupBox(_('Autosave'))
         autosave_checkbox = newcb(
             _('Automatically save a backup copy of unsaved files'),
-            'autosave_enabled')
+            'autosave_enabled',
+        )
         autosave_spinbox = self.create_spinbox(
             _('Autosave interval: '),
             _('seconds'),
             'autosave_interval',
-            min_=1, max_=3600)
+            min_=1,
+            max_=3600,
+        )
+
         autosave_checkbox.checkbox.toggled.connect(autosave_spinbox.setEnabled)
 
         autosave_layout = QVBoxLayout()
@@ -346,9 +350,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autosave_layout.addWidget(autosave_spinbox)
         autosave_group.setLayout(autosave_layout)
 
-        # -- Docstring
+        # -- Docstring group
         docstring_group = QGroupBox(_('Docstring style'))
-
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
         sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
@@ -364,7 +367,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
-
         docstring_combo_choices = (
             ("Numpy", 'Numpydoc'),
             ("Google", 'Googledoc'),
@@ -381,7 +383,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         docstring_layout.addWidget(docstring_combo)
         docstring_group.setLayout(docstring_layout)
 
-        # -- Multi-cursor
+        # -- Multi-cursor group
         multicursor_group = QGroupBox(_("Multi-cursor"))
         multicursor_box = newcb(
             _("Enable multi-cursor support"),
@@ -394,14 +396,13 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_layout.addWidget(multicursor_box)
         multicursor_group.setLayout(multicursor_layout)
 
-        # -- Multi-cursor paste
+        # -- Multi-cursor paste group
         multicursor_paste_group = QGroupBox(_("Multi-cursor paste behavior"))
         multicursor_paste_bg = QButtonGroup(multicursor_paste_group)
-
         entire_clip_radio = self.create_radiobutton(
             _("Always paste the entire clipboard for each cursor"),
             "multicursor_paste/always_full",
-            button_group=multicursor_paste_bg
+            button_group=multicursor_paste_bg,
         )
         conditional_spread_radio = self.create_radiobutton(
             _(
@@ -409,7 +410,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 "match"
             ),
             "multicursor_paste/conditional_spread",
-            button_group=multicursor_paste_bg
+            button_group=multicursor_paste_bg,
         )
         always_spread_radio = self.create_radiobutton(
             _(
@@ -417,7 +418,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 "line in the clipboard"
             ),
             "multicursor_paste/always_spread",
-            button_group=multicursor_paste_bg
+            button_group=multicursor_paste_bg,
         )
 
         multicursor_box.checkbox.toggled.connect(
@@ -426,17 +427,18 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_paste_group.setEnabled(
             self.get_option("multicursor_support")
         )
+
         multicursor_paste_layout = QVBoxLayout()
         multicursor_paste_layout.addWidget(entire_clip_radio)
         multicursor_paste_layout.addWidget(conditional_spread_radio)
         multicursor_paste_layout.addWidget(always_spread_radio)
         multicursor_paste_group.setLayout(multicursor_paste_layout)
 
-        # -- Mouse shortcuts
+        # -- Mouse shortcuts group
         mouse_shortcuts_group = QGroupBox(_("Mouse shortcuts"))
         mouse_shortcuts_button = self.create_button(
             lambda: MouseShortcutEditor(self).exec_(),
-            _("Edit mouse shortcut modifiers")
+            _("Edit mouse shortcut modifiers"),
         )
 
         mouse_shortcuts_layout = QVBoxLayout()
@@ -466,7 +468,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Advanced"),
             [
-                templates_group,
+                template_group,
                 autosave_group,
                 docstring_group,
                 multicursor_group,
@@ -477,7 +479,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
     @on_conf_change(
         option=('provider_configuration', 'lsp', 'values', 'format_on_save'),
-        section='completions'
+        section='completions',
     )
     def on_format_save_state(self, value):
         """
@@ -496,7 +498,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         options = [
             self.removetrail_box,
             self.add_newline_box,
-            self.remove_trail_newline_box]
+            self.remove_trail_newline_box,
+        ]
         for option in options:
             if option:
                 if value:
