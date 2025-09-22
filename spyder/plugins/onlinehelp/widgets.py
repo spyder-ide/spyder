@@ -239,17 +239,6 @@ class PydocBrowser(PluginMainWidget):
         # Signals
         self.find_widget.visibility_changed.connect(find_action.setChecked)
 
-        for __, action in self.get_actions().items():
-            if action:
-                # IMPORTANT: Since we are defining the main actions in here
-                # and the context is WidgetWithChildrenShortcut we need to
-                # assign the same actions to the children widgets in order
-                # for shortcuts to work
-                try:
-                    self.webview.addAction(action)
-                except RuntimeError:
-                    pass
-
         self.sig_toggle_view_changed.connect(self.initialize)
 
     def update_actions(self):

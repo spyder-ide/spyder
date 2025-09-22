@@ -20,7 +20,6 @@ from qtpy.QtCore import (QByteArray, QObject, QProcess, QThread, QTimer,
                          Signal)
 
 # Local imports
-from spyder.py3compat import to_text_string
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ def handle_qbytearray(obj, encoding):
     if isinstance(obj, QByteArray):
         obj = obj.data()
 
-    return to_text_string(obj, encoding=encoding)
+    return str(obj, encoding=encoding)
 
 
 class PythonWorker(QObject):
@@ -45,7 +44,7 @@ class PythonWorker(QObject):
 
     def __init__(self, func, args, kwargs):
         """Generic python worker for running python code on threads."""
-        super(PythonWorker, self).__init__()
+        super().__init__()
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -102,7 +101,7 @@ class ProcessWorker(QObject):
         environ : dict
             Process environment,
         """
-        super(ProcessWorker, self).__init__(parent)
+        super().__init__(parent)
         self._result = None
         self._cmd_list = cmd_list
         self._fired = False

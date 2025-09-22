@@ -10,7 +10,6 @@
 # Standard library imports
 from __future__ import annotations
 from collections import deque
-import functools
 
 # Third-party imports
 from qtpy.QtCore import Signal
@@ -31,6 +30,7 @@ from spyder.plugins.remoteclient.widgets.connectiondialog import (
 
 
 class RemoteClientContainer(PluginMainContainer):
+
     sig_start_server_requested = Signal(str)
     """
     This signal is used to request starting a remote server.
@@ -75,6 +75,15 @@ class RemoteClientContainer(PluginMainContainer):
     sig_server_changed = Signal()
     """
     Signal that a remote server was deleted or added
+    """
+
+    sig_server_updated = Signal(str)
+    """
+    This signal is used to inform that a remote server was updated.
+    Parameters
+    ----------
+    id: str
+        Id of the server that was updated.
     """
 
     sig_client_message_logged = Signal(dict)
@@ -153,6 +162,13 @@ class RemoteClientContainer(PluginMainContainer):
             self.sig_server_changed
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
+        connection_dialog.sig_server_updated.connect(self.sig_server_updated)
+        connection_dialog.sig_create_env_requested.connect(
+            self._plugin.sig_create_env_requested
+        )
+        connection_dialog.sig_import_env_requested.connect(
+            self._plugin.sig_import_env_requested
+        )
 
         connection_dialog.show()
 

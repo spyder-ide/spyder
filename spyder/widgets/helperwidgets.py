@@ -77,7 +77,7 @@ class MessageCheckBox(QMessageBox):
     under the message and on top of the buttons.
     """
     def __init__(self, *args, **kwargs):
-        super(MessageCheckBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.setWindowModality(Qt.NonModal)
         self._checkbox = QCheckBox(self)
@@ -125,7 +125,7 @@ class HTMLDelegate(QStyledItemDelegate):
     """
 
     def __init__(self, parent, margin=0, wrap_text=False, align_vcenter=False):
-        super(HTMLDelegate, self).__init__(parent)
+        super().__init__(parent)
         self._margin = margin
         self._wrap_text = wrap_text
         self._hovered_row = -1
@@ -486,6 +486,7 @@ class FinderWidget(QWidget):
 
     sig_find_text = Signal(str)
     sig_hide_finder_requested = Signal()
+    sig_text_cleared = Signal()
 
     def __init__(
         self,
@@ -514,7 +515,9 @@ class FinderWidget(QWidget):
                 _("Type and press Enter to search")
             )
         self.text_finder.sig_hide_requested.connect(
-            self.sig_hide_finder_requested)
+            self.sig_hide_finder_requested
+        )
+        self.text_finder.clear_action.triggered.connect(self.sig_text_cleared)
 
         if show_close_button:
             finder_close_button = QToolButton(self)
@@ -547,9 +550,14 @@ class FinderWidget(QWidget):
         self.setVisible(visible)
         if visible:
             self.text_finder.setFocus()
-            self.do_find()
+            if self.text_finder.text():
+                self.do_find()
         else:
             self.sig_find_text.emit("")
+
+    def text(self):
+        """Get current text."""
+        return self.text_finder.text()
 
 
 class CustomSortFilterProxy(QSortFilterProxyModel):

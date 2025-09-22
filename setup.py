@@ -247,19 +247,19 @@ qt_requirements = {
     'pyqt5': [
         'pyqt5>=5.15,<5.16',
         'pyqtwebengine>=5.15,<5.16',
-        'qtconsole>=5.6.1,<5.7.0',
+        'qtconsole>=5.7.0,<5.8.0',
     ],
     'pyqt6': [
         'pyqt6>=6.5,<7',
         'pyqt6-webengine>=6.5,<7',
-        'qtconsole>=5.6.1,<5.7.0',
+        'qtconsole>=5.7.0,<5.8.0',
     ],
     'pyside6': [
         'pyside6>=6.5,<7',
-        'qtconsole>=5.6.1,<5.7.0',
+        'qtconsole>=5.7.0,<5.8.0',
     ],
     'conda-forge': [
-        'qtconsole>=5.6.1,<5.7.0',
+        'qtconsole>=5.7.0,<5.8.0',
     ]
 }
 
@@ -280,7 +280,8 @@ install_requires += [
     # install in all cases and helps the tests to pass.
     'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
-    'ipython>=8.13.0,<9.0.0,!=8.17.1',
+    # Note that on IPython 9.0.0 Python 3.10 support was dropped
+    'ipython>=8.13.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0',
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
@@ -299,6 +300,7 @@ install_requires += [
     'pylint-venv>=3.0.2',
     'pyls-spyder>=0.4.0',
     'python-lsp-black>=2.0.0,<3.0.0',
+    'python-lsp-ruff>=2.2.2,<3.0.0',
     'python-lsp-server[all]>=1.13.0,<1.14.0',
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
@@ -309,7 +311,7 @@ install_requires += [
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'sphinx>=0.6.6',
-    'spyder-kernels>=3.1.0a3,<3.2.0',
+    'spyder-kernels>=3.1.0b1,<3.1.0b2',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',
@@ -329,7 +331,7 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
 
     install_requires.append('python-lsp-server[all]>=1.13.0,<1.15.0')
-    install_requires.append('qtconsole>=5.5.1,<5.7.0')
+    install_requires.append('qtconsole>=5.7.0,<5.9.0')
 
 extras_require = {
     'test': [

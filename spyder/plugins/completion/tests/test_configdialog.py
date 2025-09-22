@@ -23,7 +23,7 @@ class MainWindowMock(QMainWindow):
     sig_setup_finished = Signal()
 
     def __init__(self, parent):
-        super(MainWindowMock, self).__init__(parent)
+        super().__init__(parent)
         self.statusbar = Mock()
         self.console = Mock()
 
@@ -34,8 +34,7 @@ class MainWindowMock(QMainWindow):
     indirect=True)
 def test_config_dialog(config_dialog):
     expected_titles = {'General', 'Snippets', 'Linting', 'Introspection',
-                       'Code style and formatting', 'Docstring style',
-                       'Advanced', 'Other languages'}
+                       'Code formatting', 'Advanced', 'Other languages'}
 
     configpage = config_dialog.get_page()
     assert configpage

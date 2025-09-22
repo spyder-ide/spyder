@@ -31,7 +31,6 @@ from spyder.config.base import get_module_source_path
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  loading, usage, warning)
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
-from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
@@ -108,7 +107,7 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search(r'^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        objtxt = to_text_string(qstr)
+        objtxt = str(qstr)
         shell_is_defined = False
         if self.help.get_conf('automatic_import'):
             shell = self.help.internal_shell
@@ -564,21 +563,7 @@ class HelpWidget(PluginMainWidget):
         self.set_plain_text_color_scheme(value)
 
     def update_actions(self):
-        for __, action in self.get_actions().items():
-            # IMPORTANT: Since we are defining the main actions in here
-            # and the context is WidgetWithChildrenShortcut we need to
-            # assign the same actions to the children widgets in order
-            # for shortcuts to work
-            for widget in [self.plain_text,
-                           self.rich_text,
-                           self.source_combo,
-                           self.object_combo,
-                           self.object_edit]:
-                if action not in widget.actions():
-                    try:
-                        widget.addAction(action)
-                    except RuntimeError:
-                        pass
+        pass
 
     def get_focus_widget(self):
         self.object_combo.lineEdit().selectAll()
@@ -890,7 +875,7 @@ class HelpWidget(PluginMainWidget):
         url: QUrl
             QUrl object containing the link to open.
         """
-        url = to_text_string(url.toString())
+        url = str(url.toString())
         if url == "spy://tutorial":
             self.show_tutorial()
         elif url.startswith('http'):
@@ -941,7 +926,7 @@ class HelpWidget(PluginMainWidget):
         self.switch_to_console_source()
         add_to_combo = True
         if text is None:
-            text = to_text_string(self.object_combo.currentText())
+            text = str(self.object_combo.currentText())
             add_to_combo = False
 
         found = self.show_help(text, ignore_unknown=ignore_unknown)
@@ -1055,7 +1040,7 @@ class HelpWidget(PluginMainWidget):
         if shell is None:
             return
 
-        obj_text = to_text_string(obj_text)
+        obj_text = str(obj_text)
 
         if not shell.is_defined(obj_text):
             if (self.get_conf('automatic_import')
@@ -1152,7 +1137,7 @@ class HelpWidget(PluginMainWidget):
         """
         history = []
         for index in range(self.object_combo.count()):
-            history.append(to_text_string(self.object_combo.itemText(index)))
+            history.append(str(self.object_combo.itemText(index)))
 
         return history
 

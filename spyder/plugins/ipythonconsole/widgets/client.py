@@ -122,7 +122,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         files_api=None,
         can_close=True,
     ):
-        super(ClientWidget, self).__init__(parent)
+        super().__init__(parent)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
         # --- Init attrs
@@ -471,7 +471,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         """Add command to history"""
         if self.shellwidget.is_debugging():
             return
-        return super(ClientWidget, self).add_to_history(command)
+        return super().add_to_history(command)
 
     def is_client_executing(self):
         return (self.shellwidget._executing or
@@ -508,7 +508,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         # Don't break lines in hyphens
         # From https://stackoverflow.com/q/7691569/438386
-        error = error.replace('-', '&#8209')
+        error = error.replace('-', '&#8209;')
 
         # Create error page
         message = _("An error occurred while starting the kernel")
@@ -673,7 +673,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.shutdown(is_last_client, close_console=close_console)
 
         # Close jupyter api regardless of the kernel state
-        if self.is_remote():
+        if self.is_remote() and not self._jupyter_api.closed:
             AsyncDispatcher(
                 loop=self._jupyter_api.session._loop, early_return=False
             )(self._jupyter_api.close)()

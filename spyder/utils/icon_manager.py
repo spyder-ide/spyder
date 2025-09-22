@@ -347,12 +347,15 @@ class IconManager():
             'tour.previous':           [('mdi.skip-previous',), {'color': self.MAIN_FG_COLOR}],
             'tour.next':               [('mdi.skip-next',), {'color': self.MAIN_FG_COLOR}],
             'tour.end':                [('mdi.skip-forward',), {'color': self.MAIN_FG_COLOR}],
-            # --- Third party plugins ------------------------------------------------
-            'profiler':                [('mdi.timer-outline',), {'color': self.MAIN_FG_COLOR}],
-            'condapackages':           [('mdi.archive',), {'color': self.MAIN_FG_COLOR}],
+            # --- Profiler ------------------------------------------------
+            'hide':                    [('mdi.eye-off',), {'color': self.MAIN_FG_COLOR}],
+            'slow':                    [('mdi.speedometer-slow',), {'color': self.MAIN_FG_COLOR}],
+            'stop_profile':            [('mdi.stop',), {'color': SpyderPalette.ICON_7}],
+            'callers_or_callees':      [('mdi6.call-made', 'mdi6.call-received'), {'options': [{'color': self.MAIN_FG_COLOR, 'offset': (-0.2, -0.2)}, {'color': self.MAIN_FG_COLOR, 'offset': (0.2, 0.2)}]}],
+            'callers':                 [('mdi6.call-received',), {'color': self.MAIN_FG_COLOR}],
+            'callees':                 [('mdi6.call-made',), {'color': self.MAIN_FG_COLOR}],
+            # --- Other ------------------------------------------------
             'spyder.example':          [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'spyder.autopep8':         [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
-            'spyder.memory_profiler':  [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'spyder.line_profiler':    [('mdi.eye',), {'color': self.MAIN_FG_COLOR}],
             'symbol_find':             [('mdi.at',), {'color': self.MAIN_FG_COLOR}],
             'folding.arrow_right':     [('mdi.chevron-right',), {'color': self.MAIN_FG_COLOR}],

@@ -23,7 +23,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown,
 )
-from spyder.api.plugins import Plugins, SpyderPluginV2
+from spyder.api.plugins import OptionalPlugins, Plugins, SpyderPluginV2
 from spyder.api.translations import _
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
@@ -71,7 +71,7 @@ class RemoteClient(SpyderPluginV2):
     """
 
     NAME = "remoteclient"
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.MainMenu]
+    OPTIONAL = [Plugins.MainMenu, OptionalPlugins.EnvManager]
     CONF_SECTION = NAME
     CONTAINER_CLASS = RemoteClientContainer
     CONF_FILE = False
@@ -90,6 +90,36 @@ class RemoteClient(SpyderPluginV2):
 
     sig_version_mismatch = Signal(str, str)
 
+    # For remote envs
+    sig_create_env_requested = Signal(str, str, str, list)
+    """
+    Signal to request creating a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    env_name: str
+        Environment name.
+    python_version: str
+        Python version of the environment.
+    packages_list: list[str]
+        List of packages.
+    """
+
+    sig_import_env_requested = Signal(str, str, str)
+    """
+    Signal to request importing a Python environment in the remote machine.
+
+    Parameters
+    ----------
+    config_id: str
+        Machine identifier.
+    import_file_path: str
+        Path to the file that will be used to import the environment.
+    env_name: str
+        Environment name.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,6 +150,7 @@ class RemoteClient(SpyderPluginV2):
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
         container.sig_server_renamed.connect(self.sig_server_renamed)
         container.sig_server_changed.connect(self.sig_server_changed)
+        container.sig_server_updated.connect(self.load_client_from_id)
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
@@ -161,6 +192,20 @@ class RemoteClient(SpyderPluginV2):
         mainmenu.remove_item_from_application_menu(
             RemoteClientActions.ManageConnections,
             menu_id=ApplicationMenus.Tools,
+        )
+
+    @on_plugin_available(plugin=OptionalPlugins.EnvManager)
+    def on_envmanager_available(self):
+        envmanager = self.get_plugin(OptionalPlugins.EnvManager)
+        envmanager.sig_set_default_kernel_spec_requested.connect(
+            self.set_default_kernel_spec
+        )
+
+    @on_plugin_teardown(plugin=OptionalPlugins.EnvManager)
+    def on_envmanager_teardown(self):
+        envmanager = self.get_plugin(OptionalPlugins.EnvManager)
+        envmanager.sig_set_default_kernel_spec_requested.disconnect(
+            self.set_default_kernel_spec
         )
 
     # ---- Public API
@@ -210,7 +255,9 @@ class RemoteClient(SpyderPluginV2):
     # --- Configuration Methods
     def load_client_from_id(self, config_id):
         """Load remote server from configuration id."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             options = self._load_ssh_client_options(config_id)
             self.load_ssh_client(config_id, options)
@@ -225,9 +272,14 @@ class RemoteClient(SpyderPluginV2):
             raise ValueError(msg)
 
     def load_ssh_client(self, config_id: str, options: SSHClientOptions):
-        """Load remote server."""
-        client = SpyderRemoteSSHAPIManager(config_id, options, _plugin=self)
-        self._remote_clients[config_id] = client
+        """Load SSH remote server."""
+        if config_id in self._remote_clients:
+            self._remote_clients[config_id].options.update(options)
+        else:
+            self._remote_clients[config_id] = SpyderRemoteSSHAPIManager(
+                config_id, options, _plugin=self
+            )
+
         _logger.debug(
             "Remote SSH client for '%s' loaded with options: %s",
             config_id,
@@ -238,10 +290,13 @@ class RemoteClient(SpyderPluginV2):
         self, config_id: str, options: JupyterHubClientOptions,
     ):
         """Load JupyterHub remote server."""
-        client = SpyderRemoteJupyterHubAPIManager(
-            config_id, options, _plugin=self
-        )
-        self._remote_clients[config_id] = client
+        if config_id in self._remote_clients:
+            self._remote_clients[config_id].options.update(options)
+        else:
+            self._remote_clients[config_id] = SpyderRemoteJupyterHubAPIManager(
+                config_id, options, _plugin=self
+            )
+
         _logger.debug(
             "Remote JupyterHub client for '%s' loaded with options: %s",
             config_id,
@@ -250,66 +305,58 @@ class RemoteClient(SpyderPluginV2):
 
     def _load_jupyterhub_client_options(self, config_id):
         """Load JupyterHub remote server configuration."""
-        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
-            config_id, {}
+        options = JupyterHubClientOptions(
+            url=self.get_conf(f"{config_id}/url"),
+            token=self.get_conf(f"{config_id}/token", secure=True)
         )
 
-        # We couldn't find saved options for config_id
-        if not options:
-            msg = f"Configuration for remote server '{config_id}' not found."
-            raise ValueError(msg)
-
-        # Password is mandatory in this case
-        token = self.get_conf(f"{config_id}/token", secure=True)
-        options["token"] = token
-
-        return JupyterHubClientOptions(**options)
+        return options
 
     def _load_ssh_client_options(self, config_id):
         """Load remote server configuration."""
-        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
-            config_id, {}
+        auth_method = self.get_conf(f"{config_id}/auth_method")
+
+        options = SSHClientOptions(
+            host=self.get_conf(
+                f"{config_id}/{auth_method}/address"
+            ),
+            port=self.get_conf(f"{config_id}/{auth_method}/port"),
+            username=self.get_conf(
+                f"{config_id}/{auth_method}/username"
+            ),
         )
 
-        # We couldn't find saved options for config_id
-        if not options:
-            msg = f"Configuration for remote server '{config_id}' not found."
-            raise ValueError(msg)
+        if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
+            options["client_keys"] = [client_keys]
+            if passphrase := self.get_conf(
+                f"{config_id}/passphrase", "", secure=True
+            ):
+                options["passphrase"] = passphrase
+        elif config := self.get_conf(f"{config_id}/configfile"):
+            options["config"] = [config]
 
-        if options["config"]:
-            # Only `host` and list with path to config file as `config`
-            # are required
-            options["config"] = [options["config"]]
-
-            # Optional configuration values mapping (`port`, `username`,
-            # `client_keys`, `passphrase` and `password`)
+            # Some validations to avoid passing empty values
             if options["port"] == 0:
                 # Ignore value if 0 is set because it means the port we'll be
                 # read from the config file.
                 options.pop("port")
 
             if not options["username"]:
+                # Ignore empty username
                 options.pop("username")
-
-            if not options["client_keys"]:
-                options.pop("client_keys")
-            else:
-                options["client_keys"] = [options["client_keys"]]
-
-            passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
-            if passphrase:
-                options["passphrase"] = passphrase
-
-            password = self.get_conf(f"{config_id}/password", secure=True)
-            if password:
+            
+            if password := self.get_conf(f"{config_id}/password", secure=True):
+                # Add password if available
                 options["password"] = password
-        elif options["client_keys"]:
-            passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
-            options["client_keys"] = [options["client_keys"]]
 
-            # Passphrase is optional
-            if passphrase:
+            if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
+                # Add keyfile if available
+                options["client_keys"] = [client_keys]
+            
+            if passphrase := self.get_conf(f"{config_id}/passphrase", secure=True):
+                # Add passphrase if available
                 options["passphrase"] = passphrase
+
         else:
             # Password is mandatory in this case
             password = self.get_conf(f"{config_id}/password", secure=True)
@@ -333,7 +380,9 @@ class RemoteClient(SpyderPluginV2):
 
     def get_server_name(self, config_id):
         """Get configured remote server name."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             auth_method = self.get_conf(f"{config_id}/auth_method")
             return self.get_conf(f"{config_id}/{auth_method}/name")
