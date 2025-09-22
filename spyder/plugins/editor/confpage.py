@@ -365,6 +365,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autosave_checkbox = newcb(
             _('Automatically save a backup copy of unsaved files'),
             'autosave_enabled',
+            tip=_("If Spyder quits unexpectedly, "
+                  "it will offer to recover them on next launch"),
         )
         autosave_spinbox = self.create_spinbox(
             _('Autosave interval: '),
