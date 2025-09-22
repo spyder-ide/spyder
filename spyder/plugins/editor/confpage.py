@@ -48,18 +48,27 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         newcb = self.create_checkbox
 
         # ---- Display tab
+        # -- Interface group
+        interface_group = QGroupBox(_("Interface"))
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
         show_filename_box = newcb(
-            _("Show full file path above editor"),
-            'show_filename_toolbar'
-        )
+            _("Show full file path above editor"), 'show_filename_toolbar')
         showclassfuncdropdown_box = newcb(
-                _("Show class/function selector"),
-                'show_class_func_dropdown')
-        scroll_past_end_box = newcb(_("Allow scrolling past file end"),
-                                    'scroll_past_end')
-        showindentguides_box = newcb(_("Show indent guides"),
-                                     'indent_guides')
+            _("Show class/function selector"), 'show_class_func_dropdown')
+        scroll_past_end_box = newcb(
+            _("Allow scrolling past file end"), 'scroll_past_end')
+
+        interface_layout = QVBoxLayout()
+        interface_layout.addWidget(showtabbar_box)
+        interface_layout.addWidget(show_filename_box)
+        interface_layout.addWidget(showclassfuncdropdown_box)
+        interface_layout.addWidget(scroll_past_end_box)
+        interface_group.setLayout(interface_layout)
+
+        # -- Helpers group
+        helpers_group = QGroupBox(_("Helpers"))
+        showindentguides_box = newcb(
+            _("Show indent guides"), 'indent_guides')
         showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         breakpoints_box = newcb(
@@ -77,25 +86,40 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 "!!!, ???</tt> (and their lowercase variants)"
             ),
         )
-        currentline_box = newcb(_("Highlight current line"),
-                                'highlight_current_line')
-        currentcell_box = newcb(_("Highlight current cell"),
-                                'highlight_current_cell')
-        occurrence_box = newcb(_("Highlight occurrences after"),
-                               'occurrence_highlighting')
 
+        helpers_layout = QVBoxLayout()
+        helpers_layout.addWidget(showindentguides_box)
+        helpers_layout.addWidget(showcodefolding_box)
+        helpers_layout.addWidget(linenumbers_box)
+        helpers_layout.addWidget(breakpoints_box)
+        helpers_layout.addWidget(todolist_box)
+        helpers_group.setLayout(helpers_layout)
+
+        # -- Highlight group
+        highlight_group = QGroupBox(_("Highlight"))
+        currentline_box = newcb(
+            _("Highlight current line"), 'highlight_current_line')
+        currentcell_box = newcb(
+            _("Highlight current cell"), 'highlight_current_cell')
+        occurrence_box = newcb(
+            _("Highlight occurrences after"), 'occurrence_highlighting')
         occurrence_spin = self.create_spinbox(
-            "", _(" ms"),
+            "",
+            _(" ms"),
             'occurrence_highlighting/timeout',
-            min_=100, max_=1000000, step=100)
+            min_=100,
+            max_=1000000,
+            step=100,
+        )
+
         occurrence_box.checkbox.toggled.connect(
             occurrence_spin.spinbox.setEnabled)
         occurrence_box.checkbox.toggled.connect(
             occurrence_spin.slabel.setEnabled)
         occurrence_spin.spinbox.setEnabled(
-                self.get_option('occurrence_highlighting'))
+            self.get_option('occurrence_highlighting'))
         occurrence_spin.slabel.setEnabled(
-                self.get_option('occurrence_highlighting'))
+            self.get_option('occurrence_highlighting'))
 
         occurrence_glayout = QGridLayout()
         occurrence_glayout.addWidget(occurrence_box, 0, 0)
@@ -106,24 +130,6 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         occurrence_layout.addLayout(occurrence_glayout)
         occurrence_layout.addStretch(1)
 
-        display_group = QGroupBox(_("Interface"))
-        display_layout = QVBoxLayout()
-        display_layout.addWidget(showtabbar_box)
-        display_layout.addWidget(show_filename_box)
-        display_layout.addWidget(showclassfuncdropdown_box)
-        display_layout.addWidget(scroll_past_end_box)
-        display_group.setLayout(display_layout)
-
-        helpers_group = QGroupBox(_("Helpers"))
-        helpers_layout = QVBoxLayout()
-        helpers_layout.addWidget(showindentguides_box)
-        helpers_layout.addWidget(showcodefolding_box)
-        helpers_layout.addWidget(linenumbers_box)
-        helpers_layout.addWidget(breakpoints_box)
-        helpers_layout.addWidget(todolist_box)
-        helpers_group.setLayout(helpers_layout)
-
-        highlight_group = QGroupBox(_("Highlight"))
         highlight_layout = QVBoxLayout()
         highlight_layout.addWidget(currentline_box)
         highlight_layout.addWidget(currentcell_box)
@@ -421,7 +427,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.create_tab(
             _("Display"),
             [
-                display_group,
+                interface_group,
                 helpers_group,
                 highlight_group,
             ],
