@@ -53,7 +53,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         showtabbar_box = newcb(
             _("Show tab bar"),
             'show_tab_bar',
-            tip=_("If hidden, the Outline pane, Ctrl-Tab and file switcher\n"
+            tip=_("If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
                   "can still be used to navigate between open files."),
         )
         show_filename_box = newcb(
@@ -199,8 +199,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             default=True,
             tip=_("If enabled, modified lines of code (excluding strings)\n"
                   "will have trailing whitespace stripped when leaving them.\n"
-                  "If disabled, only whitespace added by Spyder "
-                  "will be stripped."),
+                  "If disabled, only whitespace added by Spyder will be "
+                  "stripped."),
         )
         self.add_newline_box = newcb(
             _("Automatically add missing end-of-file newline on save"),
@@ -209,7 +209,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             tip=_("If enabled, a trailing newline character (line break) will "
                   "automatically be appended to the end of the file\n"
                   "if the file does not already end with one, "
-                  "to conform to standard text file convention.")
+                  "to conform to standard text file conventions.")
         )
         self.remove_trail_newline_box = newcb(
             _("Strip blank lines at end of file on save"),
