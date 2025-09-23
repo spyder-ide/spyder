@@ -180,9 +180,12 @@ class ShortcutEditor(QDialog):
         # Widgets
         self.label_info = QLabel()
         self.label_info.setText(
-            _("Press the new shortcut and select <b>Ok</b> to confirm, "
-              "click <b>Cancel</b> to revert to the previous state, "
-              "or use <b>Clear</b> to unbind the command from a shortcut.")
+            _(
+                "Press the new shortcut and select <b>Ok</b> to confirm, "
+                "click <b>Cancel</b> to revert to the previous state, "
+                "use <b>Clear</b> to unbind the command from a shortcut "
+                "or press <b>Default</b> to restore the default shortcut."
+            )
         )
         self.label_info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.label_info.setWordWrap(True)
@@ -399,9 +402,13 @@ class ShortcutEditor(QDialog):
                 tip_body += ' - {0}: <b>{1}</b><br>'.format(s.context, s.name)
             tip_body += '<br>'
             if len(conflicts) == 1:
-                tip_override = _("Press 'Ok' to unbind it and assign it to")
+                tip_override = _(
+                    "Press 'Ok' to unbind it and assign the shortcut to"
+                )
             else:
-                tip_override = _("Press 'Ok' to unbind them and assign it to")
+                tip_override = _(
+                    "Press 'Ok' to unbind them and assign the shortcut to"
+                )
             tip_override += ' <b>{}</b>.'.format(self.name)
             tip = template.format(tip_title, tip_body, tip_override)
             icon = ima.icon('warning')
