@@ -1173,8 +1173,10 @@ class TextEditBaseWidget(
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
         # This feature is disabled on MacOS, see spyder-ide/spyder#1510.
-        if (sys.platform != 'darwin' and
-                not self.get_conf('disable_zoom_mouse', section='main')):
+        if (
+            sys.platform != 'darwin'
+            and not self.get_conf('disable_zoom_mouse', section='main')
+        ):
             if event.modifiers() & Qt.ControlModifier:
                 if hasattr(event, 'angleDelta'):
                     if event.angleDelta().y() < 0:
