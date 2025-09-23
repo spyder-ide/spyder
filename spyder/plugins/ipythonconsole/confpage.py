@@ -11,8 +11,9 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QVBoxLayout)
+from qtpy.QtWidgets import (
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout
+)
 
 # Local imports
 from spyder.api.translations import _
@@ -20,6 +21,12 @@ from spyder.api.preferences import PluginConfigPage
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
+
+    def __init__(self, plugin, parent):
+        super().__init__(plugin, parent)
+
+        self.buffer_spin = None
+        self.apply_callback = self.warn_if_large_buffer
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -118,21 +125,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Output group
         output_group = QGroupBox(_("Output"))
-
-        # Note: The maximum here is set to a relatively small value because
-        # larger ones make Spyder sluggish.
-        # Fixes spyder-ide/spyder#19091
-        buffer_spin = self.create_spinbox(
+        self.buffer_spin = self.create_spinbox(
             _("Buffer:"),
             _(" lines"),
             'buffer_size',
             min_=-1,
-            max_=5000,
+            # >10k can make Spyder slow, see spyder-ide/spyder#19091
+            max_=100_000,
             step=100,
             tip=_(
                 "The maximum number of output lines "
-                "retained in each console at a time."
-                "\nSpecifying -1 means no limit (not recommended)."
+                "retained in each console at a time.\n"
+                "Warning; Buffer sizes >10,000 lines can slow down Spyder.\n"
+                "Specifying -1 means no limit (not recommended)."
             ),
         )
         sympy_box = newcb(
@@ -146,7 +151,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         )
 
         output_layout = QVBoxLayout()
-        output_layout.addWidget(buffer_spin)
+        output_layout.addWidget(self.buffer_spin)
         output_layout.addWidget(sympy_box)
         output_group.setLayout(output_layout)
 
@@ -452,3 +457,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Advanced"),
             [autocall_group, autoreload_group, prompts_group, windows_group]
         )
+
+    def warn_if_large_buffer(self):
+        """Warn the user if the Console buffer size is very large."""
+        if "buffer_size" not in self.changed_options:
+            return
+
+        msg = None
+        buffer_size = self.buffer_spin.spinbox.value()
+
+        # >10k line buffers can make Spyder slow, see spyder-ide/spyder#19091
+        if buffer_size > 10_000:
+            msg = _("Buffer sizes over 10,000 lines can slow down Spyder")
+        elif buffer_size == -1:
+            msg = _("Unlimited buffer size can slow down Spyder severely")
+        if msg:
+            QMessageBox.warning(self, _("Warning"), msg, QMessageBox.Ok)
