@@ -23,7 +23,10 @@ fi
 pythonexe=${PREFIX}/bin/python
 menuinst=${PREFIX}/bin/menuinst_cli.py
 mode=$([[ -e "${PREFIX}/.nonadmin" ]] && echo "user" || echo "system")
-shortcut_path=$($pythonexe $menuinst shortcut --mode=$mode)
+spyder_menu=${PREFIX}/envs/spyder-runtime/Menu/spyder-menu.json
+uninstall_menu=${PREFIX}/Menu/uninstall-menu.json
+shortcut_path="$($pythonexe $menuinst shortcut --mode=$mode --menu=$spyder_menu)"
+shortcut_uninstall_path="$($pythonexe $menuinst shortcut --mode=$mode --menu=$uninstall_menu)"
 
 # ---- Aliases
 spy_exe="${PREFIX}/envs/spyder-runtime/bin/spyder"
@@ -82,74 +85,22 @@ for shell_init in ${shell_init_list[@]}; do
     add_alias
 done
 
-# ---- Uninstall script
-echo "Creating uninstall script..."
-cat <<END > ${u_spy_exe}
-#!/bin/bash
-
-if [[ ! -w ${PREFIX} || ! -w "$shortcut_path" ]]; then
-    echo "Uninstalling Spyder requires sudo privileges."
-    exit 1
-fi
-
-while getopts "f" option; do
-    case "\$option" in
-        (f) force=true ;;
-    esac
-done
-shift \$((\$OPTIND - 1))
-
-if [[ -z \$force ]]; then
-    cat <<EOF
-You are about to uninstall Spyder.
-If you proceed, aliases will be removed from:
-  ${shell_init_list[@]}
-and the following will be removed:
-  ${shortcut_path}
-  ${PREFIX}
-
-Do you wish to continue?
-EOF
-    read -p " [yes|NO]: " confirm
-    confirm=\$(echo \$confirm | tr '[:upper:]' '[:lower:]')
-    if [[ ! "\$confirm" =~ ^y(es)?$ ]]; then
-        echo "Uninstall aborted."
-        exit 1
-    fi
-fi
-
-# Quit Spyder
-echo "Quitting Spyder..."
-if [[ "\$OSTYPE" == "darwin"* ]]; then
-    osascript -e 'quit app "$(basename "$shortcut_path")"' 2>/dev/null
-else
-    pkill spyder 2>/dev/null
-fi
-sleep 1
-while [[ \$(pgrep spyder 2>/dev/null) ]]; do
-    echo "Waiting for Spyder to quit..."
-    sleep 1
-done
-
-# Remove aliases from shell startup
-for x in ${shell_init_list[@]}; do
-    # Resolve possible symlink
-    [[ ! -f "\$x" ]] && continue || x=\$(readlink -f \$x)
-
-    echo "Removing Spyder shell commands from \$x..."
-    sed -i.bak -e "/$m1/,/$m2/d" \$x
-    rm \$x.bak
-done
-
-# Remove shortcut and environment
-echo "Removing Spyder shortcut and environment..."
-$pythonexe $menuinst remove
-
-rm -rf ${PREFIX}
-
-echo "Spyder successfully uninstalled."
-END
+# ---- Uninstall
+echo "Updating uninstall script..."
+sed -i.bak \
+    -e "s|__PREFIX__|${PREFIX}|g" \
+    -e "s|__MODE__|${mode}|g" \
+    -e "s|__SHELL_INIT_LIST__|(${shell_init_list[*]/#/ } )|g" \
+    -e "s|__M1__|${m1}|g" \
+    -e "s|__M2__|${m2}|g" \
+    -e "s|__PYTHONEXE__|${pythonexe}|g" \
+    -e "s|__MENUINST__|${menuinst}|g" \
+    ${u_spy_exe}
 chmod +x ${u_spy_exe}
+rm ${u_spy_exe}.bak
+
+# Create shortcut for the uninstaller
+$pythonexe $menuinst install --target=${PREFIX} --menu=$uninstall_menu
 
 # ---- Linux post-install notes
 if [[ "$OSTYPE" == "linux"* ]]; then
@@ -176,7 +127,8 @@ $ sudo $PREFIX/uninstall-spyder.sh
 EOF
     else
         cat <<EOF
-To uninstall Spyder, run the following from the command line:
+To uninstall Spyder, open the application "Spyder ${INSTALLER_VER%%.} Uninstaller",
+or run the following from the command line:
 
 $ uninstall-spyder
 
@@ -216,14 +168,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 while pgrep -fq Installer.app; do
     sleep 1
 done
-open -a "$shortcut_path"
+open -a "${shortcut_path}"
 EOF
     chmod +x $launch_script
     cat $launch_script
 
     nohup $launch_script &>/dev/null &
 elif [[ -n "$(which gtk-launch)" ]]; then
-    gtk-launch $(basename $shortcut_path)
+    gtk-launch $(basename ${shortcut_path})
 else
     nohup $spy_exe &>/dev/null &
 fi
