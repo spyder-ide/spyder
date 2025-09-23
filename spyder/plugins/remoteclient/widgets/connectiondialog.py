@@ -52,6 +52,7 @@ class ConnectionDialog(SidebarDialog):
     sig_stop_server_requested = Signal(str)
     sig_server_renamed = Signal(str)
     sig_connections_changed = Signal()
+    sig_server_updated = Signal(str)
     sig_create_env_requested = Signal(str, str, str, list)
     sig_import_env_requested = Signal(str, str, str)
 
@@ -192,8 +193,10 @@ class ConnectionDialog(SidebarDialog):
         # connecting
         if page.status == ConnectionStatus.Active:
             self._button_stop.setHidden(False)
+            self._button_remove_connection.setEnabled(False)
         else:
             self._button_stop.setHidden(True)
+            self._button_remove_connection.setEnabled(True)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -221,9 +224,6 @@ class ConnectionDialog(SidebarDialog):
 
             # Reset page in case users want to introduce another connection
             page.reset_page()
-
-            # Inform container that a change in connections took place
-            self.sig_connections_changed.emit()
         else:
             # Update name in the dialog if it was changed by users. This needs
             # to be done before calling save_to_conf so that we can compare the
@@ -237,13 +237,19 @@ class ConnectionDialog(SidebarDialog):
             # After saving to our config system, we can inform the container
             # that a change in connections took place.
             if page.new_name is not None:
-                self.sig_connections_changed.emit()
                 self.sig_server_renamed.emit(page.host_id)
                 page.new_name = None
 
             # Mark page as not modified and disable save button
             page.set_modified(False)
             self._button_save_connection.setEnabled(False)
+
+            # Update connection info if necessary
+            page.update_connection_info()
+            self.sig_server_updated.emit(page.host_id)
+
+        # Inform container that a change in connections took place
+        self.sig_connections_changed.emit()
 
     def _remove_connection_info(self):
         """
@@ -302,9 +308,6 @@ class ConnectionDialog(SidebarDialog):
             # Save connection info if necessary
             self._save_connection_info()
 
-            # TODO: Handle the case when the connection info is active and
-            # users change its info.
-
         if ENV_MANAGER and page.NEW_CONNECTION:
             if page.selected_env_creation_method() == CreateEnvMethods.NewEnv:
                 env_name, python_version = page.get_create_env_info()
@@ -349,7 +352,7 @@ class ConnectionDialog(SidebarDialog):
         )
 
         if new:
-            page.save_server_info()
+            page.save_server_id()
 
         self.add_page(page)
 
@@ -397,6 +400,15 @@ class ConnectionDialog(SidebarDialog):
                 self._button_stop.setHidden(False)
             else:
                 self._button_stop.setHidden(True)
+
+            if info["status"] in [
+                ConnectionStatus.Active,
+                ConnectionStatus.Connecting,
+                ConnectionStatus.Stopping,
+            ]:
+                self._button_remove_connection.setEnabled(False)
+            else:
+                self._button_remove_connection.setEnabled(True)
 
     def _set_buttons_for_env_creation_method(
         self, id_: CreateEnvMethods | None = None

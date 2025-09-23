@@ -31,6 +31,9 @@ CALL_KERNEL_TIMEOUT = 30
 
 # URL to our Github issues
 GH_ISSUES = "https://github.com/spyder-ide/spyder/issues/new"
+VAREXP_DONATIONS = (
+    "https://www.spyder-ide.org/donate/variable-explorer-improvements"
+)
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -63,12 +66,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_missing_package_installer = _(
             "The '<tt>{}</tt>' module is required to open this variable. "
             "Unfortunately, it's not part of our installer, which means your "
-            "variable can't be displayed by Spyder."
+            "variable can't be displayed by Spyder.<br><br>"
+            "If you want to see this fixed in the future, please donate to "
+            "this <a href='{}'>project</a>."
         )
         reason_missing_package = _(
             "The '<tt>{}</tt>' module is required to open this variable and "
             "it's not installed alongside Spyder. To fix this problem, please "
             "install it in the same environment that you use to run Spyder."
+            "<br><br>"
+            "If you want to see this addressed in the future, please donate "
+            "to this <a href='{}'>project</a>."
         )
         reason_mismatched_numpy = _(
             "There is a mismatch between the Numpy versions used by Spyder "
@@ -82,10 +90,17 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "please upgrade <tt>pandas</tt> in the console environment "
             "to version 2.0 or higher."
         )
-        reason_mismatched_python = _(
+        reason_mismatched_python_installer = _(
             "There is a mismatch between the Python versions used by Spyder "
             "({}) and the kernel of your current console ({}).<br><br>"
             "To fix it, you need to recreate your console environment with "
+            "Python {} or {}."
+        )
+        reason_mismatched_python = _(
+            "There is a mismatch between the Python versions used by Spyder "
+            "({}) and the kernel of your current console ({}).<br><br>"
+            "To fix it, you need to either install Spyder in an environment "
+            "with Python {} or {}, or recreate your console environment with "
             "Python {} or {}."
         )
 
@@ -95,8 +110,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "to be fixed by the Spyder team, please report it on "
             "<a href='{}'>Github</a>."
         ).format(GH_ISSUES)
+        msg_without_note = "<br>%s"
 
         kernel_call_success = False
+        show_full_msg = True
         try:
             value = self.call_kernel(
                 blocking=True,
@@ -121,25 +138,59 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 # cloudpickle can't deserialize the objects sent from the
                 # kernel and we need to inform users about it.
                 # Fixes spyder-ide/spyder#24125.
+                # Fixes spyder-ide/spyder#24950.
                 py_spyder_version = ".".join(
                     [str(n) for n in sys.version_info[:3]]
                 )
                 py_kernel_version = self.get_pythonenv_info()["python_version"]
 
                 if parse(py_spyder_version) < parse(py_kernel_version):
-                    py_good_version, compatible_versions  = "3.10", _("lower")
-                else:
-                    py_good_version, compatible_versions = "3.11", _("greater")
-
-                raise ValueError(
-                    msg
-                    % reason_mismatched_python.format(
-                        py_spyder_version,
-                        py_kernel_version,
-                        py_good_version,
-                        compatible_versions,
+                    (
+                        py_spyder_good_version,
+                        py_spyder_compatible_versions,
+                        py_kernel_good_version,
+                        py_kernel_compatible_versions,
+                    ) = (
+                        "3.11",
+                        _("greater"),
+                        "3.10",
+                        _("lower"),
                     )
-                )
+                else:
+                    (
+                        py_spyder_good_version,
+                        py_spyder_compatible_versions,
+                        py_kernel_good_version,
+                        py_kernel_compatible_versions,
+                    ) = (
+                        "3.10",
+                        _("lower"),
+                        "3.11",
+                        _("greater"),
+                    )
+
+                if is_conda_based_app():
+                    raise ValueError(
+                        msg
+                        % reason_mismatched_python_installer.format(
+                            py_spyder_version,
+                            py_kernel_version,
+                            py_kernel_good_version,
+                            py_kernel_compatible_versions,
+                        )
+                    )
+                else:
+                    raise ValueError(
+                        msg
+                        % reason_mismatched_python.format(
+                            py_spyder_version,
+                            py_kernel_version,
+                            py_spyder_good_version,
+                            py_spyder_compatible_versions,
+                            py_kernel_good_version,
+                            py_kernel_compatible_versions,
+                        )
+                    )
 
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
@@ -153,14 +204,31 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 name = e.args[0].error.name
                 reason = reason_missing_package_target.format(name)
             elif is_conda_based_app():
-                reason = reason_missing_package_installer.format(e.name)
+                # We don't show the full message in this case so people don't
+                # report this problem to Github and instead encourage them to
+                # donate to the project that will solve the problem.
+                # See spyder-ide/spyder#24922 for the details.
+                show_full_msg = False
+                reason = reason_missing_package_installer.format(
+                    e.name, VAREXP_DONATIONS
+                )
             elif e.name.startswith('numpy._core'):
                 reason = reason_mismatched_numpy
             elif e.name == 'pandas.core.indexes.numeric':
                 reason = reason_mismatched_pandas
             else:
-                reason = reason_missing_package.format(e.name)
-            raise ValueError(msg % reason)
+                # We don't show the full message in this case so people don't
+                # report this problem to Github and instead encourage them to
+                # donate to the project that will solve the problem.
+                show_full_msg = False
+                reason = reason_missing_package.format(
+                    e.name, VAREXP_DONATIONS
+                )
+
+            if show_full_msg:
+                raise ValueError(msg % reason)
+            else:
+                raise ValueError(msg_without_note % reason)
         except Exception:
             raise ValueError(msg % reason_other)
 
