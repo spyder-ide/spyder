@@ -208,15 +208,15 @@ class ShortcutEditor(QDialog):
         self.label_warning.setAlignment(Qt.AlignTop | Qt.AlignLeft)
 
         self.button_default = QPushButton(_('Default'))
+        self.button_clear = QPushButton(_('Clear'))
         self.button_ok = QPushButton(_('Ok'))
         self.button_ok.setEnabled(False)
-        self.button_clear = QPushButton(_('Clear'))
         self.button_cancel = QPushButton(_('Cancel'))
         button_box = QHBoxLayout()
         button_box.addWidget(self.button_default)
+        button_box.addWidget(self.button_clear)
         button_box.addStretch(100)
         button_box.addWidget(self.button_ok)
-        button_box.addWidget(self.button_clear)
         button_box.addWidget(self.button_cancel)
 
         # New Sequence button box
