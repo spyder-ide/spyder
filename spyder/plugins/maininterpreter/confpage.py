@@ -174,7 +174,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
         conda_layout.addWidget(conda_label)
         self.conda_path = self.create_browsefile(
             _('Conda executor path'),
-            'conda_path'
+            'conda_path',
+            filters='*.exe'
         )
         self.conda_path.setStyleSheet("margin-left: 3px")
         self.conda_path.textbox.setMinimumWidth(400)

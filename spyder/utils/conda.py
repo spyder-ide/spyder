@@ -266,3 +266,27 @@ def conda_version(conda_executable=None):
     except Exception:
         pass
     return version
+
+
+def validate_conda(conda_executable):
+    """
+    Get the conda version if available.
+
+    Note: This function can get the version of other conda-like executables
+    like mamba, micromamba or pixi, as well as any executable that provides a
+    `--version` CLI argument.
+    """
+    valid = False
+    if not os.path.isfile(conda_executable):
+        return False
+    if not os.access(conda_executable, os.X_OK):
+        return False
+    try:
+        out = run_program(conda_executable, ['--help']).communicate()
+        if any(
+            tool in out.lower()
+                for tool in ["micromamba", "mamba", "conda"]):
+            valid = True
+    except Exception:
+        return False
+    return valid
