@@ -9,7 +9,6 @@
 # Standard library imports
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
@@ -165,36 +164,6 @@ class MainInterpreterConfigPage(PluginConfigPage):
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
-    def warn_python_compatibility(self, pyexec):
-        if not osp.isfile(pyexec):
-            return
-
-        spyder_version = sys.version_info[0]
-        try:
-            args = ["-c", "import sys; print(sys.version_info[0])"]
-            proc = programs.run_program(pyexec, args, env={})
-            console_version = int(proc.communicate()[0])
-        except IOError:
-            console_version = spyder_version
-        except ValueError:
-            return False
-
-        if spyder_version != console_version:
-            QMessageBox.warning(
-                self,
-                _('Warning'),
-                _("You selected a <b>Python %d</b> interpreter for the "
-                  "console but Spyder is running on <b>Python %d</b>!.<br><br>"
-                  "Although this is possible, we recommend you to install and "
-                  "run Spyder directly with your selected interpreter, to "
-                  "avoid seeing false warnings and errors due to the "
-                  "incompatible syntax between these two Python versions."
-                  ) % (console_version, spyder_version),
-                QMessageBox.Ok,
-            )
-
-        return True
-
     def set_umr_namelist(self):
         """Set UMR excluded module names list."""
         example_excludes = "<code>numpy, scipy</code>"
@@ -253,6 +222,3 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 self.cus_exec_combo.combobox.clear()
                 self.cus_exec_combo.combobox.addItems(custom_list)
             self.pyexec_edit.setText(executable)
-
-            # Show warning compatibility message.
-            self.warn_python_compatibility(executable)
