@@ -313,8 +313,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Run file group
         run_file_group = QGroupBox(_("Run a file"))
         run_file_label = QLabel(_(
-            "Specify a Python file to execute at startup, "
-            "similar to <tt>PYTHONSTARTUP</tt>"
+            "Specify a Python file to execute at startup, similar to "
+            "<tt>PYTHONSTARTUP</tt>"
         ))
         run_file_label.setWordWrap(True)
         file_radio = newcb(
@@ -350,10 +350,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             'autocall',
             default=0,
             tip=_(
-                "In {smart} mode, Autocall is not applied if "
-                "there are no arguments after the callable.\n"
-                "In {full} mode, callable objects are called "
-                "even if no arguments are present."
+                "In {smart} mode, Autocall is not applied if there are no "
+                "arguments after the callable.\n"
+                "In {full} mode, callable objects are called even if no "
+                "arguments are present."
             ).format(smart=smart, full=full),
         )
 
@@ -375,8 +375,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Use autoreload"),
             "autoreload",
             tip=_(
-                "Enables the autoreload magic. "
-                "Refer to its documentation to learn how to use it."
+                "Enables the autoreload magic. Refer to its documentation to "
+                "learn how to use it."
             )
         )
 
