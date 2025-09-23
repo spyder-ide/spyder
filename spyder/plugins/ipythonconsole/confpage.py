@@ -49,7 +49,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             'show_elapsed_time',
             tip=_("Display the time since the current console was started "
                   "in the tab bar"),
-            )
+        )
 
         display_layout = QVBoxLayout()
         display_layout.addWidget(banner_box)
@@ -187,7 +187,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             (inline, 'inline'),
             (automatic, 'auto'),
             ("Qt", 'qt'),
-            ("Tk", 'tk')
+            ("Tk", 'tk'),
         ]
 
         if sys.platform == 'darwin':
@@ -239,13 +239,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             tip=_("Only used when the format is PNG. Default is 144."),
         )
         width_spin = self.create_spinbox(
-                          _("Width:")+"  ", " "+_("inches"),
-                          'pylab/inline/width', min_=2, max_=20, step=1,
-                          tip=_("Default is 6"))
+            _("Width:") + "  ",
+            " " + _("inches"),
+            'pylab/inline/width',
+            min_=2,
+            max_=20,
+            step=1,
+            tip=_("Default is 6"),
+        )
         height_spin = self.create_spinbox(
-                          _("Height:")+"  ", " "+_("inches"),
-                          'pylab/inline/height', min_=1, max_=20, step=1,
-                          tip=_("Default is 4"))
+            _("Height:") + "  ",
+            " " + _("inches"),
+            'pylab/inline/height',
+            min_=1,
+            max_=20,
+            step=1,
+            tip=_("Default is 4"),
+        )
         fontsize_spin = self.create_spinbox(
             _("Font size:") + "  ",
             " " + _("points"),
@@ -253,7 +263,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             min_=5,
             max_=48,
             step=1.0,
-            tip=_("Default is 10")
+            tip=_("Default is 10"),
         )
         bottom_spin = self.create_spinbox(
             _("Bottom edge:") + "  ",
