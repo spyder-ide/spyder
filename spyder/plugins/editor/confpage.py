@@ -53,23 +53,30 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         showtabbar_box = newcb(
             _("Show tab bar"),
             'show_tab_bar',
-            tip=_("If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
-                  "can still be used to navigate between open files."),
+            tip=_(
+                "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
+                "can still be used to navigate between open files."
+            ),
         )
         show_filename_box = newcb(
             _("Show full file path above editor"),
             'show_filename_toolbar',
-            tip=_("If hidden, the full file path is still shown when hovering "
-                  "over its tab."),
+            tip=_(
+                "If hidden, the full file path is still shown when hovering "
+                "over its tab."
+            ),
         )
         showclassfuncdropdown_box = newcb(
             _("Show class/function selector"),
             'show_class_func_dropdown',
-            tip=_("For quick browsing and switching between classes/functions "
-                  "in a file.")
+            tip=_(
+                "For quick browsing and switching between classes/functions "
+                "in a file."
+            ),
         )
         scroll_past_end_box = newcb(
-            _("Allow scrolling past file end"), 'scroll_past_end')
+            _("Allow scrolling past file end"), 'scroll_past_end'
+        )
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(showtabbar_box)
@@ -80,8 +87,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # -- Helpers group
         helpers_group = QGroupBox(_("Helpers"))
-        showindentguides_box = newcb(
-            _("Show indent guides"), 'indent_guides')
+        showindentguides_box = newcb(_("Show indent guides"), 'indent_guides')
         showcodefolding_box = newcb(
             _("Show code folding"),
             'code_folding',
@@ -115,9 +121,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         # -- Highlight group
         highlight_group = QGroupBox(_("Highlight"))
         currentline_box = newcb(
-            _("Highlight current line"), 'highlight_current_line')
+            _("Highlight current line"), 'highlight_current_line'
+        )
         currentcell_box = newcb(
-            _("Highlight current cell"), 'highlight_current_cell')
+            _("Highlight current cell"), 'highlight_current_cell'
+        )
         occurrence_box = newcb(
             _("Highlight occurrences of selected text after"),
             'occurrence_highlighting',
@@ -132,13 +140,17 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         occurrence_box.checkbox.toggled.connect(
-            occurrence_spin.spinbox.setEnabled)
+            occurrence_spin.spinbox.setEnabled
+        )
         occurrence_box.checkbox.toggled.connect(
-            occurrence_spin.slabel.setEnabled)
+            occurrence_spin.slabel.setEnabled
+        )
         occurrence_spin.spinbox.setEnabled(
-            self.get_option('occurrence_highlighting'))
+            self.get_option('occurrence_highlighting')
+        )
         occurrence_spin.slabel.setEnabled(
-            self.get_option('occurrence_highlighting'))
+            self.get_option('occurrence_highlighting')
+        )
 
         occurrence_glayout = QGridLayout()
         occurrence_glayout.addWidget(occurrence_box, 0, 0)
@@ -175,8 +187,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autounindent_box = newcb(
             _("Automatically un-indent 'else', 'elif', etc"),
             'auto_unindent',
-            tip=_("Un-indent further block-level keywords "
-                  "when added inside an 'if', etc block"),
+            tip=_(
+                "Un-indent further block-level keywords "
+                "when added inside an 'if', etc block"
+            ),
         )
 
         automatic_layout = QVBoxLayout()
@@ -197,26 +211,32 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Strip trailing spaces on changed lines"),
             'strip_trailing_spaces_on_modify',
             default=True,
-            tip=_("If enabled, modified lines of code (excluding strings)\n"
-                  "will have trailing whitespace stripped when leaving them.\n"
-                  "If disabled, only whitespace added by Spyder will be "
-                  "stripped."),
+            tip=_(
+                "If enabled, modified lines of code (excluding strings)\n"
+                "will have trailing whitespace stripped when leaving them.\n"
+                "If disabled, only whitespace added by Spyder will be "
+                "stripped."
+            ),
         )
         self.add_newline_box = newcb(
             _("Automatically add missing end-of-file newline on save"),
             'add_newline',
             default=False,
-            tip=_("If enabled, a trailing newline character (line break) will "
-                  "automatically be appended to the end of the file\n"
-                  "if the file does not already end with one, "
-                  "to conform to standard text file conventions.")
+            tip=_(
+                "If enabled, a trailing newline character (line break) will "
+                "automatically be appended to the end of the file\n"
+                "if the file does not already end with one, "
+                "to conform to standard text file conventions."
+            ),
         )
         self.remove_trail_newline_box = newcb(
             _("Strip blank lines at end of file on save"),
             'always_remove_trailing_newlines',
             default=False,
-            tip=_("Any extra newlines at the end of the file besides the first "
-                  "one will be stripped.")
+            tip=_(
+                "Any extra newlines at the end of the file besides the first "
+                "one will be stripped."
+            ),
         )
 
         # Disable the fix-on-save options if autoformatting is enabled
@@ -262,18 +282,22 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         ibackspace_box = newcb(
             _("Intelligent backspace"),
             'intelligent_backspace',
-            tip=_("Make the backspace key automatically remove the number of "
-                  "indentation characters set above."),
+            tip=_(
+                "Make the backspace key automatically remove the number of "
+                "indentation characters set above."
+            ),
             default=True,
         )
         tab_mode_box = newcb(
             _("Tab always indents"),
             'tab_always_indent',
             default=False,
-            tip=_("If enabled, pressing Tab will always add an indent,\n"
-                  "even when the cursor is not at the beginning of a line.\n"
-                  "Code completion can still be triggered using the shortcut "
-                  "Ctrl+Space."),
+            tip=_(
+                "If enabled, pressing Tab will always add an indent,\n"
+                "even when the cursor is not at the beginning of a line.\n"
+                "Code completion can still be triggered using the shortcut "
+                "Ctrl+Space."
+            ),
         )
 
         def enable_tabwidth_spin(index):
@@ -285,7 +309,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 tabwidth_spin.spinbox.setEnabled(False)
 
         indent_chars_box.combobox.currentIndexChanged.connect(
-            enable_tabwidth_spin)
+            enable_tabwidth_spin
+        )
 
         indent_tab_grid_layout = QGridLayout()
         indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
@@ -333,9 +358,11 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         )
 
         convert_eol_on_save_box.checkbox.toggled.connect(
-                convert_eol_on_save_combo.setEnabled)
+            convert_eol_on_save_combo.setEnabled
+        )
         convert_eol_on_save_combo.setEnabled(
-                self.get_option('convert_eol_on_save'))
+            self.get_option('convert_eol_on_save')
+        )
 
         eol_on_save_layout = QHBoxLayout()
         eol_on_save_layout.addWidget(convert_eol_on_save_box)
@@ -348,7 +375,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # ---- Advanced tab
         # -- Template group
-        template_group = QGroupBox(_('Template'))
+        template_group = QGroupBox(_("Template"))
         template_button = self.create_button(
             text=_("Edit new file template"),
             callback=self.plugin.edit_template,
@@ -361,16 +388,18 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         template_group.setLayout(template_layout)
 
         # -- Autosave group
-        autosave_group = QGroupBox(_('Autosave'))
+        autosave_group = QGroupBox(_("Autosave"))
         autosave_checkbox = newcb(
-            _('Automatically save a backup copy of unsaved files'),
+            _("Automatically save a backup copy of unsaved files"),
             'autosave_enabled',
-            tip=_("If Spyder quits unexpectedly, "
-                  "it will offer to recover them on next launch"),
+            tip=_(
+                "If Spyder quits unexpectedly, it will offer to recover"
+                "them on next launch"
+            ),
         )
         autosave_spinbox = self.create_spinbox(
-            _('Autosave interval: '),
-            _('seconds'),
+            _("Autosave interval: "),
+            _("seconds"),
             'autosave_interval',
             min_=1,
             max_=3600,
@@ -384,19 +413,21 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         autosave_group.setLayout(autosave_layout)
 
         # -- Docstring group
-        docstring_group = QGroupBox(_('Docstring style'))
+        docstring_group = QGroupBox(_("Docstring style"))
         numpy_url = "<a href='{}'>Numpy</a>".format(NUMPYDOC)
         googledoc_url = "<a href='{}'>Google</a>".format(GOOGLEDOC)
         sphinx_url = "<a href='{}'>Sphinx</a>".format(SPHINXDOC)
         docstring_label = QLabel(
-            _("Select the style of docstrings ({numpy}, {google} or {sphinx}) "
-              "to generate when pressing <kbd>{shortcut}</kbd> after a "
-              "function, method or class declaration").format(
-                  numpy=numpy_url,
-                  google=googledoc_url,
-                  sphinx=sphinx_url,
-                  shortcut=DOCSTRING_SHORTCUT,
-              ),
+            _(
+                "Select the style of docstrings ({numpy}, {google} or {sphinx}) "
+                "to generate when pressing <kbd>{shortcut}</kbd> after a "
+                "function, method or class declaration"
+            ).format(
+                numpy=numpy_url,
+                google=googledoc_url,
+                sphinx=sphinx_url,
+                shortcut=DOCSTRING_SHORTCUT,
+            ),
         )
         docstring_label.setOpenExternalLinks(True)
         docstring_label.setWordWrap(True)
@@ -421,8 +452,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         multicursor_box = newcb(
             _("Enable multi-cursor support"),
             'multicursor_support',
-            tip=_("Allows adding additional cursors and columns of cursors "
-                  "for simultaneous editing"),
+            tip=_(
+                "Allows adding additional cursors and columns of cursors "
+                "for simultaneous editing"
+            ),
         )
 
         multicursor_layout = QVBoxLayout()
@@ -537,8 +570,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             if option:
                 if value:
                     option.setToolTip(
-                        _("This option is disabled since the "
-                          "<i>Autoformat files on save</i> option is active.")
+                        _(
+                            "This option is disabled since the "
+                            "<i>Autoformat files on save</i> option is active."
+                        )
                     )
                 else:
                     option.setToolTip("")
