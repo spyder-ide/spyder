@@ -812,7 +812,6 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     sys.platform.startswith("linux") and running_in_ci(),
     reason='Fails sometimes on Linux and CIs'
 )
-@pytest.mark.skipif(sys.platform == "darwin", reason="Fails sometimes on Mac")
 @pytest.mark.close_main_window
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
@@ -822,7 +821,7 @@ def test_dedicated_consoles(main_window, qtbot):
         timeout=SHELL_TIMEOUT,
     )
 
-    # ---- Load test file ----
+    # --- Load test file ---
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
@@ -915,7 +914,13 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Assert runfile text is present after reruns ---
     assert 'runfile' in control.toPlainText()
 
-    # ---- Closing test file and resetting config ----
+    # --- Assert no re-execution when already executing
+    shell.execute("import time; time.sleep(5)")  # Execute something long
+    qtbot.keyClick(code_editor, Qt.Key_F5)  # Try to execute while busy
+    qtbot.wait(6000)  # First exectution should be done
+    assert not shell.is_defined("zz")  # Second execution did not occur
+
+    # --- Closing test file and resetting config ---
     main_window.editor.close_file()
     CONF.set('run', 'configurations', {})
     CONF.set('run', 'last_used_parameters_per_executor', {})
