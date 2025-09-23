@@ -1284,6 +1284,16 @@ overrided by the Sympy module (e.g. plot)
         self.ipyclient.reset_warning = not message_box.is_checked()
 
     # ---- Private API (overrode by us)
+    def eventFilter(self, obj, event):
+        etype = event.type()
+        if (
+            etype == QEvent.Wheel
+            and self._control_key_down(event.modifiers())
+            and self.get_conf('disable_zoom_mouse', section='main')
+        ):
+            return False
+        return super().eventFilter(obj, event)
+
     def _event_filter_console_keypress(self, event):
         """Filter events to send to qtconsole code."""
         key = event.key()
@@ -1292,9 +1302,6 @@ overrided by the Sympy module (e.g. plot)
                 # Do not use ctrl + . to restart kernel
                 # Handled by IPythonConsoleWidget
                 return False
-            if self.get_conf('disable_zoom_mouse', section='main'):
-                if event.type == QEvent.Wheel:
-                    return False
         return super()._event_filter_console_keypress(event)
 
     def _handle_execute_reply(self, msg):

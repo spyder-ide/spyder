@@ -500,7 +500,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
         if event.type() == QEvent.Wheel and not self.auto_fit_plotting:
             modifiers = QApplication.keyboardModifiers()
             if (modifiers == Qt.ControlModifier and
-                    self.get_conf('disable_zoom_mouse', section='main')):
+                    not self.get_conf('disable_zoom_mouse', section='main')):
                 if event.angleDelta().y() > 0:
                     self.zoom_in()
                 else:
