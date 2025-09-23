@@ -7,17 +7,12 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
-import json
 import logging
-import struct
 import typing
 from abc import abstractmethod
-import uuid
 
 import aiohttp
 import yarl
-import zmq.asyncio
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.utils import ABCMeta, abstract_attribute

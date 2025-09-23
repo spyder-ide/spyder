@@ -4,6 +4,9 @@ requires = [
     "packaging",
 ]
 
+[tool.black]
+line-length = 79
+
 # We're not ready yet to build Spyder with the setuptools backend, but we're
 # leaving this for the future.
 # build-backend = "setuptools.build_meta"

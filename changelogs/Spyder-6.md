@@ -20,7 +20,7 @@
 
 ### Important fixes
 
-* Much better support for PyQt6 and PySide6.
+* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now. 
 * Make shortcuts to move to different panes work when they are undocked.
 * Remove blank lines around cells when copying their contents to the console.
 * Automatically kill kernels when Spyder crashes.
@@ -157,6 +157,35 @@
 
 * **Breaking** - Remove `old_conf_version` method from `SpyderConfigurationAccessor`.
 * Add `OptionalPlugins` enum for plugins that Spyder can rely on to provide additional functionality.
+
+----
+
+## Version 6.1.0b2 (2025/09/18)
+
+### Issues Closed
+
+* [Issue 24988](https://github.com/spyder-ide/spyder/issues/24988) - TypeError when creating/loading remote connection with a name that has only numbers ([PR 24994](https://github.com/spyder-ide/spyder/pull/24994) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24983](https://github.com/spyder-ide/spyder/issues/24983) - Error when updating between 6.1.0a4 and 6.1.0b1 ([PR 24986](https://github.com/spyder-ide/spyder/pull/24986) by [@mrclary](https://github.com/mrclary))
+* [Issue 24971](https://github.com/spyder-ide/spyder/issues/24971) - Uninstall command typo in the macOS installer introduction page ([PR 24934](https://github.com/spyder-ide/spyder/pull/24934) by [@mrclary](https://github.com/mrclary))
+* [Issue 24950](https://github.com/spyder-ide/spyder/issues/24950) - suggest spyder-env python change to fix mismatch ([PR 24993](https://github.com/spyder-ide/spyder/pull/24993) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24935](https://github.com/spyder-ide/spyder/issues/24935) - AttributeError after modifying Python file in a different application ([PR 24989](https://github.com/spyder-ide/spyder/pull/24989) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24922](https://github.com/spyder-ide/spyder/issues/24922) - Improve message about missing packages in our standalone installers when opening variables ([PR 24993](https://github.com/spyder-ide/spyder/pull/24993) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 9896](https://github.com/spyder-ide/spyder/issues/9896) - IPython console clears when modifying syntax coloring ([PR 24972](https://github.com/spyder-ide/spyder/pull/24972) by [@jsbautista](https://github.com/jsbautista))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 24996](https://github.com/spyder-ide/spyder/pull/24996) - PR: Revert Python version of installer's base environment to 3.11, by [@mrclary](https://github.com/mrclary)
+* [PR 24995](https://github.com/spyder-ide/spyder/pull/24995) - PR: Prevent using Pyside 6.9+ and require PyQt 6.9+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24994](https://github.com/spyder-ide/spyder/pull/24994) - PR: Cast page name to string when adding it to `SidebarDialog` (Widgets), by [@ccordoba12](https://github.com/ccordoba12) ([24988](https://github.com/spyder-ide/spyder/issues/24988))
+* [PR 24993](https://github.com/spyder-ide/spyder/pull/24993) - PR: Improve a couple of messages shown when retrieving a variable fails (Variable Explorer/IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([24950](https://github.com/spyder-ide/spyder/issues/24950), [24922](https://github.com/spyder-ide/spyder/issues/24922))
+* [PR 24989](https://github.com/spyder-ide/spyder/pull/24989) - PR: Access `data.breakpoint` in a safe way (Editor), by [@jsbautista](https://github.com/jsbautista) ([24935](https://github.com/spyder-ide/spyder/issues/24935))
+* [PR 24986](https://github.com/spyder-ide/spyder/pull/24986) - PR: Fix updater checksum comparison with `sha256` prefix, by [@mrclary](https://github.com/mrclary) ([24983](https://github.com/spyder-ide/spyder/issues/24983))
+* [PR 24972](https://github.com/spyder-ide/spyder/pull/24972) - PR: Don't clear console after applying a new color scheme (IPython console), by [@jsbautista](https://github.com/jsbautista) ([9896](https://github.com/spyder-ide/spyder/issues/9896))
+* [PR 24934](https://github.com/spyder-ide/spyder/pull/24934) - PR: Add uninstall shortcut for Linux and macOS (Installers), by [@mrclary](https://github.com/mrclary) ([24971](https://github.com/spyder-ide/spyder/issues/24971))
+
+In this release 8 pull requests were closed.
 
 ----
 

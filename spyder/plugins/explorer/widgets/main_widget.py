@@ -11,7 +11,6 @@ Explorer Main Widget.
 # Standard library imports
 import logging
 import os.path as osp
-import sys
 
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -506,6 +505,8 @@ class ExplorerWidget(PluginMainWidget):
         """
         self.treewidget.update_history(directory)
 
+    def reset_remote_treewidget(self, server_id):
+        self.remote_treewidget.reset(server_id)
 
 # =============================================================================
 # Tests
