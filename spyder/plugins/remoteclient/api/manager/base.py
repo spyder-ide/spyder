@@ -93,7 +93,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         if not get_debug_level():
             self.logger.setLevel(logging.DEBUG)
 
-        if self._plugin is not None:
+        if self._plugin is not None and not self.logger.hasHandlers():
             self.logger.addHandler(SpyderRemoteAPILoggerHandler(self))
 
     @AsyncDispatcher(loop="asyncssh", early_return=False)

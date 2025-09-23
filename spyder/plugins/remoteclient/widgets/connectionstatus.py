@@ -95,27 +95,15 @@ class ConnectionStatusWidget(
 
     def __init__(self, parent, host_id):
         super().__init__(parent)
-        self.host_id = host_id
 
-        if self._auth_method == AuthenticationMethod.JupyterHub:
-            self.address = self.get_conf(f"{host_id}/url")
-            username = ""
-        # TODO: Address this for configfile login
-        elif self._auth_method != AuthenticationMethod.ConfigFile:
-            self.address = self.get_conf(
-                f"{host_id}/{self._auth_method}/address"
-            )
-            username = self.get_conf(f"{host_id}/{self._auth_method}/username")
-        else:
-            self.address = ""
-            username = ""
+        # Attributes
+        self.host_id = host_id
+        self.status = ConnectionStatus.Inactive
 
         # Widgets
         self._connection_label = QLabel(self)
         self._status_label = QLabel(self)
-        self._user_label = QLabel(
-            _("Username: {}").format(username) if username else "", self
-        )
+        self._user_label = QLabel(self)
         self._message_label = QLabel(self)
         self._message_label.setWordWrap(True)
         self._image_label = QLabel(self)
@@ -192,12 +180,15 @@ class ConnectionStatusWidget(
     # -------------------------------------------------------------------------
     def update_status(self, info: ConnectionInfo):
         """Update graphical elements related to the connection status."""
-        status = info["status"]
+        self.status = info["status"]
         message = info["message"]
 
-        self._set_icon(status)
-        self._set_text_in_labels(status)
+        self._set_icon(self.status)
+        self._set_text_in_labels(self.status)
         self._message_label.setText(message)
+
+    def update_info(self):
+        self._set_text_in_labels(self.status)
 
     def add_log(self, log: RemoteClientLog):
         """Add a new log message to the log widget."""
@@ -301,10 +292,16 @@ class ConnectionStatusWidget(
         color = STATUS_TO_COLOR[status]
         localized_status = STATUS_TO_TRANSLATION_STRINGS[status]
 
+        address, username = self._get_address_and_username()
+
         self._connection_label.setText(
             _('Connection to: <span style="color:{}">{}<span>').format(
-                color, self.address
+                color, address
             )
+        )
+
+        self._user_label.setText(
+            _("Username: {}").format(username) if username else ""
         )
 
         self._status_label.setText(
@@ -327,3 +324,21 @@ class ConnectionStatusWidget(
         """Copy log messages to clipboard."""
         text = self._log_widget.toPlainText()
         QApplication.clipboard().setText(text)
+
+    def _get_address_and_username(self):
+        if self._auth_method == AuthenticationMethod.JupyterHub:
+            address = self.get_conf(f"{self.host_id}/url")
+            username = ""
+        # TODO: Address this for configfile login
+        elif self._auth_method != AuthenticationMethod.ConfigFile:
+            address = self.get_conf(
+                f"{self.host_id}/{self._auth_method}/address"
+            )
+            username = self.get_conf(
+                f"{self.host_id}/{self._auth_method}/username"
+            )
+        else:
+            address = ""
+            username = ""
+
+        return (address, username)

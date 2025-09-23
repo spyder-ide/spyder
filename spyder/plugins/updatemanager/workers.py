@@ -174,7 +174,7 @@ def get_asset_info(
 
     if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
-    elif current_version.minor < release.minor:
+    elif current_version.minor < release.minor or current_version.is_prerelease:
         update_type = UpdateType.Minor
     else:
         update_type = UpdateType.Micro
@@ -267,8 +267,14 @@ def validate_download(file: str, checksum: str) -> bool:
         while chunk := f.read(8192):
             _checksum.update(chunk)
 
-    valid = checksum == _checksum.hexdigest()
+    valid = checksum.lstrip("sha256:") == _checksum.hexdigest()
     logger.debug(f"Valid {file}: {valid}")
+
+    # Extract validated zip files
+    if valid and file.endswith('.zip'):
+        with ZipFile(file, 'r') as f:
+            f.extractall(osp.dirname(file))
+        logger.debug(f"{file} extracted.")
 
     return valid
 
@@ -510,8 +516,6 @@ class WorkerUpdateUpdater(BaseWorker):
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
-            with ZipFile(self.installer_path, 'r') as f:
-                f.extractall(dirname)
         else:
             raise UpdateDownloadError("Download failed!")
 
@@ -647,10 +651,6 @@ class WorkerDownloadInstaller(BaseWorker):
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
             logger.info('Download successfully completed.')
-
-            if self.installer_path.endswith('.zip'):
-                with ZipFile(self.installer_path, 'r') as f:
-                    f.extractall(dirname)
         else:
             raise UpdateDownloadError("Download failed!")
 
