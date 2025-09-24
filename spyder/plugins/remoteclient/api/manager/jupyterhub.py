@@ -217,18 +217,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         return False
 
     async def _create_new_connection(self) -> bool:
-        if self.connected:
-            self.logger.debug(
-                "Atempting to create a new connection with an existing for %s",
-                self.server_name,
-            )
-            await self.close_connection()
-
-        self._emit_connection_status(
-            ConnectionStatus.Connecting,
-            _("We're establishing the connection. Please be patient"),
-        )
-
+        """Create a new SSH connection."""
         self.logger.debug("Connecting to jupyterhub at %s", self.hub_url)
 
         self._session = aiohttp.ClientSession(
@@ -237,13 +226,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         )
 
         user_data = None
-        try:
-            async with self._session.get("hub/api/user") as response:
-                if response.ok:
-                    user_data = await response.json()
-        except aiohttp.ClientError:
-            self.logger.exception("Error connecting to JupyterHub")
-            return False
+        async with self._session.get("hub/api/user") as response:
+            if response.ok:
+                user_data = await response.json()
 
         if user_data is None:
             self.logger.error(
