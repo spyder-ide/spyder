@@ -65,6 +65,9 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             SpyderFontType.Interface).pointSize()
 
         # Image (icon)
+        image_label_qss = qstylizer.style.StyleSheet()
+        image_label_qss.QLabel.setValues(border="0px")
+
         self._image_label = None
         if icon_filename:
             self._image_label = QLabel(self)
@@ -73,8 +76,6 @@ class EmptyMessageWidget(QFrame, SvgToScaledPixmap, SpyderFontsMixin):
             )
             self._image_label.setAlignment(Qt.AlignCenter)
 
-            image_label_qss = qstylizer.style.StyleSheet()
-            image_label_qss.QLabel.setValues(border="0px")
             self._image_label.setStyleSheet(image_label_qss.toString())
 
         # Main text
