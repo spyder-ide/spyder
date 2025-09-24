@@ -18,7 +18,7 @@ from textwrap import dedent
 import typing
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, Signal, QEvent
 from qtpy.QtGui import QClipboard, QTextCursor, QTextFormat
 from qtpy.QtWidgets import QApplication, QMessageBox
 from spyder_kernels.comms.frontendcomm import CommError
@@ -1556,6 +1556,16 @@ overrided by the Sympy module (e.g. plot)
         """Reimplement Qt method to send focus change notification"""
         self.sig_focus_changed.emit()
         return super().focusOutEvent(event)
+    
+    def eventFilter(self, obj, event):
+        etype = event.type()
+        if (
+            etype == QEvent.Wheel
+            and self._control_key_down(event.modifiers())
+            and self.get_conf('disable_zoom_mouse', section='main')
+        ):
+            return False
+        return super().eventFilter(obj, event)
 
     # ---- Python methods
     def __repr__(self):
