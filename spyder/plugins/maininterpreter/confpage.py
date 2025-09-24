@@ -129,7 +129,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             msg_info=_("This change will only be applied to new consoles"),
             tip=_(
                 "This option will enable the User Module Reloader (UMR) "
-                "in Python/IPython consoles. UMR forces Python to perform a "
+                "in IPython consoles. UMR forces Python to perform a "
                 "deep reload of imported modules when running Python files "
                 "with Spyder's <code>Run</code> command.<br><br>"
                 "After being enabled, UMR requires a console restart "
