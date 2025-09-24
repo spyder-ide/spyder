@@ -11,6 +11,7 @@ Spyder Remote Client API.
 from __future__ import annotations
 import logging
 import typing
+from enum import Enum
 
 
 class KernelInfo(typing.TypedDict):
@@ -53,14 +54,16 @@ class JupyterHubClientOptions(typing.TypedDict):
     default_kernel_spec: str | None
 
 
-class ClientType:
+class ClientType(Enum):
     SSH = "ssh"
     JupyterHub = "jupyterhub"
 
 
-class ConnectionStatus:
+class ConnectionStatus(Enum):
     Inactive = "inactive"
     Connecting = "connecting"
+    Connected = "connected"
+    Starting = "starting"
     Active = "active"
     Stopping = "stopping"
     Error = "error"
