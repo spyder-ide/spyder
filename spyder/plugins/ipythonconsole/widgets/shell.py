@@ -1560,13 +1560,13 @@ overrided by the Sympy module (e.g. plot)
         return super().focusOutEvent(event)
     
     def eventFilter(self, obj, event):
-        etype = event.type()
         if (
-            etype == QEvent.Wheel
+            event.type() == QEvent.Wheel
             and self._control_key_down(event.modifiers())
             and self.get_conf('disable_zoom_mouse', section='main')
         ):
             return False
+
         return super().eventFilter(obj, event)
 
     # ---- Python methods
