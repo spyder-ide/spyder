@@ -103,7 +103,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         self.__abort_requested = asyncio.Event()
         self.__lock = asyncio.Lock()
 
-    def _emit_connection_status(self, status: ConnectionStatus, message: str):
+    def _emit_connection_status(self, status: str, message: str):
         if self._plugin is not None:
             self._plugin.sig_connection_status_changed.emit(
                 ConnectionInfo(
