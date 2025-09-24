@@ -79,8 +79,7 @@ class ApplicationConfigPage(PluginConfigPage):
             section='update_manager'
         )
         disable_zoom_mouse_cb = newcb(
-            _("Disable zoom with mouse wheel"),
-            'disable_zoom_mouse'
+            _("Disable zoom with Ctrl/Cmd + mouse wheel"), "disable_zoom_mouse"
         )
 
         # Decide if it's possible to activate or not single instance mode
