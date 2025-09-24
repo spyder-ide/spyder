@@ -176,6 +176,7 @@ class SpyderPaletteDark(Palette):
     ICON_4 = Error.B70
     ICON_5 = Warning.B70
     ICON_6 = Primary.B30
+    ICON_7 = GroupDark.B90
     # Group colors
     GROUP_1 = GroupDark.B10
     GROUP_2 = GroupDark.B20
@@ -280,6 +281,7 @@ class SpyderPaletteLight(Palette):
     ICON_4 = Error.B70
     ICON_5 = Warning.B70
     ICON_6 = Primary.B140
+    ICON_7 = GroupLight.B90
     # Group colors
     GROUP_1 = GroupLight.B10
     GROUP_2 = GroupLight.B20
