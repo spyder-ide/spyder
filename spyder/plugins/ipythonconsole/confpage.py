@@ -12,7 +12,12 @@ import sys
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
-    QGridLayout, QGroupBox, QHBoxLayout, QLabel, QMessageBox, QVBoxLayout
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QVBoxLayout,
 )
 
 # Local imports
@@ -129,15 +134,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Buffer:"),
             _(" lines"),
             'buffer_size',
-            min_=-1,
+            min_=100,
             # >10k can make Spyder slow, see spyder-ide/spyder#19091
-            max_=100_000,
+            max_=50_000,
             step=100,
             tip=_(
                 "The maximum number of output lines "
                 "retained in each console at a time.\n"
-                "Warning; Buffer sizes >10,000 lines can slow down Spyder.\n"
-                "Specifying -1 means no limit (not recommended)."
+                "Warning; Buffer sizes greater than 10000 lines can slow "
+                "down Spyder."
             ),
         )
         sympy_box = newcb(
@@ -478,7 +483,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # >10k line buffers can make Spyder slow, see spyder-ide/spyder#19091
         if buffer_size > 10_000:
-            msg = _("Buffer sizes over 10,000 lines can slow down Spyder")
+            msg = _("Buffer sizes over 10000 lines can slow down Spyder")
         elif buffer_size == -1:
             msg = _("Unlimited buffer size can slow down Spyder severely")
         if msg:
