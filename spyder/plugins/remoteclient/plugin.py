@@ -333,7 +333,30 @@ class RemoteClient(SpyderPluginV2):
             ):
                 options["passphrase"] = passphrase
         elif config := self.get_conf(f"{config_id}/configfile"):
-            options["config"] = config
+            options["config"] = [config]
+
+            # Some validations to avoid passing empty values
+            if options["port"] == 0:
+                # Ignore value if 0 is set because it means the port we'll be
+                # read from the config file.
+                options.pop("port")
+
+            if not options["username"]:
+                # Ignore empty username
+                options.pop("username")
+            
+            if password := self.get_conf(f"{config_id}/password", secure=True):
+                # Add password if available
+                options["password"] = password
+
+            if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
+                # Add keyfile if available
+                options["client_keys"] = [client_keys]
+            
+            if passphrase := self.get_conf(f"{config_id}/passphrase", secure=True):
+                # Add passphrase if available
+                options["passphrase"] = passphrase
+
         else:
             # Password is mandatory in this case
             password = self.get_conf(f"{config_id}/password", secure=True)
