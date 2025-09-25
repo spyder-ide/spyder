@@ -518,10 +518,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 f"{download_error.message}"
             )
             error_message = _(
-                "An error occured while trying to download {path}".format(
-                    path=path
-                )
-            )
+                "An error occured while trying to download {path}"
+            ).format(path=path)
             QMessageBox.critical(self, _("Download error"), error_message)
 
         return zip_data.getbuffer()
@@ -552,10 +550,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                     f"{download_error.message}"
                 )
                 error_message = _(
-                    "An error occured while trying to download {path}".format(
-                        path=path
-                    )
-                )
+                    "An error occured while trying to download {path}"
+                ).format(path=path)
                 QMessageBox.critical(self, _("Download error"), error_message)
 
         await file_manager.close()

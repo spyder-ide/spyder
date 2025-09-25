@@ -25,7 +25,7 @@ class ProfilerConfigPage(PluginConfigPage):
 
         slow_spin = self.create_spinbox(
             _("Maximum number of items displayed with large local time"),
-            _(""),
+            "",
             'n_slow_children',
             min_=1,
             max_=1000,
