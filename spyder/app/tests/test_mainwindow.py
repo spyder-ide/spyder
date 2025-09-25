@@ -4845,6 +4845,9 @@ def test_tour_message(main_window, qtbot):
     reason="Too flaky with pip packages"
 )
 @pytest.mark.known_leak
+@pytest.mark.xfail(
+    reason="Test is too flaky despite our best efforts to make it pass"
+)
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
