@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
-from spyder.utils.conda import get_list_conda_envs_cache
+from spyder.utils.conda import get_list_conda_envs_cache, validate_conda
 from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
@@ -175,7 +175,10 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.conda_path = self.create_browsefile(
             _('Conda executor path'),
             'conda_path',
-            filters='*.exe'
+            filters='*.exe',
+            validate_callback=validate_conda,
+            validate_reason=_("The selected file is not a valid "
+                              "conda executable"),
         )
         self.conda_path.setStyleSheet("margin-left: 3px")
         self.conda_path.textbox.setMinimumWidth(400)

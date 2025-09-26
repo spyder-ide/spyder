@@ -35,7 +35,7 @@ from spyder.config.base import (
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
-from spyder.utils.conda import conda_version, find_conda, find_pixi, validate_conda
+from spyder.utils.conda import conda_version, find_conda, find_pixi
 from spyder.utils.environ import clean_env, get_user_environment_variables
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
@@ -179,13 +179,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     )
                     raise SpyderKernelError(not_found_exe_message)
 
-            if not validate_conda(conda_exe):
-                not_valid_exe_conda = _(
-                        "The selected executable is not a valid conda, mamba"
-                        " or micromamba binary. Please check the path and "
-                        "select a valid executable."
-                    )
-                raise SpyderKernelError(not_valid_exe_conda)
+            #if not validate_conda(conda_exe):
+            #    not_valid_exe_conda = _(
+            #            "The selected executable is not a valid conda, mamba"
+            #            " or micromamba binary. Please check the path and "
+            #            "select a valid executable."
+            #        )
+            #    raise SpyderKernelError(not_valid_exe_conda)
 
             # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
