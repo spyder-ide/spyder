@@ -71,22 +71,12 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': ['py', 'ipy'],
+            'extension': ['py', 'ipy', 'pyw'],
             "contexts": [
                 {"name": "File"},
                 {"name": "Cell"},
                 {"name": "Selection"},
             ],
-        }
-
-        self.pyw_editor_run_configuration = {
-            'origin': self.NAME,
-            'extension': 'pyw',
-            'contexts': [
-                {'name': 'File'},
-                {'name': 'Cell'},
-                {'name': 'Selection'},
-            ]
         }
 
         self.executor_configuration = [
@@ -211,8 +201,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.add_supported_run_configuration(
-            self.python_editor_run_configuration,
-            self.pyw_editor_run_configuration
+            self.python_editor_run_configuration
         )
 
         widget.sig_edit_goto_requested.connect(editor.load)
@@ -223,8 +212,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.remove_supported_run_configuration(
-            self.python_editor_run_configuration,
-            self.pyw_editor_run_configuration
+            self.python_editor_run_configuration
         )
 
         widget.sig_edit_goto_requested.disconnect(editor.load)
