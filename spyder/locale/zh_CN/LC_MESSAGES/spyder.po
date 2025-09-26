@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 14:08\n"
+"PO-Revision-Date: 2025-09-26 15:26\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2089,15 +2089,15 @@ msgstr "显示类/函数选择器"
 
 #: spyder/plugins/editor/confpage.py:72
 msgid "For quick browsing and switching between classes/functions in a file."
-msgstr ""
+msgstr "用于在文件中快速浏览和在类/函数之间切换。"
 
 #: spyder/plugins/editor/confpage.py:78
 msgid "Allow scrolling past file end"
-msgstr ""
+msgstr "允许滚动超过文件末尾"
 
 #: spyder/plugins/editor/confpage.py:89
 msgid "Helpers"
-msgstr ""
+msgstr "辅助功能"
 
 #: spyder/plugins/editor/confpage.py:90 spyder/plugins/editor/widgets/main_widget.py:394
 msgid "Show indent guides"
@@ -2109,7 +2109,7 @@ msgstr "显示代码折叠功能"
 
 #: spyder/plugins/editor/confpage.py:94
 msgid "Allow collapsing and uncollapsing code by indent level"
-msgstr ""
+msgstr "允许按缩进级别折叠和展开代码"
 
 #: spyder/plugins/editor/confpage.py:96 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:124
 msgid "Show line numbers"
@@ -2117,11 +2117,11 @@ msgstr "显示行号"
 
 #: spyder/plugins/editor/confpage.py:98
 msgid "Show debugger breakpoints"
-msgstr ""
+msgstr "显示调试器断点"
 
 #: spyder/plugins/editor/confpage.py:103
 msgid "Show code annotations"
-msgstr ""
+msgstr "显示代码标注"
 
 #: spyder/plugins/editor/confpage.py:105
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (and their lowercase variants)"
@@ -2888,19 +2888,19 @@ msgstr "取消缩进当前行或选定的内容"
 
 #: spyder/plugins/editor/widgets/main_widget.py:636
 msgid "Toggle UPPERCASE"
-msgstr ""
+msgstr "切换大写"
 
 #: spyder/plugins/editor/widgets/main_widget.py:638
 msgid "Change current line or selection to UPPERCASE text"
-msgstr ""
+msgstr "将当前行或选区更改为大写文本"
 
 #: spyder/plugins/editor/widgets/main_widget.py:645
 msgid "Toggle lowercase"
-msgstr ""
+msgstr "切换小写"
 
 #: spyder/plugins/editor/widgets/main_widget.py:647
 msgid "Change current line or selection to lowercase text"
-msgstr ""
+msgstr "将当前行或选区更改为小写文本"
 
 #: spyder/plugins/editor/widgets/main_widget.py:1668
 msgid "Spyder Editor"
@@ -3927,7 +3927,7 @@ msgstr "在关闭之前要求确认"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Ask for confirmation before removing all variables"
-msgstr ""
+msgstr "在移除所有变量之前请求确认"
 
 #: spyder/plugins/ipythonconsole/confpage.py:76
 msgid "Ask for confirmation before restarting"
@@ -3935,7 +3935,7 @@ msgstr "在重新启动之前要求确认"
 
 #: spyder/plugins/ipythonconsole/confpage.py:87
 msgid "Completion"
-msgstr ""
+msgstr "补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:88
 msgid "Graphical"
@@ -3951,7 +3951,7 @@ msgstr "终端"
 
 #: spyder/plugins/ipythonconsole/confpage.py:90
 msgid "Display:"
-msgstr ""
+msgstr "显示："
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
 msgid "Graphical shows a list of completion matches in a GUI.\n"
@@ -4589,7 +4589,7 @@ msgstr "内核已死亡"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:56
 msgid "An unknown error occurred, sorry."
-msgstr ""
+msgstr "发生了未知错误，很抱歉。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:57
 msgid "The channel used to communicate with the kernel is not working."
@@ -5432,7 +5432,7 @@ msgstr "总调用次数（包括递归调用）"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:905
 msgid "File and line where the function is defined"
-msgstr ""
+msgstr "函数定义所在的文件和行号"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -6296,7 +6296,7 @@ msgstr "用于以下目标的新运行配置: {}"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Configure the selected runner for this file"
-msgstr ""
+msgstr "为此文件配置选定的运行器"
 
 #: spyder/plugins/run/widgets.py:605
 msgid "Preset configuration:"
