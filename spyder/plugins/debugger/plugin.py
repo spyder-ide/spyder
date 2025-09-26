@@ -123,6 +123,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
+                'input_extension': 'pyw',
+                'context': {'name': 'File'},
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
                 'input_extension': 'py',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
@@ -132,6 +140,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -148,6 +164,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
