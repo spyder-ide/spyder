@@ -20,8 +20,8 @@ from spyder.config.base import is_stable_version
 _d = '&#45;'
 
 # Required version of Spyder-kernels
-SPYDER_KERNELS_MIN_VERSION = "3.1.0b1"
-SPYDER_KERNELS_MAX_VERSION = '3.1.b2'
+SPYDER_KERNELS_MIN_VERSION = "3.1.0b2"
+SPYDER_KERNELS_MAX_VERSION = '3.1.0'
 SPYDER_KERNELS_VERSION = (
     f'>={SPYDER_KERNELS_MIN_VERSION},<{SPYDER_KERNELS_MAX_VERSION}'
 )
