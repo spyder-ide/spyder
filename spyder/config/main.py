@@ -250,6 +250,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
+              'indent_with_spaces': True,
               'tab_stop_width_spaces': 4,
               'check_eol_chars': True,
               'convert_eol_on_save': False,
