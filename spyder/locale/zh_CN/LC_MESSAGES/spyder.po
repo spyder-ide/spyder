@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 08:41\n"
+"PO-Revision-Date: 2025-09-26 14:08\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2043,11 +2043,11 @@ msgstr "在当前行上设置或清除断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:339
 msgid "Set/edit conditional breakpoint"
-msgstr ""
+msgstr "设置/编辑条件断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:340
 msgid "Set a conditional breakpoint, or edit an existing one"
-msgstr ""
+msgstr "设置一个条件断点，或编辑已有的"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:355
 msgid "List breakpoints"
@@ -2072,19 +2072,20 @@ msgstr "显示标签栏"
 #: spyder/plugins/editor/confpage.py:56
 msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
 "can still be used to navigate between open files."
-msgstr ""
+msgstr "如果隐藏，文件切换器、概览面板和 Ctrl-Tab\n"
+"仍可用于在打开的文件间进行导航。"
 
 #: spyder/plugins/editor/confpage.py:62
 msgid "Show full file path above editor"
-msgstr ""
+msgstr "在编辑上方显示完整文件路径"
 
 #: spyder/plugins/editor/confpage.py:64
 msgid "If hidden, the full file path is still shown when hovering over its tab."
-msgstr ""
+msgstr "如果隐藏，完整文件路径仍会在悬停于标签页时显示。"
 
 #: spyder/plugins/editor/confpage.py:70 spyder/plugins/editor/widgets/main_widget.py:406
 msgid "Show class/function selector"
-msgstr ""
+msgstr "显示类/函数选择器"
 
 #: spyder/plugins/editor/confpage.py:72
 msgid "For quick browsing and switching between classes/functions in a file."
@@ -6011,23 +6012,23 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:558
 msgid "This is the URL of the JupyterHub server"
-msgstr ""
+msgstr "这是 JupyterHub 服务器的 URL"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:560
 msgid "The URL is not a valid one"
-msgstr ""
+msgstr "这个 URL 不是有效的"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:564
 msgid "Token *"
-msgstr ""
+msgstr "凭据 *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:567
 msgid "Your token will be saved securely by Spyder"
-msgstr ""
+msgstr "你的凭据将由 Spyder 安全地保存"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:569
 msgid "Your token is saved securely by Spyder"
-msgstr ""
+msgstr "你的凭据已由 Spyder 安全地保存"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:671
 msgid "The name you selected is already used by another connection."
