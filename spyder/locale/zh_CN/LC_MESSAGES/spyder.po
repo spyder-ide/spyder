@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 02:12\n"
+"PO-Revision-Date: 2025-09-26 07:44\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2011,11 +2011,11 @@ msgstr "中断执行并启动调试器"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:269
 msgid "Debug current line"
-msgstr ""
+msgstr "调试当前行"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:279
 msgid "Execute until next breakpoint"
-msgstr ""
+msgstr "执行直到下一个断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:289
 msgid "Step into function or method"
@@ -2023,7 +2023,7 @@ msgstr "步进函数或方法"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:299
 msgid "Execute until function returns"
-msgstr ""
+msgstr "执行直到函数返回"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:309
 msgid "Stop debugging"
@@ -2035,7 +2035,7 @@ msgstr "在编辑器中显示调试器所放置的文件和行"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:330
 msgid "Toggle breakpoint"
-msgstr ""
+msgstr "切换断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:331
 msgid "Set or clear a breakpoint on the current line"
