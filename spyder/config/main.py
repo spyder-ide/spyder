@@ -145,6 +145,7 @@ DEFAULTS = [
              {
               'default': True,
               'custom': False,
+              'customConda': False,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],

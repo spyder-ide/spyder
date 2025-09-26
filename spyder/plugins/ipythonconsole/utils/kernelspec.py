@@ -179,14 +179,6 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     )
                     raise SpyderKernelError(not_found_exe_message)
 
-            #if not validate_conda(conda_exe):
-            #    not_valid_exe_conda = _(
-            #            "The selected executable is not a valid conda, mamba"
-            #            " or micromamba binary. Please check the path and "
-            #            "select a valid executable."
-            #        )
-            #    raise SpyderKernelError(not_valid_exe_conda)
-
             # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
 

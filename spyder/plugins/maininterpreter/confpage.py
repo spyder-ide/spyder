@@ -172,6 +172,12 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         conda_layout = QVBoxLayout()
         conda_layout.addWidget(conda_label)
+
+        self.cus_conda_check = self.create_checkbox(
+            _("Use custom conda executor"), "customConda"
+        )
+
+        conda_layout.addWidget(self.cus_conda_check)
         self.conda_path = self.create_browsefile(
             _('Conda executor path'),
             'conda_path',
@@ -182,9 +188,14 @@ class MainInterpreterConfigPage(PluginConfigPage):
         )
         self.conda_path.setStyleSheet("margin-left: 3px")
         self.conda_path.textbox.setMinimumWidth(400)
-
         conda_layout.addWidget(self.conda_path)
         conda_group.setLayout(conda_layout)
+
+        self.conda_path.setEnabled(
+            self.get_option('customConda')
+        )
+        self.cus_conda_check.checkbox.toggled.connect(
+            self.conda_path.setEnabled)
 
         self.conda_edit = self.conda_path.textbox
 
