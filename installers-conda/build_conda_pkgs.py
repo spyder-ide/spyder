@@ -5,6 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+import ast
 import os
 import re
 import sys
@@ -16,6 +17,7 @@ from textwrap import dedent
 from time import time
 
 # Third-party imports
+from packaging.version import parse, InvalidVersion
 from git import Repo, rmtree
 from ruamel.yaml import YAML
 from setuptools_scm import get_version
@@ -36,6 +38,49 @@ PARENT_BRANCH = os.getenv("MATRIX_BRANCH", os.getenv("GITHUB_BASE_REF"))
 
 yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
+
+
+def get_spy_feedstock_branch():
+    """
+    Get the right Spyder/Spyder-kernels feedstock branch according to the
+    published Spyder repo git tags.
+    """
+    for line in (
+        (HERE.parent / "spyder" / "__init__.py").read_text().split("\n")
+    ):
+        if "version_info = " in line:
+            version_info = ast.literal_eval(line.split("=")[-1])
+
+    spyder_repo = Repo(HERE.parent)
+
+    # Check if the first two version_info elements are part of a stable release
+    # version tag
+    feedstock_branch = None
+    for tag in spyder_repo.tags:
+        if not tag.name.startswith("v"):
+            continue
+
+        try:
+            pre_release = parse(tag.name[0:]).is_prerelease
+        except InvalidVersion:
+            pre_release = True
+
+        if (
+            not pre_release
+            and ".".join(map(str, version_info[:2])) in tag.name
+        ):
+            feedstock_branch = "main"
+            break
+
+    # If the above fails, check the fourth version_info element (i.e. "a2" or
+    # "b3")
+    if feedstock_branch is None:
+        if re.match("(b|rc)[0-9].*", version_info[3]):
+            feedstock_branch = "rc"
+        else:
+            feedstock_branch = "dev"
+
+    return feedstock_branch
 
 
 class BuildCondaPkg:
@@ -239,10 +284,7 @@ class SpyderCondaPkg(BuildCondaPkg):
     norm = False
     source = os.environ.get('SPYDER_SOURCE', HERE.parent)
     feedstock = "https://github.com/conda-forge/spyder-feedstock"
-
-    feedstock_branch = "dev"  # Default branch, or if Spyder branch is master
-    if PARENT_BRANCH == "6.x":
-        feedstock_branch = "main"
+    feedstock_branch = get_spy_feedstock_branch()
 
     def _patch_source(self):
         self.logger.info("Patching Spyder source...")
@@ -348,10 +390,7 @@ class SpyderKernelsCondaPkg(BuildCondaPkg):
     name = "spyder-kernels"
     source = os.environ.get('SPYDER_KERNELS_SOURCE')
     feedstock = "https://github.com/conda-forge/spyder-kernels-feedstock"
-
-    feedstock_branch = "dev"  # Default branch, or if Spyder branch is master
-    if PARENT_BRANCH == "6.x":
-        feedstock_branch = "main"
+    feedstock_branch = get_spy_feedstock_branch()
 
 
 PKGS = {
