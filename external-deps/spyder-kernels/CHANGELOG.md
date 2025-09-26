@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.1.0b2 (2025/09/26)
+
+### Pull Requests Merged
+
+* [PR 562](https://github.com/spyder-ide/spyder-kernels/pull/562) - PR: Bump minimal supported IPython version to 8.15, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 561](https://github.com/spyder-ide/spyder-kernels/pull/561) - PR: Update release instructions after switching to `pyproject.toml`, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.1.0b1 (2025/09/10)
 
 ### Issues Closed
