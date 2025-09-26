@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 01:15\n"
+"PO-Revision-Date: 2025-09-26 02:12\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1522,7 +1522,7 @@ msgstr "Spyder 允许定义自定义的补全代码片段作为语言服务器�
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
-msgstr ""
+msgstr "可用的代码片段："
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:88
 msgid "Create a new snippet"
@@ -1919,7 +1919,7 @@ msgstr "调试单元格"
 
 #: spyder/plugins/debugger/plugin.py:199 spyder/plugins/debugger/plugin.py:200
 msgid "Debug the current line or selection"
-msgstr ""
+msgstr "调试当前行或选定内容"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:153
 msgid "Breakpoint"
@@ -6841,7 +6841,7 @@ msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:578
 msgid "There was an error in the update process"
-msgstr ""
+msgstr "更新过程中出现错误"
 
 #: spyder/plugins/updatemanager/widgets/update.py:579 spyder/widgets/reporterror.py:234 spyder/widgets/reporterror.py:456
 msgid "Show details"
@@ -6909,11 +6909,11 @@ msgstr "当检查 Spyder 更新时发生 SSL 证书验证失败。<br><br>请联
 
 #: spyder/plugins/updatemanager/workers.py:61
 msgid "An error occurred while checking for Spyder updates, possibly related to your operating system configuration or file access.<br><br>If you're not sure what to do about it, you can disable checking for updates below. <br><br>The error was:<br><br><i>{error}</i>"
-msgstr ""
+msgstr "在检查 Spyder 更新时发生错误，可能与你的操作系统配置或文件访问权限有关。<br><br>如果你不确定要做什么，你可以禁用下面的检查更新。<br><br>错误信息：<br><br><i>{error}</i>"
 
 #: spyder/plugins/updatemanager/workers.py:578
 msgid "Error when updating Spyder-updater"
-msgstr ""
+msgstr "更新 Spyder-updater 时发生错误"
 
 #: spyder/plugins/updatemanager/workers.py:686
 msgid "It was not possible to download the installer due to the following error:<br><br><tt>{}</tt>"
@@ -7079,23 +7079,23 @@ msgstr "打开这个变量可能很慢\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
 msgid "Spyder was unable to retrieve the value of this variable from the console."
-msgstr ""
+msgstr "Spyder 无法从控制台获取此变量的值。"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:342
 msgid "The value of this variable is too large to be edited."
-msgstr ""
+msgstr "此变量的值因太大而无法编辑。"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:391
 msgid "The problem is:"
-msgstr ""
+msgstr "问题信息："
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:402
 msgid "The following kernel error is associated:"
-msgstr ""
+msgstr "关联到以下内核错误："
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:437
 msgid "Spyder was unable to set this variable in the console to the new value."
-msgstr ""
+msgstr "Spyder 无法在控制台中将此变量设为新值。"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:516
 msgid "Edit item"
@@ -7107,7 +7107,7 @@ msgstr "<b>无法将数据赋值给项目。</b><br><br>错误消息：<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:736
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The problem is:<br><i>%s</i>"
-msgstr ""
+msgstr "Spyder 无法从控制台获取此变量的值。<br><br>问题信息：<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:536
 msgid "It is not possible to display this value because\n"
@@ -7157,7 +7157,7 @@ msgstr "直方图"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1006
 msgid "Plot a histogram of the selected columns"
-msgstr ""
+msgstr "绘制选定列的直方图"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1016
 msgid "Convert to"
@@ -7249,7 +7249,7 @@ msgstr "数据网格编辑器"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2598
 msgid "Resize columns to headers"
-msgstr ""
+msgstr "按标头调整列宽"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:107 spyder/plugins/variableexplorer/widgets/importwizard.py:447
 msgid "Import as"
@@ -7273,7 +7273,7 @@ msgstr "列分隔符："
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:133
 msgid "Tab"
-msgstr ""
+msgstr "选项卡"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:136
 msgid "Whitespace"
@@ -7289,7 +7289,7 @@ msgstr "行分隔符："
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:154
 msgid "EOL"
-msgstr ""
+msgstr "EOL"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:173
 msgid "Skip rows:"
@@ -7325,7 +7325,7 @@ msgstr "原始文本"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:515
 msgid "variable_name"
-msgstr ""
+msgstr "variable_name"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:526
 msgid "table"
@@ -7477,7 +7477,7 @@ msgstr "无法成功打开此文件。 注意变量浏览器支持用以下文�
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:385
 msgid "Spyder is unable to open the file you're trying to load. This could be caused due to a difference between the package versions used when you saved this spydata file and the ones installed in the current environment. Please check the compatibility between them (e.g. that you're using Numpy 2.x in both environments).<br>"
-msgstr ""
+msgstr "Spyder 无法打开你要加载的文件。 这可能是因为你保存此 spydata 文件时使用的包版本与当前环境中安装的版本存在差异。 请检查它们之间的兼容性（例如你是否在两个环境中都是使用 Numpy 2.x）。<br>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:434
 msgid "<b>Some objects could not be saved:</b>"
@@ -7529,7 +7529,7 @@ msgstr "对象的名称。"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:220 spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:229
 msgid "<root>"
-msgstr ""
+msgstr "<root>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:227
 msgid "A path to the data: e.g. var[1]['a'].item"
@@ -7645,15 +7645,15 @@ msgstr "显示或隐藏 {} 栏"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:52
 msgid "<TreeItem(0x{:x}): {} = {}>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} = {}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:57 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:64
 msgid "<TreeItem(0x{:x}): {} ({:d} children)>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} ({:d} children)>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:315 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:316
 msgid "<invisible_root>"
-msgstr ""
+msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:65
 msgid "{} editor preferences"
@@ -7933,7 +7933,7 @@ msgstr "集合 (set)"
 
 #: spyder/widgets/collectionseditor.py:265
 msgid "Frozenset"
-msgstr ""
+msgstr "冻结集合"
 
 #: spyder/widgets/collectionseditor.py:269
 msgid "Dictionary"
@@ -7949,11 +7949,11 @@ msgstr "元素"
 
 #: spyder/widgets/collectionseditor.py:562
 msgid "Click to deselect this row"
-msgstr ""
+msgstr "点击以取消选择此行"
 
 #: spyder/widgets/collectionseditor.py:564
 msgid "Click to select this row. Maintain pressed Ctrl (Cmd on macOS) for multiple rows"
-msgstr ""
+msgstr "点击以选择此行。 保持按下 Ctrl (macOS 上为 Cmd) 以选择多行"
 
 #: spyder/widgets/collectionseditor.py:601
 msgid "Value"
@@ -8005,19 +8005,19 @@ msgstr "<b>无法保存数组</b><br><br>错误消息：<br>%s"
 
 #: spyder/widgets/collectionseditor.py:1597
 msgid "It was not possible to retrieve the value of one or more of the variables you selected in order to copy them."
-msgstr ""
+msgstr "无法获取你所选择的一个或多个变量以拷贝它们。"
 
 #: spyder/widgets/collectionseditor.py:1607
 msgid "It was not possible to copy one or more of the dataframes and Numpy arrays you selected"
-msgstr ""
+msgstr "无法拷贝你所选择的一个或多个数据框架和 Numpy 数组"
 
 #: spyder/widgets/collectionseditor.py:1616
 msgid "It was not possible to copy one or more of the Numpy arrays you selected"
-msgstr ""
+msgstr "无法拷贝你所选择的一个或多个 Numpy 数组"
 
 #: spyder/widgets/collectionseditor.py:1625
 msgid "It was not possible to copy one or more of the dataframes you selected"
-msgstr ""
+msgstr "无法拷贝你所选择的一个或多个数据框架"
 
 #: spyder/widgets/collectionseditor.py:1638
 msgid "Clipboard contents"
@@ -8265,7 +8265,7 @@ msgstr "清空文本"
 
 #: spyder/widgets/helperwidgets.py:515
 msgid "Type and press Enter to search"
-msgstr ""
+msgstr "键入并按 Enter 进行搜索"
 
 #: spyder/widgets/helperwidgets.py:835
 msgid "Spyder updates"
