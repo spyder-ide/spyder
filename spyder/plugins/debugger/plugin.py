@@ -95,6 +95,16 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             ]
         }
 
+        self.pyw_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyw',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
         self.executor_configuration = [
             {
                 'input_extension': 'py',
@@ -239,7 +249,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         for run_config in [
             self.python_editor_run_configuration,
-            self.ipython_editor_run_configuration
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration
         ]:
             editor.add_supported_run_configuration(run_config)
 
@@ -267,7 +278,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         for run_config in [
             self.python_editor_run_configuration,
-            self.ipython_editor_run_configuration
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration
         ]:
             editor.remove_supported_run_configuration(run_config)
 
