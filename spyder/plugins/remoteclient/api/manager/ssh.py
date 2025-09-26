@@ -329,7 +329,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
         return True
 
     async def _create_new_connection(self) -> bool:
-        """Creates a new SSH connection to the remote server machine.
+        """Create a new SSH connection to the remote server machine.
 
         Args
         ----
@@ -341,37 +341,18 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
         bool
             True if the connection was successful, False otherwise.
         """
-        if self.connected:
-            self.logger.debug(
-                f"Atempting to create a new connection with an existing for "
-                f"{self.peer_host}"
-            )
-            await self.close_connection()
-
-        self._emit_connection_status(
-            ConnectionStatus.Connecting,
-            _("We're establishing the connection. Please be patient"),
-        )
-
         connect_kwargs = {
             k: v
             for k, v in self.options.items()
             if k not in self._extra_options
         }
         self.logger.debug("Opening SSH connection")
-        try:
-            self._ssh_connection = await asyncssh.connect(
-                **connect_kwargs, client_factory=self.client_factory
-            )
-        except (OSError, asyncssh.Error) as e:
-            self.logger.error(f"Failed to open ssh connection: {e}")
-            self._emit_connection_status(
-                ConnectionStatus.Error,
-                _("It was not possible to open a connection to this machine"),
-            )
-            return False
 
-        self.logger.info(f"SSH connection opened for {self.peer_host}")
+        self._ssh_connection = await asyncssh.connect(
+            **connect_kwargs, client_factory=self.client_factory
+        )
+
+        self.logger.info("SSH connection established for %s", self.peer_host)
 
         return True
 
