@@ -313,9 +313,10 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
             self.__abort_requested.clear()
             self.__connection_task = asyncio.create_task(self._create_new_connection())
+            abort_task = asyncio.create_task(self.__abort_requested.wait())
 
             await asyncio.wait(
-                [self.__connection_task, self.__abort_requested.wait()],
+                [self.__connection_task, abort_task],
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
