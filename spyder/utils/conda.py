@@ -277,6 +277,8 @@ def validate_conda(conda_executable):
     micromamba.
     """
     valid = False
+    if conda_executable is None:
+        return True
     if not os.path.isfile(conda_executable):
         return False
     if not os.access(conda_executable, os.X_OK):
