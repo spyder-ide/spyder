@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 07:44\n"
+"PO-Revision-Date: 2025-09-26 08:41\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2039,7 +2039,7 @@ msgstr "切换断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:331
 msgid "Set or clear a breakpoint on the current line"
-msgstr ""
+msgstr "在当前行上设置或清除断点"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:339
 msgid "Set/edit conditional breakpoint"
