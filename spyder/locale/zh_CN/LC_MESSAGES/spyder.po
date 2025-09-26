@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 15:26\n"
+"PO-Revision-Date: 2025-09-26 16:45\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -5480,7 +5480,7 @@ msgstr "最近的项目"
 
 #: spyder/plugins/projects/widgets/main_widget.py:280
 msgid "Search project files in the switcher"
-msgstr ""
+msgstr "在切换器中搜索项目文件"
 
 #: spyder/plugins/projects/widgets/main_widget.py:348
 msgid "<b>{}</b> is not a registered Spyder project type!"
@@ -5512,7 +5512,7 @@ msgstr "位置"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:137 spyder/plugins/projects/widgets/projectdialog.py:301
 msgid "This is empty"
-msgstr ""
+msgstr "这里是空的"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:142
 msgid "This directory doesn't exist"
@@ -6340,23 +6340,23 @@ msgstr "自定义"
 
 #: spyder/plugins/shortcuts/confpage.py:33
 msgid "Reset all shortcuts to default values"
-msgstr ""
+msgstr "将所有快捷方式重置为默认值"
 
 #: spyder/plugins/shortcuts/confpage.py:36
 msgid "Customize a shortcut by double-clicking on its entry below."
-msgstr ""
+msgstr "通过双击下面的条目来自定我快捷方式。"
 
 #: spyder/plugins/shortcuts/confpage.py:43 spyder/widgets/helperwidgets.py:512
 msgid "Type to search"
-msgstr ""
+msgstr "键入内容并搜索"
 
 #: spyder/plugins/shortcuts/confpage.py:74
 msgid "Reset all shortcuts"
-msgstr ""
+msgstr "重置所有快捷方式"
 
 #: spyder/plugins/shortcuts/confpage.py:75
 msgid "Do you want to reset all shortcuts to their default values?"
-msgstr ""
+msgstr "你想要将所有快捷方式重置为默认值吗？"
 
 #: spyder/plugins/shortcuts/plugin.py:71
 msgid "Keyboard shortcuts"
@@ -6368,7 +6368,7 @@ msgstr "管理应用程序、 窗格和动作快捷方式。"
 
 #: spyder/plugins/shortcuts/plugin.py:86
 msgid "Shortcuts summary"
-msgstr ""
+msgstr "快捷方式汇总"
 
 #: spyder/plugins/shortcuts/widgets/summary.py:25
 msgid "Spyder Keyboard ShortCuts"
@@ -6416,11 +6416,11 @@ msgstr "该按键序列与以下项目冲突："
 
 #: spyder/plugins/shortcuts/widgets/table.py:405
 msgid "Press 'Ok' to unbind it and assign the shortcut to"
-msgstr ""
+msgstr "按 '确定' 以解绑并将此快捷方式分配给"
 
 #: spyder/plugins/shortcuts/widgets/table.py:409
 msgid "Press 'Ok' to unbind them and assign the shortcut to"
-msgstr ""
+msgstr "按 '确定' 以解绑并将此快捷方式分配给"
 
 #: spyder/plugins/shortcuts/widgets/table.py:417
 msgid "This key sequence is forbidden."
@@ -6608,7 +6608,7 @@ msgstr "调试工具栏"
 
 #: spyder/plugins/toolbar/plugin.py:60
 msgid "Profile toolbar"
-msgstr ""
+msgstr "配置档工具栏"
 
 #: spyder/plugins/toolbar/plugin.py:61
 msgid "Main toolbar"
@@ -6616,7 +6616,7 @@ msgstr "主工具栏"
 
 #: spyder/plugins/tours/container.py:52
 msgid "Interactive tour"
-msgstr ""
+msgstr "交互式导览"
 
 #: spyder/plugins/tours/container.py:61 spyder/plugins/tours/plugin.py:40
 msgid "Interactive tours"
@@ -6728,7 +6728,7 @@ msgstr "要运行导览，请按下 Spyder 窗口标题栏左侧的绿色按钮�
 
 #: spyder/plugins/tours/widgets.py:1075
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyder 导览"
 
 #: spyder/plugins/tours/widgets.py:1100
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
@@ -6740,7 +6740,7 @@ msgstr "开始导览"
 
 #: spyder/plugins/updatemanager/container.py:52 spyder/plugins/updatemanager/container.py:122
 msgid "Check for updates"
-msgstr ""
+msgstr "检查更新"
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
@@ -6762,7 +6762,7 @@ msgstr "更新下载将在后台继续进行。\n"
 
 #: spyder/plugins/updatemanager/widgets/update.py:47
 msgid "Updating Spyder-updater"
-msgstr ""
+msgstr "更新 Spyder-updater"
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "Downloading update"
@@ -6806,7 +6806,7 @@ msgstr "你想要自动下载并安装它吗？"
 
 #: spyder/plugins/updatemanager/widgets/update.py:350
 msgid "Updating Spyder's updater..."
-msgstr ""
+msgstr "正在更新 Spyder 的更新程序..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:400
 msgid "Downloading Spyder {} ..."
@@ -6830,15 +6830,15 @@ msgstr "Spyder 安装"
 
 #: spyder/plugins/updatemanager/widgets/update.py:571
 msgid "Updating Spyder, this will take a few minutes ..."
-msgstr ""
+msgstr "正在更新 Spyder，这将花费几分钟时间 ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:574
 msgid "The update was succesful!<br>Spyder will be launched shortly"
-msgstr ""
+msgstr "更新成功！<br>Spyder 将很快启动"
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Unfortunately the update failed"
-msgstr ""
+msgstr "很不幸更新失败了"
 
 #: spyder/plugins/updatemanager/widgets/update.py:578
 msgid "There was an error in the update process"
