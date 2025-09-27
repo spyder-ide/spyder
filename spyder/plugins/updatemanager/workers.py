@@ -267,7 +267,7 @@ def validate_download(file: str, checksum: str) -> bool:
         while chunk := f.read(8192):
             _checksum.update(chunk)
 
-    valid = checksum.lstrip("sha256:") == _checksum.hexdigest()
+    valid = checksum.endswith(_checksum.hexdigest())
     logger.debug(f"Valid {file}: {valid}")
 
     # Extract validated zip files
