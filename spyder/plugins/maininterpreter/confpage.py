@@ -18,8 +18,8 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
-from spyder.utils.conda import get_list_conda_envs_cache
-from spyder.utils.misc import get_python_executable
+from spyder.utils.conda import get_list_conda_envs_cache, validate_conda
+from spyder.utils.misc import get_python_executable, getcwd_or_home
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
 
@@ -33,6 +33,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None
+        self.conda_edit = None
 
         conda_env = get_list_conda_envs_cache()
         pyenv_env = get_list_pyenv_envs_cache()
@@ -158,9 +159,48 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_layout.addWidget(umr_namelist_btn)
         umr_group.setLayout(umr_layout)
 
+        # Path anaconda executor
+        conda_group = QGroupBox(_("Path Conda executor"))
+        conda_label = QLabel(
+            _(
+                "Select the conda executor path"
+            )
+        )
+        conda_label.setWordWrap(True)
+
+        conda_layout = QVBoxLayout()
+        conda_layout.addWidget(conda_label)
+
+        self.cus_conda_check = self.create_checkbox(
+            _("Use custom conda executor"), "customConda"
+        )
+
+        conda_layout.addWidget(self.cus_conda_check)
+        self.conda_path = self.create_browsefile(
+            _('Conda executor path'),
+            'conda_path',
+            filters='*.exe',
+            validate_callback=validate_conda,
+            validate_reason=_("The selected file is not a valid "
+                              "conda executable"),
+        )
+        self.conda_path.setStyleSheet("margin-left: 3px")
+        self.conda_path.textbox.setMinimumWidth(400)
+        conda_layout.addWidget(self.conda_path)
+        conda_group.setLayout(conda_layout)
+
+        self.conda_path.setEnabled(
+            self.get_option('customConda')
+        )
+        self.cus_conda_check.checkbox.toggled.connect(
+            self.conda_path.setEnabled)
+
+        self.conda_edit = self.conda_path.textbox
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)
         vlayout.addWidget(umr_group)
+        vlayout.addWidget(conda_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
