@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-27 10:24\n"
+"PO-Revision-Date: 2025-09-27 11:42\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2173,19 +2173,19 @@ msgstr "自动取消缩进 'else', 'elif' 等"
 
 #: spyder/plugins/editor/confpage.py:190
 msgid "Un-indent further block-level keywords when added inside an 'if', etc block"
-msgstr ""
+msgstr "当在 'if' 等代码块中添加代码时取消缩进后续的代码块级关键字"
 
 #: spyder/plugins/editor/confpage.py:204
 msgid "Trailing whitespace"
-msgstr ""
+msgstr "末尾空格"
 
 #: spyder/plugins/editor/confpage.py:206
 msgid "Strip all trailing spaces on save"
-msgstr ""
+msgstr "保存时去除所有末尾空格"
 
 #: spyder/plugins/editor/confpage.py:211
 msgid "Strip trailing spaces on changed lines"
-msgstr ""
+msgstr "在行内容更改时去除末尾空格"
 
 #: spyder/plugins/editor/confpage.py:214
 msgid "If enabled, modified lines of code (excluding strings)\n"
@@ -5576,11 +5576,11 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
 msgid "A directory with this name already exists"
-msgstr ""
+msgstr "具有此名称的目录已存在"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
-msgstr ""
+msgstr "项目的目录不能包含 ':'"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:327 spyder/plugins/pythonpath/widgets/pathmanager.py:341
 msgid "Project path"
@@ -5588,7 +5588,7 @@ msgstr "项目路径"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:328
 msgid "Select the directory to use for the project"
-msgstr ""
+msgstr "选择用于存放项目的目录"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:331
 msgid "Existing directory"
@@ -5596,7 +5596,7 @@ msgstr "现有文件夹"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:338
 msgid "Create a Spyder project in an existing directory"
-msgstr ""
+msgstr "在现有的目录中创建 Spyder 项目"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:411
 msgid "Create new project"
@@ -5776,7 +5776,7 @@ msgstr "移除路径"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:210
 msgid "Import from PYTHONPATH environment variable"
-msgstr ""
+msgstr "从 PYTHONPATH 环境变量导入"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:217
 msgid "Export to PYTHONPATH environment variable"
@@ -5800,15 +5800,15 @@ msgstr "这会将 Spyder 的路径列表导出到当前用户的 <b>PYTHONPATH</
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:539
 msgid "Paths are prepended to sys.path"
-msgstr ""
+msgstr "路径已添加到 sys.path 的开头"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:544
 msgid "Paths are appended to sys.path"
-msgstr ""
+msgstr "路径已添加到 sys.path"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:581
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of the list?"
-msgstr ""
+msgstr "此目录已被包括在列表中。<br>你想要将它移至列表的顶部吗？"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:615
 msgid "This directory cannot be added to the path!<br><br>If you want to set a different Python interpreter, please go to <tt>Preferences > Main interpreter</tt>."
@@ -5828,11 +5828,11 @@ msgstr "连接已丢失"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:314 spyder/plugins/remoteclient/api/manager/ssh.py:150 spyder/plugins/remoteclient/api/manager/ssh.py:248 spyder/plugins/remoteclient/api/manager/ssh.py:293 spyder/plugins/remoteclient/api/manager/ssh.py:392
 msgid "The SSH connection is not open"
-msgstr ""
+msgstr "SSH 连接未打开"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:67 spyder/plugins/remoteclient/api/manager/jupyterhub.py:153
 msgid "JupyterHub is not connected"
-msgstr ""
+msgstr "JupyterHub 未连接"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:78 spyder/plugins/remoteclient/api/manager/jupyterhub.py:130 spyder/plugins/remoteclient/api/manager/ssh.py:169 spyder/plugins/remoteclient/api/manager/ssh.py:184 spyder/plugins/remoteclient/api/manager/ssh.py:231
 msgid "The connection was established successfully"
@@ -5844,11 +5844,11 @@ msgstr "启动远程服务器时出错"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:115 spyder/plugins/remoteclient/api/manager/ssh.py:214
 msgid "There was an error when trying to get the remote server information"
-msgstr ""
+msgstr "尝试获取远程服务器信息时发生错误"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:195
 msgid "Error staring the remote server"
-msgstr ""
+msgstr "启动远程服务器时出错"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:229 spyder/plugins/remoteclient/api/manager/ssh.py:353
 msgid "We're establishing the connection. Please be patient"
@@ -5864,11 +5864,11 @@ msgstr "无法转发本地端口"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:271
 msgid "Error connecting to the remote server"
-msgstr ""
+msgstr "连接到远程服务器时出错"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:311 spyder/plugins/remoteclient/api/manager/ssh.py:321
 msgid "There was an error installing the remote server"
-msgstr ""
+msgstr "安装远程服务器时出现错误"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:370
 msgid "It was not possible to open a connection to this machine"
@@ -5876,7 +5876,7 @@ msgstr "无法打开与该机器的连接"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:384
 msgid "The server port is not set"
-msgstr ""
+msgstr "服务器端口未设置"
 
 #: spyder/plugins/remoteclient/plugin.py:133
 msgid "Remote client"
@@ -5888,7 +5888,7 @@ msgstr "连接到远程机器并在其中运行代码"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:45
 msgid "Remote connections"
-msgstr ""
+msgstr "远程连接"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:112 spyder/plugins/shortcuts/widgets/table.py:211
 msgid "Clear"
@@ -5920,7 +5920,7 @@ msgstr "该字段为空"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:189
 msgid "Configure settings for connecting to a JupyterHub server"
-msgstr ""
+msgstr "配置用于连接 JupyterHub 服务器的设置"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:191
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
@@ -5992,7 +5992,7 @@ msgstr "密钥文件 *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:460
 msgid "Passphrase"
-msgstr ""
+msgstr "密码短语"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:463
 msgid "Your passphrase will be saved securely by Spyder"
@@ -6008,7 +6008,7 @@ msgstr "配置文件 *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:556
 msgid "Server URL *"
-msgstr ""
+msgstr "服务器 URL *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:558
 msgid "This is the URL of the JupyterHub server"
@@ -6040,7 +6040,7 @@ msgstr "你提供的地址不是一个有效的 IP 或域名。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:690
 msgid "The URL you provided is not valid."
-msgstr ""
+msgstr "你提供的 URL 无效。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:712
 msgid "New connection"
@@ -6048,7 +6048,7 @@ msgstr "新建连接"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:889
 msgid "Create a Python environment on the remote host"
-msgstr ""
+msgstr "在远程主机上创建 Python 环境"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:891
 msgid "Decide whether you want to create a remote environment to run your code and how to do it"
