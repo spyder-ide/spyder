@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-26 16:45\n"
+"PO-Revision-Date: 2025-09-27 10:24\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2125,7 +2125,7 @@ msgstr "显示代码标注"
 
 #: spyder/plugins/editor/confpage.py:105
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (and their lowercase variants)"
-msgstr ""
+msgstr "当注释开头出现以下标注时将在行号左侧显示一个标记: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (以及它们的小写形式)"
 
 #: spyder/plugins/editor/confpage.py:124
 msgid "Highlight current line"
@@ -2137,11 +2137,11 @@ msgstr "高亮显示当前Cell"
 
 #: spyder/plugins/editor/confpage.py:130
 msgid "Highlight occurrences of selected text after"
-msgstr ""
+msgstr "在指定时间后高亮选中文本的出现位置:"
 
 #: spyder/plugins/editor/confpage.py:135
 msgid " milliseconds"
-msgstr ""
+msgstr "毫秒"
 
 #: spyder/plugins/editor/confpage.py:172
 msgid "Automatic changes"
@@ -2149,27 +2149,27 @@ msgstr "自动更改"
 
 #: spyder/plugins/editor/confpage.py:174
 msgid "Automatically insert closing parentheses, brackets and braces"
-msgstr ""
+msgstr "自动插入结束圆括号、方括号和花括号"
 
 #: spyder/plugins/editor/confpage.py:176
 msgid "Insert a matching closing bracket when typing an open one"
-msgstr ""
+msgstr "当输入一个左括号时插入一个匹配的右括号"
 
 #: spyder/plugins/editor/confpage.py:179
 msgid "Automatically insert closing quotes"
-msgstr ""
+msgstr "自动插入结束引号"
 
 #: spyder/plugins/editor/confpage.py:181
 msgid "Insert a matching closing quote when typing an open one"
-msgstr ""
+msgstr "当输入一个开始引号时自动插入一个匹配的结束引号"
 
 #: spyder/plugins/editor/confpage.py:184
 msgid "Automatically insert colons after 'for', 'if', 'def', etc"
-msgstr ""
+msgstr "在 'for', 'if', 'def' 等之后自动插入冒号"
 
 #: spyder/plugins/editor/confpage.py:188
 msgid "Automatically un-indent 'else', 'elif', etc"
-msgstr ""
+msgstr "自动取消缩进 'else', 'elif' 等"
 
 #: spyder/plugins/editor/confpage.py:190
 msgid "Un-indent further block-level keywords when added inside an 'if', etc block"
