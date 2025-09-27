@@ -17,9 +17,10 @@ from qtpy.QtCore import Qt, QTimer, Slot
 from qtpy.QtGui import (
     QColor, QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
 )
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMessageBox
 
 # Local imports
+from spyder.config.base import _
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.utils.palette import SpyderPalette
 
@@ -85,6 +86,20 @@ class MultiCursorMixin:
         pos_block = cursor_for_pos.block()
         pos_col = cursor_for_pos.positionInBlock()
 
+        # Warn user of potentially large number of cursors
+        if abs(anchor_block.blockNumber() - pos_block.blockNumber()) >= 1000:
+            sb = QMessageBox.StandardButton
+            response = QMessageBox.warning(
+                self,
+                _("About to create a very large number of cursors!"),
+                _("Large numbers of text cursors can cause spyder to become"
+                  " unresponsive. Do you want to continue?"),
+                sb.Ok | sb.Cancel
+            )
+            if not response == sb.Ok:
+                self.multi_cursor_ignore_history = False
+                return
+
         # Move primary cursor to pos_col
         p_col = min(len(anchor_block.text()), pos_col)
 
@@ -111,8 +126,9 @@ class MultiCursorMixin:
                 p_col = min(len(block.text()), pos_col)
                 cursor.setPosition(block.position() + p_col,
                                    QTextCursor.MoveMode.KeepAnchor)
-                self.add_cursor(cursor)
+                self.extra_cursors.append(cursor)
 
+        self.merge_extra_cursors(True)
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
 
