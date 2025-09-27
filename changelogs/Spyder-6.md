@@ -175,6 +175,7 @@ In this release 6 issues were closed.
 
 ### Pull Requests Merged
 
+* [PR 25060](https://github.com/spyder-ide/spyder/pull/25060) - PR: Update `spyder-kernels` constraint to prevent pip install error, by [@dalthviz](https://github.com/dalthviz)
 * [PR 25056](https://github.com/spyder-ide/spyder/pull/25056) - PR: Update `spyder-kernels` to 3.1.0b2 (for Spyder 6.1.0rc1), by [@dalthviz](https://github.com/dalthviz)
 * [PR 25047](https://github.com/spyder-ide/spyder/pull/25047) - PR: Improve how Spyder/Spyder-kernels feedstock branches are set (Installers), by [@ccordoba12](https://github.com/ccordoba12)
 * [PR 25040](https://github.com/spyder-ide/spyder/pull/25040) - PR: Update translations for 6.1.0 , by [@dalthviz](https://github.com/dalthviz)
