@@ -306,6 +306,16 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             ]
         }
 
+        self.pyw_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyw',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
         self.executor_configuration = [
             {
                 'input_extension': 'py',
@@ -324,6 +334,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 'priority': 0
             },
             {
+                'input_extension': 'pyw',
+                'context': {'name': 'File'},
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
                 'input_extension': 'py',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
@@ -333,6 +351,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -349,6 +375,14 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
             },
             {
                 'input_extension': 'ipy',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 0
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -492,7 +526,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         for run_config in [
             self.python_editor_run_configuration,
             self.ipython_editor_run_configuration,
-            self.cython_editor_run_configuration
+            self.cython_editor_run_configuration,
+            self.pyw_editor_run_configuration
         ]:
             editor.add_supported_run_configuration(run_config)
 
@@ -588,7 +623,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         for run_config in [
             self.python_editor_run_configuration,
             self.ipython_editor_run_configuration,
-            self.cython_editor_run_configuration
+            self.cython_editor_run_configuration,
+            self.pyw_editor_run_configuration
         ]:
             editor.remove_supported_run_configuration(run_config)
 
