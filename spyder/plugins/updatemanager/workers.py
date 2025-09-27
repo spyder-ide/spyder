@@ -39,9 +39,6 @@ logger = logging.getLogger(__name__)
 
 CURRENT_VERSION = parse(__version__)
 
-UPDATER_PATH, UPDATER_VERSION = get_updater_info()
-UPDATER_VERSION = parse(UPDATER_VERSION)
-
 CONNECT_ERROR_MSG = _(
     'Unable to connect to the Spyder update service.'
     '<br><br>Make sure your connection is working properly.'
@@ -208,10 +205,10 @@ def get_asset_info(
 
 
 def _check_asset_available(
-    releases: dict[Version, dict], updater: bool = False
+    releases: dict[Version, dict],
+    current_version: Version,
+    updater: bool = False
 ) -> AssetInfo | None:
-    current_version = UPDATER_VERSION if updater else CURRENT_VERSION
-
     latest_release = max(releases) if releases else current_version
     update_available = current_version < latest_release
     asset_info = None
@@ -372,7 +369,7 @@ class WorkerUpdate(BaseWorker):
             }
         logger.debug(f"Available releases: {sorted(releases)}")
 
-        self.asset_info = _check_asset_available(releases)
+        self.asset_info = _check_asset_available(releases, CURRENT_VERSION)
 
     def start(self):
         """Main method of the worker."""
@@ -458,6 +455,8 @@ class WorkerUpdateUpdater(BaseWorker):
         self.asset_info = None
         self.installer_path = None
         self.error = None
+        __, updater_version = get_updater_info()
+        self.updater_version = parse(updater_version)
 
     def _check_asset_available(self):
         """Checks if there is an update available for the Updater."""
@@ -472,7 +471,9 @@ class WorkerUpdateUpdater(BaseWorker):
             }
         logger.debug(f"Available releases: {sorted(releases)}")
 
-        self.asset_info = _check_asset_available(releases, updater=True)
+        self.asset_info = _check_asset_available(
+            releases, self.updater_version, updater=True
+        )
 
     def _clean_installer_dir(self):
         """Remove downloaded file"""
@@ -533,7 +534,9 @@ class WorkerUpdateUpdater(BaseWorker):
         spy_updater_conda = glob(osp.join(dirname, "spyder-updater*.conda"))[0]
 
         conda_exe = find_conda()
-        conda_cmd = "update" if UPDATER_VERSION > parse("0.0.0") else "create"
+        conda_cmd = "create"
+        if self.updater_version > parse("0.0.0"):
+            conda_cmd = "update"
         env_path = osp.join(osp.dirname(sys.prefix), "spyder-updater")
         cmd = [
             # Update spyder-updater environment
@@ -559,9 +562,13 @@ class WorkerUpdateUpdater(BaseWorker):
 
     def start(self):
         """Main method of the worker."""
+
         try:
             self._check_asset_available()
-            if self.asset_info is None and UPDATER_VERSION == parse("0.0.0"):
+            if (
+                self.asset_info is None
+                and self.updater_version == parse("0.0.0")
+            ):
                 raise RuntimeError(
                     "Spyder-updater is not installed and "
                     "not available for download!"
