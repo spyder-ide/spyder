@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-28 15:33\n"
+"PO-Revision-Date: 2025-09-28 16:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2202,7 +2202,8 @@ msgstr "在保存时自动添加缺失的末尾换行符"
 #: spyder/plugins/editor/confpage.py:225
 msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
+msgstr "如果启用，则会在文件结束位置自动添加一个末尾换行符（行分隔符）\n"
+"如果文件不是已经以一个换行符结束的话，以遵循标准文本文件的惯例。"
 
 #: spyder/plugins/editor/confpage.py:233
 msgid "Strip blank lines at end of file on save"
