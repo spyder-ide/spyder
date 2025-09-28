@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-27 11:42\n"
+"PO-Revision-Date: 2025-09-28 01:15\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4757,7 +4757,7 @@ msgstr "全屏模式使用 macOS 内置特性"
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "全屏模式不能在 WSL 上可靠工作"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -4847,15 +4847,15 @@ msgstr "快速转换布局#%s 还没有被定义。"
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "为你的布局命名"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "布局另存为"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
-msgstr ""
+msgstr "重新排序或删除你保存的布局"
 
 #: spyder/plugins/layout/widgets/dialog.py:228
 msgid "Move up"
@@ -4871,15 +4871,15 @@ msgstr "删除布局"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "布局显示和顺序"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "移除布局"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr ""
+msgstr "你想要移除布局 '<b>{}</b>' 吗？"
 
 #: spyder/plugins/maininterpreter/confpage.py:69
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
@@ -5924,7 +5924,7 @@ msgstr "配置用于连接 JupyterHub 服务器的设置"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:191
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
-msgstr ""
+msgstr "Spyder 将使用此连接在will use this connection to start remote kernels in the IPython 控制台中启动远程内核。 这允许你在本地使用 Spyder 并通过一个 JupyterHub 服务器远程运行代码。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:241
 msgid "Configure SSH settings for connecting to remote hosts"
@@ -6056,23 +6056,23 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:917
 msgid "Available methods"
-msgstr ""
+msgstr "可用的方法"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:924
 msgid "Create a new environment"
-msgstr ""
+msgstr "创建新环境"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:930
 msgid "Import an existing environment"
-msgstr ""
+msgstr "导入现有环境"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:936
 msgid "Don't create an environment"
-msgstr ""
+msgstr "不要创建环境"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:950
 msgid "Required information"
-msgstr ""
+msgstr "需要的信息"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:968
 msgid "You can set up an environment later by going to the menu entry <i>Tools > Environment manager</i>."
@@ -6140,11 +6140,11 @@ msgstr "状态: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:109
 msgid "Manage remote connections"
-msgstr ""
+msgstr "管理远程连接"
 
 #: spyder/plugins/remoteclient/widgets/container.py:135
 msgid "Remote server error"
-msgstr ""
+msgstr "远程服务器错误"
 
 #: spyder/plugins/remoteclient/widgets/container.py:136
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
