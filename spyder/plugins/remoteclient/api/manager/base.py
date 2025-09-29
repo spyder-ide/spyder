@@ -245,8 +245,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
         self.__starting_server = True
         self._emit_connection_status(
-            ConnectionStatus.Starting,
-            _("Starting Spyder remote services."),
+            ConnectionStatus.Starting, _("Starting Spyder remote services")
         )
         try:
             if await self._start_remote_server():
@@ -312,7 +311,9 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             )
 
             self.__abort_requested.clear()
-            self.__connection_task = asyncio.create_task(self._create_new_connection())
+            self.__connection_task = asyncio.create_task(
+                self._create_new_connection()
+            )
             abort_task = asyncio.create_task(self.__abort_requested.wait())
 
             await asyncio.wait(
