@@ -11,8 +11,11 @@ Theme manager for Spyder's new theming system.
 # Standard library imports
 import sys
 from pathlib import Path
+import configparser
+import os
 
 # Local imports
+from spyder.config.base import get_conf_path
 from spyder.config.gui import is_dark_interface
 
 
@@ -26,6 +29,37 @@ class ThemeManager:
         self._current_stylesheet = None
         self._current_theme_module = None  # Store the loaded theme module
         self._loaded_resource_modules = {}  # Keep references to resource modules
+        self._current_interface_mode = None  # Track current interface mode
+        
+        # Backwards compatibility mappings
+        self._theme_name_mapping = {
+            'spyder/dark': {'name': 'qdarkstyle', 'mode': 'dark'},
+            'spyder': {'name': 'qdarkstyle', 'mode': 'light'},
+            'solarized/dark': {'name': 'solarized', 'mode': 'dark'},
+            'solarized/light': {'name': 'solarized', 'mode': 'light'},
+            'dracula': {'name': 'dracula', 'mode': 'dark'},
+        }
+        
+        # Mapping from old syntax settings keys to new palette attributes
+        self._syntax_setting_mapping = {
+            'background': 'EDITOR_BACKGROUND',
+            'currentline': 'EDITOR_CURRENTLINE',
+            'currentcell': 'EDITOR_CURRENTCELL',
+            'occurrence': 'EDITOR_OCCURRENCE',
+            'ctrlclick': 'EDITOR_CTRLCLICK',
+            'sideareas': 'EDITOR_SIDEAREAS',
+            'matched_p': 'EDITOR_MATCHED_P',
+            'unmatched_p': 'EDITOR_UNMATCHED_P',
+            'normal': 'EDITOR_NORMAL',
+            'keyword': 'EDITOR_KEYWORD',
+            'magic': 'EDITOR_MAGIC',
+            'builtin': 'EDITOR_BUILTIN',
+            'definition': 'EDITOR_DEFINITION',
+            'comment': 'EDITOR_COMMENT',
+            'string': 'EDITOR_STRING',
+            'number': 'EDITOR_NUMBER',
+            'instance': 'EDITOR_INSTANCE',
+        }
         
     def get_available_themes(self):
         """Get list of available themes."""
@@ -130,6 +164,7 @@ class ThemeManager:
             self._current_palette = palette
             self._current_stylesheet = stylesheet
             self._current_theme_module = theme_namespace  # Store the theme module
+            self._current_interface_mode = interface_mode
             
             return palette, stylesheet
             
@@ -193,6 +228,184 @@ class ThemeManager:
     def get_current_stylesheet(self):
         """Get the currently loaded stylesheet."""
         return self._current_stylesheet
+    
+    def get_syntax_settings(self, theme_name=None, custom_settings=None, interface_mode=None):
+        """
+        Get syntax highlighting settings for a theme.
+        
+        Parameters
+        ----------
+        theme_name : str, optional
+            Name of the theme to get settings for. If None, use current theme.
+        custom_settings : dict, optional
+            User customizations to apply on top of theme defaults.
+        interface_mode : str, optional
+            'dark' or 'light'. If None, use current interface mode.
+            
+        Returns
+        -------
+        dict
+            Dictionary with syntax highlighting settings.
+        """
+        if theme_name is None:
+            theme_name = self._current_theme
+            
+        if interface_mode is None:
+            interface_mode = 'dark' if is_dark_interface() else 'light'
+            
+        # Check if we need to load a different theme or mode
+        if (self._current_theme != theme_name or 
+            self._current_interface_mode != interface_mode):
+            try:
+                self.load_theme(theme_name, interface_mode)
+            except ValueError:
+                # Theme doesn't support this mode, try the opposite one
+                opposite_mode = 'light' if interface_mode == 'dark' else 'dark'
+                try:
+                    self.load_theme(theme_name, opposite_mode)
+                except ValueError:
+                    # Fall back to appearance.py if theme doesn't exist
+                    return self._get_fallback_syntax_settings(theme_name)
+        
+        # Map from new theme format to old format
+        syntax_settings = {}
+        
+        if self._current_palette is not None:
+            # Editor colors
+            for old_key, new_key in self._syntax_setting_mapping.items():
+                if hasattr(self._current_palette, new_key):
+                    value = getattr(self._current_palette, new_key)
+                    syntax_settings[old_key] = value
+        
+        # Apply user customizations if provided
+        if custom_settings:
+            syntax_settings.update(custom_settings)
+            
+        return syntax_settings
+    
+    def _get_fallback_syntax_settings(self, theme_name):
+        """Get syntax settings from appearance.py as fallback."""
+        try:
+            from spyder.config.appearance import APPEARANCE
+            # Get the theme settings from appearance.py
+            theme_settings = {}
+            for key in self._syntax_setting_mapping.keys():
+                setting_key = f"{theme_name}/{key}"
+                if setting_key in APPEARANCE:
+                    theme_settings[key] = APPEARANCE[setting_key]
+            return theme_settings
+        except ImportError:
+            return {}
+    
+    def apply_user_syntax_settings(self, config_path=None):
+        """
+        Apply user syntax settings from config.
+        
+        Parameters
+        ----------
+        config_path : str, optional
+            Path to the config file. If None, auto-detect.
+        """
+        if config_path is None:
+            config_path = self._get_config_path()
+            
+        if not os.path.exists(config_path):
+            return {}
+            
+        config = configparser.ConfigParser()
+        config.read(config_path)
+        
+        if not config.has_section('appearance'):
+            return {}
+            
+        current_theme = self.get_current_theme()
+        if not current_theme:
+            return {}
+            
+        user_settings = {}
+        
+        # Get theme-specific settings from config
+        theme_prefix = f"{current_theme}/"
+        for option in config.options('appearance'):
+            if option.startswith(theme_prefix):
+                key = option.replace(theme_prefix, '')
+                if key in self._syntax_setting_mapping:
+                    # Check if this is actually a user customization, not just a copied default
+                    value = config.get('appearance', option)
+                    default_value = self._get_default_syntax_value(current_theme, key)
+                    
+                    # Only include if it's different from default
+                    if value != default_value:
+                        user_settings[key] = value
+        
+        return user_settings
+    
+    def _get_config_path(self):
+        """Get the path to the Spyder config file."""
+        return get_conf_path('spyder.ini')
+    
+    def _get_default_syntax_value(self, theme_name, key):
+        """Get the default value for a syntax setting from appearance.py."""
+        try:
+            from spyder.config.appearance import APPEARANCE
+            setting_key = f"{theme_name}/{key}"
+            return APPEARANCE.get(setting_key, '')
+        except ImportError:
+            return ''
+    
+    def migrate_user_syntax_settings(self, config_path=None):
+        """
+        Migrate user syntax settings from old format to new format.
+        Only migrates actual user customizations, not default theme values.
+        
+        Parameters
+        ----------
+        config_path : str, optional
+            Path to the config file. If None, auto-detect.
+        """
+        if config_path is None:
+            config_path = self._get_config_path()
+            
+        if not os.path.exists(config_path):
+            return
+            
+        config = configparser.ConfigParser()
+        config.read(config_path)
+        
+        if not config.has_section('appearance'):
+            return
+            
+        selected_theme = config.get('appearance', 'selected', fallback='')
+        if selected_theme not in self._theme_name_mapping:
+            return
+            
+        theme_info = self._theme_name_mapping[selected_theme]
+        new_theme = theme_info['name']
+        
+        # Get default values from appearance.py
+        default_values = {}
+        for key in self._syntax_setting_mapping.keys():
+            default_values[key] = self._get_default_syntax_value(selected_theme, key)
+        
+        # Migrate only user customizations
+        migrated_count = 0
+        for old_key in self._syntax_setting_mapping.keys():
+            old_setting = f"{selected_theme}/{old_key}"
+            if config.has_option('appearance', old_setting):
+                value = config.get('appearance', old_setting)
+                
+                # Only migrate if different from default
+                if old_key in default_values and value != default_values[old_key]:
+                    new_setting = f"{new_theme}/{old_key}"
+                    config.set('appearance', new_setting, value)
+                    migrated_count += 1
+        
+        # Save the updated config
+        if migrated_count > 0:
+            with open(config_path, 'w') as f:
+                config.write(f)
+                
+        return migrated_count
 
 
 # Global theme manager instance
