@@ -399,7 +399,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         msg = "This method should be implemented in the derived class"
         raise NotImplementedError(msg)
 
-    def _reset_connection_stablished(self):
+    def _reset_connection_established(self):
         """Reset the connection status."""
         self.__connection_task = None
 

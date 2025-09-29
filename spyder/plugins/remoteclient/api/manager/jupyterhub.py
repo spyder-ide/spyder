@@ -250,7 +250,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         await self._session.close()
         self._session = None
         self.logger.info("Connection closed")
-        self._reset_connection_stablished()
+        self._reset_connection_established()
         self._emit_connection_status(
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),

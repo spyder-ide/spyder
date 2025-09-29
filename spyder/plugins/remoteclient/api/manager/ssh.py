@@ -433,7 +433,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
         await self._ssh_connection.wait_closed()
         self._ssh_connection = None
         self.logger.info("SSH connection closed")
-        self._reset_connection_stablished()
+        self._reset_connection_established()
         self._emit_connection_status(
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),
