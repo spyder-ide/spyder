@@ -38,7 +38,11 @@ Before releasing new minor or major versions, it's necessary to:
 
       spyder-gettext scan spyder
 
-* Check that no warnings are emitted by that command. If they are, then fix them in the same PR.
+* Check that no warnings are emitted by that command. If they are, then you need to
+
+  - Open a new PR against `master` to fix them.
+  - Backport that PR to the stable branch.
+  - Rebase the PR's branch created in the previous step on top of those changes.
 
 * Merge that PR.
 
