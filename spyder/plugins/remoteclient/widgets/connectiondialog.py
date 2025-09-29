@@ -50,6 +50,7 @@ class ConnectionDialog(SidebarDialog):
 
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
+    sig_abort_connection_requested = Signal(str)
     sig_server_renamed = Signal(str)
     sig_connections_changed = Signal()
     sig_server_updated = Signal(str)
@@ -116,7 +117,7 @@ class ConnectionDialog(SidebarDialog):
         )
 
         self._button_stop = QPushButton(_("Stop"))
-        self._button_stop.clicked.connect(self._stop_server)
+        self._button_stop.clicked.connect(self._on_button_stop_clicked)
         bbox.addButton(self._button_stop, QDialogButtonBox.ActionRole)
 
         self._button_connect = QPushButton(_("Connect"))
@@ -394,9 +395,10 @@ class ConnectionDialog(SidebarDialog):
             else:
                 self._button_connect.setHidden(True)
 
-            # TODO: Check if it's possible to stop a connection while it's
-            # connecting
-            if info["status"] == ConnectionStatus.Active:
+            if info["status"] in [
+                ConnectionStatus.Active,
+                ConnectionStatus.Connecting,
+            ]:
                 self._button_stop.setHidden(False)
             else:
                 self._button_stop.setHidden(True)
@@ -404,6 +406,8 @@ class ConnectionDialog(SidebarDialog):
             if info["status"] in [
                 ConnectionStatus.Active,
                 ConnectionStatus.Connecting,
+                ConnectionStatus.Connected,
+                ConnectionStatus.Starting,
                 ConnectionStatus.Stopping,
             ]:
                 self._button_remove_connection.setEnabled(False)
@@ -480,6 +484,16 @@ class ConnectionDialog(SidebarDialog):
             self._button_next.setHidden(False)
 
         self._button_save_connection.setEnabled(False)
+
+    def _on_button_stop_clicked(self):
+        page = self.get_page()
+        if page.NEW_CONNECTION:
+            return
+
+        if page.status == ConnectionStatus.Active:
+            self._stop_server()
+        elif page.status == ConnectionStatus.Connecting:
+            self.sig_abort_connection_requested.emit(page.host_id)
 
     def _on_new_connection_page_tab_changed(self, index):
         page = self._new_connection_page
