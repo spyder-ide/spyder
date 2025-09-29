@@ -154,13 +154,13 @@ scientific computing and software development.
 
 # Alpha/beta/rc release
 
-**Subject**: [ANN] Spyder 6.1.0b2 is released!
+**Subject**: [ANN] Spyder 6.1.0rc1 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the second beta of our next minor version: Spyder **6.1**.
+I'm pleased to announce the first release candidate of our next minor version: Spyder **6.1**.
 
 We've been working on this version for more than half a year now and it's working
 relatively well. We encourage all people who like the bleeding edge to give it a try.
@@ -183,7 +183,7 @@ Spyder 6.1 comes with the following interesting new features and fixes:
     * Select full floating point numbers by double-clicking them on the Editor and the IPython console.
 
 - Important fixes
-    * Much better support for PyQt6 and PySide6.
+    * Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now.
     * Make shortcuts to move to different panes work when they are undocked.
     * Remove blank lines around cells when copying their contents to the console.
     * Automatically kill kernels when Spyder crashes.
@@ -275,7 +275,7 @@ For a more complete list of changes, please see our
 
 You can easily install this release candidate if you use conda by running:
 
-    conda install -c conda-forge/label/spyder_rc -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0b2
+    conda install -c conda-forge/label/spyder_rc -c conda-forge/label/spyder_kernels_rc -c conda-forge spyder=6.1.0rc1
 
 Or you can use pip with this command:
 
