@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-28 16:32\n"
+"PO-Revision-Date: 2025-09-29 12:53\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2207,7 +2207,7 @@ msgstr "如果启用，则会在文件结束位置自动添加一个末尾换行
 
 #: spyder/plugins/editor/confpage.py:233
 msgid "Strip blank lines at end of file on save"
-msgstr ""
+msgstr "在保存时去除文件末尾的空白行"
 
 #: spyder/plugins/editor/confpage.py:236
 msgid "Any extra newlines at the end of the file besides the first one will be stripped."
@@ -2299,15 +2299,15 @@ msgstr "保存时将行结束符转换为以下字符:"
 
 #: spyder/plugins/editor/confpage.py:352 spyder/plugins/editor/widgets/main_widget.py:526
 msgid "CR (legacy Mac)"
-msgstr ""
+msgstr "CR (旧版 Mac)"
 
 #: spyder/plugins/editor/confpage.py:378
 msgid "Template"
-msgstr ""
+msgstr "模板"
 
 #: spyder/plugins/editor/confpage.py:380
 msgid "Edit new file template"
-msgstr ""
+msgstr "编辑新文件模板"
 
 #: spyder/plugins/editor/confpage.py:391
 msgid "Autosave"
@@ -2511,7 +2511,7 @@ msgstr "代码分析"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2412
 msgid "To do"
-msgstr ""
+msgstr "待办"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2898
 msgid "Removal error"
@@ -2727,11 +2727,11 @@ msgstr "行计数："
 
 #: spyder/plugins/editor/widgets/main_widget.py:328
 msgid "Print preview"
-msgstr ""
+msgstr "打印预览"
 
 #: spyder/plugins/editor/widgets/main_widget.py:329
 msgid "Show a print preview for the current file"
-msgstr ""
+msgstr "为当前显示打印预览"
 
 #: spyder/plugins/editor/widgets/main_widget.py:334
 msgid "&Print..."
@@ -2763,7 +2763,7 @@ msgstr "转到行…"
 
 #: spyder/plugins/editor/widgets/main_widget.py:382
 msgid "Show invisible characters"
-msgstr ""
+msgstr "显示不可见字符"
 
 #: spyder/plugins/editor/widgets/main_widget.py:412
 msgid "Show docstring style warnings"
@@ -2835,7 +2835,7 @@ msgstr "删除尾部空格"
 
 #: spyder/plugins/editor/widgets/main_widget.py:552
 msgid "Convert tabs to spaces"
-msgstr ""
+msgstr "将制表符转换为空格"
 
 #: spyder/plugins/editor/widgets/main_widget.py:553
 msgid "Replace tabs with the configured number of spaces"
@@ -3017,7 +3017,7 @@ msgstr "无法忽略 {}"
 
 #: spyder/plugins/editor/widgets/recover.py:288
 msgid "<b>{}</b><br><br>{}<br>{}"
-msgstr ""
+msgstr "<b>{}</b><br><br>{}<br>{}"
 
 #: spyder/plugins/editor/widgets/status.py:30
 msgid "File permissions"
@@ -3041,7 +3041,7 @@ msgstr "Git 分支"
 
 #: spyder/plugins/editor/widgets/window.py:500 spyder/plugins/mainmenu/plugin.py:89
 msgid "&Window"
-msgstr ""
+msgstr "窗口(&W)"
 
 #: spyder/plugins/editor/widgets/window.py:508 spyder/plugins/outlineexplorer/main_widget.py:78
 msgid "Outline"
@@ -3482,47 +3482,47 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:564
 msgid "Upload error"
-msgstr ""
+msgstr "上传错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:565
 msgid "An error occured while trying to upload a file"
-msgstr ""
+msgstr "在尝试上传文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:775 spyder/plugins/explorer/widgets/remote_explorer.py:823
 msgid "Show more files"
-msgstr ""
+msgstr "显示更多文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:784 spyder/plugins/explorer/widgets/remote_explorer.py:834
 msgid "Maximum number of files to display reached!"
-msgstr ""
+msgstr "已达到显示文件的最大数量！"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:933
 msgid "New Python Package"
-msgstr ""
+msgstr "新建 Python 包"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:933 spyder/plugins/explorer/widgets/remote_explorer.py:940 spyder/plugins/explorer/widgets/remote_explorer.py:947 spyder/plugins/explorer/widgets/remote_explorer.py:954
 msgid "Name as:"
-msgstr ""
+msgstr "名称为："
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:940
 msgid "New Python File"
-msgstr ""
+msgstr "新建 Python 文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:947
 msgid "New Folder"
-msgstr ""
+msgstr "新建文件夹"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:954
 msgid "New File"
-msgstr ""
+msgstr "新建文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:976
 msgid "Copy and Paste"
-msgstr ""
+msgstr "复制与粘贴"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:977
 msgid "Paste as:"
-msgstr ""
+msgstr "粘贴为："
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1051
 msgid "Do you really want to delete <b>{filename}</b>?"
@@ -4528,7 +4528,7 @@ msgstr "控制台帮助"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1253
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1254
 msgid "Unable to connect to <b>%s</b>"
@@ -4560,7 +4560,7 @@ msgstr "无法重启非由Spyder启动的 IPython 内核 \n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2504 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1509 spyder/widgets/collectionseditor.py:1319
 msgid "Don't ask again."
-msgstr ""
+msgstr "不要再询问。"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2507
 msgid "Are you sure you want to restart the kernel?"
@@ -5371,7 +5371,7 @@ msgstr ""
 
 #: spyder/plugins/profiler/widgets/main_widget.py:268
 msgid "Show functions or modules that call this item"
-msgstr ""
+msgstr "显示调用此项的函数或模块"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:654
 msgid "Save profiler result"
