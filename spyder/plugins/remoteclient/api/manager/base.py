@@ -324,7 +324,9 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             # User aborted
             if self.__abort_requested.is_set():
                 self.__connection_task.cancel()
-                self.logger.warning("Connection attempt aborted by user")
+                abort_task.cancel()
+                self.__connection_task = None
+                self.logger.debug("Connection attempt aborted by user")
                 self._emit_connection_status(
                     ConnectionStatus.Inactive,
                     _("The connection attempt was cancelled"),
