@@ -12,17 +12,20 @@ Palettes for dark and light themes used in Spyder.
 import logging
 from spyder.utils.theme_manager import theme_manager
 
+logger = logging.getLogger(__name__)
+
 # Theme configuration
-SELECTED_THEME = "dracula"  # Hardcoded theme selection for now
+SELECTED_THEME = "solarized"  # Hardcoded theme selection for now
 
 # =============================================================================
 # ---- Theme manager integration
 # =============================================================================
 
+
 def _get_theme_palette():
     """
     Get SpyderPalette from theme manager.
-    
+
     Returns
     -------
     class
@@ -32,9 +35,8 @@ def _get_theme_palette():
         # Load the theme
         palette_class, _ = theme_manager.load_theme(SELECTED_THEME)
         return palette_class
-        
+
     except Exception as e:
-        logger = logging.getLogger(__name__)
         logger.error(f"Failed to load theme '{SELECTED_THEME}': {e}")
         return None
 

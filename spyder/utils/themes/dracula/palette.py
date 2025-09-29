@@ -15,7 +15,7 @@ from collections import OrderedDict
 
 # Local imports
 from spyder.config.gui import is_dark_interface
-from .colorsystem import Primary, Secondary, Success, Error, Warning, GroupDark, GroupLight, Logos
+from .colorsystem import Primary, Secondary, Success, Error, Warning, GroupDark, GroupLight, Syntax, SyntaxLight, Logos
 
 # Theme ID
 THEME_ID = "dracula"
@@ -162,7 +162,7 @@ class SpyderPaletteDark(Palette):
     COLOR_SUCCESS_3 = Success.B90
     # Error colors
     COLOR_ERROR_1 = Error.B40
-    COLOR_ERROR_2 = Error.B80
+    COLOR_ERROR_2 = Error.B70
     COLOR_ERROR_3 = Error.B110
     # Warning colors
     COLOR_WARN_1 = Warning.B40
@@ -201,6 +201,24 @@ class SpyderPaletteDark(Palette):
     COLOR_OCCURRENCE_3 = Primary.B30
     COLOR_OCCURRENCE_4 = Primary.B50
     COLOR_OCCURRENCE_5 = Primary.B80
+    # Syntax highlighting colors
+    EDITOR_BACKGROUND = Primary.B10
+    EDITOR_CURRENTLINE = Syntax.B10
+    EDITOR_CURRENTCELL = Syntax.B20
+    EDITOR_OCCURRENCE = Syntax.B30
+    EDITOR_CTRLCLICK = Syntax.B40
+    EDITOR_SIDEAREAS = Syntax.B50
+    EDITOR_MATCHED_P = Syntax.B60
+    EDITOR_UNMATCHED_P = Syntax.B70
+    EDITOR_NORMAL = (Syntax.B80, False, False)
+    EDITOR_KEYWORD = (Syntax.B90, True, False)
+    EDITOR_MAGIC = (Syntax.B100, True, False)
+    EDITOR_BUILTIN = (Syntax.B110, False, False)
+    EDITOR_DEFINITION = (Syntax.B120, False, False)
+    EDITOR_COMMENT = (Syntax.B130, False, True)
+    EDITOR_STRING = (Syntax.B140, False, False)
+    EDITOR_NUMBER = (Syntax.B150, False, False)
+    EDITOR_INSTANCE = (Syntax.B160, False, True)
     # Logo colors
     PYTHON_LOGO_UP = Logos.B10
     PYTHON_LOGO_DOWN = Logos.B20
@@ -245,42 +263,42 @@ class SpyderPaletteLight(Palette):
     COLOR_BACKGROUND_1 = Primary.B140
     COLOR_BACKGROUND_2 = Primary.B130
     COLOR_BACKGROUND_3 = Primary.B120
-    COLOR_BACKGROUND_4 = Primary.B110
-    COLOR_BACKGROUND_5 = Primary.B100
-    COLOR_BACKGROUND_6 = Primary.B90
+    COLOR_BACKGROUND_4 = Primary.B130
+    COLOR_BACKGROUND_5 = Primary.B110
+    COLOR_BACKGROUND_6 = Primary.B100
     # Text colors
     COLOR_TEXT_1 = Primary.B20
     COLOR_TEXT_2 = Primary.B30
-    COLOR_TEXT_3 = Primary.B50
-    COLOR_TEXT_4 = Primary.B70
+    COLOR_TEXT_3 = Primary.B40
+    COLOR_TEXT_4 = Primary.B50
     # Accent colors
-    COLOR_ACCENT_1 = Secondary.B70
-    COLOR_ACCENT_2 = Secondary.B60
-    COLOR_ACCENT_3 = Secondary.B50
-    COLOR_ACCENT_4 = Secondary.B40
-    COLOR_ACCENT_5 = Secondary.B30
+    COLOR_ACCENT_1 = Secondary.B140
+    COLOR_ACCENT_2 = Secondary.B130
+    COLOR_ACCENT_3 = Secondary.B120
+    COLOR_ACCENT_4 = Secondary.B110
+    COLOR_ACCENT_5 = Secondary.B100
     # Disabled elements
-    COLOR_DISABLED = Primary.B60
+    COLOR_DISABLED = Primary.B80
     # Success colors
-    COLOR_SUCCESS_1 = Success.B40
-    COLOR_SUCCESS_2 = Success.B70
-    COLOR_SUCCESS_3 = Success.B30
+    COLOR_SUCCESS_1 = Success.B110
+    COLOR_SUCCESS_2 = Success.B80
+    COLOR_SUCCESS_3 = Success.B60
     # Error colors
-    COLOR_ERROR_1 = Error.B40
-    COLOR_ERROR_2 = Error.B70
-    COLOR_ERROR_3 = Error.B110
+    COLOR_ERROR_1 = Error.B110
+    COLOR_ERROR_2 = Error.B80
+    COLOR_ERROR_3 = Error.B40
     # Warning colors
-    COLOR_WARN_1 = Warning.B40
-    COLOR_WARN_2 = Warning.B70
-    COLOR_WARN_3 = Warning.B50
-    COLOR_WARN_4 = Warning.B40
+    COLOR_WARN_1 = Warning.B110
+    COLOR_WARN_2 = Warning.B80
+    COLOR_WARN_3 = Warning.B60
+    COLOR_WARN_4 = Warning.B50
     # Icon colors
-    ICON_1 = Primary.B30
-    ICON_2 = Secondary.B50
-    ICON_3 = Success.B30
-    ICON_4 = Error.B70
-    ICON_5 = Warning.B70
-    ICON_6 = Primary.B140
+    ICON_1 = Primary.B10
+    ICON_2 = Secondary.B70
+    ICON_3 = Success.B70
+    ICON_4 = Error.B80
+    ICON_5 = Warning.B80
+    ICON_6 = Primary.B120
     ICON_7 = GroupLight.B90
     # Group colors
     GROUP_1 = GroupLight.B10
@@ -299,13 +317,31 @@ class SpyderPaletteLight(Palette):
     COLOR_HIGHLIGHT_1 = Secondary.B140
     COLOR_HIGHLIGHT_2 = Secondary.B130
     COLOR_HIGHLIGHT_3 = Secondary.B120
-    COLOR_HIGHLIGHT_4 = Secondary.B110
+    COLOR_HIGHLIGHT_4 = Secondary.B100
     # Occurrence colors
-    COLOR_OCCURRENCE_1 = Primary.B120
-    COLOR_OCCURRENCE_2 = Primary.B110
-    COLOR_OCCURRENCE_3 = Primary.B100
-    COLOR_OCCURRENCE_4 = Primary.B90
-    COLOR_OCCURRENCE_5 = Primary.B60
+    COLOR_OCCURRENCE_1 = Primary.B140
+    COLOR_OCCURRENCE_2 = Primary.B130
+    COLOR_OCCURRENCE_3 = Primary.B120
+    COLOR_OCCURRENCE_4 = Primary.B100
+    COLOR_OCCURRENCE_5 = Primary.B70
+    # Syntax highlighting colors
+    EDITOR_BACKGROUND = Primary.B140
+    EDITOR_CURRENTLINE = SyntaxLight.B10
+    EDITOR_CURRENTCELL = SyntaxLight.B20
+    EDITOR_OCCURRENCE = SyntaxLight.B30
+    EDITOR_CTRLCLICK = SyntaxLight.B40
+    EDITOR_SIDEAREAS = SyntaxLight.B50
+    EDITOR_MATCHED_P = SyntaxLight.B60
+    EDITOR_UNMATCHED_P = SyntaxLight.B70
+    EDITOR_NORMAL = (SyntaxLight.B80, False, False)
+    EDITOR_KEYWORD = (SyntaxLight.B90, True, False)
+    EDITOR_MAGIC = (SyntaxLight.B100, True, False)
+    EDITOR_BUILTIN = (SyntaxLight.B110, False, False)
+    EDITOR_DEFINITION = (SyntaxLight.B120, False, False)
+    EDITOR_COMMENT = (SyntaxLight.B130, False, True)
+    EDITOR_STRING = (SyntaxLight.B140, False, False)
+    EDITOR_NUMBER = (SyntaxLight.B150, False, False)
+    EDITOR_INSTANCE = (SyntaxLight.B160, False, True)
     # Logo colors
     PYTHON_LOGO_UP = Logos.B10
     PYTHON_LOGO_DOWN = Logos.B20
@@ -313,13 +349,13 @@ class SpyderPaletteLight(Palette):
     SPYDER_LOGO_WEB = Logos.B40
     SPYDER_LOGO_SNAKE = Logos.B50
     # Special tabs
-    SPECIAL_TABS_SEPARATOR = Primary.B70
-    SPECIAL_TABS_SELECTED = Secondary.B30
+    SPECIAL_TABS_SEPARATOR = Primary.B80
+    SPECIAL_TABS_SELECTED = Secondary.B130
     # For the heart used to ask for donations
     COLOR_HEART = Error.B70
     # For editor tooltips
-    TIP_TITLE_COLOR = Success.B20
-    TIP_CHAR_HIGHLIGHT_COLOR = Warning.B30
+    TIP_TITLE_COLOR = Success.B30
+    TIP_CHAR_HIGHLIGHT_COLOR = Warning.B40
     # Tooltip opacity (numeric value, not a color reference)
     OPACITY_TOOLTIP = 230
 
