@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2025-09-25 14:52-0500\n"
+"POT-Creation-Date: 2025-09-29 13:42-0500\n"
 "PO-Revision-Date: 2024-08-21 02:47\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
@@ -122,7 +122,7 @@ msgstr ""
 msgid "Setting up main window..."
 msgstr ""
 
-#: spyder/app/mainwindow.py:1240 spyder/config/manager.py:602 spyder/plugins/application/confpage.py:310 spyder/plugins/application/container.py:644 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:206 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:224 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:281 spyder/plugins/editor/widgets/editorstack/editorstack.py:418 spyder/plugins/editor/widgets/editorstack/editorstack.py:2576 spyder/plugins/explorer/widgets/explorer.py:1207 spyder/plugins/explorer/widgets/explorer.py:1253 spyder/plugins/explorer/widgets/explorer.py:1615 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:240 spyder/plugins/ipythonconsole/widgets/shell.py:1057 spyder/plugins/layout/container.py:307 spyder/plugins/profiler/widgets/profiler_data_tree.py:605 spyder/plugins/projects/widgets/main_widget.py:347 spyder/plugins/projects/widgets/main_widget.py:370 spyder/plugins/projects/widgets/main_widget.py:589 spyder/plugins/pylint/main_widget.py:117 spyder/plugins/pylint/main_widget.py:384 spyder/plugins/pylint/main_widget.py:416 spyder/plugins/remoteclient/widgets/connectionstatus.py:46 spyder/plugins/variableexplorer/widgets/arrayeditor.py:695 spyder/plugins/variableexplorer/widgets/arrayeditor.py:1163 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:341 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:414 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:735 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1096 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2468 spyder/widgets/collectionseditor.py:2239 spyder/widgets/reporterror.py:430
+#: spyder/app/mainwindow.py:1240 spyder/config/manager.py:602 spyder/plugins/application/confpage.py:310 spyder/plugins/application/container.py:644 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:206 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:224 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:282 spyder/plugins/editor/widgets/editorstack/editorstack.py:418 spyder/plugins/editor/widgets/editorstack/editorstack.py:2576 spyder/plugins/explorer/widgets/explorer.py:1207 spyder/plugins/explorer/widgets/explorer.py:1253 spyder/plugins/explorer/widgets/explorer.py:1615 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:240 spyder/plugins/ipythonconsole/widgets/shell.py:1057 spyder/plugins/layout/container.py:307 spyder/plugins/profiler/widgets/profiler_data_tree.py:605 spyder/plugins/projects/widgets/main_widget.py:347 spyder/plugins/projects/widgets/main_widget.py:370 spyder/plugins/projects/widgets/main_widget.py:589 spyder/plugins/pylint/main_widget.py:117 spyder/plugins/pylint/main_widget.py:384 spyder/plugins/pylint/main_widget.py:416 spyder/plugins/remoteclient/widgets/connectionstatus.py:46 spyder/plugins/variableexplorer/widgets/arrayeditor.py:695 spyder/plugins/variableexplorer/widgets/arrayeditor.py:1163 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:341 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:414 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:735 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1096 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2468 spyder/widgets/collectionseditor.py:2239 spyder/widgets/reporterror.py:430
 msgid "Error"
 msgstr ""
 
@@ -1280,58 +1280,58 @@ msgstr ""
 msgid "Convention used to lint docstrings: "
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:125 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:172
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:126 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:173
 msgid "Exclude these files or directories:"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:129 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:176
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:130 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:177
 msgid "Exclude test files: (?!test_).*\\.py"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:133 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:180
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:134 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:181
 msgid "Show these errors or warnings:"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:137 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:184
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:138 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:185
 msgid "Example codes: E113, W391"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:141 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:188
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:142 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:189
 msgid "Ignore these errors or warnings:"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:145
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:146
 #, fuzzy
 msgid "Default is: E"
 msgstr "Zadana vrijednost je 10"
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:164
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:165
 msgid "Only check these filenames:"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:168
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:169
 msgid "Check test files: test_.*\\.py"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:192
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:193
 #, fuzzy
 msgid "Default is: E,W,C90"
 msgstr "Zadana vrijednost je 10"
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:209
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:210
 #, fuzzy
 msgid "There are no configuration options for Pyflakes"
 msgstr "Upravljajte konfiguracijom izvršavanja za pokretanje datoteka."
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:213
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:214
 msgid "Linting is disabled"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:271
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:272
 msgid "Directory patterns listed for exclusion should be valid regular expressions"
 msgstr ""
 
-#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:276
+#: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:277
 msgid "File patterns listed for inclusion should be valid regular expressions"
 msgstr ""
 
@@ -6888,7 +6888,7 @@ msgstr "Upravitelj ažuriranja"
 msgid "Manage application updates."
 msgstr "Upravljajte ažuriranjima aplikacije."
 
-#: spyder/plugins/updatemanager/widgets/status.py:71
+#: spyder/plugins/updatemanager/widgets/status.py:72
 msgid ""
 "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
@@ -6971,7 +6971,7 @@ msgid "Updating Spyder, this will take a few minutes ..."
 msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:574
-msgid "The update was succesful!<br>Spyder will be launched shortly"
+msgid "The update was succesful! Spyder will be launched shortly"
 msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
