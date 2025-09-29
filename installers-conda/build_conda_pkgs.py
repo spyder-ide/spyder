@@ -312,12 +312,12 @@ class SpyderCondaPkg(BuildCondaPkg):
         spyder_base_reqs += yaml.load(
             REQ_MAIN.read_text())['dependencies']
         if os.name == 'nt':
-            win_requirements =  yaml.load(
+            win_requirements = yaml.load(
                 REQ_WINDOWS.read_text())['dependencies']
             spyder_base_reqs += win_requirements
             spyder_base_reqs.append('ptyprocess >=0.5')
         elif sys.platform == 'darwin':
-            mac_requirements =  yaml.load(
+            mac_requirements = yaml.load(
                 REQ_MAC.read_text())['dependencies']
             if 'python.app' in mac_requirements:
                 mac_requirements.remove('python.app')
