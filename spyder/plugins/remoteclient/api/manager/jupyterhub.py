@@ -75,7 +75,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 if await self.check_server_version():
                     self._emit_connection_status(
                         ConnectionStatus.Active,
-                        _("The connection was established successfully"),
+                        _("Spyder remote services are active"),
                     )
                     return True
                 return False
@@ -127,7 +127,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         if ready and await self.check_server_version():
             self._emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully"),
+                _("Spyder remote services are active"),
             )
             return True
 

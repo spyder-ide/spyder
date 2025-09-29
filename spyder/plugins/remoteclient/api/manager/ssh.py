@@ -166,7 +166,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
                 if await self.forward_local_port():
                     self._emit_connection_status(
                         ConnectionStatus.Active,
-                        _("The connection was established successfully"),
+                        _("Spyder remote services are active"),
                     )
                     return True
 
@@ -181,7 +181,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
 
             self._emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully"),
+                _("Spyder remote services are active"),
             )
 
             return True
@@ -228,7 +228,7 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
         if await self.forward_local_port():
             self._emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully"),
+                _("Spyder remote services are active"),
             )
             return True
 
