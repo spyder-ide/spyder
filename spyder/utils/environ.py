@@ -56,7 +56,6 @@ def _get_user_env_script():
         script_text = dedent(
             f"""\
             #!{shell} -i
-            unset HISTFILE
             {shell} -l -c "'{sys.executable}' -c 'import os; print(dict(os.environ))'"
             """
         )
