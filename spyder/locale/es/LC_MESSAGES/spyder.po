@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-25 22:44\n"
+"PO-Revision-Date: 2025-09-30 19:04\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr "Integrado"
 
 #: spyder/api/plugin_registration/registry.py:802
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: spyder/api/shellconnect/main_widget.py:34
 msgid "No connected console"
@@ -123,7 +123,7 @@ msgstr "Construyendo la ventana principal..."
 
 #: spyder/app/mainwindow.py:1240 spyder/config/manager.py:602 spyder/plugins/application/confpage.py:310 spyder/plugins/application/container.py:644 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:206 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:224 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:281 spyder/plugins/editor/widgets/editorstack/editorstack.py:418 spyder/plugins/editor/widgets/editorstack/editorstack.py:2576 spyder/plugins/explorer/widgets/explorer.py:1207 spyder/plugins/explorer/widgets/explorer.py:1253 spyder/plugins/explorer/widgets/explorer.py:1615 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:240 spyder/plugins/ipythonconsole/widgets/shell.py:1057 spyder/plugins/layout/container.py:307 spyder/plugins/profiler/widgets/profiler_data_tree.py:605 spyder/plugins/projects/widgets/main_widget.py:347 spyder/plugins/projects/widgets/main_widget.py:370 spyder/plugins/projects/widgets/main_widget.py:589 spyder/plugins/pylint/main_widget.py:117 spyder/plugins/pylint/main_widget.py:384 spyder/plugins/pylint/main_widget.py:416 spyder/plugins/remoteclient/widgets/connectionstatus.py:46 spyder/plugins/variableexplorer/widgets/arrayeditor.py:695 spyder/plugins/variableexplorer/widgets/arrayeditor.py:1163 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:341 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:414 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:735 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1096 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2468 spyder/widgets/collectionseditor.py:2239 spyder/widgets/reporterror.py:430
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
 #: spyder/app/mainwindow.py:1241
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
@@ -135,7 +135,7 @@ msgstr "Inicializando..."
 
 #: spyder/app/mainwindow.py:1452
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "No ha sido posible cargar el tema de iconos de Spyder, por lo que Spyder no puede iniciarse en su sistema. Las causas más probables para esto son que está usando una versión de Windows anterior a Windows 10 1803/Windows Server 2019, que ya no está soportado por Spyder o Microsoft, o el administrador del sistema ha desactivado la instalación de fuentes para usuarios que no son administradores.<br><br>Por favor, solicite ayuda al administrador del sistema para actualizar Windows o para instalar para todos los usuarios las siguientes fuentes:<ul>{fonts_list}</ul>que se encuentran en:<br><br><code>{fonts_directory}</code><br><br>Si tiene privilegios de administrador puede ejecutar el siguiente comando para instalar las fuentes necesarias en una instancia de Símbolo del sistema:<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:138
 msgid "It was not possible to close the previous Spyder instance.\n"
@@ -181,7 +181,7 @@ msgstr "Reiniciando"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr ""
+msgstr "No fue posible guardar una configuración de forma segura. Una posible solución es instalar el paquete <tt>keyrings.alt</tt> con {}.<br><br><bb>Nota</bb>: El uso del paquete puede conllevar riesgos de seguridad u otras implicaciones. Por lo tanto, no se aconseja utilizarlo en sistemas de producción generales o sensibles a la seguridad."
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
