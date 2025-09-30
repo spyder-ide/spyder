@@ -105,6 +105,7 @@ class LintingConfigTab(SpyderPreferencesTab):
             (
                 ("Numpy", "numpy"),
                 ("PEP 257", "pep257"),
+                ("Google", "google"),
             ),
             "pydocstyle/convention",
         )

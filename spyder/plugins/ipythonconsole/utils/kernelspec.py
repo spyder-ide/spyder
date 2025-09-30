@@ -36,7 +36,7 @@ from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
 from spyder.utils.conda import conda_version, find_conda, find_pixi
-from spyder.utils.environ import clean_env, get_user_environment_variables
+from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
     get_module_version,
@@ -91,15 +91,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'ipython_console'
 
-    def __init__(self, path_to_custom_interpreter=None,
-                 **kwargs):
+    def __init__(self, path_to_custom_interpreter=None, **kwargs):
         super().__init__(**kwargs)
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
         self.resource_dir = ''
-
-        self.env = get_user_environment_variables()
+        self._env_vars = {}
 
     @property
     def argv(self):
@@ -240,7 +238,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     def env(self):
         """Env vars for kernels"""
         default_interpreter = self.get_conf(
-            'default', section='main_interpreter')
+            'default', section='main_interpreter'
+        )
 
         # Ensure that user environment variables are included, but don't
         # override existing environ values

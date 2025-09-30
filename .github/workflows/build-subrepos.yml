@@ -42,7 +42,7 @@ jobs:
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
-          - os: windows-latest
+          - os: windows-2022
             pkg: spyder-kernels
             python-version: '3.12'
             cache-arch: win-64

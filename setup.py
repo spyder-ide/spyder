@@ -281,7 +281,7 @@ install_requires += [
     'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
     # Note that on IPython 9.0.0 Python 3.10 support was dropped
-    'ipython>=8.13.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0',
+    'ipython>=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0',
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',

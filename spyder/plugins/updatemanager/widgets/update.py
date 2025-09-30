@@ -27,13 +27,13 @@ from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
-    UPDATER_PATH,
     UpdateType,
     validate_download,
     WorkerUpdate,
     WorkerUpdateUpdater,
     WorkerDownloadInstaller
 )
+from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import get_temp_dir, is_program_installed
@@ -572,7 +572,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 "Updating Spyder, this will take a few minutes ..."
             ),
             "success_message": _(
-                "The update was succesful!<br>Spyder will be launched shortly"
+                "The update was succesful! Spyder will be launched shortly"
             ),
             "failure_message": _("Unfortunately the update failed"),
             "error_message": _("There was an error in the update process"),
@@ -600,7 +600,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             json.dump(info, f, indent=4)
 
         # Launch updater
-        cmd = [UPDATER_PATH, "--update-info-file", info_file]
+        updater_path, __ = get_updater_info()
+        cmd = [updater_path, "--update-info-file", info_file]
         if self.restart_spyder:
             cmd.append("--start-spyder")
         subprocess.Popen(" ".join(cmd), shell=True)

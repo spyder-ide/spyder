@@ -372,6 +372,8 @@ def ipyconsole(qtbot, request, tmpdir):
         show_diff(init_files, files, "files")
         raise
 
+    window.close()
+
 
 @pytest.fixture
 def mpl_rc_file(tmp_path):
