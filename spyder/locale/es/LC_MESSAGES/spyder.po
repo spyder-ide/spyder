@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-30 22:35\n"
+"PO-Revision-Date: 2025-09-30 23:32\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -777,19 +777,19 @@ msgstr "Reportar un problema..."
 
 #: spyder/plugins/application/container.py:291
 msgid "Dependency status"
-msgstr ""
+msgstr "Estado de la dependencia"
 
 #: spyder/plugins/application/container.py:296
 msgid "Spyder Google group"
-msgstr ""
+msgstr "Grupo de Google de Spyder"
 
 #: spyder/plugins/application/container.py:301
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Ayuda a Spyder..."
 
 #: spyder/plugins/application/container.py:309
 msgid "About %s"
-msgstr ""
+msgstr "Acerca de %s"
 
 #: spyder/plugins/application/container.py:316
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
@@ -880,7 +880,7 @@ msgstr "Guardar todos los archivos"
 
 #: spyder/plugins/application/container.py:413
 msgid "Save &as"
-msgstr ""
+msgstr "Gu&ardar como"
 
 #: spyder/plugins/application/container.py:415
 msgid "Save current file as..."
@@ -1016,7 +1016,7 @@ msgstr "Proporcionar acciones básicas de la aplicación principal."
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "Acerca de Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -1028,7 +1028,7 @@ msgstr "Comunidad"
 
 #: spyder/plugins/application/widgets/about.py:230
 msgid "Legal"
-msgstr ""
+msgstr "Legal"
 
 #: spyder/plugins/application/widgets/about.py:236
 msgid "Copy version info"
@@ -1036,11 +1036,11 @@ msgstr "Copiar información de la versión"
 
 #: spyder/plugins/application/widgets/status.py:45
 msgid "Help Spyder"
-msgstr ""
+msgstr "Ayuda a Spyder"
 
 #: spyder/plugins/application/widgets/status.py:156
 msgid "Help Spyder!"
-msgstr ""
+msgstr "¡Ayuda a Spyder!"
 
 #: spyder/plugins/completion/confpage.py:29
 msgid "Providers"
@@ -1136,7 +1136,7 @@ msgstr "Usar pipes stdio para comunicarse con el servidor"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset all preferences to default</tt><br><br>instead of reporting a bug."
-msgstr ""
+msgstr "<b>¡Modificar estas opciones puede dañar el completado de código!</b><br><br> Si ese es el caso, restablezca sus preferencias de Spyder yendo al menú <br><br><tt>Herramientas > Restablecer todas las preferencias a sus valores por defecto</tt><br><br>en lugar de reportar un error."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -5268,7 +5268,7 @@ msgstr "Administrar las preferencias de Spyder."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
-msgstr ""
+msgstr "Restablecer todas las preferencias a sus valores por defecto"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
