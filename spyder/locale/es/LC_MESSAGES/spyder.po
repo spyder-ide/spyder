@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-30 19:04\n"
+"PO-Revision-Date: 2025-09-30 22:35\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -319,7 +319,7 @@ msgstr "Escritura atómica de archivos en el editor"
 
 #: spyder/dependencies.py:118
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Desencripta la frase de contraseña de archivos de claves SSH"
 
 #: spyder/dependencies.py:122
 msgid "Character encoding auto-detection for the Editor"
@@ -351,7 +351,7 @@ msgstr "Entorno interactivo IPython"
 
 #: spyder/dependencies.py:150
 msgid "IPython lexers for syntax highlighting"
-msgstr ""
+msgstr "Analizador léxico de IPython para el coloreado de sintaxis"
 
 #: spyder/dependencies.py:154
 msgid "Main backend for the Python Language Server"
@@ -379,7 +379,7 @@ msgstr "Mejora el completado del código para los objetos que usan dosctrings de
 
 #: spyder/dependencies.py:179
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Compara números de versión de paquetes de Python"
 
 #: spyder/dependencies.py:183
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -423,7 +423,7 @@ msgstr "Autoformatear archivos de Python en el Editor con el paquete Black"
 
 #: spyder/dependencies.py:226
 msgid "Provide linting with the Ruff package"
-msgstr ""
+msgstr "Proporcionar análisis de código mediante el paquete Ruff"
 
 #: spyder/dependencies.py:230
 msgid "Spyder plugin for the Python LSP Server"
@@ -543,15 +543,15 @@ msgstr "Tema de coloreado de sintaxis"
 
 #: spyder/plugins/appearance/confpage.py:98
 msgid "Edit selected theme"
-msgstr ""
+msgstr "Editar el tema seleccionado"
 
 #: spyder/plugins/appearance/confpage.py:99
 msgid "Create new theme"
-msgstr ""
+msgstr "Crear nuevo tema"
 
 #: spyder/plugins/appearance/confpage.py:100
 msgid "Delete theme"
-msgstr ""
+msgstr "Eliminar tema"
 
 #: spyder/plugins/appearance/confpage.py:101 spyder/plugins/preferences/widgets/configdialog.py:105
 msgid "Reset to defaults"
@@ -579,15 +579,15 @@ msgstr "Utilizar la fuente predeterminada del sistema"
 
 #: spyder/plugins/appearance/confpage.py:162 spyder/plugins/application/container.py:818 spyder/plugins/base.py:332 spyder/plugins/editor/plugin.py:165 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4889 spyder/plugins/editor/widgets/editorstack/editorstack.py:318 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:314 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:342 spyder/plugins/tours/tours.py:82
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: spyder/plugins/appearance/confpage.py:170
 msgid "Interface font"
-msgstr ""
+msgstr "Fuente de la interfaz"
 
 #: spyder/plugins/appearance/confpage.py:214
 msgid "Previews"
-msgstr ""
+msgstr "Vistas previas"
 
 #: spyder/plugins/appearance/confpage.py:565 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:427 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/confpage.py:490 spyder/plugins/ipythonconsole/widgets/main_widget.py:2601 spyder/plugins/ipythonconsole/widgets/main_widget.py:2631 spyder/plugins/layout/container.py:316 spyder/plugins/layout/container.py:375 spyder/plugins/layout/plugin.py:523 spyder/plugins/layout/plugin.py:540 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/variableexplorer/widgets/arrayeditor.py:624 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:188 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:716 spyder/utils/environ.py:183 spyder/utils/environ.py:250 spyder/utils/environ.py:315 spyder/widgets/collectionseditor.py:1366 spyder/widgets/collectionseditor.py:1596 spyder/widgets/collectionseditor.py:1606 spyder/widgets/collectionseditor.py:1615 spyder/widgets/collectionseditor.py:1624
 msgid "Warning"
@@ -595,7 +595,7 @@ msgstr "Advertencia"
 
 #: spyder/plugins/appearance/confpage.py:566
 msgid "Are you sure you want to delete this theme?"
-msgstr ""
+msgstr "¿Está seguro de que desea eliminar este tema?"
 
 #: spyder/plugins/appearance/plugin.py:41
 msgid "Appearance"
@@ -607,15 +607,15 @@ msgstr "Administrar apariencia de la aplicación y temas."
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "Las siguientes propiedades tienen colores inválidos:<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "La propiedad <b>{}</b> tiene un color inválido: {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "Error al establecer colores"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -631,11 +631,11 @@ msgstr "Fondo"
 
 #: spyder/plugins/appearance/widgets.py:153
 msgid "Theme name:"
-msgstr ""
+msgstr "Nombre del tema:"
 
 #: spyder/plugins/appearance/widgets.py:160
 msgid "Syntax highlighting theme editor"
-msgstr ""
+msgstr "Tema de coloreado de sintaxis del editor"
 
 #: spyder/plugins/application/confpage.py:49 spyder/plugins/completion/providers/snippets/conftabs.py:69
 msgid "Language:"
@@ -671,7 +671,7 @@ msgstr "Buscar nuevas versiones estables únicamente"
 
 #: spyder/plugins/application/confpage.py:82
 msgid "Disable zoom with Ctrl/Cmd + mouse wheel"
-msgstr ""
+msgstr "Desactivar zoom con Ctrl/Cmd + rueda del ratón"
 
 #: spyder/plugins/application/confpage.py:113 spyder/plugins/layout/container.py:171
 msgid "Panes"
@@ -699,7 +699,7 @@ msgstr "Parpadeo del cursor:"
 
 #: spyder/plugins/application/confpage.py:134
 msgid "ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/plugins/application/confpage.py:173
 msgid "macOS integration"
@@ -727,7 +727,7 @@ msgstr "Configuración para pantallas de alta densidad de pixeles <br><br> Visit
 
 #: spyder/plugins/application/confpage.py:204
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: spyder/plugins/application/confpage.py:209
 msgid "Enable auto high DPI scaling"
@@ -769,7 +769,7 @@ msgstr "Video Tutoriales"
 
 #: spyder/plugins/application/container.py:282
 msgid "Troubleshooting guide"
-msgstr ""
+msgstr "Guía de solución de problemas"
 
 #: spyder/plugins/application/container.py:286
 msgid "Report issue..."
