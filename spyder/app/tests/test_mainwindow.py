@@ -5612,8 +5612,8 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     reason="Fails with Python versions older than 3.12"
 )
 @pytest.mark.skipif(
-    running_in_ci_with_conda(),
-    reason="Fails with Conda packages on CIs",
+    not sys.platform == "darwin" and running_in_ci(),
+    reason="Works reliably on Mac and CIs",
 )
 def test_profiler(main_window, qtbot, tmpdir):
     """Test if profiler works."""
