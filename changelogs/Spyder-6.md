@@ -14,14 +14,13 @@
 * Add support to connect to JupyterHub servers.
 * Add support to use Pixi environments in the IPython console.
 * Paths can be added to the front of `sys.path` in the Pythonpath manager.
-* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
 * Add option to show/hide the Editor's file name toolbar to `Preferences > Editor > Interface`.
-* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
+* Add option to disable zoom with Ctrl + mouse wheel to `Preferences > Application > Advanced settings`.
+* Add option to lint docstrings with the Google style to `Preferences > Completion and linting > Linting`.
 
 ### Important fixes
 
-* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now. 
-* Make shortcuts to move to different panes work when they are undocked.
+* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now.
 * Remove blank lines around cells when copying their contents to the console.
 * Automatically kill kernels when Spyder crashes.
 * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
@@ -30,11 +29,14 @@
 
 ### UX/UI improvements
 
-* Reorganize most menus to make them easier to navigate.
+* Reorganize most menus and Preferences pages to make them easier to navigate.
 * Allow to zoom in/out with Ctrl + mouse wheel in the IPython console.
+* Make shortcuts to move to different panes work when they are undocked.
+* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
 * Add `Shift+Alt+Right/Left` shortcuts to move to the next/previous console.
 * Add shortcut `Ctrl+W` to close Variable Explorer viewers.
 * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
 * Fix plots looking blurred when scaling is enabled in high DPI screens.
 
 ### API changes
