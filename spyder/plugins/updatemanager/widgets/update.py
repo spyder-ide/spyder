@@ -386,7 +386,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         """
         if self._validate_download():
             # Update already downloaded, start install
-            self.confirm_install()
+            self._confirm_install()
             return
 
         self.cancelled = False
