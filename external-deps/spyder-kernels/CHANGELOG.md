@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.1.0 (2025/10/01)
+
+### New features
+
+* Disable magics and commands to call Python package managers (e.g. `!pip` or `%conda`).
+* Add `%profile`, `%profilefile` and `%profilecell` magics.
+* Add support for IPython 9.
+* Drop support for Python 3.8.
+
+----
+
 ## Version 3.1.0b2 (2025/09/26)
 
 ### Pull Requests Merged
