@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-25 14:52-0500\n"
-"PO-Revision-Date: 2025-09-29 12:53\n"
+"PO-Revision-Date: 2025-10-01 16:19\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2211,7 +2211,7 @@ msgstr "在保存时去除文件末尾的空白行"
 
 #: spyder/plugins/editor/confpage.py:236
 msgid "Any extra newlines at the end of the file besides the first one will be stripped."
-msgstr ""
+msgstr "在文件末尾的任何额外换行符除第一个之外都会被去除。"
 
 #: spyder/plugins/editor/confpage.py:258
 msgid "Indentation"
