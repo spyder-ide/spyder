@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 set -e
 
 echo "*** Running post install script for ${INSTALLER_NAME} ..."
