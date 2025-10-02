@@ -106,7 +106,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):
     # Mock the dialog window and answer "Yes" to clear contents of PYTHONPATH
     # before adding Spyder's path list
     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
-                        return_value=pathmanager_mod.QMessageBox.Yes)
+                        return_value=pathmanager_mod.QMessageBox.No)
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.export_pythonpath()
