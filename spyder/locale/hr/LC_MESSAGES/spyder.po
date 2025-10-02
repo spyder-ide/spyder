@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2024-08-21 02:47\n"
+"PO-Revision-Date: 2025-10-01 20:08\n"
 "Last-Translator: \n"
 "Language-Team: Croatian\n"
-"Language: hr_HR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /master/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 88\n"
-"X-Crowdin-Language: hr\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: hr\n"
+"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 104\n"
+"Language: hr_HR\n"
 
 #: spyder/api/plugin_registration/_confpage.py:28
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
@@ -139,20 +138,17 @@ msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start o
 msgstr ""
 
 #: spyder/app/restart.py:138
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
 msgstr ""
 
 #: spyder/app/restart.py:140
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
 msgstr ""
 
 #: spyder/app/restart.py:142
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
 msgstr ""
 
@@ -189,9 +185,7 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr ""
 
 #: spyder/config/manager.py:812
-msgid ""
-"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
-"\n"
+msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
 msgstr ""
 
@@ -544,19 +538,16 @@ msgid "Syntax highlighting theme"
 msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:98
-#, fuzzy
 msgid "Edit selected theme"
-msgstr "Uredi odabrano"
+msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:99
-#, fuzzy
 msgid "Create new theme"
-msgstr "Kreiraj novu ćeliju"
+msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:100
-#, fuzzy
 msgid "Delete theme"
-msgstr "Izbriši odabrano"
+msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:101 spyder/plugins/preferences/widgets/configdialog.py:105
 msgid "Reset to defaults"
@@ -568,7 +559,7 @@ msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:136
 msgid "Monospace"
-msgstr "Monospace"
+msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:142 spyder/plugins/application/confpage.py:267 spyder/plugins/application/confpage.py:272 spyder/plugins/editor/confpage.py:52 spyder/plugins/ipythonconsole/confpage.py:457 spyder/plugins/outlineexplorer/widgets.py:48
 msgid "Interface"
@@ -587,9 +578,8 @@ msgid "Editor"
 msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:170
-#, fuzzy
 msgid "Interface font"
-msgstr "Interakcija"
+msgstr ""
 
 #: spyder/plugins/appearance/confpage.py:214
 msgid "Previews"
@@ -620,9 +610,8 @@ msgid "The property <b>{}</b> has an invalid color: {}<br>"
 msgstr ""
 
 #: spyder/plugins/appearance/widgets.py:105
-#, fuzzy
 msgid "Error setting colors"
-msgstr "Greška pri dobivanju informacija o poslužitelju"
+msgstr ""
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -753,11 +742,9 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr ""
 
 #: spyder/plugins/application/confpage.py:228
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 " Float values are supported"
-msgstr ""
-"Unesite vrijednosti za različite zaslone odvojene točka-zarezom ';'.\n"
+msgstr "Unesite vrijednosti za različite zaslone odvojene točka-zarezom ';'.\n"
 " Podržane su decimalne vrijednosti"
 
 #: spyder/plugins/application/confpage.py:276 spyder/plugins/ipythonconsole/widgets/run_conf.py:52
@@ -885,9 +872,8 @@ msgid "Save all files"
 msgstr ""
 
 #: spyder/plugins/application/container.py:413
-#, fuzzy
 msgid "Save &as"
-msgstr "Spremi sve"
+msgstr ""
 
 #: spyder/plugins/application/container.py:415
 msgid "Save current file as..."
@@ -1202,8 +1188,7 @@ msgid "Enable Go to definition"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
 msgstr ""
@@ -1221,8 +1206,7 @@ msgid "Enable hover hints"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
 msgstr ""
@@ -1268,9 +1252,8 @@ msgid "Underline errors and warnings"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:94
-#, fuzzy
 msgid "Provider options"
-msgstr "Opcije interpretera:"
+msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:101
 msgid "Enable docstring style linting"
@@ -1301,9 +1284,8 @@ msgid "Ignore these errors or warnings:"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:146
-#, fuzzy
 msgid "Default is: E"
-msgstr "Zadana vrijednost je 10"
+msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:165
 msgid "Only check these filenames:"
@@ -1314,14 +1296,12 @@ msgid "Check test files: test_.*\\.py"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:193
-#, fuzzy
 msgid "Default is: E,W,C90"
-msgstr "Zadana vrijednost je 10"
+msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:210
-#, fuzzy
 msgid "There are no configuration options for Pyflakes"
-msgstr "Upravljajte konfiguracijom izvršavanja za pokretanje datoteka."
+msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:214
 msgid "Linting is disabled"
@@ -1512,8 +1492,7 @@ msgid "down"
 msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:42
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
@@ -1718,16 +1697,12 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr ""
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please do not use it to run your code\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please do not use it to run your code\n\n"
 msgstr ""
 
 #: spyder/plugins/console/widgets/main_widget.py:178 spyder/plugins/ipythonconsole/widgets/main_widget.py:670
@@ -1931,9 +1906,8 @@ msgid "Debug cell"
 msgstr ""
 
 #: spyder/plugins/debugger/plugin.py:199 spyder/plugins/debugger/plugin.py:200
-#, fuzzy
 msgid "Debug the current line or selection"
-msgstr "Izvrši trenutnu liniju"
+msgstr ""
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:153
 msgid "Breakpoint"
@@ -2024,23 +1998,20 @@ msgid "Interrupt execution and start the debugger"
 msgstr "Prekini izvršenje i pokreni program za otklanjanje pogrešaka"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:269
-#, fuzzy
 msgid "Debug current line"
-msgstr "Izvrši trenutnu liniju"
+msgstr ""
 
 #: spyder/plugins/debugger/widgets/main_widget.py:279
-#, fuzzy
 msgid "Execute until next breakpoint"
-msgstr "Izvršavaj dok se funkcija ili metoda ne vrati"
+msgstr ""
 
 #: spyder/plugins/debugger/widgets/main_widget.py:289
 msgid "Step into function or method"
 msgstr "Uđi u funkciju ili metodu"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:299
-#, fuzzy
 msgid "Execute until function returns"
-msgstr "Izvršavaj dok se funkcija ili metoda ne vrati"
+msgstr ""
 
 #: spyder/plugins/debugger/widgets/main_widget.py:309
 msgid "Stop debugging"
@@ -2051,14 +2022,12 @@ msgid "Show the file and line where the debugger is placed in the editor"
 msgstr "Prikaži datoteku i liniju gdje je postavljen program za otklanjanje pogrešaka u editoru"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:330
-#, fuzzy
 msgid "Toggle breakpoint"
-msgstr "Sakrij točke prekida"
+msgstr ""
 
 #: spyder/plugins/debugger/widgets/main_widget.py:331
-#, fuzzy
 msgid "Set or clear a breakpoint on the current line"
-msgstr "Kreiraj novu ćeliju na trenutnoj liniji"
+msgstr ""
 
 #: spyder/plugins/debugger/widgets/main_widget.py:339
 msgid "Set/edit conditional breakpoint"
@@ -2089,8 +2058,7 @@ msgid "Show tab bar"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:56
-msgid ""
-"If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
+msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
 "can still be used to navigate between open files."
 msgstr ""
 
@@ -2135,9 +2103,8 @@ msgid "Show line numbers"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:98
-#, fuzzy
 msgid "Show debugger breakpoints"
-msgstr "Prikaži prijelomne točke"
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:103
 msgid "Show code annotations"
@@ -2200,18 +2167,15 @@ msgid "Trailing whitespace"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:206
-#, fuzzy
 msgid "Strip all trailing spaces on save"
-msgstr "Automatsko uklanjanje razmaka na kraju redaka prilikom spremanja datoteka"
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:211
-#, fuzzy
 msgid "Strip trailing spaces on changed lines"
-msgstr "Automatsko uklanjanje razmaka na kraju promijenjenih linija"
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:214
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr ""
@@ -2221,8 +2185,7 @@ msgid "Automatically add missing end-of-file newline on save"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:225
-msgid ""
-"If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
+msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
 msgstr ""
 
@@ -2287,17 +2250,15 @@ msgid "Intelligent backspace"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:285
-#, fuzzy
 msgid "Make the backspace key automatically remove the number of indentation characters set above."
-msgstr "Omogući da tipka backspace automatski uklanja broj znakova za uvlaku postavljen gore."
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:292
 msgid "Tab always indents"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:295
-msgid ""
-"If enabled, pressing Tab will always add an indent,\n"
+msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
 msgstr ""
@@ -2311,8 +2272,7 @@ msgid "Fix mixed end-of-lines automatically and show warning dialog"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:338
-msgid ""
-"When opening a file containing mixed end-of-line characters\n"
+msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
 msgstr ""
@@ -2326,9 +2286,8 @@ msgid "CR (legacy Mac)"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:378
-#, fuzzy
 msgid "Template"
-msgstr "Predlošci"
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:380
 msgid "Edit new file template"
@@ -2439,14 +2398,12 @@ msgid "Re run last cell "
 msgstr ""
 
 #: spyder/plugins/editor/plugin.py:294
-#, fuzzy
 msgid "Run &current line/selection"
-msgstr "Pokreni trenutnu ćeliju"
+msgstr ""
 
 #: spyder/plugins/editor/plugin.py:296
-#, fuzzy
 msgid "Run current line or selection"
-msgstr "Pokreni trenutnu ćeliju i idi na sljedeću"
+msgstr ""
 
 #: spyder/plugins/editor/plugin.py:305
 msgid "Run &to line"
@@ -2545,9 +2502,7 @@ msgid "Removal error"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2899
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2911 spyder/plugins/explorer/widgets/explorer.py:1742
@@ -2555,9 +2510,7 @@ msgid "Conversion error"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2912 spyder/plugins/explorer/widgets/explorer.py:1743
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:3507
@@ -2865,9 +2818,8 @@ msgid "Remove trailing spaces"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/main_widget.py:552
-#, fuzzy
 msgid "Convert tabs to spaces"
-msgstr "Konvertiraj u"
+msgstr ""
 
 #: spyder/plugins/editor/widgets/main_widget.py:553
 msgid "Replace tabs with the configured number of spaces"
@@ -2978,9 +2930,7 @@ msgid "Recover from autosave"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:139
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
 msgstr ""
 
@@ -3197,11 +3147,9 @@ msgid " (Application not found!)"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1116
-#, fuzzy
-msgid ""
-"Do you really want to delete <b>%s</b>?\n"
+msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr "Želite li stvarno izbrisati projekt <b>{filename}</b>?<br><br><b>Napomena:</b> Ova radnja će samo izbrisati projekt. Datoteke će biti sačuvane na disku."
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1136
 msgid "delete"
@@ -3268,9 +3216,7 @@ msgid "File/Folder copy error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1431
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1478
@@ -3278,9 +3224,7 @@ msgid "Error pasting file"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1479 spyder/plugins/explorer/widgets/explorer.py:1507
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1498
@@ -3448,84 +3392,72 @@ msgid "Copy and Paste..."
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:169
-#, fuzzy
 msgid "Copy path"
-msgstr "Kopiraj apsolutnu putanju"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:180
-#, fuzzy
 msgid "Download..."
-msgstr "Preuzimanje Spydera {} ..."
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:186 spyder/plugins/explorer/widgets/remote_explorer.py:1097
 msgid "Upload file"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:350
-#, fuzzy
 msgid "New Python Package error"
-msgstr "Python paket..."
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:351
-#, fuzzy
 msgid "An error occured while trying to create a new Python package"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:360
 msgid "New Python File error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:361
-#, fuzzy
 msgid "An error occured while trying to create a new Python file"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:388
 msgid "New error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:389
-#, fuzzy
 msgid "An error occured while trying to create a file/directory"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:419
-#, fuzzy
 msgid "Copy and Paste error"
-msgstr "Greška pri ažuriranju Spydera"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:420
-#, fuzzy
 msgid "An error occured while trying to copy and paste a file/directory"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:439
 msgid "Rename error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:440
-#, fuzzy
 msgid "An error occured while trying to rename a file"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:456
-#, fuzzy
 msgid "Delete error"
-msgstr "Izbriši raspored"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:457
-#, fuzzy
 msgid "An error occured while trying to delete a file/directory"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:488
 msgid "Download file"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:520 spyder/plugins/explorer/widgets/remote_explorer.py:552
-#, fuzzy
 msgid "An error occured while trying to download {path}"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:523 spyder/plugins/explorer/widgets/remote_explorer.py:555
 msgid "Download error"
@@ -3536,28 +3468,24 @@ msgid "Upload error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:565
-#, fuzzy
 msgid "An error occured while trying to upload a file"
-msgstr "Došlo je do pogreške prilikom pokretanja jezgre"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:775 spyder/plugins/explorer/widgets/remote_explorer.py:823
-#, fuzzy
 msgid "Show more files"
-msgstr "Prikaži u mapi"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:784 spyder/plugins/explorer/widgets/remote_explorer.py:834
 msgid "Maximum number of files to display reached!"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:933
-#, fuzzy
 msgid "New Python Package"
-msgstr "Python paket..."
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:933 spyder/plugins/explorer/widgets/remote_explorer.py:940 spyder/plugins/explorer/widgets/remote_explorer.py:947 spyder/plugins/explorer/widgets/remote_explorer.py:954
-#, fuzzy
 msgid "Name as:"
-msgstr "Naziv:"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:940
 msgid "New Python File"
@@ -3572,18 +3500,16 @@ msgid "New File"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:976
-#, fuzzy
 msgid "Copy and Paste"
-msgstr "Kopiraj (neobrađeni tekst)"
+msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:977
 msgid "Paste as:"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1051
-#, fuzzy
 msgid "Do you really want to delete <b>{filename}</b>?"
-msgstr "Želite li stvarno otkazati preuzimanje?"
+msgstr ""
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External terminal"
@@ -3594,14 +3520,12 @@ msgid "Run scripts in an external system terminal."
 msgstr "Pokreni skripte u vanjskom sustavnom terminalu."
 
 #: spyder/plugins/externalterminal/plugin.py:183
-#, fuzzy
 msgid "Run in external terminal"
-msgstr "Vanjski terminal"
+msgstr ""
 
 #: spyder/plugins/externalterminal/plugin.py:184
-#, fuzzy
 msgid "Run in an operating system terminal"
-msgstr "Pokreni skripte u vanjskom sustavnom terminalu."
+msgstr ""
 
 #: spyder/plugins/externalterminal/plugin.py:244
 msgid "Running an external system terminal is not supported on platform %s."
@@ -3633,11 +3557,11 @@ msgstr ""
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:136
 msgid "Interpreter"
-msgstr "Interpreter"
+msgstr ""
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:139
 msgid "Shell interpreter:"
-msgstr "Shell interpreter:"
+msgstr ""
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:142
 msgid "Select interpreter"
@@ -3672,14 +3596,12 @@ msgid "Search for text patterns in files."
 msgstr "Pretraži tekstualne uzorke u datotekama."
 
 #: spyder/plugins/findinfiles/plugin.py:67
-#, fuzzy
 msgid "Search text in files..."
-msgstr "Pretraži tekstualne uzorke u datotekama."
+msgstr ""
 
 #: spyder/plugins/findinfiles/plugin.py:68
-#, fuzzy
 msgid "Search text in multiple files with the Find pane"
-msgstr "Pretraži tekst u kartici \"Find\""
+msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:61 spyder/plugins/workingdirectory/container.py:186
 msgid "Current working directory"
@@ -3850,9 +3772,8 @@ msgid "Get documentation for objects in the Editor and IPython console."
 msgstr "Dobij dokumentaciju za objekte u Uređivaču i IPython konzoli."
 
 #: spyder/plugins/help/plugin.py:94
-#, fuzzy
 msgid "Built-in tutorial"
-msgstr "Ugrađeni"
+msgstr ""
 
 #: spyder/plugins/help/utils/sphinxify.py:243 spyder/plugins/help/utils/sphinxify.py:253
 msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
@@ -3963,9 +3884,8 @@ msgid "View command history for the IPython console."
 msgstr "Pregledaj povijest naredbi za IPython konzolu."
 
 #: spyder/plugins/ipythonconsole/confpage.py:42
-#, fuzzy
 msgid "Show welcome message"
-msgstr "Poruke o vezi"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:44
 msgid "Print the startup message when opening a new console"
@@ -3984,9 +3904,8 @@ msgid "Display the time since the current console was started in the tab bar"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
-#, fuzzy
 msgid "Confirmation"
-msgstr "Potvrde"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:68
 msgid "Ask for confirmation before closing"
@@ -4001,9 +3920,8 @@ msgid "Ask for confirmation before restarting"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:87
-#, fuzzy
 msgid "Completion"
-msgstr "Kompleksna vrijednost"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:88
 msgid "Graphical"
@@ -4022,8 +3940,7 @@ msgid "Display:"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
-msgid ""
-"Graphical shows a list of completion matches in a GUI.\n"
+msgid "Graphical shows a list of completion matches in a GUI.\n"
 "Plain displays matches in the Console output, like Bash.\n"
 "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
 msgstr ""
@@ -4033,8 +3950,7 @@ msgid "Use Jedi completion"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
-msgid ""
-"Enable Jedi-based tab-completion in the IPython console.\n"
+msgid "Enable Jedi-based tab-completion in the IPython console.\n"
 "Similar to the greedy completer, but without evaluating the code and allows completion of dictionary keys, nested lists and similar.\n"
 "Warning: Can slow down the Console when working with large dataframes."
 msgstr ""
@@ -4044,9 +3960,8 @@ msgid "Use greedy completion"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
-#, fuzzy
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls and similar <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Warning</b>: This can be unsafe because your code is actually executed when you press <tt>Tab</tt>."
-msgstr "Omogući <tt>Tab</tt> dovršavanje na elementima lista, rezultatima poziva funkcija itd., <i>bez</i> potrebe za njihovim pridruživanjem varijabli, kao što je <tt>li[0].&lt;Tab&gt;</tt> ili <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Upozorenje:</b> Zbog greške, IPythonov greedy completer zahtijeva vodeći <tt>&lt;Space&gt;</tt> za neka dovršavanja; npr.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> radi, dok  <tt>np.sin(np.&lt;Tab&gt; </tt> ne radi.<br><br>"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:132 spyder/plugins/pylint/main_widget.py:511
 msgid "Output"
@@ -4061,8 +3976,7 @@ msgid " lines"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:141
-msgid ""
-"The maximum number of output lines retained in each console at a time.\n"
+msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
 msgstr ""
 
@@ -4071,8 +3985,7 @@ msgid "Render SymPy symbolic math"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
-msgid ""
-"Pretty-print the outputs of SymPy symbolic computations\n"
+msgid "Pretty-print the outputs of SymPy symbolic computations\n"
 "(requires SymPy installed in the console environment).\n"
 "Refer to SymPy's documentation for details on using it."
 msgstr ""
@@ -4086,13 +3999,11 @@ msgid "Activate support"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:168
-#, fuzzy
 msgid "Automatically import NumPy and Matplotlib modules"
-msgstr "Automatski učitaj Matplotlib i NumPy module"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
-msgid ""
-"This is a convinience to use NumPy and Matplotlib\n"
+msgid "This is a convinience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
 msgstr ""
 
@@ -4105,20 +4016,17 @@ msgid "Graphics backend"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:189
-#, fuzzy
 msgid "Choose how figures are displayed"
-msgstr "Odredite kako će se Matplotlib grafike prikazivati"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:203
 msgid "Backend:"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:207
-#, fuzzy
-msgid ""
-"If unsure, select {inline} to show figures in the Plots pane\n"
+msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
-msgstr "Ako niste sigurni, odaberite <b>%s</b> za prikaz grafike u kartici \"Plots\" ili <b>%s</b> za interakciju s njima (kroz zumiranje i pomicanje) u zasebnom prozoru."
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:222
 msgid "Inline backend"
@@ -4189,22 +4097,16 @@ msgid "of figure height"
 msgstr "od visine slike"
 
 #: spyder/plugins/ipythonconsole/confpage.py:280
-#, fuzzy
-msgid ""
-"The position of the bottom edge of the subplots,\n"
+msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height (default is 0.11)."
 msgstr ""
-"Položaj donjeg ruba podgrafikona,\n"
-"izražen kao frakcija visine figure.\n"
-"Zadana vrijednost je 0.11."
 
 #: spyder/plugins/ipythonconsole/confpage.py:285
 msgid "Use a tight layout for inline plots"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:287
-msgid ""
-"Sets 'bbox_inches' to 'tight' for inline plots.\n"
+msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
 msgstr ""
@@ -4214,8 +4116,7 @@ msgid "Run code"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:319
-msgid ""
-"Enter a code snippet to run when a new console is started.\n"
+msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
 msgstr ""
 
@@ -4228,9 +4129,8 @@ msgid "Specify a Python file to execute at startup, similar to <tt>PYTHONSTARTUP
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:341
-#, fuzzy
 msgid "Execute the following file:"
-msgstr "Koristi sljedeći interpreter:"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:355
 msgid "Autocall"
@@ -4257,8 +4157,7 @@ msgid "Autocall:  "
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:372
-msgid ""
-"In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
+msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
 msgstr ""
 
@@ -4267,18 +4166,16 @@ msgid "Autoreload"
 msgstr "Automatsko ponovno učitavanje"
 
 #: spyder/plugins/ipythonconsole/confpage.py:387
-#, fuzzy
 msgid "Reload imported modules automatically before running code. This is a different mechanism than the User Module Reloaderand can be slow on Windows due to limitations of its file system."
-msgstr "Autoreload automatski ponovno učitava module svaki put prije izvršavanja vašeg Python koda.<br>Ovo je drugačiji mehanizam od User Module Reloader (UMR) i može biti spor na Windowsima zbog ograničenja njihovog datotečnog sustava."
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
 msgstr "Koristi automatsko ponovno učitavanje"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
-#, fuzzy
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr "Ova opcija omogućuje autoreload magiju.<br>Molimo pogledajte dokumentaciju kako biste saznali kako je koristiti."
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4313,9 +4210,8 @@ msgid "Hide command line output windows generated by the subprocess module"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:462
-#, fuzzy
 msgid "Plotting"
-msgstr "Formatiranje"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:467 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
@@ -4338,9 +4234,8 @@ msgid "Run Python files, cells, code and commands interactively."
 msgstr "Pokrećite Python datoteke, ćelije, kod i naredbe interaktivno."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
-#, fuzzy
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr "Nije bilo moguće otvoriti SSH tunel za udaljenu jezgru. Molimo provjerite svoje vjerodajnice i status veze s poslužiteljem."
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:41
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4355,9 +4250,7 @@ msgid "This Python environment doesn't have the right version of <tt>spyder-kern
 msgstr "Ovo Python okruženje nema ispravnu verziju modula <tt>spyder-kernels</tt> instaliranu (>= {0} i < {1}). Bez ovog modula Spyder ne može stvoriti konzolu za vas.<br><br>Možete ga instalirati aktiviranjem svog okruženja (ako je potrebno) i zatim pokretanjem naredbe u sustavnom terminalu:<pre>    <tt>{2}</tt></pre>ili<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:523
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:51
@@ -4413,9 +4306,8 @@ msgid "Figures are displayed in the Plots pane by default. To make them also app
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
-#, fuzzy
 msgid "Connect to existing kernel"
-msgstr "Zadrži postojeće jezgre"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:39
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
@@ -4510,9 +4402,8 @@ msgid "Interrupt kernel"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:488
-#, fuzzy
 msgid "Connect to existing kernel..."
-msgstr "Zadrži postojeće jezgre"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:489
 msgid "Open an IPython console connected to an existing kernel"
@@ -4523,9 +4414,8 @@ msgid "Rename tab"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
-#, fuzzy
 msgid "Switch to next console"
-msgstr "Nema povezane konzole"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:507
 msgid "Switch to previous console"
@@ -4888,8 +4778,7 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr ""
 
 #: spyder/plugins/layout/container.py:376
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr ""
 
@@ -4946,9 +4835,8 @@ msgid "Give a name to your layout"
 msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:177
-#, fuzzy
 msgid "Save layout as"
-msgstr "Spremi konfiguraciju kao:"
+msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
@@ -4967,34 +4855,28 @@ msgid "Delete layout"
 msgstr "Izbriši raspored"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
-#, fuzzy
 msgid "Layouts display and order"
-msgstr "Prikaz i redoslijed rasporeda"
+msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:330
-#, fuzzy
 msgid "Remove layout"
-msgstr "Ukloni red"
+msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:331
-#, fuzzy
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr "Želite li ukloniti vezu pod nazivom <b>{}</b>?"
+msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:69
-#, fuzzy
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr "Odaberite zadani Python interpreter za stvaranje novih IPython konzola i za omogućavanje dovršavanja koda u Uređivaču"
+msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:76
-#, fuzzy
 msgid "Internal (same used by Spyder)"
-msgstr "Interno (tj. isto koje koristi Spyder)"
+msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:81
-#, fuzzy
 msgid "Selected interpreter:"
-msgstr "Odaberi interpreter"
+msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:87
 msgid "Executables"
@@ -5041,8 +4923,7 @@ msgid "List of excluded modules (e.g. {})"
 msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:193
-msgid ""
-"The following modules are not installed:\n"
+msgid "The following modules are not installed:\n"
 "{}"
 msgstr ""
 
@@ -5383,9 +5264,8 @@ msgid "Profile Python files to find execution bottlenecks."
 msgstr "Profilirajte Python datoteke kako biste pronašli uska grla u izvođenju."
 
 #: spyder/plugins/profiler/plugin.py:149 spyder/plugins/profiler/plugin.py:150
-#, fuzzy
 msgid "Profile file"
-msgstr "Ključna datoteka"
+msgstr ""
 
 #: spyder/plugins/profiler/plugin.py:164 spyder/plugins/profiler/plugin.py:165
 msgid "Profile cell"
@@ -5460,14 +5340,12 @@ msgid "Clear comparison"
 msgstr ""
 
 #: spyder/plugins/profiler/widgets/main_widget.py:183
-#, fuzzy
 msgid "Search"
-msgstr "Pretraživanje okvira"
+msgstr ""
 
 #: spyder/plugins/profiler/widgets/main_widget.py:190
-#, fuzzy
 msgid "Stop profiling"
-msgstr "Zaustavljanje..."
+msgstr ""
 
 #: spyder/plugins/profiler/widgets/main_widget.py:262
 msgid "Show functions or modules called by this item"
@@ -5538,9 +5416,8 @@ msgid "Total number of calls (including recursion)"
 msgstr ""
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:905
-#, fuzzy
 msgid "File and line where the function is defined"
-msgstr "Prikaži datoteku i liniju gdje je postavljen program za otklanjanje pogrešaka u editoru"
+msgstr ""
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5619,9 +5496,8 @@ msgid "Location"
 msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:137 spyder/plugins/projects/widgets/projectdialog.py:301
-#, fuzzy
 msgid "This is empty"
-msgstr "Ovo polje je prazno"
+msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:142
 msgid "This directory doesn't exist"
@@ -5668,27 +5544,24 @@ msgid "New directory"
 msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
-#, fuzzy
 msgid "Start a project in a new directory"
-msgstr "Odaberi drugi direktorij"
+msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
 msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
-#, fuzzy
 msgid "Project directory"
-msgstr "Odaberi drugi direktorij"
+msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
 msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
-#, fuzzy
 msgid "A directory with this name already exists"
-msgstr "Redak s imenom \"{}\" već postoji!"
+msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
@@ -5939,9 +5812,8 @@ msgid "The connection was lost"
 msgstr "Veza je izgubljena"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:314 spyder/plugins/remoteclient/api/manager/ssh.py:150 spyder/plugins/remoteclient/api/manager/ssh.py:248 spyder/plugins/remoteclient/api/manager/ssh.py:293 spyder/plugins/remoteclient/api/manager/ssh.py:392
-#, fuzzy
 msgid "The SSH connection is not open"
-msgstr "Veza je izgubljena"
+msgstr ""
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:67 spyder/plugins/remoteclient/api/manager/jupyterhub.py:153
 msgid "JupyterHub is not connected"
@@ -5960,9 +5832,8 @@ msgid "There was an error when trying to get the remote server information"
 msgstr ""
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:195
-#, fuzzy
 msgid "Error staring the remote server"
-msgstr "Greška prilikom pokretanja udaljenog poslužitelja"
+msgstr ""
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:229 spyder/plugins/remoteclient/api/manager/ssh.py:353
 msgid "We're establishing the connection. Please be patient"
@@ -5977,14 +5848,12 @@ msgid "It was not possible to forward the local port"
 msgstr "Nije bilo moguće proslijediti lokalni port"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:271
-#, fuzzy
 msgid "Error connecting to the remote server"
-msgstr "Greška prilikom pokretanja udaljenog poslužitelja"
+msgstr ""
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:311 spyder/plugins/remoteclient/api/manager/ssh.py:321
-#, fuzzy
 msgid "There was an error installing the remote server"
-msgstr "Greška prilikom pokretanja udaljenog poslužitelja"
+msgstr ""
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:370
 msgid "It was not possible to open a connection to this machine"
@@ -6003,9 +5872,8 @@ msgid "Connect to remote machines to run code on them."
 msgstr "Povežite se na udaljena računala kako biste pokretali kod na njima."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:45
-#, fuzzy
 msgid "Remote connections"
-msgstr "Ukloni vezu"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:112 spyder/plugins/shortcuts/widgets/table.py:211
 msgid "Clear"
@@ -6036,14 +5904,12 @@ msgid "This field is empty"
 msgstr "Ovo polje je prazno"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:189
-#, fuzzy
 msgid "Configure settings for connecting to a JupyterHub server"
-msgstr "Konfigurirajte SSH postavke za povezivanje s udaljenim hostovima"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:191
-#, fuzzy
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
-msgstr "Spyder će koristiti ovu vezu za pokretanje udaljenih jezgri u IPython konzoli. To vam omogućuje da koristite Spyder lokalno dok izvršavate kod na udaljenom računalu, poput instance u oblaku, radnoj stanici u uredu ili računalnom klasteru visokih performansi."
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:241
 msgid "Configure SSH settings for connecting to remote hosts"
@@ -6087,7 +5953,7 @@ msgstr "Adresa nije valjana IP adresa ili naziv domene"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:349
 msgid "Port"
-msgstr "Port"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:358
 msgid "Username *"
@@ -6110,9 +5976,8 @@ msgid "Key file *"
 msgstr "Ključna datoteka *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:460
-#, fuzzy
 msgid "Passphrase"
-msgstr "Fraza za pristup"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:463
 msgid "Your passphrase will be saved securely by Spyder"
@@ -6135,23 +6000,20 @@ msgid "This is the URL of the JupyterHub server"
 msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:560
-#, fuzzy
 msgid "The URL is not a valid one"
-msgstr "Adresa nije valjana IP adresa ili naziv domene"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:564
 msgid "Token *"
 msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:567
-#, fuzzy
 msgid "Your token will be saved securely by Spyder"
-msgstr "Vaša lozinka će biti sigurno pohranjena od strane Spydera"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:569
-#, fuzzy
 msgid "Your token is saved securely by Spyder"
-msgstr "Vaša lozinka je sigurno pohranjena od strane Spydera"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:671
 msgid "The name you selected is already used by another connection."
@@ -6162,9 +6024,8 @@ msgid "The address you provided is not a valid IP or domain name."
 msgstr "Adresa koju ste unijeli nije valjana IP adresa ili naziv domene."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:690
-#, fuzzy
 msgid "The URL you provided is not valid."
-msgstr "Adresa koju ste unijeli nije valjana IP adresa ili naziv domene."
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:712
 msgid "New connection"
@@ -6183,19 +6044,16 @@ msgid "Available methods"
 msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:924
-#, fuzzy
 msgid "Create a new environment"
-msgstr "Nova konzola u okruženju"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:930
-#, fuzzy
 msgid "Import an existing environment"
-msgstr "Nova konzola u okruženju"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:936
-#, fuzzy
 msgid "Don't create an environment"
-msgstr "Nova konzola u okruženju"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:950
 msgid "Required information"
@@ -6263,17 +6121,15 @@ msgstr "Korisničko ime: {}"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:308
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr "Status: <span style=\"color:{}\">{}<span>"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:109
-#, fuzzy
 msgid "Manage remote connections"
-msgstr "Upravljajte udaljenim vezama..."
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:135
-#, fuzzy
 msgid "Remote server error"
-msgstr "Ukloni red"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:136
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
@@ -6281,7 +6137,7 @@ msgstr ""
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
-msgstr "%s (copy)"
+msgstr ""
 
 #: spyder/plugins/run/confpage.py:210
 msgid "The following are the global configuration presets of the different runners that can execute files in Spyder."
@@ -6344,9 +6200,8 @@ msgid "Run settings"
 msgstr ""
 
 #: spyder/plugins/run/container.py:96
-#, fuzzy
 msgid "&Global presets"
-msgstr "Globalni predlošci"
+msgstr ""
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
@@ -6505,9 +6360,8 @@ msgid "Spyder Keyboard ShortCuts"
 msgstr ""
 
 #: spyder/plugins/shortcuts/widgets/table.py:183
-#, fuzzy
 msgid "Press the new shortcut and select <b>Ok</b> to confirm, click <b>Cancel</b> to revert to the previous state, use <b>Clear</b> to unbind the command from a shortcut or press <b>Default</b> to restore the default shortcut."
-msgstr "Pritisnite novi prečac i odaberite <b>U redu</b> za potvrdu, kliknite <b>Otkaži</b> za vraćanje na prethodno stanje, ili upotrijebite <b>Očisti</b> za uklanjanje veze između naredbe i prečaca."
+msgstr ""
 
 #: spyder/plugins/shortcuts/widgets/table.py:197
 msgid "Current shortcut:"
@@ -6746,9 +6600,8 @@ msgid "Main toolbar"
 msgstr ""
 
 #: spyder/plugins/tours/container.py:52
-#, fuzzy
 msgid "Interactive tour"
-msgstr "Interakcija"
+msgstr ""
 
 #: spyder/plugins/tours/container.py:61 spyder/plugins/tours/plugin.py:40
 msgid "Interactive tours"
@@ -6859,9 +6712,8 @@ msgid "To run the tour, please press the green button on the left of the Spyder 
 msgstr ""
 
 #: spyder/plugins/tours/widgets.py:1075
-#, fuzzy
 msgid "Spyder tour"
-msgstr "Greška pri ažuriranju Spydera"
+msgstr ""
 
 #: spyder/plugins/tours/widgets.py:1100
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
@@ -6872,9 +6724,8 @@ msgid "Start tour"
 msgstr ""
 
 #: spyder/plugins/updatemanager/container.py:52 spyder/plugins/updatemanager/container.py:122
-#, fuzzy
 msgid "Check for updates"
-msgstr "Provjeravam ažuriranja..."
+msgstr ""
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
@@ -6889,17 +6740,14 @@ msgid "Manage application updates."
 msgstr "Upravljajte ažuriranjima aplikacije."
 
 #: spyder/plugins/updatemanager/widgets/status.py:72
-msgid ""
-"Downloading the update will continue in the background.\n"
+msgid "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
-msgstr ""
-"Preuzimanje ažuriranja nastavit će se u pozadini.\n"
+msgstr "Preuzimanje ažuriranja nastavit će se u pozadini.\n"
 "Kliknite ovdje da ponovno prikažete dijalog za preuzimanje."
 
 #: spyder/plugins/updatemanager/widgets/update.py:47
-#, fuzzy
 msgid "Updating Spyder-updater"
-msgstr "Greška pri ažuriranju Spydera"
+msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "Downloading update"
@@ -6942,9 +6790,8 @@ msgid "Would you like to automatically download and install it?"
 msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:350
-#, fuzzy
 msgid "Updating Spyder's updater..."
-msgstr "Upravljajte Spyderovim postavkama."
+msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:400
 msgid "Downloading Spyder {} ..."
@@ -7211,16 +7058,13 @@ msgid "Refresh array editor?"
 msgstr "Osvježi uređivač nizova?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:717
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
-#, fuzzy
 msgid "Spyder was unable to retrieve the value of this variable from the console."
-msgstr "Osvježi uređivač s trenutnom vrijednošću varijable u konzoli"
+msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:342
 msgid "The value of this variable is too large to be edited."
@@ -7251,11 +7095,9 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:536
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
-msgstr ""
-"Nije moguće prikazati ovu vrijednost jer\n"
+msgstr "Nije moguće prikazati ovu vrijednost jer\n"
 "je došlo do pogreške prilikom pokušaja prikaza"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:919 spyder/plugins/variableexplorer/widgets/main_widget.py:188 spyder/widgets/collectionseditor.py:812
@@ -8007,15 +7849,13 @@ msgid "Magic:"
 msgstr ""
 
 #: spyder/widgets/arraybuilder.py:228
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Type an array using the syntax: <tt>1 2;3 4</tt><br>\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Pomagač za Numpy nizove</b><br><br>\n"
 "           * Unesite niz koristeći sintaksu: <tt>1 2;3 4</tt><br>\n"
 "           * Koristite dva razmaka ili tabulatora za generiranje <b>;</b>.<br>\n"
@@ -8023,8 +7863,7 @@ msgstr ""
 "           "
 
 #: spyder/widgets/arraybuilder.py:236
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Introduce an array in the table.<br>\n"
 "           * Use <b>Tab</b> to move between cells or introduce additional\n"
@@ -8032,8 +7871,7 @@ msgid ""
 "           * Use two tabs at the end of a row to move to the next one.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Pomagač za Numpy nizove</b><br><br>\n"
 "           * Unesite niz u tablicu.<br>\n"
 "           * Koristite <b>Tab</b> za prelazak između ćelija ili dodavanje dodatnih redaka i stupaca.<br>\n"
@@ -8158,14 +7996,12 @@ msgid "It was not possible to copy one or more of the dataframes and Numpy array
 msgstr ""
 
 #: spyder/widgets/collectionseditor.py:1616
-#, fuzzy
 msgid "It was not possible to copy one or more of the Numpy arrays you selected"
-msgstr "Nije bilo moguće otvoriti vezu s ovim računalom"
+msgstr ""
 
 #: spyder/widgets/collectionseditor.py:1625
-#, fuzzy
 msgid "It was not possible to copy one or more of the dataframes you selected"
-msgstr "Nije bilo moguće otvoriti vezu s ovim računalom"
+msgstr ""
 
 #: spyder/widgets/collectionseditor.py:1638
 msgid "Clipboard contents"
@@ -8233,7 +8069,7 @@ msgstr ""
 
 #: spyder/widgets/config.py:1074
 msgid "{} font"
-msgstr "{} font"
+msgstr ""
 
 #: spyder/widgets/config.py:1082
 msgid "{} font size"
@@ -8559,44 +8395,3 @@ msgstr ""
 msgid "Close current tab"
 msgstr ""
 
-#~ msgid "Determine package versions"
-#~ msgstr "Odredite verzije paketa"
-
-#~ msgid "Debug selection or current line"
-#~ msgstr "Otklanjaj pogreške u odabiru ili trenutnoj liniji"
-
-#~ msgid "Other"
-#~ msgstr "Ostalo"
-
-#~ msgid "This lets you generate graphics and work with arrays <b>without</b> importing the commands to do it. It's also useful to develop GUIs with Spyder."
-#~ msgstr "Ovo vam omogućuje generiranje grafike i rad s nizovima <b>bez</b> uvoza naredbi potrebnih za to. Također je korisno za razvoj GUI-a u Spyderu."
-
-#~ msgid "Remove all variables from namespace"
-#~ msgstr "Ukloni sve varijable iz prostora imena"
-
-#~ msgid "File settings"
-#~ msgstr "Postavke datoteke"
-
-#~ msgid "Configuration file"
-#~ msgstr "Konfiguracijska datoteka"
-
-#~ msgid "Save connection"
-#~ msgstr "Spremi vezu"
-
-#~ msgid "Clear settings"
-#~ msgstr "Izbriši postavke"
-
-#~ msgid "&Global configurations"
-#~ msgstr "&Globalne konfiguracije"
-
-#~ msgid "Run this file in:"
-#~ msgstr "Pokreni ovu datoteku u:"
-
-#~ msgid "This is the runner that will be used for execution when you click on the Run button"
-#~ msgstr "Ovo je izvršavatelj koji će se koristiti za izvršavanje kada kliknete na gumb Pokreni"
-
-#~ msgid "Spyder is unable to show the {val_type} object you're trying to view because <tt>{module}</tt> is missing. Please install that package in your Spyder environment to fix this problem."
-#~ msgstr "Spyder ne može prikazati {val_type} objekt koji pokušavate pregledati jer nedostaje <tt>{module}</tt>. Molimo instalirajte taj paket u svom Spyder okruženju kako biste riješili ovaj problem."
-
-#~ msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not supported by Spyder's standalone application.<br>"
-#~ msgstr "Spyder ne može prikazati varijablu koju pokušavate pregledati jer modul <tt>{module}</tt> nije podržan u Spyderovoj samostalnoj aplikaciji.<br>"
