@@ -279,10 +279,13 @@ def validate_conda(conda_executable):
     valid = False
     if conda_executable == "":
         return True
+
     if not os.path.isfile(conda_executable):
         return False
+
     if not os.access(conda_executable, os.X_OK):
         return False
+
     try:
         out, __ = run_program(conda_executable, ['--version']).communicate()
         if any(

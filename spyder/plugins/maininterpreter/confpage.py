@@ -160,42 +160,35 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_group.setLayout(umr_layout)
 
         # Path anaconda executor
-        conda_group = QGroupBox(_("Path Conda executor"))
-        conda_label = QLabel(
-            _(
-                "Select the conda executor path"
-            )
-        )
-        conda_label.setWordWrap(True)
-
+        conda_group = QGroupBox(_("Conda executable"))
         conda_layout = QVBoxLayout()
-        conda_layout.addWidget(conda_label)
 
-        self.cus_conda_check = self.create_checkbox(
-            _("Use custom conda executor"), "customConda"
+        custom_conda_check = self.create_checkbox(
+            _("Set the path to a custom Conda, Mamba or Micromamba executable"),
+            "custom_conda"
         )
-
-        conda_layout.addWidget(self.cus_conda_check)
-        self.conda_path = self.create_browsefile(
-            _('Conda executor path'),
+        conda_layout.addWidget(custom_conda_check)
+        conda_path = self.create_browsefile(
+            "",
             'conda_path',
             filters='*.exe',
             validate_callback=validate_conda,
-            validate_reason=_("The selected file is not a valid "
-                              "conda executable"),
+            validate_reason=_(
+                "The selected file is not a valid conda executable"
+            ),
         )
-        self.conda_path.setStyleSheet("margin-left: 3px")
-        self.conda_path.textbox.setMinimumWidth(400)
-        conda_layout.addWidget(self.conda_path)
+        conda_path.setStyleSheet("margin-left: 3px")
+        conda_path.textbox.setMinimumWidth(400)
+        conda_layout.addWidget(conda_path)
+
         conda_group.setLayout(conda_layout)
 
         self.conda_path.setEnabled(
-            self.get_option('customConda')
+            self.get_option('custom_conda')
         )
-        self.cus_conda_check.checkbox.toggled.connect(
-            self.conda_path.setEnabled)
+        custom_conda_check.checkbox.toggled.connect(conda_path.setEnabled)
 
-        self.conda_edit = self.conda_path.textbox
+        self.conda_edit = conda_path.textbox
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)

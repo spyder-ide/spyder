@@ -162,18 +162,19 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
             if not conda_exe:
                 conda_exe = self.get_conf(
-                    'conda_path',
-                    section='main_interpreter'
-                    )
-                if conda_exe is None:
+                    'conda_path', section='main_interpreter'
+                )
+                if not conda_exe:
                     # Raise error since we were unable to determine the path to
                     # the conda executable (e.g when Anaconda/Miniconda was
                     # installed in a non-standard location).
                     # See spyder-ide/spyder#23595
                     not_found_exe_message = _(
                         "Spyder couldn't find conda, mamba or micromamba in your "
-                        "system to activate the kernel's environment. Please add "
-                        "the path of least one of their executables."
+                        "system to activate the kernel's environment. Please set "
+                        "the path of one of their executables in "
+                        "<i>Preferences > Python interpreter > Conda "
+                        "executable</i>"
                     )
                     raise SpyderKernelError(not_found_exe_message)
 
