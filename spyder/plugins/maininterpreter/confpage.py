@@ -183,7 +183,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         conda_group.setLayout(conda_layout)
 
-        self.conda_path.setEnabled(
+        conda_path.setEnabled(
             self.get_option('custom_conda')
         )
         custom_conda_check.checkbox.toggled.connect(conda_path.setEnabled)
