@@ -71,7 +71,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': ['py', 'ipy'],
+            'extension': ['py', 'ipy', 'pyw'],
             "contexts": [
                 {"name": "File"},
                 {"name": "Cell"},
@@ -97,7 +97,15 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': 'pyw',
+                'context': {'name': 'File'},
+                'output_formats': [],
+                'configuration_widget': IPythonConfigOptions,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': ['py', 'ipy', 'pyw'],
                 'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -105,7 +113,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy'],
+                'input_extension': ['py', 'ipy', 'pyw'],
                 'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
