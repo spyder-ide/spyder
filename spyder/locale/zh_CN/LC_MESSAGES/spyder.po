@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-01 20:08\n"
+"PO-Revision-Date: 2025-10-03 09:58\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2267,17 +2267,19 @@ msgstr "智能退格键"
 
 #: spyder/plugins/editor/confpage.py:285
 msgid "Make the backspace key automatically remove the number of indentation characters set above."
-msgstr ""
+msgstr "使得按下退格键自动移除上面所设定数量的缩进字符。"
 
 #: spyder/plugins/editor/confpage.py:292
 msgid "Tab always indents"
-msgstr ""
+msgstr "Tab 键总是执行缩进"
 
 #: spyder/plugins/editor/confpage.py:295
 msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
+msgstr "如果启用，按 Tab 键总是会添加一级缩进，\n"
+"即使光标不位于一行的开头位置。\n"
+"代码补全仍可使用快捷键 Ctrl+Space 来触发。"
 
 #: spyder/plugins/editor/confpage.py:333
 msgid "End-of-line characters"
@@ -2285,13 +2287,15 @@ msgstr "行结束符"
 
 #: spyder/plugins/editor/confpage.py:335
 msgid "Fix mixed end-of-lines automatically and show warning dialog"
-msgstr ""
+msgstr "自动修复混合的行结束符并显示警告对话框"
 
 #: spyder/plugins/editor/confpage.py:338
 msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "当打开包含混合行结束符的文件时\n"
+"(这在 Windows 上可能引发控制台显示语法错误)，\n"
+"Spyder 将在选项启用时自动转换它们。"
 
 #: spyder/plugins/editor/confpage.py:345
 msgid "Convert end-of-line characters to the following on save:"
@@ -2315,11 +2319,11 @@ msgstr "自动保存"
 
 #: spyder/plugins/editor/confpage.py:393
 msgid "Automatically save a backup copy of unsaved files"
-msgstr ""
+msgstr "自动为未保存的文件保存一个备份副本"
 
 #: spyder/plugins/editor/confpage.py:395
 msgid "If Spyder quits unexpectedly, it will offer to recoverthem on next launch"
-msgstr ""
+msgstr "如果 Spyder 意外退出，它将在下次启动时提议恢复它们"
 
 #: spyder/plugins/editor/confpage.py:401
 msgid "Autosave interval: "
@@ -3406,23 +3410,23 @@ msgstr "编辑过滤器设置"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:157
 msgid "Copy and Paste..."
-msgstr ""
+msgstr "复制与粘贴..."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:169
 msgid "Copy path"
-msgstr ""
+msgstr "复制路径"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:180
 msgid "Download..."
-msgstr ""
+msgstr "下载..."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:186 spyder/plugins/explorer/widgets/remote_explorer.py:1097
 msgid "Upload file"
-msgstr ""
+msgstr "上传文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:350
 msgid "New Python Package error"
-msgstr ""
+msgstr "新的 Python 包错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:351
 msgid "An error occured while trying to create a new Python package"
