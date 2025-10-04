@@ -248,14 +248,20 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
     @env.setter
     def env(self, env_vars):
         """Setter for environment variables for kernels"""
-
-        # Ensure that user environment variables are included, but don't
-        # override existing environ values
+        env_vars = dict(env_vars)
         if os.name == "nt":
+            # Use case insensitive dictionary
             env_vars = CaseInsensitiveDict(env_vars)
-        else:
-            env_vars = dict(env_vars)
-        env_vars.update(os.environ)
+
+            # HKCU path must be appended to HKLM path
+            path = os.getenv("path", "").split(";")  # HKLM Path
+            path.extend(env_vars.get("path", "").split(";"))  # HKCU Path
+            path = ";".join([p for p in path if p])  # Stringify
+            env_vars["PATH"] = path
+
+        # User variables supercede system variables
+        for k, v in os.environ.items():
+            env_vars.setdefault(k, v)
 
         default_interpreter = self.get_conf(
             'default', section='main_interpreter'
