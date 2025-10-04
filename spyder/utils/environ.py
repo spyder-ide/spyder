@@ -91,7 +91,7 @@ def listdict2envdict(listdict):
 @AsyncDispatcher()
 async def get_user_environment_variables() -> dict:
     """
-    Get user environment variables from a subprocess.
+    Get user environment variables from HKCU (Windows) or a subprocess (Unix).
 
     Returns
     -------

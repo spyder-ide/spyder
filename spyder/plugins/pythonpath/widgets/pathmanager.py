@@ -28,6 +28,7 @@ from qtpy.QtWidgets import (
     QStackedWidget,
     QVBoxLayout,
 )
+from requests.structures import CaseInsensitiveDict
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -427,9 +428,11 @@ class PathManager(QDialog, SpyderWidgetMixin):
             new_system_paths.setdefault(k, v)
 
         env = get_user_env()
+        if os.name == "nt":
+            env = CaseInsensitiveDict(env)
         env["PYTHONPATH"] = list(new_system_paths.keys())
 
-        set_user_env(env, parent=self)
+        set_user_env(dict(env), parent=self)
 
         self.update_paths(
             user_paths=new_user_paths, system_paths=new_system_paths
