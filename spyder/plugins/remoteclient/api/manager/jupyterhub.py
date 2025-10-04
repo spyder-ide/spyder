@@ -75,7 +75,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 if await self.check_server_version():
                     self._emit_connection_status(
                         ConnectionStatus.Active,
-                        _("The connection was established successfully"),
+                        _("Spyder remote services are active"),
                     )
                     return True
                 return False
@@ -127,7 +127,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         if ready and await self.check_server_version():
             self._emit_connection_status(
                 ConnectionStatus.Active,
-                _("The connection was established successfully"),
+                _("Spyder remote services are active"),
             )
             return True
 
@@ -217,18 +217,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         return False
 
     async def _create_new_connection(self) -> bool:
-        if self.connected:
-            self.logger.debug(
-                "Atempting to create a new connection with an existing for %s",
-                self.server_name,
-            )
-            await self.close_connection()
-
-        self._emit_connection_status(
-            ConnectionStatus.Connecting,
-            _("We're establishing the connection. Please be patient"),
-        )
-
+        """Create a new SSH connection."""
         self.logger.debug("Connecting to jupyterhub at %s", self.hub_url)
 
         self._session = aiohttp.ClientSession(
@@ -237,13 +226,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         )
 
         user_data = None
-        try:
-            async with self._session.get("hub/api/user") as response:
-                if response.ok:
-                    user_data = await response.json()
-        except aiohttp.ClientError:
-            self.logger.exception("Error connecting to JupyterHub")
-            return False
+        async with self._session.get("hub/api/user") as response:
+            if response.ok:
+                user_data = await response.json()
 
         if user_data is None:
             self.logger.error(
@@ -265,7 +250,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         await self._session.close()
         self._session = None
         self.logger.info("Connection closed")
-        self._reset_connection_stablished()
+        self._reset_connection_established()
         self._emit_connection_status(
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),

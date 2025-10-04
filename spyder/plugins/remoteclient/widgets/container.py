@@ -158,6 +158,9 @@ class RemoteClientContainer(PluginMainContainer):
         connection_dialog.sig_stop_server_requested.connect(
             self.sig_stop_server_requested
         )
+        connection_dialog.sig_abort_connection_requested.connect(
+            self._plugin._abort_connection
+        )
         connection_dialog.sig_connections_changed.connect(
             self.sig_server_changed
         )

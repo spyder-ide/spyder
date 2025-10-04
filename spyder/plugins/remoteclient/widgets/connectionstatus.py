@@ -41,6 +41,8 @@ from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 STATUS_TO_TRANSLATION_STRINGS = {
     ConnectionStatus.Inactive: _("Inactive"),
     ConnectionStatus.Connecting: _("Connecting..."),
+    ConnectionStatus.Connected: _("Connected..."),
+    ConnectionStatus.Starting: _("Starting..."),
     ConnectionStatus.Active: _("Active"),
     ConnectionStatus.Stopping: _("Stopping..."),
     ConnectionStatus.Error: _("Error"),
@@ -50,6 +52,8 @@ STATUS_TO_COLOR = {
     ConnectionStatus.Inactive: SpyderPalette.COLOR_OCCURRENCE_5,
     ConnectionStatus.Connecting: SpyderPalette.COLOR_WARN_4,
     ConnectionStatus.Active: SpyderPalette.COLOR_SUCCESS_3,
+    ConnectionStatus.Connected: SpyderPalette.COLOR_WARN_4,
+    ConnectionStatus.Starting: SpyderPalette.COLOR_WARN_4,
     ConnectionStatus.Stopping: SpyderPalette.COLOR_WARN_4,
     ConnectionStatus.Error: SpyderPalette.COLOR_ERROR_2,
 }
@@ -57,6 +61,8 @@ STATUS_TO_COLOR = {
 STATUS_TO_ICON = {
     ConnectionStatus.Inactive: "connection_disconnected",
     ConnectionStatus.Connecting: "connection_waiting",
+    ConnectionStatus.Connected: "connection_waiting",
+    ConnectionStatus.Starting: "connection_waiting",
     ConnectionStatus.Active: "connection_connected",
     ConnectionStatus.Stopping: "connection_waiting",
     ConnectionStatus.Error: "connection_error",
