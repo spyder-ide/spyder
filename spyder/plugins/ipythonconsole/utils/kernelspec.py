@@ -16,6 +16,7 @@ import os.path as osp
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
+from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import (
     get_conda_env_path,
     get_pixi_manifest_path_and_env_name,
@@ -250,7 +251,10 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Ensure that user environment variables are included, but don't
         # override existing environ values
-        env_vars = dict(env_vars)
+        if os.name == "nt":
+            env_vars = CaseInsensitiveDict(env_vars)
+        else:
+            env_vars = dict(env_vars)
         env_vars.update(os.environ)
 
         default_interpreter = self.get_conf(
@@ -318,5 +322,5 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         # Fixes spyder-ide/spyder#13252
         env_vars.pop('PYTHONEXECUTABLE', None)
 
-        # Making all env_vars strings
-        self._env_vars = clean_env(env_vars)
+        # Making all env_vars strings, ensure cast as dict
+        self._env_vars = clean_env(dict(env_vars))
