@@ -355,7 +355,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     section='workingdir'
                 )
 
-        if osp.isdir(cwd_path) and not self.shellwidget.is_remote():
+        if osp.isdir(cwd_path) and not self.is_remote():
             self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
         else:
             # Use the remote machine files API to get the home directory (`~`)
@@ -682,14 +682,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         self.shutdown(is_last_client, close_console=close_console)
 
-        # Close jupyter api regardless of the kernel state
-        if self.is_remote() and not self._jupyter_api.closed:
-            AsyncDispatcher(
-                loop=self._jupyter_api.session._loop, early_return=False
-            )(self._jupyter_api.close)()
-            AsyncDispatcher(
-                loop=self._files_api.session._loop, early_return=False
-            )(self._files_api.close)()
+        # Close jupyter and files apis regardless of the kernel state
+        if self.is_remote():
+            if not self._jupyter_api.closed:
+                AsyncDispatcher(
+                    loop=self._jupyter_api.session._loop, early_return=False
+                )(self._jupyter_api.close)()
+
+            if not self._files_api.closed:
+                AsyncDispatcher(
+                    loop=self._files_api.session._loop, early_return=False
+                )(self._files_api.close)()
 
         # Prevent errors in our tests
         try:
