@@ -355,14 +355,26 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     section='workingdir'
                 )
 
-        if osp.isdir(cwd_path) and not self.is_remote():
-            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
-        else:
+        if self.is_remote():
             # Use the remote machine files API to get the home directory (`~`)
             # absolute path.
             self._get_remote_home_directory().connect(
                 self._on_remote_home_directory
             )
+        else:
+            # We can't set the cwd when connecting to remote kernels directly.
+            if not (
+                self.kernel_handler.password or self.kernel_handler.sshkey
+            ):
+                # Check if cwd exists, else use home dir.
+                # Fixes spyder-ide/spyder#25120.
+                if not osp.isdir(cwd_path):
+                    cwd_path = get_home_dir()
+                    emit_cwd_change = True
+
+                self.shellwidget.set_cwd(
+                    cwd_path, emit_cwd_change=emit_cwd_change
+                )
 
     # ---- Public API
     # -------------------------------------------------------------------------
