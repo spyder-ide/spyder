@@ -2796,7 +2796,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             # We use the server name as hostname because for clients it's the
             # attribute used by the IPython console to set their tab name.
             hostname=jupyter_api.server_name,
-            # These values are not necessary at this point.
+            # These values are not necessary for the new remote development
+            # architecture.
             sshkey=None,
             password=None,
             # We save the jupyter_api in the client to perform on it operations

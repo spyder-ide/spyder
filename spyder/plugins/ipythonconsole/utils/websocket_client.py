@@ -22,6 +22,7 @@ from getpass import getuser
 from types import MethodType
 
 import aiohttp
+from aiohttp.client_exceptions import ClientConnectionResetError
 from jupyter_client.adapter import adapt
 from jupyter_client.channels import major_protocol_version
 from jupyter_client.client import validate_string_dict
@@ -143,9 +144,13 @@ class _Session:
         to_send = self.serialize(msg)
         to_send.extend(buffers)
 
-        await stream.send_bytes(
-            self._serialize_components_v1_protocol(to_send, channel),
-        )
+        try:
+            await stream.send_bytes(
+                self._serialize_components_v1_protocol(to_send, channel),
+            )
+        except ClientConnectionResetError:
+            # Connection was closed so it's not possible to send msg
+            return {}
 
         return msg
 
