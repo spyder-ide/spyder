@@ -355,14 +355,26 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     section='workingdir'
                 )
 
-        if osp.isdir(cwd_path) and not self.shellwidget.is_remote():
-            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
-        else:
+        if self.is_remote():
             # Use the remote machine files API to get the home directory (`~`)
             # absolute path.
             self._get_remote_home_directory().connect(
                 self._on_remote_home_directory
             )
+        else:
+            # We can't set the cwd when connecting to remote kernels directly.
+            if not (
+                self.kernel_handler.password or self.kernel_handler.sshkey
+            ):
+                # Check if cwd exists, else use home dir.
+                # Fixes spyder-ide/spyder#25120.
+                if not osp.isdir(cwd_path):
+                    cwd_path = get_home_dir()
+                    emit_cwd_change = True
+
+                self.shellwidget.set_cwd(
+                    cwd_path, emit_cwd_change=emit_cwd_change
+                )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -682,14 +694,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         self.shutdown(is_last_client, close_console=close_console)
 
-        # Close jupyter api regardless of the kernel state
-        if self.is_remote() and not self._jupyter_api.closed:
-            AsyncDispatcher(
-                loop=self._jupyter_api.session._loop, early_return=False
-            )(self._jupyter_api.close)()
-            AsyncDispatcher(
-                loop=self._files_api.session._loop, early_return=False
-            )(self._files_api.close)()
+        # Close jupyter and files apis regardless of the kernel state
+        if self.is_remote():
+            if not self._jupyter_api.closed:
+                AsyncDispatcher(
+                    loop=self._jupyter_api.session._loop, early_return=False
+                )(self._jupyter_api.close)()
+
+            if not self._files_api.closed:
+                AsyncDispatcher(
+                    loop=self._files_api.session._loop, early_return=False
+                )(self._files_api.close)()
 
         # Prevent errors in our tests
         try:
