@@ -36,21 +36,21 @@ class ImagePathManager():
                     continue
                 name, __ = osp.splitext(osp.basename(filename))
                 complete_path = osp.join(dirpath, filename)
-                
-                # Prioritize SVG directory over light/dark
+
                 if name in self.IMG_PATH:
                     warnings.warn(
                         f'The icon located in {complete_path} is overriding '
                         f'the existing {name}')
+
                     existing_path = self.IMG_PATH[name]
-                    # If current file is from svg directory, it has priority
                     if osp.basename(dirpath) == 'svg':
+                        # If current file is from svg directory, it has
+                        # priority
                         self.IMG_PATH[name] = complete_path
-                    # If existing file is from svg directory, keep it
                     elif osp.basename(osp.dirname(existing_path)) == 'svg':
+                        # If existing file is from svg directory, keep it
                         continue
                     else:
-                        # Both are from light/dark, use the new one
                         self.IMG_PATH[name] = complete_path
                 else:
                     self.IMG_PATH[name] = complete_path

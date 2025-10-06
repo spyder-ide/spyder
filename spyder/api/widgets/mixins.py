@@ -24,10 +24,7 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.api.config.mixins import (
-    SpyderConfigurationAccessor,
-    SpyderConfigurationObserver
-)
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.widgets.menus import SpyderMenu
@@ -39,6 +36,7 @@ from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
     ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
+from spyder.utils.svg_colorizer import SVGColorize
 
 
 class SpyderToolButtonMixin:
@@ -771,11 +769,22 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
         if in_package:
             image_path = get_image_path(svg_file)
 
+        # Get user's DPI scale factor
+        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+            scale_factors = self.get_conf(
+                'high_dpi_custom_scale_factors',
+                section='main'
+            )
+            scale_factor = float(scale_factors.split(":")[0])
+        else:
+            scale_factor = 1
+
         # Check if the SVG has colorization classes before colorization
         should_colorize = False
         try:
-            from spyder.utils.svg_colorizer import SVGColorize
-            svg_paths_data = SVGColorize.get_colored_paths(image_path, ima.ICON_COLORS)
+            svg_paths_data = SVGColorize.get_colored_paths(
+                image_path, ima.ICON_COLORS
+            )
             if svg_paths_data and svg_paths_data.get('paths'):
                 # Check if any of the paths have colorization classes 
                 # (not just default colors)
@@ -800,42 +809,22 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
                 pm = QPixmap(image_path)
                 width = pm.width()
                 height = pm.height()
-                
+
                 # Apply rescale factor
                 if rescale is not None:
                     aspect_ratio = width / height
                     width = int(width * rescale)
                     height = int(width / aspect_ratio)
-                
-                # Get user's DPI scale factor
-                if self.get_conf('high_dpi_custom_scale_factor', section='main'):
-                    scale_factors = self.get_conf(
-                        'high_dpi_custom_scale_factors',
-                        section='main'
-                    )
-                    scale_factor = float(scale_factors.split(":")[0])
-                else:
-                    scale_factor = 1
-                
+
                 # Get a properly scaled pixmap from the icon
                 # Use the maximum dimension to maintain aspect ratio
                 max_dimension = max(
-                    int(width * scale_factor), 
+                    int(width * scale_factor),
                     int(height * scale_factor)
                 )
                 return icon.pixmap(max_dimension, max_dimension)
 
-        # Fallback to original method for icons without colorization classes
-        # Get user's DPI scale factor
-        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
-            scale_factors = self.get_conf(
-                'high_dpi_custom_scale_factors',
-                section='main'
-            )
-            scale_factor = float(scale_factors.split(":")[0])
-        else:
-            scale_factor = 1
-
+        # Fallback to original method for icons without colorization classes.
         # Get width and height
         pm = QPixmap(image_path)
         width = pm.width()

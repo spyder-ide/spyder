@@ -176,7 +176,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if os.name == "nt":
             # Use resample kwarg to prevent a blurry icon on Windows
             # See spyder-ide/spyder#18283
-            qapp.setWindowIcon(ima.get_icon("windows_app_icon", resample=False))
+            qapp.setWindowIcon(ima.get_icon("windows_app_icon", resample=True))
 
         # Set default style
         self.default_style = str(qapp.style().objectName())

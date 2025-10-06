@@ -421,7 +421,7 @@ class IconManager():
         else:
             return QIcon(icon.pixmap(size, size))
 
-    def get_icon(self, name, resample=True):
+    def get_icon(self, name, resample=False):
         """Return image inside a QIcon object.
 
         Parameters
@@ -471,39 +471,42 @@ class IconManager():
     def _process_svg_icon(self, icon_path, resample):
         """
         Process an SVG icon with proper colorization for multi-color icons.
-        
+
         This method handles SVG icons with multiple colored paths, each defined
         by a class attribute that maps to a color in ICON_COLORS. It supports
         high DPI displays by generating icons at multiple resolutions.
-        
+
         Parameters
         ----------
         icon_path : str
             Path to the SVG icon file
         resample : bool
             Whether to resample the icon for various sizes
-            
+
         Returns
         -------
         QIcon
-            A properly colored icon with support for normal, disabled and selected states
+            A properly colored icon with support for normal, disabled and
+            selected states
         """
         try:
             # Use SVGColorize to extract paths with their associated colors
-            svg_paths_data = SVGColorize.get_colored_paths(icon_path, self.ICON_COLORS)
+            svg_paths_data = SVGColorize.get_colored_paths(
+                icon_path, self.ICON_COLORS
+            )
             if not svg_paths_data:
                 return self._process_regular_icon(icon_path, resample)
-                
+
             # Define standard icon sizes for high DPI support
             sizes = [16, 24, 32, 48, 96, 128, 256, 512]
             icon = QIcon()
-            
+
             # Extract SVG metadata
             width = svg_paths_data.get('width', 24)
             height = svg_paths_data.get('height', 24)
             viewbox = svg_paths_data.get('viewbox')
             paths = svg_paths_data.get('paths', [])
-            
+
             # Process each size to ensure proper scaling on all displays
             for size in sizes:
                 # Create the base pixmap for this size using SVGColorize
@@ -511,33 +514,31 @@ class IconManager():
                 pixmap = svg_colorizer.render_colored_svg(
                     paths, size, width, height, viewbox
                 )
-                
+
                 # Add pixmap for normal state
                 icon.addPixmap(pixmap, QIcon.Normal)
-                
+
                 # Create disabled version (grayed out)
                 disabled_pixmap = self._create_disabled_pixmap(pixmap)
                 icon.addPixmap(disabled_pixmap, QIcon.Disabled)
-                
+
                 # Use normal state for selected state as well
                 icon.addPixmap(pixmap, QIcon.Selected)
-            
+
             return icon
-            
         except Exception:
             # Any error, fall back to regular processing
             return self._process_regular_icon(icon_path, resample)
-    
-    
+
     def _create_disabled_pixmap(self, source_pixmap):
         """
         Create a disabled (grayed out) version of a pixmap.
-        
+
         Parameters
         ----------
         source_pixmap : QPixmap
             Source pixmap to create disabled version from
-            
+
         Returns
         -------
         QPixmap
@@ -552,8 +553,9 @@ class IconManager():
         
         # Apply disabled color overlay
         disabled_painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
-        disabled_painter.fillRect(disabled_pixmap.rect(), 
-                                  QColor(SpyderPalette.COLOR_DISABLED))
+        disabled_painter.fillRect(
+            disabled_pixmap.rect(), QColor(SpyderPalette.COLOR_DISABLED)
+        )
         disabled_painter.end()
         
         return disabled_pixmap
