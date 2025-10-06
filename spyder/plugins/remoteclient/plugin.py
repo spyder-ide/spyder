@@ -150,6 +150,7 @@ class RemoteClient(SpyderPluginV2):
         container.sig_stop_server_requested.connect(self.sig_server_stopped)
         container.sig_server_renamed.connect(self.sig_server_renamed)
         container.sig_server_changed.connect(self.sig_server_changed)
+        container.sig_server_updated.connect(self.load_client_from_id)
 
         # Plugin signals
         self.sig_connection_status_changed.connect(
@@ -254,7 +255,9 @@ class RemoteClient(SpyderPluginV2):
     # --- Configuration Methods
     def load_client_from_id(self, config_id):
         """Load remote server from configuration id."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             options = self._load_ssh_client_options(config_id)
             self.load_ssh_client(config_id, options)
@@ -269,9 +272,14 @@ class RemoteClient(SpyderPluginV2):
             raise ValueError(msg)
 
     def load_ssh_client(self, config_id: str, options: SSHClientOptions):
-        """Load remote server."""
-        client = SpyderRemoteSSHAPIManager(config_id, options, _plugin=self)
-        self._remote_clients[config_id] = client
+        """Load SSH remote server."""
+        if config_id in self._remote_clients:
+            self._remote_clients[config_id].options.update(options)
+        else:
+            self._remote_clients[config_id] = SpyderRemoteSSHAPIManager(
+                config_id, options, _plugin=self
+            )
+
         _logger.debug(
             "Remote SSH client for '%s' loaded with options: %s",
             config_id,
@@ -282,10 +290,13 @@ class RemoteClient(SpyderPluginV2):
         self, config_id: str, options: JupyterHubClientOptions,
     ):
         """Load JupyterHub remote server."""
-        client = SpyderRemoteJupyterHubAPIManager(
-            config_id, options, _plugin=self
-        )
-        self._remote_clients[config_id] = client
+        if config_id in self._remote_clients:
+            self._remote_clients[config_id].options.update(options)
+        else:
+            self._remote_clients[config_id] = SpyderRemoteJupyterHubAPIManager(
+                config_id, options, _plugin=self
+            )
+
         _logger.debug(
             "Remote JupyterHub client for '%s' loaded with options: %s",
             config_id,
@@ -294,42 +305,35 @@ class RemoteClient(SpyderPluginV2):
 
     def _load_jupyterhub_client_options(self, config_id):
         """Load JupyterHub remote server configuration."""
-        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
-            config_id, {}
+        options = JupyterHubClientOptions(
+            url=self.get_conf(f"{config_id}/url"),
+            token=self.get_conf(f"{config_id}/token", secure=True)
         )
 
-        # We couldn't find saved options for config_id
-        if not options:
-            msg = f"Configuration for remote server '{config_id}' not found."
-            raise ValueError(msg)
-
-        # Password is mandatory in this case
-        token = self.get_conf(f"{config_id}/token", secure=True)
-        options["token"] = token
-
-        return JupyterHubClientOptions(**options)
+        return options
 
     def _load_ssh_client_options(self, config_id):
         """Load remote server configuration."""
-        options = self.get_conf(self.CONF_SECTION_SERVERS, {}).get(
-            config_id, {}
+        auth_method = self.get_conf(f"{config_id}/auth_method")
+
+        options = SSHClientOptions(
+            host=self.get_conf(
+                f"{config_id}/{auth_method}/address"
+            ),
+            port=self.get_conf(f"{config_id}/{auth_method}/port"),
+            username=self.get_conf(
+                f"{config_id}/{auth_method}/username"
+            ),
         )
 
-        # We couldn't find saved options for config_id
-        if not options:
-            msg = f"Configuration for remote server '{config_id}' not found."
-            raise ValueError(msg)
-
-        if options["client_keys"]:
-            passphrase = self.get_conf(f"{config_id}/passphrase", secure=True)
-            options["client_keys"] = [options["client_keys"]]
-
-            # Passphrase is optional
-            if passphrase:
+        if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
+            options["client_keys"] = [client_keys]
+            if passphrase := self.get_conf(
+                f"{config_id}/passphrase", "", secure=True
+            ):
                 options["passphrase"] = passphrase
-        elif options["config"]:
-            # TODO: Check how this needs to be handled
-            pass
+        elif config := self.get_conf(f"{config_id}/configfile"):
+            options["config"] = config
         else:
             # Password is mandatory in this case
             password = self.get_conf(f"{config_id}/password", secure=True)
@@ -353,7 +357,9 @@ class RemoteClient(SpyderPluginV2):
 
     def get_server_name(self, config_id):
         """Get configured remote server name."""
-        client_type = self.get_conf(f"{config_id}/client_type", default=ClientType.SSH)
+        client_type = self.get_conf(
+            f"{config_id}/client_type", default=ClientType.SSH
+        )
         if client_type == ClientType.SSH:
             auth_method = self.get_conf(f"{config_id}/auth_method")
             return self.get_conf(f"{config_id}/{auth_method}/name")
@@ -484,3 +490,11 @@ class RemoteClient(SpyderPluginV2):
         for config_id in self.get_config_ids():
             self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
             self.set_conf(f"{config_id}/status_message", "")
+
+    @AsyncDispatcher(loop="asyncssh")
+    async def _abort_connection(self, config_id: str):
+        if config_id not in self._remote_clients:
+            return
+
+        client = self._remote_clients[config_id]
+        await client.abort_connection()

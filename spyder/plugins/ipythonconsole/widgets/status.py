@@ -144,9 +144,11 @@ class MatplotlibStatus(ShellConnectStatusBarWidget):
             # Fixes spyder-ide/spyder#22194
             # TimeoutError: Prevent error that seems to happen sporadically.
             # Fixes spyder-ide/spyder#24865
+            # RuntimeError: A remote console can be closed too quickly, which
+            # raises a "Kernel is dead" error from comms.
             try:
                 mpl_backend = shellwidget.get_matplotlib_backend()
-            except (CommError, TimeoutError):
+            except (CommError, TimeoutError, RuntimeError):
                 mpl_backend = None
 
         # Associate detected backend to shellwidget

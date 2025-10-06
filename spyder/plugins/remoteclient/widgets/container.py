@@ -77,6 +77,15 @@ class RemoteClientContainer(PluginMainContainer):
     Signal that a remote server was deleted or added
     """
 
+    sig_server_updated = Signal(str)
+    """
+    This signal is used to inform that a remote server was updated.
+    Parameters
+    ----------
+    id: str
+        Id of the server that was updated.
+    """
+
     sig_client_message_logged = Signal(dict)
     """
     This signal is used to inform that a client has logged a connection
@@ -149,10 +158,14 @@ class RemoteClientContainer(PluginMainContainer):
         connection_dialog.sig_stop_server_requested.connect(
             self.sig_stop_server_requested
         )
+        connection_dialog.sig_abort_connection_requested.connect(
+            self._plugin._abort_connection
+        )
         connection_dialog.sig_connections_changed.connect(
             self.sig_server_changed
         )
         connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
+        connection_dialog.sig_server_updated.connect(self.sig_server_updated)
         connection_dialog.sig_create_env_requested.connect(
             self._plugin.sig_create_env_requested
         )

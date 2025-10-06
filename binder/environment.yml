@@ -21,7 +21,7 @@ dependencies:
 - fzf >=0.42.0
 - importlib-metadata >=4.6.0
 - intervaltree >=3.0.2
-- ipython >=8.13.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0
+- ipython >=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0
 - ipython_pygments_lexers >=1.0
 - jedi >=0.17.2,<0.20.0
 - lxml >=4.9.0
@@ -43,7 +43,7 @@ dependencies:
 - pyqt >=5.15,<5.16
 - pyqtwebengine >=5.15,<5.16
 - python-lsp-black >=2.0.0,<3.0.0
-- python-lsp-ruff >=2.2.2,<3.0.0
+- python-lsp-ruff >=2.3.0,<3.0.0
 - python-lsp-server >=1.13.0,<1.14.0
 - pyuca >=1.2
 - pyxdg >=0.26

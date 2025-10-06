@@ -9,7 +9,6 @@
 # Standard library imports
 import os
 import os.path as osp
-import sys
 
 # Third party imports
 from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
@@ -68,18 +67,18 @@ class MainInterpreterConfigPage(PluginConfigPage):
         pyexec_bg = QButtonGroup(pyexec_group)
         pyexec_label = QLabel(
             _(
-                "Select the default Python interpreter to create new IPython "
-                "consoles and to provide code completion in the Editor"
+                "Select the default Python interpreter for new IPython consoles "
+                "and Editor code completion"
             )
         )
         pyexec_label.setWordWrap(True)
         self.def_exec_radio = self.create_radiobutton(
-            _("Internal (i.e. the same used by Spyder)"),
+            _("Internal (same used by Spyder)"),
             'default',
             button_group=pyexec_bg,
         )
         self.cus_exec_radio = self.create_radiobutton(
-            _("Use the following interpreter:"),
+            _("Selected interpreter:"),
             'custom',
             button_group=pyexec_bg,
         )
@@ -117,40 +116,39 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
-        umr_label = QLabel(_("UMR forces Python to reload modules which were "
-                             "imported when executing a file in a Python or "
-                             "IPython console with the <i>runfile</i> "
-                             "function."))
+        umr_label = QLabel(
+            _(
+                "UMR forces Python to reload imported modules when "
+                "running a file in an IPython console."
+            ),
+        )
         umr_label.setWordWrap(True)
         umr_enabled_box = newcb(
             _("Enable UMR"),
             'umr/enabled',
-            msg_if_enabled=True,
-            msg_warning=_(
+            msg_info=_("This change will only be applied to new consoles"),
+            tip=_(
                 "This option will enable the User Module Reloader (UMR) "
-                "in Python/IPython consoles. UMR forces Python to "
-                "reload deeply modules during import when running a "
-                "Python file using the Spyder's builtin function "
-                "<b>runfile</b>."
-                "<br><br><b>1.</b> UMR may require to restart the "
-                "console in which it will be called "
+                "in IPython consoles. UMR forces Python to perform a "
+                "deep reload of imported modules when running Python files "
+                "with Spyder's <code>Run</code> command.<br><br>"
+                "After being enabled, UMR requires a console restart "
                 "(otherwise only newly imported modules will be "
-                "reloaded when executing files)."
-                "<br><br><b>2.</b> If errors occur when re-running a "
-                "PyQt-based program, please check that the Qt objects "
-                "are properly destroyed (e.g. you may have to use the "
-                "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
-                "window, using the <b>setAttribute</b> method)"
+                "reloaded when running files).<br><br>"
+                "If errors occur when re-running a PyQt-based program, "
+                "please check that the Qt objects are properly destroyed "
+                "(e.g. you may have to use the attribute "
+                "<code>Qt.WA_DeleteOnClose</code> on your main window, "
+                "using the <code>setAttribute</code> method)."
             ),
         )
         umr_verbose_box = newcb(
-            _("Show reloaded modules list"),
+            _("Print list of reloaded modules"),
             'umr/verbose',
-            msg_info=_("Please note that these changes will "
-                       "be applied only to new consoles"),
+            msg_info=_("This change will only be applied to new consoles"),
         )
         umr_namelist_btn = QPushButton(
-            _("Set UMR excluded (not reloaded) modules"))
+            _("Select modules to exclude from being reloaded"))
         umr_namelist_btn.clicked.connect(self.set_umr_namelist)
 
         umr_layout = QVBoxLayout()
@@ -166,43 +164,13 @@ class MainInterpreterConfigPage(PluginConfigPage):
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
-    def warn_python_compatibility(self, pyexec):
-        if not osp.isfile(pyexec):
-            return
-
-        spyder_version = sys.version_info[0]
-        try:
-            args = ["-c", "import sys; print(sys.version_info[0])"]
-            proc = programs.run_program(pyexec, args, env={})
-            console_version = int(proc.communicate()[0])
-        except IOError:
-            console_version = spyder_version
-        except ValueError:
-            return False
-
-        if spyder_version != console_version:
-            QMessageBox.warning(
-                self,
-                _('Warning'),
-                _("You selected a <b>Python %d</b> interpreter for the "
-                  "console but Spyder is running on <b>Python %d</b>!.<br><br>"
-                  "Although this is possible, we recommend you to install and "
-                  "run Spyder directly with your selected interpreter, to "
-                  "avoid seeing false warnings and errors due to the "
-                  "incompatible syntax between these two Python versions."
-                  ) % (console_version, spyder_version),
-                QMessageBox.Ok,
-            )
-
-        return True
-
     def set_umr_namelist(self):
-        """Set UMR excluded modules name list"""
+        """Set UMR excluded module names list."""
+        example_excludes = "<code>numpy, scipy</code>"
         arguments, valid = QInputDialog.getText(
             self,
             _('UMR'),
-            _("Set the list of excluded modules as this: "
-              "<i>numpy, scipy</i>"),
+            _("List of excluded modules (e.g. {})").format(example_excludes),
             QLineEdit.Normal,
             ", ".join(self.get_option('umr/namelist')),
         )
@@ -222,15 +190,15 @@ class MainInterpreterConfigPage(PluginConfigPage):
                     QMessageBox.warning(
                         self,
                         _('UMR'),
-                        _("The following modules are not "
-                          "installed on your machine:\n%s") % invalid,
+                        _(
+                            "The following modules are not installed:\n{}"
+                        ).format(invalid),
                         QMessageBox.Ok,
                     )
                 QMessageBox.information(
                     self,
                     _('UMR'),
-                    _("Please note that these changes will "
-                      "be applied only to new IPython consoles"),
+                    _("Changes will only be applied to new IPython consoles"),
                     QMessageBox.Ok,
                 )
             else:
@@ -254,6 +222,3 @@ class MainInterpreterConfigPage(PluginConfigPage):
                 self.cus_exec_combo.combobox.clear()
                 self.cus_exec_combo.combobox.addItems(custom_list)
             self.pyexec_edit.setText(executable)
-
-            # Show warning compatibility message.
-            self.warn_python_compatibility(executable)

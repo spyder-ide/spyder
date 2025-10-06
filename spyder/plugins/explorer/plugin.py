@@ -242,6 +242,11 @@ class Explorer(SpyderDockablePlugin):
         application = self.get_plugin(Plugins.Application)
         self.sig_open_file_requested.connect(application.open_file_in_plugin)
 
+    @on_plugin_available(plugin=Plugins.RemoteClient)
+    def on_remote_client_available(self):
+        remoteclient = self.get_plugin(Plugins.RemoteClient)
+        remoteclient.sig_server_stopped.connect(self._on_server_stopped)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -282,12 +287,8 @@ class Explorer(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.RemoteClient)
     def on_remote_client_teardown(self):
-        if len(self._file_managers):
-            for file_manager in self._file_managers.values():
-                AsyncDispatcher(
-                    loop=file_manager.session._loop, early_return=False
-                )(file_manager.close)()
-            self._file_managers = {}
+        remoteclient = self.get_plugin(Plugins.RemoteClient)
+        remoteclient.sig_server_stopped.disconnect(self._on_server_stopped)
 
     def on_close(self, cancelable=False):
         if len(self._file_managers):
@@ -296,20 +297,6 @@ class Explorer(SpyderDockablePlugin):
                     loop=file_manager.session._loop, early_return=False
                 )(file_manager.close)()
             self._file_managers = {}
-
-    # ---- Private API
-    # ------------------------------------------------------------------------
-    @AsyncDispatcher(loop="explorer")
-    async def _get_remote_files_manager(self, server_id):
-        remoteclient = self.get_plugin(Plugins.RemoteClient, error=False)
-        if not remoteclient:
-            return
-        if server_id not in self._file_managers:
-            self._file_managers[server_id] = remoteclient.get_file_api(
-                server_id
-            )()
-            await self._file_managers[server_id].connect()
-        return self._file_managers.get(server_id, None)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -368,3 +355,25 @@ class Explorer(SpyderDockablePlugin):
         if sender_plugin != self.NAME:
             self.chdir(directory, emit=False, server_id=server_id)
             self.refresh(directory)
+
+    @AsyncDispatcher(loop="explorer")
+    async def _get_remote_files_manager(self, server_id):
+        remoteclient = self.get_plugin(Plugins.RemoteClient, error=False)
+        if not remoteclient:
+            return
+        if server_id not in self._file_managers:
+            self._file_managers[server_id] = remoteclient.get_file_api(
+                server_id
+            )()
+            await self._file_managers[server_id].connect()
+        return self._file_managers.get(server_id, None)
+
+    def _on_server_stopped(self, server_id):
+        file_manager = self._file_managers.get(server_id)
+        if file_manager:
+            AsyncDispatcher(
+                loop=file_manager.session._loop, early_return=False
+            )(file_manager.close)()
+            self._file_managers.pop(server_id)
+
+        self.get_widget().reset_remote_treewidget(server_id)

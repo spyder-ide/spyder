@@ -50,8 +50,10 @@ class ConnectionDialog(SidebarDialog):
 
     sig_start_server_requested = Signal(str)
     sig_stop_server_requested = Signal(str)
+    sig_abort_connection_requested = Signal(str)
     sig_server_renamed = Signal(str)
     sig_connections_changed = Signal()
+    sig_server_updated = Signal(str)
     sig_create_env_requested = Signal(str, str, str, list)
     sig_import_env_requested = Signal(str, str, str)
 
@@ -73,7 +75,7 @@ class ConnectionDialog(SidebarDialog):
         # -- Signals
         if self._container is not None:
             self._container.sig_connection_status_changed.connect(
-                self._update_connection_buttons_state
+                self._on_connection_status_changed
             )
 
         if ENV_MANAGER:
@@ -115,7 +117,7 @@ class ConnectionDialog(SidebarDialog):
         )
 
         self._button_stop = QPushButton(_("Stop"))
-        self._button_stop.clicked.connect(self._stop_server)
+        self._button_stop.clicked.connect(self._on_button_stop_clicked)
         bbox.addButton(self._button_stop, QDialogButtonBox.ActionRole)
 
         self._button_connect = QPushButton(_("Connect"))
@@ -166,6 +168,8 @@ class ConnectionDialog(SidebarDialog):
                 self._button_next.setHidden(True)
                 self._button_back.setHidden(True)
         else:
+            # If the page info is not changed, then users only need to close
+            # the dialog
             if page.is_modified:
                 self._button_save_connection.setEnabled(True)
                 self._button_cancel.setText("Cancel")
@@ -173,27 +177,20 @@ class ConnectionDialog(SidebarDialog):
                 self._button_save_connection.setEnabled(False)
                 self._button_cancel.setText("Close")
 
-            self._button_clear_settings.setHidden(True)
+            # It's possible to remove the connection for saved pages
             self._button_remove_connection.setHidden(False)
-            self._button_stop.setHidden(False)
-            self._button_connect.setHidden(False)
-            self._button_next.setHidden(True)
-            self._button_back.setHidden(True)
 
-            if page.status in [
-                ConnectionStatus.Inactive,
-                ConnectionStatus.Error,
+            # These buttons are only needed in the New connection page
+            for button in [
+                self._button_clear_settings,
+                self._button_next,
+                self._button_back,
             ]:
-                self._button_connect.setHidden(False)
-            else:
-                self._button_connect.setHidden(True)
+                button.setHidden(True)
 
-        # TODO: Check if it's possible to stop a connection while it's
-        # connecting
-        if page.status == ConnectionStatus.Active:
-            self._button_stop.setHidden(False)
-        else:
-            self._button_stop.setHidden(True)
+            # The state of the other buttons can be updated according to the
+            # connection status
+            self._update_buttons_state_per_status(page.status)
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -221,9 +218,6 @@ class ConnectionDialog(SidebarDialog):
 
             # Reset page in case users want to introduce another connection
             page.reset_page()
-
-            # Inform container that a change in connections took place
-            self.sig_connections_changed.emit()
         else:
             # Update name in the dialog if it was changed by users. This needs
             # to be done before calling save_to_conf so that we can compare the
@@ -237,13 +231,19 @@ class ConnectionDialog(SidebarDialog):
             # After saving to our config system, we can inform the container
             # that a change in connections took place.
             if page.new_name is not None:
-                self.sig_connections_changed.emit()
                 self.sig_server_renamed.emit(page.host_id)
                 page.new_name = None
 
             # Mark page as not modified and disable save button
             page.set_modified(False)
             self._button_save_connection.setEnabled(False)
+
+            # Update connection info if necessary
+            page.update_connection_info()
+            self.sig_server_updated.emit(page.host_id)
+
+        # Inform container that a change in connections took place
+        self.sig_connections_changed.emit()
 
     def _remove_connection_info(self):
         """
@@ -302,9 +302,6 @@ class ConnectionDialog(SidebarDialog):
             # Save connection info if necessary
             self._save_connection_info()
 
-            # TODO: Handle the case when the connection info is active and
-            # users change its info.
-
         if ENV_MANAGER and page.NEW_CONNECTION:
             if page.selected_env_creation_method() == CreateEnvMethods.NewEnv:
                 env_name, python_version = page.get_create_env_info()
@@ -349,7 +346,7 @@ class ConnectionDialog(SidebarDialog):
         )
 
         if new:
-            page.save_server_info()
+            page.save_server_id()
 
         self.add_page(page)
 
@@ -379,24 +376,36 @@ class ConnectionDialog(SidebarDialog):
         self._button_save_connection.setEnabled(state)
         self._button_cancel.setText("Cancel")
 
-    def _update_connection_buttons_state(self, info: ConnectionInfo):
-        """Update the state of the Connect/Stop buttons."""
-        page = self.get_page()
-        if page.host_id == info["id"]:
-            if info["status"] in [
-                ConnectionStatus.Inactive,
-                ConnectionStatus.Error,
-            ]:
-                self._button_connect.setHidden(False)
-            else:
-                self._button_connect.setHidden(True)
+    def _update_buttons_state_per_status(self, status: ConnectionStatus):
+        """Update buttons state according to the connection status."""
+        if status in [ConnectionStatus.Inactive, ConnectionStatus.Error]:
+            self._button_connect.setHidden(False)
+        else:
+            self._button_connect.setHidden(True)
 
-            # TODO: Check if it's possible to stop a connection while it's
-            # connecting
-            if info["status"] == ConnectionStatus.Active:
-                self._button_stop.setHidden(False)
-            else:
-                self._button_stop.setHidden(True)
+        if status in [ConnectionStatus.Active, ConnectionStatus.Connecting]:
+            self._button_stop.setHidden(False)
+            self._button_stop.setEnabled(True)
+        elif status in [
+            ConnectionStatus.Inactive,
+            ConnectionStatus.Error,
+            ConnectionStatus.Stopping,
+        ]:
+            self._button_stop.setHidden(True)
+        else:
+            self._button_stop.setHidden(False)
+            self._button_stop.setEnabled(False)
+
+        if status in [
+            ConnectionStatus.Active,
+            ConnectionStatus.Connecting,
+            ConnectionStatus.Connected,
+            ConnectionStatus.Starting,
+            ConnectionStatus.Stopping,
+        ]:
+            self._button_remove_connection.setEnabled(False)
+        else:
+            self._button_remove_connection.setEnabled(True)
 
     def _set_buttons_for_env_creation_method(
         self, id_: CreateEnvMethods | None = None
@@ -469,6 +478,16 @@ class ConnectionDialog(SidebarDialog):
 
         self._button_save_connection.setEnabled(False)
 
+    def _on_button_stop_clicked(self):
+        page = self.get_page()
+        if page.NEW_CONNECTION:
+            return
+
+        if page.status == ConnectionStatus.Active:
+            self._stop_server()
+        elif page.status == ConnectionStatus.Connecting:
+            self.sig_abort_connection_requested.emit(page.host_id)
+
     def _on_new_connection_page_tab_changed(self, index):
         page = self._new_connection_page
         if page.get_current_tab(index) == "SSH":
@@ -486,6 +505,11 @@ class ConnectionDialog(SidebarDialog):
             self._button_next.setHidden(True)
             self._button_back.setHidden(True)
             self._button_save_connection.setEnabled(True)
+
+    def _on_connection_status_changed(self, info: ConnectionInfo):
+        page = self.get_page()
+        if page.host_id == info["id"]:
+            self._update_buttons_state_per_status(info["status"])
 
 
 def test():
