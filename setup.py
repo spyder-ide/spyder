@@ -339,7 +339,6 @@ extras_require = {
         'coverage',
         'cython',
         'flaky',
-        'lxml',
         'matplotlib',
         'pandas',
         'pillow',
