@@ -55,8 +55,9 @@ class Application(SpyderPluginV2):
         Plugins.IPythonConsole,
         Plugins.MainMenu,
         Plugins.StatusBar,
+        Plugins.Shortcuts,  # Needed to display the app context menu
         Plugins.Toolbar,
-        Plugins.UpdateManager,
+        Plugins.UpdateManager,  # Required in the confpage
     ]
     CONTAINER_CLASS = ApplicationContainer
     CONF_SECTION = 'main'
