@@ -414,6 +414,14 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
                 self.sig_focus_in_event.emit()
             elif event.type() == QEvent.FocusOut:
                 self.sig_focus_out_event.emit()
+
+        if (
+            event.type() == QEvent.Wheel
+            and event.modifiers() & Qt.ControlModifier
+            and self.get_conf("disable_zoom_mouse", section="main")
+        ):
+            return True
+
         return super().eventFilter(widget, event)
 
 

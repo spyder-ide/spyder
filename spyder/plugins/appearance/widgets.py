@@ -150,14 +150,14 @@ class SchemeEditor(QDialog):
 
         parent = self.parent
         self.line_edit = parent.create_lineedit(
-            _("Scheme name:"), '{0}/name'.format(scheme_name)
+            _("Theme name:"), '{0}/name'.format(scheme_name)
         )
 
         self.widgets[scheme_name] = {}
 
         # Widget setup
         self.line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.setWindowTitle(_('Color scheme editor'))
+        self.setWindowTitle(_('Syntax highlighting theme editor'))
 
         # Layout
         name_layout = QHBoxLayout()
@@ -243,7 +243,7 @@ class SchemeEditor(QDialog):
         self.line_edit.textbox.setText(
             str(parent.get_option('{0}/name'.format(scheme_name)))
         )
-        
+
         for key, value in self.original_scheme.items():
             if isinstance(value, tuple):
                 color = QColor()
@@ -255,7 +255,7 @@ class SchemeEditor(QDialog):
                 color = QColor()
                 color.setNamedColor(value)
                 self.widgets[scheme_name][key][0].update_text(color)
-    
+
     def reject(self):
         """Executes when Cancel is pressed: Restores the edited scheme."""
         self.restore_original_scheme(self.last_used_scheme)

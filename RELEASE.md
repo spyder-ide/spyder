@@ -3,20 +3,34 @@
 To release a new version of Spyder you need to follow these steps:
 
 
-## Create backport PR for new minor versions
-
-Before releasing a new minor version (e.g. 6.1.0 after 6.0.x) that needs to include many changes only available in `master`, it's necessary to create a PR to backport those changes to the stable branch.
-
-For that you need to run the following commands:
-
-- `git checkout 6.x`
-- `git checkout -b backport-for-minor-version`
-- `git diff master 6.x > minor.patch`
-- `patch -p1 -R < minor.patch`
-- `git add .` and `git commit -m "Backport changes for X.X.X"`
-
-
 ## Update translation strings (at least one week before the release)
+
+### For minor or major versions
+
+Before releasing new minor or major versions, it's necessary to:
+
+* Rename the current stable branch (the commands below considers that `6.1.0` is going to be released after `6.0.x`):
+
+    - `git checkout 6.x`
+    - `git branch -m 6.0.x`
+    - `git push upstream 6.0.x`
+    - `git push upstream --delete 6.x`
+
+* Create a new stable branch:
+
+    - `git checkout master`
+    - `git checkout -b 6.x`
+    - `git checkout master`
+    - Update version in `__init__.py` to reflect next minor version as dev version (i.e `6.2.0a1.dev0` when being close to release `6.1.0`, or `7.1.0a1.dev0` for `7.0.0`).
+    - `git add .` and `git commit -m "Bump version to new minor version"`
+    - `git push upstream 6.x`
+    - `git push upstream master`
+
+### For any release
+
+* Checkout stable branch
+
+    - `git checkout 6.x`
 
 * Install [gettext-helpers](https://github.com/spyder-ide/gettext-helpers) from source.
 
@@ -24,7 +38,11 @@ For that you need to run the following commands:
 
       spyder-gettext scan spyder
 
-* Check that no warnings are emitted by that command. If they are, then fix them in the same PR.
+* Check that no warnings are emitted by that command. If they are, then you need to
+
+  - Open a new PR against `master` to fix them.
+  - Backport that PR to the stable branch.
+  - Rebase the PR's branch created in the previous step on top of those changes.
 
 * Merge that PR.
 
@@ -278,12 +296,8 @@ For that you need to run the following commands:
 
 * git pull or git fetch/merge the respective branch that will be released (e.g `6.x` - stable branch or `master` - alphas/betas/rcs of a new minor/major version).
 
-* For a new major release (e.g. version 6.0.0 after 5.5.6):
+* Checkout stable branch:
 
-    - `git checkout -b 6.x`
-    - `git checkout master`
-    - Update version in `__init__.py` to reflect next minor version as dev version (i.e `6.1.0a1.dev0`).
-    - `git add .` and `git commit -m "Bump version to new minor version"`
     - `git checkout 6.x`
 
 * Update version in `__init__.py` (Remove '{a/b/rc}X' and 'dev0' for stable versions; or remove 'dev0' for pre-releases)

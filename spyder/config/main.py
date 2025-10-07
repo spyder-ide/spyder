@@ -86,6 +86,7 @@ DEFAULTS = [
               'show_dpi_message': True,
               'show_message_when_panes_are_empty': True,
               'max_recent_files': 20,
+              'disable_zoom_mouse': False,
               }),
             ('update_manager',
              {
@@ -159,7 +160,7 @@ DEFAULTS = [
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
-              'buffer_size': 500,
+              'buffer_size': 5000,
               'pylab': True,
               'pylab/autoload': False,
               'pylab/backend': 'inline',
@@ -249,6 +250,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
+              'indent_with_spaces': True,
               'tab_stop_width_spaces': 4,
               'check_eol_chars': True,
               'convert_eol_on_save': False,
@@ -720,4 +722,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.4.0'
+CONF_VERSION = '87.5.0'

@@ -41,12 +41,13 @@ COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = ">=8.13.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0"
+IPYTHON_REQVER = ">=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
+LXML_REQVER = ">=4.9.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PACKAGING_REQVER = '>=20.0'
@@ -60,7 +61,7 @@ PYLINT_REQVER = '>=3.1,<4'
 PYLINT_VENV_REQVER = '>=3.0.2'
 PYLSP_REQVER = '>=1.13.0,<1.14.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
-PYLSP_RUFF_REQVER = '>=2.2.2,<3.0.0'
+PYLSP_RUFF_REQVER = '>=2.3.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
@@ -166,6 +167,10 @@ DESCRIPTIONS = [
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
      'required_version': KEYRING_REQVER},
+    {'modname': "lxml",
+     'package_name': "lxml",
+     'features': _("Colorize SVG icons according to the interface theme"),
+     'required_version': LXML_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),

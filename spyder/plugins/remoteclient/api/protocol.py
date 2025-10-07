@@ -61,6 +61,8 @@ class ClientType:
 class ConnectionStatus:
     Inactive = "inactive"
     Connecting = "connecting"
+    Connected = "connected"
+    Starting = "starting"
     Active = "active"
     Stopping = "stopping"
     Error = "error"
@@ -68,7 +70,7 @@ class ConnectionStatus:
 
 class ConnectionInfo(typing.TypedDict):
     id: str
-    status: ConnectionStatus
+    status: str
     message: str
 
 
