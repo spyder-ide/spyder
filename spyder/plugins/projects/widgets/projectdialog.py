@@ -122,8 +122,9 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    @classmethod
     def _validate_location(
-        self,
+        cls,
         location: str,
         reasons: ValidationReasons | None = None,
         name: str | None = None
@@ -133,20 +134,23 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
             reasons: ValidationReasons = {}
 
         if not location:
-            self._location.status_action.setVisible(True)
-            self._location.status_action.setToolTip(_("This is empty"))
+            if cls._location is not None:
+                cls._location.status_action.setVisible(True)
+                cls._location.status_action.setToolTip(_("This is empty"))
             reasons["missing_info"] = True
         elif not osp.isdir(location):
-            self._location.status_action.setVisible(True)
-            self._location.status_action.setToolTip(
-                _("This directory doesn't exist")
-            )
+            if cls._location is not None:
+                cls._location.status_action.setVisible(True)
+                cls._location.status_action.setToolTip(
+                    _("This directory doesn't exist")
+                )
             reasons["no_location"] = True
         elif not is_writable(location):
-            self._location.status_action.setVisible(True)
-            self._location.status_action.setToolTip(
-                _("This directory is not writable")
-            )
+            if cls._location is not None:
+                cls._location.status_action.setVisible(True)
+                cls._location.status_action.setToolTip(
+                    _("This directory is not writable")
+                )
             reasons["location_not_writable"] = True
         elif os.name == "nt" and any(
             [re.search(r":", part) for part in Path(location).parts[1:]]
@@ -165,10 +169,11 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         else:
             spyproject_path = osp.join(location, '.spyproject')
             if osp.isdir(spyproject_path):
-                self._location.status_action.setVisible(True)
-                self._location.status_action.setToolTip(
-                    _("You selected a Spyder project")
-                )
+                if cls._location is not None:
+                    cls._location.status_action.setVisible(True)
+                    cls._location.status_action.setToolTip(
+                        _("You selected a Spyder project")
+                    )
                 reasons["spyder_project_exists"] = True
 
         return reasons
