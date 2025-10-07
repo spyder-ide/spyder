@@ -161,8 +161,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             conda_exe = find_conda()
 
             if not conda_exe:
-                conda_exe = self.get_conf(
-                    'conda_path', section='main_interpreter'
+                conda_exe = (
+                    self.get_conf("conda_path", section="main_interpreter")
+                    if self.get_conf(
+                        "custom_conda", section="main_interpreter"
+                    )
+                    else None
                 )
                 if not conda_exe:
                     # Raise error since we were unable to determine the path to
@@ -171,8 +175,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     # See spyder-ide/spyder#23595
                     not_found_exe_message = _(
                         "Spyder couldn't find conda, mamba or micromamba in your "
-                        "system to activate the kernel's environment. Please set "
-                        "the path of one of their executables in "
+                        "system to activate the kernel's environment.<br><br>"
+                        "Please set the path for one of their executables in "
                         "<i>Preferences > Python interpreter > Conda "
                         "executable</i>"
                     )
