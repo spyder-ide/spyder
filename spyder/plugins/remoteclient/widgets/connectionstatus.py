@@ -35,7 +35,6 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
-
 # ---- Constants
 # -----------------------------------------------------------------------------
 STATUS_TO_TRANSLATION_STRINGS = {
@@ -317,9 +316,8 @@ class ConnectionStatusWidget(
         )
 
     def _set_icon(self, status):
-        self._image_label.setPixmap(
-            self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
-        )
+        pixmap = self.svg_to_scaled_pixmap(STATUS_TO_ICON[status], rescale=1)
+        self._image_label.setPixmap(pixmap)
 
     @property
     def _auth_method(self):

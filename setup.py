@@ -285,6 +285,7 @@ install_requires += [
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
+    'lxml>=4.9.0',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
     'nbconvert>=4.0',

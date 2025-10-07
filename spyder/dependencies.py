@@ -47,6 +47,7 @@ JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
+LXML_REQVER = ">=4.9.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PACKAGING_REQVER = '>=20.0'
@@ -166,6 +167,10 @@ DESCRIPTIONS = [
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
      'required_version': KEYRING_REQVER},
+    {'modname': "lxml",
+     'package_name': "lxml",
+     'features': _("Colorize SVG icons according to the interface theme"),
+     'required_version': LXML_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
