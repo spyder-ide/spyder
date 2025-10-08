@@ -10,12 +10,10 @@ Palettes for dark and light themes used in Spyder.
 
 # Standard library imports
 import logging
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import theme_manager, SELECTED_THEME
 
 logger = logging.getLogger(__name__)
 
-# Theme configuration
-SELECTED_THEME = "solarized"  # Hardcoded theme selection for now
 
 # =============================================================================
 # ---- Theme manager integration
