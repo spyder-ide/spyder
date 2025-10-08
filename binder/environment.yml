@@ -53,7 +53,7 @@ dependencies:
 - qtconsole >=5.7.0,<5.8.0
 - qtpy >=2.4.0
 - rtree >=0.9.7
-- sphinx >=0.6.6
+- sphinx >=7.2.0
 - spyder-kernels >=3.1.0,<3.2.0
 - superqt >=0.6.2,<1.0.0
 - textdistance >=4.2.0
