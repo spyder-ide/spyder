@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-03 09:58\n"
+"PO-Revision-Date: 2025-10-09 15:49\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2339,19 +2339,19 @@ msgstr "文档字符串风格"
 
 #: spyder/plugins/editor/confpage.py:421
 msgid "Select the style of docstrings ({numpy}, {google} or {sphinx}) to generate when pressing <kbd>{shortcut}</kbd> after a function, method or class declaration"
-msgstr ""
+msgstr "选择当在一个函数、方法或类声明之后按下 <kbd>{shortcut}</kbd> 所要生成的文档字符串风格 ({numpy}, {google} 或 {sphinx})"
 
 #: spyder/plugins/editor/confpage.py:440
 msgid "Style:"
-msgstr ""
+msgstr "风格："
 
 #: spyder/plugins/editor/confpage.py:451
 msgid "Multi-cursor"
-msgstr ""
+msgstr "多重光标"
 
 #: spyder/plugins/editor/confpage.py:453
 msgid "Enable multi-cursor support"
-msgstr ""
+msgstr "启用多重光标支持"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
@@ -4636,11 +4636,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:155 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:169
 msgid "greater"
-msgstr ""
+msgstr "更高"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:157 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:167
 msgid "lower"
-msgstr ""
+msgstr "更低"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:237
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -6087,11 +6087,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1019
 msgid "Select packages for your remote environment"
-msgstr ""
+msgstr "为你的远程环境选择软件包"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1020
 msgid "Choose the packages you want to install in your remote Python environment"
-msgstr ""
+msgstr "选择你想要在你的远程 Python 环境中安装的软件包"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1095
 msgid "Connection status"
@@ -6223,7 +6223,7 @@ msgstr "运行设置"
 
 #: spyder/plugins/run/container.py:96
 msgid "&Global presets"
-msgstr ""
+msgstr "(&G)全局预设"
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
@@ -6841,7 +6841,7 @@ msgstr "正在更新 Spyder，这将花费几分钟时间 ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:574
 msgid "The update was succesful! Spyder will be launched shortly"
-msgstr ""
+msgstr "更新成功！ Spyder 将尽快启动"
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Unfortunately the update failed"
