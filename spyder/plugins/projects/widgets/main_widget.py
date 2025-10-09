@@ -379,14 +379,16 @@ class ProjectExplorerWidget(PluginMainWidget):
                         buttons
                     )
                     if answer == QMessageBox.Yes:
-                        if self.is_valid_location(path):
+                        valid = self.is_valid_location(path)
+                        if valid[0]:
                             self.create_project(path)
                         else:
                             QMessageBox.critical(
                                 self,
                                 _("Error"),
                                 _("<b>%s</b> is not a valid location to "
-                                  "create a Spyder project!") % path
+                                  "create a Spyder project.<br><br>"
+                                  "Reason:  %s") % (path, valid[1])
                             )
                 return
         else:
@@ -598,19 +600,23 @@ class ProjectExplorerWidget(PluginMainWidget):
     ):
         valid = True
         if not location:
+            reason = _("This is empty")
             valid = False
         elif not osp.isdir(location):
+            reason = _("This directory doesn't exist")
             valid = False
         elif not is_writable(location):
+            reason = _("This directory is not writable")
             valid = False
         elif os.name == "nt" and any(
             [re.search(r":", part) for part in pathlib.Path(location).parts[1:]]
         ):
             # Prevent creating a project in directory with colons.
             # Fixes spyder-ide/spyder#16942
+            reason = _("The project directory can't contain ':'")
             valid = False
 
-        return valid
+        return (valid, reason)
 
     def is_invalid_active_project(self):
         """Handle an invalid active project."""
