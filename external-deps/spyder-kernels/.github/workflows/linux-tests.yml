@@ -52,7 +52,18 @@ jobs:
         run: conda install --file requirements/tests.txt -y -q
       - name: Install Package
         shell: bash -l {0}
-        run: pip install -e .
+        run: pip install --no-deps -e .
+      - name: Install Pixi
+        uses: prefix-dev/setup-pixi@v0.9.1
+        with:
+          run-install: false
+      - name: Create environment with Pixi
+        shell: bash -l {0}
+        run: |
+          cd ~
+          pixi init pixi-test
+          cd pixi-test
+          pixi add python
       - name: Show environment information
         shell: bash -l {0}
         run: |
