@@ -596,7 +596,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return any([err in error for err in benign_errors])
 
     def is_warning_message(self, error):
-        """Decide if a message is a warning in order to filter it."""
+        """Decide if a message contains a warning in order to filter it."""
         warning_pattern = re.compile(r"(?:^|\s)[A-Za-z]*Warning:")
         return warning_pattern.search(error)
 
