@@ -18,6 +18,7 @@ import functools
 import logging
 import os
 import os.path as osp
+import re
 from string import Template
 import time
 import traceback
@@ -521,6 +522,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.is_benign_error(error):
             return
 
+        if self.is_warning_message(error):
+            return
+
         InstallerIPythonKernelError(error)
 
         # Replace end of line chars with <br>
@@ -602,6 +606,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         ]
 
         return any([err in error for err in benign_errors])
+
+    def is_warning_message(self, error):
+        """Decide if a message contains a warning in order to filter it."""
+        warning_pattern = re.compile(r"(?:^|\s)[A-Za-z]*Warning:")
+        return warning_pattern.search(error)
 
     def get_name(self):
         """Return client name"""
