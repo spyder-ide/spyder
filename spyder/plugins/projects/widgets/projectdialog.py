@@ -99,6 +99,16 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
         self._validation_label = MessageLabel(self)
         self._validation_label.setVisible(False)
 
+        validation_label_css = self._validation_label.css
+        validation_label_css.QLabel.setValues(
+            marginRight=f"{7 * AppStyle.MarginSize}px",
+            # The extra 5px are necessary because we need to add them to all
+            # lineedits in this dialog to align them to the labels on top of
+            # them (see SpyderConfigPage.create_lineedit).
+            marginLeft=f"{7 * AppStyle.MarginSize + 5}px",
+        )
+        self._validation_label.setStyleSheet(validation_label_css.toString())
+
         self._description_font = self.get_font(SpyderFontType.Interface)
         self._description_font.setPointSize(
             self._description_font.pointSize() + 1

@@ -413,6 +413,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         )
 
         validation_label = MessageLabel(self)
+        self._set_css_for_validation_label(validation_label)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.Password].append(
@@ -468,6 +469,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         )
 
         validation_label = MessageLabel(self)
+        self._set_css_for_validation_label(validation_label)
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.KeyFile].append(
@@ -517,6 +519,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         )
 
         validation_label = MessageLabel(self)
+        self._set_css_for_validation_label(validation_label)
 
         # Add widgets to their required dicts
         self._name_widgets[AuthenticationMethod.ConfigFile] = name
@@ -573,6 +576,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         )
 
         validation_label = MessageLabel(self)
+        self._set_css_for_validation_label(validation_label)
 
         # Add widgets to their required dicts
         self._name_widgets[AuthenticationMethod.JupyterHub] = name
@@ -697,6 +701,17 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             )
 
         return text
+
+    def _set_css_for_validation_label(self, label: MessageLabel):
+        css = label.css
+        css.QLabel.setValues(
+            marginRight=f"{9 * AppStyle.MarginSize}px",
+            # The extra 5px are necessary because we need to add them to all
+            # lineedits in this dialog to align them to the labels on top of
+            # them (see SpyderConfigPage.create_lineedit).
+            marginLeft=f"{9 * AppStyle.MarginSize + 5}px",
+        )
+        label.setStyleSheet(css.toString())
 
 
 class NewConnectionPage(BaseConnectionPage):
