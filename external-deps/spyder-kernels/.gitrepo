@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/ccordoba12/spyder-kernels.git
-	branch = fix-getting-pixi-info-on-posix
-	commit = 014c455d27719053235635850c26120702f29bd3
-	parent = 902c050a21104f91ca0ea9e634e609f6d8e20f47
+	remote = https://github.com/spyder-ide/spyder-kernels.git
+	branch = master
+	commit = c49fbbc22e9245eeeeba954aa6c890ec926e9780
+	parent = 73d21287adb7c9e0dfe5c0af2bb32645f6e6d23b
 	method = merge
 	cmdver = 0.4.9
