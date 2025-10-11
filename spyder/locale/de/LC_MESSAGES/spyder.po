@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-11 21:44\n"
+"PO-Revision-Date: 2025-10-11 22:43\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3487,7 +3487,7 @@ msgstr "Fehler beim Hochladen"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:565
 msgid "An error occured while trying to upload a file"
-msgstr ""
+msgstr "Beim Versuch, eine Datei hochzuladen, ist ein Fehler aufgetreten"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:775 spyder/plugins/explorer/widgets/remote_explorer.py:823
 msgid "Show more files"
@@ -3495,7 +3495,7 @@ msgstr "Weitere Dateien anzeigen"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:784 spyder/plugins/explorer/widgets/remote_explorer.py:834
 msgid "Maximum number of files to display reached!"
-msgstr ""
+msgstr "Maximale Anzahl der anzuzeigenden Dateien erreicht!"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:933
 msgid "New Python Package"
@@ -3539,11 +3539,11 @@ msgstr "Ausführen von Skripten in einem externen Systemterminal."
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in external terminal"
-msgstr ""
+msgstr "In externem Terminal ausführen"
 
 #: spyder/plugins/externalterminal/plugin.py:184
 msgid "Run in an operating system terminal"
-msgstr ""
+msgstr "In einem Betriebssystem-Terminal ausführen"
 
 #: spyder/plugins/externalterminal/plugin.py:244
 msgid "Running an external system terminal is not supported on platform %s."
@@ -3907,7 +3907,7 @@ msgstr "Willkommensnachricht anzeigen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:44
 msgid "Print the startup message when opening a new console"
-msgstr ""
+msgstr "Startmeldung beim Öffnen einer neuen Konsole ausgeben"
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Show a summary help popup when typing an open parenthesis after a callable function"
@@ -5437,7 +5437,7 @@ msgstr "Gesamtzahl der Anrufe (einschließlich Rekursion)"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:905
 msgid "File and line where the function is defined"
-msgstr ""
+msgstr "Datei und Zeile, in der die Funktion definiert ist"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5565,11 +5565,11 @@ msgstr "Neues Verzeichnis"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
 msgid "Start a project in a new directory"
-msgstr ""
+msgstr "Ein Projekt in einem neuen Verzeichnis starten"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
-msgstr ""
+msgstr "Um mehr über Projekte zu erfahren, siehe unsere <a href=\"{0}\">Dokumentation</a>."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
 msgid "Project directory"
@@ -5577,15 +5577,15 @@ msgstr "Projektverzeichnis"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
-msgstr ""
+msgstr "Ein Verzeichnis mit diesem Namen wird am folgenden Speicherort erstellt"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
 msgid "A directory with this name already exists"
-msgstr ""
+msgstr "Ein Verzeichnis mit diesem Namen existiert bereits"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
-msgstr ""
+msgstr "Das Projektverzeichnis darf kein ‚:' enthalten."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:327 spyder/plugins/pythonpath/widgets/pathmanager.py:341
 msgid "Project path"
@@ -5593,7 +5593,7 @@ msgstr "Projektpfad"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:328
 msgid "Select the directory to use for the project"
-msgstr ""
+msgstr "Wählen Sie das Verzeichnis aus, das für das Projekt verwendet werden soll"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:331
 msgid "Existing directory"
@@ -5601,7 +5601,7 @@ msgstr "Vorhandenes Verzeichnis"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:338
 msgid "Create a Spyder project in an existing directory"
-msgstr ""
+msgstr "Spyder-Projekt in einem vorhandenen Verzeichnis erstellen"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:411
 msgid "Create new project"
@@ -5825,7 +5825,7 @@ msgstr "Möchten Sie den ausgewählten Pfad wirklich entfernen?"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:158
 msgid "We're closing the connection. Please be patient"
-msgstr ""
+msgstr "Wir beenden die Verbindung. Bitte haben Sie etwas Geduld"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:176
 msgid "The connection was lost"
@@ -6017,7 +6017,7 @@ msgstr "Server-URL *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:558
 msgid "This is the URL of the JupyterHub server"
-msgstr ""
+msgstr "Dies ist die URL des JupyterHub-Servers"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:560
 msgid "The URL is not a valid one"
@@ -6461,7 +6461,7 @@ msgstr "Speichernutzung anzeigen alle"
 
 #: spyder/plugins/statusbar/confpage.py:26 spyder/plugins/statusbar/confpage.py:33
 msgid " ms"
-msgstr ""
+msgstr " ms"
 
 #: spyder/plugins/statusbar/confpage.py:32
 msgid "Show CPU usage every"
@@ -6621,7 +6621,7 @@ msgstr "Hauptwerkzeugleiste"
 
 #: spyder/plugins/tours/container.py:52
 msgid "Interactive tour"
-msgstr ""
+msgstr "Interaktive Tour"
 
 #: spyder/plugins/tours/container.py:61 spyder/plugins/tours/plugin.py:40
 msgid "Interactive tours"
@@ -6733,7 +6733,7 @@ msgstr "Um die Tour zu starten, klicken Sie bitte auf den grüne Schaltfläche l
 
 #: spyder/plugins/tours/widgets.py:1075
 msgid "Spyder tour"
-msgstr ""
+msgstr "Spyder-Tour"
 
 #: spyder/plugins/tours/widgets.py:1100
 msgid "Check out our interactive tour to explore some of Spyder's panes and features."
@@ -6745,7 +6745,7 @@ msgstr "Tour starten"
 
 #: spyder/plugins/updatemanager/container.py:52 spyder/plugins/updatemanager/container.py:122
 msgid "Check for updates"
-msgstr ""
+msgstr "Auf Aktualisierungen prüfen"
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
@@ -6767,7 +6767,7 @@ msgstr "Das Herunterladen der Aktualisierung wird im Hintergrund fortgesetzt.\n"
 
 #: spyder/plugins/updatemanager/widgets/update.py:47
 msgid "Updating Spyder-updater"
-msgstr ""
+msgstr "Spyder-updater aktualisieren"
 
 #: spyder/plugins/updatemanager/widgets/update.py:48
 msgid "Downloading update"
@@ -6843,11 +6843,11 @@ msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Unfortunately the update failed"
-msgstr ""
+msgstr "Leider ist die Aktualisierung fehlgeschlagen"
 
 #: spyder/plugins/updatemanager/widgets/update.py:578
 msgid "There was an error in the update process"
-msgstr ""
+msgstr "Beim Aktualisierungsvorgang ist ein Fehler aufgetreten"
 
 #: spyder/plugins/updatemanager/widgets/update.py:579 spyder/widgets/reporterror.py:234 spyder/widgets/reporterror.py:456
 msgid "Show details"
@@ -7085,11 +7085,11 @@ msgstr "Das Öffnen dieser Variable kann langsam sein\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
 msgid "Spyder was unable to retrieve the value of this variable from the console."
-msgstr ""
+msgstr "Spyder konnte den Wert dieser Variablen nicht aus der Konsole abrufen."
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:342
 msgid "The value of this variable is too large to be edited."
-msgstr ""
+msgstr "Der Wert dieser Variablen ist zu groß, um bearbeitet werden zu können."
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:391
 msgid "The problem is:"
