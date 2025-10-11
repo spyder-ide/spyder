@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-01 20:08\n"
+"PO-Revision-Date: 2025-10-11 15:35\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2267,17 +2267,19 @@ msgstr "智能退格键"
 
 #: spyder/plugins/editor/confpage.py:285
 msgid "Make the backspace key automatically remove the number of indentation characters set above."
-msgstr ""
+msgstr "使得按下退格键自动移除上面所设定数量的缩进字符。"
 
 #: spyder/plugins/editor/confpage.py:292
 msgid "Tab always indents"
-msgstr ""
+msgstr "Tab 键总是执行缩进"
 
 #: spyder/plugins/editor/confpage.py:295
 msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
+msgstr "如果启用，按 Tab 键总是会添加一级缩进，\n"
+"即使光标不位于一行的开头位置。\n"
+"代码补全仍可使用快捷键 Ctrl+Space 来触发。"
 
 #: spyder/plugins/editor/confpage.py:333
 msgid "End-of-line characters"
@@ -2285,13 +2287,15 @@ msgstr "行结束符"
 
 #: spyder/plugins/editor/confpage.py:335
 msgid "Fix mixed end-of-lines automatically and show warning dialog"
-msgstr ""
+msgstr "自动修复混合的行结束符并显示警告对话框"
 
 #: spyder/plugins/editor/confpage.py:338
 msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "当打开包含混合行结束符的文件时\n"
+"(这在 Windows 上可能引发控制台显示语法错误)，\n"
+"Spyder 将在选项启用时自动转换它们。"
 
 #: spyder/plugins/editor/confpage.py:345
 msgid "Convert end-of-line characters to the following on save:"
@@ -2315,11 +2319,11 @@ msgstr "自动保存"
 
 #: spyder/plugins/editor/confpage.py:393
 msgid "Automatically save a backup copy of unsaved files"
-msgstr ""
+msgstr "自动为未保存的文件保存一个备份副本"
 
 #: spyder/plugins/editor/confpage.py:395
 msgid "If Spyder quits unexpectedly, it will offer to recoverthem on next launch"
-msgstr ""
+msgstr "如果 Spyder 意外退出，它将在下次启动时提议恢复它们"
 
 #: spyder/plugins/editor/confpage.py:401
 msgid "Autosave interval: "
@@ -2335,47 +2339,47 @@ msgstr "文档字符串风格"
 
 #: spyder/plugins/editor/confpage.py:421
 msgid "Select the style of docstrings ({numpy}, {google} or {sphinx}) to generate when pressing <kbd>{shortcut}</kbd> after a function, method or class declaration"
-msgstr ""
+msgstr "选择当在一个函数、方法或类声明之后按下 <kbd>{shortcut}</kbd> 所要生成的文档字符串风格 ({numpy}, {google} 或 {sphinx})"
 
 #: spyder/plugins/editor/confpage.py:440
 msgid "Style:"
-msgstr ""
+msgstr "风格："
 
 #: spyder/plugins/editor/confpage.py:451
 msgid "Multi-cursor"
-msgstr ""
+msgstr "多重光标"
 
 #: spyder/plugins/editor/confpage.py:453
 msgid "Enable multi-cursor support"
-msgstr ""
+msgstr "启用多重光标支持"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
-msgstr ""
+msgstr "允许添加额外的游标和游标列用于同时编辑"
 
 #: spyder/plugins/editor/confpage.py:466
 msgid "Multi-cursor paste behavior"
-msgstr ""
+msgstr "多游标粘贴行为"
 
 #: spyder/plugins/editor/confpage.py:469
 msgid "Always paste the entire clipboard for each cursor"
-msgstr ""
+msgstr "总是为每个游标粘贴整个剪贴板"
 
 #: spyder/plugins/editor/confpage.py:474
 msgid "Paste one line per cursor if the number of lines and cursors match"
-msgstr ""
+msgstr "如果行数和游标匹配则每个游标粘贴一行"
 
 #: spyder/plugins/editor/confpage.py:482
 msgid "Always paste one line per cursor if there is more than one line in the clipboard"
-msgstr ""
+msgstr "如果剪贴板中有多行则总是为每个游标粘贴一行"
 
 #: spyder/plugins/editor/confpage.py:504
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "鼠标快捷方式"
 
 #: spyder/plugins/editor/confpage.py:507
 msgid "Edit mouse shortcut modifiers"
-msgstr ""
+msgstr "编辑鼠标快捷方式修改器"
 
 #: spyder/plugins/editor/confpage.py:516 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:40 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:42
 msgid "Display"
@@ -2391,7 +2395,7 @@ msgstr "此选项已禁用，因为 <i>保存文件时自动格式化</i> 选项
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:48 spyder/plugins/editor/panels/classfunctiondropdown.py:49 spyder/plugins/editor/panels/classfunctiondropdown.py:156 spyder/plugins/shortcuts/widgets/table.py:162
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:169
 msgid "Edit Python, Markdown, Cython and many other types of text files."
@@ -2415,11 +2419,11 @@ msgstr "重新运行最后一个单元格 "
 
 #: spyder/plugins/editor/plugin.py:294
 msgid "Run &current line/selection"
-msgstr ""
+msgstr "运行当前行/选区 (&c)"
 
 #: spyder/plugins/editor/plugin.py:296
 msgid "Run current line or selection"
-msgstr ""
+msgstr "运行当前行或选区"
 
 #: spyder/plugins/editor/plugin.py:305
 msgid "Run &to line"
@@ -3406,23 +3410,23 @@ msgstr "编辑过滤器设置"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:157
 msgid "Copy and Paste..."
-msgstr ""
+msgstr "复制与粘贴..."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:169
 msgid "Copy path"
-msgstr ""
+msgstr "复制路径"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:180
 msgid "Download..."
-msgstr ""
+msgstr "下载..."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:186 spyder/plugins/explorer/widgets/remote_explorer.py:1097
 msgid "Upload file"
-msgstr ""
+msgstr "上传文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:350
 msgid "New Python Package error"
-msgstr ""
+msgstr "新的 Python 包错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:351
 msgid "An error occured while trying to create a new Python package"
@@ -4632,11 +4636,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:155 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:169
 msgid "greater"
-msgstr ""
+msgstr "更高"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:157 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:167
 msgid "lower"
-msgstr ""
+msgstr "更低"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:237
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4926,28 +4930,29 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:146
 msgid "Print list of reloaded modules"
-msgstr ""
+msgstr "打印重新加载模块的列表"
 
 #: spyder/plugins/maininterpreter/confpage.py:151
 msgid "Select modules to exclude from being reloaded"
-msgstr ""
+msgstr "选择要排除重新加载的模块"
 
 #: spyder/plugins/maininterpreter/confpage.py:172 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:200
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:173
 msgid "List of excluded modules (e.g. {})"
-msgstr ""
+msgstr "已排除模块的列表 (例如 {})"
 
 #: spyder/plugins/maininterpreter/confpage.py:193
 msgid "The following modules are not installed:\n"
 "{}"
-msgstr ""
+msgstr "下列模块未安装:\n"
+"{}"
 
 #: spyder/plugins/maininterpreter/confpage.py:201
 msgid "Changes will only be applied to new IPython consoles"
-msgstr ""
+msgstr "更改将只应用于新的 IPython 控制台"
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
@@ -5259,11 +5264,11 @@ msgstr "管理 Spyder 的首选项。"
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
-msgstr ""
+msgstr "重置所有首选项为默认值"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
-msgstr ""
+msgstr "当性能分析结束时打开性能分析器"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
@@ -6083,11 +6088,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1019
 msgid "Select packages for your remote environment"
-msgstr ""
+msgstr "为你的远程环境选择软件包"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1020
 msgid "Choose the packages you want to install in your remote Python environment"
-msgstr ""
+msgstr "选择你想要在你的远程 Python 环境中安装的软件包"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1095
 msgid "Connection status"
@@ -6219,7 +6224,7 @@ msgstr "运行设置"
 
 #: spyder/plugins/run/container.py:96
 msgid "&Global presets"
-msgstr ""
+msgstr "(&G)全局预设"
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
@@ -6837,7 +6842,7 @@ msgstr "正在更新 Spyder，这将花费几分钟时间 ..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:574
 msgid "The update was succesful! Spyder will be launched shortly"
-msgstr ""
+msgstr "更新成功！ Spyder 将尽快启动"
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Unfortunately the update failed"
