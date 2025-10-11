@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QButtonGroup, QGroupBox, QInputDialog, QLabel,
 from spyder.api.translations import _
 from spyder.api.preferences import PluginConfigPage
 from spyder.utils import programs
-from spyder.utils.conda import get_list_conda_envs_cache
+from spyder.utils.conda import get_list_conda_envs_cache, validate_conda
 from spyder.utils.misc import get_python_executable
 from spyder.utils.pyenv import get_list_pyenv_envs_cache
 
@@ -33,6 +33,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None
+        self.conda_edit = None
 
         conda_env = get_list_conda_envs_cache()
         pyenv_env = get_list_pyenv_envs_cache()
@@ -114,6 +115,43 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         self.pyexec_edit = self.cus_exec_combo.combobox.lineEdit()
 
+        # Conda executable path
+        conda_group = QGroupBox(_("Conda executable"))
+        conda_layout = QVBoxLayout()
+
+        custom_conda_check = self.create_checkbox(
+            _("Use a custom Conda/Mamba/Micromamba executable"),
+            "custom_conda",
+            tip=_(
+                "Use the specified Conda, Mamba or Micromamba instead of "
+                "finding the executable from the interpreter path.<br><br>"
+                "Required if using a custom Conda prefix with a Conda/Mamba "
+                "installed at a non-standard location."
+            ),
+        )
+        conda_layout.addWidget(custom_conda_check)
+        conda_path = self.create_browsefile(
+            "",
+            'conda_path',
+            filters='*.exe',
+            validate_callback=validate_conda,
+            validate_reason=_(
+                "The selected file is not a valid Conda executable"
+            ),
+        )
+        conda_path.setStyleSheet("margin-left: 3px")
+        conda_path.textbox.setMinimumWidth(400)
+        conda_layout.addWidget(conda_path)
+
+        conda_group.setLayout(conda_layout)
+
+        conda_path.setEnabled(
+            self.get_option('custom_conda')
+        )
+        custom_conda_check.checkbox.toggled.connect(conda_path.setEnabled)
+
+        self.conda_edit = conda_path.textbox
+
         # UMR Group
         umr_group = QGroupBox(_("User Module Reloader (UMR)"))
         umr_label = QLabel(
@@ -158,8 +196,10 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_layout.addWidget(umr_namelist_btn)
         umr_group.setLayout(umr_layout)
 
+        # Layout
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)
+        vlayout.addWidget(conda_group)
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
