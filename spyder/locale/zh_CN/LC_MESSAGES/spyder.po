@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-09 15:49\n"
+"PO-Revision-Date: 2025-10-11 15:35\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2355,31 +2355,31 @@ msgstr "启用多重光标支持"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
-msgstr ""
+msgstr "允许添加额外的游标和游标列用于同时编辑"
 
 #: spyder/plugins/editor/confpage.py:466
 msgid "Multi-cursor paste behavior"
-msgstr ""
+msgstr "多游标粘贴行为"
 
 #: spyder/plugins/editor/confpage.py:469
 msgid "Always paste the entire clipboard for each cursor"
-msgstr ""
+msgstr "总是为每个游标粘贴整个剪贴板"
 
 #: spyder/plugins/editor/confpage.py:474
 msgid "Paste one line per cursor if the number of lines and cursors match"
-msgstr ""
+msgstr "如果行数和游标匹配则每个游标粘贴一行"
 
 #: spyder/plugins/editor/confpage.py:482
 msgid "Always paste one line per cursor if there is more than one line in the clipboard"
-msgstr ""
+msgstr "如果剪贴板中有多行则总是为每个游标粘贴一行"
 
 #: spyder/plugins/editor/confpage.py:504
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "鼠标快捷方式"
 
 #: spyder/plugins/editor/confpage.py:507
 msgid "Edit mouse shortcut modifiers"
-msgstr ""
+msgstr "编辑鼠标快捷方式修改器"
 
 #: spyder/plugins/editor/confpage.py:516 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:40 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:42
 msgid "Display"
@@ -2395,7 +2395,7 @@ msgstr "此选项已禁用，因为 <i>保存文件时自动格式化</i> 选项
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:48 spyder/plugins/editor/panels/classfunctiondropdown.py:49 spyder/plugins/editor/panels/classfunctiondropdown.py:156 spyder/plugins/shortcuts/widgets/table.py:162
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:169
 msgid "Edit Python, Markdown, Cython and many other types of text files."
@@ -2419,11 +2419,11 @@ msgstr "重新运行最后一个单元格 "
 
 #: spyder/plugins/editor/plugin.py:294
 msgid "Run &current line/selection"
-msgstr ""
+msgstr "运行当前行/选区 (&c)"
 
 #: spyder/plugins/editor/plugin.py:296
 msgid "Run current line or selection"
-msgstr ""
+msgstr "运行当前行或选区"
 
 #: spyder/plugins/editor/plugin.py:305
 msgid "Run &to line"
@@ -4930,28 +4930,29 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:146
 msgid "Print list of reloaded modules"
-msgstr ""
+msgstr "打印重新加载模块的列表"
 
 #: spyder/plugins/maininterpreter/confpage.py:151
 msgid "Select modules to exclude from being reloaded"
-msgstr ""
+msgstr "选择要排除重新加载的模块"
 
 #: spyder/plugins/maininterpreter/confpage.py:172 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:200
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:173
 msgid "List of excluded modules (e.g. {})"
-msgstr ""
+msgstr "已排除模块的列表 (例如 {})"
 
 #: spyder/plugins/maininterpreter/confpage.py:193
 msgid "The following modules are not installed:\n"
 "{}"
-msgstr ""
+msgstr "下列模块未安装:\n"
+"{}"
 
 #: spyder/plugins/maininterpreter/confpage.py:201
 msgid "Changes will only be applied to new IPython consoles"
-msgstr ""
+msgstr "更改将只应用于新的 IPython 控制台"
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
@@ -5263,11 +5264,11 @@ msgstr "管理 Spyder 的首选项。"
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
-msgstr ""
+msgstr "重置所有首选项为默认值"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
-msgstr ""
+msgstr "当性能分析结束时打开性能分析器"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
