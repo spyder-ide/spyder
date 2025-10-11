@@ -159,13 +159,19 @@ class MainInterpreterConfigPage(PluginConfigPage):
         umr_layout.addWidget(umr_namelist_btn)
         umr_group.setLayout(umr_layout)
 
-        # Path anaconda executor
+        # Conda executable path
         conda_group = QGroupBox(_("Conda executable"))
         conda_layout = QVBoxLayout()
 
         custom_conda_check = self.create_checkbox(
-            _("Set the path to a custom Conda, Mamba or Micromamba executable"),
-            "custom_conda"
+            _("Use a custom Conda/Mamba/Micromamba executable"),
+            "custom_conda",
+            tip=_(
+                "Use the specified Conda, Mamba or Micromamba instead of "
+                "finding the executable from the interpreter path. "
+                "Required if using a custom Conda prefix with a Conda/Mamba "
+                "installed at a non-standard location."
+            ),
         )
         conda_layout.addWidget(custom_conda_check)
         conda_path = self.create_browsefile(
@@ -174,7 +180,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             filters='*.exe',
             validate_callback=validate_conda,
             validate_reason=_(
-                "The selected file is not a valid conda executable"
+                "The selected file is not a valid Conda executable"
             ),
         )
         conda_path.setStyleSheet("margin-left: 3px")
@@ -192,8 +198,8 @@ class MainInterpreterConfigPage(PluginConfigPage):
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(pyexec_group)
-        vlayout.addWidget(umr_group)
         vlayout.addWidget(conda_group)
+        vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 

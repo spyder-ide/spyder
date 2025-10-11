@@ -153,7 +153,7 @@ DEFAULTS = [
               'custom_interpreters_list': [],
               'custom_interpreter': '',
               'last_envs': {},
-              'conda_path': ''
+              'conda_path': '',
               }),
             ('ipython_console',
              {

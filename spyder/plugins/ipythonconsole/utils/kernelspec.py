@@ -174,11 +174,11 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                     # installed in a non-standard location).
                     # See spyder-ide/spyder#23595
                     not_found_exe_message = _(
-                        "Spyder couldn't find conda, mamba or micromamba in your "
+                        "Spyder couldn't find Conda, Mamba or Micromamba on your "
                         "system to activate the kernel's environment.<br><br>"
                         "Please set the path for one of their executables in "
-                        "<i>Preferences > Python interpreter > Conda "
-                        "executable</i>"
+                        "<tt>Preferences > Python interpreter > Conda "
+                        "executable</tt>"
                     )
                     raise SpyderKernelError(not_found_exe_message)
 
