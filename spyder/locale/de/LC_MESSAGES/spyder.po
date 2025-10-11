@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-01 20:08\n"
+"PO-Revision-Date: 2025-10-11 20:42\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr "Eingebaut"
 
 #: spyder/api/plugin_registration/registry.py:802
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: spyder/api/shellconnect/main_widget.py:34
 msgid "No connected console"
@@ -320,7 +320,7 @@ msgstr "Atomares Schreiben einer Datei im Editor"
 
 #: spyder/dependencies.py:118
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Passphrase von SSH-Schlüsseldateien entschlüsseln"
 
 #: spyder/dependencies.py:122
 msgid "Character encoding auto-detection for the Editor"
@@ -352,7 +352,7 @@ msgstr "IPython interaktive Python-Umgebung"
 
 #: spyder/dependencies.py:150
 msgid "IPython lexers for syntax highlighting"
-msgstr ""
+msgstr "IPython-Lexer für die Syntaxhervorhebung"
 
 #: spyder/dependencies.py:154
 msgid "Main backend for the Python Language Server"
@@ -380,7 +380,7 @@ msgstr "Verbessern Sie die Codevervollständigung für Objekte, die Numpy-Dokume
 
 #: spyder/dependencies.py:179
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Versionsnummern von Python-Paketen vergleichen"
 
 #: spyder/dependencies.py:183
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -424,7 +424,7 @@ msgstr "Python-Dateien im Editor mit dem Paket Black automatisch formatieren"
 
 #: spyder/dependencies.py:226
 msgid "Provide linting with the Ruff package"
-msgstr ""
+msgstr "Linting mit dem Ruff-Paket bereitstellen"
 
 #: spyder/dependencies.py:230
 msgid "Spyder plugin for the Python LSP Server"
@@ -492,7 +492,7 @@ msgstr "Dateiänderungen in Projektverzeichnissen beobachten"
 
 #: spyder/dependencies.py:295
 msgid "URL parsing and changing"
-msgstr ""
+msgstr "URL-Parsing und -Änderung"
 
 #: spyder/dependencies.py:304
 msgid "Run Cython files in the IPython Console"
@@ -544,15 +544,15 @@ msgstr "Thema für die Syntaxhervorhebung"
 
 #: spyder/plugins/appearance/confpage.py:98
 msgid "Edit selected theme"
-msgstr ""
+msgstr "Ausgewähltes Thema bearbeiten"
 
 #: spyder/plugins/appearance/confpage.py:99
 msgid "Create new theme"
-msgstr ""
+msgstr "Neues Thema erstellen"
 
 #: spyder/plugins/appearance/confpage.py:100
 msgid "Delete theme"
-msgstr ""
+msgstr "Thema löschen"
 
 #: spyder/plugins/appearance/confpage.py:101 spyder/plugins/preferences/widgets/configdialog.py:105
 msgid "Reset to defaults"
@@ -580,15 +580,15 @@ msgstr "Oberflächenschriftart des Systemstandards verwenden"
 
 #: spyder/plugins/appearance/confpage.py:162 spyder/plugins/application/container.py:818 spyder/plugins/base.py:332 spyder/plugins/editor/plugin.py:165 spyder/plugins/editor/utils/switcher_manager.py:36 spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4889 spyder/plugins/editor/widgets/editorstack/editorstack.py:318 spyder/plugins/editor/widgets/gotoline.py:30 spyder/plugins/editor/widgets/main_widget.py:314 spyder/plugins/help/confpage.py:31 spyder/plugins/help/widgets.py:342 spyder/plugins/tours/tours.py:82
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: spyder/plugins/appearance/confpage.py:170
 msgid "Interface font"
-msgstr ""
+msgstr "Schnittstellen-Schriftart"
 
 #: spyder/plugins/appearance/confpage.py:214
 msgid "Previews"
-msgstr ""
+msgstr "Vorschauen"
 
 #: spyder/plugins/appearance/confpage.py:565 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:427 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/confpage.py:490 spyder/plugins/ipythonconsole/widgets/main_widget.py:2601 spyder/plugins/ipythonconsole/widgets/main_widget.py:2631 spyder/plugins/layout/container.py:316 spyder/plugins/layout/container.py:375 spyder/plugins/layout/plugin.py:523 spyder/plugins/layout/plugin.py:540 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/variableexplorer/widgets/arrayeditor.py:624 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:188 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:716 spyder/utils/environ.py:183 spyder/utils/environ.py:250 spyder/utils/environ.py:315 spyder/widgets/collectionseditor.py:1366 spyder/widgets/collectionseditor.py:1596 spyder/widgets/collectionseditor.py:1606 spyder/widgets/collectionseditor.py:1615 spyder/widgets/collectionseditor.py:1624
 msgid "Warning"
@@ -596,7 +596,7 @@ msgstr "Warnung"
 
 #: spyder/plugins/appearance/confpage.py:566
 msgid "Are you sure you want to delete this theme?"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie dieses Thema löschen möchten?"
 
 #: spyder/plugins/appearance/plugin.py:41
 msgid "Appearance"
@@ -616,11 +616,11 @@ msgstr ""
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "Fehler beim Festlegen der Farben"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: spyder/plugins/appearance/widgets.py:146 spyder/plugins/editor/confpage.py:122
 msgid "Highlight"
@@ -632,11 +632,11 @@ msgstr "Hintergrund"
 
 #: spyder/plugins/appearance/widgets.py:153
 msgid "Theme name:"
-msgstr ""
+msgstr "Themenname:"
 
 #: spyder/plugins/appearance/widgets.py:160
 msgid "Syntax highlighting theme editor"
-msgstr ""
+msgstr "Syntaxhervorhebung-Themeneditor"
 
 #: spyder/plugins/application/confpage.py:49 spyder/plugins/completion/providers/snippets/conftabs.py:69
 msgid "Language:"
@@ -672,7 +672,7 @@ msgstr "Nur auf stabile Versionen prüfen"
 
 #: spyder/plugins/application/confpage.py:82
 msgid "Disable zoom with Ctrl/Cmd + mouse wheel"
-msgstr ""
+msgstr "Zoom mit Strg/Cmd + Mausrad deaktivieren"
 
 #: spyder/plugins/application/confpage.py:113 spyder/plugins/layout/container.py:171
 msgid "Panes"
@@ -680,7 +680,7 @@ msgstr "Bereiche"
 
 #: spyder/plugins/application/confpage.py:116
 msgid "Show friendly message when some panes are empty"
-msgstr ""
+msgstr "Freundliche Meldung anzeigen, wenn einige Bereiche leer sind"
 
 #: spyder/plugins/application/confpage.py:120
 msgid "Vertical tabs in panes"
@@ -700,7 +700,7 @@ msgstr "Blinkender Cursor:"
 
 #: spyder/plugins/application/confpage.py:134
 msgid "ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/plugins/application/confpage.py:173
 msgid "macOS integration"
@@ -728,7 +728,7 @@ msgstr "Konfiguration für Bildschirme mit hohen DPI<br><br>Schauen Sie auf <a h
 
 #: spyder/plugins/application/confpage.py:204
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: spyder/plugins/application/confpage.py:209
 msgid "Enable auto high DPI scaling"
@@ -769,7 +769,7 @@ msgstr "Tutorial-Videos"
 
 #: spyder/plugins/application/container.py:282
 msgid "Troubleshooting guide"
-msgstr ""
+msgstr "Fehlerbehebungsanleitung"
 
 #: spyder/plugins/application/container.py:286
 msgid "Report issue..."
@@ -777,19 +777,19 @@ msgstr "Problem melden..."
 
 #: spyder/plugins/application/container.py:291
 msgid "Dependency status"
-msgstr ""
+msgstr "Abhängigkeitsstatus"
 
 #: spyder/plugins/application/container.py:296
 msgid "Spyder Google group"
-msgstr ""
+msgstr "Spyder Google-Gruppe"
 
 #: spyder/plugins/application/container.py:301
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Spyder helfen..."
 
 #: spyder/plugins/application/container.py:309
 msgid "About %s"
-msgstr ""
+msgstr "Über %s"
 
 #: spyder/plugins/application/container.py:316
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
@@ -877,7 +877,7 @@ msgstr "Alle Dateien speichern"
 
 #: spyder/plugins/application/container.py:413
 msgid "Save &as"
-msgstr ""
+msgstr "Speichern &als"
 
 #: spyder/plugins/application/container.py:415
 msgid "Save current file as..."
@@ -985,7 +985,7 @@ msgstr "Ausführlich"
 
 #: spyder/plugins/application/container.py:667
 msgid "Minimal"
-msgstr ""
+msgstr "Minimal"
 
 #: spyder/plugins/application/container.py:819
 msgid "Maximum number of recent files"
@@ -1013,7 +1013,7 @@ msgstr "Basisaktionen der Hauptanwendung bereitstellen."
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "Über Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -1033,11 +1033,11 @@ msgstr "Versionsinfo kopieren"
 
 #: spyder/plugins/application/widgets/status.py:45
 msgid "Help Spyder"
-msgstr ""
+msgstr "Spyder helfen"
 
 #: spyder/plugins/application/widgets/status.py:156
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Spyder helfen!"
 
 #: spyder/plugins/completion/confpage.py:29
 msgid "Providers"
@@ -1230,7 +1230,7 @@ msgstr "Linten"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:42
 msgid "Spyder can highlight syntax errors and possible problems with your code in the editor by using one of the providers below"
-msgstr ""
+msgstr "Spyder kann Syntaxfehler und mögliche Probleme in Ihrem Code im Editor hervorheben, indem es einen der folgenden Anbieter verwendet"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:51
 msgid "Provider"
@@ -3165,7 +3165,8 @@ msgstr " (Anwendung nicht gefunden!)"
 #: spyder/plugins/explorer/widgets/explorer.py:1116
 msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr ""
+msgstr "Möchten Sie <b>%s</b> wirklich löschen?\n"
+"<br><br><b>Hinweis</b>: Diese Datei oder dieses Verzeichnis wird in den Papierkorb verschoben."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1136
 msgid "delete"
@@ -3525,7 +3526,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1051
 msgid "Do you really want to delete <b>{filename}</b>?"
-msgstr ""
+msgstr "Möchten Sie <b>{filename}</b> wirklich löschen?"
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External terminal"
@@ -4251,7 +4252,7 @@ msgstr "Python-Dateien, Zellen, Code und Befehle interaktiv ausführen."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "Es war nicht möglich, einen SSH-Tunnel zu öffnen, um eine Verbindung zum entfernten Kernel herzustellen. Bitte überprüfen Sie Ihre Anmeldedaten und den Verbindungsstatus des Servers."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:41
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
@@ -4275,15 +4276,15 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:139
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Spyder konnte pixi in Ihrem System nicht finden, um die Kernel-Umgebung zu aktivieren. Bitte fügen Sie das Verzeichnis, in dem sich die ausführbare Datei von pixi befindet, zu Ihrer Umgebungsvariable PATH hinzu, damit sie erkannt wird."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:168
 msgid "Spyder couldn't find conda, mamba or micromamba in your system to activate the kernel's environment. Please add the directory where at least one of their executables is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Spyder konnte conda, mamba oder micromamba in Ihrem System nicht finden, um die Kernel-Umgebung zu aktivieren. Bitte fügen Sie das Verzeichnis, in dem sich mindestens eine der ausführbaren Dateien befindet, zu Ihrer PATH-Umgebungsvariable hinzu, damit es erkannt wird."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:212
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "Die erkannte Version von Conda ist zu alt und wird von Spyder nicht unterstützt. Die Mindestversion, die unterstützt wird, ist 4.9, und derzeit haben Sie {conda_version}.<br><br>.<b>Hinweis</b>: Sie müssen Spyder nach der Aktualisierung von Conda neu starten, damit die Änderung wirksam wird."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:247
 msgid "Connecting to kernel..."
@@ -4307,7 +4308,7 @@ msgstr "Beim Starten des Kernels ist ein Fehler aufgetreten"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:545
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "Es war nicht möglich, eine Verbindung zum Kernel herzustellen, der dieser Konsole zugeordnet ist. Wenn Sie versuchen, eine Verbindung zu einem vorhandenen Kernel herzustellen, überprüfen Sie, ob die von Ihnen ausgewählte Verbindungsdatei tatsächlich dem Kernel entspricht, mit dem Sie eine Verbindung herstellen möchten."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:859
 msgid "It was not possible to restart the kernel"
@@ -4315,7 +4316,7 @@ msgstr "Es war nicht möglich, den Kernel neu zu starten"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:957
 msgid "There was an error connecting to the server <b>{}</b>. Please check your connection is working."
-msgstr ""
+msgstr "Bei der Verbindung zum Server <b>{}</b> ist ein Fehler aufgetreten. Bitte überprüfen Sie, ob Ihre Verbindung funktioniert."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4379,7 +4380,7 @@ msgstr "Verbindungseinstellungen speichern"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:241
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "Die von Ihnen übergebene Verbindungsdatei existiert nicht oder kann von Spyder nicht gefunden werden."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:283
 msgid "Select kernel connection file"
@@ -4583,7 +4584,7 @@ msgstr "Die Variable ist zu groß, um abgerufen zu werden"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:48
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "Es war nicht möglich, eine Kopie der Variablen im Kernel zu erstellen oder diese Kopie in Spyder zu laden.<br><br>Wenn das Objekt, das Sie anzeigen möchten, einen Generator enthält, müssen Sie diesen durch eine Liste ersetzen, da Generatoren nicht serialisiert werden können."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:55
 msgid "The kernel is dead"
@@ -4801,7 +4802,7 @@ msgstr "Das Fenster-Layout wird auf die Standardeinstellungen zurückgesetzt: Di
 
 #: spyder/plugins/layout/layouts.py:72
 msgid "Default layout"
-msgstr ""
+msgstr "Standardlayout"
 
 #: spyder/plugins/layout/layouts.py:106
 msgid "Horizontal split"
@@ -4825,7 +4826,7 @@ msgstr "Test-Layout"
 
 #: spyder/plugins/layout/plugin.py:87
 msgid "Layout"
-msgstr ""
+msgstr "Layout"
 
 #: spyder/plugins/layout/plugin.py:91
 msgid "Layout manager"
@@ -4853,7 +4854,7 @@ msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "Layout speichern als"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
@@ -4873,11 +4874,11 @@ msgstr "Layout Löschen"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "Layoutanzeige und -anordnung"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "Layout entfernen"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
@@ -5526,11 +5527,11 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:170
 msgid "You selected a Spyder project"
-msgstr ""
+msgstr "Sie haben ein Spyder-Projekt ausgewählt"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:185
 msgid "The directory you selected for this project already exists."
-msgstr ""
+msgstr "Das Verzeichnis, das Sie für dieses Projekt ausgewählt haben, existiert bereits."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:194
 msgid "This directory is already a Spyder project."
@@ -5538,15 +5539,15 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:200
 msgid "You don't have write permissions in the location you selected."
-msgstr ""
+msgstr "Sie haben keine Schreibrechte für den ausgewählten Speicherort."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:209
 msgid "The location you selected doesn't exist."
-msgstr ""
+msgstr "Der von Ihnen ausgewählte Ort existiert nicht."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:216
 msgid "The directory name you selected is not valid."
-msgstr ""
+msgstr "Der von Ihnen gewählte Verzeichnisname ist ungültig."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:696
 msgid "There are missing fields on this page."
