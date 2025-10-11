@@ -161,18 +161,26 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             conda_exe = find_conda()
 
             if not conda_exe:
-                # Raise error since we were unable to determine the path to
-                # the conda executable (e.g when Anaconda/Miniconda was
-                # installed in a non-standard location).
-                # See spyder-ide/spyder#23595
-                not_found_exe_message = _(
-                    "Spyder couldn't find conda, mamba or micromamba in your "
-                    "system to activate the kernel's environment. Please add "
-                    "the directory where at least one of their executables "
-                    "is located to your PATH environment variable for it to "
-                    "be detected."
+                conda_exe = (
+                    self.get_conf("conda_path", section="main_interpreter")
+                    if self.get_conf(
+                        "custom_conda", section="main_interpreter"
+                    )
+                    else None
                 )
-                raise SpyderKernelError(not_found_exe_message)
+                if not conda_exe:
+                    # Raise error since we were unable to determine the path to
+                    # the conda executable (e.g when Anaconda/Miniconda was
+                    # installed in a non-standard location).
+                    # See spyder-ide/spyder#23595
+                    not_found_exe_message = _(
+                        "Spyder couldn't find Conda, Mamba or Micromamba on your "
+                        "system to activate the kernel's environment.<br><br>"
+                        "Please set the path for one of their executables in "
+                        "<tt>Preferences > Python interpreter > Conda "
+                        "executable</tt>"
+                    )
+                    raise SpyderKernelError(not_found_exe_message)
 
             # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
