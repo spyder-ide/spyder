@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-12 20:00\n"
+"PO-Revision-Date: 2025-10-12 21:23\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4189,11 +4189,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
-msgstr ""
+msgstr "Automatisches Neuladen verwenden"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "Aktiviert die automatische Neulademagie. Informationen zur Verwendung finden Sie in der Dokumentation."
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4701,7 +4701,7 @@ msgstr "<br><br>Der Kernel scheint tot zu sein, daher kann er nicht unterbrochen
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:569
 msgid "<br><br>It is not possible to interrupt a non-Spyder kernel I did not start.<br>"
-msgstr ""
+msgstr "<br><br>Es ist nicht möglich, einen Nicht-Spyder-Kernel zu unterbrechen, den ich nicht gestartet habe.<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:927
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -4741,7 +4741,7 @@ msgstr "Klicken Sie, um zwischen Inline- und interaktiver Matplotlib-Darstellung
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:275
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Standardumgebung in den Einstellungen ändern..."
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4887,7 +4887,7 @@ msgstr "Möchten Sie das Layout ‚<b>{}</b>‘ entfernen?"
 
 #: spyder/plugins/maininterpreter/confpage.py:69
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "Wählen Sie den Standard-Python-Interpreter für neue IPython-Konsolen und die Code-Vervollständigung im Editor aus"
 
 #: spyder/plugins/maininterpreter/confpage.py:76
 msgid "Internal (same used by Spyder)"
@@ -4911,7 +4911,7 @@ msgstr "Benutzermodul Reloader (UMR)"
 
 #: spyder/plugins/maininterpreter/confpage.py:120
 msgid "UMR forces Python to reload imported modules when running a file in an IPython console."
-msgstr ""
+msgstr "UMR zwingt Python dazu, importierte Module neu zu laden, wenn eine Datei in einer IPython-Konsole ausgeführt wird."
 
 #: spyder/plugins/maininterpreter/confpage.py:127
 msgid "Enable UMR"
@@ -4935,7 +4935,7 @@ msgstr "Module auswählen, die vom erneuten Laden ausgeschlossen werden sollen"
 
 #: spyder/plugins/maininterpreter/confpage.py:172 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:200
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:173
 msgid "List of excluded modules (e.g. {})"
@@ -5281,7 +5281,7 @@ msgstr ""
 
 #: spyder/plugins/profiler/plugin.py:64
 msgid "Profile Python files to find execution bottlenecks."
-msgstr ""
+msgstr "Profilieren Sie Python-Dateien, um Ausführungsengpässe zu finden."
 
 #: spyder/plugins/profiler/plugin.py:149 spyder/plugins/profiler/plugin.py:150
 msgid "Profile file"
@@ -5429,7 +5429,7 @@ msgstr "In Funktion verbrachte Zeit (einschließlich Unterfunktionen)"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:901
 msgid "Local time spent in function (not in sub-functions)"
-msgstr ""
+msgstr "Lokale Zeit, die in der Funktion verbracht wurde (nicht in Unterfunktionen)"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:904
 msgid "Total number of calls (including recursion)"
@@ -5557,7 +5557,7 @@ msgstr "Auf dieser Seite fehlen Felder."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
-msgstr ""
+msgstr "Wählen Sie den Ort aus, an dem das Projektverzeichnis erstellt werden soll"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:239
 msgid "New directory"
@@ -6839,7 +6839,7 @@ msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/update.py:574
 msgid "The update was succesful! Spyder will be launched shortly"
-msgstr ""
+msgstr "Die Aktualisierung war erfolgreich! Spyder wird in Kürze gestartet"
 
 #: spyder/plugins/updatemanager/widgets/update.py:577
 msgid "Unfortunately the update failed"
