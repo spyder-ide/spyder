@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-12 21:23\n"
+"PO-Revision-Date: 2025-10-12 23:41\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3931,7 +3931,7 @@ msgstr "Vor dem Schließen nach einer Bestätigung fragen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Ask for confirmation before removing all variables"
-msgstr ""
+msgstr "Vor dem Entfernen aller Variablen um Bestätigung fragen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:76
 msgid "Ask for confirmation before restarting"
@@ -3996,7 +3996,8 @@ msgstr " Zeilen"
 #: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
+msgstr "Die maximale Anzahl von Ausgabezeilen, die gleichzeitig in jeder Konsole gespeichert werden können.\n"
+"Warnung; Puffergrößen von mehr als 10000 Zeilen können Spyder verlangsamen."
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
