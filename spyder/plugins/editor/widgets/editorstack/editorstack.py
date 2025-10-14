@@ -1744,8 +1744,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     def close_all_left(self):
         """ Close all files opened to the left """
-        n = self.get_stack_count()
-        for __ in range(0, n - 1):
+        n = self.get_stack_index()
+        for __ in range(0, n):
             self.close_file(0)
 
     def on_close_all_but_this(self):
