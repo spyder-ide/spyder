@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-14 14:34\n"
+"PO-Revision-Date: 2025-10-14 15:57\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -423,7 +423,7 @@ msgstr "BlackパッケージでエディタのPythonファイルを自動フォ�
 
 #: spyder/dependencies.py:226
 msgid "Provide linting with the Ruff package"
-msgstr ""
+msgstr "Ruffパッケージによるリンティングの提供"
 
 #: spyder/dependencies.py:230
 msgid "Spyder plugin for the Python LSP Server"
@@ -543,15 +543,15 @@ msgstr "構文強調テーマ"
 
 #: spyder/plugins/appearance/confpage.py:98
 msgid "Edit selected theme"
-msgstr ""
+msgstr "選択したテーマを編集"
 
 #: spyder/plugins/appearance/confpage.py:99
 msgid "Create new theme"
-msgstr ""
+msgstr "新しいテーマを作成"
 
 #: spyder/plugins/appearance/confpage.py:100
 msgid "Delete theme"
-msgstr ""
+msgstr "テーマの削除"
 
 #: spyder/plugins/appearance/confpage.py:101 spyder/plugins/preferences/widgets/configdialog.py:105
 msgid "Reset to defaults"
@@ -583,11 +583,11 @@ msgstr "エディタ"
 
 #: spyder/plugins/appearance/confpage.py:170
 msgid "Interface font"
-msgstr ""
+msgstr "インターフェイスフォント"
 
 #: spyder/plugins/appearance/confpage.py:214
 msgid "Previews"
-msgstr ""
+msgstr "プレビュー"
 
 #: spyder/plugins/appearance/confpage.py:565 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:427 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/confpage.py:490 spyder/plugins/ipythonconsole/widgets/main_widget.py:2601 spyder/plugins/ipythonconsole/widgets/main_widget.py:2631 spyder/plugins/layout/container.py:316 spyder/plugins/layout/container.py:375 spyder/plugins/layout/plugin.py:523 spyder/plugins/layout/plugin.py:540 spyder/plugins/preferences/plugin.py:298 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/variableexplorer/widgets/arrayeditor.py:624 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:188 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:716 spyder/utils/environ.py:183 spyder/utils/environ.py:250 spyder/utils/environ.py:315 spyder/widgets/collectionseditor.py:1366 spyder/widgets/collectionseditor.py:1596 spyder/widgets/collectionseditor.py:1606 spyder/widgets/collectionseditor.py:1615 spyder/widgets/collectionseditor.py:1624
 msgid "Warning"
@@ -595,7 +595,7 @@ msgstr "警告"
 
 #: spyder/plugins/appearance/confpage.py:566
 msgid "Are you sure you want to delete this theme?"
-msgstr ""
+msgstr "本当にこのテーマを削除しますか？"
 
 #: spyder/plugins/appearance/plugin.py:41
 msgid "Appearance"
@@ -607,15 +607,15 @@ msgstr "アプリの外観とテーマを管理する"
 
 #: spyder/plugins/appearance/widgets.py:93
 msgid "The following properties have invalid colors:<br><br>"
-msgstr ""
+msgstr "以下のプロパティには無効な色があります:<br><br>"
 
 #: spyder/plugins/appearance/widgets.py:99
 msgid "The property <b>{}</b> has an invalid color: {}<br>"
-msgstr ""
+msgstr "プロパティ<b>{}</b> に不適切な色があります。: {}<br>"
 
 #: spyder/plugins/appearance/widgets.py:105
 msgid "Error setting colors"
-msgstr ""
+msgstr "色設定エラー"
 
 #: spyder/plugins/appearance/widgets.py:144
 msgid "Text"
@@ -631,11 +631,11 @@ msgstr "背景"
 
 #: spyder/plugins/appearance/widgets.py:153
 msgid "Theme name:"
-msgstr ""
+msgstr "テーマ名："
 
 #: spyder/plugins/appearance/widgets.py:160
 msgid "Syntax highlighting theme editor"
-msgstr ""
+msgstr "構文強調テーマエディタ"
 
 #: spyder/plugins/application/confpage.py:49 spyder/plugins/completion/providers/snippets/conftabs.py:69
 msgid "Language:"
@@ -671,7 +671,7 @@ msgstr "安定したリリースのみ確認"
 
 #: spyder/plugins/application/confpage.py:82
 msgid "Disable zoom with Ctrl/Cmd + mouse wheel"
-msgstr ""
+msgstr "Ctrl/Cmd + マウススクロールでのズームを無効化"
 
 #: spyder/plugins/application/confpage.py:113 spyder/plugins/layout/container.py:171
 msgid "Panes"
@@ -679,7 +679,7 @@ msgstr "ペイン"
 
 #: spyder/plugins/application/confpage.py:116
 msgid "Show friendly message when some panes are empty"
-msgstr ""
+msgstr "一部ペインが空の場合に親切なメッセージを表示する"
 
 #: spyder/plugins/application/confpage.py:120
 msgid "Vertical tabs in panes"
@@ -699,7 +699,7 @@ msgstr "カーソルの点滅:"
 
 #: spyder/plugins/application/confpage.py:134
 msgid "ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/plugins/application/confpage.py:173
 msgid "macOS integration"
@@ -769,7 +769,7 @@ msgstr "チュートリアルビデオ"
 
 #: spyder/plugins/application/container.py:282
 msgid "Troubleshooting guide"
-msgstr ""
+msgstr "トラブルシューティングガイド"
 
 #: spyder/plugins/application/container.py:286
 msgid "Report issue..."
@@ -777,19 +777,19 @@ msgstr "問題をレポート..."
 
 #: spyder/plugins/application/container.py:291
 msgid "Dependency status"
-msgstr ""
+msgstr "依存状態"
 
 #: spyder/plugins/application/container.py:296
 msgid "Spyder Google group"
-msgstr ""
+msgstr "Spyder Googleグループ"
 
 #: spyder/plugins/application/container.py:301
 msgid "Help Spyder..."
-msgstr ""
+msgstr "Spyderヘルプ…"
 
 #: spyder/plugins/application/container.py:309
 msgid "About %s"
-msgstr ""
+msgstr "約 %s"
 
 #: spyder/plugins/application/container.py:316
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
@@ -877,7 +877,7 @@ msgstr "すべてのファイルを保存"
 
 #: spyder/plugins/application/container.py:413
 msgid "Save &as"
-msgstr ""
+msgstr "名前をつけて保存 (&A)"
 
 #: spyder/plugins/application/container.py:415
 msgid "Save current file as..."
@@ -1013,7 +1013,7 @@ msgstr "メインアプリケーションベースのアクションを提供し
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "Spyderについて"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -1033,11 +1033,11 @@ msgstr "バージョン情報をコピー"
 
 #: spyder/plugins/application/widgets/status.py:45
 msgid "Help Spyder"
-msgstr ""
+msgstr "Spyderヘルプ"
 
 #: spyder/plugins/application/widgets/status.py:156
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Spyderヘルプ！"
 
 #: spyder/plugins/completion/confpage.py:29
 msgid "Providers"
@@ -1133,7 +1133,7 @@ msgstr "サーバーとの通信に標準入出力パイプを使用する"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset all preferences to default</tt><br><br>instead of reporting a bug."
-msgstr ""
+msgstr "<b>これらのオプションを変更するとコード補完が機能しなくなるかもしれません!!</b><br><br>もしそうなったらバグレポートを送るのではなく、メニューの<br><br><tt>ツール > 全ての設定をデフォルトでリセット</tt><br><br>からSpyder設定をリセットしてください。"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1229,27 +1229,27 @@ msgstr "静的解析"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:42
 msgid "Spyder can highlight syntax errors and possible problems with your code in the editor by using one of the providers below"
-msgstr ""
+msgstr "Spyderは、以下のプロバイダーのいずれかを使用して、エディター内でコードの構文エラーや潜在的な問題を強調表示できます"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:51
 msgid "Provider"
-msgstr ""
+msgstr "プロバイダー"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:55
 msgid "Pyflakes (Basic)"
-msgstr ""
+msgstr "Pyflakes (初級)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:60
 msgid "Flake8 (Intermediate)"
-msgstr ""
+msgstr "Flake8 (中級)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:65
 msgid "Ruff (Advanced)"
-msgstr ""
+msgstr "Ruff (上級)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:70
 msgid "Disable linting"
-msgstr ""
+msgstr "リンティングを無効化"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:83 spyder/plugins/variableexplorer/widgets/importwizard.py:169
 msgid "Additional options"
@@ -1261,7 +1261,7 @@ msgstr "エラーと警告を下線で強調"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:94
 msgid "Provider options"
-msgstr ""
+msgstr "プロバイダーオプション"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:101
 msgid "Enable docstring style linting"
@@ -1269,19 +1269,19 @@ msgstr "Docstringスタイルの静的解析を有効化"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:104
 msgid "Convention used to lint docstrings: "
-msgstr ""
+msgstr "Docstringの静的解析で使用するコード規約: "
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:126 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:173
 msgid "Exclude these files or directories:"
-msgstr ""
+msgstr "これらのファイルやディレクトリを除外："
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:130 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:177
 msgid "Exclude test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "テストファイルを除外: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:134 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:181
 msgid "Show these errors or warnings:"
-msgstr ""
+msgstr "これらのエラーや警告を表示："
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:138 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:185
 msgid "Example codes: E113, W391"
@@ -1289,31 +1289,31 @@ msgstr "コード例: E113, W391"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:142 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:189
 msgid "Ignore these errors or warnings:"
-msgstr ""
+msgstr "これらのエラーや警告を無視："
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:146
 msgid "Default is: E"
-msgstr ""
+msgstr "デフォルトは: E"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:165
 msgid "Only check these filenames:"
-msgstr ""
+msgstr "以下のファイル名のみをチェック："
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:169
 msgid "Check test files: test_.*\\.py"
-msgstr ""
+msgstr "テストファイルをチェック：test_.*\\.py"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:193
 msgid "Default is: E,W,C90"
-msgstr ""
+msgstr "デフォルト: E,W,C90"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:210
 msgid "There are no configuration options for Pyflakes"
-msgstr ""
+msgstr "Pyflakesの設定オプションはありません"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:214
 msgid "Linting is disabled"
-msgstr ""
+msgstr "リンティングは無効です"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:272
 msgid "Directory patterns listed for exclusion should be valid regular expressions"
@@ -1321,7 +1321,7 @@ msgstr "除外のためのディレクトリパターンは有効な正規表現
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:277
 msgid "File patterns listed for inclusion should be valid regular expressions"
-msgstr ""
+msgstr "インクルード対象としてリストされたファイルパターンは、有効な正規表現である必要があります"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:31
 msgid "Other languages"
@@ -5597,7 +5597,7 @@ msgstr "存在するディレクトリ"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:338
 msgid "Create a Spyder project in an existing directory"
-msgstr ""
+msgstr "既存のディレクトリにスパイダープロジェクトを作成"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:411
 msgid "Create new project"
@@ -5777,7 +5777,7 @@ msgstr "パスを削除"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:210
 msgid "Import from PYTHONPATH environment variable"
-msgstr ""
+msgstr "PYTHONPATH 環境変数からインポート"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:217
 msgid "Export to PYTHONPATH environment variable"
@@ -5801,15 +5801,15 @@ msgstr "Spyderのパスリストをユーザーの <b>PYTHONPATH</b> 環境変�
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:539
 msgid "Paths are prepended to sys.path"
-msgstr ""
+msgstr "パスは sys.path の前に追加されます"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:544
 msgid "Paths are appended to sys.path"
-msgstr ""
+msgstr "パスは sys.path の前に追加されます"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:581
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of the list?"
-msgstr ""
+msgstr "このディレクトリは既にリストに含まれています。<br> リストの一番上に移動しますか？"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:615
 msgid "This directory cannot be added to the path!<br><br>If you want to set a different Python interpreter, please go to <tt>Preferences > Main interpreter</tt>."
@@ -5829,11 +5829,11 @@ msgstr "接続が切れました"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:314 spyder/plugins/remoteclient/api/manager/ssh.py:150 spyder/plugins/remoteclient/api/manager/ssh.py:248 spyder/plugins/remoteclient/api/manager/ssh.py:293 spyder/plugins/remoteclient/api/manager/ssh.py:392
 msgid "The SSH connection is not open"
-msgstr ""
+msgstr "SSH接続が開いていません"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:67 spyder/plugins/remoteclient/api/manager/jupyterhub.py:153
 msgid "JupyterHub is not connected"
-msgstr ""
+msgstr "JupyterHub は接続されていません"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:78 spyder/plugins/remoteclient/api/manager/jupyterhub.py:130 spyder/plugins/remoteclient/api/manager/ssh.py:169 spyder/plugins/remoteclient/api/manager/ssh.py:184 spyder/plugins/remoteclient/api/manager/ssh.py:231
 msgid "The connection was established successfully"
@@ -5845,11 +5845,11 @@ msgstr "リモートサーバーの起動エラー"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:115 spyder/plugins/remoteclient/api/manager/ssh.py:214
 msgid "There was an error when trying to get the remote server information"
-msgstr ""
+msgstr "リモートサーバー情報の取得時にエラーが発生しました"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:195
 msgid "Error staring the remote server"
-msgstr ""
+msgstr "リモートサーバーへの接続エラー"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:229 spyder/plugins/remoteclient/api/manager/ssh.py:353
 msgid "We're establishing the connection. Please be patient"
@@ -5865,11 +5865,11 @@ msgstr "ローカルポートを転送できませんでした"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:271
 msgid "Error connecting to the remote server"
-msgstr ""
+msgstr "リモートサーバーへの接続エラー"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:311 spyder/plugins/remoteclient/api/manager/ssh.py:321
 msgid "There was an error installing the remote server"
-msgstr ""
+msgstr "リモートサーバーのインストール中にエラーが発生しました"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:370
 msgid "It was not possible to open a connection to this machine"
@@ -5877,7 +5877,7 @@ msgstr "このマシンに接続できませんでした"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:384
 msgid "The server port is not set"
-msgstr ""
+msgstr "サーバーポートが設定されていません"
 
 #: spyder/plugins/remoteclient/plugin.py:133
 msgid "Remote client"
@@ -5889,7 +5889,7 @@ msgstr "コード実行のためにリモートマシンに接続します。"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:45
 msgid "Remote connections"
-msgstr ""
+msgstr "リモート接続"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:112 spyder/plugins/shortcuts/widgets/table.py:211
 msgid "Clear"
@@ -5921,7 +5921,7 @@ msgstr "このフィールドは空です"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:189
 msgid "Configure settings for connecting to a JupyterHub server"
-msgstr ""
+msgstr "JupyterHub サーバーに接続するための設定を構成する"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:191
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
