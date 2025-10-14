@@ -9,11 +9,13 @@ External Kernel connection widget
 """
 
 # Standard library imports
+import json
 import os.path as osp
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_runtime_dir
+from jsonschema import ValidationError, validate as json_validate
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
@@ -26,7 +28,34 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, get_home_dir
 
-
+KERNEL_CONNECTION_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "shell_port": {"type": "integer"},
+            "iopub_port": {"type": "integer"},
+            "stdin_port": {"type": "integer"},
+            "control_port": {"type": "integer"},
+            "hb_port": {"type": "integer"},
+            "ip": {"type": "string", "format": "ipv4"},
+            "key": {"type": "string", "minLength": 10},
+            "transport": {"type": "string", "enum": ["tcp", "ipc"]},
+            "signature_scheme": {"type": "string", "pattern": r"^hmac-.+$"},
+            "kernel_name": {"type": "string"}
+        },
+        "required": [
+            "shell_port",
+            "iopub_port",
+            "stdin_port",
+            "control_port",
+            "hb_port",
+            "ip",
+            "key",
+            "transport",
+            "signature_scheme",
+            "kernel_name"
+        ],
+        "additionalProperties": False
+    }
 class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
     """Dialog to connect to existing kernels (either local or remote)."""
 
@@ -245,8 +274,23 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
                 QMessageBox.Ok
             )
         else:
-            self.accept()
-
+            try:
+                with open(connection_file, 'r') as f:
+                    snippets = json.load(f)
+                json_validate(instance=snippets,
+                              schema=KERNEL_CONNECTION_SCHEMA)
+                self.accept()
+            except ValidationError as e:
+                QMessageBox.critical(
+                    self,
+                    _('Error'),
+                    _(
+                        "The connection file you passed doesn't match the "
+                        "expected kernel schema.<br><br>"
+                        f"<b>Details:</b> {e.message}"
+                    ),
+                    QMessageBox.Ok
+                )
 
     def save_connection_settings(self):
         """Save user's kernel connection settings."""
