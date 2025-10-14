@@ -72,6 +72,10 @@ else
     # To check our manifest
     pip install -q check-manifest
 
+    # Pin IPykernel to the last version 6 available because version 7 has some
+    # issues
+    pip install ipykernel==6.30.1
+
     # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
     # 0.19.2, although it passes locally
     if [ "$OS" = "linux" ]; then
