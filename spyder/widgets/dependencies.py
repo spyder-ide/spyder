@@ -61,7 +61,7 @@ class DependenciesTreeWidget(QTreeWidget):
 
             # Format content
             if dependency.check():
-                item.setIcon(0, ima.icon('dependency_ok'))
+                item.setIcon(0, ima.icon('success'))
             elif dependency.kind == OPTIONAL:
                 item.setIcon(0, ima.icon('dependency_warning'))
                 item.setBackground(2, QColor(SpyderPalette.COLOR_WARN_1))

@@ -423,7 +423,7 @@ class ShortcutEditor(QDialog):
         else:
             warning = NO_WARNING
             tip = _('This key sequence is valid.')
-            icon = ima.icon('dependency_ok')
+            icon = ima.icon('success')
 
         self.warning = warning
         self.conflicts = conflicts
