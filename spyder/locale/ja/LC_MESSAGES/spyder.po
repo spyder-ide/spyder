@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-01 20:08\n"
+"PO-Revision-Date: 2025-10-14 14:34\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -135,7 +135,7 @@ msgstr "初期化中..."
 
 #: spyder/app/mainwindow.py:1452
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "Spyderのアイコンテーマを読み込めなかったため、お使いのシステムではSpyderを起動できません。この問題の最も考えられる原因は、SpyderおよびMicrosoftによるサポート対象外となっているWindows 10 1803/Windows Server 2019以前のWindowsバージョンを使用しているか、システム管理者が管理者以外のユーザーに対するフォントインストールを無効にしているかのいずれかです。<br><br>システム管理者にWindowsをアップグレードしてもらうよう頼むか、フォント: <ul>{fonts_list}</ul> （以下の場所:<br><br><code>{fonts_directory}</code><br><br> に置かれている）を全てののユーザー向けにインストールしてください。管理者権限がある場合は以下のコマンドをコマンドプロンプトで実行することで必要なフォントをすることができます。コマンド：<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:138
 msgid "It was not possible to close the previous Spyder instance.\n"
@@ -181,7 +181,7 @@ msgstr "再起動中"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr ""
+msgstr "設定を安全に保存できませんでした。この問題は<tt>keyrings.alt</tt> を{}とインストールすることで解決するかもしれません。<br><br><bb>注意</bb>：パッケージにはセキュリティリスクあるいはその他の問題があるかもしれません。従って製品版やセキュリティ上重要なシステムでの使用は推奨されません。"
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -279,7 +279,7 @@ msgstr "Jsonファイル"
 
 #: spyder/config/utils.py:47
 msgid "IPython notebooks"
-msgstr ""
+msgstr "IPython notebooks"
 
 #: spyder/config/utils.py:48
 msgid "Enaml files"
@@ -319,7 +319,7 @@ msgstr "エディタでアトミックなファイル書き込み"
 
 #: spyder/dependencies.py:118
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "SSHキーファイルのパスフレーズを復号する"
 
 #: spyder/dependencies.py:122
 msgid "Character encoding auto-detection for the Editor"
@@ -351,7 +351,7 @@ msgstr "IPythonインタラクティブpython環境"
 
 #: spyder/dependencies.py:150
 msgid "IPython lexers for syntax highlighting"
-msgstr ""
+msgstr "構文強調表示のためのIPythonレキサー"
 
 #: spyder/dependencies.py:154
 msgid "Main backend for the Python Language Server"
@@ -379,7 +379,7 @@ msgstr "Numpyのdocstringを使用するオブジェクトでのコード補完�
 
 #: spyder/dependencies.py:179
 msgid "Compare version numbers of Python packages"
-msgstr ""
+msgstr "Pythonパッケージ間のバージョン番号を比較"
 
 #: spyder/dependencies.py:183
 msgid "Python parser that supports error recovery and round-trip parsing"
