@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-14 15:57\n"
+"PO-Revision-Date: 2025-10-15 13:38\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -1523,7 +1523,7 @@ msgstr "言語サーバープロトコル(LSP)によって提供されるもの�
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
-msgstr ""
+msgstr "利用可能なスニペット："
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:88
 msgid "Create a new snippet"
@@ -1921,7 +1921,7 @@ msgstr "cellをデバッグ"
 
 #: spyder/plugins/debugger/plugin.py:199 spyder/plugins/debugger/plugin.py:200
 msgid "Debug the current line or selection"
-msgstr ""
+msgstr "現在行あるいは選択範囲をデバッグ"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:153
 msgid "Breakpoint"
@@ -2013,11 +2013,11 @@ msgstr "実行を中断してデバッガーを開始"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:269
 msgid "Debug current line"
-msgstr ""
+msgstr "現在行をデバッグ"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:279
 msgid "Execute until next breakpoint"
-msgstr ""
+msgstr "次のブレークポイントまで実行"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:289
 msgid "Step into function or method"
@@ -2025,7 +2025,7 @@ msgstr "関数またはメソッドにステップインする"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:299
 msgid "Execute until function returns"
-msgstr ""
+msgstr "関数がリターンするまで実行"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:309
 msgid "Stop debugging"
@@ -2037,19 +2037,19 @@ msgstr "ファイルの中身と、デバッガが現在実行中の位置をエ
 
 #: spyder/plugins/debugger/widgets/main_widget.py:330
 msgid "Toggle breakpoint"
-msgstr ""
+msgstr "ブレークポイントのオンオフ"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:331
 msgid "Set or clear a breakpoint on the current line"
-msgstr ""
+msgstr "現在の行にブレークポイントを設定またはクリアする"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:339
 msgid "Set/edit conditional breakpoint"
-msgstr ""
+msgstr "条件付きブレークポイントをセット/編集"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:340
 msgid "Set a conditional breakpoint, or edit an existing one"
-msgstr ""
+msgstr "条件付きブレークポイントを設定するか、既存のブレークポイントを編集"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:355
 msgid "List breakpoints"
@@ -2074,31 +2074,32 @@ msgstr "タブバーを表示"
 #: spyder/plugins/editor/confpage.py:56
 msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
 "can still be used to navigate between open files."
-msgstr ""
+msgstr "非表示の場合、ファイルスイッチャー、アウトラインペイン、Ctrl-Tab\n"
+"を使用して開いているファイル間を移動することができます。"
 
 #: spyder/plugins/editor/confpage.py:62
 msgid "Show full file path above editor"
-msgstr ""
+msgstr "エディタ上にフルファイルパスを表示"
 
 #: spyder/plugins/editor/confpage.py:64
 msgid "If hidden, the full file path is still shown when hovering over its tab."
-msgstr ""
+msgstr "非表示の場合は、タブにカーソルを合わせるとフルパスが表示されます。"
 
 #: spyder/plugins/editor/confpage.py:70 spyder/plugins/editor/widgets/main_widget.py:406
 msgid "Show class/function selector"
-msgstr ""
+msgstr "クラス/関数セレクタを表示"
 
 #: spyder/plugins/editor/confpage.py:72
 msgid "For quick browsing and switching between classes/functions in a file."
-msgstr ""
+msgstr "ファイル内のクラス/関数をすばやくブラウズして切り替えるために。"
 
 #: spyder/plugins/editor/confpage.py:78
 msgid "Allow scrolling past file end"
-msgstr ""
+msgstr "過去のファイル末尾のスクロールを許可"
 
 #: spyder/plugins/editor/confpage.py:89
 msgid "Helpers"
-msgstr ""
+msgstr "ヘルパー"
 
 #: spyder/plugins/editor/confpage.py:90 spyder/plugins/editor/widgets/main_widget.py:394
 msgid "Show indent guides"
@@ -2110,7 +2111,7 @@ msgstr "コードの折りたたみを表示"
 
 #: spyder/plugins/editor/confpage.py:94
 msgid "Allow collapsing and uncollapsing code by indent level"
-msgstr ""
+msgstr "インデントレベルによるコードの折りたたみ解除を許可"
 
 #: spyder/plugins/editor/confpage.py:96 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:124
 msgid "Show line numbers"
@@ -2118,15 +2119,15 @@ msgstr "行番号を表示"
 
 #: spyder/plugins/editor/confpage.py:98
 msgid "Show debugger breakpoints"
-msgstr ""
+msgstr "デバッガのブレークポイントを表示"
 
 #: spyder/plugins/editor/confpage.py:103
 msgid "Show code annotations"
-msgstr ""
+msgstr "コードの注釈を表示"
 
 #: spyder/plugins/editor/confpage.py:105
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (and their lowercase variants)"
-msgstr ""
+msgstr "以下の注釈がコメントの最初にある場合、行番号の左側にマーカーを表示する: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>(及びそれらの小文字表記)"
 
 #: spyder/plugins/editor/confpage.py:124
 msgid "Highlight current line"
@@ -2138,11 +2139,11 @@ msgstr "現在cellを強調"
 
 #: spyder/plugins/editor/confpage.py:130
 msgid "Highlight occurrences of selected text after"
-msgstr ""
+msgstr "選択したテキストの出現箇所をハイライト表示する"
 
 #: spyder/plugins/editor/confpage.py:135
 msgid " milliseconds"
-msgstr ""
+msgstr " ミリ秒"
 
 #: spyder/plugins/editor/confpage.py:172
 msgid "Automatic changes"
@@ -2150,66 +2151,69 @@ msgstr "自動変更"
 
 #: spyder/plugins/editor/confpage.py:174
 msgid "Automatically insert closing parentheses, brackets and braces"
-msgstr ""
+msgstr "括弧、中括弧、大かっこを自動的に挿入"
 
 #: spyder/plugins/editor/confpage.py:176
 msgid "Insert a matching closing bracket when typing an open one"
-msgstr ""
+msgstr "開いている括弧を入力した後に、対応する閉じ括弧を挿入"
 
 #: spyder/plugins/editor/confpage.py:179
 msgid "Automatically insert closing quotes"
-msgstr ""
+msgstr "引用符を自動的に閉じる"
 
 #: spyder/plugins/editor/confpage.py:181
 msgid "Insert a matching closing quote when typing an open one"
-msgstr ""
+msgstr "開いている引用符を入力した後に、対応する終了引用符を挿入"
 
 #: spyder/plugins/editor/confpage.py:184
 msgid "Automatically insert colons after 'for', 'if', 'def', etc"
-msgstr ""
+msgstr "'for', 'if', 'def'等の後にコロンを自動挿入する"
 
 #: spyder/plugins/editor/confpage.py:188
 msgid "Automatically un-indent 'else', 'elif', etc"
-msgstr ""
+msgstr "'else'、'elif'などのインデントを自動的に解除"
 
 #: spyder/plugins/editor/confpage.py:190
 msgid "Un-indent further block-level keywords when added inside an 'if', etc block"
-msgstr ""
+msgstr "'if'などのブロック内にブロックレベルキーワードが追加された場合、それ以降のインデントを解除する"
 
 #: spyder/plugins/editor/confpage.py:204
 msgid "Trailing whitespace"
-msgstr ""
+msgstr "末尾の空白"
 
 #: spyder/plugins/editor/confpage.py:206
 msgid "Strip all trailing spaces on save"
-msgstr ""
+msgstr "保存時に末尾のスペースを全て削除する"
 
 #: spyder/plugins/editor/confpage.py:211
 msgid "Strip trailing spaces on changed lines"
-msgstr ""
+msgstr "行が変わったときに行末空白を自動的に削除"
 
 #: spyder/plugins/editor/confpage.py:214
 msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
+msgstr "有効化されている場合、変更が加えられた行の\n"
+"(文字列を除いた)行末の空白は終了時に削除されます。\n"
+"無効化されている場合、Spyderによって追加された空白のみが削除されます。"
 
 #: spyder/plugins/editor/confpage.py:222
 msgid "Automatically add missing end-of-file newline on save"
-msgstr ""
+msgstr "保存時にファイル末尾の改行を自動的に追加"
 
 #: spyder/plugins/editor/confpage.py:225
 msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
+msgstr "有効にすると、ファイルの末尾に改行文字（改行）が自動的に追加されます。\n"
+"ファイルが改行で終わっていない場合、標準的なテキストファイルの慣例に準拠するためです。"
 
 #: spyder/plugins/editor/confpage.py:233
 msgid "Strip blank lines at end of file on save"
-msgstr ""
+msgstr "保存時にファイル末尾の空白行を削除"
 
 #: spyder/plugins/editor/confpage.py:236
 msgid "Any extra newlines at the end of the file besides the first one will be stripped."
-msgstr ""
+msgstr "ファイル末尾に複数の改行がある場合、最初のもの以外はすべて削除されます。"
 
 #: spyder/plugins/editor/confpage.py:258
 msgid "Indentation"
@@ -2265,17 +2269,19 @@ msgstr "インテリジェントなバックスペース"
 
 #: spyder/plugins/editor/confpage.py:285
 msgid "Make the backspace key automatically remove the number of indentation characters set above."
-msgstr ""
+msgstr "バックスペースキーで自動的に上記設定のインデント文字を削除。"
 
 #: spyder/plugins/editor/confpage.py:292
 msgid "Tab always indents"
-msgstr ""
+msgstr "常にインデントにタブを使う"
 
 #: spyder/plugins/editor/confpage.py:295
 msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
+msgstr "これを有効にすると、カーソルが行頭になくても\n"
+"タブキーを押すと常にインデントされる。\n"
+"この場合でもコード補完はCtrl+Spaceで実行可能となる。"
 
 #: spyder/plugins/editor/confpage.py:333
 msgid "End-of-line characters"
@@ -2283,7 +2289,7 @@ msgstr "改行コード"
 
 #: spyder/plugins/editor/confpage.py:335
 msgid "Fix mixed end-of-lines automatically and show warning dialog"
-msgstr ""
+msgstr "混在した改行コードを自動的に修正し、警告ダイアログを表示"
 
 #: spyder/plugins/editor/confpage.py:338
 msgid "When opening a file containing mixed end-of-line characters\n"
