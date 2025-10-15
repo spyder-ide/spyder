@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-15 15:40\n"
+"PO-Revision-Date: 2025-10-15 17:40\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -6021,23 +6021,23 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:558
 msgid "This is the URL of the JupyterHub server"
-msgstr ""
+msgstr "これはJupyterHubサーバーのURLです"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:560
 msgid "The URL is not a valid one"
-msgstr ""
+msgstr "URLは有効なものではありません"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:564
 msgid "Token *"
-msgstr ""
+msgstr "トークン *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:567
 msgid "Your token will be saved securely by Spyder"
-msgstr ""
+msgstr "あなたのトークンはSpyderによって安全に保存されます"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:569
 msgid "Your token is saved securely by Spyder"
-msgstr ""
+msgstr "あなたのトークンはSpyderによって安全に保存されます"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:671
 msgid "The name you selected is already used by another connection."
@@ -6049,7 +6049,7 @@ msgstr "入力されたアドレスは有効なIPまたはドメイン名では�
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:690
 msgid "The URL you provided is not valid."
-msgstr ""
+msgstr "入力されたURLは無効です。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:712
 msgid "New connection"
@@ -6057,7 +6057,7 @@ msgstr "新規接続"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:889
 msgid "Create a Python environment on the remote host"
-msgstr ""
+msgstr "リモートホスト上に Python 環境を作成する"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:891
 msgid "Decide whether you want to create a remote environment to run your code and how to do it"
