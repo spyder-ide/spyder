@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-15 13:38\n"
+"PO-Revision-Date: 2025-10-15 15:40\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -2295,7 +2295,9 @@ msgstr "混在した改行コードを自動的に修正し、警告ダイアロ
 msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "複数種の改行コードを含むテキストファイルを開くと \n"
+"(Windows環境ではコンソールで文法エラーを起こす可能性があるため)、\n"
+"有効化されている場合、 Spyderでは自動的にこれを修正します。"
 
 #: spyder/plugins/editor/confpage.py:345
 msgid "Convert end-of-line characters to the following on save:"
@@ -2303,15 +2305,15 @@ msgstr "保存時に行末文字を次の文字に変換する:"
 
 #: spyder/plugins/editor/confpage.py:352 spyder/plugins/editor/widgets/main_widget.py:526
 msgid "CR (legacy Mac)"
-msgstr ""
+msgstr "CR (レガシーMac)"
 
 #: spyder/plugins/editor/confpage.py:378
 msgid "Template"
-msgstr ""
+msgstr "テンプレート"
 
 #: spyder/plugins/editor/confpage.py:380
 msgid "Edit new file template"
-msgstr ""
+msgstr "新規ファイルテンプレートの編集"
 
 #: spyder/plugins/editor/confpage.py:391
 msgid "Autosave"
@@ -2319,11 +2321,11 @@ msgstr "自動保存"
 
 #: spyder/plugins/editor/confpage.py:393
 msgid "Automatically save a backup copy of unsaved files"
-msgstr ""
+msgstr "保存されていないファイルを自動的にバックアップ保存"
 
 #: spyder/plugins/editor/confpage.py:395
 msgid "If Spyder quits unexpectedly, it will offer to recoverthem on next launch"
-msgstr ""
+msgstr "もしスパイダーが予期せず終了すると、次の起動時に回復することができます"
 
 #: spyder/plugins/editor/confpage.py:401
 msgid "Autosave interval: "
@@ -2339,27 +2341,27 @@ msgstr "Dockstringスタイル"
 
 #: spyder/plugins/editor/confpage.py:421
 msgid "Select the style of docstrings ({numpy}, {google} or {sphinx}) to generate when pressing <kbd>{shortcut}</kbd> after a function, method or class declaration"
-msgstr ""
+msgstr "Docstringsのスタイル ({numpy}, {google} or {sphinx}) を選択してください。これは関数、メソッド、あるいはクラス宣言の後で<kbd>{shortcut}</kbd> を押すと生成されます"
 
 #: spyder/plugins/editor/confpage.py:440
 msgid "Style:"
-msgstr ""
+msgstr "スタイル："
 
 #: spyder/plugins/editor/confpage.py:451
 msgid "Multi-cursor"
-msgstr ""
+msgstr "マルチカーソル"
 
 #: spyder/plugins/editor/confpage.py:453
 msgid "Enable multi-cursor support"
-msgstr ""
+msgstr "マルチカーソルサポートを有効にする"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
-msgstr ""
+msgstr "同時編集のためのカーソルおよびカーソル列を追加する"
 
 #: spyder/plugins/editor/confpage.py:466
 msgid "Multi-cursor paste behavior"
-msgstr ""
+msgstr "マルチカーソルペーストの動作"
 
 #: spyder/plugins/editor/confpage.py:469
 msgid "Always paste the entire clipboard for each cursor"
