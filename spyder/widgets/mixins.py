@@ -1548,6 +1548,7 @@ class BaseEditMixin(object):
         """
         old_width = self.cursorWidth()  # may be 0 for multicursor rendering
         self.setCursorWidth(1)  # querying cursor position requires valid width
+
         if query == Qt.ImInputItemClipRectangle:
             cursor_rect = self.cursorRect()
             margins = self.viewportMargins()
@@ -1559,6 +1560,7 @@ class BaseEditMixin(object):
             response = QPlainTextEdit.inputMethodQuery(self, query)
         elif isinstance(self, QTextEdit):
             response = QTextEdit.inputMethodQuery(self, query)
+
         self.setCursorWidth(old_width)  # restore original cursor width
         return response
 
