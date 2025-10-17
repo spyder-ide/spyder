@@ -380,7 +380,7 @@ class ProjectExplorerWidget(PluginMainWidget):
                     )
 
                     if answer == QMessageBox.Yes:
-                        valid = self.is_valid_location(path)
+                        valid = self._is_valid_location(path)
                         if valid[0]:
                             self.create_project(path)
                         else:
@@ -595,27 +595,6 @@ class ProjectExplorerWidget(PluginMainWidget):
         """Check if a directory is a valid Spyder project"""
         spy_project_dir = osp.join(path, '.spyproject')
         return osp.isdir(path) and osp.isdir(spy_project_dir)
-
-    def is_valid_location(self, location: str):
-        valid = True
-        if not location:
-            reason = _("No directory was selected")
-            valid = False
-        elif not osp.isdir(location):
-            reason = _("The directory doesn't exist")
-            valid = False
-        elif not is_writable(location):
-            reason = _("The directory is not writable")
-            valid = False
-        elif os.name == "nt" and any(
-            [re.search(r":", part) for part in pathlib.Path(location).parts[1:]]
-        ):
-            # Prevent creating a project in directory with colons.
-            # Fixes spyder-ide/spyder#16942
-            reason = _("The project directory can't contain ':'")
-            valid = False
-
-        return (valid, reason)
 
     def is_invalid_active_project(self):
         """Handle an invalid active project."""
@@ -1080,6 +1059,27 @@ class ProjectExplorerWidget(PluginMainWidget):
             self.set_conf(
                 "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
             )
+
+    def _is_valid_location(self, location: str):
+        valid = True
+        if not location:
+            reason = _("No directory was selected")
+            valid = False
+        elif not osp.isdir(location):
+            reason = _("The directory doesn't exist")
+            valid = False
+        elif not is_writable(location):
+            reason = _("The directory is not writable")
+            valid = False
+        elif os.name == "nt" and any(
+            [re.search(r":", part) for part in pathlib.Path(location).parts[1:]]
+        ):
+            # Prevent creating a project in directory with colons.
+            # Fixes spyder-ide/spyder#16942
+            reason = _("The project directory can't contain ':'")
+            valid = False
+
+        return (valid, reason)
 
     # ---- Private API for the Switcher
     # -------------------------------------------------------------------------
