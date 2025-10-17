@@ -40,7 +40,8 @@ KERNEL_CONNECTION_SCHEMA = {
             "key": {"type": "string", "minLength": 10},
             "transport": {"type": "string", "enum": ["tcp", "ipc"]},
             "signature_scheme": {"type": "string", "pattern": r"^hmac-.+$"},
-            "kernel_name": {"type": "string"}
+            "kernel_name": {"type": "string"},
+            "jupyter_session": {"type": "string"}
         },
         "required": [
             "shell_port",
