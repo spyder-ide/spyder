@@ -372,12 +372,13 @@ class ProjectExplorerWidget(PluginMainWidget):
                     buttons = QMessageBox.Yes | QMessageBox.No
                     answer = QMessageBox.warning(
                         self,
-                        _("Error"),
+                        _("Warning"),
                         _("<b>%s</b> is not a Spyder project!.<br><br>"
                           "Do you want to create a new project in this "
                           "location") % path,
                         buttons
                     )
+
                     if answer == QMessageBox.Yes:
                         valid = self.is_valid_location(path)
                         if valid[0]:
@@ -386,9 +387,10 @@ class ProjectExplorerWidget(PluginMainWidget):
                             QMessageBox.critical(
                                 self,
                                 _("Error"),
-                                _("<b>%s</b> is not a valid location to "
-                                  "create a Spyder project.<br><br>"
-                                  "Reason:  %s") % (path, valid[1])
+                                _(
+                                    "It was not possible to create a project "
+                                    "in <b>{}</b>. The reason is:<br><br>{}"
+                                ).format(path, valid[1])
                             )
                 return
         else:
@@ -594,19 +596,16 @@ class ProjectExplorerWidget(PluginMainWidget):
         spy_project_dir = osp.join(path, '.spyproject')
         return osp.isdir(path) and osp.isdir(spy_project_dir)
 
-    def is_valid_location(
-        self,
-        location: str
-    ):
+    def is_valid_location(self, location: str):
         valid = True
         if not location:
-            reason = _("This is empty")
+            reason = _("No directory was selected")
             valid = False
         elif not osp.isdir(location):
-            reason = _("This directory doesn't exist")
+            reason = _("The directory doesn't exist")
             valid = False
         elif not is_writable(location):
-            reason = _("This directory is not writable")
+            reason = _("The directory is not writable")
             valid = False
         elif os.name == "nt" and any(
             [re.search(r":", part) for part in pathlib.Path(location).parts[1:]]
