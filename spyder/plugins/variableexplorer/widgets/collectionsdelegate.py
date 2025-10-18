@@ -316,14 +316,33 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
-        elif isinstance(value, str) and len(value) > 40 and not object_explorer:
+        elif (
+            isinstance(value, (str, bytes))
+            and len(value) > 40
+            and not object_explorer
+        ):
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key,
-                                    readonly=readonly, parent=parent)
-                self.create_dialog(editor, dict(model=index.model(),
-                                                editor=editor, key=key,
-                                                readonly=readonly))
+                editor = TextEditor(
+                    value,
+                    key,
+                    readonly=True if isinstance(value, bytes) else readonly,
+                    parent=parent,
+                )
+                self.create_dialog(
+                    editor,
+                    dict(
+                        model=index.model(),
+                        editor=editor,
+                        key=key,
+                        readonly=(
+                            True if isinstance(value, bytes) else readonly
+                        ),
+                    ),
+                )
+            else:
+                self.sig_editor_shown.emit()
+
             return None
         # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value) and not object_explorer:
@@ -357,8 +376,16 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
-            from spyder.plugins.variableexplorer.widgets.objectexplorer \
-                import ObjectExplorer
+            # Don't show the object explorer for short bytes because it's not
+            # really necessary
+            if isinstance(value, bytes):
+                self.sig_editor_shown.emit()
+                return None
+
+            from spyder.plugins.variableexplorer.widgets.objectexplorer import (
+                ObjectExplorer,
+            )
+
             editor = ObjectExplorer(
                 value,
                 name=key,
@@ -482,11 +509,6 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         """
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
-            if isinstance(value, bytes):
-                try:
-                    value = str(value, 'utf8')
-                except Exception:
-                    pass
             if not isinstance(value, str):
                 value = repr(value)
             editor.setText(value)
@@ -812,14 +834,26 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 )
                 return editor
         # TextEditor for a long string
-        elif isinstance(value, str) and len(value) > 40:
+        elif isinstance(value, (str, bytes)) and len(value) > 40:
             te = TextEditor(None, parent=parent)
             if te.setup_and_check(value):
-                editor = TextEditor(value, key,
-                                    readonly=readonly, parent=parent)
-                self.create_dialog(editor, dict(model=index.model(),
-                                                editor=editor, key=key,
-                                                readonly=readonly))
+                editor = TextEditor(
+                    value,
+                    key,
+                    readonly=True if isinstance(value, bytes) else readonly,
+                    parent=parent,
+                )
+                self.create_dialog(
+                    editor,
+                    dict(
+                        model=index.model(),
+                        editor=editor,
+                        key=key,
+                        readonly=(
+                            True if isinstance(value, bytes) else readonly
+                        ),
+                    ),
+                )
             return None
         # QLineEdit for an individual value (int, float, short string, etc)
         elif is_editable_type(value):
