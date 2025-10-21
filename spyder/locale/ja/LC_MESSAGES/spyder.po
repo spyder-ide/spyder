@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-15 17:40\n"
+"PO-Revision-Date: 2025-10-21 11:59\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -2365,23 +2365,23 @@ msgstr "マルチカーソルペーストの動作"
 
 #: spyder/plugins/editor/confpage.py:469
 msgid "Always paste the entire clipboard for each cursor"
-msgstr ""
+msgstr "カーソルごとに常にクリップボード全体を貼り付け"
 
 #: spyder/plugins/editor/confpage.py:474
 msgid "Paste one line per cursor if the number of lines and cursors match"
-msgstr ""
+msgstr "行とカーソルの数が一致する場合、カーソルごとに1行ずつ貼り付け"
 
 #: spyder/plugins/editor/confpage.py:482
 msgid "Always paste one line per cursor if there is more than one line in the clipboard"
-msgstr ""
+msgstr "クリップボードに複数の行がある場合は、常にカーソルごとに1行ずつ貼り付けます"
 
 #: spyder/plugins/editor/confpage.py:504
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "マウスショートカット"
 
 #: spyder/plugins/editor/confpage.py:507
 msgid "Edit mouse shortcut modifiers"
-msgstr ""
+msgstr "マウスのショートカット修飾キーの編集"
 
 #: spyder/plugins/editor/confpage.py:516 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:40 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:42
 msgid "Display"
@@ -2397,7 +2397,7 @@ msgstr "<i>保存時に自動フォーマットする</i> オプションが有�
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:48 spyder/plugins/editor/panels/classfunctiondropdown.py:49 spyder/plugins/editor/panels/classfunctiondropdown.py:156 spyder/plugins/shortcuts/widgets/table.py:162
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:169
 msgid "Edit Python, Markdown, Cython and many other types of text files."
@@ -2421,11 +2421,11 @@ msgstr "最後のcellを再度実行する "
 
 #: spyder/plugins/editor/plugin.py:294
 msgid "Run &current line/selection"
-msgstr ""
+msgstr "現在の行/選択部分を実行(&C)"
 
 #: spyder/plugins/editor/plugin.py:296
 msgid "Run current line or selection"
-msgstr ""
+msgstr "現在行あるいは選択範囲を実行"
 
 #: spyder/plugins/editor/plugin.py:305
 msgid "Run &to line"
@@ -2517,7 +2517,7 @@ msgstr "コード分析"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2412
 msgid "To do"
-msgstr ""
+msgstr "To do"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2898
 msgid "Removal error"
@@ -2733,11 +2733,11 @@ msgstr "行数:"
 
 #: spyder/plugins/editor/widgets/main_widget.py:328
 msgid "Print preview"
-msgstr ""
+msgstr "プレビューを表示"
 
 #: spyder/plugins/editor/widgets/main_widget.py:329
 msgid "Show a print preview for the current file"
-msgstr ""
+msgstr "現在のファイルの印刷プレビューを表示"
 
 #: spyder/plugins/editor/widgets/main_widget.py:334
 msgid "&Print..."
@@ -2769,7 +2769,7 @@ msgstr "行へ移動..."
 
 #: spyder/plugins/editor/widgets/main_widget.py:382
 msgid "Show invisible characters"
-msgstr ""
+msgstr "不可視文字を表示"
 
 #: spyder/plugins/editor/widgets/main_widget.py:412
 msgid "Show docstring style warnings"
@@ -2841,11 +2841,11 @@ msgstr "無駄な後続スペースを削除"
 
 #: spyder/plugins/editor/widgets/main_widget.py:552
 msgid "Convert tabs to spaces"
-msgstr ""
+msgstr "タブをスペースに変換"
 
 #: spyder/plugins/editor/widgets/main_widget.py:553
 msgid "Replace tabs with the configured number of spaces"
-msgstr ""
+msgstr "設定された数のスペースでタブを置き換え"
 
 #: spyder/plugins/editor/widgets/main_widget.py:577
 msgid "Create new cell"
@@ -2857,11 +2857,11 @@ msgstr "現在行に新しいcellを作成"
 
 #: spyder/plugins/editor/widgets/main_widget.py:586
 msgid "uncomment"
-msgstr ""
+msgstr "コメント解除"
 
 #: spyder/plugins/editor/widgets/main_widget.py:588
 msgid "Toggle commenting the current line or selection"
-msgstr ""
+msgstr "現在の行または選択範囲のコメント/コメント解除を切り替える"
 
 #: spyder/plugins/editor/widgets/main_widget.py:595
 msgid "Add &block comment"
@@ -2897,19 +2897,19 @@ msgstr "現在行あるいは選択範囲をインデント解除"
 
 #: spyder/plugins/editor/widgets/main_widget.py:636
 msgid "Toggle UPPERCASE"
-msgstr ""
+msgstr "大文字の切り替え"
 
 #: spyder/plugins/editor/widgets/main_widget.py:638
 msgid "Change current line or selection to UPPERCASE text"
-msgstr ""
+msgstr "現在の行または選択部分を大文字テキストに変更する"
 
 #: spyder/plugins/editor/widgets/main_widget.py:645
 msgid "Toggle lowercase"
-msgstr ""
+msgstr "小文字に切り替え"
 
 #: spyder/plugins/editor/widgets/main_widget.py:647
 msgid "Change current line or selection to lowercase text"
-msgstr ""
+msgstr "現在の行または選択部分を小文字テキストに変更する"
 
 #: spyder/plugins/editor/widgets/main_widget.py:1668
 msgid "Spyder Editor"
@@ -2929,23 +2929,23 @@ msgstr "印刷中..."
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:57
 msgid "Jump within the document in the scroll flags area"
-msgstr ""
+msgstr "スクロールフラグ領域で文書内をジャンプ"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:65
 msgid "Go to a code definition"
-msgstr ""
+msgstr "コード定義へ移動"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:73
 msgid "Add/remove an additional cursor"
-msgstr ""
+msgstr "カーソルの追加/削除"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:81
 msgid "Add a column of cursors"
-msgstr ""
+msgstr "カーソル列を追加"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:211
 msgid "Shortcut Conflicts With Another"
-msgstr ""
+msgstr "ショートカットの競合"
 
 #: spyder/plugins/editor/widgets/recover.py:59
 msgid "Recover from autosave"
@@ -3023,7 +3023,7 @@ msgstr "{}を無視できません"
 
 #: spyder/plugins/editor/widgets/recover.py:288
 msgid "<b>{}</b><br><br>{}<br>{}"
-msgstr ""
+msgstr "<b>{}</b><br><br>{}<br>{}"
 
 #: spyder/plugins/editor/widgets/status.py:30
 msgid "File permissions"
@@ -3047,7 +3047,7 @@ msgstr "Gitブランチ"
 
 #: spyder/plugins/editor/widgets/window.py:500 spyder/plugins/mainmenu/plugin.py:89
 msgid "&Window"
-msgstr ""
+msgstr "ウィンドウ(&W)"
 
 #: spyder/plugins/editor/widgets/window.py:508 spyder/plugins/outlineexplorer/main_widget.py:78
 msgid "Outline"
@@ -3172,7 +3172,8 @@ msgstr " (アプリケーションが見つかりませんでした!)"
 #: spyder/plugins/explorer/widgets/explorer.py:1116
 msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr ""
+msgstr "本当に以下を削除しますか <b>%s</b>?\n"
+"<br><br><b>注意</b>: このファイル/ディレクトリはゴミ箱へ移されます。"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1136
 msgid "delete"
@@ -3412,91 +3413,91 @@ msgstr "フィルタ設定を編集"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:157
 msgid "Copy and Paste..."
-msgstr ""
+msgstr "コピー＆ペースト…"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:169
 msgid "Copy path"
-msgstr ""
+msgstr "パスをコピー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:180
 msgid "Download..."
-msgstr ""
+msgstr "ダウンロード…"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:186 spyder/plugins/explorer/widgets/remote_explorer.py:1097
 msgid "Upload file"
-msgstr ""
+msgstr "ファイルをアップロード"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:350
 msgid "New Python Package error"
-msgstr ""
+msgstr "新規Pythonパッケージのエラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:351
 msgid "An error occured while trying to create a new Python package"
-msgstr ""
+msgstr "新規Pythonパッケージの作成中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:360
 msgid "New Python File error"
-msgstr ""
+msgstr "新規Pythonファイルのエラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:361
 msgid "An error occured while trying to create a new Python file"
-msgstr ""
+msgstr "新規Pythonファイルの作成中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:388
 msgid "New error"
-msgstr ""
+msgstr "新規エラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:389
 msgid "An error occured while trying to create a file/directory"
-msgstr ""
+msgstr "ファイル/ディレクトリの作成中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:419
 msgid "Copy and Paste error"
-msgstr ""
+msgstr "コピー＆ペーストエラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:420
 msgid "An error occured while trying to copy and paste a file/directory"
-msgstr ""
+msgstr "コピー＆ペースト中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:439
 msgid "Rename error"
-msgstr ""
+msgstr "名称変更エラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:440
 msgid "An error occured while trying to rename a file"
-msgstr ""
+msgstr "ファイル名変更中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:456
 msgid "Delete error"
-msgstr ""
+msgstr "削除エラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:457
 msgid "An error occured while trying to delete a file/directory"
-msgstr ""
+msgstr "ファイル/ディレクトリの削除中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:488
 msgid "Download file"
-msgstr ""
+msgstr "ファイルをダウンロード"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:520 spyder/plugins/explorer/widgets/remote_explorer.py:552
 msgid "An error occured while trying to download {path}"
-msgstr ""
+msgstr "以下のファイルをダウンロード中にエラーが発生しました {path}"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:523 spyder/plugins/explorer/widgets/remote_explorer.py:555
 msgid "Download error"
-msgstr ""
+msgstr "ダウンロードエラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:564
 msgid "Upload error"
-msgstr ""
+msgstr "アップロードエラー"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:565
 msgid "An error occured while trying to upload a file"
-msgstr ""
+msgstr "ファイルアップロード中にエラーが発生しました"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:775 spyder/plugins/explorer/widgets/remote_explorer.py:823
 msgid "Show more files"
-msgstr ""
+msgstr "さらにファイルを表示"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:784 spyder/plugins/explorer/widgets/remote_explorer.py:834
 msgid "Maximum number of files to display reached!"
@@ -4182,7 +4183,8 @@ msgstr "Autocall: "
 #: spyder/plugins/ipythonconsole/confpage.py:372
 msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
-msgstr ""
+msgstr "{smart} モードでは、 呼び出し可能オブジェクトに引数がない場合Autocallは適用されません。\n"
+" {full} モードでは、引数がない場合でも全ての呼び出し可能オブジェクトが自動的に呼ばれます。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:386
 msgid "Autoreload"
@@ -4190,7 +4192,7 @@ msgstr "自動リロード"
 
 #: spyder/plugins/ipythonconsole/confpage.py:387
 msgid "Reload imported modules automatically before running code. This is a different mechanism than the User Module Reloaderand can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "コードを実行する前にモジュールを自動的にリロードします。これはユーザーモジュールリロードとは異なるメカニズムであり、Windows環境ではファイルシステムの制限により速度低下が発生する可能性があります。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
@@ -4198,7 +4200,7 @@ msgstr "自動リロードを使用"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "オートリロードの魔法を有効にします。使用方法については、ドキュメントを参照してください。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4206,7 +4208,7 @@ msgstr "プロンプト"
 
 #: spyder/plugins/ipythonconsole/confpage.py:410
 msgid "Modify how input and output prompts are shown in the console."
-msgstr ""
+msgstr "プロンプトの入力と出力のコンソール内表示を変更する。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:415
 msgid "Input prompt:"
@@ -4214,7 +4216,7 @@ msgstr "入力プロンプト:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:418
 msgid "Default is<br><tt>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
-msgstr ""
+msgstr "デフォルト <br><tt>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:423
 msgid "Output prompt:"
@@ -4222,7 +4224,7 @@ msgstr "出力プロンプト:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:426
 msgid "Default is<br><tt>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
-msgstr ""
+msgstr "デフォルト <br><tt>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:445
 msgid "Windows adjustments"
@@ -4230,11 +4232,11 @@ msgstr "ウインドウの調整"
 
 #: spyder/plugins/ipythonconsole/confpage.py:447
 msgid "Hide command line output windows generated by the subprocess module"
-msgstr ""
+msgstr "サブプロセスもジュルで生成されたコマンドライン出力ウインドウを隠す"
 
 #: spyder/plugins/ipythonconsole/confpage.py:462
 msgid "Plotting"
-msgstr ""
+msgstr "プロット中"
 
 #: spyder/plugins/ipythonconsole/confpage.py:467 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
@@ -4242,11 +4244,11 @@ msgstr "スタートアップ"
 
 #: spyder/plugins/ipythonconsole/confpage.py:486
 msgid "Buffer sizes over 10000 lines can slow down Spyder"
-msgstr ""
+msgstr "バッファサイズが10000を超えるとSpyderの動作が重くなる場合があります"
 
 #: spyder/plugins/ipythonconsole/confpage.py:488
 msgid "Unlimited buffer size can slow down Spyder severely"
-msgstr ""
+msgstr "バッファサイズを無制限にした場合Spyderが深刻な動作低下を起こす場合があります"
 
 #: spyder/plugins/ipythonconsole/plugin.py:237
 msgid "IPython console"
@@ -4258,11 +4260,11 @@ msgstr "Pythonファイル、cell、コード、及びコマンドをインタ�
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "リモートカーネルへの SSH トンネルを開くことができませんでした。認証情報とサーバーの接続状態を確認してください。"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:41
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
-msgstr ""
+msgstr "IPythonコンソールの作成に必要なディレクトリ <tt>{}</tt> が書き込み不可になっています。書き込み可能に変更してください。"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:46
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
@@ -4282,11 +4284,11 @@ msgstr "Python環境あるいは<pre>    <tt>{0}</tt></pre>にあるインター
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:139
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "カーネル環境を有効化するためのpixiが見つかりませんでした。検知可能なようにpixi実行ファイルを含むディレクトリを環境変数PATHに追加してください。"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:168
 msgid "Spyder couldn't find conda, mamba or micromamba in your system to activate the kernel's environment. Please add the directory where at least one of their executables is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "カーネル環境を有効化するためのconda、mambaあるいはmicromambaが見つかりませんでした。検知可能なように少なくともそれらのうち一つを含むディレクトリを環境変数PATHに追加してください。"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:212
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
