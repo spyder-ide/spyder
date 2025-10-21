@@ -10,8 +10,11 @@ Cookiecutter utilities.
 
 import json
 import os
+import tempfile
 
 from cookiecutter.main import cookiecutter
+from git import Repo, GitCommandError
+from urllib.parse import urlparse
 
 
 def generate_cookiecutter_project(cookiecutter_path, output_path,
@@ -41,6 +44,13 @@ def load_cookiecutter_project(project_path):
     """
     options = None
     pre_gen_code = None
+    if urlparse(project_path).scheme in ("http", "https", "git", "ssh"):
+        tmp_dir = tempfile.mkdtemp(prefix="cookiecutter-template-")
+        try:
+            Repo.clone_from(project_path, tmp_dir)
+            project_path = tmp_dir
+        except GitCommandError as e:
+            print("Error cloning repo:", e)
     cookiepath = os.path.join(project_path, "cookiecutter.json")
     pre_gen_path = os.path.join(project_path, "hooks", "pre_gen_project.py")
 
