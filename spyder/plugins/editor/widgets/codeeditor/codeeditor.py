@@ -2237,7 +2237,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
                 if lines_per_message > 2:
                     if len(new_paragraph) > 1:
-                        new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                        new_paragraph = '<br>'.join(new_paragraph[:4]) + '...'
                         long_paragraphs += 1
                         lines_per_message -= 2
                     else:
@@ -2259,8 +2259,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             else:
                 msg = '<br>'.join(new_paragraphs)
 
-            if max_lines_msglist >= 0:
-                msglist.append(f'{msg} <i>({src} {code})</i>')
+            #if max_lines_msglist >= 0:
+            msglist.append(f'{msg}<br> <i>({src} {code})</i>')
 
         if msglist:
             self.show_tooltip(
