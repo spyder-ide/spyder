@@ -146,12 +146,14 @@ DEFAULTS = [
              {
               'default': True,
               'custom': False,
+              'custom_conda': False,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
-              'last_envs': {}
+              'last_envs': {},
+              'conda_path': '',
               }),
             ('ipython_console',
              {
@@ -250,6 +252,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
+              'indent_with_spaces': True,
               'tab_stop_width_spaces': 4,
               'check_eol_chars': True,
               'convert_eol_on_save': False,

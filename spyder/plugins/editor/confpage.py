@@ -43,6 +43,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         self.removetrail_box = None
         self.add_newline_box = None
         self.remove_trail_newline_box = None
+        self.tabwidth_spin = None
+        self.indent_char_box = None
+
+        self.apply_callback = self.set_indent_chars
 
     def setup_page(self):
         newcb = self.create_checkbox
@@ -256,28 +260,23 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         # -- Identation group
         indentation_group = QGroupBox(_("Indentation"))
-        indent_chars_box = self.create_combobox(
-            _("Indentation characters: "),
-            (
-                (_("2 spaces"), "*  *"),
-                (_("3 spaces"), "*   *"),
-                (_("4 spaces"), "*    *"),
-                (_("5 spaces"), "*     *"),
-                (_("6 spaces"), "*      *"),
-                (_("7 spaces"), "*       *"),
-                (_("8 spaces"), "*        *"),
-                (_("Tabulations"), "*\t*"),
-            ),
-            "indent_chars",
-        )
-        tabwidth_spin = self.create_spinbox(
-            _("Tab stop width:"),
+        self.tabwidth_spin = self.create_spinbox(
+            _("Tab width:"),
             _("spaces"),
             "tab_stop_width_spaces",
             default=4,
             min_=1,
-            max_=8,
+            max_=16,
             step=1,
+        )
+        self.indent_char_box = newcb(
+            _("Indent with spaces instead of tabs"),
+            'indent_with_spaces',
+            default=True,
+            tip=_(
+                "When pressing Tab, insert the configured number of spaces "
+                "instead of the tab character"
+            ),
         )
         ibackspace_box = newcb(
             _("Intelligent backspace"),
@@ -300,24 +299,10 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             ),
         )
 
-        def enable_tabwidth_spin(index):
-            if index == 7:  # Tabulations
-                tabwidth_spin.plabel.setEnabled(True)
-                tabwidth_spin.spinbox.setEnabled(True)
-            else:
-                tabwidth_spin.plabel.setEnabled(False)
-                tabwidth_spin.spinbox.setEnabled(False)
-
-        indent_chars_box.combobox.currentIndexChanged.connect(
-            enable_tabwidth_spin
-        )
-
         indent_tab_grid_layout = QGridLayout()
-        indent_tab_grid_layout.addWidget(indent_chars_box.label, 0, 0)
-        indent_tab_grid_layout.addWidget(indent_chars_box.combobox, 0, 1)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.plabel, 1, 0)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.spinbox, 1, 1)
-        indent_tab_grid_layout.addWidget(tabwidth_spin.slabel, 1, 2)
+        indent_tab_grid_layout.addWidget(self.tabwidth_spin.plabel, 0, 0)
+        indent_tab_grid_layout.addWidget(self.tabwidth_spin.spinbox, 0, 1)
+        indent_tab_grid_layout.addWidget(self.tabwidth_spin.slabel, 0, 2)
 
         indent_tab_layout = QHBoxLayout()
         indent_tab_layout.addLayout(indent_tab_grid_layout)
@@ -325,6 +310,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
 
         indentation_layout = QVBoxLayout()
         indentation_layout.addLayout(indent_tab_layout)
+        indentation_layout.addWidget(self.indent_char_box)
         indentation_layout.addWidget(ibackspace_box)
         indentation_layout.addWidget(tab_mode_box)
         indentation_group.setLayout(indentation_layout)
@@ -578,3 +564,20 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
                 else:
                     option.setToolTip("")
                 option.setDisabled(value)
+
+    def set_indent_chars(self):
+        """Set the indent_chars config option per the two sub-options."""
+        if (
+            "tab_stop_width_spaces" not in self.changed_options
+            and "indent_with_spaces" not in self.changed_options
+        ):
+            return
+
+        indent_tab = not self.indent_char_box.checkbox.isChecked()
+        indent_width = (
+            1 if indent_tab else int(self.tabwidth_spin.spinbox.value())
+        )
+        indent_char = "\t" if indent_tab else " "
+        indent_chars = "*{}*".format(indent_char * indent_width)
+
+        self.set_option("indent_chars", indent_chars)
