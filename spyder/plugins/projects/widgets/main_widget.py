@@ -373,9 +373,9 @@ class ProjectExplorerWidget(PluginMainWidget):
                     answer = QMessageBox.warning(
                         self,
                         _("Warning"),
-                        _("<b>%s</b> is not a Spyder project!.<br><br>"
-                          "Do you want to create a new project in this "
-                          "location") % path,
+                        _("<b>%s</b> is not a Spyder project.<br><br>"
+                          "Do you want to create a project in this "
+                          "location?") % path,
                         buttons
                     )
 
@@ -1062,6 +1062,7 @@ class ProjectExplorerWidget(PluginMainWidget):
 
     def _is_valid_location(self, location: str):
         valid = True
+        reason = ""
         if not location:
             reason = _("No directory was selected")
             valid = False
