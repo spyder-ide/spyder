@@ -28,6 +28,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _, get_home_dir
 
+
 KERNEL_CONNECTION_SCHEMA = {
     "type": "object",
     "properties": {
@@ -289,9 +290,9 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
                     self,
                     _('Error'),
                     _(
-                        f"The connection file you passed is not valid.<br><br>"
-                        f"The following error was found: {e.message}"
-                    ),
+                        "The connection file you passed is not valid.<br><br>"
+                        "The following issue was found: {}"
+                    ).format(e.message),
                     QMessageBox.Ok
                 )
 
