@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-21 13:45\n"
+"PO-Revision-Date: 2025-10-22 13:03\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -4329,7 +4329,7 @@ msgstr "カーネル開始中にエラーが発生しました"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:545
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "このコンソールに関連付けられているカーネルに接続できませんでした。 既存のカーネルに接続しようとしている場合、選択した接続ファイルが接続先カーネルに対応していることを確認してください。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:859
 msgid "It was not possible to restart the kernel"
@@ -4345,7 +4345,7 @@ msgstr "図はデフォルトではプロットペイン内に描画されます
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "Connect to existing kernel"
-msgstr ""
+msgstr "既存のカーネルに接続"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:39
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
@@ -4401,7 +4401,7 @@ msgstr "接続設定を保存"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:241
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "指定した接続ファイルは存在しないか、Spyder によって検出できない状態にあります。"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:283
 msgid "Select kernel connection file"
@@ -4441,11 +4441,11 @@ msgstr "カーネルに割り込む"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:488
 msgid "Connect to existing kernel..."
-msgstr ""
+msgstr "既存のカーネルに接続…"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:489
 msgid "Open an IPython console connected to an existing kernel"
-msgstr ""
+msgstr "既存カーネルに接続されたIPythonコンソールを開く"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Rename tab"
@@ -4453,11 +4453,11 @@ msgstr "タブをリネーム"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
 msgid "Switch to next console"
-msgstr ""
+msgstr "次のコンソールに切り替える"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:507
 msgid "Switch to previous console"
-msgstr ""
+msgstr "前のコンソールに切り替える"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:526
 msgid "Show environment variables"
@@ -4549,7 +4549,7 @@ msgstr "コンソールヘルプ"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1253
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1254
 msgid "Unable to connect to <b>%s</b>"
@@ -4581,7 +4581,7 @@ msgstr "Spyder以外によって起動されたカーネルは再起動できま
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2504 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1509 spyder/widgets/collectionseditor.py:1319
 msgid "Don't ask again."
-msgstr ""
+msgstr "次回から確認しない。"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2507
 msgid "Are you sure you want to restart the kernel?"
@@ -4605,7 +4605,7 @@ msgstr "変数が大きすぎて取得できません"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:48
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "カーネル内での変数のコピーあるいはSpyder内でのコピーのロードに失敗しました。<br><br>表示しようとしているオブジェクトにジェネレーターが含まれている場合、ジェネレーターはシリアライズできないため、リストに置き換える必要があります。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:55
 msgid "The kernel is dead"
@@ -4613,55 +4613,55 @@ msgstr "カーネルが死んでいます"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:56
 msgid "An unknown error occurred, sorry."
-msgstr ""
+msgstr "不明なエラーが発生しました。申し訳ありません。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:57
 msgid "The channel used to communicate with the kernel is not working."
-msgstr ""
+msgstr "カーネルとの通信チャンネルが動作していません。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:60
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed in the console environment. To fix this problem, please install it in the environment which you use to run your code."
-msgstr ""
+msgstr "この変数を開くには '<tt>{}</tt>' モジュールが必要ですが、コンソール環境にインストールされていません。 この問題を解決するには、コード実行に使用する環境でモジュールをインストールしてください。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:66
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder.<br><br>If you want to see this fixed in the future, please donate to this <a href='{}'>project</a>."
-msgstr ""
+msgstr "この '<tt>{}</tt>' は変数を開くために必要です。残念ながら我々のインストーラには含まれておらず、これはつまり変数をSpyderで表示することはできないということになります。<br><br>もしこの問題が将来解決することを願うなら、この <a href='{}'>プロジェクト</a>への寄付をお願いします。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:73
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder.<br><br>If you want to see this addressed in the future, please donate to this <a href='{}'>project</a>."
-msgstr ""
+msgstr "この '<tt>{}</tt>' モジュールは変数を開くために必要ですが、Spyderと一緒にインストールされていません。この問題を解決するには現在Spyderを使っているのと同じPython環境へモジュールをインストールしてください。.<br><br>この問題を将来的に解決してほしい場合は、この<a href='{}'>プロジェクト</a>への寄付をご検討ください。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:81
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
-msgstr ""
+msgstr "Spyderによって使用されるNumpyバージョンと、現在のコンソールのカーネルの不一致があります。 この問題を解決するには、 Spyderを実行する環境で<tt>numpy</tt> をバージョン1.26.1以降にアップグレードしてください。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:87
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Spyderによって使用されるPandaのバージョンと、現在のコンソールのカーネルの不一致があります。 この問題を解決するには、 コンソール環境で<tt>panda</tt> をバージョン2.0以降にアップグレードしてください。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Spyderが使用しているPythonバージョン({})と、現在のコンソールのカーネル({})の不一致があります。<br><br>修正するには、コンソール環境をPython {} または {} で再作成する必要があります。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Spyderが使用しているPythonバージョン({})と、現在のコンソールのカーネル({})の不一致があります。<br><br>修正するには、SpyderをPython {} または {} の環境で再インストールするか、コンソール環境をPython {} または {}で再作成する必要があります。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:107 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:243
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>注</b>: もしこれがSpyder開発チームが修正すべきエラーと考えられるなら、 <a href='{}'>Github</a>上で報告してください。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:155 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:169
 msgid "greater"
-msgstr ""
+msgstr "より大きい"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:157 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:167
 msgid "lower"
-msgstr ""
+msgstr "より小さい"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:237
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Spyderによって使用されるNumpyのバージョンと、現在のコンソールのカーネルの不一致があります。 この問題を解決するには、 コンソール環境で<tt>numpy</tt> をバージョン2.0以降にアップグレードしてください。"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -4761,7 +4761,7 @@ msgstr "クリックしてインラインとインタラクティブなMatplotli
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:275
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "環境設定で既定の環境を変更…"
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4781,7 +4781,7 @@ msgstr "全画面モードの場合に macOS 内蔵機能を使用"
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "WSLのフルスクリーンモードは確実には動作しません"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -4871,15 +4871,15 @@ msgstr "クイックスイッチレイアウト #%s は未定義です。"
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "レイアウトに名前を付けてください"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "レイアウトを名前を付けて保存"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
-msgstr ""
+msgstr "保存したレイアウトの順序を変更または削除"
 
 #: spyder/plugins/layout/widgets/dialog.py:228
 msgid "Move up"
@@ -4895,27 +4895,27 @@ msgstr "レイアウトを削除"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "レイアウト表示と順序"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "レイアウトの削除"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr ""
+msgstr "レイアウト '<b>{}</b> を削除しますか？"
 
 #: spyder/plugins/maininterpreter/confpage.py:69
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "新規IPythonコンソールとエディタでのコード補完を提供するための、デフォルトのPythonインタプリタを選択してください"
 
 #: spyder/plugins/maininterpreter/confpage.py:76
 msgid "Internal (same used by Spyder)"
-msgstr ""
+msgstr "内部 (Spyderで使用されているものと同じ)"
 
 #: spyder/plugins/maininterpreter/confpage.py:81
 msgid "Selected interpreter:"
-msgstr ""
+msgstr "選択されたインタプリタ："
 
 #: spyder/plugins/maininterpreter/confpage.py:87
 msgid "Executables"
@@ -4931,7 +4931,7 @@ msgstr "モジュールリローダーを使用 (UMR)"
 
 #: spyder/plugins/maininterpreter/confpage.py:120
 msgid "UMR forces Python to reload imported modules when running a file in an IPython console."
-msgstr ""
+msgstr "UMRは、IPythonコンソールでのファイル実行時に、インポートされたモジュールをPythonへ強制的に読み込ませます。"
 
 #: spyder/plugins/maininterpreter/confpage.py:127
 msgid "Enable UMR"
@@ -4939,36 +4939,37 @@ msgstr "UMRを有効化"
 
 #: spyder/plugins/maininterpreter/confpage.py:129 spyder/plugins/maininterpreter/confpage.py:148
 msgid "This change will only be applied to new consoles"
-msgstr ""
+msgstr "この変更は新しいコンソールにのみ適用されます"
 
 #: spyder/plugins/maininterpreter/confpage.py:130
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
-msgstr ""
+msgstr "このオプションはIPython コンソールでのユーザーモジュールリローダー (UMR) を有効化します。UMRはSpyderの<code>Run</code> コマンドでPythonファイルを実行する時に、インポートされたモジュールの再読み込みを強制します。<br><br>有効化後にUMRはコンソールの再起動を必要とします（そうしなければ新しくインポートされたモジュールのみが再読込されます）。<br><br> PyQtを使ったプログラムの再実行時にエラーが発生した場合、Qtオブジェクトが適切に破棄されているか確認してください。(例： <code>Qt.WA_DeleteOnClose</code> 属性をメインウインドウに<code>setAttribute</code>メソッドで適用する必要がある、など)。"
 
 #: spyder/plugins/maininterpreter/confpage.py:146
 msgid "Print list of reloaded modules"
-msgstr ""
+msgstr "再読み込みされたモジュールのリストを表示"
 
 #: spyder/plugins/maininterpreter/confpage.py:151
 msgid "Select modules to exclude from being reloaded"
-msgstr ""
+msgstr "再読み込みから除外するモジュールを選択"
 
 #: spyder/plugins/maininterpreter/confpage.py:172 spyder/plugins/maininterpreter/confpage.py:192 spyder/plugins/maininterpreter/confpage.py:200
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:173
 msgid "List of excluded modules (e.g. {})"
-msgstr ""
+msgstr "除外されたモジュールのリスト (例: {})"
 
 #: spyder/plugins/maininterpreter/confpage.py:193
 msgid "The following modules are not installed:\n"
 "{}"
-msgstr ""
+msgstr "以下のモジュールはインストールされていません:\n"
+"{}"
 
 #: spyder/plugins/maininterpreter/confpage.py:201
 msgid "Changes will only be applied to new IPython consoles"
-msgstr ""
+msgstr "変更は新しいIPythonコンソールにのみ適用されます"
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
@@ -5072,7 +5073,7 @@ msgstr "特別なコメントを表示"
 
 #: spyder/plugins/outlineexplorer/main_widget.py:126
 msgid "Group code cells"
-msgstr ""
+msgstr "コードセルをグループ化"
 
 #: spyder/plugins/outlineexplorer/main_widget.py:132
 msgid "Display variables and attributes"
@@ -5280,15 +5281,15 @@ msgstr "Spyderの設定を管理します。"
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
-msgstr ""
+msgstr "すべての設定をデフォルトに戻す"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
-msgstr ""
+msgstr "プロファイリング終了時にプロファイラを開く"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
-msgstr ""
+msgstr "このオプションは、プロファイリング終了時にプロファイラプラグインに切り替えます。"
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
