@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-22 13:03\n"
+"PO-Revision-Date: 2025-10-22 14:48\n"
 "Last-Translator: \n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -5293,7 +5293,7 @@ msgstr "このオプションは、プロファイリング終了時にプロフ
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
-msgstr ""
+msgstr "ローカル時刻表示時の最大表示項目数"
 
 #: spyder/plugins/profiler/plugin.py:60 spyder/plugins/profiler/widgets/main_widget.py:121 spyder/plugins/tours/tours.py:186
 msgid "Profiler"
@@ -5305,11 +5305,11 @@ msgstr "実行時のボトルネックを見つけるためにPythonファイル
 
 #: spyder/plugins/profiler/plugin.py:149 spyder/plugins/profiler/plugin.py:150
 msgid "Profile file"
-msgstr ""
+msgstr "ファイルをプロファイルする"
 
 #: spyder/plugins/profiler/plugin.py:164 spyder/plugins/profiler/plugin.py:165
 msgid "Profile cell"
-msgstr ""
+msgstr "セルをプロファイルする"
 
 #: spyder/plugins/profiler/plugin.py:179 spyder/plugins/profiler/plugin.py:180
 msgid "Profile current line or selection"
@@ -5325,15 +5325,15 @@ msgstr "どの関数あるいはメソッドの実行時間が最も長く、最
 
 #: spyder/plugins/profiler/widgets/main_widget.py:92
 msgid "Show functions or modules that call the root item"
-msgstr ""
+msgstr "ルートアイテムを呼び出している関数またはモジュールを表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:93
 msgid "Show functions or modules called by the root item"
-msgstr ""
+msgstr "ルートアイテムから呼び出されている関数またはモジュールを表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:94
 msgid "Show functions or modules that call an item or are called by it"
-msgstr ""
+msgstr "アイテムを呼び出している/呼び出されている関数またはモジュールを表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:127
 msgid "Collapse"
@@ -5353,11 +5353,11 @@ msgstr "１つ下のレベルに展開"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:148 spyder/plugins/profiler/widgets/main_widget.py:149
 msgid "Show items with large local time"
-msgstr ""
+msgstr "アイテムを詳細なローカル時間で表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:155 spyder/plugins/profiler/widgets/main_widget.py:156
 msgid "Hide calls to external libraries"
-msgstr ""
+msgstr "外部ライブラリの呼び出しを隠す"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:162 spyder/plugins/variableexplorer/widgets/main_widget.py:166 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:416 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:443
 msgid "Save data"
@@ -5381,19 +5381,19 @@ msgstr "比較をクリア"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:183
 msgid "Search"
-msgstr ""
+msgstr "検索"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:190
 msgid "Stop profiling"
-msgstr ""
+msgstr "プロファイリングを停止"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:262
 msgid "Show functions or modules called by this item"
-msgstr ""
+msgstr "このアイテムに呼ばれている関数あるいはモジュールを表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:268
 msgid "Show functions or modules that call this item"
-msgstr ""
+msgstr "このアイテムを読んでいる関数またはモジュールを表示"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:654
 msgid "Save profiler result"
@@ -5445,11 +5445,11 @@ msgstr "関数あるいはモジュール名"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:898
 msgid "Time spent in function (including sub-functions)"
-msgstr ""
+msgstr "(サブ関数を含む)この関数で消費した時間"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:901
 msgid "Local time spent in function (not in sub-functions)"
-msgstr ""
+msgstr "(サブ関数を含まない)関数で消費したローカル時間"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:904
 msgid "Total number of calls (including recursion)"
@@ -5457,7 +5457,7 @@ msgstr "合計コール回数 (再帰呼出しを含む)"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:905
 msgid "File and line where the function is defined"
-msgstr ""
+msgstr "関数が定義されたファイル及び行"
 
 #: spyder/plugins/projects/api.py:187
 msgid "Empty project"
@@ -5505,7 +5505,7 @@ msgstr "最近開いたプロジェクト"
 
 #: spyder/plugins/projects/widgets/main_widget.py:280
 msgid "Search project files in the switcher"
-msgstr ""
+msgstr "スイッチャー内のプロジェクトファイルを検索"
 
 #: spyder/plugins/projects/widgets/main_widget.py:348
 msgid "<b>{}</b> is not a registered Spyder project type!"
@@ -5537,39 +5537,39 @@ msgstr "位置"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:137 spyder/plugins/projects/widgets/projectdialog.py:301
 msgid "This is empty"
-msgstr ""
+msgstr "これは空です"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:142
 msgid "This directory doesn't exist"
-msgstr ""
+msgstr "このディレクトリは存在しません"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:148
 msgid "This directory is not writable"
-msgstr ""
+msgstr "このディレクトリは書き込み不可です"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:170
 msgid "You selected a Spyder project"
-msgstr ""
+msgstr "スパイダープロジェクトを選択しました"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:185
 msgid "The directory you selected for this project already exists."
-msgstr ""
+msgstr "このプロジェクトで選択したディレクトリは既に存在します。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:194
 msgid "This directory is already a Spyder project."
-msgstr ""
+msgstr "このディレクトリはすでにスパイダープロジェクトのものです。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:200
 msgid "You don't have write permissions in the location you selected."
-msgstr ""
+msgstr "選択した場所に書き込み権限がありません。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:209
 msgid "The location you selected doesn't exist."
-msgstr ""
+msgstr "選択した場所は存在しません。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:216
 msgid "The directory name you selected is not valid."
-msgstr ""
+msgstr "選択したディレクトリ名は無効です。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:696
 msgid "There are missing fields on this page."
@@ -5577,7 +5577,7 @@ msgstr "このページに未入力の項目があります。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
-msgstr ""
+msgstr "プロジェクト ディレクトリ作成場所を選択"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:239
 msgid "New directory"
@@ -5585,27 +5585,27 @@ msgstr "新規ディレクトリ"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
 msgid "Start a project in a new directory"
-msgstr ""
+msgstr "プロジェクトを新しいディレクトリで開始"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
-msgstr ""
+msgstr "プロジェクトの詳細については、 <a href=\"{0}\">ドキュメント</a> を参照してください。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
 msgid "Project directory"
-msgstr ""
+msgstr "プロジェクトディレクトリ"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
-msgstr ""
+msgstr "以下の場所にこの名前のディレクトリが作成されます"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
 msgid "A directory with this name already exists"
-msgstr ""
+msgstr "この名前のディレクトリは既に存在します"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
-msgstr ""
+msgstr "プロジェクトディレクトリに ':' を含めることはできません"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:327 spyder/plugins/pythonpath/widgets/pathmanager.py:341
 msgid "Project path"
@@ -5613,7 +5613,7 @@ msgstr "プロジェクトのパス"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:328
 msgid "Select the directory to use for the project"
-msgstr ""
+msgstr "プロジェクトで使用するディレクトリを選択"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:331
 msgid "Existing directory"
@@ -5949,7 +5949,7 @@ msgstr "JupyterHub サーバーに接続するための設定を構成する"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:191
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
-msgstr ""
+msgstr "Spyderは、IPythonコンソールでリモートカーネルを起動するためにこの接続を使用します。 これによりJupyterHubを経由して、ローカルのSpyderをリモートで使用することができます。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:241
 msgid "Configure SSH settings for connecting to remote hosts"
@@ -6017,7 +6017,7 @@ msgstr "キーファイル *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:460
 msgid "Passphrase"
-msgstr ""
+msgstr "パスフレーズ"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:463
 msgid "Your passphrase will be saved securely by Spyder"
@@ -6033,7 +6033,7 @@ msgstr "設定ファイル *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:556
 msgid "Server URL *"
-msgstr ""
+msgstr "サーバー URL *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:558
 msgid "This is the URL of the JupyterHub server"
@@ -6077,39 +6077,39 @@ msgstr "リモートホスト上に Python 環境を作成する"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:891
 msgid "Decide whether you want to create a remote environment to run your code and how to do it"
-msgstr ""
+msgstr "コードを実行するためにリモート環境を作成するかどうか、またその方法を決定します"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:917
 msgid "Available methods"
-msgstr ""
+msgstr "利用可能な方法"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:924
 msgid "Create a new environment"
-msgstr ""
+msgstr "新規環境を作成"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:930
 msgid "Import an existing environment"
-msgstr ""
+msgstr "既存の環境をインポート"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:936
 msgid "Don't create an environment"
-msgstr ""
+msgstr "環境を作成しない"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:950
 msgid "Required information"
-msgstr ""
+msgstr "必要な情報"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:968
 msgid "You can set up an environment later by going to the menu entry <i>Tools > Environment manager</i>."
-msgstr ""
+msgstr "後でメニュー項目 <i>ツール > 環境マネージャー</i> に移動して環境を設定できます。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1019
 msgid "Select packages for your remote environment"
-msgstr ""
+msgstr "リモート環境のパッケージを選択"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1020
 msgid "Choose the packages you want to install in your remote Python environment"
-msgstr ""
+msgstr "リモートPython環境でインストールしたいパッケージを選択"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1095
 msgid "Connection status"
@@ -6165,15 +6165,15 @@ msgstr "ステータス: <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:109
 msgid "Manage remote connections"
-msgstr ""
+msgstr "リモート接続の管理"
 
 #: spyder/plugins/remoteclient/widgets/container.py:135
 msgid "Remote server error"
-msgstr ""
+msgstr "リモートサーバーエラー"
 
 #: spyder/plugins/remoteclient/widgets/container.py:136
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
-msgstr ""
+msgstr "<tt>spyder-remote-services</tt>バージョン(リモートホスト <b>{server}</b> 上<b>{srs_version}</b>) がSpyderがサポートする最新版(<b>{max_version}</b>)よりも新しいです。<br><br>このホストに接続するにはSpyderをアップデートしてください。"
 
 #: spyder/plugins/run/confpage.py:153
 msgid "%s (copy)"
@@ -6241,7 +6241,7 @@ msgstr "設定の実行"
 
 #: spyder/plugins/run/container.py:96
 msgid "&Global presets"
-msgstr ""
+msgstr "グローバルな既定値(&G)"
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
@@ -6321,7 +6321,7 @@ msgstr "以下への新しい実行設定：{}"
 
 #: spyder/plugins/run/widgets.py:598
 msgid "Configure the selected runner for this file"
-msgstr ""
+msgstr "このファイルのために選択したランナーを設定"
 
 #: spyder/plugins/run/widgets.py:605
 msgid "Preset configuration:"
@@ -6365,11 +6365,11 @@ msgstr "カスタム"
 
 #: spyder/plugins/shortcuts/confpage.py:33
 msgid "Reset all shortcuts to default values"
-msgstr ""
+msgstr "すべてのショートカットを既定値にリセット"
 
 #: spyder/plugins/shortcuts/confpage.py:36
 msgid "Customize a shortcut by double-clicking on its entry below."
-msgstr ""
+msgstr "下の項目をダブルクリックしてショートカットをカスタマイズします。"
 
 #: spyder/plugins/shortcuts/confpage.py:43 spyder/widgets/helperwidgets.py:512
 msgid "Type to search"
