@@ -45,6 +45,7 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
+from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 
@@ -85,7 +86,7 @@ class CreateEnvMethods:
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 800
+    MIN_HEIGHT = 450
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -655,6 +656,20 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         host_layout.addLayout(port_label_layout, 0, 1)
         host_layout.addWidget(port.spinbox, 1, 1)
 
+        # advanced params
+        advanced_config = CollapsibleWidget(self, _("Advanced configuration"))
+        advanced_config_widget = QWidget(self)
+        advanced_layout = QVBoxLayout()
+        advanced_layout.addWidget(username)
+        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
+        advanced_layout.addWidget(password)
+        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
+        advanced_layout.addWidget(keyfile)
+        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
+        advanced_layout.addWidget(passphrase)
+        advanced_config_widget.setLayout(advanced_layout)
+        advanced_config.addWidget(advanced_config_widget)
+
         configfile_layout = QVBoxLayout()
         configfile_layout.setContentsMargins(0, 0, 0, 0)
         configfile_layout.addWidget(name)
@@ -663,13 +678,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         configfile_layout.addSpacing(5 * AppStyle.MarginSize)
         configfile_layout.addWidget(configfile)
         configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(username)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(password)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(keyfile)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(passphrase)
+        configfile_layout.addWidget(advanced_config)
         configfile_layout.addSpacing(7 * AppStyle.MarginSize)
         configfile_layout.addWidget(validation_label)
         configfile_layout.addStretch()
@@ -1273,6 +1282,16 @@ class ConnectionPage(BaseConnectionPage):
 
         self.create_tab(_("Connection status"), self.status_widget)
         self.create_tab(_("Connection info"), info_widget)
+
+    def initialize(self):
+        super().initialize()
+        # Validate config file if available so related widgets get updated
+        # when initializing the page
+        configfile_path = self.get_option(
+            f"{self.host_id}/configfile", default=""
+        )
+        if configfile_path:
+            self._validate_config_file(configfile_path)
 
     def get_icon(self):
         return self.create_icon("remote_server")
