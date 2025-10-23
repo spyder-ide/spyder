@@ -30,14 +30,10 @@ class ShortcutsConfigPage(PluginConfigPage):
         reset_btn = self.create_button(
             icon=ima.icon("restart"),
             callback=self.reset_to_default,
-            tooltip=_("Reset to default values"),
+            tooltip=_("Reset all shortcuts to default values"),
         )
         top_label = QLabel(
-            _(
-                "Here you can browse the list of all available shortcuts in "
-                "Spyder. You can also customize them by double-clicking on "
-                "any entry in this table."
-            )
+            _("Customize a shortcut by double-clicking on its entry below.")
         )
 
         # Widget setup
@@ -71,11 +67,11 @@ class ShortcutsConfigPage(PluginConfigPage):
         self.table.check_shortcuts()
 
     def reset_to_default(self, force=False):
-        """Reset to default values of the shortcuts making a confirmation."""
+        """Reset all shortcuts to default values after confirmation."""
         if not force:
             reset = QMessageBox.warning(
                 self,
-                _("Shortcuts reset"),
+                _("Reset all shortcuts"),
                 _(
                     "Do you want to reset all shortcuts to their default "
                     "values?"

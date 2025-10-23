@@ -95,9 +95,9 @@ class AppearanceConfigPage(PluginConfigPage):
         syntax_group = QGroupBox(_("Syntax highlighting theme"))
 
         # Syntax Widgets
-        edit_button = QPushButton(_("Edit selected scheme"))
-        create_button = QPushButton(_("Create new scheme"))
-        self.delete_button = QPushButton(_("Delete scheme"))
+        edit_button = QPushButton(_("Edit selected theme"))
+        create_button = QPushButton(_("Create new theme"))
+        self.delete_button = QPushButton(_("Delete theme"))
         self.reset_button = QPushButton(_("Reset to defaults"))
 
         self.stacked_widget = QStackedWidget(self)
@@ -560,10 +560,12 @@ class AppearanceConfigPage(PluginConfigPage):
         """Deletes the currently selected custom color scheme."""
         scheme_name = self.current_scheme
 
-        answer = QMessageBox.warning(self, _("Warning"),
-                                     _("Are you sure you want to delete "
-                                       "this scheme?"),
-                                     QMessageBox.Yes | QMessageBox.No)
+        answer = QMessageBox.warning(
+            self,
+            _("Warning"),
+            _("Are you sure you want to delete this theme?"),
+            QMessageBox.Yes | QMessageBox.No,
+        )
         if answer == QMessageBox.Yes:
             # Put the combobox in Spyder by default, when deleting a scheme
             names = self.get_option('names')

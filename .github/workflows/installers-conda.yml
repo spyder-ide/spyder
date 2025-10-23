@@ -93,7 +93,7 @@ jobs:
         fi
         if [[ $BUILD_WIN == "true" ]]; then
             target_platform=${target_platform:+"$target_platform, "}"'win-64'"
-            include=${include:+"$include, "}"{'os': 'windows-latest', 'target-platform': 'win-64', 'spyk-arch': 'win-64'}"
+            include=${include:+"$include, "}"{'os': 'windows-2022', 'target-platform': 'win-64', 'spyk-arch': 'win-64'}"
         fi
 
         if [[ $GITHUB_EVENT_NAME == "schedule" ]]; then

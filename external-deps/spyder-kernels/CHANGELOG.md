@@ -1,5 +1,27 @@
 # History of changes
 
+## Version 3.1.0 (2025/10/01)
+
+### New features
+
+* Disable magics and commands to call Python package managers (e.g. `!pip` or `%conda`).
+* Add `%profile`, `%profilefile` and `%profilecell` magics.
+* Add support for IPython 9.
+* Drop support for Python 3.8.
+
+----
+
+## Version 3.1.0b2 (2025/09/26)
+
+### Pull Requests Merged
+
+* [PR 562](https://github.com/spyder-ide/spyder-kernels/pull/562) - PR: Bump minimal supported IPython version to 8.15, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 561](https://github.com/spyder-ide/spyder-kernels/pull/561) - PR: Update release instructions after switching to `pyproject.toml`, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.1.0b1 (2025/09/10)
 
 ### Issues Closed

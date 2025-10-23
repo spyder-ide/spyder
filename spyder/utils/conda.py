@@ -266,3 +266,32 @@ def conda_version(conda_executable=None):
     except Exception:
         pass
     return version
+
+
+def validate_conda(conda_executable):
+    """
+    Validate that a path points to a working conda-like executable.
+
+    The function checks that the file exists, is executable, and that
+    calling it with `--version` identifies it as conda, mamba, or
+    micromamba.
+    """
+    valid = False
+    if conda_executable == "":
+        return True
+
+    if not os.path.isfile(conda_executable):
+        return False
+
+    if not os.access(conda_executable, os.X_OK):
+        return False
+
+    try:
+        out, __ = run_program(conda_executable, ['--version']).communicate()
+        if any(
+            tool in out.decode().lower()
+                for tool in ["micromamba", "mamba", "conda"]):
+            valid = True
+    except Exception:
+        return False
+    return valid

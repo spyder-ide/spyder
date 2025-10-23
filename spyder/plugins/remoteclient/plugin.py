@@ -513,3 +513,11 @@ class RemoteClient(SpyderPluginV2):
         for config_id in self.get_config_ids():
             self.set_conf(f"{config_id}/status", ConnectionStatus.Inactive)
             self.set_conf(f"{config_id}/status_message", "")
+
+    @AsyncDispatcher(loop="asyncssh")
+    async def _abort_connection(self, config_id: str):
+        if config_id not in self._remote_clients:
+            return
+
+        client = self._remote_clients[config_id]
+        await client.abort_connection()
