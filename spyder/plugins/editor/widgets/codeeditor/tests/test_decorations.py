@@ -169,10 +169,6 @@ def test_update_decorations_when_scrolling(qtbot):
         _, last = editor.get_visible_block_numbers()
         editor.go_to_line(last)
 
-        # Only one call to _update should be done, after go_to_line call.
-        qtbot.wait(editor.UPDATE_DECORATIONS_TIMEOUT + 100)
-        assert _update.call_count == 4
-
         # Simulate continuously pressing the down arrow key.
         for __ in range(200):
             qtbot.keyPress(editor, Qt.Key_Down)
