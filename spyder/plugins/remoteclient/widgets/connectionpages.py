@@ -828,19 +828,6 @@ class NewConnectionPage(BaseConnectionPage):
                     AuthenticationMethod.JupyterHub,
                 )
 
-    # ---- BaseConnectionPage API
-    # -------------------------------------------------------------------------
-    def validate_page(self):
-        # Skip this because it means the info validation was already done
-        if (
-            ENV_MANAGER
-            and self.get_current_tab() == "SSH"
-            and not self.is_ssh_info_widget_shown()
-        ):
-            return True
-        else:
-            return super().validate_page()
-
     # ---- Public API
     # -------------------------------------------------------------------------
     def reset_page(self, clear=False):
