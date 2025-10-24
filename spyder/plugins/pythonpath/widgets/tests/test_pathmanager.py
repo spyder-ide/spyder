@@ -113,7 +113,7 @@ def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
-    # Uncheck 's2' and assert that it is removed from PYTHONPATH when it
+    # Uncheck 's2' and assert that it is retained in PYTHONPATH when it
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
     pathmanager.export_pythonpath()

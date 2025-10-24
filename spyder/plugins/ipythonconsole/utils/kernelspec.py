@@ -259,7 +259,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             path = ";".join([p for p in path if p])  # Stringify
             env_vars["PATH"] = path
 
-        # User variables supercede system variables
+        # User variables supersede system variables
         for k, v in os.environ.items():
             env_vars.setdefault(k, v)
 
