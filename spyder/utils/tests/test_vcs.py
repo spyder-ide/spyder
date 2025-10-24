@@ -11,7 +11,6 @@ Tests for vcs.py
 # Standard library imports
 import os
 import os.path as osp
-import sys
 
 # Test library imports
 from spyder.utils import programs
@@ -31,7 +30,7 @@ skipnogit = pytest.mark.skipif(not(get_vcs_root(HERE)),
 
 
 @skipnogit
-@pytest.mark.skipif(running_in_ci(), reason="Not to be run outside of CIs")
+@pytest.mark.skipif(not running_in_ci(), reason="Not to be run outside of CIs")
 def test_vcs_tool():
     if not os.name == 'nt':
         with pytest.raises(ActionToolNotFound):

@@ -27,13 +27,13 @@ from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
-    UPDATER_PATH,
     UpdateType,
     validate_download,
     WorkerUpdate,
     WorkerUpdateUpdater,
     WorkerDownloadInstaller
 )
+from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.programs import get_temp_dir, is_program_installed
@@ -307,13 +307,17 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         version = self.asset_info["version"]
 
         if self._validate_download():
-            self.set_status(DOWNLOAD_FINISHED)
-            self._confirm_install()
+            if self.asset_info["update_type"] == UpdateType.Major:
+                # Major updates don't need Updater, start install
+                self.set_status(DOWNLOAD_FINISHED)
+                self._confirm_install()
+            else:
+                # Minor/micro updates need the Updater
+                self._start_update_updater()
         elif not is_conda_based_app():
             msg = _(
-                "Would you like to automatically download and "
-                "install it using Spyder's installer?"
-                "<br><br>"
+                "Would you like to download and install the update "
+                "using Spyder's installer?<br><br>"
                 "We <a href='{}'>recommend our own installer</a> "
                 "because it's more stable and makes updating easy. "
                 "This will leave your existing Spyder installation "
@@ -330,8 +334,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                     self, version, self.update_worker.channel
                 )
         else:
-            msg = _("Would you like to automatically download "
-                    "and install it?")
+            msg = _("Would you like to download the update?")
             box = confirm_messagebox(
                 self, msg, _('Spyder update'), version=version, checkbox=True
             )
@@ -381,6 +384,11 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         Start downloading the installer in a QThread
         and set downloading status.
         """
+        if self._validate_download():
+            # Update already downloaded, start install
+            self._confirm_install()
+            return
+
         self.cancelled = False
         if self.progress_dialog is not None:
             self.progress_dialog.accept()
@@ -572,7 +580,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 "Updating Spyder, this will take a few minutes ..."
             ),
             "success_message": _(
-                "The update was succesful!<br>Spyder will be launched shortly"
+                "The update was succesful! Spyder will be launched shortly"
             ),
             "failure_message": _("Unfortunately the update failed"),
             "error_message": _("There was an error in the update process"),
@@ -600,7 +608,8 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             json.dump(info, f, indent=4)
 
         # Launch updater
-        cmd = [UPDATER_PATH, "--update-info-file", info_file]
+        updater_path, __ = get_updater_info()
+        cmd = [updater_path, "--update-info-file", info_file]
         if self.restart_spyder:
             cmd.append("--start-spyder")
         subprocess.Popen(" ".join(cmd), shell=True)

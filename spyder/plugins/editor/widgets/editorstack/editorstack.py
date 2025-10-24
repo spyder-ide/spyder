@@ -67,6 +67,7 @@ class EditorStackActions:
     CopyAbsolutePath = "copy_absolute_path_action"
     CopyRelativePath = "copy_relative_path_action"
     CloseAllRight = "close_all_rigth_action"
+    CloseAllLeft = "close_all_left_action"
     CloseAllButThis = "close_all_but_this_action"
     SortTabs = "sort_tabs_action"
     ShowInExternalFileExplorer = "show in external file explorer"
@@ -275,6 +276,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             EditorStackActions.CloseAllRight,
             text=_("Close all to the right"),
             triggered=self.close_all_right,
+            register_action=False
+        )
+        self.close_left = self.create_action(
+            EditorStackActions.CloseAllLeft,
+            text=_("Close all to the left"),
+            triggered=self.close_all_left,
             register_action=False
         )
         self.close_all_but_this = self.create_action(
@@ -1348,6 +1355,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             # close and order section
             close_order_actions = [
                 self.close_right,
+                self.close_left,
                 self.close_all_but_this,
                 self.sort_tabs
             ]
@@ -1742,6 +1750,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         n = self.get_stack_count()
         for __ in range(num, n - 1):
             self.close_file(num + 1)
+
+    def close_all_left(self):
+        """Close all files opened to the left."""
+        n = self.get_stack_index()
+        for __ in range(n):
+            self.close_file(0)
 
     def on_close_all_but_this(self):
         """Close all files but the current one"""

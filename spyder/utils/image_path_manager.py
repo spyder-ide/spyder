@@ -11,7 +11,6 @@ import warnings
 
 # Local imports
 from spyder.config.base import get_module_data_path
-from spyder.config.gui import is_dark_interface
 
 # =============================================================================
 # Image path list
@@ -32,20 +31,29 @@ class ImagePathManager():
             return
 
         for dirpath, __, _filenames in os.walk(path):
-            if is_dark_interface() and osp.basename(dirpath) == 'light':
-                continue
-            elif not is_dark_interface() and osp.basename(dirpath) == 'dark':
-                continue
             for filename in _filenames:
                 if filename.startswith('.'):
                     continue
                 name, __ = osp.splitext(osp.basename(filename))
                 complete_path = osp.join(dirpath, filename)
+
                 if name in self.IMG_PATH:
                     warnings.warn(
                         f'The icon located in {complete_path} is overriding '
                         f'the existing {name}')
-                self.IMG_PATH[name] = complete_path
+
+                    existing_path = self.IMG_PATH[name]
+                    if osp.basename(dirpath) == 'svg':
+                        # If current file is from svg directory, it has
+                        # priority
+                        self.IMG_PATH[name] = complete_path
+                    elif osp.basename(osp.dirname(existing_path)) == 'svg':
+                        # If existing file is from svg directory, keep it
+                        continue
+                    else:
+                        self.IMG_PATH[name] = complete_path
+                else:
+                    self.IMG_PATH[name] = complete_path
 
     def get_image_path(self, name):
         """Get path of the image given its name."""

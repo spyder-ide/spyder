@@ -78,6 +78,9 @@ class ApplicationConfigPage(PluginConfigPage):
             'check_stable_only',
             section='update_manager'
         )
+        disable_zoom_mouse_cb = newcb(
+            _("Disable zoom with Ctrl/Cmd + mouse wheel"), "disable_zoom_mouse"
+        )
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -101,6 +104,7 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(popup_console_box)
         advanced_layout.addWidget(check_update_cb)
         advanced_layout.addWidget(stable_only_cb)
+        advanced_layout.addWidget(disable_zoom_mouse_cb)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)

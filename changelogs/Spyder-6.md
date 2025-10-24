@@ -1,6 +1,6 @@
 # History of changes for Spyder 6
 
-## Version 6.1.0 (Unreleased)
+## Version 6.1.0 (2025/10/02)
 
 ### New features
 
@@ -14,14 +14,13 @@
 * Add support to connect to JupyterHub servers.
 * Add support to use Pixi environments in the IPython console.
 * Paths can be added to the front of `sys.path` in the Pythonpath manager.
-* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
 * Add option to show/hide the Editor's file name toolbar to `Preferences > Editor > Interface`.
-* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
+* Add option to disable zoom with Ctrl + mouse wheel to `Preferences > Application > Advanced settings`.
+* Add option to lint docstrings with the Google style to `Preferences > Completion and linting > Linting`.
 
 ### Important fixes
 
-* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now. 
-* Make shortcuts to move to different panes work when they are undocked.
+* Much better support for PyQt6 and PySide6. PyQt 6.9.0+ and PySide >=6.8.0,<6.9.0 are required now.
 * Remove blank lines around cells when copying their contents to the console.
 * Automatically kill kernels when Spyder crashes.
 * Disable magics and commands to call Python package managers in the IPython console because they don't work reliably there.
@@ -30,11 +29,14 @@
 
 ### UX/UI improvements
 
-* Reorganize most menus to make them easier to navigate.
+* Reorganize most menus and Preferences pages to make them easier to navigate.
 * Allow to zoom in/out with Ctrl + mouse wheel in the IPython console.
+* Make shortcuts to move to different panes work when they are undocked.
+* Copy/cut the current line if nothing is selected in the Editor with `Ctrl+C`/`Ctrl+X`, respectively.
 * Add `Shift+Alt+Right/Left` shortcuts to move to the next/previous console.
 * Add shortcut `Ctrl+W` to close Variable Explorer viewers.
 * Add option to hide all messages displayed in panes that are empty to `Preferences > Application > Interface`.
+* Select full floating point numbers by double-clicking them on the Editor and the IPython console.
 * Fix plots looking blurred when scaling is enabled in high DPI screens.
 
 ### API changes
@@ -157,6 +159,69 @@
 
 * **Breaking** - Remove `old_conf_version` method from `SpyderConfigurationAccessor`.
 * Add `OptionalPlugins` enum for plugins that Spyder can rely on to provide additional functionality.
+
+### Issues Closed
+
+* [Issue 25007](https://github.com/spyder-ide/spyder/issues/25007) - Add support for Google style docstrings in Ruff-based linting options ([PR 25045](https://github.com/spyder-ide/spyder/pull/25045) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24970](https://github.com/spyder-ide/spyder/issues/24970) - Ruff support not working on Windows installer (cmd gets shown and no analysis results are shown on the Editor) ([PR 25089](https://github.com/spyder-ide/spyder/pull/25089) by [@dalthviz](https://github.com/dalthviz))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 25103](https://github.com/spyder-ide/spyder/pull/25103) - PR: Update `spyder-kernels` to 3.1.0 (for Spyder 6.1.0) , by [@dalthviz](https://github.com/dalthviz)
+* [PR 25102](https://github.com/spyder-ide/spyder/pull/25102) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 25100](https://github.com/spyder-ide/spyder/pull/25100) - PR: Add new features included in the last 6.1.0 pre-releases to Changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25092](https://github.com/spyder-ide/spyder/pull/25092) - PR: Fix calling `_confirm_install` method in `UpdateManagerWidget`, by [@mrclary](https://github.com/mrclary)
+* [PR 25089](https://github.com/spyder-ide/spyder/pull/25089) - PR: Update `python-lsp-ruff` to >=2.3.0 (Dependencies), by [@dalthviz](https://github.com/dalthviz) ([24970](https://github.com/spyder-ide/spyder/issues/24970))
+* [PR 25088](https://github.com/spyder-ide/spyder/pull/25088) - PR: Always check for updates to Spyder Updater for minor/micro updates, even if the Spyder update is already downloaded, by [@mrclary](https://github.com/mrclary)
+* [PR 25079](https://github.com/spyder-ide/spyder/pull/25079) - PR: Update translations for 6.1.0 (more strings), by [@dalthviz](https://github.com/dalthviz)
+* [PR 25078](https://github.com/spyder-ide/spyder/pull/25078) - PR: Fix release instructions if issues arise when updating translation strings, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25067](https://github.com/spyder-ide/spyder/pull/25067) - PR: Some improvements to the Update manager statusbar widget, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25063](https://github.com/spyder-ide/spyder/pull/25063) - PR: Fix issue where checksum comparison fails if the actual digest begins with any of the characters sha256, by [@mrclary](https://github.com/mrclary)
+* [PR 25045](https://github.com/spyder-ide/spyder/pull/25045) - PR: Add Google option to lint docstrings with Ruff (Completion and linting), by [@jsbautista](https://github.com/jsbautista) ([25007](https://github.com/spyder-ide/spyder/issues/25007))
+
+In this release 11 pull requests were closed.
+
+----
+
+## Version 6.1.0rc1 (2025/09/26)
+
+### Issues Closed
+
+* [Issue 25034](https://github.com/spyder-ide/spyder/issues/25034) - TypeError after raising exception in console ([PR 25038](https://github.com/spyder-ide/spyder/pull/25038) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 25019](https://github.com/spyder-ide/spyder/issues/25019) - AttributeError in Profiler when console fails to start ([PR 25033](https://github.com/spyder-ide/spyder/pull/25033) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 24999](https://github.com/spyder-ide/spyder/issues/24999) - Missing space in the introduction text for macOS installers uninstall command ([PR 25003](https://github.com/spyder-ide/spyder/pull/25003) by [@mrclary](https://github.com/mrclary))
+* [Issue 24974](https://github.com/spyder-ide/spyder/issues/24974) - Catch errors when remote filesystem operations fail ([PR 24984](https://github.com/spyder-ide/spyder/pull/24984) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 24947](https://github.com/spyder-ide/spyder/issues/24947) - Add option to disable zoom by Crtl + mouse scrolling ([PR 24973](https://github.com/spyder-ide/spyder/pull/24973) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 24614](https://github.com/spyder-ide/spyder/issues/24614) - Error when trying to create console from remote machine with outdated info ([PR 24826](https://github.com/spyder-ide/spyder/pull/24826) by [@hlouzada](https://github.com/hlouzada))
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 25056](https://github.com/spyder-ide/spyder/pull/25056) - PR: Update `spyder-kernels` to 3.1.0b2 (for Spyder 6.1.0rc1), by [@dalthviz](https://github.com/dalthviz)
+* [PR 25047](https://github.com/spyder-ide/spyder/pull/25047) - PR: Improve how Spyder/Spyder-kernels feedstock branches are set (Installers), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25040](https://github.com/spyder-ide/spyder/pull/25040) - PR: Update translations for 6.1.0 , by [@dalthviz](https://github.com/dalthviz)
+* [PR 25038](https://github.com/spyder-ide/spyder/pull/25038) - PR: Bump minimal supported IPython version to 8.15 (Dependencies), by [@ccordoba12](https://github.com/ccordoba12) ([25034](https://github.com/spyder-ide/spyder/issues/25034))
+* [PR 25033](https://github.com/spyder-ide/spyder/pull/25033) - PR: Fix error when kernel fails to start (Profiler), by [@ccordoba12](https://github.com/ccordoba12) ([25019](https://github.com/spyder-ide/spyder/issues/25019))
+* [PR 25031](https://github.com/spyder-ide/spyder/pull/25031) - PR: Use `windows-2022` image on Windows workflows (CI), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25028](https://github.com/spyder-ide/spyder/pull/25028) - PR: Increase default max console buffer and warn if it's big (IPython console), by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25026](https://github.com/spyder-ide/spyder/pull/25026) - PR: Add new instructions on how to update translations for minor/major versions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25023](https://github.com/spyder-ide/spyder/pull/25023) - PR: Clarify and polish UI text for keyboard shortcuts pref pane, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25022](https://github.com/spyder-ide/spyder/pull/25022) - PR: Clarify and polish UI text for Python interpreter pref pane, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25021](https://github.com/spyder-ide/spyder/pull/25021) - PR: Use consistent terms for syntax highlighting theme in prefs, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25012](https://github.com/spyder-ide/spyder/pull/25012) - PR: Add/refine more Editor prefs tooltips & refactor confpage, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25010](https://github.com/spyder-ide/spyder/pull/25010) - PR: Reorganize IPython Console preferences and improve UI text , by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25009](https://github.com/spyder-ide/spyder/pull/25009) - PR: Restore calling `str` with encoding in several places (Utils), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25004](https://github.com/spyder-ide/spyder/pull/25004) - PR: Reorganize Editor preferences and improve UI text, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 25003](https://github.com/spyder-ide/spyder/pull/25003) - PR: Fix typographical error in macOS installer welcome page, by [@mrclary](https://github.com/mrclary) ([24999](https://github.com/spyder-ide/spyder/issues/24999))
+* [PR 24984](https://github.com/spyder-ide/spyder/pull/24984) - PR: Change logger error calls to debug calls and catch exceptions when awaiting (Files), by [@dalthviz](https://github.com/dalthviz) ([24974](https://github.com/spyder-ide/spyder/issues/24974))
+* [PR 24973](https://github.com/spyder-ide/spyder/pull/24973) - PR: Add option to disable zoom with Ctrl + mouse wheel (Preferences), by [@jsbautista](https://github.com/jsbautista) ([24947](https://github.com/spyder-ide/spyder/issues/24947))
+* [PR 24826](https://github.com/spyder-ide/spyder/pull/24826) - PR: Update connection info after editing it and fix some bugs with remote consoles and file explorer (Remote client/IPython console/Files), by [@hlouzada](https://github.com/hlouzada) ([24614](https://github.com/spyder-ide/spyder/issues/24614))
+* [PR 24269](https://github.com/spyder-ide/spyder/pull/24269) - PR: Get user environment variables asynchronously, by [@mrclary](https://github.com/mrclary)
+
+In this release 20 pull requests were closed.
 
 ----
 
