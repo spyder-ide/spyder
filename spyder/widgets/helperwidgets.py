@@ -799,24 +799,23 @@ class MessageLabel(QLabel):
         self.setVisible(False)
 
         # Set style
-        css = qstylizer.style.StyleSheet()
-        css.QLabel.setValues(
+        self.css = qstylizer.style.StyleSheet()
+        self.css.QLabel.setValues(
             backgroundColor=SpyderPalette.COLOR_BACKGROUND_2,
-            # Top margin is set by the layout
+            # Top margin is usually set by the layout
             marginTop="0px",
-            marginRight=f"{9 * AppStyle.MarginSize}px",
-            # We don't need bottom margin because there are no other elements
-            # below this one.
+            # We usually don't need bottom margin because there are no other
+            # elements below this one.
             marginBottom="0px",
-            # The extra 5px are necessary because we need to add them to all
-            # lineedits in this dialog to align them to the labels on top of
-            # them (see SpyderConfigPage.create_lineedit).
-            marginLeft=f"{9 * AppStyle.MarginSize + 5}px",
+            # Left and right margins need to be set according to where/how this
+            # widget is used.
+            marginLeft="0px",
+            marginRight="0px",
             padding=f"{3 * AppStyle.MarginSize}px {6 * AppStyle.MarginSize}px",
             borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
         )
 
-        self.setStyleSheet(css.toString())
+        self.setStyleSheet(self.css.toString())
 
     def set_text(self, text: str):
         n_reasons = 1
