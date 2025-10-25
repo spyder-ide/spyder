@@ -45,7 +45,7 @@ class ConnectionDialog(SidebarDialog):
     TITLE = _("Remote connections")
     FIXED_SIZE = True
     MIN_WIDTH = 895 if MAC else (810 if WIN else 860)
-    MIN_HEIGHT = 730 if MAC else (655 if WIN else 670)
+    MIN_HEIGHT = 740 if MAC else (655 if WIN else 690)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)
@@ -278,7 +278,13 @@ class ConnectionDialog(SidebarDialog):
         """Start the server corresponding to a given page."""
         page = self.get_page()
 
-        # Validate info
+        # Validate connection info.
+        # NOTE: It always needs to be done in case the info changed (e.g. key
+        # file could have been moved) before establishing the connection.
+        if not page.validate_page():
+            return
+
+        # Validate env info
         if ENV_MANAGER and page.NEW_CONNECTION:
             if (
                 self._new_connection_page.is_env_creation_widget_shown()
@@ -290,8 +296,6 @@ class ConnectionDialog(SidebarDialog):
                 and not self._new_connection_page.get_env_packages_list()
             ):
                 return
-        elif not page.validate_page():
-            return
 
         # This uses the current host_id in case users want to start a
         # connection directly from the new connection page (

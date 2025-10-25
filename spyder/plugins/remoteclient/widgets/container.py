@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections import deque
 
 # Third-party imports
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
@@ -102,6 +103,7 @@ class RemoteClientContainer(PluginMainContainer):
     def setup(self):
         # Attributes
         self.client_logs: dict[str, deque] = {}
+        self._connection_dialog = None
 
         # Widgets
         self.create_action(
@@ -150,30 +152,50 @@ class RemoteClientContainer(PluginMainContainer):
     # ---- Private API
     # -------------------------------------------------------------------------
     def _show_connection_dialog(self):
-        connection_dialog = ConnectionDialog(self)
 
-        connection_dialog.sig_start_server_requested.connect(
-            self.sig_start_server_requested
-        )
-        connection_dialog.sig_stop_server_requested.connect(
-            self.sig_stop_server_requested
-        )
-        connection_dialog.sig_abort_connection_requested.connect(
-            self._plugin._abort_connection
-        )
-        connection_dialog.sig_connections_changed.connect(
-            self.sig_server_changed
-        )
-        connection_dialog.sig_server_renamed.connect(self.sig_server_renamed)
-        connection_dialog.sig_server_updated.connect(self.sig_server_updated)
-        connection_dialog.sig_create_env_requested.connect(
-            self._plugin.sig_create_env_requested
-        )
-        connection_dialog.sig_import_env_requested.connect(
-            self._plugin.sig_import_env_requested
-        )
+        def _dialog_finished(result_code):
+            """Restore dialog instance variable."""
+            if PYSIDE2 or PYSIDE6:
+                self._connection_dialog.disconnect(None, None, None)
+            else:
+                self._connection_dialog.disconnect()
 
-        connection_dialog.show()
+            self._connection_dialog = None
+
+        if self._connection_dialog is None:
+            # Create dialog
+            self._connection_dialog = dlg = ConnectionDialog(self)
+
+            # Connect signals
+            dlg.sig_start_server_requested.connect(
+                self.sig_start_server_requested
+            )
+            dlg.sig_stop_server_requested.connect(
+                self.sig_stop_server_requested
+            )
+            dlg.sig_abort_connection_requested.connect(
+                self._plugin._abort_connection
+            )
+            dlg.sig_connections_changed.connect(self.sig_server_changed)
+            dlg.sig_server_renamed.connect(self.sig_server_renamed)
+            dlg.sig_server_updated.connect(self.sig_server_updated)
+            dlg.sig_create_env_requested.connect(
+                self._plugin.sig_create_env_requested
+            )
+            dlg.sig_import_env_requested.connect(
+                self._plugin.sig_import_env_requested
+            )
+
+            # Destroy dialog after it's closed
+            dlg.finished.connect(_dialog_finished)
+
+            # Show dialog
+            dlg.show()
+        else:
+            self._connection_dialog.show()
+            self._connection_dialog.activateWindow()
+            self._connection_dialog.raise_()
+            self._connection_dialog.setFocus()
 
     def _on_connection_status_changed(self, info: ConnectionInfo):
         """Handle changes in connection status."""
