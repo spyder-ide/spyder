@@ -210,6 +210,25 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             )
             validate_label.setVisible(True)
 
+            # Adjust page height according to the authentication method and
+            # number of reasons.
+            n_reasons = list(reasons.values()).count(True)
+            min_height = self.MIN_HEIGHT
+            if self._get_client_type(from_gui=True) == ClientType.SSH:
+                if (
+                    self.auth_method(from_gui=True)
+                    == AuthenticationMethod.Password
+                ):
+                    if n_reasons > 2:
+                        min_height = self.MIN_HEIGHT if (WIN or MAC) else 600
+                else:
+                    if n_reasons == 1:
+                        min_height = 640 if MAC else (580 if WIN else 620)
+                    else:
+                        min_height = 700 if MAC else (620 if WIN else 680)
+
+                self.setMinimumHeight(min_height)
+
         return False if reasons else True
 
     def create_jupyterhub_connection_info_widget(self):
@@ -313,7 +332,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._auth_methods = self.create_combobox(
             _("Authentication method:"),
             methods,
-            f"{self.host_id}/auth_method"
+            f"{self.host_id}/auth_method",
+            items_elide_mode=Qt.ElideNone,
         )
 
         # Subpages
