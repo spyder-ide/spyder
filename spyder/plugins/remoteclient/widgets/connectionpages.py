@@ -118,7 +118,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def auth_method(self, from_gui=False):
         if from_gui:
-            if self.client_type == ClientType.SSH or (
+            if self._get_client_type(from_gui) == ClientType.SSH or (
                 self._auth_methods and self._auth_methods.combobox.isVisible()
             ):
                 if self._auth_methods.combobox.currentIndex() == 0:
@@ -358,6 +358,18 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _get_client_type(self, from_gui=False):
+        if from_gui:
+            client_type = (
+                ClientType.SSH
+                if self.tabs.currentIndex() == 0
+                else ClientType.JupyterHub
+            )
+        else:
+            client_type = self.client_type
+
+        return client_type
+
     def _create_common_elements(self, auth_method):
         """Common elements for the password and keyfile subpages."""
         # Widgets
@@ -815,11 +827,7 @@ class NewConnectionPage(BaseConnectionPage):
         if self.NEW_CONNECTION:
             # Set the client type for new connections following current tab
             # index
-            client_type = (
-                ClientType.SSH
-                if self.tabs.currentIndex() == 0
-                else ClientType.JupyterHub
-            )
+            client_type = self._get_client_type(from_gui=True)
             self.set_option(f"{self.host_id}/client_type", client_type)
             if client_type == ClientType.JupyterHub:
                 # Set correct auth_method option following client type detected
