@@ -108,11 +108,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             )
 
         self._auth_methods = None
-        self._widgets_for_validation = {}
-        self._validation_labels = {}
-        self._name_widgets = {}
-        self._address_widgets = {}
-        self._url_widgets = {}
+        self._widgets_for_validation: dict[str, list[QWidget]] = {}
+        self._validation_labels: dict[str: QWidget] = {}
+        self._name_widgets: dict[str, QWidget] = {}
+        self._address_widgets: dict[str, QWidget] = {}
+        self._port_widgets: dict[str, QWidget] = {}
+        self._username_widgets: dict[str, QWidget] = {}
+        self._url_widgets: dict[str, QWidget] = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -350,6 +352,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._auth_methods.combobox.currentIndexChanged.connect(
             subpages.setCurrentIndex
         )
+        self._auth_methods.combobox.currentIndexChanged.connect(
+            self._copy_info
+        )
 
         # Show password subpage by default for new connections
         if self.NEW_CONNECTION:
@@ -390,7 +395,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         return client_type
 
-    def _create_common_elements(self, auth_method):
+    def _create_common_elements(self, auth_method: str):
         """Common elements for the password and keyfile subpages."""
         # Widgets
         name = self.create_lineedit(
@@ -433,6 +438,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         ]
         self._name_widgets[f"{auth_method}"] = name
         self._address_widgets[f"{auth_method}"] = address
+        self._port_widgets[f"{auth_method}"] = port
+        self._username_widgets[f"{auth_method}"] = username
 
         # Set 22 as the default port for new conenctions
         if not self.LOAD_FROM_CONFIG:
@@ -791,6 +798,53 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             text += prefix + _("There are missing fields on this page.")
 
         return text
+
+    def _copy_info(self, auth_method_index: int):
+        """
+        Copy common info from one authentication method to another.
+
+        Notes
+        -----
+        * This makes it easier to switch to a different method when creating or
+          editing a connection, e.g. if you realized you were entering info in
+          the wrong method when creating a new connection.
+        """
+        # Get current and previous authentication methods
+        current_method = (
+            AuthenticationMethod.Password
+            if auth_method_index == 0
+            else AuthenticationMethod.KeyFile
+        )
+        previous_method = (
+            AuthenticationMethod.Password
+            if current_method == AuthenticationMethod.KeyFile
+            else AuthenticationMethod.KeyFile
+        )
+
+        # Copy info from the previous method to the current one.
+        previous_name = self._name_widgets[previous_method].textbox.text()
+        if previous_name:
+            self._name_widgets[current_method].textbox.setText(previous_name)
+
+        previous_address = self._address_widgets[
+            previous_method
+        ].textbox.text()
+        if previous_address:
+            self._address_widgets[current_method].textbox.setText(
+                previous_address
+            )
+
+        previous_port = self._port_widgets[previous_method].spinbox.value()
+        if previous_port != 22:
+            self._port_widgets[current_method].spinbox.setValue(previous_port)
+
+        previous_username = self._username_widgets[
+            previous_method
+        ].textbox.text()
+        if previous_username:
+            self._username_widgets[current_method].textbox.setText(
+                previous_username
+            )
 
 
 class NewConnectionPage(BaseConnectionPage):
