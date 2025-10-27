@@ -97,8 +97,10 @@ def test_decorations(codeeditor, qtbot):
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
-@pytest.mark.skipif(os.name == 'nt' and running_in_ci(),
-                    reason="Race condition? with update timer")
+@pytest.mark.skipif(
+    os.name == 'nt' and running_in_ci(),
+    reason="Race condition(?) with update timer"
+)
 def test_update_decorations_when_scrolling(qtbot):
     """
     Test how many calls we're doing to update decorations when
