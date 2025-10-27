@@ -10,6 +10,7 @@
 from __future__ import annotations
 from collections.abc import Iterable
 import logging
+import os.path as osp
 import re
 from typing import TypedDict
 import uuid
@@ -72,6 +73,10 @@ class ValidationReasons(TypedDict):
     invalid_address: bool | None
     invalid_host: bool | None
     invalid_url: bool | None
+    file_not_found: bool | None
+    keyfile_passphrase_is_wrong: bool | None
+    keyfile_not_load: bool | None
+    keyfile_malformed: bool | None
 
 
 class CreateEnvMethods:
@@ -108,17 +113,19 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             )
 
         self._auth_methods = None
-        self._widgets_for_validation = {}
-        self._validation_labels = {}
-        self._name_widgets = {}
-        self._address_widgets = {}
-        self._url_widgets = {}
+        self._widgets_for_validation: dict[str, list[QWidget]] = {}
+        self._validation_labels: dict[str: QWidget] = {}
+        self._name_widgets: dict[str, QWidget] = {}
+        self._address_widgets: dict[str, QWidget] = {}
+        self._port_widgets: dict[str, QWidget] = {}
+        self._username_widgets: dict[str, QWidget] = {}
+        self._url_widgets: dict[str, QWidget] = {}
 
     # ---- Public API
     # -------------------------------------------------------------------------
     def auth_method(self, from_gui=False):
         if from_gui:
-            if self.client_type == ClientType.SSH or (
+            if self._get_client_type(from_gui) == ClientType.SSH or (
                 self._auth_methods and self._auth_methods.combobox.isVisible()
             ):
                 if self._auth_methods.combobox.currentIndex() == 0:
@@ -198,6 +205,34 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 if not self._validate_url(url):
                     reasons["invalid_url"] = True
                     widget.status_action.setVisible(True)
+            elif (
+                auth_method == AuthenticationMethod.KeyFile
+                and widget == self._keyfile
+            ):
+                # Validate Keyfile
+                widget.status_action.setVisible(False)
+                key_path = widget.textbox.text()
+
+                if not osp.isfile(key_path):
+                    reasons["file_not_found"] = True
+                    widget.status_action.setVisible(True)
+                else:
+                    # Attempt to load the key file
+                    passphrase = self._passphrase.textbox.text()
+                    try:
+                        asyncssh.read_private_key(key_path, passphrase)
+                    except asyncssh.KeyEncryptionError:
+                        # Passphrase is wrong or missing
+                        reasons["keyfile_passphrase_is_wrong"] = True
+                        widget.status_action.setVisible(True)
+                    except asyncssh.KeyImportError:
+                        # File is not a real key file
+                        reasons["keyfile_not_load"] = True
+                        widget.status_action.setVisible(True)
+                    except asyncssh.SFTPBadMessage:
+                        # Key file is malformed or not a recognized format
+                        reasons["keyfile_malformed"] = True
+                        widget.status_action.setVisible(True)
             elif auth_method != AuthenticationMethod.ConfigFile:
                 widget.status_action.setVisible(False)
 
@@ -206,6 +241,25 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 self._compose_failed_validation_text(reasons)
             )
             validate_label.setVisible(True)
+
+            # Adjust page height according to the authentication method and
+            # number of reasons.
+            n_reasons = list(reasons.values()).count(True)
+            min_height = self.MIN_HEIGHT
+            if self._get_client_type(from_gui=True) == ClientType.SSH:
+                if (
+                    self.auth_method(from_gui=True)
+                    == AuthenticationMethod.Password
+                ):
+                    if n_reasons > 2:
+                        min_height = self.MIN_HEIGHT if (WIN or MAC) else 600
+                else:
+                    if n_reasons == 1:
+                        min_height = 640 if MAC else (580 if WIN else 620)
+                    else:
+                        min_height = 700 if MAC else (620 if WIN else 680)
+
+                self.setMinimumHeight(min_height)
 
         return False if reasons else True
 
@@ -308,7 +362,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._auth_methods = self.create_combobox(
             _("Authentication method:"),
             methods,
-            f"{self.host_id}/auth_method"
+            f"{self.host_id}/auth_method",
+            items_elide_mode=Qt.ElideNone,
         )
 
         # Subpages
@@ -324,6 +379,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         # Signals
         self._auth_methods.combobox.currentIndexChanged.connect(
             subpages.setCurrentIndex
+        )
+        self._auth_methods.combobox.currentIndexChanged.connect(
+            self._copy_info
         )
 
         # Show password subpage by default for new connections
@@ -353,7 +411,19 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _create_common_elements(self, auth_method):
+    def _get_client_type(self, from_gui=False):
+        if from_gui:
+            client_type = (
+                ClientType.SSH
+                if self.tabs.currentIndex() == 0
+                else ClientType.JupyterHub
+            )
+        else:
+            client_type = self.client_type
+
+        return client_type
+
+    def _create_common_elements(self, auth_method: str):
         """Common elements for the password and keyfile subpages."""
         # Widgets
         name = self.create_lineedit(
@@ -396,6 +466,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         ]
         self._name_widgets[f"{auth_method}"] = name
         self._address_widgets[f"{auth_method}"] = address
+        self._port_widgets[f"{auth_method}"] = port
+        self._username_widgets[f"{auth_method}"] = username
 
         # Set 22 as the default port for new conenctions
         if not self.LOAD_FROM_CONFIG:
@@ -478,14 +550,14 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             auth_method=AuthenticationMethod.KeyFile
         )
 
-        keyfile = self.create_browsefile(
+        self._keyfile = self.create_browsefile(
             text=_("Key file *"),
             option=f"{self.host_id}/keyfile",
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
         )
 
-        passphrase = self.create_lineedit(
+        self._passphrase = self.create_lineedit(
             text=_("Passphrase"),
             option=f"{self.host_id}/passphrase",
             tip=(
@@ -500,12 +572,11 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         # Add widgets to their required dicts
         self._widgets_for_validation[AuthenticationMethod.KeyFile].append(
-            keyfile
+            self._keyfile
         )
-
-        self._validation_labels[
-            AuthenticationMethod.KeyFile
-        ] = validation_label
+        self._validation_labels[AuthenticationMethod.KeyFile] = (
+            validation_label
+        )
 
         # Layout
         keyfile_layout = QVBoxLayout()
@@ -517,9 +588,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
         keyfile_layout.addWidget(username)
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        keyfile_layout.addWidget(keyfile)
+        keyfile_layout.addWidget(self._keyfile)
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        keyfile_layout.addWidget(passphrase)
+        keyfile_layout.addWidget(self._passphrase)
         keyfile_layout.addSpacing(7 * AppStyle.MarginSize)
         keyfile_layout.addWidget(validation_label)
         keyfile_layout.addStretch()
@@ -878,13 +949,89 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 prefix + _("The URL you provided is not valid.") + suffix
             )
 
-        if reasons.get("missing_info"):
+        if reasons.get("file_not_found"):
             text += (
-                prefix
-                + _("There are missing fields on this page.")
+                prefix + _("The file you provided is not available.") + suffix
             )
 
+        if reasons.get("keyfile_passphrase_is_wrong"):
+            text += (
+                prefix
+                + _(
+                    "The key file is encrypted but no passphrase was provided "
+                    "or it's incorrect"
+                )
+                + suffix
+            )
+
+        if reasons.get("keyfile_not_load"):
+            text += (
+                prefix + _("The key file you provided is invalid.") + suffix
+            )
+
+        if reasons.get("keyfile_malformed"):
+            text += (
+                prefix
+                + _(
+                    "The key file you provided is malformed or not a valid "
+                    "SSH key format."
+                )
+                + suffix
+            )
+
+        # IMPORTANT: This needs to remain as the last reason because it doesn't
+        # have a suffix. It's also the least important.
+        if reasons.get("missing_info"):
+            text += prefix + _("There are missing fields on this page.")
+
         return text
+
+    def _copy_info(self, auth_method_index: int):
+        """
+        Copy common info from one authentication method to another.
+
+        Notes
+        -----
+        * This makes it easier to switch to a different method when creating or
+          editing a connection, e.g. if you realized you were entering info in
+          the wrong method when creating a new connection.
+        """
+        # Get current and previous authentication methods
+        current_method = (
+            AuthenticationMethod.Password
+            if auth_method_index == 0
+            else AuthenticationMethod.KeyFile
+        )
+        previous_method = (
+            AuthenticationMethod.Password
+            if current_method == AuthenticationMethod.KeyFile
+            else AuthenticationMethod.KeyFile
+        )
+
+        # Copy info from the previous method to the current one.
+        previous_name = self._name_widgets[previous_method].textbox.text()
+        if previous_name:
+            self._name_widgets[current_method].textbox.setText(previous_name)
+
+        previous_address = self._address_widgets[
+            previous_method
+        ].textbox.text()
+        if previous_address:
+            self._address_widgets[current_method].textbox.setText(
+                previous_address
+            )
+
+        previous_port = self._port_widgets[previous_method].spinbox.value()
+        if previous_port != 22:
+            self._port_widgets[current_method].spinbox.setValue(previous_port)
+
+        previous_username = self._username_widgets[
+            previous_method
+        ].textbox.text()
+        if previous_username:
+            self._username_widgets[current_method].textbox.setText(
+                previous_username
+            )
 
 
 class NewConnectionPage(BaseConnectionPage):
@@ -941,11 +1088,7 @@ class NewConnectionPage(BaseConnectionPage):
         if self.NEW_CONNECTION:
             # Set the client type for new connections following current tab
             # index
-            client_type = (
-                ClientType.SSH
-                if self.tabs.currentIndex() == 0
-                else ClientType.JupyterHub
-            )
+            client_type = self._get_client_type(from_gui=True)
             self.set_option(f"{self.host_id}/client_type", client_type)
             if client_type == ClientType.JupyterHub:
                 # Set correct auth_method option following client type detected
@@ -953,19 +1096,6 @@ class NewConnectionPage(BaseConnectionPage):
                     f"{self.host_id}/auth_method",
                     AuthenticationMethod.JupyterHub,
                 )
-
-    # ---- BaseConnectionPage API
-    # -------------------------------------------------------------------------
-    def validate_page(self):
-        # Skip this because it means the info validation was already done
-        if (
-            ENV_MANAGER
-            and self.get_current_tab() == "SSH"
-            and not self.is_ssh_info_widget_shown()
-        ):
-            return True
-        else:
-            return super().validate_page()
 
     # ---- Public API
     # -------------------------------------------------------------------------
