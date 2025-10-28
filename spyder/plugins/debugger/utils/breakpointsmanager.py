@@ -164,7 +164,7 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
             if len(text) == 0 or text.startswith(("#", '"', "'")):
                 data.breakpoint = False
             else:
-                self._breakpoint_blocks[id(block)] = block
+                self._breakpoint_blocks[block.blockNumber()] = block
         block.setUserData(data)
         self.editor.sig_flags_changed.emit()
         self.breakpoints_changed()
