@@ -2405,11 +2405,14 @@ class EditorMainWidget(PluginMainWidget):
         if positions[-1] < character_count:
             editor.set_cursor_position(positions[-1])
 
-        for position in positions[:-1]:
-            if position < character_count:
-                cursor = editor.textCursor()
-                cursor.setPosition(position)
-                editor.add_cursor(cursor)
+        if editor.multi_cursor_enabled:
+            editor.clear_extra_cursors()
+            for position in positions[:-1]:
+                if position < character_count:
+                    cursor = editor.textCursor()
+                    cursor.setPosition(position)
+                    editor.extra_cursors.append(cursor)
+            editor.merge_extra_cursors(True)
 
     def _pop_next_cursor_diff(self, history, current_filename,
                               current_cursors):
@@ -2485,8 +2488,7 @@ class EditorMainWidget(PluginMainWidget):
             editor = self.get_current_editor()
             editor.clear_extra_cursors()
             editor.setTextCursor(current_cursors[-1])
-            for cursor in current_cursors[:-1]:
-                editor.add_cursor(cursor)
+            editor.extra_cursors = list(current_cursors[:-1])
             editor.merge_extra_cursors(True)
             editor.ensureCursorVisible()
         self.__ignore_cursor_history = False
