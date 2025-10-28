@@ -394,7 +394,7 @@ class ProfilerWidget(ShellConnectMainWidget):
                     callers_or_callees_action.setChecked(False)
                     callers_or_callees_action.setEnabled(False)
 
-        if widget is not None:
+        if not widget_inactive:
             if widget.is_profiling:
                 self.start_spinner()
             else:
@@ -420,7 +420,8 @@ class ProfilerWidget(ShellConnectMainWidget):
             # ProfilerWidgetActions.Home,
             ProfilerWidgetActions.SlowLocal,
             ProfilerWidgetActions.SaveData,
-            ProfilerWidgetActions.Search
+            ProfilerWidgetActions.LoadData,
+            ProfilerWidgetActions.Search,
         ]:
             action = self.get_action(action_name)
             if action_name in [
@@ -430,6 +431,8 @@ class ProfilerWidget(ShellConnectMainWidget):
                 action.setEnabled(
                     not tree_empty and not callers_or_callees_enabled
                 )
+            elif action_name == ProfilerWidgetActions.LoadData:
+                action.setEnabled(not widget_inactive)
             else:
                 action.setEnabled(not tree_empty)
 

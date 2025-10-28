@@ -12,6 +12,8 @@ Tests for utilities in the pythonenv module
 
 # Standard library imports
 import os
+from pathlib import Path
+import shutil
 
 # Third-party imports
 import pytest
@@ -21,6 +23,7 @@ from spyder_kernels.utils.pythonenv import (
     add_quotes,
     get_conda_env_path,
     get_env_dir,
+    get_pixi_manifest_path_and_env_name,
 )
 
 
@@ -60,6 +63,27 @@ def test_get_env_dir():
         venv_pyexec = 'C:\\Miniconda3\\envs\\foobar\\Scripts\\python.exe'
         output = get_env_dir(venv_pyexec, only_dir=True)
         assert output == "foobar"
+
+
+@pytest.mark.skipif(
+    not (
+        shutil.which("pixi.exe" if os.name == "nt" else "pixi")
+        and os.environ.get("CI")
+    ),
+    reason="Only works with Pixi on CIs",
+)
+def test_get_pixi_info():
+    home_path = Path(os.environ["HOME"])
+    pixi_env_dir = home_path / "pixi-test" / ".pixi" / "envs" / "default"
+    pixi_env_info = get_pixi_manifest_path_and_env_name(
+        str(pixi_env_dir / "python.exe")
+        if os.name == "nt"
+        else str(pixi_env_dir / "bin" / "python")
+    )
+
+    assert pixi_env_info == (
+        str(home_path / "pixi-test" / "pixi.toml"), "default"
+    )
 
 
 if __name__ == "__main__":

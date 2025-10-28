@@ -17,16 +17,30 @@ from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
-                            QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout, QLabel)
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QStackedWidget,
+    QVBoxLayout,
+)
+from requests.structures import CaseInsensitiveDict
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
-from spyder.utils.environ import get_user_env, set_user_env
+from spyder.utils.environ import (
+    get_user_environment_variables,
+    get_user_env,
+    set_user_env,
+)
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.stylesheet import (
     AppStyle,
@@ -34,6 +48,7 @@ from spyder.utils.stylesheet import (
     PANES_TOOLBAR_STYLESHEET,
     WIN
 )
+from spyder.widgets.emptymessage import EmptyMessageWidget
 
 
 class PathManagerToolbuttons:
@@ -92,6 +107,20 @@ class PathManager(QDialog, SpyderWidgetMixin):
         )
         self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
 
+        # Create a loading message
+        self.loading_pane = EmptyMessageWidget(
+            parent=self,
+            text=_("Retrieving environment variables..."),
+            bottom_stretch=1,
+            spinner=True,
+        )
+
+        # Create a QStackedWidget
+        self.stacked_widget = QStackedWidget()
+        self.stacked_widget.addWidget(self.listwidget)
+        self.stacked_widget.addWidget(self.loading_pane)
+        self.stacked_widget.setCurrentWidget(self.listwidget)
+
         # Widget setup
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(self.create_icon('pythonpath'))
@@ -114,7 +143,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
         # Middle layout
         middle_layout = QHBoxLayout()
         middle_layout.setContentsMargins(4 if WIN else 5, 0, 0, 0)
-        middle_layout.addWidget(self.listwidget)
+        middle_layout.addWidget(self.stacked_widget)
         middle_layout.addLayout(buttons_layout)
 
         # Widget layout
@@ -181,7 +210,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
             PathManagerToolbuttons.ImportPaths,
             tip=_('Import from PYTHONPATH environment variable'),
             icon=self.create_icon('fileimport'),
-            triggered=lambda x: self.import_pythonpath())
+            triggered=self.import_pythonpath)
         self.export_button = self.create_toolbutton(
             PathManagerToolbuttons.ExportPaths,
             icon=self.create_icon('fileexport'),
@@ -350,17 +379,18 @@ class PathManager(QDialog, SpyderWidgetMixin):
     @Slot()
     def export_pythonpath(self):
         """
-        Export to PYTHONPATH environment variable
-        Only apply to: current user.
+        Export to Spyder's PYTHONPATH Manager paths to HKCU PYTHONPATH
+        environment variable (Windows only).
 
-        If the user chooses to clear the contents of the system PYTHONPATH,
-        then the active user paths are prepended to active system paths and
-        the resulting list is saved to the system PYTHONPATH. Inactive system
-        paths are discarded. If the user chooses not to clear the contents of
-        the system PYTHONPATH, then the new system PYTHONPATH comprises the
-        inactive system paths + active user paths + active system paths, and
-        inactive system paths remain inactive. With either choice, inactive
-        user paths are retained in the user paths and remain inactive.
+        If the user chooses to keep the inactive system paths, then the active
+        user paths and all system paths are exported, in that order.
+
+        If the user chooses not to keep the inactive system paths, then the
+        active user paths and active system paths are exported, in that order.
+
+        With either choice, inactive user paths are retained as inactive user
+        paths in the PYTHONPATH Manager and the system paths reflect the
+        exported paths, retaining their active state.
         """
         answer = QMessageBox.question(
             self,
@@ -370,8 +400,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
               "<br><br>"
-              "Do you want to clear the contents of PYTHONPATH before "
-              "adding Spyder's path list?"),
+              "Do you want to keep the inactive system paths?"),
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
         )
 
@@ -387,25 +416,23 @@ class PathManager(QDialog, SpyderWidgetMixin):
         )
 
         system_paths = self.get_system_paths()
-        active_system_paths = OrderedDict(
-            {p: v for p, v in system_paths.items() if v}
-        )
-        inactive_system_paths = OrderedDict(
-            {p: v for p, v in system_paths.items() if not v}
-        )
 
-        # Desired behavior is active_user | active_system, but Python 3.8 does
-        # not support | operator for OrderedDict.
-        new_system_paths = OrderedDict(reversed(active_system_paths.items()))
-        new_system_paths.update(reversed(active_user_paths.items()))
         if answer == QMessageBox.No:
-            # Desired behavior is inactive_system | active_user | active_system
-            new_system_paths.update(reversed(inactive_system_paths.items()))
-        new_system_paths = OrderedDict(reversed(new_system_paths.items()))
+            # Only use active system paths
+            system_paths = OrderedDict(
+                {p: v for p, v in system_paths.items() if v}
+            )
+
+        new_system_paths = active_user_paths.copy()
+        for k, v in system_paths.items():
+            new_system_paths.setdefault(k, v)
 
         env = get_user_env()
-        env['PYTHONPATH'] = list(new_system_paths.keys())
-        set_user_env(env, parent=self)
+        if os.name == "nt":
+            env = CaseInsensitiveDict(env)
+        env["PYTHONPATH"] = list(new_system_paths.keys())
+
+        set_user_env(dict(env), parent=self)
 
         self.update_paths(
             user_paths=new_user_paths, system_paths=new_system_paths
@@ -507,10 +534,14 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
         if self.prioritize_button.isChecked():
             self.prioritize_button.setIcon(self.create_icon('prepend'))
-            self.prioritize_button.setToolTip(_("Paths are prepended to sys.path"))
+            self.prioritize_button.setToolTip(
+                _("Paths are prepended to sys.path")
+            )
         else:
             self.prioritize_button.setIcon(self.create_icon('append'))
-            self.prioritize_button.setToolTip(_("Paths are appended to sys.path"))
+            self.prioritize_button.setToolTip(
+                _("Paths are appended to sys.path")
+            )
 
         self.export_button.setEnabled(self.listwidget.count() > 0)
 
@@ -628,9 +659,15 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     @Slot()
     def import_pythonpath(self):
+        future = get_user_environment_variables()
+        future.connect(self._import_pythonpath)
+        self.stacked_widget.setCurrentWidget(self.loading_pane)
+
+    @AsyncDispatcher.QtSlot
+    def _import_pythonpath(self, future):
         """Import PYTHONPATH from environment."""
         current_system_paths = self.get_system_paths()
-        system_paths = get_system_pythonpath()
+        system_paths = get_system_pythonpath(future.result())
 
         # Inherit active state from current system paths
         system_paths = OrderedDict(
@@ -650,6 +687,8 @@ class PathManager(QDialog, SpyderWidgetMixin):
                 self.system_header = None
 
         self._setup_system_paths(system_paths)
+
+        self.stacked_widget.setCurrentWidget(self.listwidget)
 
         self.refresh()
 

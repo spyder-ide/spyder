@@ -18,6 +18,7 @@ import functools
 import logging
 import os
 import os.path as osp
+import re
 from string import Template
 import time
 import traceback
@@ -168,10 +169,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         )
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
-        self.loading_page = self._create_loading_page()
-        # To keep a reference to the page to be displayed
-        # in infowidget
-        self.info_page = None
+        self.kernel_loading_page = self._create_loading_page()
+        self.env_loading_page = self._create_loading_page(env=True)
+
+        if self.is_remote():
+            # Keep a reference
+            self.info_page = None
+        else:
+            # Initially show environment loading page
+            self.info_page = self.env_loading_page
 
         # Elapsed time
         self.t0 = time.monotonic()
@@ -233,16 +239,22 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def _create_loading_page(self):
+    def _create_loading_page(self, env=False):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
         message = _("Connecting to kernel...")
-        page = loading_template.substitute(css_path=self.css_path,
-                                           loading_img=loading_img,
-                                           message=message)
+
+        if env:
+            message = _("Retrieving environment variables...")
+        page = loading_template.substitute(
+            css_path=self.css_path,
+            loading_img=loading_img,
+            message=message
+        )
+
         return page
 
     def _create_blank_page(self):
@@ -251,16 +263,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         page = loading_template.substitute(css_path=self.css_path)
         return page
 
-    def _show_loading_page(self):
-        """Show animation while the kernel is loading."""
+    def _show_loading_page(self, page=None):
+        """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
             self.infowidget.show()
-            self.info_page = self.loading_page
+            self.info_page = page if page else self.kernel_loading_page
             self.set_info_page()
 
     def _hide_loading_page(self):
-        """Hide animation shown while the kernel is loading."""
+        """Hide animation shown while loading."""
         if self.infowidget is not None:
             self.infowidget.hide()
             self.info_page = self.blank_page
@@ -344,14 +356,26 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     section='workingdir'
                 )
 
-        if osp.isdir(cwd_path) and not self.shellwidget.is_remote():
-            self.shellwidget.set_cwd(cwd_path, emit_cwd_change=emit_cwd_change)
-        else:
+        if self.is_remote():
             # Use the remote machine files API to get the home directory (`~`)
             # absolute path.
             self._get_remote_home_directory().connect(
                 self._on_remote_home_directory
             )
+        else:
+            # We can't set the cwd when connecting to remote kernels directly.
+            if not (
+                self.kernel_handler.password or self.kernel_handler.sshkey
+            ):
+                # Check if cwd exists, else use home dir.
+                # Fixes spyder-ide/spyder#25120.
+                if not osp.isdir(cwd_path):
+                    cwd_path = get_home_dir()
+                    emit_cwd_change = True
+
+                self.shellwidget.set_cwd(
+                    cwd_path, emit_cwd_change=emit_cwd_change
+                )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -363,6 +387,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def connect_kernel(self, kernel_handler, first_connect=True):
         """Connect kernel to client using our handler."""
+        self._hide_loading_page()
+        if not self.is_remote():
+            self._show_loading_page(self.kernel_loading_page)
+
         self.kernel_handler = kernel_handler
 
         # Connect standard streams.
@@ -376,11 +404,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # See spyder-ide/spyder#24577
         kernel_handler.sig_kernel_is_ready.connect(
             self._when_kernel_is_ready)
-
-        if self.is_remote():
-            self._hide_loading_page()
-        else:
-            self._show_loading_page()
 
         # Actually do the connection
         self.shellwidget.connect_kernel(kernel_handler, first_connect)
@@ -499,6 +522,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.is_benign_error(error):
             return
 
+        if self.is_warning_message(error):
+            return
+
         InstallerIPythonKernelError(error)
 
         # Replace end of line chars with <br>
@@ -580,6 +606,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         ]
 
         return any([err in error for err in benign_errors])
+
+    def is_warning_message(self, error):
+        """Decide if a message contains a warning in order to filter it."""
+        warning_pattern = re.compile(r"(?:^|\s)[A-Za-z]*Warning:")
+        return warning_pattern.search(error)
 
     def get_name(self):
         """Return client name"""
@@ -672,14 +703,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         self.shutdown(is_last_client, close_console=close_console)
 
-        # Close jupyter api regardless of the kernel state
-        if self.is_remote() and not self._jupyter_api.closed:
-            AsyncDispatcher(
-                loop=self._jupyter_api.session._loop, early_return=False
-            )(self._jupyter_api.close)()
-            AsyncDispatcher(
-                loop=self._files_api.session._loop, early_return=False
-            )(self._files_api.close)()
+        # Close jupyter and files apis regardless of the kernel state
+        if self.is_remote():
+            if not self._jupyter_api.closed:
+                AsyncDispatcher(
+                    loop=self._jupyter_api.session._loop, early_return=False
+                )(self._jupyter_api.close)()
+
+            if not self._files_api.closed:
+                AsyncDispatcher(
+                    loop=self._files_api.session._loop, early_return=False
+                )(self._files_api.close)()
 
         # Prevent errors in our tests
         try:

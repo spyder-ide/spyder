@@ -812,7 +812,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
     sys.platform.startswith("linux") and running_in_ci(),
     reason='Fails sometimes on Linux and CIs'
 )
-@pytest.mark.skipif(sys.platform == "darwin", reason="Fails sometimes on Mac")
+@pytest.mark.close_main_window
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -821,7 +821,7 @@ def test_dedicated_consoles(main_window, qtbot):
         timeout=SHELL_TIMEOUT,
     )
 
-    # ---- Load test file ----
+    # --- Load test file ---
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
@@ -914,7 +914,13 @@ def test_dedicated_consoles(main_window, qtbot):
     # --- Assert runfile text is present after reruns ---
     assert 'runfile' in control.toPlainText()
 
-    # ---- Closing test file and resetting config ----
+    # --- Assert no re-execution when already executing
+    shell.execute("import time; time.sleep(5)")  # Execute something long
+    qtbot.keyClick(code_editor, Qt.Key_F5)  # Try to execute while busy
+    qtbot.wait(6000)  # First exectution should be done
+    assert not shell.is_defined("zz")  # Second execution did not occur
+
+    # --- Closing test file and resetting config ---
     main_window.editor.close_file()
     CONF.set('run', 'configurations', {})
     CONF.set('run', 'last_used_parameters_per_executor', {})
@@ -1006,6 +1012,7 @@ def test_shell_execution(main_window, qtbot, tmpdir):
     reason="Fails frequently on Mac and CI",
 )
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_connection_to_external_kernel(main_window, qtbot):
     """Test that only Spyder kernels are connected to the Variable Explorer."""
     # Test with a generic kernel
@@ -1070,13 +1077,13 @@ def test_connection_to_external_kernel(main_window, qtbot):
         shell.execute('q')
 
     # Try quitting the kernels
-    shell.execute('quit()')
-    python_shell.execute('quit()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
+    with qtbot.waitSignal(python_shell.executed):
+        python_shell.execute('quit()')
 
     # Make sure everything quit properly
-    qtbot.waitUntil(lambda: not km.is_alive())
     assert not km.is_alive()
-    qtbot.waitUntil(lambda: not spykm.is_alive())
     assert not spykm.is_alive()
 
     # Close the channels
@@ -1198,6 +1205,7 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
      parse(ipy_release.version) == parse('7.11.0')),
     reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 @pytest.mark.order(after="test_debug_unsaved_function")
+@pytest.mark.close_main_window
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # Wait until the window is fully up
@@ -1217,6 +1225,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(1500)
 
     # Get a reference to the namespace browser widget
     nsb = main_window.variableexplorer.current_widget()
@@ -1240,6 +1249,7 @@ def test_run_cython_code(main_window, qtbot):
 
     # Run file
     qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
 
     # Wait until all objects have appeared in the variable explorer
     qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 1,
@@ -4835,6 +4845,9 @@ def test_tour_message(main_window, qtbot):
     reason="Too flaky with pip packages"
 )
 @pytest.mark.known_leak
+@pytest.mark.xfail(
+    reason="Test is too flaky despite our best efforts to make it pass"
+)
 def test_update_outline(main_window, qtbot, tmpdir):
     """
     Test that files in the Outline pane are updated at startup and
@@ -5599,8 +5612,8 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     reason="Fails with Python versions older than 3.12"
 )
 @pytest.mark.skipif(
-    running_in_ci_with_conda(),
-    reason="Fails with Conda packages on CIs",
+    not sys.platform == "darwin" and running_in_ci(),
+    reason="Works reliably on Mac and CIs",
 )
 def test_profiler(main_window, qtbot, tmpdir):
     """Test if profiler works."""

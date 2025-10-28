@@ -8,6 +8,7 @@
 
 # Standard library imports
 from ast import literal_eval
+import asyncio
 import glob
 from getpass import getuser
 import importlib
@@ -27,6 +28,7 @@ import logging
 # Third party imports
 from packaging.version import parse
 import psutil
+from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -183,26 +185,21 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
 
-        # ensure Windows subprocess environment has SYSTEMROOT
-        if kwargs.get('env') is not None:
-            # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
+        # Ensure Windows subprocess environment has certain variables
+        if "env" in kwargs:
+            env = CaseInsensitiveDict(kwargs.get("env"))
             for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
-                if env_var not in map(str.upper, kwargs['env'].keys()):
-                    # Add from os.environ
-                    for k, v in os.environ.items():
-                        if env_var == k.upper():
-                            kwargs['env'].update({k: v})
-                            break  # don't risk multiple values
+                env.setdefault(env_var, os.getenv(env_var))
+            kwargs["env"] = dict(env)
     else:
         # linux and macOS
-        if kwargs.get('env') is not None:
-            if 'HOME' not in kwargs['env']:
-                kwargs['env'].update({'HOME': get_home_dir()})
+        if "env" in kwargs:
+            kwargs["env"].setdefault("HOME", get_home_dir())
 
     return kwargs
 
 
-def run_shell_command(cmdstr, **subprocess_kwargs):
+def run_shell_command(cmdstr, asynchronous=False, **subprocess_kwargs):
     """
     Execute the given shell command.
 
@@ -210,16 +207,28 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
 
     If 'shell' is given in subprocess_kwargs it must be True,
     otherwise ProgramError will be raised.
-    .
+
     If 'executable' is not given in subprocess_kwargs, it will
     be set to the value of the SHELL environment variable.
 
     Note that stdin, stdout and stderr will be set by default
     to PIPE unless specified in subprocess_kwargs.
 
-    :str cmdstr: The string run as a shell command.
-    :subprocess_kwargs: These will be passed to subprocess.Popen.
+    Parameters
+    ----------
+    cmdstr : str
+        The string run as a shell command.
+    asynchronous : bool (False)
+        Whether to return a subprocess.Popen or asyncio.subprocess.Process.
+    **subprocess_kwargs : keyword arguments
+        These will be passed to subprocess.Popen.
     """
+    popen = subprocess.Popen
+    pipe = subprocess.PIPE
+    if asynchronous:
+        popen = asyncio.create_subprocess_shell
+        pipe = asyncio.subprocess.PIPE
+
     if 'shell' in subprocess_kwargs and not subprocess_kwargs['shell']:
         raise ProgramError('The "shell" kwarg may be omitted, but if '
                            'provided it must be True.')
@@ -234,10 +243,10 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
             subprocess_kwargs['executable'] = os.getenv('SHELL')
 
     for stream in ['stdin', 'stdout', 'stderr']:
-        subprocess_kwargs.setdefault(stream, subprocess.PIPE)
+        subprocess_kwargs.setdefault(stream, pipe)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
         **subprocess_kwargs)
-    return subprocess.Popen(cmdstr, **subprocess_kwargs)
+    return popen(cmdstr, **subprocess_kwargs)
 
 
 def run_program(program, args=None, **subprocess_kwargs):
@@ -989,7 +998,8 @@ def check_version(actver, version, cmp_op):
 def get_module_version(module_name, interpreter=None):
     """Return module version or None if version can't be retrieved."""
     if interpreter:
-        cmd = dedent("""
+        cmd = dedent(
+            """
             try:
                 import {} as mod
             except Exception:
