@@ -61,12 +61,6 @@ class MultiCursorMixin:
         if not enabled:
             self.clear_extra_cursors()
 
-    def add_cursor(self, cursor: QTextCursor):
-        """Add this cursor to the list of extra cursors"""
-        if self.multi_cursor_enabled:
-            self.extra_cursors.append(cursor)
-            self.merge_extra_cursors(True)
-
     def add_column_cursor(self, event):
         """
         Add a cursor on each row between primary cursor and click location.
@@ -173,7 +167,8 @@ class MultiCursorMixin:
 
         if not removed_cursor:
             self.setTextCursor(cursor_for_pos)
-            self.add_cursor(old_cursor)
+            self.extra_cursors.append(old_cursor)
+            self.merge_extra_cursors(True)
 
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
@@ -598,8 +593,8 @@ class MultiCursorMixin:
 
             # re-add extra cursors
             self.clear_extra_cursors()
-            for cursor in new_cursors[:-1]:
-                self.add_cursor(cursor)
+            if self.multi_cursor_enabled:
+                self.extra_cursors = new_cursors[:-1]
             self.setTextCursor(new_cursors[-1])
             self.merge_extra_cursors(merge_increasing)
             self.textCursor().endEditBlock()
