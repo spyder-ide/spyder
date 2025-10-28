@@ -58,7 +58,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Show tab bar"),
             'show_tab_bar',
             tip=_(
-                "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
+                "If hidden, the file switcher, Outline pane and Ctrl-Tab "
                 "can still be used to navigate between open files."
             ),
         )
@@ -216,8 +216,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'strip_trailing_spaces_on_modify',
             default=True,
             tip=_(
-                "If enabled, modified lines of code (excluding strings)\n"
-                "will have trailing whitespace stripped when leaving them.\n"
+                "If enabled, modified lines of code (excluding strings) "
+                "will have trailing whitespace stripped when leaving them. "
                 "If disabled, only whitespace added by Spyder will be "
                 "stripped."
             ),
@@ -228,7 +228,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             default=False,
             tip=_(
                 "If enabled, a trailing newline character (line break) will "
-                "automatically be appended to the end of the file\n"
+                "automatically be appended to the end of the file "
                 "if the file does not already end with one, "
                 "to conform to standard text file conventions."
             ),
@@ -292,8 +292,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'tab_always_indent',
             default=False,
             tip=_(
-                "If enabled, pressing Tab will always add an indent,\n"
-                "even when the cursor is not at the beginning of a line.\n"
+                "If enabled, pressing Tab will always add an indent, "
+                "even when the cursor is not at the beginning of a line. "
                 "Code completion can still be triggered using the shortcut "
                 "Ctrl+Space."
             ),
