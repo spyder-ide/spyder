@@ -20,7 +20,7 @@ from qtpy.QtGui import (
 from qtpy.QtWidgets import QApplication, QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.utils.palette import SpyderPalette
 
@@ -82,15 +82,16 @@ class MultiCursorMixin:
 
         # Warn user of potentially large number of cursors
         if abs(anchor_block.blockNumber() - pos_block.blockNumber()) >= 1000:
-            sb = QMessageBox.StandardButton
             response = QMessageBox.warning(
                 self,
-                _("About to create a very large number of cursors!"),
-                _("Large numbers of text cursors can cause spyder to become"
-                  " unresponsive. Do you want to continue?"),
-                sb.Ok | sb.Cancel
+                _("Large number of cursors!"),
+                _(
+                    "A large numbers of text cursors can cause Spyder to "
+                    "become unresponsive. Do you want to continue?"
+                ),
+                QMessageBox.Ok | QMessageBox.Cancel
             )
-            if not response == sb.Ok:
+            if not response == QMessageBox.Ok:
                 self.multi_cursor_ignore_history = False
                 return
 
