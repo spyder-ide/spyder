@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = master
-	commit = c49fbbc22e9245eeeeba954aa6c890ec926e9780
-	parent = 73d21287adb7c9e0dfe5c0af2bb32645f6e6d23b
+	remote = https://github.com/ccordoba12/spyder-kernels.git
+	branch = remove-set-trace
+	commit = bc475a10639936f8cdccffd554686e643aa2c42c
+	parent = 06ca8806d8a0639ba13ddea1b41f5c8b8220136c
 	method = merge
 	cmdver = 0.4.9
