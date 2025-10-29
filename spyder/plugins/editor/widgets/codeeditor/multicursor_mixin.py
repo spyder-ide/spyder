@@ -17,9 +17,10 @@ from qtpy.QtCore import Qt, QTimer, Slot
 from qtpy.QtGui import (
     QColor, QFontMetrics, QPaintEvent, QPainter, QTextCursor, QKeyEvent
 )
-from qtpy.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication, QMessageBox
 
 # Local imports
+from spyder.api.translations import _
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.utils.palette import SpyderPalette
 
@@ -60,12 +61,6 @@ class MultiCursorMixin:
         if not enabled:
             self.clear_extra_cursors()
 
-    def add_cursor(self, cursor: QTextCursor):
-        """Add this cursor to the list of extra cursors"""
-        if self.multi_cursor_enabled:
-            self.extra_cursors.append(cursor)
-            self.merge_extra_cursors(True)
-
     def add_column_cursor(self, event):
         """
         Add a cursor on each row between primary cursor and click location.
@@ -84,6 +79,21 @@ class MultiCursorMixin:
         anchor_col = first_cursor.anchor() - anchor_block.position()
         pos_block = cursor_for_pos.block()
         pos_col = cursor_for_pos.positionInBlock()
+
+        # Warn user of potentially large number of cursors
+        if abs(anchor_block.blockNumber() - pos_block.blockNumber()) >= 1000:
+            response = QMessageBox.warning(
+                self,
+                _("Large number of cursors!"),
+                _(
+                    "A large numbers of text cursors can cause Spyder to "
+                    "become unresponsive. Do you want to continue?"
+                ),
+                QMessageBox.Ok | QMessageBox.Cancel
+            )
+            if not response == QMessageBox.Ok:
+                self.multi_cursor_ignore_history = False
+                return
 
         # Move primary cursor to pos_col
         p_col = min(len(anchor_block.text()), pos_col)
@@ -111,8 +121,9 @@ class MultiCursorMixin:
                 p_col = min(len(block.text()), pos_col)
                 cursor.setPosition(block.position() + p_col,
                                    QTextCursor.MoveMode.KeepAnchor)
-                self.add_cursor(cursor)
+                self.extra_cursors.append(cursor)
 
+        self.merge_extra_cursors(True)
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
 
@@ -157,7 +168,8 @@ class MultiCursorMixin:
 
         if not removed_cursor:
             self.setTextCursor(cursor_for_pos)
-            self.add_cursor(old_cursor)
+            self.extra_cursors.append(old_cursor)
+            self.merge_extra_cursors(True)
 
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
@@ -582,8 +594,8 @@ class MultiCursorMixin:
 
             # re-add extra cursors
             self.clear_extra_cursors()
-            for cursor in new_cursors[:-1]:
-                self.add_cursor(cursor)
+            if self.multi_cursor_enabled:
+                self.extra_cursors = new_cursors[:-1]
             self.setTextCursor(new_cursors[-1])
             self.merge_extra_cursors(merge_increasing)
             self.textCursor().endEditBlock()
