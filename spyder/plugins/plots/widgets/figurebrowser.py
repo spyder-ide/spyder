@@ -1058,8 +1058,9 @@ class ThumbnailScrollBar(QFrame):
                     min(index, len(self._thumbnails) - 1)
                 )
             else:
-                self.figure_viewer.figcanvas.clear_canvas()
                 self.current_thumbnail = None
+                self.figure_viewer.auto_fit_plotting = False
+                self.figure_viewer.figcanvas.clear_canvas()
 
         # Hide and close thumbnails
         self.layout().removeWidget(thumbnail)
@@ -1068,7 +1069,8 @@ class ThumbnailScrollBar(QFrame):
 
         # See: spyder-ide/spyder#12459
         QTimer.singleShot(
-            150, lambda: self._remove_thumbnail_parent(thumbnail))
+            150, lambda: self._remove_thumbnail_parent(thumbnail)
+        )
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
