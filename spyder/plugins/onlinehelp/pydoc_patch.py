@@ -25,7 +25,8 @@ import warnings
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.config.base import _, DEV
+from spyder.api.translations import _
+from spyder.config.base import DEV
 from spyder.config.gui import is_dark_interface
 
 

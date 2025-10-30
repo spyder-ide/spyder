@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QGroupBox, QGridLayout, QLabel, QMessageBox,
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.misc import check_connection_port
 
 

@@ -14,7 +14,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.plugins.completion.providers.languageserver.widgets import (
     LSPServerTable)

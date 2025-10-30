@@ -15,7 +15,7 @@ from base64 import decodebytes
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 # ---- Local library imports
-from spyder.config.base import _
+from spyder.api.translations import _
 
 
 class FigureBrowserWidget(RichJupyterWidget):

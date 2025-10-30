@@ -15,7 +15,8 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
