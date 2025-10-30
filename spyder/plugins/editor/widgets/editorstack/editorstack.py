@@ -787,6 +787,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    @on_conf_change(
+        option=("provider_configuration", "lsp", "values", "pyflakes"),
+        section='completions',
+    )
+    def on_pyflakes_enabled_change(self, value):
+        if self.data:
+            for finfo in self.data:
+                if finfo.editor.is_python_like():
+                    finfo.editor.pyflakes_linting_enabled = value
+
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
