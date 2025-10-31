@@ -415,7 +415,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Input prompt:"),
             'in_prompt',
             "",
-            _('Default is<br>'
+            _('Default is '
               '<tt>In [&lt;span class="in-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
             alignment=Qt.Horizontal,
         )
@@ -423,7 +423,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Output prompt:"),
             'out_prompt',
             "",
-            _('Default is<br>'
+            _('Default is '
               '<tt>Out[&lt;span class="out-prompt-number"&gt;%i&lt;/span&gt;]:</tt>'),
             alignment=Qt.Horizontal,
         )

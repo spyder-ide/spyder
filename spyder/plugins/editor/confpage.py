@@ -322,8 +322,8 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             'check_eol_chars',
             default=True,
             tip=_(
-                "When opening a file containing mixed end-of-line characters\n"
-                "(which may raise syntax errors in the console on Windows),\n"
+                "When opening a file containing mixed end-of-line characters "
+                "(which may raise syntax errors in the console on Windows), "
                 "Spyder will convert them automatically if enabled."
             ),
         )
