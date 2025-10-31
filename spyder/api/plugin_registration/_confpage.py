@@ -12,7 +12,7 @@ from qtpy.QtWidgets import QVBoxLayout, QLabel
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.elementstable import ElementsTable
 from spyder.widgets.helperwidgets import FinderWidget

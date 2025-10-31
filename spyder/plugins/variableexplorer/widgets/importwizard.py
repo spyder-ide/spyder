@@ -27,8 +27,8 @@ from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd)
 
 # Local import
+from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.base import _
 from spyder.utils import programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import add_actions, create_action

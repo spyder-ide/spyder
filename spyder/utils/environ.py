@@ -29,7 +29,8 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
-from spyder.config.base import _, running_in_ci, get_conf_path
+from spyder.api.translations import _
+from spyder.config.base import running_in_ci, get_conf_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
 from spyder.widgets.collectionseditor import CollectionsEditor

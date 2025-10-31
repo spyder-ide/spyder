@@ -29,7 +29,8 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
-from spyder.config.base import _, is_conda_based_app, running_in_ci
+from spyder.api.translations import _
+from spyder.config.base import is_conda_based_app, running_in_ci
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
 from spyder.utils.programs import get_temp_dir

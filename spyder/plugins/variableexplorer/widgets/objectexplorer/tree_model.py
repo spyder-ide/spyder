@@ -23,7 +23,7 @@ from qtpy.QtGui import QBrush, QColor
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (

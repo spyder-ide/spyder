@@ -32,7 +32,8 @@ from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
-from spyder.config.base import _, running_under_pytest, get_home_dir
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 

@@ -29,8 +29,9 @@ from qtpy.QtWidgets import QApplication
 
 # Local import
 from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
+from spyder.config.base import get_conf_path, get_debug_level, STDERR
 from spyder.config.manager import CONF
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima

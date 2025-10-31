@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
                             QVBoxLayout, QHBoxLayout, QScrollArea, QWidget)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 
 # Constants

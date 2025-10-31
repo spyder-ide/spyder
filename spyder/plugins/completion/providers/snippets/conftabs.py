@@ -26,8 +26,8 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.config.base import _
 from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.providers.snippets.widgets import (
     SnippetModelsProxy, SnippetTable, SUPPORTED_LANGUAGES_PY, PYTHON_POS)

@@ -24,8 +24,9 @@ from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.translations import _
 from spyder.utils.installers import InstallerPylspError
-from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.api import (SUPPORTED_LANGUAGES,

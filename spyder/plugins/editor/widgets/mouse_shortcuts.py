@@ -25,8 +25,8 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import TipWidget
 

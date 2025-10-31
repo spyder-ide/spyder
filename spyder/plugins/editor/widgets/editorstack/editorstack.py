@@ -33,8 +33,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop

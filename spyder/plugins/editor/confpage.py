@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.mouse_shortcuts import MouseShortcutEditor
 

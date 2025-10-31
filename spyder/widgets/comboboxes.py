@@ -25,8 +25,8 @@ from qtpy.QtWidgets import (
     QComboBox, QCompleter, QLineEdit, QSizePolicy, QToolTip)
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.config.base import _
 from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.widgets.helperwidgets import ClearLineEdit, IconLineEdit
 

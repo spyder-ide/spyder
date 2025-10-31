@@ -40,8 +40,9 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox, SpyderFontComboBox
-from spyder.config.base import _, get_home_dir
+from spyder.config.base import get_home_dir
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima

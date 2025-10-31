@@ -58,8 +58,8 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import SpyderPalette

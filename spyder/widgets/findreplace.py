@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper

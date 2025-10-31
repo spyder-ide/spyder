@@ -22,7 +22,7 @@ from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
                                          value_to_display)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 
 
 # Attribute models constants

@@ -22,11 +22,16 @@ outlineexplorer.set_current_editor(oe_proxy, update=True, clear=False)
 
 outlineexplorer.edit_goto.connect(handle_go_to)
 """
+
+# Standard library imports
 import re
 
+# Third party imports
 from qtpy.QtCore import Signal, QObject
 from qtpy.QtGui import QTextBlock
-from spyder.config.base import _
+
+# Local imports
+from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 
 
