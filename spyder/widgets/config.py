@@ -783,7 +783,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
     def create_browsefile(self, text, option, default=NoDefault, section=None,
                           tip=None, filters=None, alignment=Qt.Horizontal,
                           status_icon=None, validate_callback=None,
-                          validate_reason=None):
+                          validate_reason=None, word_wrap=True):
         widget = self.create_lineedit(
             text,
             option,
@@ -796,6 +796,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             status_icon=status_icon,
             validate_callback=validate_callback,
             validate_reason=validate_reason,
+            word_wrap=word_wrap,
         )
 
         for edit in self.lineedits:

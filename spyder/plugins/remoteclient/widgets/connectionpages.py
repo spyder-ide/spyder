@@ -10,6 +10,7 @@
 from __future__ import annotations
 from collections.abc import Iterable
 import logging
+import os.path as osp
 import re
 from typing import TypedDict
 import uuid
@@ -45,7 +46,6 @@ from spyder.plugins.remoteclient.widgets.connectionstatus import (
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
-from spyder.widgets.collapsible import CollapsibleWidget
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.helperwidgets import MessageLabel, TipWidget
 
@@ -86,7 +86,7 @@ class CreateEnvMethods:
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 450
+    MIN_HEIGHT = 650
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -125,8 +125,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     auth_method = AuthenticationMethod.Password
                 elif self._auth_methods.combobox.currentIndex() == 1:
                     auth_method = AuthenticationMethod.KeyFile
-                else:
-                    auth_method = AuthenticationMethod.ConfigFile
             else:
                 auth_method = AuthenticationMethod.JupyterHub
         else:
@@ -146,32 +144,32 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         reasons: ValidationReasons = {}
 
-        if auth_method == AuthenticationMethod.ConfigFile:
+        config_file_widget = widgets[3]
+        config_file = config_file_widget.textbox.text()
+        if config_file:
             host_widget = widgets[1]
             host = host_widget.textbox.text()
-            config_filepath_widget = widgets[6]
-            config_filepath = config_filepath_widget.textbox.text()
-            config_filepath_widget.textbox._validate(config_filepath)
+            config_file_widget.textbox._validate(config_file)
 
-            if not host:
-                reasons["missing_info"] = True
-                host_widget.status_action.setVisible(True)
-                host_widget.status_action.setToolTip(_("This field is empty"))
-            elif not self._validate_config_file(config_filepath):
+            if host and not self._validate_config_file(config_file):
                 reasons["invalid_host"] = True
                 host_widget.status_action.setVisible(True)
                 host_widget.status_action.setToolTip(_("Invalid host"))
             else:
                 host_widget.status_action.setVisible(False)
-                config_filepath_widget.textbox.error_action.setVisible(False)
+                config_file_widget.textbox.error_action.setVisible(False)
 
         for widget in widgets:
-            if (
-                auth_method != AuthenticationMethod.ConfigFile
-                and not widget.textbox.text()
-            ):
-                # Validate that the required fields are not empty when using
-                # a different authentication method than Config file
+            if not widget.textbox.text():
+                if (
+                    config_file
+                    and (widget == widgets[2] or widget == widgets[4])
+                    or not config_file
+                    and widget == widgets[3]
+                ):
+                    # Skip validation for username/keyfile when using a config
+                    # file or for config file if no config file is provided
+                    continue
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
                 widget.status_action.setToolTip(_("This field is empty"))
@@ -185,12 +183,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     reasons["repeated_name"] = True
                     widget.status_action.setVisible(True)
             elif widget == self._address_widgets.get(auth_method):
-                # Validate address
                 widget.status_action.setVisible(False)
-                address = widget.textbox.text()
-                if not self._validate_address(address):
-                    reasons["invalid_address"] = True
-                    widget.status_action.setVisible(True)
+                if not config_file:
+                    # Validate address
+                    address = widget.textbox.text()
+                    if not self._validate_address(address):
+                        reasons["invalid_address"] = True
+                        widget.status_action.setVisible(True)
             elif widget == self._url_widgets.get(auth_method):
                 # Validate URL
                 widget.status_action.setVisible(False)
@@ -198,7 +197,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 if not self._validate_url(url):
                     reasons["invalid_url"] = True
                     widget.status_action.setVisible(True)
-            elif auth_method != AuthenticationMethod.ConfigFile:
+            else:
                 widget.status_action.setVisible(False)
 
         if reasons:
@@ -302,7 +301,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         methods = (
             (_('Password'), AuthenticationMethod.Password),
             (_('Key file'), AuthenticationMethod.KeyFile),
-            (_('Configuration file'), AuthenticationMethod.ConfigFile),
         )
 
         self._auth_methods = self.create_combobox(
@@ -314,12 +312,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         # Subpages
         password_subpage = self._create_password_subpage()
         keyfile_subpage = self._create_keyfile_subpage()
-        configfile_subpage = self._create_configfile_subpage()
 
         subpages = QStackedWidget(self)
         subpages.addWidget(password_subpage)
         subpages.addWidget(keyfile_subpage)
-        subpages.addWidget(configfile_subpage)
 
         # Signals
         self._auth_methods.combobox.currentIndexChanged.connect(
@@ -378,8 +374,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             prefix=_("Port"),
             suffix="",
             option=f"{self.host_id}/{auth_method}/port",
-            min_=1,
-            max_=65535
+            min_=0,
+            max_=65535,
+            tip=_(
+                "Introduce a port to use for this connection. Set <b>0</b> "
+                "to use the port specified in the configuration file if provided"
+            ),
         )
         port.spinbox.setStyleSheet("margin-left: 5px")
 
@@ -389,10 +389,22 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
+        configfile = self.create_browsefile(
+            text=_("Configuration file"),
+            option=f"{self.host_id}/{auth_method}/configfile",
+            tip=_("File with the OpenSSH client configuration to use"),
+            validate_callback=self._validate_config_file,
+            validate_reason=_("Invalid OpenSSH client configuration file"),
+            alignment=Qt.Vertical,
+            status_icon=ima.icon("error"),
+            word_wrap=False,
+        )
+
         self._widgets_for_validation[f"{auth_method}"] = [
             name,
             address,
             username,
+            configfile,
         ]
         self._name_widgets[f"{auth_method}"] = name
         self._address_widgets[f"{auth_method}"] = address
@@ -412,20 +424,26 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         address_label_layout.addWidget(address.help_label)
         address_label_layout.addStretch()
 
+        # Layout for the port label
+        port_label_layout = QHBoxLayout()
+        port_label_layout.setSpacing(0)
+        port_label_layout.addWidget(port.plabel)
+        port_label_layout.addWidget(port.help_label)
+
         # Address layout
         address_layout = QGridLayout()
         address_layout.setContentsMargins(0, 0, 0, 0)
 
         address_layout.addLayout(address_label_layout, 0, 0)
         address_layout.addWidget(address.textbox, 1, 0)
-        address_layout.addWidget(port.plabel, 0, 1)
+        address_layout.addLayout(port_label_layout, 0, 1)
         address_layout.addWidget(port.spinbox, 1, 1)
 
-        return name, address_layout, username
+        return name, address_layout, username, configfile
 
     def _create_password_subpage(self):
         # Widgets
-        name, address_layout, username = self._create_common_elements(
+        name, address_layout, username, configfile = self._create_common_elements(
             auth_method=AuthenticationMethod.Password
         )
 
@@ -463,6 +481,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         password_layout.addWidget(username)
         password_layout.addSpacing(5 * AppStyle.MarginSize)
         password_layout.addWidget(password)
+        password_layout.addSpacing(5 * AppStyle.MarginSize)
+        password_layout.addWidget(configfile)
         password_layout.addSpacing(7 * AppStyle.MarginSize)
         password_layout.addWidget(validation_label)
         password_layout.addStretch()
@@ -474,7 +494,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _create_keyfile_subpage(self):
         # Widgets
-        name, address_layout, username = self._create_common_elements(
+        name, address_layout, username, configfile = self._create_common_elements(
             auth_method=AuthenticationMethod.KeyFile
         )
 
@@ -520,6 +540,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         keyfile_layout.addWidget(keyfile)
         keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
         keyfile_layout.addWidget(passphrase)
+        keyfile_layout.addSpacing(5 * AppStyle.MarginSize)
+        keyfile_layout.addWidget(configfile)
         keyfile_layout.addSpacing(7 * AppStyle.MarginSize)
         keyfile_layout.addWidget(validation_label)
         keyfile_layout.addStretch()
@@ -528,165 +550,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         keyfile_subpage.setLayout(keyfile_layout)
 
         return keyfile_subpage
-
-    def _create_configfile_subpage(self):
-        # Widgets
-        name = self.create_lineedit(
-            text=_("Name *"),
-            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/name",
-            tip=_("Introduce a name to identify your connection"),
-            status_icon=ima.icon("error"),
-        )
-
-        configfile = self.create_browsefile(
-            text=_("Configuration file *"),
-            option=f"{self.host_id}/configfile",
-            tip=_("File with the OpenSSH client configuration to use"),
-            validate_callback=self._validate_config_file,
-            validate_reason=_("Invalid OpenSSH client configuration file"),
-            alignment=Qt.Vertical,
-            status_icon=ima.icon("error"),
-        )
-
-        host = self.create_lineedit(
-            text=_("Host *"),
-            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/address",
-            default="",
-            tip=_(
-                "This is the host (i.e. <b>Host</b> configuration keyword) "
-                "that encapsulates the options to use for the connection"
-            ),
-            status_icon=ima.icon("error"),
-        )
-
-        port = self.create_spinbox(
-            prefix=_("Port"),
-            suffix="",
-            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/port",
-            default=0,
-            min_=0,
-            max_=65535,
-            tip=_(
-                "Introduce a port to use for this connection. Set <b>0</b> "
-                "to use the port specified in the configuration file"
-            ),
-        )
-        port.spinbox.setStyleSheet("margin-left: 5px")
-
-        username = self.create_lineedit(
-            text=_("Username"),
-            option=f"{self.host_id}/{AuthenticationMethod.ConfigFile}/username",
-            default="",
-            status_icon=ima.icon("error"),
-        )
-
-        password = self.create_lineedit(
-            text=_("Password"),
-            option=f"{self.host_id}/password",
-            tip=(
-                _("Your password will be saved securely by Spyder")
-                if self.NEW_CONNECTION
-                else _("Your password is saved securely by Spyder")
-            ),
-            status_icon=ima.icon("error"),
-            password=True
-        )
-
-        keyfile = self.create_browsefile(
-            text=_("Key file"),
-            option=f"{self.host_id}/keyfile",
-            alignment=Qt.Vertical,
-            status_icon=ima.icon("error"),
-        )
-
-        passphrase = self.create_lineedit(
-            text=_("Passphrase"),
-            option=f"{self.host_id}/passphrase",
-            tip=(
-                _("Your passphrase will be saved securely by Spyder")
-                if self.NEW_CONNECTION
-                else _("Your passphrase is saved securely by Spyder")
-            ),
-            status_icon=ima.icon("error"),
-            password=True
-        )
-
-        validation_label = MessageLabel(self)
-
-        # Add widgets to their required dicts
-        self._name_widgets[AuthenticationMethod.ConfigFile] = name
-        self._widgets_for_validation[AuthenticationMethod.ConfigFile] = [
-            name,
-            host,
-            username,
-            password,
-            keyfile,
-            passphrase,
-            configfile,
-        ]
-        self._validation_labels[
-            AuthenticationMethod.ConfigFile
-        ] = validation_label
-
-        # Layout
-        # Hide container widgets for host and port since we only use their
-        # components
-        host.hide()
-        port.hide()
-
-        # Layout for the host label
-        host_label_layout = QHBoxLayout()
-        host_label_layout.setSpacing(0)
-        host_label_layout.addWidget(host.label)
-        host_label_layout.addWidget(host.help_label)
-        host_label_layout.addStretch()
-
-        # Layout for the port label
-        port_label_layout = QHBoxLayout()
-        port_label_layout.setSpacing(0)
-        port_label_layout.addWidget(port.plabel)
-        port_label_layout.addWidget(port.help_label)
-
-        # host + port layout
-        host_layout = QGridLayout()
-        host_layout.setContentsMargins(0, 0, 0, 0)
-
-        host_layout.addLayout(host_label_layout, 0, 0)
-        host_layout.addWidget(host.textbox, 1, 0)
-        host_layout.addLayout(port_label_layout, 0, 1)
-        host_layout.addWidget(port.spinbox, 1, 1)
-
-        # advanced params
-        advanced_config = CollapsibleWidget(self, _("Advanced configuration"))
-        advanced_config_widget = QWidget(self)
-        advanced_layout = QVBoxLayout()
-        advanced_layout.addWidget(username)
-        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
-        advanced_layout.addWidget(password)
-        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
-        advanced_layout.addWidget(keyfile)
-        advanced_layout.addSpacing(5 * AppStyle.MarginSize)
-        advanced_layout.addWidget(passphrase)
-        advanced_config_widget.setLayout(advanced_layout)
-        advanced_config.addWidget(advanced_config_widget)
-
-        configfile_layout = QVBoxLayout()
-        configfile_layout.setContentsMargins(0, 0, 0, 0)
-        configfile_layout.addWidget(name)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addLayout(host_layout)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(configfile)
-        configfile_layout.addSpacing(5 * AppStyle.MarginSize)
-        configfile_layout.addWidget(advanced_config)
-        configfile_layout.addSpacing(7 * AppStyle.MarginSize)
-        configfile_layout.addWidget(validation_label)
-        configfile_layout.addStretch()
-
-        configfile_widget = QWidget(self)
-        configfile_widget.setLayout(configfile_layout)
-
-        return configfile_widget
 
     def _create_jupyterhub_subpage(self):
         # Widgets
@@ -781,6 +644,15 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _validate_address(self, address):
         """Validate if address introduced by users is correct."""
+        auth_method = self.auth_method(from_gui=True)
+        widgets = self._widgets_for_validation[auth_method]
+        config_filepath_widget = widgets[3]
+        if config_filepath_widget.textbox.text():
+            # Address validation depends on config file parsing
+            return self._validate_config_file(
+                config_filepath_widget.textbox.text()
+            )
+
         # Regex pattern for a valid domain name (simplified version)
         domain_pattern = (
             r'^([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.){1,}[a-zA-Z]{2,}$'
@@ -802,37 +674,53 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _validate_config_file(self, config_filepath):
         logger.info(config_filepath)
-        widgets = self._widgets_for_validation[AuthenticationMethod.ConfigFile]
+        auth_method = self.auth_method(from_gui=True)
 
-        host_textbox = widgets[1].textbox
-        host = host_textbox.text()
+        widgets = self._widgets_for_validation[auth_method]
+        host_widget = widgets[1]
+        host = host_widget.textbox.text()
         username_textbox = widgets[2].textbox
         username = username_textbox.text() if username_textbox.text() else ()
-        keyfile_textbox = widgets[4].textbox
-        keyfile = keyfile_textbox.text()
-        config = asyncssh.config.SSHClientConfig.load(
-            None,
-            config_filepath,
-            True,
-            True,
-            False,
-            "local_user",
-            username,
-            host,
-            ()
-        )
-        logger.info(config.get_options(False))
+        keyfile_textbox = None
 
-        if not config.get_options(False):
+        if auth_method == AuthenticationMethod.KeyFile:
+            keyfile_textbox = widgets[4].textbox
+
+        config = None
+        if osp.isfile(config_filepath):
+            config = asyncssh.config.SSHClientConfig.load(
+                None,
+                config_filepath,
+                True,
+                True,
+                False,
+                "local_user",
+                username,
+                host,
+                ()
+            )
+            logger.info(config.get_options(False))
+
+        if config and not config.get_options(False) or not config:
             username_textbox.setPlaceholderText("")
-            keyfile_textbox.setPlaceholderText("")
+            if keyfile_textbox:
+                keyfile_textbox.setPlaceholderText("")
+            if not config:
+                # If no config is available. Focus host/address widget to
+                # trigger validations eventually via focus change
+                host_widget.textbox.setFocus()
+
             return False
 
-        if not username and config.get("User", None):
+        if config.get("User", None):
             username_textbox.setPlaceholderText(config.get("User"))
 
-        if not keyfile and config.get("IdentityFile", None):
+        if config.get("IdentityFile", None) and keyfile_textbox:
             keyfile_textbox.setPlaceholderText(config.get("IdentityFile")[0])
+
+        # Host/address widget is valid since OpenSSH config file parsing was
+        # successful
+        host_widget.status_action.setVisible(False)
 
         return True
 
@@ -1288,7 +1176,7 @@ class ConnectionPage(BaseConnectionPage):
         # Validate config file if available so related widgets get updated
         # when initializing the page
         configfile_path = self.get_option(
-            f"{self.host_id}/configfile", default=""
+            f"{self.host_id}/{self.auth_method()}/configfile", default=""
         )
         if configfile_path:
             self._validate_config_file(configfile_path)
@@ -1317,15 +1205,12 @@ class ConnectionPage(BaseConnectionPage):
             "password_login/address",
             "password_login/port",
             "password_login/username",
+            "password_login/configfile",
             "keyfile_login/name",
             "keyfile_login/address",
             "keyfile_login/port",
             "keyfile_login/username",
-            "configfile_login/name",
-            "configfile_login/address",
-            "configfile_login/port",
-            "configfile_login/username",
-            "configfile",
+            "keyfile_login/configfile",
             "jupyterhub_login/name",
             "keyfile",
             "status",

@@ -332,7 +332,12 @@ class RemoteClient(SpyderPluginV2):
                 f"{config_id}/passphrase", "", secure=True
             ):
                 options["passphrase"] = passphrase
-        elif config := self.get_conf(f"{config_id}/configfile"):
+        else:
+            # Password is mandatory in this case
+            password = self.get_conf(f"{config_id}/password", secure=True)
+            options["password"] = password
+
+        if config := self.get_conf(f"{config_id}/{auth_method}/configfile"):
             options["config"] = [config]
 
             # Some validations to avoid passing empty values
@@ -344,23 +349,6 @@ class RemoteClient(SpyderPluginV2):
             if not options["username"]:
                 # Ignore empty username
                 options.pop("username")
-            
-            if password := self.get_conf(f"{config_id}/password", secure=True):
-                # Add password if available
-                options["password"] = password
-
-            if client_keys := self.get_conf(f"{config_id}/keyfile", ""):
-                # Add keyfile if available
-                options["client_keys"] = [client_keys]
-            
-            if passphrase := self.get_conf(f"{config_id}/passphrase", secure=True):
-                # Add passphrase if available
-                options["passphrase"] = passphrase
-
-        else:
-            # Password is mandatory in this case
-            password = self.get_conf(f"{config_id}/password", secure=True)
-            options["password"] = password
 
         # Default for now
         options["platform"] = "linux"
