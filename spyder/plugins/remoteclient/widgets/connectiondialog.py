@@ -278,7 +278,13 @@ class ConnectionDialog(SidebarDialog):
         """Start the server corresponding to a given page."""
         page = self.get_page()
 
-        # Validate info
+        # Validate connection info.
+        # NOTE: It always needs to be done in case the info changed (e.g. key
+        # file could have been moved) before establishing the connection.
+        if not page.validate_page():
+            return
+
+        # Validate env info
         if ENV_MANAGER and page.NEW_CONNECTION:
             if (
                 self._new_connection_page.is_env_creation_widget_shown()
@@ -290,8 +296,6 @@ class ConnectionDialog(SidebarDialog):
                 and not self._new_connection_page.get_env_packages_list()
             ):
                 return
-        elif not page.validate_page():
-            return
 
         # This uses the current host_id in case users want to start a
         # connection directly from the new connection page (
