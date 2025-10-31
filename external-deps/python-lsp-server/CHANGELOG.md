@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 1.13.1 (2025/08/26)
+
+### Pull Requests Merged
+
+* [PR 667](https://github.com/python-lsp/python-lsp-server/pull/667) - Use PyQt6 for testing, by [@WhyNotHugo](https://github.com/WhyNotHugo)
+* [PR 666](https://github.com/python-lsp/python-lsp-server/pull/666) - Expose a shutdown hook, by [@dlax](https://github.com/dlax)
+* [PR 663](https://github.com/python-lsp/python-lsp-server/pull/663) - Copy `LAST_JEDI_COMPLETIONS` to cell document so that `completionItem/resolve` will work, by [@hjr265](https://github.com/hjr265)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 1.13.0 (2025/07/07)
 
 ### New features

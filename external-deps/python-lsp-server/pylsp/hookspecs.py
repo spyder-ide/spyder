@@ -138,3 +138,8 @@ def pylsp_signature_help(config, workspace, document, position) -> None:
 @hookspec
 def pylsp_workspace_configuration_changed(config, workspace) -> None:
     pass
+
+
+@hookspec
+def pylsp_shutdown(config, workspace) -> None:
+    pass
