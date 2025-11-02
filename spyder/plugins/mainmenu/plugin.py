@@ -109,12 +109,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                     editorstack = self._main.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
-                    try:
-                        # New API
-                        plugin_instance.options_menu.hide()
-                    except AttributeError:
-                        # Old API
-                        plugin_instance._options_menu.hide()
+                    plugin_instance.options_menu.hide()
 
     # ---- Public API
     # ------------------------------------------------------------------------

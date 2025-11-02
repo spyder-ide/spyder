@@ -1439,19 +1439,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         if len(fnames) >= 1:
-            try:
-                selected_item = osp.commonpath(fnames)
-            except AttributeError:
-                #  py2 does not have commonpath
-                if len(fnames) > 1:
-                    selected_item = osp.normpath(
-                            osp.dirname(osp.commonprefix(fnames)))
-                else:
-                    selected_item = fnames[0]
+            selected_item = osp.commonpath(fnames)
             if osp.isfile(selected_item):
                 parent_path = osp.dirname(selected_item)
             else:
                 parent_path = osp.normpath(selected_item)
+
             cb_data = QApplication.clipboard().mimeData()
             if cb_data.hasUrls():
                 urls = cb_data.urls()
