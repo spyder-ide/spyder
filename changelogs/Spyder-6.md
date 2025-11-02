@@ -1,5 +1,13 @@
 # History of changes for Spyder 6
 
+## Version 6.1.1 (Unreleased)
+
+### API changes
+
+* Remove old API for plugins, which was deprecated since Spyder 6.0.
+
+----
+
 ## Version 6.1.0 (2025/10/02)
 
 ### New features
