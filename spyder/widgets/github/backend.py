@@ -31,8 +31,8 @@ from qtpy.QtWidgets import QApplication, QMessageBox
 
 
 from spyder.api.translations import _
-from spyder.config.manager import CONF
 from spyder.config.base import running_under_pytest
+from spyder.config.manager import CONF
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 

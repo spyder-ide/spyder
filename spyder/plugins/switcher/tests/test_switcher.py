@@ -7,9 +7,6 @@
 """
 Tests for the Switcher Widget.
 """
-
-# Standard library imports
-
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
