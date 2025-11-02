@@ -24,9 +24,9 @@ from spyder import (
     __website_url__ as website_url,
     get_versions, get_versions_text
 )
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SvgToScaledPixmap
-from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import (
     AppStyle,

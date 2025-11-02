@@ -22,8 +22,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QListWidget, QListWidgetItem, QPushButton,
                             QVBoxLayout, QWidget)
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 from spyder.utils.encoding import is_text_file
 from spyder.utils.programs import (get_application_icon,
                                    get_installed_applications,

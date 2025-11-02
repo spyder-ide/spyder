@@ -13,7 +13,7 @@ import os.path as osp
 import platform
 import sys
 
-from spyder.config.base import _
+from spyder.api.translations import _
 
 from spyder_kernels.utils import iofuncs
 

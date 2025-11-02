@@ -11,7 +11,8 @@ Tests for the Switcher Widget.
 import pytest
 from qtpy.QtCore import Qt
 
-from spyder.config.base import _
+# Local imports
+from spyder.api.translations import _
 
 
 # --- Fixtures

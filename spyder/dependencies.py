@@ -12,7 +12,8 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, running_in_ci, is_conda_based_app
+from spyder.api.translations import _
+from spyder.config.base import running_in_ci, is_conda_based_app
 from spyder.utils import programs
 
 

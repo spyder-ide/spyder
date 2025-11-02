@@ -41,7 +41,8 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.api.plugins import Plugins
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
