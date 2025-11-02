@@ -10,7 +10,7 @@
 from qtpy.QtCore import QThread, Signal
 
 # Local Imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  sphinxify)
 

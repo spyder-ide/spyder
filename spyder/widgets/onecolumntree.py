@@ -10,8 +10,8 @@ from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import get_item_user_text
 

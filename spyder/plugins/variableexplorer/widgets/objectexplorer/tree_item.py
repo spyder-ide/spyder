@@ -16,7 +16,7 @@
 import logging
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 

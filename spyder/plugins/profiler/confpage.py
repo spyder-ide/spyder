@@ -9,7 +9,7 @@
 from qtpy.QtWidgets import QVBoxLayout
 
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
+from spyder.api.translations import _
 
 
 class ProfilerConfigPage(PluginConfigPage):

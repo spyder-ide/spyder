@@ -28,8 +28,9 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 
 
 class RecoveryDialog(QDialog):

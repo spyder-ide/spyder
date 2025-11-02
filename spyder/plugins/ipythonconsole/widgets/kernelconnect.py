@@ -25,8 +25,9 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, get_home_dir
+from spyder.config.base import get_home_dir
 
 
 KERNEL_CONNECTION_SCHEMA = {

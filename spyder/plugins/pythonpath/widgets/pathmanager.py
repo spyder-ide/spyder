@@ -32,9 +32,9 @@ from requests.structures import CaseInsensitiveDict
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import (
     get_user_environment_variables,

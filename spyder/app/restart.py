@@ -25,9 +25,9 @@ from qtpy.QtGui import QColor, QIcon
 from qtpy.QtWidgets import QApplication, QMessageBox, QWidget
 
 # Local imports
+from spyder.api.translations import _
 from spyder.app import SHORTCUT_EXE
 from spyder.app.utils import create_splash_screen
-from spyder.config.base import _
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication

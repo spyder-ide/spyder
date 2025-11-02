@@ -21,7 +21,8 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from spyder_kernels.comms.commbase import CommError
 
 # Local imports
-from spyder.config.base import _, is_conda_based_app
+from spyder.api.translations import _
+from spyder.config.base import is_conda_based_app
 
 # For logging
 logger = logging.getLogger(__name__)
