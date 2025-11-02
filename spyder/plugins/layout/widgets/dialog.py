@@ -24,10 +24,10 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 from spyder.utils.stylesheet import AppStyle, PANES_TOOLBAR_STYLESHEET
 
 

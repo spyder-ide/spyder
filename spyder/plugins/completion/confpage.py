@@ -10,8 +10,8 @@
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout, QGridLayout
 
 # Local imports
-from spyder.config.base import _
 from spyder.api.preferences import PluginConfigPage
+from spyder.api.translations import _
 
 
 class CompletionConfigPage(PluginConfigPage):

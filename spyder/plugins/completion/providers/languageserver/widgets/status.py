@@ -13,9 +13,9 @@ from qtpy.QtCore import QPoint, Slot
 from qtpy.QtGui import QFontMetrics
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.status import StatusBarWidget
-from spyder.config.base import _
 from spyder.utils.stylesheet import MAC, WIN
 
 

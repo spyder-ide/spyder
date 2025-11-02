@@ -24,8 +24,8 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path

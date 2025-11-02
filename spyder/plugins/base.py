@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QApplication, QMainWindow, QMenu, QMessageBox,
                             QShortcut, QToolButton)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
