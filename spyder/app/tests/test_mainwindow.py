@@ -2996,12 +2996,7 @@ def test_custom_layouts(main_window, qtbot):
                         if plugin_id not in area['hidden_plugin_ids']:
                             plugin = mw.get_plugin(plugin_id)
                             print(plugin)  # spyder: test-skip
-                            try:
-                                # New API
-                                assert plugin.get_widget().isVisible()
-                            except AttributeError:
-                                # Old API
-                                assert plugin.isVisible()
+                            assert plugin.get_widget().isVisible()
 
 
 @flaky(max_runs=3)
@@ -3037,12 +3032,7 @@ def test_programmatic_custom_layouts(main_window, qtbot):
                     if plugin_id not in area['hidden_plugin_ids']:
                         plugin = mw.get_plugin(plugin_id)
                         print(plugin)  # spyder: test-skip
-                        try:
-                            # New API
-                            assert plugin.get_widget().isVisible()
-                        except AttributeError:
-                            # Old API
-                            assert plugin.isVisible()
+                        assert plugin.get_widget().isVisible()
 
 
 @flaky(max_runs=3)

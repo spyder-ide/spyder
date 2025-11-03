@@ -43,7 +43,6 @@ from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 
 # Package imports
 from .enum import Plugins
-from ._old_api import SpyderPluginWidget
 
 
 # Logging
@@ -484,8 +483,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         dockable_plugins_required = []
         for name, plugin_instance in self._main.get_dockable_plugins():
             if (name in requires or Plugins.All in requires) and isinstance(
-                    plugin_instance,
-                    (SpyderDockablePlugin, SpyderPluginWidget)):
+                plugin_instance, SpyderDockablePlugin
+            ):
                 dockable_plugins_required.append(plugin_instance)
         return dockable_plugins_required
 
