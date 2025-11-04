@@ -97,13 +97,13 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if host_id is None:
             self.host_id = str(uuid.uuid4())
             self.status = ConnectionStatus.Inactive
-            self.client_type = None
+            self._client_type = None
         else:
             self.host_id = host_id
             self.status = self.get_option(
                 f"{host_id}/status", default=ConnectionStatus.Inactive
             )
-            self.client_type = self.get_option(
+            self._client_type = self.get_option(
                 f"{host_id}/client_type", default=ClientType.SSH
             )
 
@@ -120,7 +120,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def auth_method(self, from_gui=False):
         if from_gui:
-            if self._get_client_type(from_gui) == ClientType.SSH or (
+            if self.get_client_type() == ClientType.SSH or (
                 self._auth_methods and self._auth_methods.combobox.isVisible()
             ):
                 if self._auth_methods.combobox.currentIndex() == 0:
@@ -216,7 +216,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             # number of reasons.
             n_reasons = list(reasons.values()).count(True)
             min_height = self.MIN_HEIGHT
-            if self._get_client_type(from_gui=True) == ClientType.SSH:
+            if self.get_client_type() == ClientType.SSH:
                 if (
                     self.auth_method(from_gui=True)
                     == AuthenticationMethod.Password
@@ -381,20 +381,22 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         return ssh_connection_info_widget
 
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _get_client_type(self, from_gui=False):
-        if from_gui:
+    def get_client_type(self):
+        if self.NEW_CONNECTION:
+            # In this case the client type hasn't been saved to our config
+            # system, so we need to get it from the UI.
             client_type = (
                 ClientType.SSH
                 if self.tabs.currentIndex() == 0
                 else ClientType.JupyterHub
             )
         else:
-            client_type = self.client_type
+            client_type = self._client_type
 
         return client_type
 
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _create_common_elements(self, auth_method: str):
         """Common elements for the password and keyfile subpages."""
         # Widgets
@@ -901,7 +903,7 @@ class NewConnectionPage(BaseConnectionPage):
         if self.NEW_CONNECTION:
             # Set the client type for new connections following current tab
             # index
-            client_type = self._get_client_type(from_gui=True)
+            client_type = self.get_client_type()
             self.set_option(f"{self.host_id}/client_type", client_type)
             if client_type == ClientType.JupyterHub:
                 # Set correct auth_method option following client type detected
@@ -1216,7 +1218,7 @@ class ConnectionPage(BaseConnectionPage):
         return self.get_option(f"{self.host_id}/{self.auth_method()}/name")
 
     def setup_page(self):
-        if self.client_type == ClientType.SSH:
+        if self.get_client_type() == ClientType.SSH:
             info_widget = self.create_ssh_connection_info_widget()
         else:
             info_widget = self.create_jupyterhub_connection_info_widget()
