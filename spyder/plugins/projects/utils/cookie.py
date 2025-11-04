@@ -44,9 +44,7 @@ def load_cookiecutter_project(project_path, token=None):
     """
     options = None
     pre_gen_code = None
-    input("INGRESOOOOO1")
     if urlparse(project_path).scheme in ("http", "https", "git", "ssh"):
-        print("INGRESOOOOO2")
         parsed = urlparse(project_path)
         parts = parsed.path.strip("/").split("/")
         if len(parts) < 2:

@@ -19,6 +19,7 @@ from qtpy import QtCore
 from qtpy import QtWidgets
 
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.plugins.projects.widgets.projectdialog import BaseProjectPage
 
 class Namespace:
     """
@@ -97,7 +98,7 @@ class CookiecutterDialog(QtWidgets.QDialog):
         return self._widget.get_values()
 
 
-class CookiecutterWidget(QtWidgets.QWidget):
+class CookiecutterWidget(BaseProjectPage):
     """
     QWidget to display cookiecutter.json options.
 
@@ -138,7 +139,8 @@ class CookiecutterWidget(QtWidgets.QWidget):
         self._form_layout = QtWidgets.QFormLayout()
         self._form_layout.setFieldGrowthPolicy(
             self._form_layout.AllNonFixedFieldsGrow)
-        self.setLayout(self._form_layout)
+        #self.setLayout(self._form_layout)
+        self.setup_page()
 
     # --- Helpers
     # ------------------------------------------------------------------------
