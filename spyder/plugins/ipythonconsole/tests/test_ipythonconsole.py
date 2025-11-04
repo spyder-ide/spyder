@@ -1585,7 +1585,8 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Run a line on startup
     ipyconsole.set_conf(
         'startup/pdb_run_lines',
-        'abba = 12; print("Hello")'
+        'abba = 12; print("Hello")',
+        section='debugger'
     )
 
     shell.execute('%debug print()')
@@ -1595,7 +1596,11 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     assert shell.get_value('abba') == 12
 
     # Reset setting
-    ipyconsole.set_conf('startup/pdb_run_lines', '')
+    ipyconsole.set_conf(
+        'startup/pdb_run_lines',
+        '',
+        section='debugger'
+    )
 
 
 @flaky(max_runs=3)
