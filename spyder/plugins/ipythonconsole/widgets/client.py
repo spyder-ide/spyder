@@ -610,8 +610,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     def is_warning_message(self, error):
         """Decide if a message contains a warning in order to filter it."""
         warning_pattern = re.compile(
-            r"(?:^|\s)(?:[A-Za-z]*Warning:|WARNING:?)(?=\s|$)"
-            )
+            r"(?:^|\s)(?:[A-Za-z]*Warning:|"
+            r"(?<=\s)WARNING(?=\s))(?:\:)?(?=\s|$)"
+        )
         return warning_pattern.search(error)
 
     def get_name(self):
