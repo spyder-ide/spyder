@@ -66,9 +66,6 @@ class RunParametersTableView(HoverRowsTableView):
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
     def selection(self, index):
-        self.update()
-        self.isActiveWindow()
-
         # Detect if a row corresponds to a set of default parameters to prevent
         # users from deleting it.
         index = self.currentIndex().row()

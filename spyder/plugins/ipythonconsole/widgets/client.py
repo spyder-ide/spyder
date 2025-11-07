@@ -75,11 +75,6 @@ BLANK = open(osp.join(TEMPLATES_PATH, 'blank.html')).read()
 LOADING = open(osp.join(TEMPLATES_PATH, 'loading.html')).read()
 KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 
-try:
-    time.monotonic  # time.monotonic new in 3.3
-except AttributeError:
-    time.monotonic = time.time
-
 
 # ----------------------------------------------------------------------------
 # Client widget

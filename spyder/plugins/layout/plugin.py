@@ -309,12 +309,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         plugins to be hidden with them.
         """
         for plugin in self.get_dockable_plugins():
-            try:
-                # New API
-                action = plugin.toggle_view_action
-            except AttributeError:
-                # Old API
-                action = plugin._toggle_view_action
+            action = plugin.toggle_view_action
 
             if show:
                 section = plugin.CONF_SECTION
@@ -543,12 +538,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
         # Make sure the flags are correctly set for visible panes
         for plugin in self.get_dockable_plugins():
-            try:
-                # New API
-                action = plugin.toggle_view_action
-            except AttributeError:
-                # Old API
-                action = plugin._toggle_view_action
+            action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
         # This is necessary to restore the style for dock tabbars after the
@@ -744,17 +734,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         """Search for the currently focused plugin and close it."""
         widget = QApplication.focusWidget()
         for plugin in self.get_dockable_plugins():
-            # TODO: remove old API
-            try:
-                # New API
-                if plugin.get_widget().isAncestorOf(widget):
-                    plugin.toggle_view_action.setChecked(False)
-                    break
-            except AttributeError:
-                # Old API
-                if plugin.isAncestorOf(widget):
-                    plugin._toggle_view_action.setChecked(False)
-                    break
+            if plugin.get_widget().isAncestorOf(widget):
+                plugin.toggle_view_action.setChecked(False)
+                break
 
     @property
     def maximize_action(self):
@@ -787,15 +769,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
             for plugin in self.get_dockable_plugins():
                 plugin.dockwidget.hide()
-
-                try:
-                    # New API
-                    if plugin.get_widget().isAncestorOf(focus_widget):
-                        self._last_plugin = plugin
-                except Exception:
-                    # Old API
-                    if plugin.isAncestorOf(focus_widget):
-                        self._last_plugin = plugin
+                if plugin.get_widget().isAncestorOf(focus_widget):
+                    self._last_plugin = plugin
 
             # This prevents a possible error when the value of _last_plugin
             # turns out to be None.
@@ -808,26 +783,14 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
             # Maximize last_plugin
             self._last_plugin.dockwidget.toggleViewAction().setDisabled(True)
-            try:
-                # New API
-                self.main.setCentralWidget(self._last_plugin.get_widget())
-                self._last_plugin.get_widget().set_maximized_state(True)
-            except AttributeError:
-                # Old API
-                self.main.setCentralWidget(self._last_plugin)
-                self._last_plugin._ismaximized = True
+            self.main.setCentralWidget(self._last_plugin.get_widget())
+            self._last_plugin.get_widget().set_maximized_state(True)
 
             # Workaround to solve an issue with editor's outline explorer:
             # (otherwise the whole plugin is hidden and so is the outline
             # explorer and the latter won't be refreshed if not visible)
-            try:
-                # New API
-                self._last_plugin.get_widget().show()
-                self._last_plugin.change_visibility(True)
-            except AttributeError:
-                # Old API
-                self._last_plugin.show()
-                self._last_plugin._visibility_changed(True)
+            self._last_plugin.get_widget().show()
+            self._last_plugin.change_visibility(True)
 
             if self._last_plugin is editor:
                 # Automatically show the outline if the editor was maximized
@@ -835,24 +798,12 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                     outline_explorer.dock_with_maximized_editor()
         else:
             # Restore original layout (before maximizing current dockwidget)
-            try:
-                # New API
-                self._last_plugin.dockwidget.setWidget(
-                    self._last_plugin.get_widget())
-            except AttributeError:
-                # Old API
-                self._last_plugin.dockwidget.setWidget(self._last_plugin)
-
+            self._last_plugin.dockwidget.setWidget(
+                self._last_plugin.get_widget()
+            )
             self._last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.main.setCentralWidget(None)
-
-            try:
-                # New API
-                self._last_plugin.get_widget().set_maximized_state(False)
-            except AttributeError:
-                # Old API
-                self._last_plugin._ismaximized = False
-
+            self._last_plugin.get_widget().set_maximized_state(False)
             self.main.restoreState(
                 self._state_before_maximizing, version=WINDOW_STATE_VERSION
             )
@@ -862,12 +813,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
                 if outline_explorer is not None:
                     outline_explorer.hide_from_maximized_editor()
 
-            try:
-                # New API
-                self._last_plugin.get_widget().get_focus_widget().setFocus()
-            except AttributeError:
-                # Old API
-                self._last_plugin.get_focus_widget().setFocus()
+            self._last_plugin.get_widget().get_focus_widget().setFocus()
 
     def unmaximize_dockwidget(self):
         """Unmaximize any dockable plugin."""
@@ -882,14 +828,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         is_maximized = False
 
         if last_plugin is not None:
-            try:
-                # New API
-                is_maximized = (
-                    last_plugin.get_widget().get_maximized_state()
-                )
-            except AttributeError:
-                # Old API
-                is_maximized = last_plugin._ismaximized
+            is_maximized = (
+                last_plugin.get_widget().get_maximized_state()
+            )
 
         if (
             last_plugin is not None
@@ -910,55 +851,30 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         """
         last_plugin = self.get_last_plugin()
 
-        try:
-            # New API
-            if (
-                last_plugin is not None
-                and last_plugin.get_widget().get_maximized_state()
-                and last_plugin is not plugin
-            ):
-                if self.maximize_action.isChecked():
-                    self.maximize_action.setChecked(False)
-                else:
-                    self.maximize_action.setChecked(True)
-        except AttributeError:
-            # Old API
-            if (
-                last_plugin is not None
-                and last_plugin._ismaximized
-                and last_plugin is not plugin
-            ):
-                if self.maximize_action.isChecked():
-                    self.maximize_action.setChecked(False)
-                else:
-                    self.maximize_action.setChecked(True)
-
-        try:
-            # New API
-            if not plugin.toggle_view_action.isChecked():
-                plugin.toggle_view_action.setChecked(True)
-                plugin.get_widget().is_visible = False
-        except AttributeError:
-            # Old API
-            if not plugin._toggle_view_action.isChecked():
-                plugin._toggle_view_action.setChecked(True)
-                plugin._widget._is_visible = False
-
-        try:
-            # New API
-            if plugin.get_widget().windowwidget:
-                # This is necessary to give focus to undocked plugin windows
-                # from plugins in the main one when using the "switch to
-                # plugin" shortcuts. It also allows to switch between different
-                # undocked windows with those shortcuts.
-                # Fixes spyder-ide/spyder#1351
-                plugin.get_widget().windowwidget.activateWindow()
+        if (
+            last_plugin is not None
+            and last_plugin.get_widget().get_maximized_state()
+            and last_plugin is not plugin
+        ):
+            if self.maximize_action.isChecked():
+                self.maximize_action.setChecked(False)
             else:
-                plugin.change_visibility(True, force_focus=force_focus)
-                self.main.activateWindow()
-        except AttributeError:
-            # Old API
-            plugin._visibility_changed(True)
+                self.maximize_action.setChecked(True)
+
+        if not plugin.toggle_view_action.isChecked():
+            plugin.toggle_view_action.setChecked(True)
+            plugin.get_widget().is_visible = False
+
+        if plugin.get_widget().windowwidget:
+            # This is necessary to give focus to undocked plugin windows
+            # from plugins in the main one when using the "switch to
+            # plugin" shortcuts. It also allows to switch between different
+            # undocked windows with those shortcuts.
+            # Fixes spyder-ide/spyder#1351
+            plugin.get_widget().windowwidget.activateWindow()
+        else:
+            plugin.change_visibility(True, force_focus=force_focus)
+            self.main.activateWindow()
 
     # ---- Menus and actions
     # -------------------------------------------------------------------------
@@ -1031,14 +947,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         ]
 
         for plugin in self.get_dockable_plugins():
-            try:
-                # New API
-                action = plugin.toggle_view_action
-            except AttributeError:
-                # Old API
-                action = plugin._toggle_view_action
-                action.action_id = f'switch to {plugin.CONF_SECTION}'
-
+            action = plugin.toggle_view_action
             if action:
                 # Plugins that fail their compatibility checks don't have a
                 # dockwidget. So, we need to skip them from the plugins menu.
@@ -1148,14 +1057,8 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
         visible_plugins = []
         for plugin in self.get_dockable_plugins():
-            try:
-                # New API
-                if plugin.get_widget().is_visible:
-                    visible_plugins.append(plugin.NAME)
-            except AttributeError:
-                # Old API
-                if plugin._isvisible:
-                    visible_plugins.append(plugin.NAME)
+            if plugin.get_widget().is_visible:
+                visible_plugins.append(plugin.NAME)
 
         self.set_conf('last_visible_plugins', visible_plugins)
 

@@ -28,10 +28,12 @@ import logging
 # Third party imports
 from packaging.version import parse
 import psutil
+from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
-from spyder.config.base import _, running_under_pytest, get_home_dir
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest, get_home_dir
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
@@ -184,21 +186,16 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
 
-        # ensure Windows subprocess environment has SYSTEMROOT
-        if kwargs.get('env') is not None:
-            # Is SYSTEMROOT, SYSTEMDRIVE in env? case insensitive
+        # Ensure Windows subprocess environment has certain variables
+        if "env" in kwargs:
+            env = CaseInsensitiveDict(kwargs.get("env"))
             for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
-                if env_var not in map(str.upper, kwargs['env'].keys()):
-                    # Add from os.environ
-                    for k, v in os.environ.items():
-                        if env_var == k.upper():
-                            kwargs['env'].update({k: v})
-                            break  # don't risk multiple values
+                env.setdefault(env_var, os.getenv(env_var))
+            kwargs["env"] = dict(env)
     else:
         # linux and macOS
-        if kwargs.get('env') is not None:
-            if 'HOME' not in kwargs['env']:
-                kwargs['env'].update({'HOME': get_home_dir()})
+        if "env" in kwargs:
+            kwargs["env"].setdefault("HOME", get_home_dir())
 
     return kwargs
 

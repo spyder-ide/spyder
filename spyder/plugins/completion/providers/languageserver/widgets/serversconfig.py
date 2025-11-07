@@ -23,9 +23,9 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 from spyder.plugins.completion.api import SUPPORTED_LANGUAGES
 from spyder.utils.misc import check_connection_port
 from spyder.utils.palette import SpyderPalette

@@ -27,8 +27,9 @@ from traitlets import observe
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _, is_conda_based_app, running_under_pytest
+from spyder.config.base import is_conda_based_app, running_under_pytest
 from spyder.config.gui import get_color_scheme, is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
