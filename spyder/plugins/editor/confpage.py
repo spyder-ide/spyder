@@ -379,7 +379,7 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
             _("Automatically save a backup copy of unsaved files"),
             'autosave_enabled',
             tip=_(
-                "If Spyder quits unexpectedly, it will offer to recover"
+                "If Spyder quits unexpectedly, it will offer to recover "
                 "them on next launch"
             ),
         )
