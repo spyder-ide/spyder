@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-11-10 12:41\n"
+"PO-Revision-Date: 2025-11-10 14:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2927,23 +2927,23 @@ msgstr "正在打印..."
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:57
 msgid "Jump within the document in the scroll flags area"
-msgstr ""
+msgstr "在滚动标志区域内跳转文档"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:65
 msgid "Go to a code definition"
-msgstr ""
+msgstr "转到代码定义"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:73
 msgid "Add/remove an additional cursor"
-msgstr ""
+msgstr "添加/移除附加光标"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:81
 msgid "Add a column of cursors"
-msgstr ""
+msgstr "添加光标列"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:211
 msgid "Shortcut Conflicts With Another"
-msgstr ""
+msgstr "与另一个快捷键冲突"
 
 #: spyder/plugins/editor/widgets/recover.py:59
 msgid "Recover from autosave"
@@ -3170,7 +3170,8 @@ msgstr " (程序未找到！)"
 #: spyder/plugins/explorer/widgets/explorer.py:1116
 msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr ""
+msgstr "你真的想要删除 <b>%s</b> 吗？\n"
+"<br><br><b>注意</b>：此文件或目录将被移动到回收站。"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1136
 msgid "delete"
@@ -3430,59 +3431,59 @@ msgstr "新的 Python 包错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:351
 msgid "An error occured while trying to create a new Python package"
-msgstr ""
+msgstr "在尝试创建新的 Python 包时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:360
 msgid "New Python File error"
-msgstr ""
+msgstr "新建 Python 文件错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:361
 msgid "An error occured while trying to create a new Python file"
-msgstr ""
+msgstr "在尝试创建新的 Python 文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:388
 msgid "New error"
-msgstr ""
+msgstr "新建错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:389
 msgid "An error occured while trying to create a file/directory"
-msgstr ""
+msgstr "在尝试创建文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:419
 msgid "Copy and Paste error"
-msgstr ""
+msgstr "复制与粘贴错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:420
 msgid "An error occured while trying to copy and paste a file/directory"
-msgstr ""
+msgstr "在尝试复制并粘贴文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:439
 msgid "Rename error"
-msgstr ""
+msgstr "重命名错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:440
 msgid "An error occured while trying to rename a file"
-msgstr ""
+msgstr "在尝试重命名文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:456
 msgid "Delete error"
-msgstr ""
+msgstr "删除错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:457
 msgid "An error occured while trying to delete a file/directory"
-msgstr ""
+msgstr "在尝试删除文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:488
 msgid "Download file"
-msgstr ""
+msgstr "下载文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:520 spyder/plugins/explorer/widgets/remote_explorer.py:552
 msgid "An error occured while trying to download {path}"
-msgstr ""
+msgstr "在尝试下载 {path} 时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:523 spyder/plugins/explorer/widgets/remote_explorer.py:555
 msgid "Download error"
-msgstr ""
+msgstr "下载错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:564
 msgid "Upload error"
@@ -3530,7 +3531,7 @@ msgstr "粘贴为："
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1051
 msgid "Do you really want to delete <b>{filename}</b>?"
-msgstr ""
+msgstr "你确定要删除 <b>{filename}</b> 吗？"
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External terminal"
@@ -3542,11 +3543,11 @@ msgstr "在外部系统终端中运行脚本。"
 
 #: spyder/plugins/externalterminal/plugin.py:183
 msgid "Run in external terminal"
-msgstr ""
+msgstr "在外部终端中运行"
 
 #: spyder/plugins/externalterminal/plugin.py:184
 msgid "Run in an operating system terminal"
-msgstr ""
+msgstr "在操作系统终端中运行"
 
 #: spyder/plugins/externalterminal/plugin.py:244
 msgid "Running an external system terminal is not supported on platform %s."
@@ -3618,11 +3619,11 @@ msgstr "在文件中搜索文本模式。"
 
 #: spyder/plugins/findinfiles/plugin.py:67
 msgid "Search text in files..."
-msgstr ""
+msgstr "在文件中搜索文本……"
 
 #: spyder/plugins/findinfiles/plugin.py:68
 msgid "Search text in multiple files with the Find pane"
-msgstr ""
+msgstr "使用查找面板在多个文件中搜索文本"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:61 spyder/plugins/workingdirectory/container.py:186
 msgid "Current working directory"
@@ -3730,7 +3731,7 @@ msgstr "设置最大的结果数： "
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:832
 msgid "Regular expression error in Exclude field"
-msgstr ""
+msgstr "排除字段中存在正则表达式错误"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:263 spyder/plugins/findinfiles/widgets/search_thread.py:325
 msgid "String not found"
@@ -3794,7 +3795,7 @@ msgstr "获取编辑器和 IPython 控制台中对象的文档。"
 
 #: spyder/plugins/help/plugin.py:94
 msgid "Built-in tutorial"
-msgstr ""
+msgstr "内置教程"
 
 #: spyder/plugins/help/utils/sphinxify.py:243 spyder/plugins/help/utils/sphinxify.py:253
 msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
@@ -3906,11 +3907,11 @@ msgstr "查看 IPython 控制台的命令历史记录。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:42
 msgid "Show welcome message"
-msgstr ""
+msgstr "显示欢迎消息"
 
 #: spyder/plugins/ipythonconsole/confpage.py:44
 msgid "Print the startup message when opening a new console"
-msgstr ""
+msgstr "在打开新的控制台时打印启动消息"
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Show a summary help popup when typing an open parenthesis after a callable function"
@@ -3926,7 +3927,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Confirmation"
-msgstr ""
+msgstr "确认"
 
 #: spyder/plugins/ipythonconsole/confpage.py:68
 msgid "Ask for confirmation before closing"
@@ -3968,7 +3969,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:100
 msgid "Use Jedi completion"
-msgstr ""
+msgstr "使用 Jedi 补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
 msgid "Enable Jedi-based tab-completion in the IPython console.\n"
@@ -3978,7 +3979,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:112
 msgid "Use greedy completion"
-msgstr ""
+msgstr "使用贪婪补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls and similar <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Warning</b>: This can be unsafe because your code is actually executed when you press <tt>Tab</tt>."
@@ -3990,7 +3991,7 @@ msgstr "输出"
 
 #: spyder/plugins/ipythonconsole/confpage.py:134
 msgid "Buffer:"
-msgstr ""
+msgstr "缓冲区："
 
 #: spyder/plugins/ipythonconsole/confpage.py:135
 msgid " lines"
@@ -4003,7 +4004,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
-msgstr ""
+msgstr "渲染 SymPy 数学符号"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
 msgid "Pretty-print the outputs of SymPy symbolic computations\n"
@@ -4013,7 +4014,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:165
 msgid "Matplotlib support"
-msgstr ""
+msgstr "Matplotlib 支持"
 
 #: spyder/plugins/ipythonconsole/confpage.py:166
 msgid "Activate support"
@@ -4038,7 +4039,7 @@ msgstr "图形的后端"
 
 #: spyder/plugins/ipythonconsole/confpage.py:189
 msgid "Choose how figures are displayed"
-msgstr ""
+msgstr "选择图形显示方式"
 
 #: spyder/plugins/ipythonconsole/confpage.py:203
 msgid "Backend:"
@@ -4047,7 +4048,8 @@ msgstr "后端:"
 #: spyder/plugins/ipythonconsole/confpage.py:207
 msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
-msgstr ""
+msgstr "如果不确定，可选择 {inline} 在绘图面板中显示图形或者\n"
+"{auto} 在新窗口中与它们交互（缩放和平移）。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:222
 msgid "Inline backend"
@@ -4055,7 +4057,7 @@ msgstr "内联后端"
 
 #: spyder/plugins/ipythonconsole/confpage.py:223
 msgid "Settings for figures in the Plots pane"
-msgstr ""
+msgstr "设置绘图面板中的图形"
 
 #: spyder/plugins/ipythonconsole/confpage.py:227
 msgid "Format:"
@@ -4071,11 +4073,11 @@ msgstr "分辨率："
 
 #: spyder/plugins/ipythonconsole/confpage.py:239
 msgid "DPI"
-msgstr ""
+msgstr "DPI"
 
 #: spyder/plugins/ipythonconsole/confpage.py:244
 msgid "Only used when the format is PNG. Default is 144."
-msgstr ""
+msgstr "仅在格式为 PNG 时使用。 默认值为 144。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:247
 msgid "Width:"
@@ -4151,7 +4153,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:341
 msgid "Execute the following file:"
-msgstr ""
+msgstr "执行以下文件："
 
 #: spyder/plugins/ipythonconsole/confpage.py:355
 msgid "Autocall"
@@ -4296,7 +4298,7 @@ msgstr "正在连接到 IPython 内核..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:250 spyder/plugins/pythonpath/widgets/pathmanager.py:112 spyder/utils/environ.py:270
 msgid "Retrieving environment variables..."
-msgstr ""
+msgstr "提取环境变量……"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:283
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
@@ -4384,7 +4386,7 @@ msgstr "保存连接设置"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:241
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "你传入的连接文件不存在或无法被 Spyder 找到。"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:283
 msgid "Select kernel connection file"
@@ -4424,11 +4426,11 @@ msgstr "中断内核"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:488
 msgid "Connect to existing kernel..."
-msgstr ""
+msgstr "连接到现有的内核……"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:489
 msgid "Open an IPython console connected to an existing kernel"
-msgstr ""
+msgstr "打开一个连接到现有内核的 IPython 控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Rename tab"
@@ -4436,11 +4438,11 @@ msgstr "重命名标签"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
 msgid "Switch to next console"
-msgstr ""
+msgstr "切换到下一个控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:507
 msgid "Switch to previous console"
-msgstr ""
+msgstr "切换到上一个控制台"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:526
 msgid "Show environment variables"
@@ -4744,7 +4746,7 @@ msgstr "点击以在内联和交互式 Matplotlib 绘图之间进行切换"
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:275
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "在“首选项……”中更改默认环境"
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4894,11 +4896,11 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:76
 msgid "Internal (same used by Spyder)"
-msgstr ""
+msgstr "内部（与 Spyder 所使用的相同）"
 
 #: spyder/plugins/maininterpreter/confpage.py:81
 msgid "Selected interpreter:"
-msgstr ""
+msgstr "选定的解释器："
 
 #: spyder/plugins/maininterpreter/confpage.py:87
 msgid "Executables"
@@ -4922,7 +4924,7 @@ msgstr "启用UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:129 spyder/plugins/maininterpreter/confpage.py:148
 msgid "This change will only be applied to new consoles"
-msgstr ""
+msgstr "此项更改将仅应用于新建的控制台"
 
 #: spyder/plugins/maininterpreter/confpage.py:130
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
@@ -5288,7 +5290,7 @@ msgstr "配置 Python 文件以发现执行瓶颈。"
 
 #: spyder/plugins/profiler/plugin.py:149 spyder/plugins/profiler/plugin.py:150
 msgid "Profile file"
-msgstr ""
+msgstr "性能分析文件"
 
 #: spyder/plugins/profiler/plugin.py:164 spyder/plugins/profiler/plugin.py:165
 msgid "Profile cell"
@@ -6060,7 +6062,7 @@ msgstr "在远程主机上创建 Python 环境"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:891
 msgid "Decide whether you want to create a remote environment to run your code and how to do it"
-msgstr ""
+msgstr "确定你是否想要创建一个远程环境来运行你的代码以及如何完成它"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:917
 msgid "Available methods"
@@ -6084,7 +6086,7 @@ msgstr "需要的信息"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:968
 msgid "You can set up an environment later by going to the menu entry <i>Tools > Environment manager</i>."
-msgstr ""
+msgstr "你可以稍后通过进入菜单项 <i>工具 > 环境管理器</i> 来设置一个环境。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1019
 msgid "Select packages for your remote environment"
