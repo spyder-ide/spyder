@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-10-11 15:35\n"
+"PO-Revision-Date: 2025-11-10 12:41\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2843,7 +2843,7 @@ msgstr "将制表符转换为空格"
 
 #: spyder/plugins/editor/widgets/main_widget.py:553
 msgid "Replace tabs with the configured number of spaces"
-msgstr ""
+msgstr "将制表符替换为配置的空格数"
 
 #: spyder/plugins/editor/widgets/main_widget.py:577
 msgid "Create new cell"
@@ -2855,11 +2855,11 @@ msgstr "在当前行创建新单元格"
 
 #: spyder/plugins/editor/widgets/main_widget.py:586
 msgid "uncomment"
-msgstr ""
+msgstr "取消注释"
 
 #: spyder/plugins/editor/widgets/main_widget.py:588
 msgid "Toggle commenting the current line or selection"
-msgstr ""
+msgstr "切换注释当前行或选区"
 
 #: spyder/plugins/editor/widgets/main_widget.py:595
 msgid "Add &block comment"
@@ -4232,7 +4232,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:462
 msgid "Plotting"
-msgstr ""
+msgstr "绘图"
 
 #: spyder/plugins/ipythonconsole/confpage.py:467 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
@@ -4328,7 +4328,7 @@ msgstr "图形默认会显示在绘图面板中。 要让它们也在控制台�
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:37
 msgid "Connect to existing kernel"
-msgstr ""
+msgstr "连接到现有的内核"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:39
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
@@ -5292,11 +5292,11 @@ msgstr ""
 
 #: spyder/plugins/profiler/plugin.py:164 spyder/plugins/profiler/plugin.py:165
 msgid "Profile cell"
-msgstr ""
+msgstr "对单元进行性能分析"
 
 #: spyder/plugins/profiler/plugin.py:179 spyder/plugins/profiler/plugin.py:180
 msgid "Profile current line or selection"
-msgstr ""
+msgstr "对当前行或选区进行性能分析"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:84
 msgid "Code not profiled yet"
@@ -5308,15 +5308,15 @@ msgstr "分析你的代码以探索哪些函数和方法运行耗时最长及调
 
 #: spyder/plugins/profiler/widgets/main_widget.py:92
 msgid "Show functions or modules that call the root item"
-msgstr ""
+msgstr "显示调用根条目的函数或模块"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:93
 msgid "Show functions or modules called by the root item"
-msgstr ""
+msgstr "显示被根条目调用的函数或模块"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:94
 msgid "Show functions or modules that call an item or are called by it"
-msgstr ""
+msgstr "显示调用某个条目或被其调用的函数或模块"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:127
 msgid "Collapse"
@@ -5336,11 +5336,11 @@ msgstr "展开一级"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:148 spyder/plugins/profiler/widgets/main_widget.py:149
 msgid "Show items with large local time"
-msgstr ""
+msgstr "显示局部耗时较大的条目"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:155 spyder/plugins/profiler/widgets/main_widget.py:156
 msgid "Hide calls to external libraries"
-msgstr ""
+msgstr "隐藏对外部库的调用"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:162 spyder/plugins/variableexplorer/widgets/main_widget.py:166 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:416 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:443
 msgid "Save data"
@@ -5364,15 +5364,15 @@ msgstr "清空比较结果"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:183
 msgid "Search"
-msgstr ""
+msgstr "搜索"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:190
 msgid "Stop profiling"
-msgstr ""
+msgstr "停止性能分析"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:262
 msgid "Show functions or modules called by this item"
-msgstr ""
+msgstr "显示被此条目调用的函数或模块"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:268
 msgid "Show functions or modules that call this item"
@@ -5428,11 +5428,11 @@ msgstr "函数或模块名"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:898
 msgid "Time spent in function (including sub-functions)"
-msgstr ""
+msgstr "在函数中的耗时（包括子函数）"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:901
 msgid "Local time spent in function (not in sub-functions)"
-msgstr ""
+msgstr "在函数中的局部耗时（不包括子函数）"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:904
 msgid "Total number of calls (including recursion)"
@@ -5524,35 +5524,35 @@ msgstr "这里是空的"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:142
 msgid "This directory doesn't exist"
-msgstr ""
+msgstr "此目录不存在"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:148
 msgid "This directory is not writable"
-msgstr ""
+msgstr "此目录不可写入"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:170
 msgid "You selected a Spyder project"
-msgstr ""
+msgstr "你选择了一个 Spyder 项目"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:185
 msgid "The directory you selected for this project already exists."
-msgstr ""
+msgstr "你为此项目选择的目录已存在。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:194
 msgid "This directory is already a Spyder project."
-msgstr ""
+msgstr "此目录已经是一个 Spyder 项目了。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:200
 msgid "You don't have write permissions in the location you selected."
-msgstr ""
+msgstr "你没有在你所选择位置中的写入权限。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:209
 msgid "The location you selected doesn't exist."
-msgstr ""
+msgstr "你选择的位置不存在。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:216
 msgid "The directory name you selected is not valid."
-msgstr ""
+msgstr "你选择的目录名无效。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:696
 msgid "There are missing fields on this page."
@@ -5560,7 +5560,7 @@ msgstr "此页面上有缺失的字段。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
-msgstr ""
+msgstr "选择创建项目的目录所在的位置"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:239
 msgid "New directory"
@@ -5568,15 +5568,15 @@ msgstr "新建文件夹"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
 msgid "Start a project in a new directory"
-msgstr ""
+msgstr "在新目录中启动一个项目"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
-msgstr ""
+msgstr "要了解更多有关项目的信息，请参阅我们的 <a href=\"{0}\">文档</a>。"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
 msgid "Project directory"
-msgstr ""
+msgstr "项目目录"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
