@@ -684,7 +684,7 @@ class ThumbnailScrollBar(QFrame):
     that controls what is displayed in the FigureViewer.
     """
     _min_scrollbar_width = 130
-    MAX_FIGURES = 10
+    MAX_FIGURES = 100
 
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
