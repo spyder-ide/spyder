@@ -684,6 +684,7 @@ class ThumbnailScrollBar(QFrame):
     that controls what is displayed in the FigureViewer.
     """
     _min_scrollbar_width = 130
+    MAX_FIGURES = 10
 
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
@@ -993,6 +994,8 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
+        if len(self._thumbnails) >= self.MAX_FIGURES:
+            self.remove_thumbnail(self._thumbnails[0])
         self._thumbnails.append(thumbnail)
         self.scene.addWidget(thumbnail)
 
