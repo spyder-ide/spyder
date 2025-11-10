@@ -250,6 +250,10 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         """Setter for environment variables for kernels"""
         env_vars = dict(env_vars)
         if os.name == "nt":
+            # Expand variables in case some are unexpanded.
+            # Fixes spyder-ide/spyder#25275
+            env_vars = {k: osp.expandvars(v) for k, v in env_vars.items()}
+
             # Use case insensitive dictionary
             env_vars = CaseInsensitiveDict(env_vars)
 
