@@ -13,7 +13,7 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import SpyderPreferencesTab
-from spyder.config.base import _
+from spyder.api.translations import _
 
 
 class FormattingConfigTab(SpyderPreferencesTab):

@@ -27,9 +27,9 @@ from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
 from spyder.api.plugins import Plugins
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.translations import _
 from spyder.api.widgets.toolbars import ApplicationToolbar
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,

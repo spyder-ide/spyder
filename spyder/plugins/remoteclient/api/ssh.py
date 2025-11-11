@@ -30,10 +30,6 @@ class SpyderSSHClient(SSHClient):
         :type conn: :class:`SSHClientConnection`
 
         """
-        if self.client._plugin:
-            self.client._plugin.sig_connection_established.emit(
-                self.client.config_id
-            )
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Called when a connection is lost or closed

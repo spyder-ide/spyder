@@ -10,9 +10,9 @@
 from qtpy.QtWidgets import QGroupBox, QVBoxLayout
 
 # Local imports
-from spyder.config.base import _
-from spyder.utils.icon_manager import ima
 from spyder.api.preferences import PluginConfigPage
+from spyder.api.translations import _
+from spyder.utils.icon_manager import ima
 
 
 class HistoryConfigPage(PluginConfigPage):

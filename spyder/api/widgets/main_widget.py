@@ -1156,9 +1156,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         self._is_maximized = state
 
-        # This is necessary for old API plugins interacting with new ones.
-        self._plugin._ismaximized = state
-
     # ---- API: methods to define or override
     # ------------------------------------------------------------------------
     def get_title(self):

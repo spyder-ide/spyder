@@ -25,7 +25,6 @@ from flaky import flaky
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.manager import CONF
-import spyder.plugins.base
 from spyder.plugins.preferences.tests.conftest import MainWindowMock
 from spyder.plugins.projects.api import BaseProjectType
 from spyder.plugins.projects.plugin import Projects
@@ -89,11 +88,8 @@ def projects(qtbot, mocker, request, tmpdir):
     # This can only be done at this point
     projects._main = main_window
 
-    # Patching necessary to test visible_if_project_open
-    projects.shortcut = None
-    mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
-                        'install_tab_event_filter')
     yield projects
+
     projects.get_container().close()
     projects.on_close()
 

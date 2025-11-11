@@ -65,8 +65,9 @@ from spyder_kernels.utils.nsview import (
 
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import mimedata2url
@@ -2423,8 +2424,7 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
 # =============================================================================
 def get_test_data():
     """Create test data."""
-    image = PIL.Image.fromarray(np.random.randint(256, size=(100, 100)),
-                                mode='P')
+    image = PIL.Image.fromarray(255 * np.random.rand(100, 100))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     test_timedelta = datetime.timedelta(days=-1, minutes=42, seconds=13)
@@ -2490,7 +2490,7 @@ def get_test_data():
             'timedelta_pd': test_pd_td,
             'datetimeindex': test_dtindex,
             'series': test_series,
-            'ddataframe': test_df,
+            'dataframe': test_df,
             'None': None,
             'unsupported1': np.arccos,
             'unsupported2': np.asarray,

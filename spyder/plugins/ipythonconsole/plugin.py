@@ -51,7 +51,6 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     This is a widget with tabs where each one is a ClientWidget
     """
 
-    # This is required for the new API
     NAME = 'ipython_console'
     REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
     OPTIONAL = [

@@ -98,40 +98,38 @@ def test_check_uncheck_path(pathmanager):
             "systems and pywin32 is needed")
 )
 @pytest.mark.parametrize(
-    'pathmanager', [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],
+    'pathmanager', [(['s1', 's2', 's3'], ['p1', 'p2', 'p3'], [])],
     indirect=True
 )
 def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):
 
-    # Mock the dialog window and answer "Yes" to clear contents of PYTHONPATH
-    # before adding Spyder's path list
+    # Mock the dialog window and answer "Yes" to keep inactive system paths
     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
                         return_value=pathmanager_mod.QMessageBox.Yes)
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.export_pythonpath()
-    expected_pathlist = ['p1', 'p2', 'p3']
+    expected_pathlist = ["s1", "s2", "s3"]
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
-    # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it
+    # Uncheck 's2' and assert that it is retained in PYTHONPATH when it
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
     pathmanager.export_pythonpath()
-    expected_pathlist = ['p1', 'p3']
+    expected_pathlist = ["s1", "s2", "s3"]
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
-    # Mock the dialog window and answer "No" to clear contents of PYTHONPATH
-    # before adding Spyder's path list
+    # Mock the dialog window and answer "No" to keep inactive system paths
     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',
                         return_value=pathmanager_mod.QMessageBox.No)
 
-    # Uncheck 'path3' and assert that it is kept in PYTHONPATH when it
+    # Uncheck 's2' and assert that it is kept in PYTHONPATH when it
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)
     pathmanager.export_pythonpath()
-    expected_pathlist = ['p3', 'p1']
+    expected_pathlist = ["s1", "s3"]
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 

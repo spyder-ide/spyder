@@ -29,7 +29,8 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
-from spyder.config.base import _, running_in_ci, get_conf_path
+from spyder.api.translations import _
+from spyder.config.base import running_in_ci, get_conf_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.programs import run_shell_command
 from spyder.widgets.collectionseditor import CollectionsEditor
@@ -91,7 +92,7 @@ def listdict2envdict(listdict):
 @AsyncDispatcher()
 async def get_user_environment_variables() -> dict:
     """
-    Get user environment variables from a subprocess.
+    Get user environment variables from HKCU (Windows) or a subprocess (Unix).
 
     Returns
     -------
