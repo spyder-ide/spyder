@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-09-29 13:42-0500\n"
-"PO-Revision-Date: 2025-11-10 14:32\n"
+"PO-Revision-Date: 2025-11-11 07:37\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3915,7 +3915,7 @@ msgstr "在打开新的控制台时打印启动消息"
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Show a summary help popup when typing an open parenthesis after a callable function"
-msgstr ""
+msgstr "当在可调用的函数后键入一个左圆括号时显示概要帮助弹出框"
 
 #: spyder/plugins/ipythonconsole/confpage.py:53 spyder/plugins/ipythonconsole/widgets/main_widget.py:544
 msgid "Show elapsed time"
@@ -3923,7 +3923,7 @@ msgstr "显示耗时"
 
 #: spyder/plugins/ipythonconsole/confpage.py:55
 msgid "Display the time since the current console was started in the tab bar"
-msgstr ""
+msgstr "显示自当前控制台在标签栏中启动后经过的时间"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Confirmation"
