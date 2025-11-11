@@ -18,9 +18,8 @@ from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
 
-from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.widgets.config import SpyderConfigPage
-from spyder.plugins.projects.widgets.projectdialog import BaseProjectPage
+
 
 class Namespace:
     """
@@ -109,6 +108,8 @@ class CookiecutterWidget(SpyderConfigPage):
         The code of the pregeneration script.
     """
 
+    CONF_SECTION = "project_explorer"
+
     sig_validated = QtCore.Signal(int, str)
     """
     This signal is emitted after validation has been executed.
@@ -141,7 +142,6 @@ class CookiecutterWidget(SpyderConfigPage):
         self._form_layout.setFieldGrowthPolicy(
             self._form_layout.AllNonFixedFieldsGrow)
         self.setLayout(self._form_layout)
-        #self.setup_page()
 
     # --- Helpers
     # ------------------------------------------------------------------------
@@ -211,22 +211,35 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         label = " ".join(setting.split("_")).capitalize()
         if isinstance(value, (list, dict)):
+            choices = []
+            if isinstance(value, dict):
+                for label, val in value.items():
+                    choices.append((label, val))
+            else:
+                for choice in value:
+                    choices.append((str(choice).capitalize(), choice))
             # https://cookiecutter.readthedocs.io/en/latest/advanced/choice_variables.html
             widget = self.create_combobox(text=label, option=setting,
-                                          choices=value)
+                                          choices=choices)
+            widget_in = widget.combobox
+            self.set_option('{0}'.format(setting), choices[0][1])
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
                 widget = self.create_checkbox(text=label, option=setting,
                                               default=value)
+                widget_in = widget.checkbox
+                self.set_option('{0}'.format(setting), value)
             else:
                 widget = self.create_lineedit(text=label, option=setting)
+                widget_in = widget.textbox
+                self.set_option('{0}'.format(setting), value)
         else:
             raise Exception(
                 "Cookiecutter option '{}'cannot be processed".format(setting))
 
-        self._widgets[setting] = (label, widget)
+        self._widgets[setting] = (widget, widget_in)
 
-        return label, widget
+        return widget, widget_in
 
     def _on_process_finished(self):
         """
@@ -257,8 +270,8 @@ class CookiecutterWidget(SpyderConfigPage):
 
         for setting, value in self._cookiecutter_settings.items():
             if not setting.startswith(("__", "_")):
-                label, widget = self._create_field(setting, value)
-                self._form_layout.addRow(label, widget)
+                widget, widget_in = self._create_field(setting, value)
+                self._form_layout.addRow(widget)
 
         self.render()
 
@@ -279,7 +292,7 @@ class CookiecutterWidget(SpyderConfigPage):
                 val = template.render(
                     cookiecutter=Namespace(**cookiecutter_settings))
                 __, widget = self._widgets[setting]
-                widget.set_value(val)
+                #widget.set_value(val)
 
     def get_values(self):
         """
@@ -292,7 +305,7 @@ class CookiecutterWidget(SpyderConfigPage):
                     cookiecutter_settings[setting] = value
                 else:
                     __, widget = self._widgets[setting]
-                    cookiecutter_settings[setting] = widget.get_value()
+                    cookiecutter_settings[setting] = self.get_option(f"{setting}")
 
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
@@ -331,37 +344,12 @@ if __name__ == "__main__":
 
     app = qapplication()
     dlg = CookiecutterDialog(parent=None)
-    dlg.setup(
-        {
-            "list_option": ["1", "2", "3"],
-            "checkbox_option": "y",
-            "checkbox_option_2": "false",
-            "fixed_option": "goanpeca",
-            "rendered_option": "{{ cookiecutter.fixed_option|upper }}",
-            "dict_option": {
-                "png": {
-                    "name": "Portable Network Graphic",
-                    "library": "libpng",
-                    "apps": [
-                        "GIMP"
-                    ]
-                },
-                "bmp": {
-                    "name": "Bitmap",
-                    "library": "libbmp",
-                    "apps": [
-                        "Paint",
-                        "GIMP"
-                    ]
-                }
-            },
-            "_private": "{{ cookiecutter.fixed_option }}",
-            "__private_rendered": "{{ cookiecutter.fixed_option }}",
-        }
-    )
-    dlg.set_pre_gen_code('''
-import sys
-print("HELP!")  # spyder: test-skip
-sys.exit(10)''')
+    spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
+    print("ENTRO ACAAAAAAA11")
+    cookiecutter_settings, pre_gen_code = load_cookiecutter_project(project_path=spyder_url, token="algo")
+    print(cookiecutter_settings)
+    print(pre_gen_code)
+    dlg.setup(cookiecutter_settings)
+    dlg.set_pre_gen_code(pre_gen_code)
     dlg.show()
     sys.exit(app.exec_())

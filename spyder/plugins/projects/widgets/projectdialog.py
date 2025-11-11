@@ -36,6 +36,9 @@ from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 from spyder.widgets.helperwidgets import MessageLabel
+from spyder.plugins.projects.widgets.qcookiecutter import CookiecutterWidget
+from spyder.plugins.projects.utils.cookie import (
+    generate_cookiecutter_project, load_cookiecutter_project)
 
 
 # =============================================================================
@@ -272,8 +275,20 @@ class NewDirectoryPage(BaseProjectPage):
         layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(self._location)
         layout.addSpacing(7 * AppStyle.MarginSize)
+        layout_cookiecutter = QVBoxLayout()
+        layout_cookiecutter.setContentsMargins(4, 4, 4, 4)
+        spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
+        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(spyder_url)
+        cookiecutter_widget = CookiecutterWidget(
+            self, cookiecutter_settings, pre_gen_code
+        )
+
+        cookiecutter_widget.setup(cookiecutter_settings)
+        cookiecutter_widget.set_pre_gen_code(pre_gen_code)
+        layout_cookiecutter.addWidget(cookiecutter_widget)
         layout.addWidget(self._validation_label)
         layout.addStretch()
+        layout.addLayout(layout_cookiecutter)
         self.setLayout(layout)
 
     @property
