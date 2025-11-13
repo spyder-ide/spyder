@@ -2224,49 +2224,53 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 msg = msg[0].upper() + msg[1:]
 
             # Get individual lines following paragraph format and handle
-            # symbols like '<' and '>' to not mess with br tags
+            # symbols like '<' and '>' to not mess with br tags.
+            # Note: Processing multiple paragraphs is necessary for language
+            # servers other than Python (see spyder-ide/spyder#9670).
             msg = msg.replace('<', '&lt;').replace('>', '&gt;')
             paragraphs = msg.splitlines()
             new_paragraphs = []
             long_paragraphs = 0
             lines_per_message = 6
             for paragraph in paragraphs:
-                new_paragraph = textwrap.wrap(
-                    paragraph,
-                    width=HINT_MAX_WIDTH
-                )
+                new_paragraph = textwrap.wrap(paragraph, width=HINT_MAX_WIDTH)
 
                 if lines_per_message > 2:
-                    if len(new_paragraph) > 1:
-                        new_paragraph = '<br>'.join(new_paragraph[:2]) + '...'
+                    if len(new_paragraph) > 4:
+                        new_paragraph = '<br>'.join(new_paragraph[:4]) + '...'
                         long_paragraphs += 1
-                        lines_per_message -= 2
+                        lines_per_message -= 4
                     else:
                         new_paragraph = '<br>'.join(new_paragraph)
                         lines_per_message -= 1
+
                     new_paragraphs.append(new_paragraph)
 
             if len(new_paragraphs) > 1:
                 # Define max lines taking into account that in the same
                 # tooltip you can find multiple warnings and messages
                 # and each one can have multiple lines
+                max_lines = 5
                 if long_paragraphs != 0:
-                    max_lines = 3
                     max_lines_msglist -= max_lines * 2
                 else:
-                    max_lines = 5
                     max_lines_msglist -= max_lines
                 msg = '<br>'.join(new_paragraphs[:max_lines]) + '<br>'
             else:
                 msg = '<br>'.join(new_paragraphs)
 
             if max_lines_msglist >= 0:
-                msglist.append(f'{msg} <i>({src} {code})</i>')
+                # Show message code in a new line so it's always visible.
+                # Fixes spyder-ide/spyder#22113
+                msglist.append(f'{msg}<br><i>Code: {src} - {code}</i>')
 
         if msglist:
             self.show_tooltip(
                 title=_("Code analysis"),
-                text='\n'.join(msglist),
+                # The double <br> is necessary to add a line break between
+                # multiple messages. That allows to parse them visually more
+                # easily.
+                text="<br><br>".join(msglist),
                 at_line=line_number,
                 with_html_format=True
             )
