@@ -178,6 +178,7 @@ class FigureBrowser(
             self.figviewer,
             parent=self,
             background_color=self.background_color,
+            max_plots=self.get_conf('max_plots')
         )
         self.thumbnails_sb.sig_context_menu_requested.connect(
             self.sig_thumbnail_menu_requested)
@@ -684,7 +685,6 @@ class ThumbnailScrollBar(QFrame):
     that controls what is displayed in the FigureViewer.
     """
     _min_scrollbar_width = 130
-    MAX_FIGURES = 100
 
     # Signals
     sig_redirect_stdio_requested = Signal(bool)
@@ -719,7 +719,7 @@ class ThumbnailScrollBar(QFrame):
         The QPoint in global coordinates where the menu was requested.
     """
 
-    def __init__(self, figure_viewer, parent=None, background_color=None):
+    def __init__(self, figure_viewer, parent=None, background_color=None, max_plots=100):
         super().__init__(parent)
         self._thumbnails = []
 
@@ -728,6 +728,8 @@ class ThumbnailScrollBar(QFrame):
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
+
+        self.max_plots = max_plots
 
         # Because the range of Qt scrollareas is not updated immediately
         # after a new item is added to it, setting the scrollbar's value
@@ -793,6 +795,13 @@ class ThumbnailScrollBar(QFrame):
     def set_figureviewer(self, figure_viewer):
         """Set the namespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
+
+    def set_max_plots(self, value):
+        """Set maximum amount of plots to show."""
+        self.max_plots = value
+        remove_thumbnails = self._thumbnails[:-self.max_plots]
+        for thumbnail in remove_thumbnails:
+            self.remove_thumbnail(thumbnail)
 
     def eventFilter(self, widget, event):
         """
@@ -994,7 +1003,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
             lambda point: self.show_context_menu(point, thumbnail))
-        if len(self._thumbnails) >= self.MAX_FIGURES:
+        if len(self._thumbnails) >= self.max_plots:
             self.remove_thumbnail(self._thumbnails[0])
         self._thumbnails.append(thumbnail)
         self.scene.addWidget(thumbnail)

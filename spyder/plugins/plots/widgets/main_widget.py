@@ -10,7 +10,7 @@ Plots Main Widget.
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QSpinBox
+from qtpy.QtWidgets import QSpinBox, QInputDialog
 from superqt.utils import signals_blocked
 
 # Local imports
@@ -44,6 +44,8 @@ class PlotsWidgetActions:
     ToggleMuteInlinePlotting = 'toggle_mute_inline_plotting_action'
     ToggleShowPlotOutline = 'toggle_show_plot_outline_action'
     ToggleAutoFitPlotting = 'auto fit'
+
+    MaxPlots = 'max_plots_action'
 
 
 class PlotsWidgetMainToolbarSections:
@@ -105,6 +107,13 @@ class PlotsWidget(ShellConnectMainWidget):
 
     def setup(self):
         # Menu actions
+        self.set_max_plots_action = self.create_action(
+            PlotsWidgetActions.MaxPlots,
+            text=_('Set maximum number of plots'),
+            icon=self.create_icon("transparent"),
+            tip=_('Set maximum number of plots'),
+            triggered=lambda x=None: self.set_max_plots(),
+        )
         self.mute_action = self.create_action(
             name=PlotsWidgetActions.ToggleMuteInlinePlotting,
             text=_("Mute inline plotting"),
@@ -208,6 +217,7 @@ class PlotsWidget(ShellConnectMainWidget):
         options_menu = self.get_options_menu()
         self.add_item_to_menu(self.mute_action, menu=options_menu)
         self.add_item_to_menu(self.outline_action, menu=options_menu)
+        self.add_item_to_menu(self.set_max_plots_action, menu=options_menu)
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
@@ -286,6 +296,12 @@ class PlotsWidget(ShellConnectMainWidget):
             if widget:
                 widget.setup({option: value})
                 self.update_actions()
+
+    @on_conf_change(option='max_plots')
+    def on_max_results_update(self, value):
+        widget = self.current_widget()
+        if widget:
+            widget.thumbnails_sb.set_max_plots(value)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -475,3 +491,34 @@ class PlotsWidget(ShellConnectMainWidget):
                 figviewer.auto_fit_plotting = False
                 figviewer.zoom_in(to_full_size=True)
 
+    def set_max_plots(self, value=None):
+        """
+        Set maximum amount of plots to see.
+
+        Parameters
+        ----------
+        value: int, optional
+            Number of plots. If None an input dialog will be used.
+            Default is None.
+        """
+        if value is None:
+            # Create dialog
+            dialog = QInputDialog(self)
+
+            # Set dialog properties
+            dialog.setModal(False)
+            dialog.setWindowTitle(_('Max plots'))
+            dialog.setLabelText(_('Set maximum number of plots: '))
+            dialog.setInputMode(QInputDialog.IntInput)
+            dialog.setIntStep(1)
+            dialog.setIntValue(self.get_conf('max_plots'))
+
+            dialog.setIntRange(10, 100)
+
+            # Connect slot
+            dialog.intValueSelected.connect(
+                lambda value: self.set_conf('max_plots', value))
+
+            dialog.show()
+        else:
+            self.set_conf('max_plots', value)
