@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-12 03:08\n"
+"PO-Revision-Date: 2025-11-13 01:36\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2219,7 +2219,7 @@ msgstr "缩进"
 
 #: spyder/plugins/editor/confpage.py:264
 msgid "Tab width:"
-msgstr ""
+msgstr "制表符宽度："
 
 #: spyder/plugins/editor/confpage.py:265
 msgid "spaces"
@@ -2227,11 +2227,11 @@ msgstr "空格"
 
 #: spyder/plugins/editor/confpage.py:273
 msgid "Indent with spaces instead of tabs"
-msgstr ""
+msgstr "缩进使用空格而不是制表符"
 
 #: spyder/plugins/editor/confpage.py:276
 msgid "When pressing Tab, insert the configured number of spaces instead of the tab character"
-msgstr ""
+msgstr "当按下 Tab 键时，插入已配置数量的空格而不是制表符"
 
 #: spyder/plugins/editor/confpage.py:282
 msgid "Intelligent backspace"
@@ -2295,7 +2295,7 @@ msgstr "自动为未保存的文件保存一个备份副本"
 
 #: spyder/plugins/editor/confpage.py:381
 msgid "If Spyder quits unexpectedly, it will offer to recover them on next launch"
-msgstr ""
+msgstr "如果 Spyder 意外退出，将在下次启动时提议恢复它们"
 
 #: spyder/plugins/editor/confpage.py:387
 msgid "Autosave interval: "
@@ -2559,11 +2559,11 @@ msgstr "该文件不属于任何的本地仓库，或者未定义远程的 upstr
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:87
 msgid "Large number of cursors!"
-msgstr ""
+msgstr "光标数量过大！"
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:88
 msgid "A large numbers of text cursors can cause Spyder to become unresponsive. Do you want to continue?"
-msgstr ""
+msgstr "文本光标数量过大可能导致 Spyder 失去响应。 你想要继续吗？"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:264 spyder/plugins/explorer/widgets/explorer.py:463
 msgid "Copy absolute path"
@@ -4902,11 +4902,11 @@ msgstr "最近的自定义解释器"
 
 #: spyder/plugins/maininterpreter/confpage.py:119
 msgid "Conda executable"
-msgstr ""
+msgstr "Conda 可执行文件"
 
 #: spyder/plugins/maininterpreter/confpage.py:123
 msgid "Use a custom Conda/Mamba/Micromamba executable"
-msgstr ""
+msgstr "使用自定义 Conda/Mamba/Micromamba 可执行文件"
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
@@ -4914,7 +4914,7 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:138
 msgid "The selected file is not a valid Conda executable"
-msgstr ""
+msgstr "所选文件不是一个有效的 Conda 可执行文件"
 
 #: spyder/plugins/maininterpreter/confpage.py:156
 msgid "User Module Reloader (UMR)"
@@ -5528,15 +5528,15 @@ msgstr "<b> {} </b>不再是有效的Spyder项目！ 由于它是当前活动项
 
 #: spyder/plugins/projects/widgets/main_widget.py:1067
 msgid "No directory was selected"
-msgstr ""
+msgstr "没有选择目录"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1070
 msgid "The directory doesn't exist"
-msgstr ""
+msgstr "目录不存在"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1073
 msgid "The directory is not writable"
-msgstr ""
+msgstr "目录不可写入"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1080 spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
@@ -5860,7 +5860,7 @@ msgstr "连接已丢失"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:248
 msgid "Starting Spyder remote services"
-msgstr ""
+msgstr "正在启动 Spyder 远程服务"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:315
 msgid "We're establishing the connection. Please be patient"
@@ -6164,11 +6164,11 @@ msgstr "正在连接…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:44
 msgid "Connected..."
-msgstr ""
+msgstr "已连接……"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:45
 msgid "Starting..."
-msgstr ""
+msgstr "正在启动……"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:46
 msgid "Active"
