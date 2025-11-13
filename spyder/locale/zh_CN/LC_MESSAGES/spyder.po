@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-13 01:36\n"
+"PO-Revision-Date: 2025-11-13 02:32\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2579,7 +2579,7 @@ msgstr "关闭右侧所有"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:284
 msgid "Close all to the left"
-msgstr ""
+msgstr "全部关闭到左侧"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:290
 msgid "Close all but this"
@@ -4008,12 +4008,13 @@ msgstr "激活的支持"
 
 #: spyder/plugins/ipythonconsole/confpage.py:168
 msgid "Automatically import NumPy and Matplotlib modules"
-msgstr ""
+msgstr "自动导入 NumPy 和 Matplotlib 模块"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "This is a convinience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
-msgstr ""
+msgstr "这是在控制台使用 NumPy 和 Matplotlib 的便捷方式\n"
+"不必显式地导入模块。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
@@ -4228,11 +4229,11 @@ msgstr "启动"
 
 #: spyder/plugins/ipythonconsole/confpage.py:486
 msgid "Buffer sizes over 10000 lines can slow down Spyder"
-msgstr ""
+msgstr "缓冲区大小大于 10000 行可能使 Spyder 减速"
 
 #: spyder/plugins/ipythonconsole/confpage.py:488
 msgid "Unlimited buffer size can slow down Spyder severely"
-msgstr ""
+msgstr "无限制的缓冲区大小可能使 Spyder 严重减速"
 
 #: spyder/plugins/ipythonconsole/plugin.py:236
 msgid "IPython console"
@@ -5284,7 +5285,7 @@ msgstr ""
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
-msgstr ""
+msgstr "较大本地时间显示的最大条目数量"
 
 #: spyder/plugins/profiler/plugin.py:60 spyder/plugins/profiler/widgets/main_widget.py:121 spyder/plugins/tours/tours.py:186
 msgid "Profiler"
@@ -5868,15 +5869,15 @@ msgstr "我们正在建立连接。请耐心等待"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:338
 msgid "The connection attempt was cancelled"
-msgstr ""
+msgstr "连接尝试已取消"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:348
 msgid "The connection was successfully established"
-msgstr ""
+msgstr "连接已成功建立"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:364
 msgid "There was an error establishing the connection"
-msgstr ""
+msgstr "建立连接时发生错误"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:392 spyder/plugins/remoteclient/api/manager/ssh.py:150 spyder/plugins/remoteclient/api/manager/ssh.py:248 spyder/plugins/remoteclient/api/manager/ssh.py:293 spyder/plugins/remoteclient/api/manager/ssh.py:373
 msgid "The SSH connection is not open"
@@ -5888,7 +5889,7 @@ msgstr "JupyterHub 未连接"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:78 spyder/plugins/remoteclient/api/manager/jupyterhub.py:130 spyder/plugins/remoteclient/api/manager/ssh.py:169 spyder/plugins/remoteclient/api/manager/ssh.py:184 spyder/plugins/remoteclient/api/manager/ssh.py:231
 msgid "Spyder remote services are active"
-msgstr ""
+msgstr "Spyder 远程服务已激活"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:101 spyder/plugins/remoteclient/api/manager/jupyterhub.py:139 spyder/plugins/remoteclient/api/manager/jupyterhub.py:179 spyder/plugins/remoteclient/api/manager/ssh.py:201
 msgid "Error starting the remote server"
@@ -6088,7 +6089,7 @@ msgstr "你提供的 URL 无效。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:769
 msgid "The file you provided is not available."
-msgstr ""
+msgstr "你提供的文件不可用。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:775
 msgid "The key file is encrypted but no passphrase was provided or it's incorrect"
@@ -6100,7 +6101,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:790
 msgid "The key file you provided is malformed or not a valid SSH key format."
-msgstr ""
+msgstr "你提供的密钥文件格式不正确或不是有效的 SSH 密钥格式。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:862
 msgid "New connection"
@@ -6870,7 +6871,7 @@ msgstr "Spyder 更新"
 
 #: spyder/plugins/updatemanager/widgets/update.py:337
 msgid "Would you like to download the update?"
-msgstr ""
+msgstr "你想要下载此更新吗？"
 
 #: spyder/plugins/updatemanager/widgets/update.py:353
 msgid "Updating Spyder's updater..."
