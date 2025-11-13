@@ -141,6 +141,7 @@ class CookiecutterWidget(SpyderConfigPage):
         self._form_layout = QtWidgets.QFormLayout()
         self._form_layout.setFieldGrowthPolicy(
             self._form_layout.AllNonFixedFieldsGrow)
+        self._form_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self._form_layout)
 
     # --- Helpers

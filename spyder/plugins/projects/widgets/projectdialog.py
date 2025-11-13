@@ -275,20 +275,8 @@ class NewDirectoryPage(BaseProjectPage):
         layout.addSpacing(5 * AppStyle.MarginSize)
         layout.addWidget(self._location)
         layout.addSpacing(7 * AppStyle.MarginSize)
-        layout_cookiecutter = QVBoxLayout()
-        layout_cookiecutter.setContentsMargins(4, 4, 4, 4)
-        spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
-        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(spyder_url)
-        cookiecutter_widget = CookiecutterWidget(
-            self, cookiecutter_settings, pre_gen_code
-        )
-
-        cookiecutter_widget.setup(cookiecutter_settings)
-        cookiecutter_widget.set_pre_gen_code(pre_gen_code)
-        layout_cookiecutter.addWidget(cookiecutter_widget)
         layout.addWidget(self._validation_label)
         layout.addStretch()
-        layout.addLayout(layout_cookiecutter)
         self.setLayout(layout)
 
     @property
@@ -388,6 +376,217 @@ class ExistingDirectoryPage(BaseProjectPage):
         return False if reasons else True
 
 
+class SpyderDirectoryPage(BaseProjectPage):
+    """New directory project page."""
+
+    LOCATION_TIP = _(
+        "Select the location where the project directory will be created"
+    )
+    PROJECTS_DOCS_URL = (
+        "https://docs.spyder-ide.org/current/panes/projects.html"
+    )
+
+    def get_name(self):
+        return _("Spyder project directory")
+
+    def get_icon(self):
+        return self.create_icon("folder_new")
+
+    def setup_page(self):
+        description = QLabel(_("Start a project in a new directory"))
+        description.setWordWrap(True)
+        description.setFont(self._description_font)
+
+        docs_reference = QLabel(
+            _(
+                "To learn more about projects, see our "
+                '<a href="{0}">documentation</a>.'
+            ).format(self.PROJECTS_DOCS_URL)
+        )
+        docs_reference.setOpenExternalLinks(True)
+
+        self._name = self.create_lineedit(
+            text=_("Project directory"),
+            option=None,
+            tip=_(
+                "A directory with this name will be created in the location "
+                "below"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
+        layout = QVBoxLayout()
+        layout.addWidget(description)
+        layout.addWidget(docs_reference)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._name)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._location)
+        layout.addSpacing(7 * AppStyle.MarginSize)
+        layout_cookiecutter = QVBoxLayout()
+        layout_cookiecutter.setContentsMargins(4, 4, 4, 4)
+        spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
+        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(spyder_url)
+        cookiecutter_widget = CookiecutterWidget(
+            self, cookiecutter_settings, pre_gen_code
+        )
+
+        cookiecutter_widget.setup(cookiecutter_settings)
+        cookiecutter_widget.set_pre_gen_code(pre_gen_code)
+        layout_cookiecutter.addWidget(cookiecutter_widget)
+        layout.addWidget(self._validation_label)
+        layout.addStretch()
+        layout.addLayout(layout_cookiecutter)
+        self.setLayout(layout)
+
+    @property
+    def project_location(self):
+        return osp.normpath(
+            osp.join(self._location.textbox.text(), self._name.textbox.text())
+        )
+
+    def validate_page(self):
+        name = self._name.textbox.text()
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
+
+        # Clear validation state
+        self._validation_label.setVisible(False)
+        for widget in [self._name, self._location]:
+            widget.status_action.setVisible(False)
+
+        # Perform validation
+        reasons: ValidationReasons = {}
+        if not name:
+            self._name.status_action.setVisible(True)
+            self._name.status_action.setToolTip(_("This is empty"))
+            reasons["missing_info"] = True
+
+        reasons = self._validate_location(location, reasons, name)
+        if reasons:
+            if reasons.get("location_exists"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("A directory with this name already exists")
+                )
+            if reasons.get("wrong_name"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("The project directory can't contain ':'")
+                )
+            self._validation_label.set_text(
+                self._compose_failed_validation_text(reasons)
+            )
+            self._validation_label.setVisible(True)
+
+        return False if reasons else True
+
+class OtherDirectoryPage(BaseProjectPage):
+    """New directory project page."""
+
+    LOCATION_TIP = _(
+        "Select the location where the project directory will be created"
+    )
+    PROJECTS_DOCS_URL = (
+        "https://docs.spyder-ide.org/current/panes/projects.html"
+    )
+
+    def get_name(self):
+        return _("Other project directory")
+
+    def get_icon(self):
+        return self.create_icon("folder_new")
+
+    def setup_page(self):
+        description = QLabel(_("Start a project in a new directory"))
+        description.setWordWrap(True)
+        description.setFont(self._description_font)
+
+        docs_reference = QLabel(
+            _(
+                "To learn more about projects, see our "
+                '<a href="{0}">documentation</a>.'
+            ).format(self.PROJECTS_DOCS_URL)
+        )
+        docs_reference.setOpenExternalLinks(True)
+
+        self._name = self.create_lineedit(
+            text=_("Project directory"),
+            option=None,
+            tip=_(
+                "A directory with this name will be created in the location "
+                "below"
+            ),
+            status_icon=ima.icon("error"),
+        )
+
+        layout = QVBoxLayout()
+        layout.addWidget(description)
+        layout.addWidget(docs_reference)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._name)
+        layout.addSpacing(5 * AppStyle.MarginSize)
+        layout.addWidget(self._location)
+        layout.addSpacing(7 * AppStyle.MarginSize)
+        spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
+        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(spyder_url)
+        cookiecutter_widget = CookiecutterWidget(
+            self, cookiecutter_settings, pre_gen_code
+        )
+
+        cookiecutter_widget.setup(cookiecutter_settings)
+        cookiecutter_widget.set_pre_gen_code(pre_gen_code)
+        layout.addWidget(self._validation_label)
+        layout.addStretch()
+        layout.addWidget(cookiecutter_widget)
+        self.setLayout(layout)
+
+    @property
+    def project_location(self):
+        return osp.normpath(
+            osp.join(self._location.textbox.text(), self._name.textbox.text())
+        )
+
+    def validate_page(self):
+        name = self._name.textbox.text()
+
+        # Avoid using "." as location, which is the result of os.normpath("")
+        location_text = self._location.textbox.text()
+        location = osp.normpath(location_text) if location_text else ""
+
+        # Clear validation state
+        self._validation_label.setVisible(False)
+        for widget in [self._name, self._location]:
+            widget.status_action.setVisible(False)
+
+        # Perform validation
+        reasons: ValidationReasons = {}
+        if not name:
+            self._name.status_action.setVisible(True)
+            self._name.status_action.setToolTip(_("This is empty"))
+            reasons["missing_info"] = True
+
+        reasons = self._validate_location(location, reasons, name)
+        if reasons:
+            if reasons.get("location_exists"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("A directory with this name already exists")
+                )
+            if reasons.get("wrong_name"):
+                self._name.status_action.setVisible(True)
+                self._name.status_action.setToolTip(
+                    _("The project directory can't contain ':'")
+                )
+            self._validation_label.set_text(
+                self._compose_failed_validation_text(reasons)
+            )
+            self._validation_label.setVisible(True)
+
+        return False if reasons else True
+
 # =============================================================================
 # ---- Dialog
 # =============================================================================
@@ -398,7 +597,8 @@ class ProjectDialog(SidebarDialog):
     MIN_WIDTH = 740 if MAC else (670 if WIN else 730)
     MIN_HEIGHT = 470 if MAC else (420 if WIN else 450)
     PAGES_MINIMUM_WIDTH = 450
-    PAGE_CLASSES = [NewDirectoryPage, ExistingDirectoryPage]
+    PAGE_CLASSES = [NewDirectoryPage, ExistingDirectoryPage,
+                    None, SpyderDirectoryPage, OtherDirectoryPage]
 
     sig_project_creation_requested = Signal(str, str, object)
     """
