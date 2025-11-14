@@ -178,7 +178,7 @@ class FigureBrowser(
             self.figviewer,
             parent=self,
             background_color=self.background_color,
-            max_plots=self.get_conf('max_plots')
+            max_plots=self.get_conf('max_plots', section='plots')
         )
         self.thumbnails_sb.sig_context_menu_requested.connect(
             self.sig_thumbnail_menu_requested)
