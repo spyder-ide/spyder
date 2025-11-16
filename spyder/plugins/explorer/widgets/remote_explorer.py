@@ -17,6 +17,7 @@ from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import (
+    QAbstractItemView,
     QApplication,
     QInputDialog,
     QMessageBox,
@@ -122,6 +123,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.history = []
         self.histindex = None
 
+        self._files_to_delete: dict[str, int] = {}
         self._files_to_upload: dict[str, int] = {}
 
         # Model, actions and widget setup
@@ -176,7 +178,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             RemoteExplorerActions.Delete,
             _("Delete..."),
             icon=self.create_icon("editclear"),
-            triggered=self.delete_item,
+            triggered=self.delete_items,
         )
         self.download_action = self.create_action(
             RemoteExplorerActions.Download,
@@ -251,6 +253,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.view = QTreeView(self)
         self.view.setModel(self.proxy_model)
         self.view.setSortingEnabled(True)
+        self.view.setSelectionMode(QTreeView.ExtendedSelection)
+        self.view.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)
         self.view.customContextMenuRequested.connect(
             self._on_show_context_menu
@@ -291,6 +297,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         elif option == "single_click_to_open":
             self.set_single_click_to_open(value)
 
+    # ---- Private API
+    # -------------------------------------------------------------------------
     def _on_show_context_menu(self, position):
         index = self.view.indexAt(position)
         if not index.isValid():
@@ -338,6 +346,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.chdir(data_name, emit=True)
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
+
+    @property
+    def _operation_in_progress(self):
+        return (
+            self._files_to_delete.get(self.server_id, 0) > 0
+            or self._files_to_upload.get(self.server_id, 0) > 0
+        )
 
     def _handle_future_response_error(self, response, error_title, error_message):
         result = response.result()
@@ -459,6 +474,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _("Delete error"),
             _("An error occured while trying to delete a file/directory"),
         )
+
+        if self._files_to_delete[self.server_id] > 0:
+            self._files_to_delete[self.server_id] -= 1
+
         self.refresh(force_current=True)
 
     @AsyncDispatcher(loop="explorer")
@@ -568,9 +587,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _("An error occured while trying to upload a file"),
         )
 
-        self._files_to_upload[self.server_id] -= 1
-        if not self._files_to_upload[self.server_id]:
-            self.sig_stop_spinner_requested.emit()
+        if self._files_to_upload[self.server_id] > 0:
+            self._files_to_upload[self.server_id] -= 1
 
         self.refresh(force_current=True)
 
@@ -616,6 +634,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def _on_remote_ls(self, future):
         data = future.result()
         self.set_files(data)
+
+        if not self._operation_in_progress:
+            self.sig_stop_spinner_requested.emit()
 
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_ls(self, path, server_id):
@@ -735,6 +756,18 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         self.sig_start_spinner_requested.emit()
 
+    def _get_selected_indexes(self):
+        indexes = self.view.selectedIndexes()
+        if not indexes:
+            return []
+
+        # Indexes corresponding to columns other than the first are not
+        # necessary because the info we need for multi-file operations is
+        # available in the first one.
+        return [idx for idx in indexes if idx.column() == 0]
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     @AsyncDispatcher.QtSlot
     def chdir(
         self,
@@ -905,7 +938,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if self.histindex is not None:
             self.previous_action.setEnabled(self.histindex > 0)
             self.next_action.setEnabled(self.histindex < len(self.history) - 1)
-        self.sig_stop_spinner_requested.emit()
 
     def set_single_click_to_open(self, value):
         if value:
@@ -1040,33 +1072,73 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         cb = QApplication.clipboard()
         cb.setText(path, mode=QClipboard.Mode.Clipboard)
 
-    def delete_item(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
+    def delete_items(self):
+        yes_to_all = False
+        indexes = self._get_selected_indexes()
+        if not indexes:
             return
 
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-        if data:
-            path = data["name"]
-            filename = os.path.relpath(path, self.root_prefix[self.server_id])
-            result = QMessageBox.warning(
-                self,
-                _("Delete"),
-                _("Do you really want to delete <b>{filename}</b>?").format(
-                    filename=filename
-                ),
-                QMessageBox.Yes | QMessageBox.No,
+        if len(indexes) > 1:
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
             )
-            if result == QMessageBox.Yes:
-                is_file = data["type"] == "file"
-                self._do_remote_delete(path, is_file=is_file).connect(
-                    self._on_remote_delete
+        else:
+            buttons = QMessageBox.Yes | QMessageBox.No
+
+        if self.server_id not in self._files_to_delete:
+            self._files_to_delete[self.server_id] = 0
+        self._files_to_delete[self.server_id] += len(indexes)
+        self.sig_start_spinner_requested.emit()
+
+        for index in indexes:
+            source_index = self.proxy_model.mapToSource(index)
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                path = data["name"]
+                filename = os.path.relpath(
+                    path, self.root_prefix[self.server_id]
                 )
-                self.sig_start_spinner_requested.emit()
+
+                if not yes_to_all:
+                    result = QMessageBox.warning(
+                        self,
+                        _("Delete"),
+                        _(
+                            "Do you really want to delete <b>{filename}</b>?"
+                            "<br><br>"
+                            "<b>Note</b>: The file will be removed "
+                            "permanently from the remote filesystem."
+                        ).format(filename=filename),
+                        buttons
+                    )
+
+                if result == QMessageBox.YesToAll:
+                    yes_to_all = True
+                elif result == QMessageBox.No:
+                    if self._files_to_delete[self.server_id] > 0:
+                        self._files_to_delete[self.server_id] -= 1
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    continue
+                elif result == QMessageBox.Cancel:
+                    self._files_to_delete[self.server_id] = 0
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    return
+
+                if result == QMessageBox.Yes or yes_to_all:
+                    is_file = data["type"] == "file"
+                    self._do_remote_delete(path, is_file=is_file).connect(
+                        self._on_remote_delete
+                    )
 
     def download_item(self):
         if (
