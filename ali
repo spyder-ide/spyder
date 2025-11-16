@@ -1,0 +1,140 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyBboxPatch, Circle
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+# إعداد الشكل
+fig, ax = plt.subplots(figsize=(12, 16))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 16)
+ax.axis('off')
+
+# دالة لعرض النص العربي بشكل صحيح
+def reshape_arabic(text):
+    reshaped = arabic_reshaper.reshape(text)
+    return get_display(reshaped)
+
+# العنوان الرئيسي
+title = reshape_arabic("قاعة المطالعة البيئية")
+subtitle = reshape_arabic("مكتبة جامعة الأنبار")
+ax.text(5, 15.2, title, fontsize=28, weight='bold', ha='center', 
+        bbox=dict(boxstyle='round,pad=0.5', facecolor='#2E7D32', alpha=0.8, edgecolor='white', linewidth=2))
+ax.text(5, 14.5, subtitle, fontsize=16, ha='center', style='italic', color='#1B5E20')
+
+# الفكرة الرئيسية
+main_idea = reshape_arabic("حيث تلتقي الاستدامة مع المعرفة")
+ax.text(5, 13.8, main_idea, fontsize=14, ha='center', color='#424242', style='italic')
+
+# رسم دائرة مركزية
+center_circle = Circle((5, 11), 1.5, color='#4CAF50', alpha=0.2, zorder=1)
+ax.add_patch(center_circle)
+
+# أيقونة مركزية (كتاب مع رمز إعادة التدوير)
+book = FancyBboxPatch((4.3, 10.5), 1.4, 1, boxstyle="round,pad=0.1", 
+                       facecolor='#81C784', edgecolor='#2E7D32', linewidth=2)
+ax.add_patch(book)
+recycle_text = reshape_arabic("♻")
+ax.text(5, 11, recycle_text, fontsize=40, ha='center', va='center', color='#1B5E20')
+
+# المحاور الأربعة الرئيسية
+sections = [
+    {
+        'title': 'إعادة التدوير',
+        'items': [
+            'أثاث معاد تدويره',
+            'أجهزة من مخلفات الحرب',
+            'تحويل النفايات لموارد قيمة'
+        ],
+        'color': '#FF9800',
+        'pos': (1.5, 9)
+    },
+    {
+        'title': 'التكنولوجيا الخضراء',
+        'items': [
+            'طاقة شمسية',
+            'تصميم ذكي',
+            'كفاءة في استهلاك الطاقة'
+        ],
+        'color': '#2196F3',
+        'pos': (8.5, 9)
+    },
+    {
+        'title': 'الوعي البيئي',
+        'items': [
+            'تثقيف الطلاب',
+            'ثقافة الاستدامة',
+            'مجتمع أكاديمي واعي'
+        ],
+        'color': '#9C27B0',
+        'pos': (1.5, 5)
+    },
+    {
+        'title': 'رمز للتجدد',
+        'items': [
+            'من الماضي المؤلم للأمل',
+            'ابتكار ورؤية مستقبلية',
+            'معرفة وحفاظ على البيئة'
+        ],
+        'color': '#E91E63',
+        'pos': (8.5, 5)
+    }
+]
+
+# رسم المحاور الأربعة
+for section in sections:
+    x, y = section['pos']
+    
+    # صندوق القسم
+    box = FancyBboxPatch((x-1.2, y-0.3), 2.4, 2.8, boxstyle="round,pad=0.15",
+                          facecolor=section['color'], alpha=0.15, 
+                          edgecolor=section['color'], linewidth=2)
+    ax.add_patch(box)
+    
+    # عنوان القسم
+    title_text = reshape_arabic(section['title'])
+    ax.text(x, y+2.2, title_text, fontsize=13, weight='bold', 
+            ha='center', color=section['color'])
+    
+    # عناصر القسم
+    for i, item in enumerate(section['items']):
+        item_text = reshape_arabic(f"• {item}")
+        ax.text(x, y+1.5-i*0.5, item_text, fontsize=9, ha='center', 
+                va='center', color='#424242')
+
+# خطوط ربط من المركز إلى المحاور
+for section in sections:
+    x, y = section['pos']
+    ax.plot([5, x], [11, y+2], color=section['color'], 
+            linestyle='--', linewidth=1.5, alpha=0.4)
+
+# الإحصائيات في الأسفل
+stats_box = FancyBboxPatch((0.5, 0.5), 9, 2.5, boxstyle="round,pad=0.2",
+                           facecolor='#E8F5E9', edgecolor='#2E7D32', linewidth=2)
+ax.add_patch(stats_box)
+
+stats_title = reshape_arabic("الأثر البيئي والتعليمي")
+ax.text(5, 2.6, stats_title, fontsize=14, weight='bold', ha='center', color='#1B5E20')
+
+impact_items = [
+    "بيئة تعليمية مستدامة 100%",
+    "تحويل مخلفات الحرب إلى موارد تعليمية",
+    "نموذج رائد للجامعات العراقية"
+]
+
+for i, item in enumerate(impact_items):
+    item_text = reshape_arabic(f"✓ {item}")
+    ax.text(5, 1.9-i*0.4, item_text, fontsize=10, ha='center', 
+            color='#2E7D32', weight='bold')
+
+# تذييل
+footer = reshape_arabic("مبادرة رائدة في الاستدامة والابتكار")
+ax.text(5, 0.2, footer, fontsize=11, ha='center', 
+        style='italic', color='#616161')
+
+plt.tight_layout()
+plt.savefig('قاعة_المطالعة_البيئية.png', dpi=300, bbox_inches='tight', 
+            facecolor='white', edgecolor='none')
+plt.show()
+
+print("تم إنشاء الإنفوغرافيك بنجاح!")
