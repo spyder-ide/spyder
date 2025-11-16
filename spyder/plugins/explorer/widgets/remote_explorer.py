@@ -4,6 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+from __future__ import annotations
 import asyncio
 import fnmatch
 import io
@@ -12,7 +13,7 @@ import os
 import posixpath
 from datetime import datetime
 
-from qtpy.compat import getopenfilename, getsavefilename
+from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import (
@@ -121,6 +122,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.history = []
         self.histindex = None
 
+        self._files_to_upload: dict[str, int] = {}
+
         # Model, actions and widget setup
         self.context_menu = self.create_menu(RemoteViewMenus.Context)
         new_submenu = self.create_menu(
@@ -183,9 +186,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         )
         self.upload_file_action = self.create_action(
             RemoteExplorerActions.Upload,
-            _("Upload file"),
+            _("Upload files"),
             icon=self.create_icon("fileexport"),
-            triggered=self.upload_file,
+            triggered=self.upload_files,
         )
 
         for item in [self.new_file_action, self.new_directory_action]:
@@ -564,6 +567,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _("Upload error"),
             _("An error occured while trying to upload a file"),
         )
+
+        self._files_to_upload[self.server_id] -= 1
+        if not self._files_to_upload[self.server_id]:
+            self.sig_stop_spinner_requested.emit()
+
         self.refresh(force_current=True)
 
     @AsyncDispatcher(loop="explorer")
@@ -1091,18 +1099,27 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
             self.sig_start_spinner_requested.emit()
 
-    def upload_file(self):
-        local_path, __ = getopenfilename(
+    def upload_files(self):
+        local_paths, __ = getopenfilenames(
             self,
-            _("Upload file"),
+            _("Upload files"),
             getcwd_or_home(),
             _("All files") + " (*)",
         )
-        if os.path.exists(local_path):
-            self._do_remote_upload_file(local_path).connect(
+
+        local_paths = [path for path in local_paths if os.path.exists(path)]
+        if not local_paths:
+            return
+
+        if self.server_id not in self._files_to_upload:
+            self._files_to_upload[self.server_id] = 0
+        self._files_to_upload[self.server_id] += len(local_paths)
+        self.sig_start_spinner_requested.emit()
+
+        for path in local_paths:
+            self._do_remote_upload_file(path).connect(
                 self._on_remote_upload_file
             )
-            self.sig_start_spinner_requested.emit()
 
     def reset(self, server_id):
         self.root_prefix[server_id] = None
