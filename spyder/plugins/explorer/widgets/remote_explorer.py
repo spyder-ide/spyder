@@ -124,6 +124,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.histindex = None
 
         self._files_to_delete: dict[str, int] = {}
+        self._files_to_rename: dict[str, int] = {}
         self._files_to_upload: dict[str, int] = {}
 
         # Model, actions and widget setup
@@ -167,7 +168,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             RemoteExplorerActions.Rename,
             _("Rename..."),
             icon=self.create_icon("rename"),
-            triggered=self.rename_item,
+            triggered=self.rename_items,
         )
         self.copy_path_action = self.create_action(
             RemoteExplorerActions.CopyPath,
@@ -351,6 +352,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def _operation_in_progress(self):
         return (
             self._files_to_delete.get(self.server_id, 0) > 0
+            or self._files_to_rename.get(self.server_id, 0) > 0
             or self._files_to_upload.get(self.server_id, 0) > 0
         )
 
@@ -457,6 +459,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             _("Rename error"),
             _("An error occured while trying to rename a file"),
         )
+
+        if self._files_to_rename[self.server_id] > 0:
+            self._files_to_rename[self.server_id] -= 1
+
         self.refresh(force_current=True)
 
     @AsyncDispatcher(loop="explorer")
@@ -1027,32 +1033,39 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 )
                 self.sig_start_spinner_requested.emit()
 
-    def rename_item(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
+    def rename_items(self):
+        indexes = self._get_selected_indexes()
+        if not indexes:
             return
 
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-        if data:
-            old_path = data["name"]
-            relpath = os.path.relpath(
-                old_path, self.root_prefix[self.server_id]
-            )
-            new_relpath, valid = QInputDialog.getText(
-                self, _("Rename"), _("New name:"), QLineEdit.Normal, relpath
-            )
-            if valid:
-                new_path = posixpath.join(
-                    self.root_prefix[self.server_id], new_relpath
+        if self.server_id not in self._files_to_rename:
+            self._files_to_rename[self.server_id] = 0
+        self._files_to_rename[self.server_id] += len(indexes)
+        self.sig_start_spinner_requested.emit()
+
+        for index in indexes:
+            source_index = self.proxy_model.mapToSource(index)
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                old_path = data["name"]
+                relpath = os.path.relpath(
+                    old_path, self.root_prefix[self.server_id]
                 )
-                self._do_remote_rename(old_path, str(new_path)).connect(
-                    self._on_remote_rename
+                new_relpath, valid = QInputDialog.getText(
+                    self,
+                    _("Rename"),
+                    _("New name for <b>{}</b>:").format(relpath),
+                    QLineEdit.Normal,
+                    relpath,
                 )
-                self.sig_start_spinner_requested.emit()
+                if valid:
+                    new_path = posixpath.join(
+                        self.root_prefix[self.server_id], new_relpath
+                    )
+                    self._do_remote_rename(old_path, str(new_path)).connect(
+                        self._on_remote_rename
+                    )
 
     def copy_path(self):
         if (
