@@ -173,7 +173,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.copy_path_action = self.create_action(
             RemoteExplorerActions.CopyPath,
             _("Copy path"),
-            triggered=self.copy_path,
+            triggered=self.copy_paths,
         )
         self.delete_action = self.create_action(
             RemoteExplorerActions.Delete,
@@ -1067,23 +1067,28 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         self._on_remote_rename
                     )
 
-    def copy_path(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
-            path = self.root_prefix[self.server_id]
+    def copy_paths(self):
+        paths = []
+        indexes = self._get_selected_indexes()
+        if not indexes or not self.view.currentIndex().isValid():
+            paths.append(self.root_prefix[self.server_id])
         else:
-            source_index = self.proxy_model.mapToSource(
-                self.view.currentIndex()
-            )
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
-            if data:
-                path = data["name"]
+            for index in indexes:
+                source_index = self.proxy_model.mapToSource(index)
+                data_index = self.model.index(source_index.row(), 0)
+                data = self.model.data(data_index, Qt.UserRole + 1)
+                if data:
+                    paths.append(data["name"])
+
+        if len(paths) > 1:
+            # TODO: Decide what format we want for multiple paths (i.e. local
+            # explorer or this one).
+            clipboard_paths = ' '.join(['"' + path + '"' for path in paths])
+        else:
+            clipboard_paths = '"' + paths[0] + '"'
 
         cb = QApplication.clipboard()
-        cb.setText(path, mode=QClipboard.Mode.Clipboard)
+        cb.setText(clipboard_paths, mode=QClipboard.Mode.Clipboard)
 
     def delete_items(self):
         yes_to_all = False
