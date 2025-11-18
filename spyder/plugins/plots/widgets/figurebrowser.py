@@ -35,6 +35,7 @@ from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
                             QVBoxLayout, QWidget)
+from superqt.utils import qdebounced
 
 # Local library imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -719,6 +720,9 @@ class ThumbnailScrollBar(QFrame):
         The QPoint in global coordinates where the menu was requested.
     """
 
+    sig_free_memory_requested = Signal()
+    """Request to free memory after thumbnail is removed."""
+
     def __init__(
         self, figure_viewer, parent=None, background_color=None, max_plots=30
     ):
@@ -1089,12 +1093,21 @@ class ThumbnailScrollBar(QFrame):
             150, lambda: self._remove_thumbnail_parent(thumbnail)
         )
 
+        # This is necessary to free memory faster than Python itself does it.
+        # See https://github.com/spyder-ide/spyder/issues/25249#issuecomment-3473017854
+        self._free_memory()
+
     def _remove_thumbnail_parent(self, thumbnail):
         try:
             thumbnail.setParent(None)
         except RuntimeError:
             # Omit exception in case the thumbnail has been garbage-collected
             pass
+
+    @qdebounced(timeout=30000)
+    def _free_memory(self):
+        """Request to free memory."""
+        self.sig_free_memory_requested.emit()
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""

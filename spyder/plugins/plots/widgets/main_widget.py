@@ -314,8 +314,9 @@ class PlotsWidget(ShellConnectMainWidget):
     # ---- Public API
     # ------------------------------------------------------------------------
     def create_new_widget(self, shellwidget):
-        fig_browser = FigureBrowser(parent=self,
-                                    background_color=MAIN_BG_COLOR)
+        fig_browser = FigureBrowser(
+            parent=self, background_color=MAIN_BG_COLOR
+        )
         fig_browser.set_shellwidget(shellwidget)
 
         fig_browser.sig_redirect_stdio_requested.connect(
@@ -330,6 +331,9 @@ class PlotsWidget(ShellConnectMainWidget):
         fig_browser.sig_zoom_changed.connect(self.zoom_disp.setValue)
         fig_browser.sig_show_empty_message_requested.connect(
             self.switch_empty_message
+        )
+        fig_browser.thumbnails_sb.sig_free_memory_requested.connect(
+            self.sig_free_memory_requested
         )
 
         return fig_browser
