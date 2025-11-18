@@ -282,6 +282,7 @@ class PlotsWidget(ShellConnectMainWidget):
                 if action and action not in [
                     self.mute_action,
                     self.outline_action,
+                    self.set_max_plots_action,
                     self.undock_action,
                     self.close_action,
                     self.dock_action,
