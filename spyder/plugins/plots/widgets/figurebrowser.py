@@ -719,8 +719,11 @@ class ThumbnailScrollBar(QFrame):
         The QPoint in global coordinates where the menu was requested.
     """
 
-    def __init__(self, figure_viewer, parent=None, background_color=None, max_plots=100):
+    def __init__(
+        self, figure_viewer, parent=None, background_color=None, max_plots=30
+    ):
         super().__init__(parent)
+        self._max_plots = max_plots
         self._thumbnails = []
 
         self.background_color = background_color
@@ -728,8 +731,6 @@ class ThumbnailScrollBar(QFrame):
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
-
-        self.max_plots = max_plots
 
         # Because the range of Qt scrollareas is not updated immediately
         # after a new item is added to it, setting the scrollbar's value
@@ -798,8 +799,8 @@ class ThumbnailScrollBar(QFrame):
 
     def set_max_plots(self, value):
         """Set maximum amount of plots to show."""
-        self.max_plots = value
-        remove_thumbnails = self._thumbnails[:-self.max_plots]
+        self._max_plots = value
+        remove_thumbnails = self._thumbnails[:-self._max_plots]
         for thumbnail in remove_thumbnails:
             self.remove_thumbnail(thumbnail)
 
@@ -1002,9 +1003,13 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_remove_figure_requested.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
-            lambda point: self.show_context_menu(point, thumbnail))
-        if len(self._thumbnails) >= self.max_plots:
+            lambda point: self.show_context_menu(point, thumbnail)
+        )
+
+        # Limit number of plots
+        if len(self._thumbnails) >= self._max_plots:
             self.remove_thumbnail(self._thumbnails[0])
+
         self._thumbnails.append(thumbnail)
         self.scene.addWidget(thumbnail)
 
