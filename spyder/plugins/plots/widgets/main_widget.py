@@ -8,6 +8,9 @@
 Plots Main Widget.
 """
 
+# Standard library imports
+import functools
+
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QSpinBox, QInputDialog
@@ -45,6 +48,7 @@ class PlotsWidgetActions:
     ToggleShowPlotOutline = 'toggle_show_plot_outline_action'
     ToggleAutoFitPlotting = 'auto fit'
 
+    # Inputs
     MaxPlots = 'max_plots_action'
 
 
@@ -107,13 +111,6 @@ class PlotsWidget(ShellConnectMainWidget):
 
     def setup(self):
         # Menu actions
-        self.set_max_plots_action = self.create_action(
-            PlotsWidgetActions.MaxPlots,
-            text=_('Set maximum number of plots'),
-            icon=self.create_icon("transparent"),
-            tip=_('Set maximum number of plots'),
-            triggered=lambda x=None: self.set_max_plots(),
-        )
         self.mute_action = self.create_action(
             name=PlotsWidgetActions.ToggleMuteInlinePlotting,
             text=_("Mute inline plotting"),
@@ -129,6 +126,13 @@ class PlotsWidget(ShellConnectMainWidget):
             toggled=True,
             initial=self.get_conf('show_plot_outline'),
             option='show_plot_outline'
+        )
+        self.set_max_plots_action = self.create_action(
+            PlotsWidgetActions.MaxPlots,
+            text=_('Set maximum number of plots'),
+            icon=self.create_icon("transparent"),
+            tip=_('Set maximum number of plots'),
+            triggered=functools.partial(self.set_max_plots, None),
         )
         self.fit_action = self.create_action(
             name=PlotsWidgetActions.ToggleAutoFitPlotting,
@@ -215,9 +219,12 @@ class PlotsWidget(ShellConnectMainWidget):
 
         # Options menu
         options_menu = self.get_options_menu()
-        self.add_item_to_menu(self.mute_action, menu=options_menu)
-        self.add_item_to_menu(self.outline_action, menu=options_menu)
-        self.add_item_to_menu(self.set_max_plots_action, menu=options_menu)
+        for action in [
+            self.mute_action,
+            self.outline_action,
+            self.set_max_plots_action,
+        ]:
+            self.add_item_to_menu(action, menu=options_menu)
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
@@ -517,7 +524,8 @@ class PlotsWidget(ShellConnectMainWidget):
 
             # Connect slot
             dialog.intValueSelected.connect(
-                lambda value: self.set_conf('max_plots', value))
+                lambda value: self.set_conf('max_plots', value)
+            )
 
             dialog.show()
         else:
