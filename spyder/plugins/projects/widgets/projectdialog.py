@@ -442,12 +442,6 @@ class SpyderDirectoryPage(NewDirectoryPage):
         layout.addLayout(layout_cookiecutter)
         self.setLayout(layout)
 
-    @property
-    def project_location(self):
-        return osp.normpath(
-            osp.join(self._location.textbox.text(), self._name.textbox.text())
-        )
-
     def _set_message(self, exit_code, message):
         if exit_code != 0:
             self._validation_label.setText(message)
