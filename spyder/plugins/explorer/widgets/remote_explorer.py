@@ -7,13 +7,14 @@
 from __future__ import annotations
 import asyncio
 import fnmatch
+import functools
 import io
 import logging
 import os
 import posixpath
 from datetime import datetime
 
-from qtpy.compat import getopenfilenames, getsavefilename
+from qtpy.compat import getexistingdirectory, getopenfilenames
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
 from qtpy.QtWidgets import (
@@ -101,6 +102,7 @@ class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
 
 
 class RemoteExplorer(QWidget, SpyderWidgetMixin):
+
     sig_dir_opened = Signal(str, str)
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
@@ -124,6 +126,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.histindex = None
 
         self._files_to_delete: dict[str, int] = {}
+        self._files_to_download: dict[str, int] = {}
         self._files_to_rename: dict[str, int] = {}
         self._files_to_upload: dict[str, int] = {}
 
@@ -185,7 +188,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             RemoteExplorerActions.Download,
             _("Download..."),
             icon=self.create_icon("fileimport"),
-            triggered=self.download_item,
+            triggered=self.download_items,
         )
         self.upload_file_action = self.create_action(
             RemoteExplorerActions.Upload,
@@ -352,6 +355,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     def _operation_in_progress(self):
         return (
             self._files_to_delete.get(self.server_id, 0) > 0
+            or self._files_to_download.get(self.server_id, 0) > 0
             or self._files_to_rename.get(self.server_id, 0) > 0
             or self._files_to_upload.get(self.server_id, 0) > 0
         )
@@ -509,23 +513,28 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return response
 
     @AsyncDispatcher.QtSlot
-    def _on_remote_download_file(self, future, remote_filename):
+    def _on_remote_download_file(
+        self, future, remote_filename, local_directory
+    ):
         data = future.result()
-        filename, __ = getsavefilename(
-            self,
-            _("Download file"),
-            os.path.join(getcwd_or_home(), remote_filename),
-            _("All files") + " (*)",
-        )
-        if filename:
+
+        if os.path.isdir(local_directory):
+            # Local filename
+            local_filename = os.path.join(local_directory, remote_filename)
+
+            # Write remote contents to local file
             try:
-                with open(filename, "w") as download_file:
+                with open(local_filename, "w") as download_file:
                     download_file.write(data)
             except TypeError:
-                with open(filename, "wb") as download_file:
+                with open(local_filename, "wb") as download_file:
                     download_file.write(data)
 
-        self.sig_stop_spinner_requested.emit()
+        if self._files_to_download[self.server_id] > 0:
+            self._files_to_download[self.server_id] -= 1
+
+        if not self._operation_in_progress:
+            self.sig_stop_spinner_requested.emit()
 
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_download_directory(self, path):
@@ -771,6 +780,15 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         # necessary because the info we need for multi-file operations is
         # available in the first one.
         return [idx for idx in indexes if idx.column() == 0]
+
+    def _get_server_name(self):
+        auth_method = self.get_conf(
+            f"{self.server_id}/auth_method", section="remoteclient"
+        )
+
+        return self.get_conf(
+            f"{self.server_id}/{auth_method}/name", section="remoteclient"
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -1158,36 +1176,100 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         self._on_remote_delete
                     )
 
-    def download_item(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
+    def download_items(self):
+        indexes = self._get_selected_indexes()
+        if not indexes:
             return
 
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-        if data:
-            path = data["name"]
-            filename = os.path.relpath(path, self.root_prefix[self.server_id])
-            is_file = data["type"] == "file"
-            remote_filename = filename if is_file else f"{filename}.zip"
+        # Directory where the files will be downloaded
+        directory = getexistingdirectory(
+            self, _("Download directory"), getcwd_or_home()
+        )
 
-            @AsyncDispatcher.QtSlot
-            def remote_download_file(future):
-                self._on_remote_download_file(future, remote_filename)
+        # Keep track of how many files will be downloaded to stop the spinner
+        # when all of them are processed.
+        if self.server_id not in self._files_to_download:
+            self._files_to_download[self.server_id] = 0
+        self._files_to_download[self.server_id] += len(indexes)
+        self.sig_start_spinner_requested.emit()
 
-            if is_file:
-                self._do_remote_download_file(path).connect(
-                    remote_download_file
+        # Check if users want to overwrite all downloaded files
+        yes_to_all = False
+
+        # Buttons to show in the dialog that asks to overwrite files
+        if len(indexes) > 1:
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
+            )
+        else:
+            buttons = QMessageBox.Yes | QMessageBox.No
+
+        for index in indexes:
+            source_index = self.proxy_model.mapToSource(index)
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                path = data["name"]
+                filename = os.path.relpath(
+                    path, self.root_prefix[self.server_id]
                 )
-            else:
-                self._do_remote_download_directory(path).connect(
-                    remote_download_file
-                )
+                is_file = data["type"] == "file"
+                remote_filename = filename if is_file else f"{filename}.zip"
 
-            self.sig_start_spinner_requested.emit()
+                # Local filename
+                local_filename = os.path.join(directory, remote_filename)
+
+                # Check if a local file with the same name exists
+                if not yes_to_all and os.path.exists(local_filename):
+                    answer = QMessageBox.warning(
+                        self,
+                        _("Overwrite file"),
+                        _(
+                            "The file <b>{}</b> that you're trying to "
+                            "download from server <b>{}</b> already exists in "
+                            "the location you selected."
+                            "<br><br>"
+                            "Do you want to overwrite it?"
+                        ).format(remote_filename, self._get_server_name()),
+                        buttons,
+                    )
+
+                    if answer == QMessageBox.YesToAll:
+                        yes_to_all = True
+                    elif answer == QMessageBox.No:
+                        if self._files_to_download[self.server_id] > 0:
+                            self._files_to_download[self.server_id] -= 1
+
+                        if not self._operation_in_progress:
+                            self.sig_stop_spinner_requested.emit()
+
+                        continue
+                    elif answer == QMessageBox.Cancel:
+                        self._files_to_download[self.server_id] = 0
+
+                        if not self._operation_in_progress:
+                            self.sig_stop_spinner_requested.emit()
+
+                        return
+
+                # Download file or directory
+                method = (
+                    self._do_remote_download_file
+                    if is_file
+                    else self._do_remote_download_directory
+                )
+                method(path).connect(
+                    AsyncDispatcher.QtSlot(
+                        functools.partial(
+                            self._on_remote_download_file,
+                            remote_filename=remote_filename,
+                            local_directory=directory,
+                        )
+                    )
+                )
 
     def upload_files(self):
         local_paths, __ = getopenfilenames(
