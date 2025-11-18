@@ -18,6 +18,8 @@ from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
 
+from spyder.plugins.projects.utils.cookie import (
+    generate_cookiecutter_project, load_cookiecutter_project)
 from spyder.widgets.config import SpyderConfigPage
 
 
@@ -41,7 +43,7 @@ class CookiecutterDialog(QtWidgets.QDialog):
         The code of the pregeneration script.
     """
 
-    sig_validated = QtCore.Signal(int, str)
+    sig_validated = QtCore.Signal(str)
     """
     This signal is emitted after validation has been executed.
 
@@ -117,11 +119,13 @@ class CookiecutterWidget(SpyderConfigPage):
     It provides the process exit code and the output captured.
     """
 
-    def __init__(self, parent, cookiecutter_settings=None, pre_gen_code=None):
+    def __init__(self, parent, project_path=None):
         super().__init__(parent)
 
         # Attributes
         self._parent = parent
+        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
+            project_path)
         self._cookiecutter_settings = cookiecutter_settings
         self._pre_gen_code = pre_gen_code
         self._widgets = OrderedDict()
@@ -262,38 +266,17 @@ class CookiecutterWidget(SpyderConfigPage):
 
     # --- API
     # ------------------------------------------------------------------------
-    def setup(self, cookiecutter_settings):
+    def setup(self):
         """
         Setup the widget using options.
         """
-        self._cookiecutter_settings = cookiecutter_settings
+        # self._cookiecutter_settings = cookiecutter_settings
         self._check_jinja_options()
 
         for setting, value in self._cookiecutter_settings.items():
             if not setting.startswith(("__", "_")):
                 widget, widget_in = self._create_field(setting, value)
                 self._form_layout.addRow(widget)
-
-        self.render()
-
-    def set_pre_gen_code(self, pre_gen_code):
-        """
-        Set the cookiecutter pregeneration code.
-        """
-        self._pre_gen_code = pre_gen_code
-
-    def render(self):
-        """
-        Render text that contains Jinja2 expressions and set their values.
-        """
-        cookiecutter_settings = self.get_values()
-        for setting, value in self._rendered_settings.items():
-            if not setting.startswith(("__", "_")):
-                template = Template(value)
-                val = template.render(
-                    cookiecutter=Namespace(**cookiecutter_settings))
-                __, widget = self._widgets[setting]
-                #widget.set_value(val)
 
     def get_values(self):
         """
