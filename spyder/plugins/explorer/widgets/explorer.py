@@ -1317,17 +1317,25 @@ class DirView(QTreeView, SpyderWidgetMixin):
         subtitle = _('Folder name:')
         self.create_new_folder(basedir, title, subtitle, is_package=False)
 
-    def create_new_file(self, current_path, title, filters, create_func):
+    def create_new_file(self, current_path, title, subtitle, filters, create_func):
         """Create new file
         Returns True if successful"""
         if current_path is None:
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        self.sig_redirect_stdio_requested.emit(False)
-        fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.sig_redirect_stdio_requested.emit(True)
-        if fname:
+        if current_path == '':
+            self.sig_redirect_stdio_requested.emit(False)
+            fname, _selfilter = getsavefilename(self, title, current_path, filters)
+            self.sig_redirect_stdio_requested.emit(True)
+            valid = True
+        else:
+            name, valid = QInputDialog.getText(
+                self, title, subtitle, QLineEdit.Normal, ""
+                )
+            fname = osp.join(current_path, str(name))
+
+        if fname and valid:
             try:
                 create_func(fname)
                 return fname
@@ -1346,6 +1354,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New file")
+        subtitle = _('File name:')
         filters = _("All files")+" (*)"
 
         def create_func(fname):
@@ -1355,7 +1364,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 with open(fname, 'wb') as f:
                     f.write(b'')
-        fname = self.create_new_file(basedir, title, filters, create_func)
+        fname = self.create_new_file(basedir, title, subtitle, filters, create_func)
         if fname is not None:
             self.open([fname])
 
