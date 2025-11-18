@@ -460,7 +460,7 @@ class Document:
         end_line = change_range["end"]["line"]
         end_col = change_range["end"]["character"]
 
-        # Check for an edit occuring at the very end of the file
+        # Check for an edit occurring at the very end of the file
         lines = self.lines
         if start_line == len(lines):
             self._source = self.source + text
