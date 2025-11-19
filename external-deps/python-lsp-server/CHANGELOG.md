@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 1.13.2 (2025/11/19)
+
+### Pull Requests Merged
+
+* [PR 683](https://github.com/python-lsp/python-lsp-server/pull/683) - Prevent showing cmd on Windows when running flake8, by [@dalthviz](https://github.com/dalthviz)
+* [PR 669](https://github.com/python-lsp/python-lsp-server/pull/669) - Fix license entries in `pyproject.toml` due to pep 639, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 1.13.1 (2025/08/26)
 
 ### Pull Requests Merged
