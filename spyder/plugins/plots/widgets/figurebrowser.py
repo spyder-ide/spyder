@@ -1027,7 +1027,13 @@ class ThumbnailScrollBar(QFrame):
             or is_first
         )
         if select_last:
+            # Highlight last thumbnail
             self.set_current_thumbnail(thumbnail)
+
+            # Move scrollbar to the end if needed
+            vsb = self.scrollarea.verticalScrollBar()
+            if vsb.isVisible():
+                vsb.setValue(vsb.maximum())
 
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
