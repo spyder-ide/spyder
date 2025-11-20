@@ -327,8 +327,7 @@ class EmptyDirectoryPage(NewDirectoryPage):
         self.setLayout(layout)
 
     def validate_page(self):
-        super().validate_page()
-        return True
+        return super().validate_page()
 
 
 class ExistingDirectoryPage(BaseProjectPage):
