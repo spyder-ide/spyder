@@ -923,7 +923,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if clicked_index.isValid():
             vrect = self.visualRect(clicked_index)
             item_identation = vrect.x() - self.visualRect(self.rootIndex()).x()
-            if event.pos().x() < item_identation:
+            if event.pos().x() < item_identation and event.button() == Qt.LeftButton:
                 self.expanded_or_colapsed_by_mouse = True
             else:
                 self.expanded_or_colapsed_by_mouse = False
@@ -938,6 +938,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
     def mouseReleaseEvent(self, event):
         """Handle single clicks."""
+        if event.button() != Qt.LeftButton:
+            return
         super().mouseReleaseEvent(event)
         if self.get_conf('single_click_to_open'):
             self.clicked(index=self.indexAt(event.pos()))
