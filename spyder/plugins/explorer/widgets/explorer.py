@@ -1324,16 +1324,11 @@ class DirView(QTreeView, SpyderWidgetMixin):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
-        if current_path == '':
-            self.sig_redirect_stdio_requested.emit(False)
-            fname, _selfilter = getsavefilename(self, title, current_path, filters)
-            self.sig_redirect_stdio_requested.emit(True)
-            valid = True
-        else:
-            name, valid = QInputDialog.getText(
-                self, title, subtitle, QLineEdit.Normal, ""
-                )
-            fname = osp.join(current_path, str(name))
+        self.sig_redirect_stdio_requested.emit(False)
+        name, valid = QInputDialog.getText(
+            self, title, subtitle, QLineEdit.Normal, "")
+        fname = osp.join(current_path, str(name))
+        self.sig_redirect_stdio_requested.emit(True)
 
         if fname and valid:
             try:
@@ -1775,12 +1770,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New module")
+        subtitle = _('Module name:')
         filters = _("Python files")+" (*.py *.pyw *.ipy)"
 
         def create_func(fname):
             self.sig_module_created.emit(fname)
 
-        self.create_new_file(basedir, title, filters, create_func)
+        self.create_new_file(basedir, title, subtitle, filters, create_func)
 
     def go_to_parent_directory(self):
         pass
