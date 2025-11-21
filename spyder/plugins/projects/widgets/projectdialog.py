@@ -385,9 +385,6 @@ class ExistingDirectoryPage(BaseProjectPage):
 class SpyderDirectoryPage(NewDirectoryPage):
     """New directory project page."""
 
-    LOCATION_TIP = _(
-        "Select the location where the project directory will be created"
-    )
     PROJECTS_DOCS_URL = (
         "https://docs.spyder-ide.org/current/panes/projects.html"
     )

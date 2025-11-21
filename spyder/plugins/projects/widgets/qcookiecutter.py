@@ -228,16 +228,34 @@ class CookiecutterWidget(SpyderConfigPage):
                                           choices=choices)
             widget_in = widget.combobox
             self.set_option('{0}'.format(setting), choices[0][1])
+            widget_in.currentIndexChanged.connect(
+                lambda: self.set_option('{0}'.format(setting),
+                                        choices[widget_in.currentIndex()][1]))
+            widget_in.currentIndexChanged.connect(
+                lambda: self.render())
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
                 widget = self.create_checkbox(text=label, option=setting,
                                               default=value)
                 widget_in = widget.checkbox
-                self.set_option('{0}'.format(setting), value)
+                self.set_option('{0}'.format(setting),
+                                self._parse_bool_text(str(value)))
+                widget_in.toggled.connect(
+                    lambda: self.set_option('{0}'.format(setting),
+                                            bool(widget_in.isChecked())))
+                widget_in.toggled.connect(
+                    lambda: self.render())
             else:
-                widget = self.create_lineedit(text=label, option=setting)
+                widget = self.create_lineedit(text=label, option=setting,
+                                              default='')
                 widget_in = widget.textbox
-                self.set_option('{0}'.format(setting), value)
+                widget_in.setDisabled(self._is_jinja(setting))
+                self.set_option('{0}'.format(setting), '')
+                widget_in.textChanged.connect(
+                    lambda: self.set_option('{0}'.format(setting),
+                                            str(widget_in.text())))
+                widget_in.textChanged.connect(
+                    lambda: self.render())
         else:
             raise Exception(
                 "Cookiecutter option '{}'cannot be processed".format(setting))
@@ -277,6 +295,20 @@ class CookiecutterWidget(SpyderConfigPage):
             if not setting.startswith(("__", "_")):
                 widget, widget_in = self._create_field(setting, value)
                 self._form_layout.addRow(widget)
+        self.render()
+
+    def render(self):
+        """
+        Render text that contains Jinja2 expressions and set their values.
+        """
+        cookiecutter_settings = self.get_values()
+        for setting, value in self._rendered_settings.items():
+            if not setting.startswith(("__", "_")):
+                template = Template(value)
+                val = template.render(
+                    cookiecutter=Namespace(**cookiecutter_settings))
+                __, widget = self._widgets[setting]
+                widget.setText(val)
 
     def get_values(self):
         """
@@ -289,6 +321,8 @@ class CookiecutterWidget(SpyderConfigPage):
                     cookiecutter_settings[setting] = value
                 else:
                     __, widget = self._widgets[setting]
+                    print("======================Estas son las opciones en get values:")
+                    print(self.get_option(f"{setting}"))
                     cookiecutter_settings[setting] = self.get_option(f"{setting}")
 
         # Cookiecutter special variables
