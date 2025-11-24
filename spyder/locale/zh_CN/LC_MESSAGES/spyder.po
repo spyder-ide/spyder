@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-17 07:31\n"
+"PO-Revision-Date: 2025-11-24 07:35\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3971,7 +3971,7 @@ msgstr "使用贪婪补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls and similar <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Warning</b>: This can be unsafe because your code is actually executed when you press <tt>Tab</tt>."
-msgstr ""
+msgstr "针对列表元素、函数调用结果和类似对象 <i>在不</i> 将其赋值给变量的情况下启用 <tt>Tab</tt> 补全，如 <tt>li[0].&lt;Tab&gt;</tt> 或 <tt>ins.meth().&lt;Tab&gt;</tt><br><b>警告</b>：这可能不够安全因为实际上在你按下 <tt>Tab</tt> 时你的代码将被执行。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:132 spyder/plugins/pylint/main_widget.py:511
 msgid "Output"
@@ -3988,7 +3988,8 @@ msgstr " 行"
 #: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
+msgstr "每个控制台每次保留的最大输出行数。\n"
+"警告；缓冲区大小超过 10000 行将拖慢 Spyder 的速度。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
@@ -3998,7 +3999,9 @@ msgstr "渲染 SymPy 数学符号"
 msgid "Pretty-print the outputs of SymPy symbolic computations\n"
 "(requires SymPy installed in the console environment).\n"
 "Refer to SymPy's documentation for details on using it."
-msgstr ""
+msgstr "美化打印 SymPy 符号计算的输出\n"
+"(要求控制台环境中已安装 SymPy)。\n"
+"请参阅 SymPy 的文档了解用法细节。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:165
 msgid "Matplotlib support"
@@ -4054,7 +4057,7 @@ msgstr "格式:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:231
 msgid "PNG is more widely supported, while SVG is resolution-independent and easier to edit but complex plots may not be displayed correctly."
-msgstr ""
+msgstr "PNG 得到更广泛的支持，而 SVG 独立于分辨率并且更易于编辑但复杂的图形可能无法正确显示。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:238
 msgid "Resolution:"
@@ -4111,7 +4114,8 @@ msgstr "图表高度"
 #: spyder/plugins/ipythonconsole/confpage.py:280
 msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height (default is 0.11)."
-msgstr ""
+msgstr "子图底部边缘的位置，\n"
+"表示为图高度的比率 (默认为 0.11)。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:285
 msgid "Use a tight layout for inline plots"
@@ -6447,7 +6451,7 @@ msgstr "Spyder快捷键"
 
 #: spyder/plugins/shortcuts/widgets/table.py:183
 msgid "Press the new shortcut and select <b>Ok</b> to confirm, click <b>Cancel</b> to revert to the previous state, use <b>Clear</b> to unbind the command from a shortcut or press <b>Default</b> to restore the default shortcut."
-msgstr ""
+msgstr "按下新的快捷键并选择 <b>确定</b> 以确定执行，点击 <b>取消</b> 以回复之前的状态，使用 <b>清除</b> 来解除该命令与快捷键的绑定或者按下 <b>默认</b> 以恢复默认的快捷键。"
 
 #: spyder/plugins/shortcuts/widgets/table.py:197
 msgid "Current shortcut:"
@@ -6865,7 +6869,7 @@ msgstr "Spyder已经更新到最新。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:318
 msgid "Would you like to download and install the update using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
-msgstr ""
+msgstr "你想要使用 Spyder 的安装程序来下载并安装更新吗？<br><br>我们 <a href='{}'>推荐我们自己的安装程序</a> 因为它更稳定并使更新更为容易。 这将使你现有的 Spyder 安装版保持原样。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:328 spyder/plugins/updatemanager/widgets/update.py:339 spyder/plugins/updatemanager/widgets/update.py:577 spyder/plugins/updatemanager/widgets/update.py:647
 msgid "Spyder update"

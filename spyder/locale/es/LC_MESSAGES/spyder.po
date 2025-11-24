@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-18 21:27\n"
+"PO-Revision-Date: 2025-11-24 19:27\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -2348,11 +2348,11 @@ msgstr "Pegar siempre una línea por cursor si hay más de una línea en el port
 
 #: spyder/plugins/editor/confpage.py:490
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "Atajos del ratón"
 
 #: spyder/plugins/editor/confpage.py:493
 msgid "Edit mouse shortcut modifiers"
-msgstr ""
+msgstr "Editar modificadores de atajos del ratón"
 
 #: spyder/plugins/editor/confpage.py:502 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:40 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:42
 msgid "Display"
@@ -2396,7 +2396,7 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:296
 msgid "Run current line or selection"
-msgstr ""
+msgstr "Ejecutar la línea o selección actual"
 
 #: spyder/plugins/editor/plugin.py:305
 msgid "Run &to line"
@@ -2560,11 +2560,11 @@ msgstr "¡Este archivo no es parte de un repositorio local o los remotos upstrea
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:87
 msgid "Large number of cursors!"
-msgstr ""
+msgstr "¡Gran número de cursores!"
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:88
 msgid "A large numbers of text cursors can cause Spyder to become unresponsive. Do you want to continue?"
-msgstr ""
+msgstr "Un gran número de cursores de texto puede hacer que Spyder deje de responder. ¿Desea continuar?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:264 spyder/plugins/explorer/widgets/explorer.py:463
 msgid "Copy absolute path"
@@ -2580,7 +2580,7 @@ msgstr "Cerrar todos a la derecha"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:284
 msgid "Close all to the left"
-msgstr ""
+msgstr "Cerrar todos a la izquierda"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:290
 msgid "Close all but this"
