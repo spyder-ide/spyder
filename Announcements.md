@@ -12,20 +12,19 @@ Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 This release comes two months after version 6.1.0 and it comes with the following interesting new features, fixes and API changes:
 
 - New features
-    * Set custom Conda executable.
-    * Add action to close all Editor tabs to the left.
-    * Support viewing long bytes from the Variable Explorer.
-    * Support project creation when a selected directory for opening a project is not yet a project.
+    * Allow to set a custom Conda executable in `Preferences > Main interpreter`.
+    * Add action to context menu of Editor tabs to close all files to the left.
+    * Support viewing long bytes in the Variable Explorer.
+    * Allow to create a project if the selected directory after opening a project is not yet one.
 
 - Important fixes
-    * Several fixes related with remote development features.
-    * Several fixes related with Qt6 bindings (PySide6/PyQt6).
-    * Several fixes related with debugging.
+    * Several fixes related to remote development features.
+    * Several fixes related to Qt6 bindings (PySide6/PyQt6).
+    * Several fixes related to the Debugger.
     * Fix Pixi environments activation on Posix systems.
-    * Performance and usability fixes related with multicursor support and linting markers.
-    * Prevent Flake8 related cmd windows from appearing when it is selected as linting provider.
-    * Expand environment variables passed to the kernel on Windows.
-    * Make user environment variables take precedence for the kernel.
+    * Performance and usability fixes related to multicursor support and linting markers.
+    * Prevent Flake8 cmd windows from appearing when it is selected as linting provider.
+    * Make user environment variables take precedence over system ones for kernels.
 
 - API changes
     * Remove old API for plugins, which was deprecated since Spyder 6.0
