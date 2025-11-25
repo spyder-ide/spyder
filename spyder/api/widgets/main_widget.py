@@ -258,7 +258,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     Parameters
     ----------
-    plugin_instance: SpyderDockablePlugin
+    plugin_instance: spyder.api.plugins.SpyderDockablePlugin
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 
