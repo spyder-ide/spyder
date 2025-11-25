@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-25 01:28\n"
+"PO-Revision-Date: 2025-11-25 03:23\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4178,7 +4178,8 @@ msgstr "自动调用： "
 #: spyder/plugins/ipythonconsole/confpage.py:372
 msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
-msgstr ""
+msgstr "在 {smart} 模式下，如果可调用对象之后没有参数则 Autocall 不会被应用。\n"
+"在 {full} 模式下，即使没有参数可调用对象也会被调用。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:386
 msgid "Autoreload"
@@ -4186,7 +4187,7 @@ msgstr "自动重载"
 
 #: spyder/plugins/ipythonconsole/confpage.py:387
 msgid "Reload imported modules automatically before running code. This is a different mechanism than the User Module Reloader and can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "在运行代码之前重新加载已导入的模块。 此机制不同于用户模块重加载器（UMR）并可能由于文件系统的限制而在 Windows 上运行缓慢。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
@@ -4194,7 +4195,7 @@ msgstr "使用自动重加载"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "启用自动加载魔术特性。 请参阅其文档以了解如何使用它。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4202,7 +4203,7 @@ msgstr "提示"
 
 #: spyder/plugins/ipythonconsole/confpage.py:410
 msgid "Modify how input and output prompts are shown in the console."
-msgstr ""
+msgstr "修改控制台中输入和输出提示的显示。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:415
 msgid "Input prompt:"
@@ -4618,15 +4619,15 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:82
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
-msgstr ""
+msgstr "Spyder 使用的 Numpy 版本和当前控制台的内核之间存在不匹配。 要修正此问题，请将你用来运行 Spyder 的环境中的 <tt>numpy</tt> 升级到 1.26.1 或更高版本。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:88
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Spyder 使用的 Pandas 版本与当前控制的内核之间存在不匹配。 要修正此问题，请将控制台环境中的 <tt>pandas</tt> 升级到 2.0 或更高版本。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Spyder 使用的 Python 版本 ({}) 与当前控制台的内核版本 ({}) 之间不相匹配。<br><br>要修正此问题，你需要使用 Python {} 或 {} 来重新创建你的控制台环境。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:100
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
@@ -4634,7 +4635,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:108 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:244
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>注意</b>：如果你认为这是需要由 Spyder 团队来修复的有效错误，请在 <a href='{}'>Github</a> 上报告它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:156 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:170
 msgid "greater"
@@ -4892,7 +4893,7 @@ msgstr "你想要移除布局 '<b>{}</b>' 吗？"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "选择要用于新建 IPython 控制台和编辑器代码补全的默认 Python 解释器"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Internal (same used by Spyder)"
@@ -4920,7 +4921,7 @@ msgstr "使用自定义 Conda/Mamba/Micromamba 可执行文件"
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
-msgstr ""
+msgstr "使用指定的 Conda, Mamba 或 Micromamba 而不是从解释器路径找到可执行文件。<br><br>如果使用自定义 Conda 前缀并在非标准位置安装 Conda/Mamba 则需要此选项。"
 
 #: spyder/plugins/maininterpreter/confpage.py:138
 msgid "The selected file is not a valid Conda executable"
@@ -4932,7 +4933,7 @@ msgstr "使用模块重载器"
 
 #: spyder/plugins/maininterpreter/confpage.py:158
 msgid "UMR forces Python to reload imported modules when running a file in an IPython console."
-msgstr ""
+msgstr "UMR 强制 Python 在 IPython 控制台中运行文件时重新加载已导入的模块。"
 
 #: spyder/plugins/maininterpreter/confpage.py:165
 msgid "Enable UMR"
@@ -5518,11 +5519,11 @@ msgstr "打开项目"
 
 #: spyder/plugins/projects/widgets/main_widget.py:376
 msgid "<b>%s</b> is not a Spyder project.<br><br>Do you want to create a project in this location?"
-msgstr ""
+msgstr "<b>%s</b> 不是 Spyder 项目。<br><br>你想要在此位置创建一个项目吗？"
 
 #: spyder/plugins/projects/widgets/main_widget.py:390
 msgid "It was not possible to create a project in <b>{}</b>. The reason is:<br><br>{}"
-msgstr ""
+msgstr "无法在 <b>{}</b> 中创建项目。 具体原因：<br><br>{}"
 
 #: spyder/plugins/projects/widgets/main_widget.py:502
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
@@ -5618,7 +5619,7 @@ msgstr "项目目录"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
-msgstr ""
+msgstr "将在以下位置创建具有此名称的目录"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
 msgid "A directory with this name already exists"
@@ -6102,11 +6103,11 @@ msgstr "你提供的文件不可用。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:775
 msgid "The key file is encrypted but no passphrase was provided or it's incorrect"
-msgstr ""
+msgstr "密钥文件已被加密但密码未提供或不正确"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:784
 msgid "The key file you provided is invalid."
-msgstr ""
+msgstr "你提供的密钥文件无效。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:790
 msgid "The key file you provided is malformed or not a valid SSH key format."
@@ -6226,7 +6227,7 @@ msgstr "远程服务器错误"
 
 #: spyder/plugins/remoteclient/widgets/container.py:138
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
-msgstr ""
+msgstr "远程主机 <b>{server}</b> 上的 <tt>spyder-remote-services</tt> 版本 (<b>{srs_version}</b>) 比最新 Spyder 所支持的版本 (<b>{max_version}</b>) 还要新。<br><br>请升级 Spyder 以便连接到该主机。"
 
 #: spyder/plugins/run/confpage.py:150
 msgid "%s (copy)"
