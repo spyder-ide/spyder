@@ -216,6 +216,7 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         label = " ".join(setting.split("_")).capitalize()
         if isinstance(value, (list, dict)):
+            field_type = "combobox"
             choices = []
             if isinstance(value, dict):
                 for label, val in value.items():
@@ -227,40 +228,29 @@ class CookiecutterWidget(SpyderConfigPage):
             widget = self.create_combobox(text=label, option=setting,
                                           choices=choices)
             widget_in = widget.combobox
-            self.set_option('{0}'.format(setting), choices[0][1])
-            widget_in.currentIndexChanged.connect(
-                lambda: self.set_option('{0}'.format(setting),
-                                        choices[widget_in.currentIndex()][1]))
             widget_in.currentIndexChanged.connect(
                 lambda: self.render())
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
+                field_type = "checkbox"
                 widget = self.create_checkbox(text=label, option=setting,
                                               default=value)
                 widget_in = widget.checkbox
-                self.set_option('{0}'.format(setting),
-                                self._parse_bool_text(str(value)))
-                widget_in.toggled.connect(
-                    lambda: self.set_option('{0}'.format(setting),
-                                            bool(widget_in.isChecked())))
                 widget_in.toggled.connect(
                     lambda: self.render())
             else:
+                field_type = "textbox"
                 widget = self.create_lineedit(text=label, option=setting,
                                               default='')
                 widget_in = widget.textbox
                 widget_in.setDisabled(self._is_jinja(setting))
-                self.set_option('{0}'.format(setting), '')
-                widget_in.textChanged.connect(
-                    lambda: self.set_option('{0}'.format(setting),
-                                            str(widget_in.text())))
                 widget_in.textChanged.connect(
                     lambda: self.render())
         else:
             raise Exception(
                 "Cookiecutter option '{}'cannot be processed".format(setting))
 
-        self._widgets[setting] = (widget, widget_in)
+        self._widgets[setting] = (field_type, widget_in)
 
         return widget, widget_in
 
@@ -302,7 +292,13 @@ class CookiecutterWidget(SpyderConfigPage):
         Render text that contains Jinja2 expressions and set their values.
         """
         cookiecutter_settings = self.get_values()
+        print("======================Estas son las opciones en render:")
+        print(cookiecutter_settings)
         for setting, value in self._rendered_settings.items():
+            print("======================Estas son las opciones en render 2:")
+            print(setting)
+            print(value)
+            cookiecutter_settings[setting] = value
             if not setting.startswith(("__", "_")):
                 template = Template(value)
                 val = template.render(
@@ -320,10 +316,15 @@ class CookiecutterWidget(SpyderConfigPage):
                 if setting.startswith(("__", "_")):
                     cookiecutter_settings[setting] = value
                 else:
-                    __, widget = self._widgets[setting]
+                    type, widget = self._widgets[setting]
+                    if type == "combobox":
+                        cookiecutter_settings[setting] = widget.currentText()
+                    elif type == "checkbox":
+                        cookiecutter_settings[setting] = widget.isChecked()
+                    elif type == "textbox":
+                        cookiecutter_settings[setting] = widget.text()
                     print("======================Estas son las opciones en get values:")
-                    print(self.get_option(f"{setting}"))
-                    cookiecutter_settings[setting] = self.get_option(f"{setting}")
+                    print(cookiecutter_settings[setting])
 
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
