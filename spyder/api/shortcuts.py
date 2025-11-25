@@ -15,10 +15,11 @@ from typing import Callable, Dict, Optional
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QShortcut, QWidget
+from qtpy.QtWidgets import QMessageBox, QShortcut, QWidget
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationObserver
+from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.plugins.shortcuts.utils import (
     ShortcutData,
@@ -220,6 +221,14 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
 
         # Create a new shortcut
         new_shortcut = QShortcut(QKeySequence(keystr), widget)
+        ambiguous_warning = functools.partial(
+            QMessageBox.warning,
+            self,
+            _("Shortcut Conflict"),
+            _("An un-handled shortcut conflict was detected. Please review"
+              " spyder shortcut settings and any installed plugins.")
+        )
+        new_shortcut.activatedAmbiguously.connect(ambiguous_warning)
         new_shortcut.activated.connect(triggered)
         new_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
 
