@@ -16,3 +16,6 @@ before its version reaches 1.0.
 """
 
 from ._version import __version__
+
+
+__all__ = ["__version__"]
