@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-24 07:35\n"
+"PO-Revision-Date: 2025-11-25 01:28\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4125,7 +4125,9 @@ msgstr "为嵌入绘图使用紧凑布局"
 msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
-msgstr ""
+msgstr "将 'bbox_inches' 设为 'tight' 对应内联图形。\n"
+"当启用时，显示在图形面板中的图片可能与\n"
+"通过 'savefig' 输出的图片存在差异。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:318 spyder/plugins/tours/widgets.py:342
 msgid "Run code"
@@ -4134,7 +4136,8 @@ msgstr "运行代码"
 #: spyder/plugins/ipythonconsole/confpage.py:319
 msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
-msgstr ""
+msgstr "输入要在新控制台启动时运行的代码片段。\n"
+"用分号分隔多行，例如：<br><tt>import os; import sys</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:334
 msgid "Run a file"
@@ -4142,7 +4145,7 @@ msgstr "运行文件"
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Specify a Python file to execute at startup, similar to <tt>PYTHONSTARTUP</tt>"
-msgstr ""
+msgstr "指定要在启动时执行的 Python 文件，类似于 <tt>PYTHONSTARTUP</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:341
 msgid "Execute the following file:"
@@ -4154,7 +4157,7 @@ msgstr "自动调用"
 
 #: spyder/plugins/ipythonconsole/confpage.py:356
 msgid "Implictly insert parethesis after any callable object, treating anything following it as arguments.<br>For example, typing <tt>print 'Number:', 42</tt> will execute <tt>print('Number:', 42)</tt>."
-msgstr ""
+msgstr "在任何可调用对象后隐式地插入圆括号，并将之后的任何东西当作参数。<br>例如，输入 <tt>print 'Number:', 42</tt> 将执行 <tt>print('Number:', 42)</tt>。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Smart"
