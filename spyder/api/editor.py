@@ -10,3 +10,6 @@ This module contains the code editor API.
 
 from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel
+
+
+__all__ = ["EditorExtension", "Panel"]
