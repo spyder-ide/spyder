@@ -67,6 +67,8 @@ class ValidationReasons(TypedDict):
     location_not_writable: bool | None
     spyder_project_exists: bool | None
     wrong_name: bool | None
+    cookiecutter_error: bool | None
+    cookiecutter_error_detail: str | None
 
 
 # =============================================================================
@@ -222,6 +224,18 @@ class BaseProjectPage(SpyderConfigPage, SpyderFontsMixin):
                 prefix
                 + _("There are missing fields on this page.")
             )
+        if reasons.get("cookiecutter_error"):
+            text += (
+                prefix
+                + _("An error occurred while validating the template.")
+                + "<br>"
+            )
+            detail = reasons.get("cookiecutter_error_detail")
+            if detail:
+                text += (
+                    prefix
+                    + _("Details: ") + detail
+                )
 
         return text
 
@@ -446,8 +460,14 @@ class SpyderDirectoryPage(NewDirectoryPage):
     def validate_page(self):
         basic_valid = super().validate_page()
         if basic_valid is True:
-            self.cookiecutter_widget.validate()
-            return False
+            reasons = self.cookiecutter_widget.validate()
+            if reasons:
+                self._validation_label.set_text(
+                    self._compose_failed_validation_text(reasons)
+                )
+                self._validation_label.setVisible(True)
+                return False
+            return True
         else:
             return False
 

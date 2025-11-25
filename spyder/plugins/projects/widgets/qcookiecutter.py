@@ -272,7 +272,8 @@ class CookiecutterWidget(SpyderConfigPage):
 
             message = message.replace("\r\n", " ")
             message = message.replace("\n", " ")
-            self.sig_validated.emit(self._process.exitCode(), message)
+            return message
+            #self.sig_validated.emit(self._process.exitCode(), message)
 
     # --- API
     # ------------------------------------------------------------------------
@@ -333,6 +334,7 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         Run, pre generation script and provide information on finished.
         """
+        reasons = {}
         cookiecutter_settings = self.get_values()
         for setting, value in cookiecutter_settings.items():
             if not (setting.startswith(("__", "_")) or
@@ -343,7 +345,9 @@ class CookiecutterWidget(SpyderConfigPage):
                     if value.strip() == '':
                         widget.status_action.setVisible(True)
                         widget.status_action.setToolTip(_("This is empty"))
-                        #reasons["missing_info"] = True
+                        reasons["missing_info"] = True
+        if reasons:
+            return reasons
         if self._pre_gen_code is not None:
             cookiecutter_settings = self.get_values()
             template = Template(self._pre_gen_code)
@@ -365,11 +369,13 @@ class CookiecutterWidget(SpyderConfigPage):
             self._process.start()
             loop.exec_()
 
-            self._on_process_finished()
+            message = self._on_process_finished()
             if self._process.exitCode() != 0:
-                return False
+                reasons["cookiecutter_error"] = True
+                reasons["cookiecutter_error_detail"] = message
+                return reasons
 
-        return True
+        return None
 
 
 if __name__ == "__main__":
