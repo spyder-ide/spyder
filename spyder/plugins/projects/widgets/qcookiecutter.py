@@ -18,8 +18,10 @@ from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
 
+from spyder.api.translations import _
 from spyder.plugins.projects.utils.cookie import (
     generate_cookiecutter_project, load_cookiecutter_project)
+from spyder.utils.icon_manager import ima
 from spyder.widgets.config import SpyderConfigPage
 
 
@@ -241,7 +243,7 @@ class CookiecutterWidget(SpyderConfigPage):
             else:
                 field_type = "textbox"
                 widget = self.create_lineedit(text=label, option=setting,
-                                              default='')
+                                              default='', status_icon=ima.icon("error"))
                 widget_in = widget.textbox
                 widget_in.setDisabled(self._is_jinja(setting))
                 widget_in.textChanged.connect(
@@ -250,7 +252,7 @@ class CookiecutterWidget(SpyderConfigPage):
             raise Exception(
                 "Cookiecutter option '{}'cannot be processed".format(setting))
 
-        self._widgets[setting] = (field_type, widget_in)
+        self._widgets[setting] = (field_type, widget_in, widget)
 
         return widget, widget_in
 
@@ -292,19 +294,13 @@ class CookiecutterWidget(SpyderConfigPage):
         Render text that contains Jinja2 expressions and set their values.
         """
         cookiecutter_settings = self.get_values()
-        print("======================Estas son las opciones en render:")
-        print(cookiecutter_settings)
         for setting, value in self._rendered_settings.items():
-            print("======================Estas son las opciones en render 2:")
-            print(setting)
-            print(value)
-            cookiecutter_settings[setting] = value
             if not setting.startswith(("__", "_")):
                 template = Template(value)
                 val = template.render(
                     cookiecutter=Namespace(**cookiecutter_settings))
-                __, widget = self._widgets[setting]
-                widget.setText(val)
+                type, widget_in, widget = self._widgets[setting]
+                widget_in.setText(val)
 
     def get_values(self):
         """
@@ -315,17 +311,16 @@ class CookiecutterWidget(SpyderConfigPage):
             for setting, value in self._cookiecutter_settings.items():
                 if setting.startswith(("__", "_")):
                     cookiecutter_settings[setting] = value
+                #elif self._is_jinja(setting):
+                #    cookiecutter_settings[setting] = value
                 else:
-                    type, widget = self._widgets[setting]
+                    type, widget_in, widget = self._widgets[setting]
                     if type == "combobox":
-                        cookiecutter_settings[setting] = widget.currentText()
+                        cookiecutter_settings[setting] = widget_in.currentText()
                     elif type == "checkbox":
-                        cookiecutter_settings[setting] = widget.isChecked()
+                        cookiecutter_settings[setting] = widget_in.isChecked()
                     elif type == "textbox":
-                        cookiecutter_settings[setting] = widget.text()
-                    print("======================Estas son las opciones en get values:")
-                    print(cookiecutter_settings[setting])
-
+                        cookiecutter_settings[setting] = widget_in.text()
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
         cookiecutter_settings["_copy_without_render"] = (
@@ -338,6 +333,17 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         Run, pre generation script and provide information on finished.
         """
+        cookiecutter_settings = self.get_values()
+        for setting, value in cookiecutter_settings.items():
+            if not (setting.startswith(("__", "_")) or
+                    self._is_jinja(setting)):                
+                type, widget_in, widget = self._widgets[setting]
+                if type == "textbox":
+                    widget.status_action.setVisible(False)
+                    if value.strip() == '':
+                        widget.status_action.setVisible(True)
+                        widget.status_action.setToolTip(_("This is empty"))
+                        #reasons["missing_info"] = True
         if self._pre_gen_code is not None:
             cookiecutter_settings = self.get_values()
             template = Template(self._pre_gen_code)
@@ -349,13 +355,21 @@ class CookiecutterWidget(SpyderConfigPage):
 
             if self._process is not None:
                 self._process.close()
-                self._process.waitForFinished(1000)
 
             self._process = QtCore.QProcess(self)
             self._process.setProgram(sys.executable)
             self._process.setArguments([self._tempfile])
-            self._process.finished.connect(self._on_process_finished)
+
+            loop = QtCore.QEventLoop()
+            self._process.finished.connect(loop.quit)
             self._process.start()
+            loop.exec_()
+
+            self._on_process_finished()
+            if self._process.exitCode() != 0:
+                return False
+
+        return True
 
 
 if __name__ == "__main__":
