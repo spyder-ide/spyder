@@ -9,3 +9,6 @@ This module contains the internationalization API.
 """
 
 from spyder.config.base import get_translation, _
+
+
+__all__ = ["get_translation", "_"]

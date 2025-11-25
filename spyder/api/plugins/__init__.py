@@ -23,3 +23,12 @@ There are two types of plugins available:
 
 from .enum import DockablePlugins, OptionalPlugins, Plugins  # noqa
 from .new_api import SpyderDockablePlugin, SpyderPluginV2  # noqa
+
+
+__all__ = [
+    "DockablePlugins",
+    "OptionalPlugins",
+    "Plugins",
+    "SpyderDockablePlugin",
+    "SpyderPluginV2",
+]
