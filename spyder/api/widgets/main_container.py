@@ -80,14 +80,17 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     ----------
     error_data: dict
         The dictionary containing error data. The expected keys are:
-        >>> error_data= {
-            "text": str,
-            "is_traceback": bool,
-            "repo": str,
-            "title": str,
-            "label": str,
-            "steps": str,
-        }
+
+        .. code-block:: python
+
+            error_data = {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
 
     Notes
     -----
@@ -108,7 +111,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
 
     Parameters
     ----------
-    plugin_instance: SpyderDockablePlugin
+    plugin_instance: spyder.api.plugins.SpyderDockablePlugin
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 

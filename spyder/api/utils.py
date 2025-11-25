@@ -109,17 +109,20 @@ class ABCMeta(BaseABCMeta):
 
     Usage
     -----
-    class MyABC(metaclass=ABCMeta):
-        @abstract_attribute
-        def my_abstract_attribute(self):
+
+    .. code-block:: python
+
+        class MyABC(metaclass=ABCMeta):
+            @abstract_attribute
+            def my_abstract_attribute(self):
+                pass
+
+        class MyClassOK(MyABC):
+            def __init__(self):
+                self.my_abstract_attribute = 1
+
+        class MyClassNotOK(MyABC):
             pass
-
-    class MyClassOK(MyABC):
-        def __init__(self):
-            self.my_abstract_attribute = 1
-
-    class MyClassNotOK(MyABC):
-        pass
 
     Raises
     ------
