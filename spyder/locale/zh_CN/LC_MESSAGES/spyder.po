@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-25 07:37\n"
+"PO-Revision-Date: 2025-11-26 06:55\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4279,11 +4279,11 @@ msgstr "解释器位于<pre>    <tt>{0}</tt></pre>的 Python 环境或安装版�
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:140
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Spyder 无法在你的系统中找到 pixi 来激活内核的环境。 请将 pixi 可执行文件所在的目录添加到你的 PATH 环境变量以便它能被检测到。"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:177
 msgid "Spyder couldn't find Conda, Mamba or Micromamba on your system to activate the kernel's environment.<br><br>Please set the path for one of their executables in <tt>Preferences > Python interpreter > Conda executable</tt>"
-msgstr ""
+msgstr "Spyder 无法在你的系统上找到 Conda, Mamba 或 Micromamba 以激活内核的环境。<br><br>请在 <tt>首选项 > Python 解释器 > Conda 可执行文件</tt> 中为其中一个可执行文件设置路径"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:221
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
