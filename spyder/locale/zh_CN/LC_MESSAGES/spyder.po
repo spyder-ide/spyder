@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-11-11 14:11-0500\n"
-"PO-Revision-Date: 2025-11-26 06:55\n"
+"PO-Revision-Date: 2025-11-26 08:12\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4287,7 +4287,7 @@ msgstr "Spyder 无法在你的系统上找到 Conda, Mamba 或 Micromamba 以激
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:221
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "检测到的 Conda 版本太旧且不再受 Spyder 支持。 受支持的最低版本是 4.9 而你当前的版本是 {conda_version}。<br><br>.<b>注意</b>：你需要在更新 Conda 后重启 Spyder 以使更改生效。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:243
 msgid "Connecting to kernel..."
@@ -4311,7 +4311,7 @@ msgstr "在启动内核时发生了错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:556
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "无法连接到与此控制台相关联的内核。 如果你正在尝试连接到现有的内核，请检查你选择的连接文件是否实际对应于你想要连接的内核。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:881
 msgid "It was not possible to restart the kernel"
@@ -4387,7 +4387,7 @@ msgstr "你传入的连接文件不存在或无法被 Spyder 找到。"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:293
 msgid "The connection file you passed is not valid.<br><br>The following issue was found: {}"
-msgstr ""
+msgstr "你传入的连接文件无效。<br><br>发现了以下问题: {}"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:332
 msgid "Select kernel connection file"
@@ -4591,7 +4591,7 @@ msgstr "该变量太大，无法获取"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:49
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "无法在内核中创建变量的副本或在 Spyder 中加载该副本。<br><br>如果你想要查看的对象包含一个生成器，则你需要用列表来替换它因为生成器不能被序列化。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:56
 msgid "The kernel is dead"
@@ -4603,19 +4603,19 @@ msgstr "发生了未知错误，很抱歉。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:58
 msgid "The channel used to communicate with the kernel is not working."
-msgstr ""
+msgstr "用来与内核进行通信的隧道无法正常工作。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:61
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed in the console environment. To fix this problem, please install it in the environment which you use to run your code."
-msgstr ""
+msgstr "需要 '<tt>{}</tt>' 模块来打开此变量而它没有在控制台环境中安装。 要修正此问题，请在你用来运行你的代码的环境中安装它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:67
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder.<br><br>If you want to see this fixed in the future, please donate to this <a href='{}'>project</a>."
-msgstr ""
+msgstr "需要 '<tt>{}</tt>' 模块来打开此变量。 不幸的是，它不是我们的安装程序的组成部分，这意味着你的变量不能被 Spyder 显示。<br><br>如果你希望此问题在将来得到修正，请向 <a href='{}'>此项目</a> 提供捐助。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:74
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder.<br><br>If you want to see this addressed in the future, please donate to this <a href='{}'>project</a>."
-msgstr ""
+msgstr "需要 '<tt>{}</tt>' 模块来打开这个变量而它没有随 Spyder 一起安装。 要修正此问题，请在你用于运行 Spyder 的同一个环境中安装它。<br><br>如果你希望此问题在未来得到解决，请向 <a href='{}'>此项目</a> 提供捐助。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:82
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
@@ -4631,7 +4631,7 @@ msgstr "Spyder 使用的 Python 版本 ({}) 与当前控制台的内核版本 ({
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:100
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Spyder 使用的 Python 版本 ({}) 与当前控制台的内核版本 ({}) 之间不相匹配。<br><br>要修正此问题，你需要在使用 Python {} 或 {} 的环境中安装 Spyder，或者使用 Python {} 或 {} 重新创建你的控制台环境。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:108 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:244
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
@@ -4647,7 +4647,7 @@ msgstr "更低"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:238
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Spyder 使用的 Numpy 版本与当前控制台的内核之前不相匹配。 要修正此问题，请将控制台环境中的 <tt>numpy</tt> 升级到 2.0 或更高版本。"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -4945,7 +4945,7 @@ msgstr "此项更改将仅应用于新建的控制台"
 
 #: spyder/plugins/maininterpreter/confpage.py:168
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
-msgstr ""
+msgstr "此选项将在 IPython 控制台中启用 User Module Reloader (UMR)。 UMR 会在通过 Spyder 的 <code>运行</code> 命令运行 Python 文件时强制 Python 执行已导入模块的深度重载。<br><br>在启用之后，UMR 会要求进行控制台重启（否则当运行文件时只有新导入的模块会被重载）。<br><br>如果在重新运行基于 PyQt 的程序时发生错误，请检查 Qt 对象是否被正确地销毁（例如你可能必须通过使用 <code>setAttribute</code> 方法来使用你的主窗口的 <code>Qt.WA_DeleteOnClose</code> 属性）。"
 
 #: spyder/plugins/maininterpreter/confpage.py:184
 msgid "Print list of reloaded modules"
@@ -5291,7 +5291,7 @@ msgstr "当性能分析结束时打开性能分析器"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
-msgstr ""
+msgstr "此选项将在性能分析结束时切换到性能分析器插件。"
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
@@ -5839,7 +5839,7 @@ msgstr "导出"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:398
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to keep the inactive system paths?"
-msgstr ""
+msgstr "这会将 Spyder 的路径列表导出到当前用户的 <b>PYTHONPATH</b> 环境变量，让你能在 Spyder 以外运行你的 Python 模块而无需配置 sys.path。<br><br>你想要保留未激活的系统路径吗？"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:538
 msgid "Paths are prepended to sys.path"
