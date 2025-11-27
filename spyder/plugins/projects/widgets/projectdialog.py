@@ -448,7 +448,7 @@ class SpyderDirectoryPage(NewDirectoryPage):
         self.cookiecutter_widget.sig_validated.connect(self._set_message)
         layout_cookiecutter.addWidget(self.cookiecutter_widget)
         layout.addLayout(layout_cookiecutter)
-        layout.addStretch()        
+        layout.addStretch()
         layout.addWidget(self._validation_label)
         self.setLayout(layout)
 
