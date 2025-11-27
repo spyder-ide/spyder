@@ -43,16 +43,22 @@ def test_get_user_environment_variables():
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Does not apply to Windows")
-def test_get_user_env_newline(restore_user_env):
+def test_get_user_env_polluted_shell_init(restore_user_env):
     """
-    Test variable value with newline characters.
-    Regression test for spyder-ide#20097.
+    Test for polluted shell init scripts
     """
+    # Test variable value with newline characters.
+    # Regression test for spyder-ide/spyder#20097.
     text = "myfunc() {  echo hello;\n echo world\n}\nexport -f myfunc"
     amend_user_shell_init(text)
     user_env = get_user_environment_variables().result()
+    assert user_env.pop('BASH_FUNC_myfunc%%') in text
 
-    assert user_env['BASH_FUNC_myfunc%%'] in text
+    # Test print to stdout in shell startups.
+    # Regression test for spyder-ide/spyder#25263
+    amend_user_shell_init("echo Hello World")  # This should pollute stdout
+    user_env2 = get_user_environment_variables().result()
+    assert user_env2 == user_env
 
 
 def test_environ(environ_dialog, qtbot):
