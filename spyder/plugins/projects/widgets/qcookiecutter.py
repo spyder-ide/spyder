@@ -126,8 +126,9 @@ class CookiecutterWidget(SpyderConfigPage):
 
         # Attributes
         self._parent = parent
+        self.project_path = project_path
         cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
-            project_path)
+            self.project_path)
         self._cookiecutter_settings = cookiecutter_settings
         self._pre_gen_code = pre_gen_code
         self._widgets = OrderedDict()
@@ -312,12 +313,10 @@ class CookiecutterWidget(SpyderConfigPage):
             for setting, value in self._cookiecutter_settings.items():
                 if setting.startswith(("__", "_")):
                     cookiecutter_settings[setting] = value
-                #elif self._is_jinja(setting):
-                #    cookiecutter_settings[setting] = value
                 else:
                     type, widget_in, widget = self._widgets[setting]
                     if type == "combobox":
-                        cookiecutter_settings[setting] = widget_in.currentText()
+                        cookiecutter_settings[setting] = widget_in.currentData()
                     elif type == "checkbox":
                         cookiecutter_settings[setting] = widget_in.isChecked()
                     elif type == "textbox":
@@ -376,6 +375,12 @@ class CookiecutterWidget(SpyderConfigPage):
                 return reasons
 
         return None
+
+    def create_project(self, location):
+        status, result = generate_cookiecutter_project(self.project_path,
+                                                       location,
+                                                       self.get_values())
+        return result
 
 
 if __name__ == "__main__":

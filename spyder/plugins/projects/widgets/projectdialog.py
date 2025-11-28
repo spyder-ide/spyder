@@ -37,6 +37,7 @@ from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 from spyder.widgets.helperwidgets import MessageLabel
 from spyder.plugins.projects.widgets.qcookiecutter import CookiecutterWidget
+from spyder.plugins.projects.utils.cookie import generate_cookiecutter_project
 
 
 # =============================================================================
@@ -471,6 +472,13 @@ class SpyderDirectoryPage(NewDirectoryPage):
         else:
             return False
 
+    def create_project(self):
+        """Create project."""
+        result = self.cookiecutter_widget.create_project(
+            location=self.project_location)
+        return result
+
+
 # =============================================================================
 # ---- Dialog
 # =============================================================================
@@ -540,6 +548,10 @@ class ProjectDialog(SidebarDialog):
             page.project_type.ID,
             [],
         )
+        if hasattr(page, "create_project"):
+            result = page.create_project()
+            print("============================== Project creation result:")
+            print(result)
         self.accept()
 
 
