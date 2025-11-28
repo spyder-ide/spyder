@@ -117,33 +117,37 @@ class AsyncDispatcher(typing.Generic[_RT]):
         Usage
         -----
         Non-Blocking usage (returns a concurrent Future):
-        ```
-        @AsyncDispatcher()
-        async def my_coroutine(...):
-            ...
 
-        future = my_coroutine(...)  # Non-blocking call
+        .. code-block:: python
 
-        result = future.result()  # Blocking call
-        ```
+            @AsyncDispatcher()
+            async def my_coroutine(...):
+                ...
+
+            future = my_coroutine(...)  # Non-blocking call
+
+            result = future.result()  # Blocking call
+
 
         Blocking usage (returns the result):
-        ```
-        @AsyncDispatcher(early_return=False)
-        async def my_coroutine(...):
-            ...
 
-        result = my_coroutine(...)  # Blocking call
-        ```
+        .. code-block:: python
+
+            @AsyncDispatcher(early_return=False)
+            async def my_coroutine(...):
+                ...
+
+            result = my_coroutine(...)  # Blocking call
 
         Coroutine usage (returns an awaitable Future):
-        ```
-        @AsyncDispatcher(return_awaitable=True)
-        async def my_coroutine(...):
-            ...
 
-        result = await my_coroutine(...)  # Wait for the result to be ready
-        ```
+        .. code-block:: python
+
+            @AsyncDispatcher(return_awaitable=True)
+            async def my_coroutine(...):
+                ...
+
+            result = await my_coroutine(...)  # Wait for the result to be ready
 
         Parameters
         ----------
