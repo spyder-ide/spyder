@@ -308,7 +308,7 @@ class PlotsWidget(ShellConnectMainWidget):
     @on_conf_change(option='max_plots')
     def on_max_results_update(self, value):
         widget = self.current_widget()
-        if widget:
+        if widget and not self.is_current_widget_error_message():
             widget.thumbnails_sb.set_max_plots(value)
 
     # ---- Public API
