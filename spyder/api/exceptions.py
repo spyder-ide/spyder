@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains API exceptions.
+The API-related exception classes emitted by Spyder and its plugins.
 """
 
 

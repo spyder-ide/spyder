@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Helper classes to get and set shortcuts in Spyder.
+Helper classes to get and set keyboard shortcuts in Spyder.
 """
 
 # Standard library imports

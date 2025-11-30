@@ -4,11 +4,12 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder AsyncDispatcher API.
+Class decorator and helpers for running code in async loops within Spyder.
 
-This module provides an class decorator `AsyncDispatcher` to run coroutines on
-dedicated async loops, including utilities for patching loops, managing
-concurrency tasks, and executing callbacks safely within Qt applications.
+This module provides a class decorator :class:`AsyncDispatcher` to run
+coroutines in dedicated async loops, as well as including utilities for
+patching loops, managing concurrency tasks, and executing callbacks safely
+within Qt applications.
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@
 # (see spyder/__init__.py for details)
 
 """
-API utilities.
+Helper functions to work with the Spyder plugin API.
 """
 
 from abc import ABCMeta as BaseABCMeta

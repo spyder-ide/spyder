@@ -5,14 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.api
-==========
+Base classes, mixins and widgets for creating plugins to extend Spyder.
 
-This package contains base classes, mixins and widgets that can be used
-to create third-party plugins to extend Spyder.
-
-This API should be considered pre-release and is subject to change
-before its version reaches 1.0.
+This API should be considered production-ready as of Spyder 6.0.
 """
 
 from ._version import __version__
