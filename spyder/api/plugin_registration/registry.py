@@ -50,7 +50,7 @@ class PreferencesAdapter(SpyderConfigurationAccessor):
         pass
 
 
-class SpyderPluginRegistry(QObject, PreferencesAdapter):
+class SpyderPluginRegistry(PreferencesAdapter, QObject):
     """
     Global plugin registry.
 

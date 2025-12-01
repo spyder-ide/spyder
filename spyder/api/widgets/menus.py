@@ -64,7 +64,7 @@ class SpyderMenuProxyStyle(QProxyStyle):
 
 # ---- Widgets
 # -----------------------------------------------------------------------------
-class SpyderMenu(QMenu, SpyderFontsMixin):
+class SpyderMenu(SpyderFontsMixin, QMenu):
     """
     A QMenu subclass to implement additional functionality for Spyder.
     """
