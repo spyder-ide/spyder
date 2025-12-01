@@ -20,7 +20,7 @@ import sys
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.compat import getexistingdirectory, getsavefilename
+from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (
     QDir,
     QFile,
@@ -36,22 +36,18 @@ from qtpy.QtGui import QClipboard, QDrag
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QApplication,
-    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileSystemModel,
-    QHBoxLayout,
+    QGridLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
     QMessageBox,
-    QPlainTextEdit,
     QProxyStyle,
-    QPushButton,
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
-    QTextEdit,
     QToolTip,
     QTreeView,
     QVBoxLayout,
@@ -60,6 +56,8 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.plugins.explorer.widgets.utils import (
@@ -216,43 +214,39 @@ class QInputDialogCombobox(QDialog):
 
     def __init__(self, parent, title, label, items, label_combo, **kwargs):
         super().__init__(parent, **kwargs)
+
         if title is not None:
             self.setWindowTitle(title)
 
-        main_layout = QVBoxLayout()
-        self.setLayout(main_layout)
-        input_layout = QHBoxLayout()
-        name_panel = QVBoxLayout()
+        self.setMinimumWidth(350)
+
+        grid_layout = QGridLayout()
+
         self.text_edit = QLineEdit()
-        name_panel.addWidget(QLabel(label))
-        name_panel.addWidget(self.text_edit)
-        input_layout.addLayout(name_panel)
+        grid_layout.addWidget(QLabel(label), 0, 0)
+        grid_layout.addWidget(self.text_edit, 1, 0)
 
-        combo_panel = QVBoxLayout()
         combo_label = QLabel(_(label_combo))
-        combo_panel.addWidget(combo_label)
-
-        self.combo = QComboBox()
+        self.combo = SpyderComboBox(self)
         self.combo.addItems(items)
-        self.combo.setFixedHeight(self.text_edit.sizeHint().height())
-        combo_panel.addWidget(self.combo)
-        input_layout.addLayout(combo_panel)
-        main_layout.addLayout(input_layout)
+        grid_layout.addWidget(combo_label, 0, 1)
+        grid_layout.addWidget(self.combo, 1, 1)
 
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-        ok_button = QPushButton('OK')
-        button_layout.addWidget(ok_button)
-        cancel_button = QPushButton('Cancel')
-        button_layout.addWidget(cancel_button)
-        main_layout.addLayout(button_layout)
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
 
-        ok_button.clicked.connect(self.accept)
-        cancel_button.clicked.connect(self.reject)
+        layout = QVBoxLayout()
+        layout.addLayout(grid_layout)
+        layout.addWidget(bbox)
+        self.setLayout(layout)
 
     @staticmethod
-    def getTextCombo(parent, title, label, items, label_combo):
+    def get_text_and_item(parent, title, label, items, label_combo):
         dialog = QInputDialogCombobox(parent, title, label, items, label_combo)
+
         ok = dialog.exec_()
         if ok:
             return dialog.text_edit.text(), dialog.combo.currentText(), True
@@ -1381,16 +1375,24 @@ class DirView(QTreeView, SpyderWidgetMixin):
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
+
         self.sig_redirect_stdio_requested.emit(False)
+
         if not ext:
             name, valid = QInputDialog.getText(
-                self, title, subtitle, QLineEdit.Normal, "")
+                self, title, subtitle, QLineEdit.Normal, ""
+            )
             fname = osp.join(current_path, str(name))
         else:
-            name, ext, valid = QInputDialogCombobox.getTextCombo(
-                self, title, label=subtitle,
-                items=ext, label_combo=_("Extension:"))
-            fname = osp.join(current_path, str(name)+str(ext))
+            name, ext, valid = QInputDialogCombobox.get_text_and_item(
+                self,
+                title,
+                label=subtitle,
+                items=ext,
+                label_combo=_("Extension:"),
+            )
+            fname = osp.join(current_path, str(name) + str(ext))
+
         self.sig_redirect_stdio_requested.emit(True)
 
         if fname and valid:
@@ -1421,7 +1423,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 with open(fname, 'wb') as f:
                     f.write(b'')
-        fname = self.create_new_file(basedir, title, subtitle, None, create_func)
+
+        fname = self.create_new_file(
+            basedir, title, subtitle, None, create_func
+        )
         if fname is not None:
             self.open([fname])
 
