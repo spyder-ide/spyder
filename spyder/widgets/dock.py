@@ -32,7 +32,6 @@ class TabFilter(SpyderConfigurationAccessor, QObject):
 
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
-        SpyderConfigurationAccessor.__init__(self)
         self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None
