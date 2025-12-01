@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 
 @class_register
-class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
+class LSPClient(LSPMethodProviderMixIn, SpyderConfigurationAccessor, QObject):
     """Language Server Protocol v3.0 client implementation."""
     #: Signal to inform the editor plugin that the client has
     #  started properly and it's ready to be used.

@@ -25,13 +25,14 @@ from spyder.utils.stylesheet import (
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject, SpyderConfigurationAccessor):
+class TabFilter(SpyderConfigurationAccessor, QObject):
     """Filter event attached to each DockWidget QTabBar."""
 
     CONF_SECTION = 'main'
 
     def __init__(self, dock_tabbar, main):
         QObject.__init__(self)
+        SpyderConfigurationAccessor.__init__(self)
         self.dock_tabbar: QTabBar = dock_tabbar
         self.main = main
         self.from_index = None

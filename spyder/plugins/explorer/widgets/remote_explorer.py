@@ -98,13 +98,14 @@ class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
         return super().lessThan(left, right)
 
 
-class RemoteExplorer(QWidget, SpyderWidgetMixin):
+class RemoteExplorer(SpyderWidgetMixin, QWidget):
     sig_dir_opened = Signal(str, str)
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
     def __init__(self, parent=None, class_parent=None, files=None):
-        super().__init__(parent=parent, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # General attributes
         self.remote_files_manager = None

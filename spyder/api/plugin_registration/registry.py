@@ -81,7 +81,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
     """
 
     def __init__(self):
-        super().__init__()
+        QObject.__init__(self)
         PreferencesAdapter.__init__(self)
 
         # Reference to the main window

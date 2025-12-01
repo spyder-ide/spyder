@@ -18,7 +18,7 @@ import sys
 
 # Third library imports
 from qtconsole.svg import svg_to_clipboard, svg_to_image
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (
     QEvent,
@@ -84,7 +84,7 @@ def get_unique_figname(dirname, root, ext, start_at_zero=False):
 
 
 class FigureBrowser(
-    QWidget, SpyderWidgetMixin, ShellConnectWidgetForStackMixin
+    SpyderWidgetMixin, ShellConnectWidgetForStackMixin, QWidget
 ):
     """
     Widget to browse the figures that were sent by the kernel to the IPython
@@ -150,11 +150,12 @@ class FigureBrowser(
     """
 
     def __init__(self, parent=None, background_color=None):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent=parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)
             SpyderWidgetMixin.__init__(self, class_parent=parent)
+            ShellConnectWidgetForStackMixin.__init__(self)
 
         self.shellwidget = None
         self.figviewer = None
@@ -338,7 +339,7 @@ class FigureBrowser(
         super().showEvent(event)
 
 
-class FigureViewer(QScrollArea, SpyderWidgetMixin):
+class FigureViewer(SpyderWidgetMixin, QScrollArea):
     """
     A scrollarea that displays a single FigureCanvas with zooming and panning
     capability with CTRL + Mouse_wheel and Left-press mouse button event.
@@ -368,7 +369,7 @@ class FigureViewer(QScrollArea, SpyderWidgetMixin):
     """This signal is emitted when a new figure is loaded."""
 
     def __init__(self, parent=None, background_color=None):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, class_parent=parent)
         else:
             QScrollArea.__init__(self, parent)

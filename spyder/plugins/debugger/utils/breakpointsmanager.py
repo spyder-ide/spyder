@@ -72,7 +72,9 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
     sig_repaint_breakpoints = Signal()
 
     def __init__(self, editor):
-        super().__init__(editor)
+        QObject.__init__(self, editor)
+        Manager.__init__(self, editor)
+        SpyderConfigurationObserver.__init__(self)
         self.filename = editor.filename
         self._breakpoint_blocks = {}
         self.breakpoints = []

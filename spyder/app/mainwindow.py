@@ -119,7 +119,7 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
+class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -1005,7 +1005,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         QMainWindow.resizeEvent(self, event)
 
         # To be used by the tour to be able to resize
-        self.sig_resized.emit(event)
+        # TODO: RESTORE
+        # self.sig_resized.emit(event)
 
     def moveEvent(self, event):
         """Reimplement Qt method"""
@@ -1017,7 +1018,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
         # To be used by the tour to be able to move
-        self.sig_moved.emit(event)
+        # TODO: RESTORE
+        # self.sig_moved.emit(event)
 
     def hideEvent(self, event):
         """Reimplement Qt method"""
