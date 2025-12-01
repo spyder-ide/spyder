@@ -929,7 +929,7 @@ class NewConnectionPage(BaseConnectionPage):
             self.ssh_widget.layout().setCurrentWidget(ssh_clean_info_widget)
 
             jupyterhub_clean_info_widget = (
-                self.create_ssh_connection_info_widget()
+                self.create_jupyterhub_connection_info_widget()
             )
             self.jupyterhub_widget.layout().addWidget(
                 jupyterhub_clean_info_widget

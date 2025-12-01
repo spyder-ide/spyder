@@ -21,7 +21,7 @@ class SpyderPluginObserver:
     """
     This mixin enables a class to receive notifications when a plugin
     is available, by registering methods using the
-    :function:`spyder.api.plugin_registration.decorators.on_plugin_available`
+    :func:`spyder.api.plugin_registration.decorators.on_plugin_available`
     decorator.
 
     When any of the requested plugins is ready, the corresponding registered

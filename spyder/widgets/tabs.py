@@ -383,10 +383,7 @@ class TabBar(QTabBar):
 
     def mouseDoubleClickEvent(self, event):
         """Override Qt method to trigger the tab name editor."""
-        if (
-            self.rename_tabs is True
-            and event.buttons() == Qt.MouseButtons(Qt.LeftButton)
-        ):
+        if self.rename_tabs is True and event.button() == Qt.LeftButton:
             # Tab index
             index = self.tabAt(event.pos())
             if index >= 0:
