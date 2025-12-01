@@ -550,8 +550,8 @@ class ProjectDialog(SidebarDialog):
         )
         if hasattr(page, "create_project"):
             result = page.create_project()
-            print("============================== Project creation result:")
-            print(result)
+            if not result:
+                return
         self.accept()
 
 

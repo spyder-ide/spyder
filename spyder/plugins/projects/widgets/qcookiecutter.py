@@ -380,7 +380,7 @@ class CookiecutterWidget(SpyderConfigPage):
         status, result = generate_cookiecutter_project(self.project_path,
                                                        location,
                                                        self.get_values())
-        return result
+        return status
 
 
 if __name__ == "__main__":
