@@ -420,6 +420,30 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         """Assign the RemoteFileHelper used for remote file operations."""
         self._remote_helper = helper
 
+    def _remote_available(self):
+        return self._remote_helper is not None
+
+    def _require_remote_helper(self):
+        if self._remote_helper is None:
+            msg = "Remote file support is not available"
+            raise RuntimeError(msg)
+        return self._remote_helper
+
+    def _clone_remote_handle(self, handle):
+        if handle is None:
+            return None
+        return handle.clone()
+
+    def _refresh_remote_metadata(self, finfo):
+        if not finfo.is_remote:
+            return
+        helper = self._require_remote_helper()
+        handle = finfo.remote_handle or helper.get_handle(finfo.filename)
+        if handle is None:
+            return
+        updated = helper.stat(handle)
+        if updated is not None:
+            finfo.apply_remote_metadata(updated)
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
@@ -718,9 +742,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         fname = other_finfo.filename
         enc = other_finfo.encoding
         new = other_finfo.newly_created
-        finfo = self.create_new_editor(fname, enc, "",
-                                       set_current=set_current, new=new,
-                                       cloned_from=other_finfo.editor)
+        remote_handle = self._clone_remote_handle(other_finfo.remote_handle)
+        finfo = self.create_new_editor(
+            fname, enc, "",
+            set_current=set_current, new=new,
+            cloned_from=other_finfo.editor,
+            remote_handle=remote_handle,
+        )
         finfo.set_todo_results(other_finfo.todo_results)
         return finfo.editor
 
@@ -1279,6 +1307,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # Set new filename
         finfo.filename = new_filename
         finfo.editor.filename = new_filename
+        if finfo.is_remote:
+            helper = self._require_remote_helper()
+            finfo.apply_remote_metadata(helper.get_handle(new_filename))
 
         # File type has changed!
         original_ext = osp.splitext(original_filename)[1]
@@ -1536,6 +1567,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             The self.data index for the filename.  Returns None
             if the filename is not found in self.data.
         """
+        if self._remote_available():
+            handle = self._remote_helper.get_handle(filename)
+            if handle is not None:
+                filename = handle.uri
+
         data_filenames = self.get_filenames()
         try:
             # Try finding without calling the slow realpath
@@ -1919,7 +1955,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         correct encoding without doing any error handling.
         """
         txt = str(fileinfo.editor.get_text_with_eol())
-        fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
+        if fileinfo.is_remote:
+            helper = self._require_remote_helper()
+            remote_handle = helper.get_handle(filename)
+            if remote_handle is not None:
+                updated_handle = helper.write_text(
+                    remote_handle, txt, fileinfo.encoding
+                )
+                fileinfo.apply_remote_metadata(updated_handle)
+        else:
+            fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
@@ -1948,7 +1993,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         if not (finfo.editor.document().isModified() or
                 finfo.newly_created) and not force:
             return True
-        if not osp.isfile(finfo.filename) and not force:
+        if not finfo.is_remote and not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
             if save_new_files:
                 return self.save_as(index=index)
@@ -2025,7 +2070,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.autosave.remove_autosave_file(finfo.filename)
         finfo.newly_created = False
         self.encoding_changed.emit(finfo.encoding)
-        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+        finfo.refresh_lastmodified()
 
         # We pass self object ID as a QString, because otherwise it would
         # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2058,7 +2103,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo = self.data[index]
         finfo.newly_created = False
         finfo.filename = str(filename)
-        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+        if finfo.is_remote:
+            self._refresh_remote_metadata(finfo)
+        else:
+            finfo.refresh_lastmodified()
 
     def select_savename(self, original_filename):
         """Select a name to save a file.
@@ -2371,19 +2419,22 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def __refresh_readonly(self, index):
         if self.data and len(self.data) > index:
             finfo = self.data[index]
-            read_only = not QFileInfo(finfo.filename).isWritable()
-            if not osp.isfile(finfo.filename):
-                # This is an 'untitledX.py' file (newly created)
+            if finfo.is_remote:
                 read_only = False
-            elif os.name == 'nt':
-                try:
-                    # Try to open the file to see if its permissions allow
-                    # to write on it
-                    # Fixes spyder-ide/spyder#10657
-                    fd = os.open(finfo.filename, os.O_RDWR)
-                    os.close(fd)
-                except (IOError, OSError):
-                    read_only = True
+            else:
+                read_only = not QFileInfo(finfo.filename).isWritable()
+                if not osp.isfile(finfo.filename):
+                    # This is an 'untitledX.py' file (newly created)
+                    read_only = False
+                elif os.name == 'nt':
+                    try:
+                        # Try to open the file to see if its permissions allow
+                        # to write on it
+                        # Fixes spyder-ide/spyder#10657
+                        fd = os.open(finfo.filename, os.O_RDWR)
+                        os.close(fd)
+                    except (IOError, OSError):
+                        read_only = True
             finfo.editor.setReadOnly(read_only)
             self.readonly_changed.emit(read_only)
 
@@ -2409,6 +2460,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         finfo = self.data[index]
         name = osp.basename(finfo.filename)
+
+        if finfo.is_remote:
+            self._check_remote_file_status(index, finfo, name)
+            self.__file_status_flag = False
+            return
 
         if finfo.newly_created:
             # File was just created (not yet saved): do nothing
@@ -2480,6 +2536,69 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Finally, resetting temporary flag:
         self.__file_status_flag = False
+
+    def _check_remote_file_status(self, index, finfo, name):
+        """Check status for remote files using the remote services API."""
+        helper = self._require_remote_helper()
+        handle = finfo.remote_handle or helper.get_handle(finfo.filename)
+        if handle is None:
+            return
+
+        updated = helper.stat(handle)
+        if updated is None:
+            if not helper.exists(handle):
+                self.msgbox = QMessageBox(
+                    QMessageBox.Warning,
+                    self.title,
+                    _("The file <b>%s</b> is unavailable."
+                      "<br><br>"
+                      "It may have been removed, moved or renamed outside"
+                      " Spyder."
+                      "<br><br>"
+                      "Do you want to close it?") % name,
+                    QMessageBox.Yes | QMessageBox.No,
+                    self
+                )
+
+                answer = self.msgbox.exec_()
+                if answer == QMessageBox.Yes:
+                    self.close_file(index, force=True)
+                else:
+                    finfo.newly_created = True
+                    finfo.editor.document().setModified(True)
+                    self.modification_changed(index=index)
+            return
+
+        if finfo.remote_handle is None:
+            finfo.apply_remote_metadata(updated)
+            return
+
+        previous = finfo.remote_handle.last_modified
+        current = updated.last_modified
+        if previous == current:
+            return
+
+        if finfo.editor.document().isModified():
+            self.msgbox = QMessageBox(
+                QMessageBox.Question,
+                self.title,
+                _("The file <b>{}</b> has been modified outside Spyder."
+                  "<br><br>"
+                  "Do you want to reload it and lose all your changes?"
+                  ).format(name),
+                QMessageBox.Yes | QMessageBox.No,
+                self
+            )
+
+            answer = self.msgbox.exec_()
+            if answer == QMessageBox.Yes:
+                finfo.apply_remote_metadata(updated)
+                self.reload(index)
+            else:
+                finfo.apply_remote_metadata(updated)
+        else:
+            finfo.apply_remote_metadata(updated)
+            self.reload(index)
 
     def __modify_stack_title(self):
         for index, finfo in enumerate(self.data):
@@ -2560,8 +2679,28 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo = self.data[index]
         logger.debug("Reloading {}".format(finfo.filename))
 
-        txt, finfo.encoding = encoding.read(finfo.filename)
-        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+        if finfo.is_remote:
+            helper = self._require_remote_helper()
+            try:
+                txt, new_enc, updated_handle = helper.read_text(
+                    finfo.remote_handle
+                )
+            except Exception as error:
+                self.msgbox = QMessageBox(
+                    QMessageBox.Critical,
+                    _("Reload error"),
+                    _("<b>Unable to reload %s</b><br><br>%s")
+                    % (finfo.filename, error),
+                    QMessageBox.Ok,
+                    self
+                )
+                self.msgbox.exec_()
+                return
+            finfo.encoding = new_enc
+            finfo.apply_remote_metadata(updated_handle)
+        else:
+            txt, finfo.encoding = encoding.read(finfo.filename)
+            finfo.refresh_lastmodified()
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
@@ -2612,7 +2751,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             )
 
     def create_new_editor(self, fname, enc, txt, set_current, new=False,
-                          cloned_from=None, add_where='end'):
+                          cloned_from=None, add_where='end',
+                          remote_handle=None):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
@@ -2622,7 +2762,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             lambda fname, line, column: self.sig_go_to_definition.emit(
                 fname, line, column))
 
-        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager,
+                 remote_handle=remote_handle)
 
         self.add_to_data(finfo, set_current, add_where)
         finfo.sig_send_to_help.connect(self.send_to_help)
@@ -2806,13 +2947,23 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         return finfo
 
     def load(self, filename, set_current=True, add_where='end',
-             processevents=True):
+             processevents=True, text=None, encoding_name=None,
+             remote_handle=None):
         """
         Load filename, create an editor instance and return it.
 
         This also sets the hash of the loaded file in the autosave component.
         """
-        filename = osp.abspath(str(filename))
+        if remote_handle is None and self._remote_available():
+            inferred_handle = self._remote_helper.get_handle(filename)
+            if inferred_handle is not None:
+                remote_handle = inferred_handle
+
+        is_remote_file = remote_handle is not None
+        if is_remote_file:
+            filename = remote_handle.uri
+        else:
+            filename = osp.abspath(str(filename))
 
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
@@ -2820,18 +2971,27 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         # This is necessary to avoid a crash at startup when trying to restore
         # files from the previous session.
         # Fixes spyder-ide/spyder#20670
-        try:
-            # Read file contents
-            text, enc = encoding.read(filename)
-        except Exception:
-            return
+        if is_remote_file:
+            helper = self._require_remote_helper()
+            if text is None or encoding_name is None:
+                text, enc, remote_handle = helper.read_text(remote_handle)
+            else:
+                enc = encoding_name
+        elif text is None or encoding_name is None:
+            try:
+                # Read file contents
+                text, enc = encoding.read(filename)
+            except Exception:
+                return
 
         # Associate hash of file's text with its name for autosave
         self.autosave.file_hashes[filename] = hash(text)
 
         # Create editor
-        finfo = self.create_new_editor(filename, enc, text, set_current,
-                                       add_where=add_where)
+        finfo = self.create_new_editor(
+            filename, enc, text, set_current,
+            add_where=add_where, remote_handle=remote_handle
+        )
         index = self.data.index(finfo)
 
         if processevents:

@@ -28,7 +28,7 @@ from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QSplitter, QVBoxLayout, QWidget)
+                            QMessageBox, QSplitter, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -803,6 +803,17 @@ class EditorMainWidget(PluginMainWidget):
 
     def _get_color_scheme(self):
         return self._plugin.get_color_scheme()
+
+    def _handle_remote_load_error(self, filename, error):
+        """Notify users when a remote file couldn't be loaded."""
+        logger.exception("Failed to open remote file %s", filename)
+        QMessageBox.critical(
+            self,
+            _("Remote file error"),
+            _("<b>Unable to open %s</b><br><br>%s")
+            % (filename, error),
+            QMessageBox.Ok
+        )
 
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -1847,8 +1858,15 @@ class EditorMainWidget(PluginMainWidget):
               and not isinstance(focus_widget, CodeEditor)):
             self.switch_to_plugin()
 
+        remote_handles = {}
+
         def _convert(fname):
             fname = encoding.to_unicode_from_fs(fname)
+            remote_handle = RemoteFileHelper.get_handle(fname)
+            if remote_handle is not None:
+                normalized = remote_handle.uri
+                remote_handles[normalized] = remote_handle
+                return normalized
             if os.name == 'nt':
                 # Try to get the correct capitalization and absolute path
                 try:
@@ -1879,14 +1897,27 @@ class EditorMainWidget(PluginMainWidget):
             goto = None
 
         for index, filename in enumerate(filenames):
+            remote_handle = remote_handles.get(filename)
+            remote_text = None
+            remote_encoding = None
             # -- Do not open an already opened file
             focus = set_focus and index == 0
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
                                                        focus=focus)
             if current_editor is None:
+                if remote_handle is not None:
+                    try:
+                        remote_helper = self._require_remote_helper()
+                        remote_text, remote_encoding, remote_handle = (
+                            remote_helper.read_text(remote_handle)
+                        )
+                    except Exception as error:
+                        self._handle_remote_load_error(filename, error)
+                        continue
+                    remote_handles[filename] = remote_handle
                 # Not a valid filename, we need to continue.
-                if not osp.isfile(filename):
+                if remote_handle is None and not osp.isfile(filename):
                     continue
 
                 current_es = self.get_current_editorstack(editorwindow)
@@ -1896,7 +1927,9 @@ class EditorMainWidget(PluginMainWidget):
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
                     filename, set_current=False, add_where=add_where,
-                    processevents=processevents)
+                    processevents=processevents, text=remote_text,
+                    encoding_name=remote_encoding,
+                    remote_handle=remote_handle)
 
                 # This can happen when it was not possible to load filename
                 # from disk.
