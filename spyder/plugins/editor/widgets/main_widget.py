@@ -48,6 +48,7 @@ from spyder.plugins.editor.api.run import (
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
+from spyder.plugins.editor.utils.remote import RemoteFileHelper
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -301,6 +302,9 @@ class EditorMainWidget(PluginMainWidget):
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_conf('autosave_interval') * 1000
         self.autosave.enabled = self.get_conf('autosave_enabled')
+
+        # Remote file helper
+        self._remote_helper = None
 
         # SimpleCodeEditor instance used to print file contents
         self._print_editor = self._create_print_editor()
@@ -788,6 +792,9 @@ class EditorMainWidget(PluginMainWidget):
         for window in self.editorwindows:
             window.close()
         self.autosave.stop_autosave_timer()
+
+        if self._remote_helper is not None:
+            self._remote_helper.close()
 
     # ---- Private API
     # ------------------------------------------------------------------------
@@ -1350,6 +1357,8 @@ class EditorMainWidget(PluginMainWidget):
         # Register editorstack's autosave component with plugin's autosave
         # component
         self.autosave.register_autosave_for_stack(editorstack.autosave)
+
+        editorstack.set_remote_helper(self._remote_helper)
 
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -3064,3 +3073,17 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks:
             editorstack.register_panel(
                 panel_class, *args, position=position, **kwargs)
+
+    # ---- Remote files
+    # -------------------------------------------------------------------------
+    def set_remote_helper(self, remote_client):
+        """Set the remote file helper."""
+        self._remote_helper = RemoteFileHelper(remote_client)
+        for editorstack in self.editorstacks:
+            editorstack.set_remote_helper(self._remote_helper)
+
+    def _require_remote_helper(self):
+        """Ensure that a remote file helper is available."""
+        if self._remote_helper is None:
+            raise RuntimeError("Remote Client plugin is not available.")
+        return self._remote_helper

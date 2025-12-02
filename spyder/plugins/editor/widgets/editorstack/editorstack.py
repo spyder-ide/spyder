@@ -413,6 +413,13 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.autosave = AutosaveForStack(self)
 
         self.last_cell_call = None
+        self._remote_helper = None
+
+    # ---- Remote integration ------------------------------------------------
+    def set_remote_helper(self, helper):
+        """Assign the RemoteFileHelper used for remote file operations."""
+        self._remote_helper = helper
+
 
     @Slot()
     def show_in_external_file_explorer(self, fnames=None):
