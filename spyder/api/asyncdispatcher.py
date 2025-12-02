@@ -43,10 +43,20 @@ from qtpy.QtCore import QCoreApplication, QEvent, QObject
 _logger = logging.getLogger(__name__)
 
 LoopID = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
+"""Type alias, the union of a loop itself or the ID of one.
+
+Either an existing :class:`asyncio.AbstractEventLoop` or a
+:class:`typing.Hashable` to identify an existing or new one.
+"""
 
 _P = ParamSpec("_P")
-_T = typing.TypeVar("_T")
+"""The parameter types of a given async callable."""
+
 _RT = typing.TypeVar("_RT")
+"""The return type of a given async callable."""
+
+_T = typing.TypeVar("_T")
+"""An arbirary type parameter."""
 
 
 class AsyncDispatcher(typing.Generic[_RT]):
@@ -104,20 +114,35 @@ class AsyncDispatcher(typing.Generic[_RT]):
         """
         Decorate a coroutine to run in a specific event loop.
 
-        The `loop` parameter can be an existing loop or a hashable to identify
-        an existing/new one (to be) created by the AsyncDispatcher. If the
-        loop is not running, it will be started in a new thread and managed by
-        the AsyncDispatcher.
+        The ``loop`` parameter can be an existing
+        :class:`~asyncio.AbstractEventLoop` or a :class:`~typing.Hashable` to
+        identify an existing or new one created by the
+        :class:`!AsyncDispatcher`. If the loop is not running, it will be
+        started in a new thread and managed by the :class:`!AsyncDispatcher`.
 
         This instance can be called with the same arguments as the coroutine it
-        wraps and will return a concurrent Future object, or an awaitable
-        Future for the current running event loop or the result of the
-        coroutine depending on the `early_return` and `return_awaitable`
-        parameters.
+        wraps and will return a :class:`concurrent.futures.Future` object,
+        or an awaitable :class:`asyncio.Future` for the current running event
+        loop or the result of the coroutine depending on the ``early_return``
+        and ``return_awaitable`` parameters.
 
-        Usage
-        -----
-        Non-Blocking usage (returns a concurrent Future):
+        Parameters
+        ----------
+        loop : LoopID, optional
+            The event loop to be used, by default the current event loop.
+        early_return : bool, optional
+            Return the coroutine as a :class:`concurrent.futures.Future`
+            before it is done.
+        return_awaitable : bool, optional
+            Return the coroutine as an awaitable :class:`asyncio.Future`
+            instead of a :class:`concurrent.futures.Future`, independent of
+            the value of ``early_return``.
+
+
+        Examples
+        --------
+
+        Non-blocking usage (returns a :class:`concurrent.futures.Future`):
 
         .. code-block:: python
 
@@ -140,7 +165,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
             result = my_coroutine(...)  # Blocking call
 
-        Coroutine usage (returns an awaitable Future):
+        Coroutine usage (returns an awaitable :class:`asyncio.Future`):
 
         .. code-block:: python
 
@@ -149,16 +174,6 @@ class AsyncDispatcher(typing.Generic[_RT]):
                 ...
 
             result = await my_coroutine(...)  # Wait for the result to be ready
-
-        Parameters
-        ----------
-        loop : LoopID, optional (default: None)
-            The event loop to be used, by default get the current event loop.
-        early_return : bool, optional (default: True)
-            Return the coroutine as a concurrent Future before it is done.
-        return_awaitable : bool, optional (default: False)
-            Return the coroutine as an awaitable (asyncio) Future instead of a
-            concurrent Future. Idenpendently of the value of `early_return`.
         """
         self._loop = self.get_event_loop(loop)
         self._early_return = early_return
@@ -201,12 +216,12 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         Returns
         -------
-        concurrent.Future or asyncio.Future or result of the coroutine
+        concurrent.futures.Future or asyncio.Future or _T
 
         Raises
         ------
         TypeError
-            If the function is not a coroutine function.
+            If ``async_func`` is not a coroutine function.
         """
         if not asyncio.iscoroutinefunction(async_func):
             msg = f"{async_func} is not a coroutine function"
@@ -248,24 +263,23 @@ class AsyncDispatcher(typing.Generic[_RT]):
         """Get the event loop to run the coroutine.
 
         If the loop is not running, it will be started in a new thread and
-        managed by the AsyncDispatcher.
+        managed by the :class:`!AsyncDispatcher`.
 
         Parameters
         ----------
-        loop_id : LoopID, optional (default: None)
-            The event loop to be used, by default gets the current thread event
-            loop.
+        loop_id : LoopID, optional
+            The event loop to use, by default the current thread event loop.
 
-        Notes
-        -----
-        * If a hashable is provided, it will be used to identify the loop in
-          the AsyncDispatcher.
-        * If an event loop is provided, it will be used as the event loop in
-          the AsyncDispatcher.
+            .. note::
+
+                * If a :class:`~typing.Hashable` is provided, it will be used
+                  to identify the loop in the :class:`!AsyncDispatcher`.
+                * If an event loop is provided, it will be used as the event
+                  loop in the :class:`!AsyncDispatcher`.
 
         Returns
         -------
-        AbstractEventLoop
+        asyncio.AbstractEventLoop
             The event loop to be used.
         """
         loop, loop_id = cls._fetch_event_loop(loop_id)
@@ -321,7 +335,12 @@ class AsyncDispatcher(typing.Generic[_RT]):
     @staticmethod
     @atexit.register
     def close():
-        """Close the thread pool."""
+        """Close the thread pool.
+
+        Returns
+        -------
+        None
+        """
         if AsyncDispatcher.__closed:
             return
         AsyncDispatcher.cancel_all()
@@ -330,13 +349,21 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @classmethod
     def cancel_all(cls):
-        """Cancel all running tasks."""
+        """Cancel all running tasks.
+
+        Returns
+        -------
+        None"""
         for task in cls._running_tasks:
             task.cancel()
 
     @classmethod
     def join(cls, timeout: float | None = None):
-        """Close all running loops and join the threads."""
+        """Close all running loops and join the threads.
+
+        Returns
+        -------
+        None"""
         for loop_id in list(cls.__running_threads.keys()):
             cls._stop_running_loop(loop_id, timeout)
 
@@ -351,10 +378,10 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @staticmethod
     def QtSlot(func: typing.Callable[_P, None]) -> typing.Callable[_P, None]:  # noqa: N802
-        """Mark a function to be executed inside the main qt loop.
+        """Mark a function to be executed inside the main Qt loop.
 
-        Set the `DispatcherFuture.QT_SLOT_ATTRIBUTE` attribute to the function
-        to mark it as a slot to be executed in the main Qt loop.
+        Sets the :attr:`DispatcherFuture.QT_SLOT_ATTRIBUTE` attribute on the
+        function to mark it as a slot to be executed in the main Qt loop.
 
         Parameters
         ----------
@@ -412,7 +439,7 @@ def _patch_loop_as_reentrant(loop):  # noqa: C901, PLR0915
 
     Parameters
     ----------
-    loop : AbstractEventLoop
+    loop : asyncio.AbstractEventLoop
         The event loop to be patched.
 
     Raises
@@ -573,11 +600,16 @@ class _QCallbackExecutor(QObject):
 class DispatcherFuture(Future, typing.Generic[_T]):
     """Represents the result of an asynchronous computation.
 
-    This class is a subclass of `concurrent.Future` that adds a `connect`
-    method to allow attaching callbacks to be executed in the main Qt loop.
+    This class is a subclass of :class:`concurrent.futures.Future` that adds
+    a :meth:`connect` method to allow attaching callbacks to be executed
+    in the main Qt loop.
     """
 
-    QT_SLOT_ATTRIBUTE = "__dispatch_qt_slot__"
+    QT_SLOT_ATTRIBUTE: str = "__dispatch_qt_slot__"
+    """Attribute set on functions to be used as slots in the event loop.
+
+    Normally set by by the :meth:`AsyncDispatcher.QtSlot` decorator.
+    """
 
     _callback_executor = _QCallbackExecutor()
 
@@ -598,7 +630,7 @@ class DispatcherFuture(Future, typing.Generic[_T]):
 
         Raises
         ------
-        CancelledError
+        asyncio.CancelledError
             If the future was cancelled.
 
         TimeoutError
@@ -614,18 +646,21 @@ class DispatcherFuture(Future, typing.Generic[_T]):
 
         The callable will be called by a thread in the same process in which
         it was added if the it was not marked with
-        `DispatherFuture.QT_SLOT_ATTRIBUTE`.
+        :attr:`DispatcherFuture.QT_SLOT_ATTRIBUTE`.
 
-        If the future has already completed or been
-        cancelled then the callable will be called immediately. These
-        callables are called in the order that they were added.
+        If the future has already been cancelld or completed then the callable
+        will be executed immediately. These callables are called in the order
+        that they were added.
 
         Parameters
         ----------
         fn: Callable
-            A callable that will be called with this future's as its only
-            argument when the future completes.
+            A callable that will be executed with this future as its argument
+            once the future completes or is cancelled.
 
+        Returns
+        -------
+        None
         """
         if getattr(fn, self.QT_SLOT_ATTRIBUTE, False):
 
@@ -641,14 +676,14 @@ class DispatcherFuture(Future, typing.Generic[_T]):
 def run_coroutine_threadsafe(
     coro: typing.Coroutine[_T, None, _RT], loop: asyncio.AbstractEventLoop,
 ) -> DispatcherFuture[_RT]:
-    """Submit a coroutine object to a given event loop.
+    """Submit a coroutine object to run in the given event loop.
 
     Arguments
     ---------
     coro: Coroutine
         The coroutine object to be submitted.
-    loop: AbstractEventLoop
-        The event loop to run the coroutine.
+    loop: asyncio.AbstractEventLoop
+        The event loop in which to run the coroutine.
 
     Returns
     -------
