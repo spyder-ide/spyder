@@ -229,6 +229,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'max_plots': 30,
              }),
             ('editor',
              {
