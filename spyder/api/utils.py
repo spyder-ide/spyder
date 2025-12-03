@@ -9,6 +9,8 @@
 Helper functions to work with the Spyder plugin API.
 """
 
+from __future__ import annotations
+
 from abc import ABCMeta as BaseABCMeta
 import sys
 import typing
@@ -22,11 +24,21 @@ _P = ParamSpec('_P')
 _T = typing.TypeVar('_T')
 
 
-def get_class_values(cls):
+def get_class_values(cls) -> list[str]:
     """
     Get the attribute values for the class enumerations used in our API.
 
-    Idea from: https://stackoverflow.com/a/17249228/438386
+    Idea from `Stack Overflow <https://stackoverflow.com/a/17249228/438386>`__.
+
+    Parameters
+    ----------
+    cls
+        Class object to list the enumeration values of.
+
+    Returns
+    -------
+    list[str]
+        String attribute values from a Spyder pseudo-"enum" class.
     """
     return [v for (k, v) in cls.__dict__.items() if k[:1] != '_']
 
@@ -34,7 +46,19 @@ def get_class_values(cls):
 class PrefixNode:
     """Utility class used to represent a prefixed string tuple."""
 
-    def __init__(self, path=None):
+    def __init__(self, path: tuple[str, ...] = None):
+        """
+        Representation of a prefixed string tuple.
+
+        Parameters
+        ----------
+        path : tuple[str, ...], optional
+            Underlying prefixed string tuple. The default is None.
+
+        Returns
+        -------
+        None
+        """
         self.children = {}
         self.path = path
 
@@ -46,7 +70,19 @@ class PrefixNode:
                        for c in node.children]
             yield current_prefix
 
-    def add_path(self, path):
+    def add_path(self, path: tuple[str, ...]):
+        """
+        Add a path to the prefix node.
+
+        Parameters
+        ----------
+        path : tuple[str, ...]
+            Underlying prefixed string tuple.
+
+        Returns
+        -------
+        None
+        """
         prefix, *rest = path
         if prefix not in self.children:
             self.children[prefix] = PrefixNode(prefix)
@@ -68,10 +104,9 @@ class PrefixedTuple(PrefixNode):
 
 class classproperty(property):
     """
-    Decorator to declare class constants as properties that require additional
-    computation.
+    Decorator to declare class constants requiring computation as properties.
 
-    Taken from: https://stackoverflow.com/a/7864317/438386
+    Idea from `Stack Overflow <https://stackoverflow.com/a/7864317/438386>`__.
     """
 
     def __get__(self, cls, owner):
@@ -79,9 +114,7 @@ class classproperty(property):
 
 
 class DummyAttribute:
-    """
-    Dummy class to mark abstract attributes.
-    """
+    """Dummy class to mark abstract attributes."""
     pass
 
 
@@ -91,8 +124,19 @@ def abstract_attribute(
     ] = None
 ) -> _T:
     """
-    Decorator to mark abstract attributes. Must be used in conjunction with the
-    ABCMeta metaclass.
+    Decorator to mark abstract attributes.
+
+    Must be used in conjunction with the :class:`abc.ABCMeta` metaclass.
+
+    Parameters
+    ----------
+    obj: typing.Callable[_P, _T] | DummyAttribute | None
+        The callable attribute to mark as abstract.
+
+    Returns
+    -------
+    _T
+        The result of executing the callable attribute ``obj``.
     """
     if obj is None:
         obj = DummyAttribute()
