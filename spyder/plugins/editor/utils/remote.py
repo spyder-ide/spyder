@@ -102,12 +102,7 @@ class RemoteFileHelper:
     ) -> Tuple[str, str, RemoteFileHandle]:
         """Return file contents, encoding and updated metadata."""
         data, info = self._read_runner(handle.client_id, handle.path.as_posix())
-        default_codec = 'utf-8' if handle.path.suffix in (
-            '.py', '.pyw', '.ipy', '.pyi'
-        ) else None
-        text, detected_encoding = encoding.decode(
-            data, default_codec=default_codec
-        )
+        text, detected_encoding = encoding.decode(data)
         updated = handle.clone()
         updated.last_modified = info.get("mtime")
         updated.size = info.get("size")
