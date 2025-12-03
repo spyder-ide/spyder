@@ -56,6 +56,9 @@ if [ "$USE_CONDA" = "true" ]; then
         micromamba install bzip2=1.0.8=h2466b09_7
     fi
 
+    # Install Pylint 4
+    micromamba install pylint=4.0
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -81,6 +84,10 @@ else
     if [ "$OS" = "linux" ]; then
         pip install jedi==0.19.1
     fi
+
+    # Install Pylint 4
+    pip install pylint==4.0.*
+
 fi
 
 # Install subrepos from source
