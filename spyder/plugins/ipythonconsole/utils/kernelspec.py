@@ -12,6 +12,10 @@ Kernel spec for Spyder kernels
 import logging
 import os
 import os.path as osp
+try:
+    from win32api import GetShortPathName
+except ImportError:
+    pass
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
@@ -262,6 +266,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             path.extend(env_vars.get("path", "").split(";"))  # HKCU Path
             path = ";".join([p for p in path if p])  # Stringify
             env_vars["PATH"] = path
+
+            # Use short path name for temporary directories in case path has
+            # spaces. See spyder-ide/spyder#25403
+            if "tmp" in env_vars:
+                env_vars["tmp"] = GetShortPathName(env_vars["tmp"])
+            if "temp" in env_vars:
+                env_vars["temp"] = GetShortPathName(env_vars["temp"])
 
         # User variables supersede system variables
         for k, v in os.environ.items():
