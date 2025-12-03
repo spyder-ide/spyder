@@ -2420,7 +2420,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         if self.data and len(self.data) > index:
             finfo = self.data[index]
             if finfo.is_remote:
-                read_only = False
+                read_only = not self._require_remote_helper().is_writable(finfo.remote_handle)
             else:
                 read_only = not QFileInfo(finfo.filename).isWritable()
                 if not osp.isfile(finfo.filename):

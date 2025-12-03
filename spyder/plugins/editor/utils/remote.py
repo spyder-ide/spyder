@@ -69,6 +69,9 @@ class RemoteFileHelper:
         self._exists_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._exists_async)
+        self._is_writable_runner = AsyncDispatcher(
+            loop=self.EVENT_LOOP_ID, early_return=False
+        )(self._is_writable_async)
         self._close_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._close_async)
@@ -141,6 +144,12 @@ class RemoteFileHelper:
         updated.size = info.get("size")
         return updated
 
+    def is_writable(self, handle: RemoteFileHandle) -> bool:
+        """Return True if the remote file is writable."""
+        return self._is_writable_runner(
+            handle.client_id, handle.path.as_posix()
+        )
+
     def close(self) -> None:
         """Close any cached remote API sessions."""
         for api in self._api_instances.values():
@@ -199,6 +208,17 @@ class RemoteFileHelper:
             return await api.exists(PurePosixPath(posix_path))
         except (RemoteOSError, RemoteFileServicesError):
             return False
+
+    async def _is_writable_async(self, client_id: str, posix_path: str) -> bool:
+        api = await self._ensure_api_async(client_id)
+        try:
+            remote_file = await api.open(posix_path, mode="wb")
+        except (RemoteOSError, RemoteFileServicesError):
+            return False
+        else:
+            return True
+        finally:
+            await remote_file.close()
 
     async def _close_async(self, api: SpyderRemoteFileServicesAPI) -> None:
         if api.closed:
