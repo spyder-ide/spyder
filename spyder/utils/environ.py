@@ -130,7 +130,10 @@ async def get_user_environment_variables() -> dict:
                 if stderr:
                     logger.info(stderr.decode().strip())
                 if stdout:
-                    env_var = eval(stdout.decode(), None)
+                    # Environment variables is final print statement
+                    # Fixes spyder-ide/spyder#25263
+                    env_var_str = stdout.decode().strip().split("\n")[-1]
+                    env_var = eval(env_var_str, None)
             except Exception as exc:
                 logger.info(exc)
         else:
