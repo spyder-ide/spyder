@@ -13,7 +13,7 @@ from qtpy.QtCore import QSize, Qt, Slot
 from qtpy.QtWidgets import QHBoxLayout
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBoxWithIcons
 from spyder.plugins.completion.api import SymbolKind
 from spyder.plugins.editor.api.panel import Panel

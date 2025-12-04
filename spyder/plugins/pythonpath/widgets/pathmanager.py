@@ -28,12 +28,13 @@ from qtpy.QtWidgets import (
     QStackedWidget,
     QVBoxLayout,
 )
+from requests.structures import CaseInsensitiveDict
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
 from spyder.plugins.pythonpath.utils import check_path, get_system_pythonpath
 from spyder.utils.environ import (
     get_user_environment_variables,
@@ -378,17 +379,18 @@ class PathManager(QDialog, SpyderWidgetMixin):
     @Slot()
     def export_pythonpath(self):
         """
-        Export to PYTHONPATH environment variable
-        Only apply to: current user.
+        Export to Spyder's PYTHONPATH Manager paths to HKCU PYTHONPATH
+        environment variable (Windows only).
 
-        If the user chooses to clear the contents of the system PYTHONPATH,
-        then the active user paths are prepended to active system paths and
-        the resulting list is saved to the system PYTHONPATH. Inactive system
-        paths are discarded. If the user chooses not to clear the contents of
-        the system PYTHONPATH, then the new system PYTHONPATH comprises the
-        inactive system paths + active user paths + active system paths, and
-        inactive system paths remain inactive. With either choice, inactive
-        user paths are retained in the user paths and remain inactive.
+        If the user chooses to keep the inactive system paths, then the active
+        user paths and all system paths are exported, in that order.
+
+        If the user chooses not to keep the inactive system paths, then the
+        active user paths and active system paths are exported, in that order.
+
+        With either choice, inactive user paths are retained as inactive user
+        paths in the PYTHONPATH Manager and the system paths reflect the
+        exported paths, retaining their active state.
         """
         answer = QMessageBox.question(
             self,
@@ -398,8 +400,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
               "<br><br>"
-              "Do you want to clear the contents of PYTHONPATH before "
-              "adding Spyder's path list?"),
+              "Do you want to keep the inactive system paths?"),
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
         )
 
@@ -415,25 +416,23 @@ class PathManager(QDialog, SpyderWidgetMixin):
         )
 
         system_paths = self.get_system_paths()
-        active_system_paths = OrderedDict(
-            {p: v for p, v in system_paths.items() if v}
-        )
-        inactive_system_paths = OrderedDict(
-            {p: v for p, v in system_paths.items() if not v}
-        )
 
-        # Desired behavior is active_user | active_system, but Python 3.8 does
-        # not support | operator for OrderedDict.
-        new_system_paths = OrderedDict(reversed(active_system_paths.items()))
-        new_system_paths.update(reversed(active_user_paths.items()))
         if answer == QMessageBox.No:
-            # Desired behavior is inactive_system | active_user | active_system
-            new_system_paths.update(reversed(inactive_system_paths.items()))
-        new_system_paths = OrderedDict(reversed(new_system_paths.items()))
+            # Only use active system paths
+            system_paths = OrderedDict(
+                {p: v for p, v in system_paths.items() if v}
+            )
+
+        new_system_paths = active_user_paths.copy()
+        for k, v in system_paths.items():
+            new_system_paths.setdefault(k, v)
 
         env = get_user_env()
-        env['PYTHONPATH'] = list(new_system_paths.keys())
-        set_user_env(env, parent=self)
+        if os.name == "nt":
+            env = CaseInsensitiveDict(env)
+        env["PYTHONPATH"] = list(new_system_paths.keys())
+
+        set_user_env(dict(env), parent=self)
 
         self.update_paths(
             user_paths=new_user_paths, system_paths=new_system_paths

@@ -33,8 +33,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
@@ -787,6 +788,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    @on_conf_change(
+        option=("provider_configuration", "lsp", "values", "pyflakes"),
+        section='completions',
+    )
+    def on_pyflakes_enabled_change(self, value):
+        if self.data:
+            for finfo in self.data:
+                if finfo.editor.is_python_like():
+                    finfo.editor.pyflakes_linting_enabled = value
+
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)

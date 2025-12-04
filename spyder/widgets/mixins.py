@@ -1546,18 +1546,23 @@ class BaseEditMixin(object):
         This was suggested by a user in spyder-ide/spyder#23313. So, it's not
         tested by us.
         """
+        old_width = self.cursorWidth()  # may be 0 for multicursor rendering
+        self.setCursorWidth(1)  # querying cursor position requires valid width
+
         if query == Qt.ImInputItemClipRectangle:
             cursor_rect = self.cursorRect()
             margins = self.viewportMargins()
             cursor_rect.moveTopLeft(
                 cursor_rect.topLeft() + QPoint(margins.left(), margins.top())
             )
-            return cursor_rect
-
-        if isinstance(self, QPlainTextEdit):
-            return QPlainTextEdit.inputMethodQuery(self, query)
+            response = cursor_rect
+        elif isinstance(self, QPlainTextEdit):
+            response = QPlainTextEdit.inputMethodQuery(self, query)
         elif isinstance(self, QTextEdit):
-            return QTextEdit.inputMethodQuery(self, query)
+            response = QTextEdit.inputMethodQuery(self, query)
+
+        self.setCursorWidth(old_width)  # restore original cursor width
+        return response
 
 
 class TracebackLinksMixin(object):

@@ -14,7 +14,7 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 
 

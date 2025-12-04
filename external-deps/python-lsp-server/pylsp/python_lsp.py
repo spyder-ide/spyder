@@ -237,6 +237,7 @@ class PythonLSPServer(MethodDispatcher):
     def m_shutdown(self, **_kwargs) -> None:
         for workspace in self.workspaces.values():
             workspace.close()
+        self._hook("pylsp_shutdown")
         self._shutdown = True
 
     def m_invalid_request_after_shutdown(self, **_kwargs):
@@ -721,6 +722,12 @@ class PythonLSPServer(MethodDispatcher):
             for item in completions.get("items", []):
                 if item.get("data", {}).get("doc_uri") == temp_uri:
                     item["data"]["doc_uri"] = cellDocument.uri
+
+            # Copy LAST_JEDI_COMPLETIONS to cell document so that completionItem/resolve will work
+            tempDocument = workspace.get_document(temp_uri)
+            cellDocument.shared_data["LAST_JEDI_COMPLETIONS"] = (
+                tempDocument.shared_data.get("LAST_JEDI_COMPLETIONS", None)
+            )
 
             return completions
 

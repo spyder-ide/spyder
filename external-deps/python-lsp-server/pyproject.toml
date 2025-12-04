@@ -10,7 +10,8 @@ name = "python-lsp-server"
 authors = [{name = "Python Language Server Contributors"}]
 description = "Python Language Server for the Language Server Protocol"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.9"
 dependencies = [
     "docstring-to-markdown",
@@ -57,7 +58,7 @@ test = [
     "numpy",
     "pandas",
     "matplotlib",
-    "pyqt5",
+    "pyqt6",
     "flaky",
     "websockets>=10.3",
 ]
@@ -170,7 +171,6 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.setuptools]
-license-files = ["LICENSE"]
 include-package-data = false
 
 [tool.setuptools.packages.find]

@@ -16,6 +16,7 @@ import os.path as osp
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
+from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import (
     get_conda_env_path,
     get_pixi_manifest_path_and_env_name,
@@ -241,22 +242,34 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     @property
     def env(self):
-        """Env vars for kernels"""
+        """Environment variables for kernels"""
+        return self._env_vars
+
+    @env.setter
+    def env(self, env_vars):
+        """Setter for environment variables for kernels"""
+        env_vars = dict(env_vars)
+        if os.name == "nt":
+            # Expand variables in case some are unexpanded.
+            # Fixes spyder-ide/spyder#25275
+            env_vars = {k: osp.expandvars(v) for k, v in env_vars.items()}
+
+            # Use case insensitive dictionary
+            env_vars = CaseInsensitiveDict(env_vars)
+
+            # HKCU path must be appended to HKLM path
+            path = os.getenv("path", "").split(";")  # HKLM Path
+            path.extend(env_vars.get("path", "").split(";"))  # HKCU Path
+            path = ";".join([p for p in path if p])  # Stringify
+            env_vars["PATH"] = path
+
+        # User variables supersede system variables
+        for k, v in os.environ.items():
+            env_vars.setdefault(k, v)
+
         default_interpreter = self.get_conf(
             'default', section='main_interpreter'
         )
-
-        # Ensure that user environment variables are included, but don't
-        # override existing environ values
-        env_vars = self._env_vars.copy()
-        env_vars.update(os.environ)
-
-        # Avoid IPython adding the virtualenv on which Spyder is running
-        # to the kernel sys.path
-        env_vars.pop('VIRTUAL_ENV', None)
-
-        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
-        env_vars.pop('PYTHONPATH', None)
 
         # List of modules to exclude from our UMR
         umr_namelist = self.get_conf(
@@ -264,6 +277,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Get TMPDIR value, if available
         tmpdir_var = env_vars.get("TMPDIR", "")
+
+        # --- Adding to environment variables
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
@@ -301,17 +316,21 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # See spyder-ide/spyder#17552
             env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
 
+        # --- Removing from envrionment variables
+
+        env_vars.pop('PYTEST_CURRENT_TEST', None)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
+
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
+
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.
         # Fixes spyder-ide/spyder#13252
         env_vars.pop('PYTHONEXECUTABLE', None)
 
-        # Making all env_vars strings
-        clean_env_vars = clean_env(env_vars)
-
-        return clean_env_vars
-
-    @env.setter
-    def env(self, env_vars):
-        self._env_vars = dict(env_vars)
-        self._env_vars.pop('PYTEST_CURRENT_TEST', None)
+        # Making all env_vars strings, ensure cast as dict
+        self._env_vars = clean_env(dict(env_vars))

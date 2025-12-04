@@ -2856,6 +2856,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 section=RemoteConsolesMenuSections.ConsolesSection,
             )
 
+        self.add_item_to_menu(
+            self._remote_consoles_menu,
+            self.get_menu(IPythonConsoleWidgetMenus.TabsContextMenu),
+            section=IPythonConsoleWidgetTabsContextMenuSections.Consoles,
+            before=IPythonConsoleWidgetActions.ConnectToKernel,
+        )
+
         # This is necessary to reposition the menu correctly when rebuilt
         if render:
             self._remote_consoles_menu.render()
