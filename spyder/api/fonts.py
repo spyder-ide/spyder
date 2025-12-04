@@ -22,21 +22,38 @@ class SpyderFontType:
     """
     Font types used in Spyder plugins and the entire application.
 
-    Notes
-    -----
-    * This enum is meant to be used to get the QFont object corresponding to
-      each type.
-    * The names associated to the values in this enum depend on historical
-      reasons that go back to Spyder 2 and are not easy to change now.
-    * Monospace is the font used used in the Editor, IPython console and
-      History; Interface is used by the entire Spyder app; and
-      MonospaceInterface is used, for instance, by the Variable Explorer and
-      corresponds to Monospace font resized to look good against the
-      Interface one.
+    This enum is meant to be used to get the :class:`QFont` object
+    corresponding to each type. These are:
+
+    * :attr:`Monospace` is used in the :guilabel:`Editor`,
+      :guilabel:`IPython Console` and :guilabel:`History` panes
+    * :attr:`Interface` is used by the entire Spyder application
+    * :attr:`MonospaceInterface` is used, for instance, by the
+      :guilabel:`Variable Explorer` and corresponds to the :attr:`Monospace`
+      font resized to look good together with the :attr:`Interface` font.
+
+    .. note::
+
+        The values names in this enum are a result of historical reasons
+        that date from Spyder 2 and are not easy to change now.
     """
-    Monospace = 'font'
-    Interface = 'app_font'
-    MonospaceInterface = 'monospace_app_font'
+    Monospace: str = 'font'
+    """Monospace font, used for code, output and ``literal/verbatim text``.
+
+    Used in, for example, the :guilabel:`Editor`, :guilabel:`IPython Console`
+    and :guilabel:`History` panes.
+    """
+
+    Interface: str = 'app_font'
+    """Interface font, used throughout the Spyder application."""
+
+    MonospaceInterface: str = 'monospace_app_font'
+    """:attr:`Monospace` font resized to work with the :attr:`Interface` font.
+
+    Used, for instance, by the :guilabel:`Variable Explorer` and corresponds
+    to the :attr:`Monospace` font resized to look good when used together with
+    the :attr:`Interface` font.
+    """
 
 
 class SpyderFontsMixin:
@@ -49,15 +66,14 @@ class SpyderFontsMixin:
         font_size_delta: Optional[int] = 0
     ) -> QFont:
         """
-        Get a font type as a QFont object.
+        Get a font type as a :class:`QFont` object.
 
         Parameters
         ----------
         font_type: str
-            A Spyder font type. This must be one of the `SpyderFontType` enum
-            values.
+            A Spyder font type, one of the :class:`SpyderFontType` enum values.
         font_size_delta: int, optional
-            Small increase or decrease over the default font size. The default
-            is 0.
+            Increase or decrease the default font size by this amount.
+            The default is 0.
         """
         return get_font(option=font_type, font_size_delta=font_size_delta)

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains the internationalization API.
+The gettext-based translation and internationalization (i18n) API for Spyder.
 """
 
 from spyder.config.base import get_translation, _

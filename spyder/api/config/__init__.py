@@ -5,5 +5,5 @@
 # (see spyder/__init__.py for details)
 
 """
-Mixins, decorators and enums to access Spyder configuration system.
+Mixins, decorators and enums to access the Spyder configuration system.
 """
