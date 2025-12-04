@@ -134,6 +134,7 @@ class CookiecutterWidget(SpyderConfigPage):
         self._widgets = OrderedDict()
         self._defined_settings = OrderedDict()
         self._rendered_settings = OrderedDict()
+        self._rendered_values = OrderedDict()
         self._process = None
         self._tempfile = tempfile.mkstemp(suffix=".py")[-1]
 
@@ -231,24 +232,17 @@ class CookiecutterWidget(SpyderConfigPage):
             widget = self.create_combobox(text=label, option=setting,
                                           choices=choices)
             widget_in = widget.combobox
-            widget_in.currentIndexChanged.connect(
-                lambda: self.render())
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
                 field_type = "checkbox"
                 widget = self.create_checkbox(text=label, option=setting,
                                               default=value)
                 widget_in = widget.checkbox
-                widget_in.toggled.connect(
-                    lambda: self.render())
             else:
                 field_type = "textbox"
                 widget = self.create_lineedit(text=label, option=setting,
                                               default='', status_icon=ima.icon("error"))
                 widget_in = widget.textbox
-                widget_in.setDisabled(self._is_jinja(setting))
-                widget_in.textChanged.connect(
-                    lambda: self.render())
         else:
             raise Exception(
                 "Cookiecutter option '{}'cannot be processed".format(setting))
@@ -286,7 +280,8 @@ class CookiecutterWidget(SpyderConfigPage):
         self._check_jinja_options()
 
         for setting, value in self._cookiecutter_settings.items():
-            if not setting.startswith(("__", "_")):
+            if (not setting.startswith(("__", "_")) and
+                    not self._is_jinja(setting)):
                 widget, widget_in = self._create_field(setting, value)
                 self._form_layout.addRow(widget)
         self.render()
@@ -301,8 +296,7 @@ class CookiecutterWidget(SpyderConfigPage):
                 template = Template(value)
                 val = template.render(
                     cookiecutter=Namespace(**cookiecutter_settings))
-                type, widget_in, widget = self._widgets[setting]
-                widget_in.setText(val)
+                self._rendered_values[setting] = val
 
     def get_values(self):
         """
@@ -313,6 +307,9 @@ class CookiecutterWidget(SpyderConfigPage):
             for setting, value in self._cookiecutter_settings.items():
                 if setting.startswith(("__", "_")):
                     cookiecutter_settings[setting] = value
+                elif self._is_jinja(setting):
+                    for setting, value in self._rendered_values.items():
+                        cookiecutter_settings[setting] = value
                 else:
                     type, widget_in, widget = self._widgets[setting]
                     if type == "combobox":
@@ -334,6 +331,7 @@ class CookiecutterWidget(SpyderConfigPage):
         Run, pre generation script and provide information on finished.
         """
         reasons = {}
+        self.render()
         cookiecutter_settings = self.get_values()
         for setting, value in cookiecutter_settings.items():
             if not (setting.startswith(("__", "_")) or
@@ -389,10 +387,7 @@ if __name__ == "__main__":
     app = qapplication()
     dlg = CookiecutterDialog(parent=None)
     spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
-    print("ENTRO ACAAAAAAA11")
     cookiecutter_settings, pre_gen_code = load_cookiecutter_project(project_path=spyder_url, token="algo")
-    print(cookiecutter_settings)
-    print(pre_gen_code)
     dlg.setup(cookiecutter_settings)
     dlg.set_pre_gen_code(pre_gen_code)
     dlg.show()
