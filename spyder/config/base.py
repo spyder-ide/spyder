@@ -88,6 +88,11 @@ def running_in_binder():
     )
 
 
+def building_autodoc():
+    """Return True if executing under Sphinx Autodoc, False otherwise."""
+    return bool(os.environ.get('SPHINX_AUTODOC'))
+
+
 def is_stable_version(version):
     """
     Return true if version is stable, i.e. with letters in the final component.
@@ -531,6 +536,24 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
     def translate_dumb(x: str) -> str:
         """Dumb function to not use translations."""
         return x
+
+    if building_autodoc():
+        def translate_gettext(x: str) -> str:
+            """
+            Translate a text string to the current language for a module.
+
+            Parameters
+            ----------
+            x : str
+                The string to translate.
+
+            Returns
+            -------
+            str
+                The translated string.
+            """
+            return x
+        return translate_gettext
 
     locale_path = get_module_data_path(dirname, relpath="locale",
                                        attr_name='LOCALEPATH')
