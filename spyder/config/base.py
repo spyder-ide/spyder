@@ -12,6 +12,7 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
+from collections.abc import Callable
 from glob import glob
 import locale
 import os
@@ -435,7 +436,7 @@ def get_interface_language():
     2.) Spyder provides ('en', 'de', 'fr', 'es' 'hu' and 'pt_BR'), if the
     locale is either 'pt' or 'pt_BR', this function will return 'pt_BR'
     """
-    
+
     if os.name == "nt":
         # Changing to locale.getlocale from locale.getdefaultlocale caused some
         # Windows machines to return non BCP47 locale codes. Instead use
@@ -508,12 +509,26 @@ def load_lang_conf():
     return lang
 
 
-def get_translation(modname, dirname=None):
-    """Return translation callback for module *modname*"""
+def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
+    """
+    Return the translation callback for module ``modname``.
+
+    Parameters
+    ----------
+    modname : str
+        The module to get the translation callback for.
+    dirname : str, optional
+        The directory name of the module, same as the module name by default.
+
+    Returns
+    -------
+    Callable[[str], str]
+        The gettext translation callback for the given module.
+    """
     if dirname is None:
         dirname = modname
 
-    def translate_dumb(x):
+    def translate_dumb(x: str) -> str:
         """Dumb function to not use translations."""
         return x
 
@@ -541,7 +556,20 @@ def get_translation(modname, dirname=None):
     try:
         _trans = gettext.translation(modname, locale_path)
 
-        def translate_gettext(x):
+        def translate_gettext(x: str) -> str:
+            """
+            Translate a text string to the current language for a module.
+
+            Parameters
+            ----------
+            x : str
+                The string to translate.
+
+            Returns
+            -------
+            str
+                The translated string.
+            """
             return _trans.gettext(x)
         return translate_gettext
     except Exception as exc:
