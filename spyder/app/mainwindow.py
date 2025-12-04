@@ -76,8 +76,9 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
-from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color

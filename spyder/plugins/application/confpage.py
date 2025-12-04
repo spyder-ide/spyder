@@ -21,10 +21,11 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QVBoxLayout,
                             QWidget)
 
-from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
-                                is_conda_based_app, save_lang_conf)
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
+from spyder.api.translations import _
+from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
+                                is_conda_based_app, save_lang_conf)
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
