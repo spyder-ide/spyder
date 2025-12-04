@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Helper classes to get and set shortcuts in Spyder.
+Helper classes to get and set keyboard shortcuts in Spyder.
 """
 
 # Standard library imports
@@ -30,6 +30,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
     """Provide methods to get, set and register shortcuts for widgets."""
 
     def __init__(self):
+        """Helper to get, set and register shortcuts for widgets."""
         super().__init__()
 
         # This is used to keep track of the widget shortcuts
@@ -47,11 +48,12 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         Parameters
         ----------
         name: str
-            The shortcut name (e.g. "run cell").
+            The shortcut name (e.g. ``"run cell"``).
         context: str, optional
-            Name of the shortcut context, e.g. "editor" for shortcuts that have
-            effect when the Editor is focused or "_" for global shortcuts. If
-            not set, the widget's CONF_SECTION will be used as context.
+            Name of the shortcut context, e.g. ``"editor"`` for shortcuts
+            that have effect when the :guilabel:`Editor` is focused or
+            ``"_"`` for global shortcuts. If not set, the widget's
+            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
         plugin_name: str, optional
             Name of the plugin where the shortcut is defined. This is necessary
             for third-party plugins that have shortcuts with a context
@@ -60,7 +62,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         Returns
         -------
         shortcut: str
-            Key sequence of the shortcut.
+            Key sequence of the shortcut, e.g. ``"Ctrl+Enter"``.
 
         Raises
         ------
@@ -83,17 +85,22 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         Parameters
         ----------
         shortcut: str
-            Key sequence of the shortcut.
+            Key sequence of the shortcut, e.g. ``"Ctrl+Enter"``.
         name: str
-            The shortcut name (e.g. "run cell").
+            The shortcut name (e.g. ``"run cell"``).
         context: str, optional
-            Name of the shortcut context, e.g. "editor" for shortcuts that have
-            effect when the Editor is focused or "_" for global shortcuts. If
-            not set, the widget's CONF_SECTION will be used as context.
+            Name of the shortcut context, e.g. ``"editor"`` for shortcuts
+            that have effect when the :guilabel:`Editor` is focused or
+            ``"_"`` for global shortcuts. If not set, the widget's
+            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
         plugin_name: str, optional
             Name of the plugin where the shortcut is defined. This is necessary
             for third-party plugins that have shortcuts with a context
             different from the plugin name.
+
+        Returns
+        -------
+        None
 
         Raises
         ------
@@ -101,7 +108,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             If the shortcut does not exist in the configuration.
         """
         context = self.CONF_SECTION if context is None else context
-        return CONF.set_shortcut(context, name, shortcut, plugin_name)
+        CONF.set_shortcut(context, name, shortcut, plugin_name)
 
     def register_shortcut_for_widget(
         self,
@@ -117,21 +124,25 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         Parameters
         ----------
         name: str
-            The shortcut name (e.g. "run cell").
+            The shortcut name (e.g. ``"run cell"``).
         triggered: Callable
-            Callable (i.e. function or method) that will be triggered by the
-            shortcut.
+            Callable (i.e. function or method) to be triggered by the shortcut.
         widget: QWidget, optional
             Widget to which this shortcut will be registered. If not set, the
             widget that calls this method will be used.
         context: str, optional
-            Name of the shortcut context, e.g. "editor" for shortcuts that have
-            effect when the Editor is focused or "_" for global shortcuts. If
-            not set, the widget's CONF_SECTION will be used as context.
+            Name of the shortcut context, e.g. ``"editor"`` for shortcuts
+            that have effect when the :guilabel:`Editor` is focused or
+            ``"_"`` for global shortcuts. If not set, the widget's
+            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
         plugin_name: str, optional
             Name of the plugin where the shortcut is defined. This is necessary
             for third-party plugins that have shortcuts with a context
             different from the plugin name.
+
+        Returns
+        -------
+        None
         """
         context = self.CONF_SECTION if context is None else context
         widget = self if widget is None else widget
@@ -186,22 +197,27 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         Parameters
         ----------
         keystr: str
-            Key string for the shortcut (e.g. "Ctrl+Enter").
+            Key string for the shortcut, e.g. ``"Ctrl+Enter"``.
         name: str
-            The shortcut name (e.g. "run cell").
+            The shortcut name (e.g. ``"run cell"``).
         triggered: Callable
-            Callable (i.e. function or method) that will be triggered by the
-            shortcut.
+            Callable (i.e. function or method) to be triggered by the shortcut.
         widget: QWidget, optional
             Widget to which this shortcut will be registered. If not set, the
             widget that calls this method will be used.
         context: str, optional
-            Name of the shortcut context, e.g. "editor" for shortcuts that have
-            effect when the Editor is focused or "_" for global shortcuts.
+            Name of the shortcut context, e.g. ``"editor"`` for shortcuts
+            that have effect when the :guilabel:`Editor` is focused or
+            ``"_"`` for global shortcuts. If not set, the widget's
+            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
         plugin_name: str, optional
             Name of the plugin where the shortcut is defined. This is necessary
             for third-party plugins that have shortcuts with a context
             different from the plugin name.
+
+        Returns
+        -------
+        None
         """
         # Disable current shortcut, if available
         current_shortcut = self._shortcuts.get((context, name, plugin_name))
