@@ -64,7 +64,7 @@ SKIP_CHECK_UPDATE = (
 )
 
 
-class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
+class UpdateManagerWidget(SpyderConfigurationAccessor, QWidget):
     """Check for updates widget."""
 
     CONF_SECTION = "update_manager"

@@ -71,7 +71,7 @@ jobs:
         INSTALL_TYPE: ['pip']  # conda has no PyQt6 package
         PYTHON_VERSION: ['3.10']
         TEST_TYPE: ['fast', 'slow']
-        SPYDER_QT_BINDING: ['pyqt6'] # TODO add 'pyside6' once Spyder supports it
+        SPYDER_QT_BINDING: ['pyqt6', 'pyside6']
     timeout-minutes: 90
     steps:
       - name: Setup Remote SSH Connection

@@ -13,7 +13,7 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
@@ -63,7 +63,7 @@ class PathManagerToolbuttons:
     Prioritize = 'prioritize'
 
 
-class PathManager(QDialog, SpyderWidgetMixin):
+class PathManager(SpyderWidgetMixin, QDialog):
     """Path manager dialog."""
 
     redirect_stdio = Signal(bool)
@@ -74,7 +74,7 @@ class PathManager(QDialog, SpyderWidgetMixin):
 
     def __init__(self, parent, sync=True):
         """Path manager dialog."""
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, class_parent=parent)
         else:
             QDialog.__init__(self, parent)

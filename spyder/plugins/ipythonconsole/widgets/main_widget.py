@@ -17,6 +17,7 @@ import os.path as osp
 import shlex
 import sys
 import time
+import warnings
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -1631,7 +1632,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if self.tabwidget.count():
             for instance_client in self.clients:
                 try:
-                    instance_client.timer.timeout.disconnect()
+                    with warnings.catch_warnings():
+                        # RuntimeWarning: Failed to disconnect (None) from signal "timeout()".
+                        warnings.simplefilter("ignore")
+                        instance_client.timer.timeout.disconnect()
                 except (RuntimeError, TypeError):
                     pass
 

@@ -17,7 +17,7 @@ import logging
 from typing import Optional
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFocusEvent, QIcon
 from qtpy.QtWidgets import (
@@ -57,7 +57,7 @@ from spyder.widgets.tabs import Tabs
 logger = logging.getLogger(__name__)
 
 
-class PluginMainWidget(QWidget, SpyderWidgetMixin):
+class PluginMainWidget(SpyderWidgetMixin, QWidget):
     """
     Spyder plugin main widget class.
 
@@ -273,7 +273,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, name, plugin, parent=None):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)

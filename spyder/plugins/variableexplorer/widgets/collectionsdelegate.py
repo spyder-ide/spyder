@@ -70,7 +70,7 @@ MAX_INT_BIT_LENGTH_FOR_EDITING = (
 )
 
 
-class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
+class CollectionsDelegate(SpyderFontsMixin, QItemDelegate):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -83,6 +83,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         data_function: Optional[Callable[[], Any]] = None
     ):
         QItemDelegate.__init__(self, parent)
+        SpyderFontsMixin.__init__(self)
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self._editors = {}  # keep references on opened editors

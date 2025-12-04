@@ -49,8 +49,8 @@ from .enum import Plugins
 logger = logging.getLogger(__name__)
 
 
-class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
-                     SpyderPluginObserver):
+class SpyderPluginV2(SpyderActionMixin, SpyderConfigurationObserver,
+                     SpyderPluginObserver, QObject):
     """
     A Spyder plugin to extend functionality without a dockable widget.
 
@@ -318,11 +318,11 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
     _CONF_NAME_MAP = None
 
     def __init__(self, parent, configuration=None):
-        super().__init__(parent)
-
         # This is required since the MRO of this class does not go up until to
         # SpyderPluginObserver and SpyderConfigurationObserver when using
         # super(), see https://fuhm.net/super-harmful/
+        QObject.__init__(self, parent)
+        SpyderActionMixin.__init__(self)
         SpyderPluginObserver.__init__(self)
         SpyderConfigurationObserver.__init__(self)
 

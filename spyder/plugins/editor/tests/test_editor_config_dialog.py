@@ -18,17 +18,19 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 
 
 class MainWindowMock(QMainWindow):
-    register_shortcut = Mock()
-    file_menu_actions = []
-    file_toolbar_actions = []
-    statusbar = Mock()
-    new_instance = Mock()
-    plugin_focus_changed = Mock()
-    fallback_completions = Mock()
-    ipyconsole = Mock()
-    mainmenu = Mock()
-    sig_setup_finished = Mock()
-    switcher = Mock()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_shortcut = Mock()
+        self.file_menu_actions = []
+        self.file_toolbar_actions = []
+        self.statusbar = Mock()
+        self.new_instance = Mock()
+        self.plugin_focus_changed = Mock()
+        self.fallback_completions = Mock()
+        self.ipyconsole = Mock()
+        self.mainmenu = Mock()
+        self.sig_setup_finished = Mock()
+        self.switcher = Mock()
 
 
 @pytest.mark.parametrize(

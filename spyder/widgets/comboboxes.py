@@ -18,7 +18,7 @@ import os
 import os.path as osp
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
@@ -70,7 +70,7 @@ class BaseComboBox(SpyderComboBox):
             self.sig_tab_pressed.emit(True)
             return True
         return super().event(event)
-    
+
     def focusOutEvent(self, event):
         """
         Qt Override.
@@ -172,7 +172,7 @@ class PatternComboBox(BaseComboBox):
         id_=None,
         items_elide_mode=None,
     ):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, items_elide_mode)
         else:
             BaseComboBox.__init__(self, parent, items_elide_mode)
@@ -203,7 +203,7 @@ class EditableComboBox(BaseComboBox):
     """
 
     def __init__(self, parent):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent)
         else:
             BaseComboBox.__init__(self, parent)
@@ -252,7 +252,7 @@ class PathComboBox(EditableComboBox):
 
     def __init__(self, parent, adjust_to_contents=False, id_=None,
                  elide_text=False, ellipsis_place=Qt.ElideLeft):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent)
         else:
             EditableComboBox.__init__(self, parent)
@@ -376,7 +376,7 @@ class UrlComboBox(PathComboBox):
     QComboBox handling urls
     """
     def __init__(self, parent, adjust_to_contents=False, id_=None):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, adjust_to_contents)
         else:
             PathComboBox.__init__(self, parent, adjust_to_contents)
@@ -401,7 +401,7 @@ class FileComboBox(PathComboBox):
     """
     def __init__(self, parent=None, adjust_to_contents=False,
                  default_line_edit=False):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, adjust_to_contents)
         else:
             PathComboBox.__init__(self, parent, adjust_to_contents)
@@ -466,7 +466,7 @@ class PythonModulesComboBox(PathComboBox):
     (i.e. .py, .pyw files *and* directories containing __init__.py)
     """
     def __init__(self, parent, adjust_to_contents=False, id_=None):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, adjust_to_contents)
         else:
             PathComboBox.__init__(self, parent, adjust_to_contents)

@@ -17,7 +17,9 @@ from spyder.plugins.workingdirectory.plugin import WorkingDirectory
 
 class MainWindow(QMainWindow):
 
-    _cli_options = MagicMock()
+    def __init__(self):
+        super().__init__()
+        self._cli_options = MagicMock()
 
     def get_plugin(self, name, error=True):
         return MagicMock()

@@ -14,7 +14,7 @@ import socket
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QActionGroup, QLabel, QLineEdit,
@@ -148,14 +148,14 @@ class ObjectComboBox(EditableComboBox):
                     self.valid.emit(False, False)
 
 
-class RichText(QWidget, SpyderWidgetMixin):
+class RichText(SpyderWidgetMixin, QWidget):
     """
     WebView widget with find dialog
     """
     sig_link_clicked = Signal(QUrl)
 
     def __init__(self, parent):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)

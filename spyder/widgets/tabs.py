@@ -619,7 +619,7 @@ class BaseTabs(QTabWidget):
         self.tabBar().refresh_style()
 
 
-class Tabs(BaseTabs, SpyderShortcutsMixin):
+class Tabs(SpyderShortcutsMixin, BaseTabs):
     """BaseTabs widget with movable tabs and tab navigation shortcuts."""
     # Dummy CONF_SECTION to avoid a warning
     CONF_SECTION = ""
