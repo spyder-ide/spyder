@@ -1585,7 +1585,8 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Run a line on startup
     ipyconsole.set_conf(
         'startup/pdb_run_lines',
-        'abba = 12; print("Hello")'
+        'abba = 12; print("Hello")',
+        section='debugger'
     )
 
     shell.execute('%debug print()')
@@ -1595,7 +1596,11 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     assert shell.get_value('abba') == 12
 
     # Reset setting
-    ipyconsole.set_conf('startup/pdb_run_lines', '')
+    ipyconsole.set_conf(
+        'startup/pdb_run_lines',
+        '',
+        section='debugger'
+    )
 
 
 @flaky(max_runs=3)
@@ -1831,7 +1836,7 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
+def test_breakpoint_builtin(ipyconsole, qtbot, tmp_path):
     """Check that the breakpoint builtin is working."""
     shell = ipyconsole.get_current_shellwidget()
     control = ipyconsole.get_widget().get_focus_widget()
@@ -1843,8 +1848,8 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     """)
 
     # Write code to file on disk
-    file = tmpdir.join('test_breakpoint.py')
-    file.write(code)
+    file = tmp_path / "test_breakpoint.py"
+    file.write_text(code)
 
     # Run file
     with qtbot.waitSignal(shell.executed):
@@ -1854,6 +1859,14 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     qtbot.wait(5000)
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
+
+    # Run file twice to check breakpoint call doesn't hang the console.
+    # Test for spyder-ide/spyder#24871
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(f"%runfile {repr(str(file))}")
+
+    assert 'IPdb [3]:' in control.toPlainText()
 
 
 def test_pdb_out(ipyconsole, qtbot):

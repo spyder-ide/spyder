@@ -2295,21 +2295,25 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
 
 @flaky(max_runs=3)
-def test_plots_scroll(main_window, qtbot):
-    """Test plots plugin scrolling"""
-    CONF.set('plots', 'mute_inline_plotting', True)
+def test_plots_scroll_and_max_plots(main_window, qtbot):
+    """Test plots plugin scrolling and the max plots functionality."""
+    main_window.plots.set_conf('mute_inline_plotting', True)
     shell = main_window.ipyconsole.get_current_shellwidget()
     figbrowser = main_window.plots.current_widget()
+    max_plots = main_window.plots.get_conf("max_plots")
 
     # Wait until the window is fully up.
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     # Generate a plot inline and switch focus to Plots pane.
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        shell.execute(("import matplotlib.pyplot as plt\n"
-                       "fig = plt.plot([1, 2, 3, 4], '.')\n"))
+        shell.execute(
+            "import matplotlib.pyplot as plt\n"
+            "plt.plot([1, 2, 3, 4], '.')"
+        )
     main_window.plots.switch_to_plugin()
 
     # Make sure the plot is selected
@@ -2317,58 +2321,78 @@ def test_plots_scroll(main_window, qtbot):
     assert len(sb._thumbnails) == 1
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
-    # Generate 4 more plots
+    # Generate some more plots
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
-            "for i in range(4):\n"
-            "    plt.figure()\n"
-            "    plt.plot([1, 2, 3, 4], '.')")
+            f"for i in range({max_plots // 6}):\n"
+            f"    plt.figure()\n"
+            f"    plt.plot([1, 2, 3, 4], '.')"
+        )
 
-    # we now have 5 plots and the last one is selected
-    assert len(sb._thumbnails) == 5
+    # We now have the expected plots and the last one is selected
+    assert len(sb._thumbnails) == 1 + max_plots // 6
     assert sb._thumbnails[-1] == sb.current_thumbnail
 
-    # Generate 20 plots
+    # Generate more plots
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
-            "for i in range(20):\n"
-            "    plt.figure()\n"
-            "    plt.plot([1, 2, 3, 4], '.')")
+            f"for i in range({2 * max_plots // 3}):\n"
+            f"    plt.figure()\n"
+            f"    plt.plot([1, 2, 3, 4], '.')"
+        )
 
     # Make sure we scrolled down
     scrollbar = sb.scrollarea.verticalScrollBar()
-    assert len(sb._thumbnails) == 25
+    assert len(sb._thumbnails) == 1 + max_plots // 6 + 2 * max_plots // 3
     assert sb._thumbnails[-1] == sb.current_thumbnail
     assert scrollbar.value() == scrollbar.maximum()
 
-    # Generate 20 plots and select a plot in the middle
+    # Generate enough plots to have more than max_plots and select a plot in
+    # the middle
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute(
-            "import time\n"
-            "for i in range(20):\n"
-            "    plt.figure()\n"
-            "    plt.plot([1, 2, 3, 4], '.')\n"
-            "    plt.show()\n"
-            "    time.sleep(.1)")
+            f"import time\n"
+            f"for i in range({max_plots // 4}):\n"
+            f"    plt.figure()\n"
+            f"    plt.plot([1, 2, 3, 4], '.')\n"
+            f"    plt.show()\n"
+            f"    time.sleep(.1)"
+        )
         qtbot.waitUntil(lambda: sb._first_thumbnail_shown,
                         timeout=SHELL_TIMEOUT)
         sb.set_current_index(5)
         scrollbar.setValue(scrollbar.minimum())
 
     # Ensure we didn't scroll to the end and a new thumbnail was not selected
-    assert len(sb._thumbnails) == 45
+    assert len(sb._thumbnails) == max_plots
     assert sb._thumbnails[-1] != sb.current_thumbnail
     assert scrollbar.value() != scrollbar.maximum()
 
     # One more plot
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        shell.execute(("fig = plt.plot([1, 2, 3, 4], '.')\n"))
+        shell.execute(("plt.plot([1, 2, 3, 4], '.')"))
 
-    # Make sure everything scrolled at the end
-    assert len(sb._thumbnails) == 46
+    # Make sure everything scrolled at the end and displayed plots is equal to
+    # max_plots
+    assert len(sb._thumbnails) == max_plots
     assert sb._thumbnails[-1] == sb.current_thumbnail
     assert scrollbar.value() == scrollbar.maximum()
-    CONF.set('plots', 'mute_inline_plotting', False)
+
+    # Increase and decrease max_plots and check the displayed number matches
+    # that
+    for n_plots in [max_plots + 5, max_plots // 2]:
+        main_window.plots.set_conf('max_plots', n_plots)
+        new_plots = 5 if n_plots > max_plots else 1
+        with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+            shell.execute(
+                f"for i in range({new_plots}):\n"
+                f"    plt.figure()\n"
+                f"    plt.plot([1, 2, 3, 4], '.')"
+            )
+
+        assert len(sb._thumbnails) == n_plots
+
+    main_window.plots.set_conf('mute_inline_plotting', False)
 
 
 @flaky(max_runs=3)
@@ -2996,12 +3020,7 @@ def test_custom_layouts(main_window, qtbot):
                         if plugin_id not in area['hidden_plugin_ids']:
                             plugin = mw.get_plugin(plugin_id)
                             print(plugin)  # spyder: test-skip
-                            try:
-                                # New API
-                                assert plugin.get_widget().isVisible()
-                            except AttributeError:
-                                # Old API
-                                assert plugin.isVisible()
+                            assert plugin.get_widget().isVisible()
 
 
 @flaky(max_runs=3)
@@ -3037,12 +3056,7 @@ def test_programmatic_custom_layouts(main_window, qtbot):
                     if plugin_id not in area['hidden_plugin_ids']:
                         plugin = mw.get_plugin(plugin_id)
                         print(plugin)  # spyder: test-skip
-                        try:
-                            # New API
-                            assert plugin.get_widget().isVisible()
-                        except AttributeError:
-                            # Old API
-                            assert plugin.isVisible()
+                        assert plugin.get_widget().isVisible()
 
 
 @flaky(max_runs=3)

@@ -386,7 +386,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autoreload_group = QGroupBox(_("Autoreload"))
         autoreload_label = QLabel(_(
             "Reload imported modules automatically before running code. "
-            "This is a different mechanism than the User Module Reloader"
+            "This is a different mechanism than the User Module Reloader "
             "and can be slow on Windows due to limitations of its file system."
         ))
         autoreload_label.setWordWrap(True)

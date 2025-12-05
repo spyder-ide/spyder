@@ -69,6 +69,7 @@ class ShellConnectWidgetForStackMixin:
     Signal to request that the empty message will be shown/hidden.
 
     Parameters
+    ----------
     show_empty_message: bool
         Whether show the empty message or this widget must be shown.
     """

@@ -15,21 +15,17 @@ from qtpy.QtCore import QObject, Signal
 
 # Local imports
 from spyder import dependencies
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
-from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 from spyder.utils.icon_manager import ima
 
 
-# TODO: Remove SpyderPlugin and SpyderPluginWidget now that the migration
-# is complete
-Spyder5PluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
-Spyder4PluginClass = Union[SpyderPlugin, SpyderPluginWidget]
-SpyderPluginClass = Union[Spyder4PluginClass, Spyder5PluginClass]
+SpyderPluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
 
 
 ALL_PLUGINS = [getattr(Plugins, attr) for attr in dir(Plugins)
@@ -156,10 +152,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             self._update_dependencies(plugin_name, plugin, 'optional')
             self._update_dependents(plugin, plugin_name, 'optional')
 
-    def _instantiate_spyder5_plugin(
-            self, main_window: Any,
-            PluginClass: Type[Spyder5PluginClass],
-            external: bool) -> Spyder5PluginClass:
+    def _instantiate_spyder_plugin(
+        self,
+        main_window: Any,
+        PluginClass: Type[SpyderPluginClass],
+        external: bool,
+    ) -> SpyderPluginClass:
         """Instantiate and register a Spyder 5+ plugin."""
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
@@ -212,44 +210,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             description = plugin_instance.get_description()
             dependencies.add(module, package_name, description,
                                 version, None, kind=dependencies.PLUGIN)
-
-        return plugin_instance
-
-    def _instantiate_spyder4_plugin(
-            self, main_window: Any,
-            PluginClass: Type[Spyder4PluginClass],
-            external: bool,
-            args: tuple, kwargs: dict) -> Spyder4PluginClass:
-        """Instantiate and register a Spyder 4 plugin."""
-        plugin_name = PluginClass.NAME
-
-        # Create old plugin instance
-        plugin_instance = PluginClass(main_window, *args, **kwargs)
-
-        if hasattr(plugin_instance, 'COMPLETION_PROVIDER_NAME'):
-            if Plugins.Completions in self:
-                completions = self.get_plugin(Plugins.Completions)
-                completions.register_completion_plugin(plugin_instance)
-        else:
-            plugin_instance.register_plugin()
-
-        # Register plugin in the registry
-        self.plugin_registry[plugin_name] = plugin_instance
-
-        # Register the name of the plugin under the external or
-        # internal plugin set
-        if external:
-            self.external_plugins |= {plugin_name}
-        else:
-            self.internal_plugins |= {plugin_name}
-
-        # Since Spyder 5+ plugins are loaded before old ones, preferences
-        # will be available at this point.
-        preferences = self.get_plugin(Plugins.Preferences)
-        preferences.register_plugin_preferences(plugin_instance)
-
-        # Notify new-API plugins that depend on old ones
-        self.notify_plugin_availability(plugin_name, False)
 
         return plugin_instance
 
@@ -334,19 +294,17 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         The optional `*args` and `**kwargs` will be removed once all
         plugins are migrated.
         """
-        if not issubclass(PluginClass, (SpyderPluginV2, SpyderPlugin)):
-            raise TypeError(f'{PluginClass} does not inherit from '
-                            f'{SpyderPluginV2} nor {SpyderPlugin}')
+        if not issubclass(PluginClass, SpyderPluginV2):
+            raise TypeError(
+                f"{PluginClass} does not inherit from SpyderPluginV2"
+            )
 
         instance = None
         if issubclass(PluginClass, SpyderPluginV2):
             # Register a Spyder 5+ plugin
-            instance = self._instantiate_spyder5_plugin(
-                main_window, PluginClass, external)
-        elif issubclass(PluginClass, SpyderPlugin):
-            # Register a Spyder 4 plugin
-            instance = self._instantiate_spyder4_plugin(
-                main_window, PluginClass, external, args, kwargs)
+            instance = self._instantiate_spyder_plugin(
+                main_window, PluginClass, external
+            )
 
         return instance
 
@@ -430,17 +388,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if isinstance(plugin_instance, SpyderDockablePlugin):
             # Close undocked plugin if needed and save undocked state
             plugin_instance.close_window(save_undocked=save_undocked)
-        elif isinstance(plugin_instance, SpyderPluginWidget):
-            # Save if plugin was undocked to restore it the next time.
-            if plugin_instance._undocked_window and save_undocked:
-                plugin_instance.set_option(
-                    'undocked_on_window_close', True)
-            else:
-                plugin_instance.set_option(
-                    'undocked_on_window_close', False)
-
-            # Close undocked plugins.
-            plugin_instance._close_window()
 
     def delete_plugin(self, plugin_name: str, teardown: bool = True,
                       check_can_delete: bool = True) -> bool:
@@ -508,14 +455,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 plugin_instance.on_close(True)
             except RuntimeError:
                 pass
-        elif isinstance(plugin_instance, SpyderPlugin):
-            try:
-                plugin_instance.deleteLater()
-            except RuntimeError:
-                pass
-            if teardown:
-                # Disconnect depending plugins from the plugin to delete
-                self._notify_plugin_teardown(plugin_name)
 
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
@@ -627,32 +566,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if not can_close and not close_immediately:
             return False
 
-        # Delete Spyder 4 external plugins
-        for plugin_name in set(self.external_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False)
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close:
-            return False
-
-        # Delete Spyder 4 internal plugins
-        for plugin_name in set(self.internal_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPlugin):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False)
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close:
-            return False
-
         # Delete Spyder 5+ external plugins
         for plugin_name in set(self.external_plugins):
             if plugin_name not in excluding:
@@ -666,7 +579,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         if not can_close and not close_immediately:
             return False
 
-        # Delete Spyder 5 internal plugins
+        # Delete Spyder 5+ internal plugins
         for plugin_name in set(self.internal_plugins):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]

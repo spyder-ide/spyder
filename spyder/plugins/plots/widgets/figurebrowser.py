@@ -35,6 +35,7 @@ from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
                             QVBoxLayout, QWidget)
+from superqt.utils import qdebounced
 
 # Local library imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -178,6 +179,7 @@ class FigureBrowser(
             self.figviewer,
             parent=self,
             background_color=self.background_color,
+            max_plots=self.get_conf('max_plots', section='plots')
         )
         self.thumbnails_sb.sig_context_menu_requested.connect(
             self.sig_thumbnail_menu_requested)
@@ -718,8 +720,14 @@ class ThumbnailScrollBar(QFrame):
         The QPoint in global coordinates where the menu was requested.
     """
 
-    def __init__(self, figure_viewer, parent=None, background_color=None):
+    sig_free_memory_requested = Signal()
+    """Request to free memory after thumbnail is removed."""
+
+    def __init__(
+        self, figure_viewer, parent=None, background_color=None, max_plots=30
+    ):
         super().__init__(parent)
+        self._max_plots = max_plots
         self._thumbnails = []
 
         self.background_color = background_color
@@ -792,6 +800,13 @@ class ThumbnailScrollBar(QFrame):
     def set_figureviewer(self, figure_viewer):
         """Set the namespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
+
+    def set_max_plots(self, value):
+        """Set maximum amount of plots to show."""
+        self._max_plots = value
+        remove_thumbnails = self._thumbnails[:-self._max_plots]
+        for thumbnail in remove_thumbnails:
+            self.remove_thumbnail(thumbnail)
 
     def eventFilter(self, widget, event):
         """
@@ -992,7 +1007,13 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_remove_figure_requested.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure_requested.connect(self.save_figure_as)
         thumbnail.sig_context_menu_requested.connect(
-            lambda point: self.show_context_menu(point, thumbnail))
+            lambda point: self.show_context_menu(point, thumbnail)
+        )
+
+        # Limit number of plots
+        if len(self._thumbnails) >= self._max_plots:
+            self.remove_thumbnail(self._thumbnails[0])
+
         self._thumbnails.append(thumbnail)
         self.scene.addWidget(thumbnail)
 
@@ -1006,7 +1027,13 @@ class ThumbnailScrollBar(QFrame):
             or is_first
         )
         if select_last:
+            # Highlight last thumbnail
             self.set_current_thumbnail(thumbnail)
+
+            # Move scrollbar to the end if needed
+            vsb = self.scrollarea.verticalScrollBar()
+            if vsb.isVisible():
+                vsb.setValue(vsb.maximum())
 
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
@@ -1058,8 +1085,9 @@ class ThumbnailScrollBar(QFrame):
                     min(index, len(self._thumbnails) - 1)
                 )
             else:
-                self.figure_viewer.figcanvas.clear_canvas()
                 self.current_thumbnail = None
+                self.figure_viewer.auto_fit_plotting = False
+                self.figure_viewer.figcanvas.clear_canvas()
 
         # Hide and close thumbnails
         self.layout().removeWidget(thumbnail)
@@ -1068,7 +1096,12 @@ class ThumbnailScrollBar(QFrame):
 
         # See: spyder-ide/spyder#12459
         QTimer.singleShot(
-            150, lambda: self._remove_thumbnail_parent(thumbnail))
+            150, lambda: self._remove_thumbnail_parent(thumbnail)
+        )
+
+        # This is necessary to free memory faster than Python itself does it.
+        # See https://github.com/spyder-ide/spyder/issues/25249#issuecomment-3473017854
+        self._free_memory()
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
@@ -1076,6 +1109,11 @@ class ThumbnailScrollBar(QFrame):
         except RuntimeError:
             # Omit exception in case the thumbnail has been garbage-collected
             pass
+
+    @qdebounced(timeout=30000)
+    def _free_memory(self):
+        """Request to free memory."""
+        self.sig_free_memory_requested.emit()
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""

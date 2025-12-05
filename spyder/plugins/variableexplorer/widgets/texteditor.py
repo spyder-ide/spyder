@@ -23,8 +23,8 @@ from qtpy.QtWidgets import (
 
 # Local import
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _
 from spyder.utils.icon_manager import ima
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
