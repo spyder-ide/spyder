@@ -5,9 +5,10 @@
 # (see spyder/__init__.py for details)
 
 """
-This module contains API exceptions.
+The API-related exception classes emitted by Spyder and its plugins.
 """
 
 
 class SpyderAPIError(Exception):
+    """An error due to incorrect usage by the consumer of the Spyder API."""
     pass
