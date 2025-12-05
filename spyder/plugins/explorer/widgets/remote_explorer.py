@@ -102,6 +102,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     sig_dir_opened = Signal(str, str)
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
+    sig_open_file_requested = Signal(str)
 
     def __init__(self, parent=None, class_parent=None, files=None):
         super().__init__(parent=parent, class_parent=parent)
@@ -333,8 +334,20 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             data_type = data["type"]
             if data_type == "directory":
                 self.chdir(data_name, emit=True)
+            elif data_type == "file":
+                self._emit_open_file_requested(data_name)
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
+
+    def _emit_open_file_requested(self, path):
+        """Emit a remote URI so the Editor can request it."""
+        if not path or not self.server_id:
+            logger.debug("Missing path or server id for remote open request")
+            return
+
+        normalized = f"/{path.lstrip('/')}"
+        remote_uri = f"{self.server_id}://{normalized}"
+        self.sig_open_file_requested.emit(remote_uri)
 
     def _handle_future_response_error(self, response, error_title, error_message):
         result = response.result()

@@ -57,7 +57,8 @@ class Editor(SpyderDockablePlugin):
         Plugins.Run,
         Plugins.StatusBar,
         Plugins.Switcher,
-        Plugins.Toolbar
+        Plugins.Toolbar,
+        Plugins.RemoteClient
     ]
     WIDGET_CLASS = EditorMainWidget
     CONF_SECTION = NAME
@@ -711,6 +712,11 @@ class Editor(SpyderDockablePlugin):
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_file_action_enabled.disconnect(self._enable_file_action)
         widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
+
+    @on_plugin_available(plugin=Plugins.RemoteClient)
+    def on_remoteclient_available(self):
+        widget = self.get_widget()
+        widget.set_remote_helper(self.get_plugin(Plugins.RemoteClient))
 
     def update_font(self):
         """Update font from Preferences"""
