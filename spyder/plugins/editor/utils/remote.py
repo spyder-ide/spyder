@@ -207,7 +207,7 @@ class RemoteFileHelper:
     async def _is_writable_async(self, client_id: str, posix_path: str) -> bool:
         api = await self._ensure_api_async(client_id)
         try:
-            remote_file = await api.open(posix_path, mode="wb")
+            remote_file = await api.open(posix_path, mode="ab")
         except (RemoteOSError, RemoteFileServicesError):
             return False
         else:
