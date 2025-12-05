@@ -235,9 +235,11 @@ class CookiecutterWidget(SpyderConfigPage):
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
                 field_type = "checkbox"
+                val = self._parse_bool_text(value)
                 widget = self.create_checkbox(text=label, option=setting,
-                                              default=value)
+                                              default=val)
                 widget_in = widget.checkbox
+                widget_in.setChecked(val)
             else:
                 field_type = "textbox"
                 widget = self.create_lineedit(text=label, option=setting,
