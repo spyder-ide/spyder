@@ -1,17 +1,27 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
-Spyder API helper mixins.
+Spyder API configuration helper mixins.
 """
+
+from __future__ import annotations
 
 # Standard library imports
 import logging
-from typing import Any, Callable, Optional, Union
+import sys
 import warnings
+from collections.abc import Callable
+from typing import Union
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias  # noqa: ICN003
 
 # Third-party imports
 from qtpy import PYSIDE6
@@ -24,40 +34,40 @@ from spyder.config.user import NoDefault
 
 logger = logging.getLogger(__name__)
 
-BasicTypes = Union[bool, int, str, tuple, list, dict]
+BasicTypes: TypeAlias = Union[bool, int, str, tuple, list, dict]
+"""Type alias for the set of basic Python types supported as config values."""
 
 
 class SpyderConfigurationAccessor:
-    """
-    Mixin used to access options stored in the Spyder configuration system.
-    """
+    """Mixin to access options stored in the Spyder configuration system."""
 
-    # Name of the configuration section that's going to be
-    # used to record the object's permanent data in Spyder
-    # config system.
-    CONF_SECTION = None
+    CONF_SECTION: str | None = None
+    """
+    Name of the configuration section that's going to be
+    used to record the object's permanent data in Spyder config system.
+    """
 
     def get_conf(
         self,
         option: ConfigurationKey,
-        default: Union[NoDefault, BasicTypes] = NoDefault,
-        section: Optional[str] = None,
-        secure: Optional[bool] = False,
-    ):
+        default: NoDefault | BasicTypes = NoDefault,
+        section: str | None = None,
+        secure: bool = False,
+    ) -> BasicTypes:
         """
         Get an option from the Spyder configuration system.
 
         Parameters
         ----------
-        option: ConfigurationKey
-            Name/Tuple path of the option to get its value from.
-        default: Union[NoDefault, BasicTypes]
+        option: spyder.config.types.ConfigurationKey
+            Name/tuple path of the option to get its value from.
+        default: spyder.config.user.NoDefault | BasicTypes, optional
             Fallback value to return if the option is not found on the
             configuration system.
-        section: str
-            Section in the configuration system, e.g. `shortcuts`. If None,
-            then the value of `CONF_SECTION` is used.
-        secure: bool
+        section: str | None, optional
+            Name of the configuration section to use, e.g. ``"shortcuts"``.
+            If ``None``, then the value of :attr:`CONF_SECTION` is used.
+        secure: bool, optional
             If True, the option will be retrieved securely using the `keyring`
             Python package.
 
@@ -80,20 +90,20 @@ class SpyderConfigurationAccessor:
 
         return CONF.get(section, option, default, secure)
 
-    def get_conf_options(self, section: Optional[str] = None):
+    def get_conf_options(self, section: str | None = None) -> list[str]:
         """
-        Get all options from the given section.
+        Get all option names from the given section.
 
         Parameters
         ----------
-        section: Optional[str]
-            Section in the configuration system, e.g. `shortcuts`. If None,
-            then the value of `CONF_SECTION` is used.
+        section: str | None, optional
+            Name of the configuration section to use, e.g. ``"shortcuts"``.
+            If ``None``, then the value of :attr:`CONF_SECTION` is used.
 
         Returns
         -------
-        values: BasicTypes
-            Values of the option in the configuration section.
+        values: list[str]
+            Option names (keys) in the configuration section.
 
         Raises
         ------
@@ -112,32 +122,36 @@ class SpyderConfigurationAccessor:
         self,
         option: ConfigurationKey,
         value: BasicTypes,
-        section: Optional[str] = None,
+        section: str | None = None,
         recursive_notification: bool = True,
-        secure: Optional[bool] = False,
-    ):
+        secure: bool = False,
+    ) -> None:
         """
         Set an option in the Spyder configuration system.
 
         Parameters
         ----------
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Name/Tuple path of the option to set its value.
         value: BasicTypes
             Value to set on the configuration system.
-        section: Optional[str]
-            Section in the configuration system, e.g. `shortcuts`. If None,
-            then the value of `CONF_SECTION` is used.
-        recursive_notification: bool
+        section: str | None, optional
+            Name of the configuration section to use, e.g. ``"shortcuts"``.
+            If ``None``, then the value of :attr:`CONF_SECTION` is used.
+        recursive_notification: bool, optional
             If True, all objects that observe all changes on the
             configuration section and objects that observe partial tuple paths
             are notified. For example if the option `opt` of section `sec`
             changes, then the observers for section `sec` are notified.
             Likewise, if the option `(a, b, c)` changes, then observers for
             `(a, b, c)`, `(a, b)` and a are notified as well.
-        secure: bool
+        secure: bool, optional
             If True, the option will be saved securely using the `keyring`
             Python package.
+
+        Returns
+        -------
+        None
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -156,22 +170,26 @@ class SpyderConfigurationAccessor:
     def remove_conf(
         self,
         option: ConfigurationKey,
-        section: Optional[str] = None,
-        secure: Optional[str] = False,
-    ):
+        section: str | None = None,
+        secure: bool = False,
+    ) -> None:
         """
         Remove an option in the Spyder configuration system.
 
         Parameters
         ----------
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Name/Tuple path of the option to remove its value.
-        section: Optional[str]
-            Section in the configuration system, e.g. `shortcuts`. If None,
-            then the value of `CONF_SECTION` is used.
-        secure: bool
+        section: str | None, optional
+            Name of the configuration section to use, e.g. ``"shortcuts"``.
+            If ``None``, then the value of :attr:`CONF_SECTION` is used.
+        secure: bool, optional
             If True, the option will be removed securely using the `keyring`
             Python package.
+
+        Returns
+        -------
+        None
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -181,19 +199,27 @@ class SpyderConfigurationAccessor:
             )
         CONF.remove_option(section, option, secure)
 
-    def get_conf_default(self,
-                         option: ConfigurationKey,
-                         section: Optional[str] = None):
+    def get_conf_default(
+        self,
+        option: ConfigurationKey,
+        section: str | None = None,
+    ) -> Union[NoDefault, BasicTypes]:
         """
         Get an option default value in the Spyder configuration system.
 
         Parameters
         ----------
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Name/Tuple path of the option to remove its value.
-        section: Optional[str]
-            Section in the configuration system, e.g. `shortcuts`. If None,
-            then the value of `CONF_SECTION` is used.
+        section: str | None, optional
+            Name of the configuration section to use, e.g. ``"shortcuts"``.
+            If ``None``, then the value of :attr:`CONF_SECTION` is used.
+
+        Returns
+        -------
+        spyder.config.user.NoDefault | BasicTypes
+            The default value, or :class:`spyder.config.user.NoDefault` if
+            one is not set.
         """
         section = self.CONF_SECTION if section is None else section
         if section is None:
@@ -204,13 +230,28 @@ class SpyderConfigurationAccessor:
         return CONF.get_default(section, option)
 
     @property
-    def spyder_conf_version(self):
-        """Get current version for the Spyder configuration system."""
+    def spyder_conf_version(self) -> str:
+        """Get current version for the Spyder configuration system.
+
+        Returns
+        -------
+        str
+            The current Spyder :const:`spyder.config.manager.CONF_VERSION`,
+            as a string of ``MAJOR.MINOR.MICRO``.
+        """
         return CONF_VERSION
 
     @property
-    def old_spyder_conf_version(self):
-        """Get old version for the Spyder configuration system."""
+    def old_spyder_conf_version(self) -> str:
+        """Get old version for the Spyder configuration system.
+
+        Returns
+        -------
+        str
+            The previous Spyder :const:`spyder.config.manager.CONF_VERSION`
+            prior to the most recent Spyder update, as a string of
+            ``MAJOR.MINOR.MICRO``.
+        """
         return CONF.old_spyder_version
 
 
@@ -228,7 +269,15 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     the corresponding registered method is called with the new value.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Create a new :class:`!SpyderConfigurationObserver`.
+
+        .. important::
+
+            Classes implementing this mixin or their parents must define
+            a :attr:`~SpyderConfigurationAccessor.CONF_SECTION` class attribute
+            with the name of the default configuration section.
+        """
         super().__init__()
         if self.CONF_SECTION is None:
             warnings.warn(
@@ -256,8 +305,8 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
 
                 CONF.observe_configuration(self, section, option)
 
-    def __del__(self):
-        # Remove object from the configuration observer
+    def __del__(self) -> None:
+        """Remove object from the configuration observer."""
         CONF.unobserve_configuration(self)
 
     def _gather_observers(self):
@@ -308,7 +357,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         ----------
         func: Callable
             Function/method that will be called when `option` changes.
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Configuration option to observe.
         section: str
             Name of the section where `option` is contained.
@@ -319,19 +368,20 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         section_listeners[option] = option_listeners
         self._configuration_listeners[section] = section_listeners
 
-    def on_configuration_change(self, option: ConfigurationKey, section: str,
-                                value: Any):
+    def on_configuration_change(
+        self, option: ConfigurationKey, section: str, value: BasicTypes
+    ) -> None:
         """
         Handle configuration updates for the option `option` on the section
         `section`, whose new value corresponds to `value`.
 
         Parameters
         ----------
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Configuration option that did change.
         section: str
             Name of the section where `option` is contained.
-        value: Any
+        value: BasicTypes
             New value of the configuration option that produced the event.
         """
         section_receivers = self._configuration_listeners.get(section, {})
@@ -346,8 +396,11 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                 method(value)
 
     def add_configuration_observer(
-        self, func: Callable, option: str, section: Optional[str] = None
-    ):
+        self,
+        func: Callable,
+        option: ConfigurationKey,
+        section: str | None = None,
+    ) -> None:
         """
         Add a callable to observe the option `option` on section `section`.
 
@@ -355,10 +408,12 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         ----------
         func: Callable
             Function that will be called when `option` changes.
-        option: ConfigurationKey
+        option: spyder.config.types.ConfigurationKey
             Configuration option to observe.
-        section: str
-            Name of the section where `option` is contained.
+        section: str | None, optional
+            Name of the section containing ``option``, e.g. ``"shortcuts"``.
+            If ``None``, then the value of
+            :attr:`~SpyderConfigurationAccessor.CONF_SECTION` is used.
 
         Notes
         -----
