@@ -530,6 +530,11 @@
       "default": "black",
       "description": "Formatter to use for reformatting signatures in docstrings."
     },
+    "pylsp.signature.include_docstring": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include signature docstring."
+    },
     "pylsp.signature.line_length": {
       "type": "number",
       "default": 88,
