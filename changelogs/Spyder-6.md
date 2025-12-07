@@ -1,5 +1,13 @@
 # History of changes for Spyder 6
 
+## Version 6.1.2 (Unreleased)
+
+### API changes
+
+* Fix API version not being correctly bumped to 2.0.0 for Spyder 6.1,
+  and formally expose and document `VERSION_INFO` tuple
+
+
 ## Version 6.1.1 (2025/11/24)
 
 ### New features

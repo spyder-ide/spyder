@@ -22,11 +22,10 @@ The API version is modified according to the following rules:
   APIs are removed then the major version will be updated.
 """
 
-from packaging.version import parse
+VERSION_INFO: tuple[int, int, int] = (2, 0, 0)
+"""Tuple form of API version, broken down into ``(major, minor, micro)``."""
 
-version_info = (1, 4, 0)
-
-__version__: str = str(parse('.'.join(map(str, version_info))))
+__version__: str = str('.'.join(map(str, VERSION_INFO)))
 """
 Spyder API version; minor bumped for additions/deprecations, major for breaks.
 
