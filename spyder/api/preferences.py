@@ -46,7 +46,7 @@ class SpyderPreferencesTab(BaseConfigTab):
     TITLE: str | None = None
     """Name of the tab to display; must be set on the child implementations."""
 
-    def __init__(self, parent: SpyderConfigPage):
+    def __init__(self, parent: SpyderConfigPage) -> None:
         """
         Create a new tab on the given ``parent`` config page.
 
@@ -131,7 +131,7 @@ class PluginConfigPage(SpyderConfigPage):
         self,
         plugin: SpyderPluginV2,
         parent: spyder.plugins.preferences.widget.ConfigDialog,
-    ):
+    ) -> None:
         """
         Create a Spyder :guilabel:`Preferences` page for a plugin.
 
@@ -181,7 +181,7 @@ class PluginConfigPage(SpyderConfigPage):
         self.set_option = plugin.set_conf
         self.remove_option = plugin.remove_conf
 
-    def aggregate_sections_partials(self, opts: OptionSet):
+    def aggregate_sections_partials(self, opts: OptionSet) -> None:
         """
         Aggregate options by sections in order to notify observers.
 
@@ -255,7 +255,7 @@ class PluginConfigPage(SpyderConfigPage):
         """
         return self.plugin.get_icon()
 
-    def setup_page(self):
+    def setup_page(self) -> None:
         """
         Set up the configuration page widget.
 

@@ -32,7 +32,7 @@ from spyder.plugins.shortcuts.utils import (
 class SpyderShortcutsMixin(SpyderConfigurationObserver):
     """Provide methods to get, set and register shortcuts for widgets."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Helper to get, set and register shortcuts for widgets."""
         super().__init__()
 
@@ -81,7 +81,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         name: str,
         context: str | None = None,
         plugin_name: str | None = None,
-    ):
+    ) -> None:
         """
         Set a shortcut sequence with a given name and context.
 
@@ -120,7 +120,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         widget: QWidget | None = None,
         context: str | None = None,
         plugin_name: str | None = None,
-    ):
+    ) -> None:
         """
         Register a shortcut for a widget that inherits this mixin.
 
@@ -193,7 +193,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         context: str,
         widget: QWidget,
         plugin_name: str | None,
-    ):
+    ) -> None:
         """
         Auxiliary function to register a shortcut for a widget.
 

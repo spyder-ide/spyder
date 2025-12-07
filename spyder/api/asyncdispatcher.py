@@ -78,7 +78,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         loop: LoopID | None = ...,
         early_return: typing.Literal[True] = ...,
         return_awaitable: typing.Literal[False] = ...,
-    ): ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -87,7 +87,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         loop: LoopID | None = ...,
         early_return: typing.Literal[True] = ...,
         return_awaitable: typing.Literal[True] = ...,
-    ): ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -96,7 +96,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         loop: LoopID | None = ...,
         early_return: typing.Literal[False] = ...,
         return_awaitable: typing.Literal[False] = ...,
-    ): ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -105,7 +105,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         loop: LoopID | None = ...,
         early_return: typing.Literal[False] = ...,
         return_awaitable: typing.Literal[True] = ...,
-    ): ...
+    ) -> None: ...
 
     def __init__(
         self,
@@ -113,7 +113,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         loop: LoopID | None = None,
         early_return: bool = True,
         return_awaitable: bool = False,
-    ):
+    ) -> None:
         """
         Decorate a coroutine to run in a specific event loop.
 
@@ -329,7 +329,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
     @classmethod
     def __run_loop(
         cls, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop,
-    ):
+    ) -> None:
         if loop_id not in cls.__running_threads:
             with cls.__rlock:
                 if loop_id not in cls.__running_threads:
@@ -339,7 +339,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @staticmethod
     @atexit.register
-    def close():
+    def close() -> None:
         """Close the thread pool.
 
         Returns
@@ -353,7 +353,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         AsyncDispatcher.__closed = True
 
     @classmethod
-    def cancel_all(cls):
+    def cancel_all(cls) -> None:
         """Cancel all running tasks.
 
         Returns
@@ -364,7 +364,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
             task.cancel()
 
     @classmethod
-    def join(cls, timeout: float | None = None):
+    def join(cls, timeout: float | None = None) -> None:
         """Close all running loops and join the threads.
 
         Parameters
@@ -654,7 +654,9 @@ class DispatcherFuture(Future, typing.Generic[_T]):
         """  # noqa: DOC502
         return super().result(timeout=timeout)
 
-    def connect(self, fn: collections.abc.Callable[[DispatcherFuture[_T]], None]):
+    def connect(
+        self, fn: collections.abc.Callable[[DispatcherFuture[_T]], None]
+    ) -> None:
         """Attaches a callable that will be called when the future finishes.
 
         The callable will be called by a thread in the same process in which

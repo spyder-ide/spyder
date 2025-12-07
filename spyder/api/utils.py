@@ -47,7 +47,7 @@ def get_class_values(cls) -> list[str]:
 class PrefixNode:
     """Utility class used to represent a prefixed string tuple."""
 
-    def __init__(self, path: tuple[str, ...] | None = None):
+    def __init__(self, path: tuple[str, ...] | None = None) -> None:
         """
         Representation of a prefixed string tuple.
 
@@ -71,7 +71,7 @@ class PrefixNode:
                        for c in node.children]
             yield current_prefix
 
-    def add_path(self, path: tuple[str, ...]):
+    def add_path(self, path: tuple[str, ...]) -> None:
         """
         Add a path to the prefix node.
 
