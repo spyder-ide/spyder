@@ -13,7 +13,7 @@ from __future__ import annotations
 
 # Standard library imports
 import functools
-from typing import Callable, Dict
+from collections.abc import Callable
 
 # Third-party imports
 from qtpy.QtCore import Qt
@@ -37,7 +37,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         super().__init__()
 
         # This is used to keep track of the widget shortcuts
-        self._shortcuts: Dict[(str, str), QShortcut] = {}
+        self._shortcuts: dict[(str, str), QShortcut] = {}
 
     def get_shortcut(
         self,

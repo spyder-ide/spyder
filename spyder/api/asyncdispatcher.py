@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import asyncio.events
 import atexit
+import collections.abc
 import contextlib
 import functools
 import logging
@@ -35,10 +36,10 @@ from asyncio.tasks import (
 from concurrent.futures import CancelledError, Future
 from heapq import heappop
 
-if sys.version_info >= (3, 10):
-    from typing import ParamSpec  # noqa: ICN003
-else:
+if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec  # noqa: ICN003
 
 from qtpy.QtCore import QCoreApplication, QEvent, QObject
 
@@ -48,7 +49,7 @@ LoopID = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
 """Type alias, the union of a loop itself or the ID of one.
 
 Either an existing :class:`asyncio.AbstractEventLoop` or a
-:class:`typing.Hashable` to identify an existing or new one.
+:class:`~collections.abc.Hashable` to identify an existing or new one.
 """
 
 _P = ParamSpec("_P")
@@ -99,7 +100,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @typing.overload
     def __init__(
-        self: AsyncDispatcher[typing.Awaitable[_T]],
+        self: AsyncDispatcher[collections.abc.Awaitable[_T]],
         *,
         loop: LoopID | None = ...,
         early_return: typing.Literal[False] = ...,
@@ -117,10 +118,11 @@ class AsyncDispatcher(typing.Generic[_RT]):
         Decorate a coroutine to run in a specific event loop.
 
         The ``loop`` parameter can be an existing
-        :class:`~asyncio.AbstractEventLoop` or a :class:`~typing.Hashable` to
-        identify an existing or new one created by the
-        :class:`!AsyncDispatcher`. If the loop is not running, it will be
-        started in a new thread and managed by the :class:`!AsyncDispatcher`.
+        :class:`asyncio.AbstractEventLoop` or a
+        :class:`~collections.abc.Hashable` to identify an existing or new one
+        created by the :class:`!AsyncDispatcher`. If the loop is not running,
+        it will be started in a new thread and managed by the
+        :class:`!AsyncDispatcher`.
 
         This instance can be called with the same arguments as the coroutine it
         wraps and will return a :class:`concurrent.futures.Future` object,
@@ -183,28 +185,28 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @typing.overload
     def __call__(
-        self: AsyncDispatcher[typing.Awaitable[_T]],
-        async_func: typing.Callable[_P, typing.Awaitable[_T]],
-    ) -> typing.Callable[_P, typing.Awaitable[_T]]: ...
+        self: AsyncDispatcher[collections.abc.Awaitable[_T]],
+        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+    ) -> collections.abc.Callable[_P, collections.abc.Awaitable[_T]]: ...
 
     @typing.overload
     def __call__(
         self: AsyncDispatcher[DispatcherFuture[_T]],
-        async_func: typing.Callable[_P, typing.Awaitable[_T]],
-    ) -> typing.Callable[_P, DispatcherFuture[_T]]: ...
+        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+    ) -> collections.abc.Callable[_P, DispatcherFuture[_T]]: ...
 
     @typing.overload
     def __call__(
         self: AsyncDispatcher[_T],
-        async_func: typing.Callable[_P, typing.Awaitable[_T]],
-    ) -> typing.Callable[_P, _T]: ...
+        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+    ) -> collections.abc.Callable[_P, _T]: ...
 
     def __call__(
         self,
-        async_func: typing.Callable[_P, typing.Awaitable[_T]],
-    ) -> typing.Callable[
+        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+    ) -> collections.abc.Callable[
         _P,
-        typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]],  # noqa: UP007
+        _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],  # noqa: UP007
     ]:
         """
         Run the coroutine in the event loop.
@@ -232,7 +234,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         @functools.wraps(async_func)
         def wrapper(
             *args: _P.args, **kwargs: _P.kwargs,
-        ) -> typing.Union[_T, DispatcherFuture[_T], typing.Awaitable[_T]]:  # noqa: UP007
+        ) -> _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]:  # noqa: UP007
             task = run_coroutine_threadsafe(
                 async_func(*args, **kwargs),
                 loop=self._loop,
@@ -274,8 +276,9 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
             .. note::
 
-                * If a :class:`~typing.Hashable` is provided, it will be used
-                  to identify the loop in the :class:`!AsyncDispatcher`.
+                * If a :class:`~collections.abc.Hashable` is provided, it will
+                  be used to identify the loop in the
+                  :class:`!AsyncDispatcher`.
                 * If an event loop is provided, it will be used as the event
                   loop in the :class:`!AsyncDispatcher`.
 
@@ -387,7 +390,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
         runner.join(timeout)
 
     @staticmethod
-    def QtSlot(func: typing.Callable[_P, None]) -> typing.Callable[_P, None]:  # noqa: N802
+    def QtSlot(func: collections.abc.Callable[_P, None]) -> collections.abc.Callable[_P, None]:  # noqa: N802
         """Mark a function to be executed inside the main Qt loop.
 
         Sets the :attr:`DispatcherFuture.QT_SLOT_ATTRIBUTE` attribute on the
@@ -595,7 +598,7 @@ def _patch_loop_as_reentrant(loop):  # noqa: C901, PLR0915
 class _QCallbackEvent(QEvent):
     """Event to execute a callback in the main Qt loop."""
 
-    def __init__(self, func: typing.Callable):
+    def __init__(self, func: collections.abc.Callable):
         super().__init__(QEvent.Type.User)
         self.func = func
 
@@ -651,7 +654,7 @@ class DispatcherFuture(Future, typing.Generic[_T]):
         """  # noqa: DOC502
         return super().result(timeout=timeout)
 
-    def connect(self, fn: typing.Callable[[DispatcherFuture[_T]], None]):
+    def connect(self, fn: collections.abc.Callable[[DispatcherFuture[_T]], None]):
         """Attaches a callable that will be called when the future finishes.
 
         The callable will be called by a thread in the same process in which
@@ -684,7 +687,8 @@ class DispatcherFuture(Future, typing.Generic[_T]):
 
 
 def run_coroutine_threadsafe(
-    coro: typing.Coroutine[_T, None, _RT], loop: asyncio.AbstractEventLoop,
+    coro: collections.abc.Coroutine[_T, None, _RT],
+    loop: asyncio.AbstractEventLoop,
 ) -> DispatcherFuture[_RT]:
     """Submit a coroutine object to run in the given event loop.
 

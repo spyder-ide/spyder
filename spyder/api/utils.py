@@ -12,6 +12,7 @@ Helper functions to work with the Spyder plugin API.
 from __future__ import annotations
 
 from abc import ABCMeta as BaseABCMeta
+import collections.abc
 import sys
 import typing
 
@@ -119,7 +120,7 @@ class DummyAttribute:
 
 
 def abstract_attribute(
-    obj: typing.Callable[_P, _T] | DummyAttribute | None = None
+    obj: collections.abc.Callable[_P, _T] | DummyAttribute | None = None
 ) -> _T:
     """
     Decorator to mark abstract attributes.
@@ -128,9 +129,9 @@ def abstract_attribute(
 
     Parameters
     ----------
-    obj: typing.Callable[_P, _T] | DummyAttribute | None, optional
-        The callable attribute to mark as abstract, a :class:`DummyAttribute`
-        by default.
+    obj: collections.abc.Callable[_P, _T] | DummyAttribute | None, optional
+        The callable attribute to mark as abstract, a new instance of
+        :class:`DummyAttribute` by default.
 
     Returns
     -------
