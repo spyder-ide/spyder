@@ -16,6 +16,7 @@ within Qt applications.
 
 from __future__ import annotations
 
+# Standard library imports
 import asyncio
 import asyncio.events
 import atexit
@@ -38,14 +39,18 @@ from heapq import heappop
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
+    from typing_extensions import TypeAlias
 else:
     from typing import ParamSpec  # noqa: ICN003
+    from typing import TypeAlias  # noqa: ICN003
 
+# Third party imports
 from qtpy.QtCore import QCoreApplication, QEvent, QObject
+
 
 _logger = logging.getLogger(__name__)
 
-LoopID = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
+LoopID: TypeAlias = typing.Union[typing.Hashable, asyncio.AbstractEventLoop]
 """Type alias, the union of a loop itself or the ID of one.
 
 Either an existing :class:`asyncio.AbstractEventLoop` or a
