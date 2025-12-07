@@ -4,6 +4,7 @@
 import logging
 import os
 import socketserver
+import sys
 import threading
 import uuid
 from functools import partial
@@ -71,9 +72,13 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class) 
         handler_class.__name__ + "Handler",
         (_StreamHandlerWrapper,),
         {
-            "DELEGATE_CLASS": partial(
-                handler_class, check_parent_process=check_parent_process
-            ),
+            # We need to wrap this in staticmethod due to the changes to
+            # functools.partial in Python 3.14+
+            "DELEGATE_CLASS": staticmethod(
+                partial(handler_class, check_parent_process=check_parent_process)
+            )
+            if sys.version_info >= (3, 14)
+            else partial(handler_class, check_parent_process=check_parent_process),
             "SHUTDOWN_CALL": partial(shutdown_server, check_parent_process),
         },
     )

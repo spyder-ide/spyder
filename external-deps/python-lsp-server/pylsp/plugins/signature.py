@@ -17,6 +17,7 @@ DOC_REGEX = [SPHINX, EPYDOC, GOOGLE]
 
 @hookimpl
 def pylsp_signature_help(config, document, position):
+    signature_config = config.settings().get("signature", {})
     code_position = _utils.position_to_jedi_linecolumn(document, position)
     signatures = document.jedi_script().get_signatures(**code_position)
 
@@ -41,10 +42,15 @@ def pylsp_signature_help(config, document, position):
     # Docstring contains one or more lines of signature, followed by empty line, followed by docstring
     function_sig_lines = (docstring.split("\n\n") or [""])[0].splitlines()
     function_sig = " ".join([line.strip() for line in function_sig_lines])
+
+    signature_docstring = s.docstring(raw=True)
+    if not signature_config.get("include_docstring", True):
+        signature_docstring = ""
+
     sig = {
         "label": function_sig,
         "documentation": _utils.format_docstring(
-            s.docstring(raw=True), markup_kind=preferred_markup_kind
+            signature_docstring, markup_kind=preferred_markup_kind
         ),
     }
 

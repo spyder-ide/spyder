@@ -1,5 +1,34 @@
 # History of changes
 
+## Version 1.14.0 (2025/12/06)
+
+### New features
+* Add `pylsp.signature.include_docstring` to hide docstring in signatures.
+* Add support for Pylint 4.
+* Fix support for Python 3.14.
+
+### Pull Requests Merged
+
+* [PR 690](https://github.com/python-lsp/python-lsp-server/pull/690) - Fix starting the server for Python 3.14 and run tests with that version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 689](https://github.com/python-lsp/python-lsp-server/pull/689) - Adjust test based on Jedi version, by [@aeliton](https://github.com/aeliton)
+* [PR 687](https://github.com/python-lsp/python-lsp-server/pull/687) - Bump allowed pylint to less than 4.1, by [@tiltingpenguin](https://github.com/tiltingpenguin)
+* [PR 686](https://github.com/python-lsp/python-lsp-server/pull/686) - Add option to hide docstring in signatures, by [@tomekwojcik](https://github.com/tomekwojcik)
+
+In this release 4 pull requests were closed.
+
+----
+
+## Version 1.13.2 (2025/11/19)
+
+### Pull Requests Merged
+
+* [PR 683](https://github.com/python-lsp/python-lsp-server/pull/683) - Prevent showing cmd on Windows when running flake8, by [@dalthviz](https://github.com/dalthviz)
+* [PR 669](https://github.com/python-lsp/python-lsp-server/pull/669) - Fix license entries in `pyproject.toml` due to pep 639, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 1.13.1 (2025/08/26)
 
 ### Pull Requests Merged
