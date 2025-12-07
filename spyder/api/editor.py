@@ -6,7 +6,17 @@
 # -----------------------------------------------------------------------------
 
 """
-This module contains the code editor API.
+Deprecated aliases of classes in :mod:`spyder.plugins.editor.api`.
+
+.. deprecated:: 6.2
+
+    This module will issue a :exc:`DeprecationWarning` in Spyder 6.2 and
+    be removed in Spyder 7.0, as with the migration of the :guilabel:`Editor`
+    to the new plugin API these classes have been canonically accessed
+    directly from the Editor plugin since Spyder 6.0.
+
+    Use :class:`spyder.plugins.editor.api.editorextension.EditorExtension`
+    and :class:`spyder.plugins.editor.api.panel.Panel` instead.
 """
 
 from spyder.plugins.editor.api.editorextension import EditorExtension
