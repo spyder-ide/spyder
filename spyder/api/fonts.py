@@ -9,9 +9,6 @@
 Helper classes to get and set the fonts used in Spyder.
 """
 
-# Standard library imports
-from typing import Optional
-
 # Third-party imports
 from qtpy.QtGui import QFont
 
@@ -64,7 +61,7 @@ class SpyderFontsMixin:
     def get_font(
         cls,
         font_type: str,
-        font_size_delta: Optional[int] = 0
+        font_size_delta: int = 0
     ) -> QFont:
         """
         Get a font type as a :class:`QFont` object.

@@ -130,15 +130,15 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         Parameters
         ----------
-        loop : LoopID, optional
+        loop : LoopID | None, optional
             The event loop to be used, by default the current event loop.
         early_return : bool, optional
             Return the coroutine as a :class:`concurrent.futures.Future`
-            before it is done.
+            before it is done. ``True`` by default.
         return_awaitable : bool, optional
             Return the coroutine as an awaitable :class:`asyncio.Future`
             instead of a :class:`concurrent.futures.Future`, independent of
-            the value of ``early_return``.
+            the value of ``early_return``. ``False`` by default.
 
 
         Examples
@@ -269,7 +269,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         Parameters
         ----------
-        loop_id : LoopID, optional
+        loop_id : LoopID | None, optional
             The event loop to use, by default the current thread event loop.
 
             .. note::
@@ -355,7 +355,8 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         Returns
         -------
-        None"""
+        None
+        """
         for task in cls._running_tasks:
             task.cancel()
 
@@ -363,9 +364,16 @@ class AsyncDispatcher(typing.Generic[_RT]):
     def join(cls, timeout: float | None = None):
         """Close all running loops and join the threads.
 
+        Parameters
+        ----------
+        timeout : float | None, optional
+            Seconds to wait for loops to exit and their threads to be joined.
+            By default, waits indefinitely.
+
         Returns
         -------
-        None"""
+        None
+        """
         for loop_id in list(cls.__running_threads.keys()):
             cls._stop_running_loop(loop_id, timeout)
 
@@ -615,13 +623,13 @@ class DispatcherFuture(Future, typing.Generic[_T]):
 
     _callback_executor = _QCallbackExecutor()
 
-    def result(self, timeout: typing.Optional[float] = None) -> _T:  # noqa: UP045
+    def result(self, timeout: float | None = None) -> _T:
         """
         Return the result of the call that the future represents.
 
         Parameters
         ----------
-        timeout: float | None
+        timeout: float | None, optional
             The number of seconds to wait for the result. If None, then wait
             indefinitely.
 

@@ -12,6 +12,8 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from glob import glob
 import locale
@@ -514,7 +516,9 @@ def load_lang_conf():
     return lang
 
 
-def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
+def get_translation(
+    modname: str, dirname: str | None = None
+) -> Callable[[str], str]:
     """
     Return the translation callback for module ``modname``.
 
@@ -522,7 +526,7 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
     ----------
     modname : str
         The module to get the translation callback for.
-    dirname : str, optional
+    dirname : str | None, optional
         The directory name of the module, same as the module name by default.
 
     Returns

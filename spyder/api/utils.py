@@ -46,13 +46,13 @@ def get_class_values(cls) -> list[str]:
 class PrefixNode:
     """Utility class used to represent a prefixed string tuple."""
 
-    def __init__(self, path: tuple[str, ...] = None):
+    def __init__(self, path: tuple[str, ...] | None = None):
         """
         Representation of a prefixed string tuple.
 
         Parameters
         ----------
-        path : tuple[str, ...], optional
+        path : tuple[str, ...] | None, optional
             Underlying prefixed string tuple. The default is None.
 
         Returns
@@ -119,9 +119,7 @@ class DummyAttribute:
 
 
 def abstract_attribute(
-    obj: typing.Optional[
-        typing.Union[typing.Callable[_P, _T], DummyAttribute]
-    ] = None
+    obj: typing.Callable[_P, _T] | DummyAttribute | None = None
 ) -> _T:
     """
     Decorator to mark abstract attributes.
@@ -130,8 +128,9 @@ def abstract_attribute(
 
     Parameters
     ----------
-    obj: typing.Callable[_P, _T] | DummyAttribute | None
-        The callable attribute to mark as abstract.
+    obj: typing.Callable[_P, _T] | DummyAttribute | None, optional
+        The callable attribute to mark as abstract, a :class:`DummyAttribute`
+        by default.
 
     Returns
     -------
