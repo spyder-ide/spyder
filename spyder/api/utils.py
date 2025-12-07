@@ -21,8 +21,8 @@ if sys.version_info < (3, 10):
 else:
     from typing import ParamSpec  # noqa: ICN003
 
-_P = ParamSpec('_P')
-_T = typing.TypeVar('_T')
+_P = ParamSpec("_P")
+_T = typing.TypeVar("_T")
 
 
 def get_class_values(cls) -> list[str]:
@@ -41,7 +41,7 @@ def get_class_values(cls) -> list[str]:
     list[str]
         String attribute values from a Spyder pseudo-"enum" class.
     """
-    return [v for (k, v) in cls.__dict__.items() if k[:1] != '_']
+    return [v for (k, v) in cls.__dict__.items() if k[:1] != "_"]
 
 
 class PrefixNode:
@@ -67,8 +67,10 @@ class PrefixNode:
         prefix = [((self.path,), self)]
         while prefix != []:
             current_prefix, node = prefix.pop(0)
-            prefix += [(current_prefix + (c,), node.children[c])
-                       for c in node.children]
+            prefix += [
+                (current_prefix + (c,), node.children[c])
+                for c in node.children
+            ]
             yield current_prefix
 
     def add_path(self, path: tuple[str, ...]) -> None:
@@ -116,11 +118,12 @@ class classproperty(property):
 
 class DummyAttribute:
     """Dummy class to mark abstract attributes."""
+
     pass
 
 
 def abstract_attribute(
-    obj: collections.abc.Callable[_P, _T] | DummyAttribute | None = None
+    obj: collections.abc.Callable[_P, _T] | DummyAttribute | None = None,
 ) -> _T:
     """
     Decorator to mark abstract attributes.
@@ -180,19 +183,18 @@ class ABCMeta(BaseABCMeta):
         abstract_attr_names = set()
         for base in cls.__mro__:
             for name, value in base.__dict__.items():
-                if getattr(value, '__is_abstract_attribute__', False):
+                if getattr(value, "__is_abstract_attribute__", False):
                     abstract_attr_names.add(name)
 
         for name, value in cls.__dict__.items():
-            if not getattr(value, '__is_abstract_attribute__', False):
+            if not getattr(value, "__is_abstract_attribute__", False):
                 abstract_attr_names.discard(name)
 
         if abstract_attr_names:
             raise NotImplementedError(
                 "Can't instantiate abstract class "
                 "{} with abstract attributes: {}".format(
-                    cls.__name__,
-                    ", ".join(abstract_attr_names)
+                    cls.__name__, ", ".join(abstract_attr_names)
                 )
             )
 

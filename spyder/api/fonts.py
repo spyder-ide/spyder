@@ -35,17 +35,18 @@ class SpyderFontType:
         The values names in this enum are a result of historical reasons
         that date from Spyder 2 and are not easy to change now.
     """
-    Monospace: str = 'font'
+
+    Monospace: str = "font"
     """Monospace font, used for code, output and ``literal/verbatim text``.
 
     Used in, for example, the :guilabel:`Editor`, :guilabel:`IPython Console`
     and :guilabel:`History` panes.
     """
 
-    Interface: str = 'app_font'
+    Interface: str = "app_font"
     """Interface font, used throughout the Spyder application."""
 
-    MonospaceInterface: str = 'monospace_app_font'
+    MonospaceInterface: str = "monospace_app_font"
     """:attr:`Monospace` font resized to work with the :attr:`Interface` font.
 
     Used, for instance, by the :guilabel:`Variable Explorer` and corresponds
@@ -58,11 +59,7 @@ class SpyderFontsMixin:
     """Mixin to get the different Spyder font types from our config system."""
 
     @classmethod
-    def get_font(
-        cls,
-        font_type: str,
-        font_size_delta: int = 0
-    ) -> QFont:
+    def get_font(cls, font_type: str, font_size_delta: int = 0) -> QFont:
         """
         Get a font type as a :class:`QFont` object.
 

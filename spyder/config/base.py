@@ -542,6 +542,7 @@ def get_translation(
         return x
 
     if building_autodoc():
+
         def translate_gettext(x: str) -> str:
             """
             Translate a text string to the current language for a module.
@@ -557,20 +558,22 @@ def get_translation(
                 The translated string.
             """
             return x
+
         return translate_gettext
 
-    locale_path = get_module_data_path(dirname, relpath="locale",
-                                       attr_name='LOCALEPATH')
+    locale_path = get_module_data_path(
+        dirname, relpath="locale", attr_name="LOCALEPATH"
+    )
 
     # If LANG is defined in Ubuntu, a warning message is displayed,
     # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
-    if os.name == 'nt':
+    if os.name == "nt":
         # Trying to set LANG on Windows can fail when Spyder is
         # run with admin privileges.
         # Fixes spyder-ide/spyder#6886.
         try:
-            os.environ["LANG"] = language      # Works on Windows
+            os.environ["LANG"] = language  # Works on Windows
         except Exception:
             return translate_dumb
     else:
@@ -580,6 +583,7 @@ def get_translation(
         return translate_dumb
 
     import gettext
+
     try:
         _trans = gettext.translation(modname, locale_path)
 
@@ -598,13 +602,14 @@ def get_translation(
                 The translated string.
             """
             return _trans.gettext(x)
+
         return translate_gettext
     except Exception as exc:
         # logging module is not yet initialised at this point
         print(
             f"Could not load translations for {language} due to: "
             f"{exc.__class__.__name__} - {exc}",
-            file=sys.stderr
+            file=sys.stderr,
         )
         return translate_dumb
 

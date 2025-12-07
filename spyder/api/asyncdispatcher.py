@@ -191,27 +191,35 @@ class AsyncDispatcher(typing.Generic[_RT]):
     @typing.overload
     def __call__(
         self: AsyncDispatcher[collections.abc.Awaitable[_T]],
-        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+        async_func: collections.abc.Callable[
+            _P, collections.abc.Awaitable[_T]
+        ],
     ) -> collections.abc.Callable[_P, collections.abc.Awaitable[_T]]: ...
 
     @typing.overload
     def __call__(
         self: AsyncDispatcher[DispatcherFuture[_T]],
-        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+        async_func: collections.abc.Callable[
+            _P, collections.abc.Awaitable[_T]
+        ],
     ) -> collections.abc.Callable[_P, DispatcherFuture[_T]]: ...
 
     @typing.overload
     def __call__(
         self: AsyncDispatcher[_T],
-        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+        async_func: collections.abc.Callable[
+            _P, collections.abc.Awaitable[_T]
+        ],
     ) -> collections.abc.Callable[_P, _T]: ...
 
     def __call__(
         self,
-        async_func: collections.abc.Callable[_P, collections.abc.Awaitable[_T]],
+        async_func: collections.abc.Callable[
+            _P, collections.abc.Awaitable[_T]
+        ],
     ) -> collections.abc.Callable[
         _P,
-        _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],  # noqa: UP007
+        _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],
     ]:
         """
         Run the coroutine in the event loop.
@@ -238,15 +246,17 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
         @functools.wraps(async_func)
         def wrapper(
-            *args: _P.args, **kwargs: _P.kwargs,
-        ) -> _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]:  # noqa: UP007
+            *args: _P.args,
+            **kwargs: _P.kwargs,
+        ) -> _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]:
             task = run_coroutine_threadsafe(
                 async_func(*args, **kwargs),
                 loop=self._loop,
             )
             if self._return_awaitable:
                 return asyncio.wrap_future(
-                    task, loop=asyncio.get_running_loop(),
+                    task,
+                    loop=asyncio.get_running_loop(),
                 )
 
             if self._early_return:
@@ -333,7 +343,9 @@ class AsyncDispatcher(typing.Generic[_RT]):
 
     @classmethod
     def __run_loop(
-        cls, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop,
+        cls,
+        loop_id: typing.Hashable,
+        loop: asyncio.AbstractEventLoop,
     ) -> None:
         if loop_id not in cls.__running_threads:
             with cls.__rlock:
@@ -395,7 +407,9 @@ class AsyncDispatcher(typing.Generic[_RT]):
         runner.join(timeout)
 
     @staticmethod
-    def QtSlot(func: collections.abc.Callable[_P, None]) -> collections.abc.Callable[_P, None]:  # noqa: N802
+    def QtSlot(
+        func: collections.abc.Callable[_P, None],
+    ) -> collections.abc.Callable[_P, None]:  # noqa: N802
         """Mark a function to be executed inside the main Qt loop.
 
         Sets the :attr:`DispatcherFuture.QT_SLOT_ATTRIBUTE` attribute on the
@@ -419,7 +433,9 @@ class _LoopRunner(threading.Thread):
     """A task runner that runs an asyncio event loop on a background thread."""
 
     def __init__(
-        self, loop_id: typing.Hashable, loop: asyncio.AbstractEventLoop,
+        self,
+        loop_id: typing.Hashable,
+        loop: asyncio.AbstractEventLoop,
     ):
         super().__init__(daemon=True, name=f"AsyncDispatcher-{loop_id}")
         self.__loop = loop
@@ -504,9 +520,11 @@ def _patch_loop_as_reentrant(loop):  # noqa: C901, PLR0915
         timeout = (
             0
             if ready or self._stopping
-            else min(max(scheduled[0]._when - self.time(), 0), 86400)
-            if scheduled
-            else None
+            else (
+                min(max(scheduled[0]._when - self.time(), 0), 86400)
+                if scheduled
+                else None
+            )
         )
         event_list = self._selector.select(timeout)
         self._process_events(event_list)
@@ -595,7 +613,7 @@ def _patch_loop_as_reentrant(loop):  # noqa: C901, PLR0915
     cls._check_running = _check_running
     cls._num_runs_pending = 1 if loop.is_running() else 0
     cls._is_proactorloop = os.name == "nt" and issubclass(
-        cls, asyncio.ProactorEventLoop,
+        cls, asyncio.ProactorEventLoop
     )
     cls._nest_patched = True
 
