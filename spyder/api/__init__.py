@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2016- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Base classes, mixins and widgets for creating plugins to extend Spyder.
@@ -22,11 +23,10 @@ The API version is modified according to the following rules:
   APIs are removed then the major version will be updated.
 """
 
-from packaging.version import parse
+VERSION_INFO: tuple[int, int, int] = (2, 0, 0)
+"""Tuple form of API version, broken down into ``(major, minor, micro)``."""
 
-version_info = (1, 4, 0)
-
-__version__: str = str(parse('.'.join(map(str, version_info))))
+__version__: str = str(".".join(map(str, VERSION_INFO)))
 """
 Spyder API version; minor bumped for additions/deprecations, major for breaks.
 
