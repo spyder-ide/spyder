@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
-# Copyright © 2025 Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+# Copyright (c) 2024- Spyder Project Contributors
+#
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Class decorator and helpers for running code in async loops within Spyder.
