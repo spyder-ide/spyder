@@ -8,7 +8,7 @@
   and formally expose and document `VERSION_INFO` tuple
 
 
-## Version 6.1.1 (2025/11/24)
+## Version 6.1.1 (2025-11-24)
 
 ### New features
 
@@ -110,7 +110,7 @@ In this release 44 pull requests were closed.
 
 ----
 
-## Version 6.1.0 (2025/10/02)
+## Version 6.1.0 (2025-10-02)
 
 ### New features
 
@@ -295,7 +295,7 @@ In this release 11 pull requests were closed.
 
 ----
 
-## Version 6.1.0rc1 (2025/09/26)
+## Version 6.1.0rc1 (2025-09-26)
 
 ### Issues Closed
 
@@ -335,7 +335,7 @@ In this release 20 pull requests were closed.
 
 ----
 
-## Version 6.1.0b2 (2025/09/18)
+## Version 6.1.0b2 (2025-09-18)
 
 ### Issues Closed
 
@@ -364,7 +364,7 @@ In this release 8 pull requests were closed.
 
 ----
 
-## Version 6.1.0b1 (2025/09/11)
+## Version 6.1.0b1 (2025-09-11)
 
 ### Issues Closed
 
@@ -447,7 +447,7 @@ In this release 41 pull requests were closed.
 
 ----
 
-## Version 6.1.0a4 (2025/07/21)
+## Version 6.1.0a4 (2025-07-21)
 
 ### Issues Closed
 
@@ -530,7 +530,7 @@ In this release 48 pull requests were closed.
 
 ----
 
-## Version 6.1.0a3 (2025/06/05)
+## Version 6.1.0a3 (2025-06-05)
 
 ### Issues Closed
 
@@ -591,7 +591,7 @@ In this release 30 pull requests were closed.
 
 ----
 
-## Version 6.1.0a2 (2025/04/22)
+## Version 6.1.0a2 (2025-04-22)
 
 ### Issues Closed
 
@@ -627,7 +627,7 @@ In this release 16 pull requests were closed.
 
 ----
 
-## Version 6.1.0a1 (2025/03/13)
+## Version 6.1.0a1 (2025-03-13)
 
 ### Issues Closed
 
@@ -672,7 +672,7 @@ In this release 25 pull requests were closed.
 
 ----
 
-## Version 6.0.8 (2025/08/26)
+## Version 6.0.8 (2025-08-26)
 
 ### Important fixes
 
@@ -698,7 +698,7 @@ In this release 3 pull requests were closed.
 
 ----
 
-## Version 6.0.7 (2025/05/22)
+## Version 6.0.7 (2025-05-22)
 
 ### Important fixes
 
@@ -724,7 +724,7 @@ In this release 5 pull requests were closed.
 
 ----
 
-## Version 6.0.6 (2025/05/14)
+## Version 6.0.6 (2025-05-14)
 
 ### New features
 
@@ -814,7 +814,7 @@ In this release 37 pull requests were closed.
 
 ----
 
-## Version 6.0.5 (2025/03/26)
+## Version 6.0.5 (2025-03-26)
 
 ### New features
 
@@ -918,7 +918,7 @@ In this release 43 pull requests were closed.
 
 ----
 
-## Version 6.0.4 (2025/02/06)
+## Version 6.0.4 (2025-02-06)
 
 ### New features
 
@@ -1018,7 +1018,7 @@ In this release 38 pull requests were closed.
 
 ----
 
-## Version 6.0.3 (2024/12/10)
+## Version 6.0.3 (2024-12-10)
 
 ### Important fixes
 
@@ -1113,7 +1113,7 @@ In this release 37 pull requests were closed.
 
 ----
 
-## Version 6.0.2 (2024/10/31)
+## Version 6.0.2 (2024-10-31)
 
 ### Important fixes
 
@@ -1188,7 +1188,7 @@ In this release 31 pull requests were closed.
 
 ----
 
-## Version 6.0.1 (2024/09/23)
+## Version 6.0.1 (2024-09-23)
 
 ### Important fixes
 
