@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2016- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 API to create an entry in Spyder Preferences associated to a given plugin.
@@ -12,7 +13,13 @@ from __future__ import annotations
 
 # Standard library imports
 import types
+import sys
 from typing import TYPE_CHECKING
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias  # noqa: ICN003
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
@@ -27,7 +34,7 @@ if TYPE_CHECKING:
     import spyder.plugins.preferences.widget
 
 
-OptionSet = set[ConfigurationKey]
+OptionSet: TypeAlias = set[ConfigurationKey]
 """Type alias for a set of keys mapping to valid Spyder configuration values.
 
 A :class:`set` of :class:`spyder.config.types.ConfigurationKey`\\s.
@@ -45,7 +52,7 @@ class SpyderPreferencesTab(BaseConfigTab):
     TITLE: str | None = None
     """Name of the tab to display; must be set on the child implementations."""
 
-    def __init__(self, parent: SpyderConfigPage):
+    def __init__(self, parent: SpyderConfigPage) -> None:
         """
         Create a new tab on the given ``parent`` config page.
 
@@ -130,7 +137,7 @@ class PluginConfigPage(SpyderConfigPage):
         self,
         plugin: SpyderPluginV2,
         parent: spyder.plugins.preferences.widget.ConfigDialog,
-    ):
+    ) -> None:
         """
         Create a Spyder :guilabel:`Preferences` page for a plugin.
 
@@ -149,10 +156,10 @@ class PluginConfigPage(SpyderConfigPage):
         self.plugin = plugin
         self.main = parent.main
 
-        if hasattr(plugin, 'CONF_SECTION'):
+        if hasattr(plugin, "CONF_SECTION"):
             self.CONF_SECTION = plugin.CONF_SECTION
 
-        if hasattr(plugin, 'get_font'):
+        if hasattr(plugin, "get_font"):
             self.get_font = plugin.get_font
 
         if not self.APPLY_CONF_PAGE_SETTINGS:
@@ -166,11 +173,13 @@ class PluginConfigPage(SpyderConfigPage):
         is called alongside the Spyder Plugin API configuration propagation
         call.
         """
+
         def wrapper(self, options):
             opts = self.previous_apply_settings() or set({})
             opts |= options
             self.aggregate_sections_partials(opts)
             func(opts)
+
         return types.MethodType(wrapper, self)
 
     def _patch_apply_settings(self, plugin):
@@ -180,7 +189,7 @@ class PluginConfigPage(SpyderConfigPage):
         self.set_option = plugin.set_conf
         self.remove_option = plugin.remove_conf
 
-    def aggregate_sections_partials(self, opts: OptionSet):
+    def aggregate_sections_partials(self, opts: OptionSet) -> None:
         """
         Aggregate options by sections in order to notify observers.
 
@@ -211,8 +220,9 @@ class PluginConfigPage(SpyderConfigPage):
         for section in to_update:
             section_prefix = PrefixedTuple()
             # Notify section observers
-            CONF.notify_observers(section, '__section',
-                                  recursive_notification=False)
+            CONF.notify_observers(
+                section, "__section", recursive_notification=False
+            )
             for opt in to_update[section]:
                 if isinstance(opt, tuple):
                     opt = opt[:-1]
@@ -220,8 +230,9 @@ class PluginConfigPage(SpyderConfigPage):
             # Notify prefixed observers
             for prefix in section_prefix:
                 try:
-                    CONF.notify_observers(section, prefix,
-                                          recursive_notification=False)
+                    CONF.notify_observers(
+                        section, prefix, recursive_notification=False
+                    )
                 except Exception:
                     # Prevent unexpected failures on tests
                     pass
@@ -254,7 +265,7 @@ class PluginConfigPage(SpyderConfigPage):
         """
         return self.plugin.get_icon()
 
-    def setup_page(self):
+    def setup_page(self) -> None:
         """
         Set up the configuration page widget.
 
