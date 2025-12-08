@@ -18,7 +18,7 @@ from spyder.plugins.completion.providers.languageserver.provider import (
     LanguageServerProvider)
 
 
-class CompletionPluginMock(QObject, MagicMock):
+class CompletionPluginMock(MagicMock, QObject):
     """Mock for the completion plugin."""
     CONF_SECTION = 'completions'
 

@@ -32,7 +32,7 @@ from spyder.plugins.outlineexplorer.api import is_cell_header
 logger = logging.getLogger(__name__)
 
 
-class Panel(QWidget, EditorExtension):
+class Panel(EditorExtension, QWidget):
     """
     Base class for editor panels.
 
@@ -76,8 +76,8 @@ class Panel(QWidget, EditorExtension):
         self._scrollable = value
 
     def __init__(self, dynamic=False):
-        EditorExtension.__init__(self)
         QWidget.__init__(self)
+        EditorExtension.__init__(self)
         # Specifies whether the panel is dynamic. A dynamic panel is a panel
         # that will be shown/hidden depending on the context.
         # Dynamic panel should not appear in any GUI menu

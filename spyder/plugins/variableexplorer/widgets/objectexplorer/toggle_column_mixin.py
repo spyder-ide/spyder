@@ -135,7 +135,7 @@ class ToggleColumnMixIn(SpyderWidgetMixin):
 #        settings.setValue(key, self._horizontal_header().saveState())
 
 
-class ToggleColumnTableWidget(QTableWidget, ToggleColumnMixIn):
+class ToggleColumnTableWidget(ToggleColumnMixIn, QTableWidget):
     """
     A QTableWidget where right clicking on the header allows the user
     to show/hide columns.
@@ -143,7 +143,7 @@ class ToggleColumnTableWidget(QTableWidget, ToggleColumnMixIn):
     pass
 
 
-class ToggleColumnTreeWidget(QTreeWidget, ToggleColumnMixIn):
+class ToggleColumnTreeWidget(ToggleColumnMixIn, QTreeWidget):
     """
     A QTreeWidget where right clicking on the header allows the user to
     show/hide columns.
@@ -157,7 +157,7 @@ class ToggleColumnTreeWidget(QTreeWidget, ToggleColumnMixIn):
         return self.header()
 
 
-class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
+class ToggleColumnTreeView(ToggleColumnMixIn, QTreeView):
     """
     A QTreeView where right clicking on the header allows the user to
     show/hide columns.

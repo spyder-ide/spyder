@@ -9,7 +9,7 @@
 
 # Third party imports
 import qstylizer.parser
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
@@ -22,7 +22,7 @@ from spyder.utils.qthelpers import create_waitspinner
 from spyder.utils.stylesheet import MAC
 
 
-class StatusBarWidget(QWidget, SpyderWidgetMixin):
+class StatusBarWidget(SpyderWidgetMixin, QWidget):
     """
     Base class for status bar widgets.
 
@@ -82,7 +82,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         1. To use an icon, you need to redefine the ``get_icon`` method.
         2. To use a label, you need to call ``set_value``.
         """
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)

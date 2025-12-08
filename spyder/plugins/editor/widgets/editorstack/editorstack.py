@@ -21,7 +21,7 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QTextCursor
@@ -96,7 +96,7 @@ class EditorStackMenuSections:
     NewWindowCloseSection = "new_window_and_close_section"
 
 
-class EditorStack(QWidget, SpyderWidgetMixin):
+class EditorStack(SpyderWidgetMixin, QWidget):
 
     # This is necessary for the EditorStack tests to run independently of the
     # Editor plugin.
@@ -218,7 +218,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent, class_parent=parent)
         else:
             QWidget.__init__(self, parent)

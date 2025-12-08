@@ -19,7 +19,7 @@ from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 
-class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
+class SpyderWindowWidget(SpyderMainWindowMixin, QMainWindow):
     """MainWindow subclass that contains a SpyderDockablePlugin."""
 
     # ---- Signals

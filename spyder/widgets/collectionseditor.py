@@ -728,7 +728,7 @@ class BaseHeaderView(QHeaderView):
             self.sig_user_resized_section.emit(logicalIndex, oldSize, newSize)
 
 
-class BaseTableView(QTableView, SpyderWidgetMixin):
+class BaseTableView(SpyderWidgetMixin, QTableView):
     """Base collection editor table view"""
     CONF_SECTION = 'variable_explorer'
 
@@ -739,7 +739,8 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
     sig_editor_shown = Signal()
 
     def __init__(self, parent):
-        super().__init__(parent=parent)
+        QTableView.__init__(self, parent=parent)
+        SpyderWidgetMixin.__init__(self)
 
         # Main attributes
         self.array_filename = None
@@ -1819,7 +1820,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.dictfilter = dictfilter
 
 
-class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
+class CollectionsEditorWidget(SpyderWidgetMixin, QWidget):
     """Dictionary Editor Widget"""
     # Dummy conf section to avoid a warning from SpyderConfigurationObserver
     CONF_SECTION = "variable_explorer"
@@ -1830,6 +1831,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
                  data_function: Optional[Callable[[], Any]] = None,
                  readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
                 self, data, readonly, create_menu=True)

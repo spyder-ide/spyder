@@ -26,10 +26,10 @@ from pytestqt.qtbot import QtBot
 
 
 class MainWindowMock(QMainWindow):
-    register_shortcut = Mock()
 
     def __init__(self):
         super().__init__(None)
+        self.register_shortcut = Mock()
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
@@ -93,7 +93,7 @@ def completion_plugin_all_started(request, qtbot_module,
     def wait_until_all_started():
         all_started = True
         for provider in completion_plugin.providers:
-            
+
             provider_info = completion_plugin.providers[provider]
             all_started &= provider_info['status'] == completion_plugin.RUNNING
         return all_started

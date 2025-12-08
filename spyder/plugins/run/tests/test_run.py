@@ -36,7 +36,7 @@ from spyder.plugins.run.plugin import Run
 logger = logging.getLogger(__name__)
 
 
-class MockedMainWindow(QWidget, MagicMock):
+class MockedMainWindow(MagicMock, QWidget):
     def get_plugin(self, name, error=True):
         return MagicMock()
 

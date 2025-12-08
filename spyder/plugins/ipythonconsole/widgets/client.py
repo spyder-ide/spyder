@@ -79,7 +79,7 @@ KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
-class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR0904
+class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR0904
     """
     Client widget for the IPython Console
 
@@ -118,7 +118,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         files_api=None,
         can_close=True,
     ):
-        super().__init__(parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
         # --- Init attrs
