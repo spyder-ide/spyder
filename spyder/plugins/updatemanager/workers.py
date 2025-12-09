@@ -30,10 +30,12 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder import __version__
 from spyder.api.translations import _
-from spyder.config.base import is_conda_based_app, running_in_ci
+from spyder.config.base import (
+    is_conda_based_app, is_installed_all_users, running_in_ci
+)
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
-from spyder.utils.programs import get_temp_dir
+from spyder.utils.programs import get_temp_dir, find_program
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -522,44 +524,85 @@ class WorkerUpdateUpdater(BaseWorker):
             raise UpdateDownloadError("Download failed!")
 
     def _install_update(self):
-        """Install or update Spyder-updater environment."""
-        dirname = osp.dirname(self.installer_path)
+        """
+        Create or update Spyder-updater environment.
 
+        In the case where Spyder is installed for all users on Windows,
+        User Account Control (UAC) needs to be elevated in order to update
+        Spyder-updater. This requires that the subprocess run through
+        PowerShell with the `-Verb RunAs` flag. However, this flag is
+        incompatible with capturing std[out|err], either with a subprocess.PIPE
+        or with `-RedirectStandard[Output|Error]`. Thus, the only solution is
+        to run a separate script that internally redirects std[out|err] to
+        (temporary) log files for later inspection.
+
+        Unix systems do not require a separate script, but it is used to
+        retain simplicity and parity between the platforms.
+
+        Note that ctypes.windll.shell32.ShellExecuteEx is inadequate since it
+        does not wait for the process to complete before returning.
+        """
+        updater_script = osp.join(
+            osp.dirname(__file__),
+            "scripts",
+            "updater.bat" if os.name == "nt" else "updater.sh"
+        )
+        conda_exe = find_conda()
+        conda_cmd = "create"
+        if self.updater_version > parse("0.0.0"):
+            conda_cmd = "update"
+        env_path = osp.join(osp.dirname(sys.prefix), "spyder-updater")
+
+        installer_dir = osp.dirname(self.installer_path)
         if os.name == "nt":
             plat = "win-64"
         elif sys.platform == "darwin":
             plat = "osx-arm64" if platform.machine() == "arm64" else "osx-64"
         else:
             plat = "linux-64"
-        spy_updater_lock = osp.join(dirname, f"conda-updater-{plat}.lock")
-        spy_updater_conda = glob(osp.join(dirname, "spyder-updater*.conda"))[0]
+        spy_updater_lock = osp.join(installer_dir, f"conda-updater-{plat}.lock")
+        spy_updater_conda = glob(
+            osp.join(installer_dir, "spyder-updater*.conda")
+        )[0]
 
-        conda_exe = find_conda()
-        conda_cmd = "create"
-        if self.updater_version > parse("0.0.0"):
-            conda_cmd = "update"
-        env_path = osp.join(osp.dirname(sys.prefix), "spyder-updater")
+        # Run updater script
+        kwargs = dict(shell=True, capture_output=True, text=True)
         cmd = [
-            # Update spyder-updater environment
+            updater_script,
             conda_exe,
-            conda_cmd, "--yes",
-            "--prefix", env_path,
-            "--file", spy_updater_lock,
-            "&&",
-            # Update spyder-updater
-            conda_exe,
-            "install", "--yes",
-            "--prefix", env_path,
-            "--no-deps",
-            "--force-reinstall",
-            spy_updater_conda
+            conda_cmd,
+            env_path,
+            spy_updater_lock,
+            spy_updater_conda,
         ]
+        if os.name == "nt":
+            kwargs.update(executable=find_program("powershell"))
+            cmd = [
+                "start",
+                "-FilePath", f'"{updater_script}"',
+                "-ArgumentList", ",".join([f"'{a}'" for a in cmd[1:]]),
+                "-Wait", "-WindowStyle", "Hidden",
+            ]
+            if is_installed_all_users():
+                cmd.extend(["-Verb", "RunAs"])
 
-        logger.debug(f"""Conda command for the updater: '{" ".join(cmd)}'""")
-        proc = subprocess.run(
-            " ".join(cmd), shell=True, capture_output=True, text=True
-        )
-        proc.check_returncode()
+        logger.info("Updating Spyder Updater...")
+        proc = subprocess.run(" ".join(cmd), **kwargs)
+
+        # Check for errors
+        if os.name == "nt":
+            updater_stdout = osp.join(installer_dir, "updater_stdout.log")
+            updater_stderr = osp.join(installer_dir, "updater_stderr.log")
+            with open(updater_stderr, "r") as f:
+                stderr = f.read()
+            with open(updater_stdout, "r") as f:
+                stdout = f.read()
+            if stderr:
+                raise subprocess.CalledProcessError(
+                    1, " ".join(cmd), output=stdout, stderr=stderr
+                )
+        else:
+            proc.check_output()
 
     def start(self):
         """Main method of the worker."""
@@ -640,8 +683,8 @@ class WorkerDownloadInstaller(BaseWorker):
         logger.info(f"Downloading {url} to {self.installer_path}")
 
         self._clean_installer_dir()
-        dirname = osp.dirname(self.installer_path)
-        os.makedirs(dirname, exist_ok=True)
+        installer_dir = osp.dirname(self.installer_path)
+        os.makedirs(installer_dir, exist_ok=True)
 
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
