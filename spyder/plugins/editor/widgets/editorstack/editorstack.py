@@ -689,7 +689,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @Slot()
     def update_fname_label(self):
         """Update file name label."""
-        filename = str(self.get_current_filename())
+        current_finfo = self.data[self.get_stack_index()]
+        if current_finfo.is_remote:
+            filename = self._remote_helper.get_display_name(current_finfo.remote_handle)
+        else:
+            filename = str(current_finfo.filename)        
         if len(filename) > 100:
             metrics = QFontMetrics(
                 self.default_font

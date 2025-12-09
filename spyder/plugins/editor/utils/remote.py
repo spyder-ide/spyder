@@ -10,7 +10,7 @@ from __future__ import annotations
 # Standard library imports
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -21,10 +21,15 @@ from spyder.plugins.remoteclient.api.modules.file_services import (
 )
 from spyder.utils import encoding
 
+if TYPE_CHECKING:
+    from spyder.plugins.remoteclient.plugin import RemoteClient
+
 
 @dataclass
 class RemoteFileHandle:
     """Metadata required to operate on a remote file."""
+
+    URI_SEP = "://"  # Used to separate client ID from path in URIs
 
     client_id: str
     path: PurePosixPath
@@ -43,10 +48,22 @@ class RemoteFileHandle:
     @property
     def uri(self) -> str:
         """Return the canonical URI representation for this file."""
-        posix_path = self.path.as_posix()
-        if not posix_path.startswith("/"):
-            posix_path = f"/{posix_path}"
-        return f"{self.client_id}://{posix_path}"
+        return f"{self.client_id}{self.URI_SEP}{self.path}"
+
+    @classmethod
+    def from_uri(cls, uri: str) -> Optional[RemoteFileHandle]:
+        """Return a RemoteFileHandle if ``uri`` encodes one."""
+        if not isinstance(uri, str) or cls.URI_SEP not in uri:
+            return None
+
+        prefix, remainder = uri.split(cls.URI_SEP, 1)
+
+        if not prefix:
+            return None
+
+        normalized = f"/{remainder.lstrip('/')}"
+
+        return RemoteFileHandle(client_id=prefix, path=PurePosixPath(normalized))
 
 
 class RemoteFileHelper:
@@ -54,7 +71,7 @@ class RemoteFileHelper:
 
     EVENT_LOOP_ID = "editor-remote-files"
 
-    def __init__(self, remote_client):
+    def __init__(self, remote_client: RemoteClient):
         self.remote_client = remote_client
         self._api_instances: Dict[str, SpyderRemoteFileServicesAPI] = {}
         self._read_runner = AsyncDispatcher(
@@ -80,22 +97,13 @@ class RemoteFileHelper:
     # Public helpers
     # ------------------------------------------------------------------
     @classmethod
-    def normalize_uri(cls, candidate: str) -> Optional[str]:
-        """Return a canonical remote URI if candidate describes one."""
-        handle = cls.get_handle(candidate)
-        if handle is None:
-            return None
-        return handle.uri
-
-    @classmethod
     def get_handle(cls, candidate: str) -> Optional[RemoteFileHandle]:
         """Return a RemoteFileHandle if ``candidate`` encodes one."""
-        if not isinstance(candidate, str) or "://" not in candidate:
-            return None
+        return RemoteFileHandle.from_uri(candidate)
 
-        prefix, remainder = candidate.split("://", 1)
-
-        return cls._build_handle(prefix, remainder)
+    def get_display_name(self, handle: RemoteFileHandle) -> str:
+        """Return a user-friendly representation of the remote file."""
+        return f"{self.remote_client.get_server_name(handle.client_id)}{handle.URI_SEP}{handle.path}"
 
     def read_text(
         self, handle: RemoteFileHandle
@@ -150,18 +158,6 @@ class RemoteFileHelper:
         for api in self._api_instances.values():
             self._close_runner(api)
         self._api_instances.clear()
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _build_handle(
-        client_id: str, raw_path: str
-    ) -> Optional[RemoteFileHandle]:
-        if not client_id:
-            return None
-        normalized = f"/{raw_path.lstrip('/')}"
-        return RemoteFileHandle(client_id=client_id, path=PurePosixPath(normalized))
 
     # ------------------------------------------------------------------
     # Async runners
