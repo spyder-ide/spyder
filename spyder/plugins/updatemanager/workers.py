@@ -579,9 +579,13 @@ class WorkerUpdateUpdater(BaseWorker):
             kwargs.update(executable=find_program("powershell"))
             cmd = [
                 "start",
-                "-FilePath", f'"{updater_script}"',
-                "-ArgumentList", ",".join([f"'{a}'" for a in cmd[1:]]),
-                "-Wait", "-WindowStyle", "Hidden",
+                "-FilePath",
+                f'"{updater_script}"',
+                "-ArgumentList",
+                ",".join([f"'{a}'" for a in cmd[1:]]),
+                "-Wait",
+                "-WindowStyle",
+                "Hidden",
             ]
             if is_installed_all_users():
                 cmd.extend(["-Verb", "RunAs"])

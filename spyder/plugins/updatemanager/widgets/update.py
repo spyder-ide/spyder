@@ -623,10 +623,14 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             kwargs.update(executable=find_program("powershell"))
             cmd = [
                 "start",
-                "-FilePath", f'"{updater_path}"',
-                "-ArgumentList", ",".join([f"'{a}'" for a in cmd[1:]]),
-                "-WindowStyle", "Hidden",
-                "-Verb", "RunAs",
+                "-FilePath",
+                f'"{updater_path}"',
+                "-ArgumentList",
+                ",".join([f"'{a}'" for a in cmd[1:]]),
+                "-WindowStyle",
+                "Hidden",
+                "-Verb",
+                "RunAs",
             ]
 
         subprocess.Popen(" ".join(cmd), **kwargs)
