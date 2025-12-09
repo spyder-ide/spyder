@@ -57,7 +57,7 @@ def on_conf_change(
         def method(self, value: Any):
             ...
 
-    when observing a single value or the whole section and
+    when observing a single value or the whole section, and
 
     .. code-block:: python
 
@@ -71,7 +71,7 @@ def on_conf_change(
     func: Callable | None, optional
         Method to decorate, passed automatically when applying the decorator.
     section: str | None, optional
-        Name of the configuration whose option to observe for changes.
+        Name of the configuration section to observe for changes.
         If ``None``, then the ``CONF_SECTION`` attribute of the class
         where the method defined is used.
     option: ConfigurationKeyOrList | None, optional

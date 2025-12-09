@@ -247,7 +247,7 @@ class SpyderConfigurationAccessor:
 
     @property
     def old_spyder_conf_version(self) -> str:
-        """Get previous verison of the Spyder configuration system.
+        """Get previous version of the Spyder configuration system.
 
         Returns
         -------
@@ -261,10 +261,7 @@ class SpyderConfigurationAccessor:
 
 class SpyderConfigurationObserver(SpyderConfigurationAccessor):
     """
-    Methods to recieve and respond to changes in Spyder's configuration.
-
-    Concrete implementation of the protocol
-    :class:`spyder.config.types.ConfigurationObserver`.
+    Methods to receive and respond to changes in Spyder's configuration.
 
     This mixin enables a class to receive configuration updates seamlessly,
     by registering methods using the
@@ -342,7 +339,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
                     self._add_listener(method_name, option, section)
 
     def _merge_none_observers(self):
-        """Replace observers of section ``None`` with ``CONF_SECTION``."""
+        """Replace section ``None`` with ``CONF_SECTION`` in observers."""
         default_selectors = self._configuration_listeners.get(None, {})
         section_selectors = self._configuration_listeners.get(
             self.CONF_SECTION, {}
@@ -370,7 +367,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         func: Callable
             Function/method that will be called when ``option`` changes.
         option: spyder.config.types.ConfigurationKey
-            Name of the configuration option to observe.
+            Name/tuple path of the configuration option to observe.
         section: str
             Name of the section containing ``option``, e.g. ``"shortcuts"``.
 
@@ -393,7 +390,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         Parameters
         ----------
         option: spyder.config.types.ConfigurationKey
-            Name of the configuration option that changed.
+            Name/tuple path of the configuration option that changed.
         section: str
             Name of the section containing ``option``, e.g. ``"shortcuts"``.
         value: BasicTypes
@@ -428,7 +425,7 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         func: Callable
             Function/method that will be called when ``option`` changes.
         option: spyder.config.types.ConfigurationKey
-            Name of the configuration option to observe.
+            Name/tuple path of the configuration option to observe.
         section: str | None, optional
             Name of the section containing ``option``, e.g. ``"shortcuts"``.
             If ``None``, then the value of
