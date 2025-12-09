@@ -1967,8 +1967,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                     remote_handle, txt, fileinfo.encoding
                 )
                 fileinfo.apply_remote_metadata(updated_handle)
-        else:
-            fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
+                return
+        # write local file in case is remote but handle is None (e.g temp file or save to local)    
+        fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
