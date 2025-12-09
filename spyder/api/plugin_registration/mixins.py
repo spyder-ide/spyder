@@ -8,6 +8,8 @@
 Spyder API plugin registration mixins.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import logging
 
@@ -19,21 +21,41 @@ logger = logging.getLogger(__name__)
 
 class SpyderPluginObserver:
     """
+    Mixin to receive and respond to changes in Spyder plugin availability.
+
     This mixin enables a class to receive notifications when a plugin
     is available, by registering methods using the
-    :func:`spyder.api.plugin_registration.decorators.on_plugin_available`
-    decorator.
+    :func:`~spyder.api.plugin_registration.decorators.on_plugin_available`
+    decorator. When any of the requested plugins is ready, the corresponding
+    registered method is called.
 
-    When any of the requested plugins is ready, the corresponding registered
-    method is called.
+    Normally inherited and initialized automatically through
+    :class:`~spyder.api.plugins.SpyderPluginV2` rather than used directly.
 
-    Notes
-    -----
-    This mixin will only operate over the plugin requirements listed under
-    `REQUIRES` and `OPTIONAL` class constants.
+    .. note::
+
+        This mixin will only operate over the plugins listed under the
+        :attr:`!REQUIRES` and :attr:`!OPTIONAL` class constants of the class
+        inheriting the mixin.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Set up the plugin listeners for any decorated methods of the class.
+
+        Called automatically by
+        :meth:`SpyderPluginV2.__init__() <spyder.api.plugins.SpyderPluginV2.__init__>`.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        SpyderAPIError
+            If trying to watch a plugin that is not listed in the watching
+            class' :attr:`!REQUIRES` or :attr:`!OPTIONAL` class constants.
+        """
         self._plugin_listeners = {}
         self._plugin_teardown_listeners = {}
         for method_name in dir(self):
@@ -81,15 +103,18 @@ class SpyderPluginObserver:
                              f'teardown for {plugin_teardown}')
                 self._plugin_teardown_listeners[plugin_teardown] = method_name
 
-    def _on_plugin_available(self, plugin: str):
+    def _on_plugin_available(self, plugin: str) -> None:
         """
-        Handle plugin availability and redirect it to plugin-specific
-        startup handlers.
+        Handle plugin availability and redirect it to plugin-specific handlers.
 
         Parameters
         ----------
         plugin: str
             Name of the plugin that was notified as available.
+
+        Returns
+        -------
+        None
         """
         # Call plugin specific handler
         if plugin in self._plugin_listeners:
@@ -104,15 +129,18 @@ class SpyderPluginObserver:
             method = getattr(self, method_name)
             method(plugin)
 
-    def _on_plugin_teardown(self, plugin: str):
+    def _on_plugin_teardown(self, plugin: str) -> None:
         """
-        Handle plugin teardown and redirect it to plugin-specific teardown
-        handlers.
+        Handle plugin teardown and redirect it to plugin-specific handlers.
 
         Parameters
         ----------
         plugin: str
             Name of the plugin that is going through its teardown process.
+
+        Returns
+        -------
+        None
         """
         # Call plugin specific handler
         if plugin in self._plugin_teardown_listeners:
