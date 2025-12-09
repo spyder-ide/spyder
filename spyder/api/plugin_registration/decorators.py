@@ -8,33 +8,48 @@
 Spyder API plugin registration decorators.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import functools
-from typing import Callable, Optional
-import inspect
+from collections.abc import Callable
 
 
-def on_plugin_available(func: Callable = None,
-                        plugin: Optional[str] = None):
+def on_plugin_available(
+    func: Callable | None = None,
+    plugin: str | None = None,
+) -> Callable:
     """
-    Method decorator used to handle plugin availability on Spyder.
+    Method decorator to handle a plugin becoming available in Spyder.
 
-    The methods that use this decorator must have the following signature:
-    `def method(self)` when observing a single plugin or
-    `def method(self, plugin): ...` when observing multiple plugins or
-    all plugins that were listed as dependencies.
+    Methods that use this decorator must have the signature
+
+    .. code-block:: python
+
+        def method(self):
+            ...
+
+    when observing a single plugin, or
+
+    .. code-block:: python
+
+        def method(self, plugin: str):
+            ...
+
+    when observing multiple plugins or all plugins listed as dependencies.
 
     Parameters
     ----------
-    func: Callable
-        Method to decorate. Given by default when applying the decorator.
-    plugin: Optional[str]
-        Name of the requested plugin whose availability triggers the method.
+    func: Callable | None, optional
+        Method to decorate, passed automatically when applying the decorator.
+    plugin: str | None, optional
+        Name of the requested plugin whose availability triggers ``func``.
+        By default, observes all plugins listed as dependencies.
 
     Returns
     -------
     func: Callable
-        The same method that was given as input.
+        The method passed as ``func`` with the plugin listener set up.
     """
     if func is None:
         return functools.partial(on_plugin_available, plugin=plugin)
@@ -48,28 +63,47 @@ def on_plugin_available(func: Callable = None,
     return func
 
 
-def on_plugin_teardown(func: Callable = None,
-                       plugin: Optional[str] = None):
+def on_plugin_teardown(
+    func: Callable | None = None,
+    plugin: str | None = None,
+) -> Callable:
     """
-    Method decorator used to handle plugin teardown on Spyder.
+    Method decorator to handle plugin teardown in Spyder.
 
-    This decorator will be called **before** the specified plugin is deleted
+    The decorator will be called **before** the specified ``plugin`` is deleted
     and also **before** the plugin that uses the decorator is destroyed.
 
-    The methods that use this decorator must have the following signature:
-    `def method(self)`.
+    Methods that use this decorator must have the signature
+
+    .. code-block:: python
+
+        def method(self):
+            ...
+
+    .. important::
+
+        A plugin name must be passed to ``plugin``. While a default of ``None``
+        is accepted due to technical limitations, it will raise a
+        :exc:`ValueError` at runtime.
 
     Parameters
     ----------
-    func: Callable
-        Method to decorate. Given by default when applying the decorator.
+    func: Callable | None, optional
+        Method to decorate, passed automatically when applying the decorator.
     plugin: str
-        Name of the requested plugin whose teardown triggers the method.
+        Name of the requested plugin whose teardown triggers ``func``.
+        While ``None``, the default, is accepted for technical reasons,
+        :exc:`ValueError` is raised if a plugin name is not passed.
 
     Returns
     -------
     func: Callable
-        The same method that was given as input.
+        The method passed as ``func`` with the plugin listener set up.
+
+    Raises
+    ------
+    ValueError
+        If an explicit plugin name is not passed to ``plugin``.
     """
     if func is None:
         return functools.partial(on_plugin_teardown, plugin=plugin)
