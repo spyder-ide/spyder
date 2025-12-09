@@ -24,7 +24,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.config.base import is_conda_based_app
+from spyder.config.base import is_conda_based_app, is_installed_all_users
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
     UpdateType,
@@ -36,7 +36,11 @@ from spyder.plugins.updatemanager.workers import (
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.programs import get_temp_dir, is_program_installed
+from spyder.utils.programs import (
+    get_temp_dir,
+    is_program_installed,
+    find_program
+)
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -612,7 +616,20 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         cmd = [updater_path, "--update-info-file", info_file]
         if self.restart_spyder:
             cmd.append("--start-spyder")
-        subprocess.Popen(" ".join(cmd), shell=True)
+
+        kwargs = dict(shell=True)
+        if os.name == "nt" and is_installed_all_users():
+            # Elevate UAC
+            kwargs.update(executable=find_program("powershell"))
+            cmd = [
+                "start",
+                "-FilePath", f'"{updater_path}"',
+                "-ArgumentList", ",".join([f"'{a}'" for a in cmd[1:]]),
+                "-WindowStyle", "Hidden",
+                "-Verb", "RunAs",
+            ]
+
+        subprocess.Popen(" ".join(cmd), **kwargs)
 
 
 class UpdateMessageBox(QMessageBox):
