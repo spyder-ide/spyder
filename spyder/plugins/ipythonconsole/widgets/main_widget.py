@@ -2637,7 +2637,23 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             return
 
         def _run():
-            # Freeze parameters for use in signal connect
+            """
+            Call _run_script with the requested parameters.
+
+            Notes
+            -----
+            This function is necessary to freeze the parameters used in the
+            call when it's connected as a slot to sig_prompt_ready (see below).
+            """
+            # Disconnect from sig_prompt_ready to avoid calling the function
+            # over and over if users execute a file and the kernel is not yet
+            # ready.
+            # Fixes spyder-ide/spyder#25301
+            try:
+                client.shellwidget.sig_prompt_ready.disconnect(_run)
+            except TypeError:
+                pass
+
             self._run_script(
                 filename,
                 wdir,
