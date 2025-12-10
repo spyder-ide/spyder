@@ -689,6 +689,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @Slot()
     def update_fname_label(self):
         """Update file name label."""
+        if not self.data:
+            self.fname_label.setText("")
+            self.fname_label.setToolTip("")
+            return
+
         current_finfo = self.data[self.get_stack_index()]
         if current_finfo.is_remote:
             filename = self._remote_helper.get_display_name(current_finfo.remote_handle)
