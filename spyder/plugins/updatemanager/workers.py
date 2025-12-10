@@ -624,6 +624,9 @@ class WorkerUpdateUpdater(BaseWorker):
             elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()
+        except subprocess.CalledProcessError as err:
+            self.error = err
+            logger.error(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
             self.error = str(err)

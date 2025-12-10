@@ -17,12 +17,13 @@ from sysconfig import get_path
 
 # Third-party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
-from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
+from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton, QTextEdit
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app, is_installed_all_users
 from spyder.config.gui import is_dark_interface
@@ -369,7 +370,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         )
 
         self.update_updater_worker.sig_ready.connect(
-            lambda x: self._start_download() if x else None
+            self._process_update_updater
         )
         self.update_updater_worker.sig_ready.connect(
             self.update_updater_thread.quit
@@ -382,6 +383,30 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.update_updater_worker.start
         )
         self.update_updater_thread.start()
+
+    def _process_update_updater(self):
+        """Process possible errors when updating the updater"""
+        error = self.update_updater_worker.error
+        if error is None:
+            self._start_download()
+            return
+
+        self.set_status(PENDING)
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+            self.progress_dialog = None
+
+        if isinstance(error, subprocess.CalledProcessError):
+            error_msg = _("Error updating Spyder-updater.")
+            details = [
+                "*** COMMAND ***",
+                error.cmd.strip(),
+                "\n*** STDOUT ***",
+                error.output.strip(),
+                "\n*** STDERR ***",
+                error.stderr.strip(),
+            ]
+            error_messagebox(self, error_msg, details="\n".join(details))
 
     def _start_download(self):
         """
@@ -636,7 +661,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         subprocess.Popen(" ".join(cmd), **kwargs)
 
 
-class UpdateMessageBox(QMessageBox):
+class UpdateMessageBox(QMessageBox, SpyderFontsMixin):
     def __init__(self, icon=None, text=None, parent=None):
         super().__init__(icon=icon, text=text, parent=parent)
         self.setWindowModality(Qt.NonModal)
@@ -689,11 +714,16 @@ class ProgressDialog(UpdateMessageBox):
         self._progress_bar.setValue(progress)
 
 
-def error_messagebox(parent, error_msg, checkbox=False):
+def error_messagebox(parent, error_msg, checkbox=False, details=""):
     # Use a message box with a checkbox to disable updates when required, or a
     # standard one otherwise.
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     box = box_class(icon=QMessageBox.Warning, text=error_msg, parent=parent)
+    if details:
+        box.setDetailedText(details)
+        qte = box.findChild(QTextEdit)
+        qte.setFont(box.get_font(SpyderFontType.Monospace))
+        qte.setLineWrapMode(qte.NoWrap)
     box.setWindowTitle(_("Spyder update error"))
     box.setStandardButtons(QMessageBox.Ok)
     box.setDefaultButton(QMessageBox.Ok)
