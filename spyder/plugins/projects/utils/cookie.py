@@ -13,7 +13,7 @@ import os
 import tempfile
 
 from cookiecutter.main import cookiecutter
-from github import Github
+from github import Github, GithubRetry
 from urllib.parse import urlparse
 
 
@@ -51,8 +51,9 @@ def load_cookiecutter_project(project_path, token=None):
             raise ValueError("Invalid GitHub URL")
 
         user, repo_name = parts[0], parts[1].replace(".git", "")
-        g = Github(token) if token else Github()
+        g = Github(token, retry=GithubRetry(total=0)) if token else Github(retry=GithubRetry(total=0))
         repo = g.get_repo(f"{user}/{repo_name}")
+        repo.raw_data
 
         try:
             cookie_file = repo.get_contents("cookiecutter.json")

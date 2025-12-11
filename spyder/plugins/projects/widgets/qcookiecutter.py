@@ -10,19 +10,36 @@
 Cookiecutter widget.
 """
 
+import os
 import sys
 import tempfile
 from collections import OrderedDict
 
+try:
+    # See: spyder-ide/spyder#10221
+    if os.environ.get("SSH_CONNECTION") is None:
+        import keyring
+except Exception:
+    pass
+
+from github import BadCredentialsException, RateLimitExceededException
+from requests.exceptions import RetryError
+from urllib3.exceptions import MaxRetryError
 from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
+from qtpy.QtWidgets import QMessageBox
+
 
 from spyder.api.translations import _
 from spyder.plugins.projects.utils.cookie import (
-    generate_cookiecutter_project, load_cookiecutter_project)
+    generate_cookiecutter_project,
+    load_cookiecutter_project,
+)
 from spyder.utils.icon_manager import ima
 from spyder.widgets.config import SpyderConfigPage
+from spyder.config.base import running_under_pytest
+from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 
 class Namespace:
@@ -56,8 +73,7 @@ class CookiecutterDialog(QtWidgets.QDialog):
         super().__init__(parent)
 
         self._widget = CookiecutterWidget(
-            self, cookiecutter_settings,
-            pre_gen_code
+            self, cookiecutter_settings, pre_gen_code
         )
         self._info_label = QtWidgets.QLabel()
         self._validate_button = QtWidgets.QPushButton("Validate")
@@ -127,8 +143,48 @@ class CookiecutterWidget(SpyderConfigPage):
         # Attributes
         self._parent = parent
         self.project_path = project_path
-        cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
-            self.project_path)
+        token = None
+        # Get token from keyring
+        try:
+            token = keyring.get_password("github", "token")
+        except Exception:
+            pass
+        try:
+            cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
+                self.project_path, token
+            )
+        except (
+            BadCredentialsException,
+            RateLimitExceededException,
+            RetryError,
+            MaxRetryError,
+        ):
+            if not running_under_pytest():
+                credentials = DlgGitHubLogin.login(self._parent, token, True)
+
+                if credentials["token"]:
+                    try:
+                        keyring.set_password(
+                            "github", "token", credentials["token"]
+                        )
+                        cookiecutter_settings, pre_gen_code = (
+                            load_cookiecutter_project(
+                                self.project_path, credentials["token"]
+                            )
+                        )
+                    except Exception:
+                        if self._show_msgbox:
+                            QMessageBox.warning(
+                                self._parent,
+                                _("Failed to store token"),
+                                _(
+                                    "It was not possible to securely "
+                                    "save your token. You will be "
+                                    "prompted for your Github token "
+                                    "next time you want to create "
+                                    "a project."
+                                ),
+                            )
         self._cookiecutter_settings = cookiecutter_settings
         self._pre_gen_code = pre_gen_code
         self._widgets = OrderedDict()
@@ -148,7 +204,8 @@ class CookiecutterWidget(SpyderConfigPage):
         # Layout
         self._form_layout = QtWidgets.QFormLayout()
         self._form_layout.setFieldGrowthPolicy(
-            self._form_layout.AllNonFixedFieldsGrow)
+            self._form_layout.AllNonFixedFieldsGrow
+        )
         self._form_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self._form_layout)
 
@@ -160,12 +217,14 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         if self._cookiecutter_settings:
             # https://cookiecutter.readthedocs.io/en/latest/advanced/template_extensions.html
-            self._extensions = self._cookiecutter_settings.pop("_extensions",
-                                                               [])
+            self._extensions = self._cookiecutter_settings.pop(
+                "_extensions", []
+            )
 
             # https://cookiecutter.readthedocs.io/en/latest/advanced/copy_without_render.html
             self._copy_without_render = self._cookiecutter_settings.pop(
-                "_copy_without_render", [])
+                "_copy_without_render", []
+            )
 
             # https://cookiecutter.readthedocs.io/en/latest/advanced/new_line_characters.html
             self._new_lines = self._cookiecutter_settings.pop("_new_lines", "")
@@ -186,10 +245,13 @@ class CookiecutterWidget(SpyderConfigPage):
                         template = Template(list_value)
                         rendered_value = template.render(
                             cookiecutter=Namespace(
-                                **self._cookiecutter_settings))
+                                **self._cookiecutter_settings
+                            )
+                        )
 
                         are_rendered_values.append(
-                            list_value != rendered_value)
+                            list_value != rendered_value
+                        )
 
                 if any(are_rendered_values):
                     self._rendered_settings[setting] = value
@@ -229,25 +291,32 @@ class CookiecutterWidget(SpyderConfigPage):
                 for choice in value:
                     choices.append((str(choice).capitalize(), choice))
             # https://cookiecutter.readthedocs.io/en/latest/advanced/choice_variables.html
-            widget = self.create_combobox(text=label, option=setting,
-                                          choices=choices)
+            widget = self.create_combobox(
+                text=label, option=setting, choices=choices
+            )
             widget_in = widget.combobox
         elif isinstance(value, str):
             if value.lower() in ["y", "yes", "true", "n", "no", "false"]:
                 field_type = "checkbox"
                 val = self._parse_bool_text(value)
-                widget = self.create_checkbox(text=label, option=setting,
-                                              default=val)
+                widget = self.create_checkbox(
+                    text=label, option=setting, default=val
+                )
                 widget_in = widget.checkbox
                 widget_in.setChecked(val)
             else:
                 field_type = "textbox"
-                widget = self.create_lineedit(text=label, option=setting,
-                                              default='', status_icon=ima.icon("error"))
+                widget = self.create_lineedit(
+                    text=label,
+                    option=setting,
+                    default="",
+                    status_icon=ima.icon("error"),
+                )
                 widget_in = widget.textbox
         else:
             raise Exception(
-                "Cookiecutter option '{}'cannot be processed".format(setting))
+                "Cookiecutter option '{}'cannot be processed".format(setting)
+            )
 
         self._widgets[setting] = (field_type, widget_in, widget)
 
@@ -270,7 +339,7 @@ class CookiecutterWidget(SpyderConfigPage):
             message = message.replace("\r\n", " ")
             message = message.replace("\n", " ")
             return message
-            #self.sig_validated.emit(self._process.exitCode(), message)
+            # self.sig_validated.emit(self._process.exitCode(), message)
 
     # --- API
     # ------------------------------------------------------------------------
@@ -282,8 +351,9 @@ class CookiecutterWidget(SpyderConfigPage):
         self._check_jinja_options()
 
         for setting, value in self._cookiecutter_settings.items():
-            if (not setting.startswith(("__", "_")) and
-                    not self._is_jinja(setting)):
+            if not setting.startswith(("__", "_")) and not self._is_jinja(
+                setting
+            ):
                 widget, widget_in = self._create_field(setting, value)
                 self._form_layout.addRow(widget)
         self.render()
@@ -297,7 +367,8 @@ class CookiecutterWidget(SpyderConfigPage):
             if not setting.startswith(("__", "_")):
                 template = Template(value)
                 val = template.render(
-                    cookiecutter=Namespace(**cookiecutter_settings))
+                    cookiecutter=Namespace(**cookiecutter_settings)
+                )
                 self._rendered_values[setting] = val
 
     def get_values(self):
@@ -315,7 +386,9 @@ class CookiecutterWidget(SpyderConfigPage):
                 else:
                     type, widget_in, widget = self._widgets[setting]
                     if type == "combobox":
-                        cookiecutter_settings[setting] = widget_in.currentData()
+                        cookiecutter_settings[setting] = (
+                            widget_in.currentData()
+                        )
                     elif type == "checkbox":
                         cookiecutter_settings[setting] = widget_in.isChecked()
                     elif type == "textbox":
@@ -323,7 +396,8 @@ class CookiecutterWidget(SpyderConfigPage):
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
         cookiecutter_settings["_copy_without_render"] = (
-            self._copy_without_render)
+            self._copy_without_render
+        )
         cookiecutter_settings["_new_lines"] = self._new_lines
 
         return cookiecutter_settings
@@ -336,12 +410,13 @@ class CookiecutterWidget(SpyderConfigPage):
         self.render()
         cookiecutter_settings = self.get_values()
         for setting, value in cookiecutter_settings.items():
-            if not (setting.startswith(("__", "_")) or
-                    self._is_jinja(setting)):                
+            if not (
+                setting.startswith(("__", "_")) or self._is_jinja(setting)
+            ):
                 type, widget_in, widget = self._widgets[setting]
                 if type == "textbox":
                     widget.status_action.setVisible(False)
-                    if value.strip() == '':
+                    if value.strip() == "":
                         widget.status_action.setVisible(True)
                         widget.status_action.setToolTip(_("This is empty"))
                         reasons["missing_info"] = True
@@ -351,7 +426,8 @@ class CookiecutterWidget(SpyderConfigPage):
             cookiecutter_settings = self.get_values()
             template = Template(self._pre_gen_code)
             val = template.render(
-                cookiecutter=Namespace(**cookiecutter_settings))
+                cookiecutter=Namespace(**cookiecutter_settings)
+            )
 
             with open(self._tempfile, "w") as fh:
                 fh.write(val)
@@ -377,9 +453,9 @@ class CookiecutterWidget(SpyderConfigPage):
         return None
 
     def create_project(self, location):
-        status, result = generate_cookiecutter_project(self.project_path,
-                                                       location,
-                                                       self.get_values())
+        status, result = generate_cookiecutter_project(
+            self.project_path, location, self.get_values()
+        )
         return status
 
 
@@ -389,7 +465,9 @@ if __name__ == "__main__":
     app = qapplication()
     dlg = CookiecutterDialog(parent=None)
     spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
-    cookiecutter_settings, pre_gen_code = load_cookiecutter_project(project_path=spyder_url, token="algo")
+    cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
+        project_path=spyder_url, token="algo"
+    )
     dlg.setup(cookiecutter_settings)
     dlg.set_pre_gen_code(pre_gen_code)
     dlg.show()
