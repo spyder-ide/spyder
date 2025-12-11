@@ -17,7 +17,9 @@ from sysconfig import get_path
 
 # Third-party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
-from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton, QTextEdit
+from qtpy.QtWidgets import (
+    QMessageBox, QWidget, QProgressBar, QPushButton, QTextEdit, QGridLayout
+)
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -406,7 +408,9 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
                 "\n*** STDERR ***",
                 error.stderr.strip(),
             ]
-            error_messagebox(self, error_msg, details="\n".join(details))
+            detailed_error_messagebox(
+                self, error_msg, details="\n".join(details)
+            )
 
     def _start_download(self):
         """
@@ -661,11 +665,56 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         subprocess.Popen(" ".join(cmd), **kwargs)
 
 
-class UpdateMessageBox(QMessageBox, SpyderFontsMixin):
+class UpdateMessageBox(QMessageBox):
     def __init__(self, icon=None, text=None, parent=None):
         super().__init__(icon=icon, text=text, parent=parent)
         self.setWindowModality(Qt.NonModal)
         self.setTextFormat(Qt.RichText)
+
+
+class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
+    def __init__(self, icon=None, text=None, parent=None, details=None):
+        super().__init__(icon=icon, text=text, parent=parent)
+        self.setSizeGripEnabled(True)
+        self.details = None
+        self.setDetailedText(details)
+
+    def setDetailedText(self, details=None):
+        """
+        Overload setDetailedText
+
+        Note: it is critical that QGridLayout.setRowStretch is called after
+        QMessageBox.setDetailedText in order for the stretch behavior to work
+        properly. That is the primary reason for overloading setDetailedText.
+        """
+        if self.details is not None:
+            self.details.setText(details)
+            return
+
+        super().setDetailedText(details)
+        self.details = self.findChild(QTextEdit)
+
+        self.details.setFont(self.get_font(SpyderFontType.Monospace))
+        self.details.setLineWrapMode(self.details.NoWrap)
+        self.details.setMinimumSize(400, 110)
+        self.details.setLineWrapMode(0)
+
+        qgl = self.findChild(QGridLayout)
+        qgl.setRowStretch(1, 0)
+        qgl.setRowStretch(3, 100)  # QTextEdit should take all the stretch
+
+    def event(self, event):
+        if event.type() in (event.LayoutRequest, event.Resize):
+            if event.type() == event.Resize:
+                res = super().event(event)
+            else:
+                res = False
+            if self.details is not None:
+                self.details.setMaximumSize(10000, 10000)
+                self.setMaximumSize(10000, 10000)
+
+            return res
+        return super().event(event)
 
 
 class UpdateMessageCheckBox(MessageCheckBox):
@@ -714,19 +763,20 @@ class ProgressDialog(UpdateMessageBox):
         self._progress_bar.setValue(progress)
 
 
-def error_messagebox(parent, error_msg, checkbox=False, details=""):
+def error_messagebox(parent, error_msg, checkbox=False):
     # Use a message box with a checkbox to disable updates when required, or a
     # standard one otherwise.
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     box = box_class(icon=QMessageBox.Warning, text=error_msg, parent=parent)
-    if details:
-        box.setDetailedText(details)
-        qte = box.findChild(QTextEdit)
-        qte.setFont(box.get_font(SpyderFontType.Monospace))
-        qte.setLineWrapMode(qte.NoWrap)
     box.setWindowTitle(_("Spyder update error"))
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
+    box.show()
+    return box
+
+
+def detailed_error_messagebox(parent, msg, details):
+    box = DetailedUpdateMessageBox(
+        icon=QMessageBox.Warning, text=msg, parent=parent, details=details
+    )
     box.show()
     return box
 
@@ -736,8 +786,6 @@ def info_messagebox(parent, message, version=None, checkbox=False):
     message = HEADER.format(version) + message if version else message
     box = box_class(icon=QMessageBox.Information, text=message, parent=parent)
     box.setWindowTitle(_("New Spyder version"))
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
     box.show()
     return box
 
@@ -824,5 +872,4 @@ def manual_update_messagebox(parent, latest_release, channel):
         "<br><br>For more information, visit our "
         "<a href=\"{}\">installation guide</a>."
     ).format(URL_I)
-
-    info_messagebox(parent, msg)
+    return info_messagebox(parent, msg)
