@@ -7768,5 +7768,49 @@ def test_kernel_call_handlers_after_restart(main_window, qtbot):
     assert handlers_before_restart == handlers_after_restart
 
 
+@flaky(max_runs=5)
+def test_view_own_class_in_variable_explorer(main_window, qtbot):
+    """
+    Test that own classes can be viewed in the Variable Explorer if the path
+    for the parent of the module that contains them is added to the Pythonpath
+    manager.
+
+    Regression test for spyder-ide/spyder#15998.
+    """
+    ipyconsole = main_window.get_plugin(Plugins.IPythonConsole)
+    ppm = main_window.get_plugin(Plugins.PythonpathManager)
+
+    # Wait until the kernel is ready
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Run test file
+    test_file = osp.join(LOCATION, "own_class", "script", "script.py").replace(
+        "\\", "/"
+    )
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%runfile {test_file}")
+
+    # Trying to get the value for the own class instance should fail at this
+    # point
+    with pytest.raises(ValueError):
+        shell.get_value('mc_instance')
+
+    # Add own_class directory to the Pythonpath manager
+    ppm.show_path_manager()
+    qtbot.wait(500)
+
+    ppm.path_manager_dialog.add_path(directory=osp.join(LOCATION, "own_class"))
+
+    with qtbot.waitSignal(ppm.sig_pythonpath_changed, timeout=1000):
+        ppm.path_manager_dialog.accept()
+
+    # Getting the instance should work now
+    instance_value = shell.get_value('mc_instance')
+    assert instance_value.var == 123
+
+
 if __name__ == "__main__":
     pytest.main()
