@@ -18,7 +18,12 @@ from sysconfig import get_path
 # Third-party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import (
-    QMessageBox, QWidget, QProgressBar, QPushButton, QTextEdit, QGridLayout
+    QGridLayout,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QTextEdit,
+    QWidget,
 )
 from spyder_kernels.utils.pythonenv import is_conda_env
 
@@ -681,11 +686,11 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
 
     def setDetailedText(self, details=None):
         """
-        Overload setDetailedText
+        Override setDetailedText.
 
-        Note: it is critical that QGridLayout.setRowStretch is called after
+        Note: It is critical that QGridLayout.setRowStretch is called after
         QMessageBox.setDetailedText in order for the stretch behavior to work
-        properly. That is the primary reason for overloading setDetailedText.
+        properly. That is the primary reason for overriding setDetailedText.
         """
         if self.details is not None:
             self.details.setText(details)
@@ -706,14 +711,14 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
     def event(self, event):
         if event.type() in (event.LayoutRequest, event.Resize):
             if event.type() == event.Resize:
-                res = super().event(event)
+                result = super().event(event)
             else:
-                res = False
+                result = False
             if self.details is not None:
                 self.details.setMaximumSize(10000, 10000)
                 self.setMaximumSize(10000, 10000)
 
-            return res
+            return result
         return super().event(event)
 
 

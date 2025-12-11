@@ -31,7 +31,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 from spyder import __version__
 from spyder.api.translations import _
 from spyder.config.base import (
-    is_conda_based_app, is_installed_all_users, running_in_ci
+    is_conda_based_app,
+    is_installed_all_users,
+    running_in_ci
 )
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
@@ -626,7 +628,7 @@ class WorkerUpdateUpdater(BaseWorker):
                 self._install_update()
         except subprocess.CalledProcessError as err:
             self.error = err
-            logger.error(err, exc_info=err)
+            logger.debug(err, exc_info=err)
         except Exception as err:
             # Send untracked errors to our error reporter
             self.error = str(err)
