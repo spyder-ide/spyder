@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Spyder API plugin registration decorators.
@@ -57,7 +58,7 @@ def on_plugin_available(
     if plugin is None:
         # Use special __all identifier to signal that the function
         # observes all plugins listed as dependencies.
-        plugin = '__all'
+        plugin = "__all"
 
     func._plugin_listen = plugin
     return func
@@ -109,9 +110,11 @@ def on_plugin_teardown(
         return functools.partial(on_plugin_teardown, plugin=plugin)
 
     if plugin is None:
-        raise ValueError('on_plugin_teardown must have a well defined '
-                         'plugin keyword argument value, '
-                         'e.g., plugin=Plugins.Editor')
+        raise ValueError(
+            "on_plugin_teardown must have a well defined "
+            "plugin keyword argument value, "
+            "e.g., plugin=Plugins.Editor"
+        )
 
     func._plugin_teardown = plugin
     return func
