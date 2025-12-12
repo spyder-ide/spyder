@@ -637,7 +637,7 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 def is_conda_based_app(pyexec=sys.executable):
     """
     Check if Spyder is running from the conda-based installer by looking for
-    the `spyder-menu.json` file.
+    the `conda_based_app` file.
 
     If a Python executable is provided, checks if it is in a conda-based
     installer environment or the root environment thereof.
@@ -656,6 +656,20 @@ def is_conda_based_app(pyexec=sys.executable):
         return True
     else:
         return False
+
+
+def is_installed_all_users():
+    """
+    Check if conda-based installer is installed for all users.
+    Only for conda-based installers.
+    """
+    real_pyexec = osp.realpath(sys.executable)  # may be symlink
+
+    if not is_conda_based_app(real_pyexec):
+        return False
+
+    root = real_pyexec.split("envs")[0]
+    return not osp.exists(root + ".nonadmin")
 
 
 #==============================================================================
