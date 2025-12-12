@@ -709,12 +709,15 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
         qgl.setRowStretch(3, 100)  # QTextEdit should take all the stretch
 
     def event(self, event):
+        """Override to allow resizing the dialog when details are visible."""
         if event.type() in (event.LayoutRequest, event.Resize):
             if event.type() == event.Resize:
                 result = super().event(event)
             else:
                 result = False
-            if self.details is not None:
+            
+            # Allow resize only if details is available and visible.
+            if self.details and self.details.isVisible():
                 self.details.setMaximumSize(10000, 10000)
                 self.setMaximumSize(10000, 10000)
 
