@@ -17,14 +17,22 @@ from sysconfig import get_path
 
 # Third-party imports
 from qtpy.QtCore import Qt, QThread, QTimer, Signal
-from qtpy.QtWidgets import QMessageBox, QWidget, QProgressBar, QPushButton
+from qtpy.QtWidgets import (
+    QGridLayout,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QTextEdit,
+    QWidget,
+)
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
 from spyder import __version__
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
-from spyder.config.base import is_conda_based_app
+from spyder.config.base import is_conda_based_app, is_installed_all_users
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
     UpdateType,
@@ -36,7 +44,11 @@ from spyder.plugins.updatemanager.workers import (
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import find_conda, is_anaconda_pkg
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.programs import get_temp_dir, is_program_installed
+from spyder.utils.programs import (
+    get_temp_dir,
+    is_program_installed,
+    find_program
+)
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -365,7 +377,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         )
 
         self.update_updater_worker.sig_ready.connect(
-            lambda x: self._start_download() if x else None
+            self._process_update_updater
         )
         self.update_updater_worker.sig_ready.connect(
             self.update_updater_thread.quit
@@ -378,6 +390,32 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             self.update_updater_worker.start
         )
         self.update_updater_thread.start()
+
+    def _process_update_updater(self):
+        """Process possible errors when updating the updater"""
+        error = self.update_updater_worker.error
+        if error is None:
+            self._start_download()
+            return
+
+        self.set_status(PENDING)
+        if self.progress_dialog is not None:
+            self.progress_dialog.accept()
+            self.progress_dialog = None
+
+        if isinstance(error, subprocess.CalledProcessError):
+            error_msg = _("Error updating Spyder-updater.")
+            details = [
+                "*** COMMAND ***",
+                error.cmd.strip(),
+                "\n*** STDOUT ***",
+                error.output.strip(),
+                "\n*** STDERR ***",
+                error.stderr.strip(),
+            ]
+            detailed_error_messagebox(
+                self, error_msg, details="\n".join(details)
+            )
 
     def _start_download(self):
         """
@@ -612,7 +650,24 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         cmd = [updater_path, "--update-info-file", info_file]
         if self.restart_spyder:
             cmd.append("--start-spyder")
-        subprocess.Popen(" ".join(cmd), shell=True)
+
+        kwargs = dict(shell=True)
+        if os.name == "nt" and is_installed_all_users():
+            # Elevate UAC
+            kwargs.update(executable=find_program("powershell"))
+            cmd = [
+                "start",
+                "-FilePath",
+                f'"{updater_path}"',
+                "-ArgumentList",
+                ",".join([f"'{a}'" for a in cmd[1:]]),
+                "-WindowStyle",
+                "Hidden",
+                "-Verb",
+                "RunAs",
+            ]
+
+        subprocess.Popen(" ".join(cmd), **kwargs)
 
 
 class UpdateMessageBox(QMessageBox):
@@ -620,6 +675,54 @@ class UpdateMessageBox(QMessageBox):
         super().__init__(icon=icon, text=text, parent=parent)
         self.setWindowModality(Qt.NonModal)
         self.setTextFormat(Qt.RichText)
+
+
+class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
+    def __init__(self, icon=None, text=None, parent=None, details=None):
+        super().__init__(icon=icon, text=text, parent=parent)
+        self.setSizeGripEnabled(True)
+        self.details = None
+        self.setDetailedText(details)
+
+    def setDetailedText(self, details=None):
+        """
+        Override setDetailedText.
+
+        Note: It is critical that QGridLayout.setRowStretch is called after
+        QMessageBox.setDetailedText in order for the stretch behavior to work
+        properly. That is the primary reason for overriding setDetailedText.
+        """
+        if self.details is not None:
+            self.details.setText(details)
+            return
+
+        super().setDetailedText(details)
+        self.details = self.findChild(QTextEdit)
+
+        self.details.setFont(self.get_font(SpyderFontType.Monospace))
+        self.details.setLineWrapMode(self.details.NoWrap)
+        self.details.setMinimumSize(400, 110)
+        self.details.setLineWrapMode(0)
+
+        qgl = self.findChild(QGridLayout)
+        qgl.setRowStretch(1, 0)
+        qgl.setRowStretch(3, 100)  # QTextEdit should take all the stretch
+
+    def event(self, event):
+        """Override to allow resizing the dialog when details are visible."""
+        if event.type() in (event.LayoutRequest, event.Resize):
+            if event.type() == event.Resize:
+                result = super().event(event)
+            else:
+                result = False
+            
+            # Allow resize only if details is available and visible.
+            if self.details and self.details.isVisible():
+                self.details.setMaximumSize(10000, 10000)
+                self.setMaximumSize(10000, 10000)
+
+            return result
+        return super().event(event)
 
 
 class UpdateMessageCheckBox(MessageCheckBox):
@@ -674,8 +777,14 @@ def error_messagebox(parent, error_msg, checkbox=False):
     box_class = UpdateMessageCheckBox if checkbox else UpdateMessageBox
     box = box_class(icon=QMessageBox.Warning, text=error_msg, parent=parent)
     box.setWindowTitle(_("Spyder update error"))
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
+    box.show()
+    return box
+
+
+def detailed_error_messagebox(parent, msg, details):
+    box = DetailedUpdateMessageBox(
+        icon=QMessageBox.Warning, text=msg, parent=parent, details=details
+    )
     box.show()
     return box
 
@@ -685,8 +794,6 @@ def info_messagebox(parent, message, version=None, checkbox=False):
     message = HEADER.format(version) + message if version else message
     box = box_class(icon=QMessageBox.Information, text=message, parent=parent)
     box.setWindowTitle(_("New Spyder version"))
-    box.setStandardButtons(QMessageBox.Ok)
-    box.setDefaultButton(QMessageBox.Ok)
     box.show()
     return box
 
@@ -773,5 +880,4 @@ def manual_update_messagebox(parent, latest_release, channel):
         "<br><br>For more information, visit our "
         "<a href=\"{}\">installation guide</a>."
     ).format(URL_I)
-
-    info_messagebox(parent, msg)
+    return info_messagebox(parent, msg)
