@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2025-12-12 18:56-0500\n"
-"PO-Revision-Date: 2025-12-13 00:06\n"
+"PO-Revision-Date: 2025-12-13 16:00\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3219,11 +3219,11 @@ msgstr "文件夹名："
 
 #: spyder/plugins/explorer/widgets/explorer.py:1392
 msgid "Extension:"
-msgstr ""
+msgstr "扩展："
 
 #: spyder/plugins/explorer/widgets/explorer.py:1417
 msgid "File name:"
-msgstr ""
+msgstr "文件名："
 
 #: spyder/plugins/explorer/widgets/explorer.py:1501
 msgid "File/Folder copy error"
@@ -3299,7 +3299,7 @@ msgstr "新的模块"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1840
 msgid "Module name:"
-msgstr ""
+msgstr "模块名："
 
 #: spyder/plugins/explorer/widgets/explorer.py:1907 spyder/plugins/explorer/widgets/remote_explorer.py:928
 msgid "Filter filenames"
@@ -5247,7 +5247,7 @@ msgstr "显示绘图大纲。"
 
 #: spyder/plugins/plots/widgets/main_widget.py:132 spyder/plugins/plots/widgets/main_widget.py:134
 msgid "Set maximum number of plots"
-msgstr ""
+msgstr "设置绘图的最大数量"
 
 #: spyder/plugins/plots/widgets/main_widget.py:139
 msgid "Fit plots to pane"
@@ -5287,11 +5287,11 @@ msgstr "下一幅图"
 
 #: spyder/plugins/plots/widgets/main_widget.py:522
 msgid "Max plots"
-msgstr ""
+msgstr "最大绘图数"
 
 #: spyder/plugins/plots/widgets/main_widget.py:523
 msgid "Set maximum number of plots: "
-msgstr ""
+msgstr "设置绘图的最大数量： "
 
 #: spyder/plugins/preferences/plugin.py:280
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
@@ -6913,7 +6913,7 @@ msgstr "正在更新 Spyder 的更新程序..."
 
 #: spyder/plugins/updatemanager/widgets/update.py:407
 msgid "Error updating Spyder-updater."
-msgstr ""
+msgstr "更新 Spyder-updater 时发生错误。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:446
 msgid "Downloading Spyder {} ..."
