@@ -5,13 +5,12 @@
 # (see spyder/__init__.py for details)
 
 # Standard library imports
+from __future__ import annotations
 from collections.abc import MutableSequence
 import logging
-from typing import Optional
 
 # Third party imports
-from qtpy.QtCore import (QDateTime, QFileInfo, QObject, QThread, QTimer,
-                         Signal)
+from qtpy.QtCore import QDateTime, QFileInfo, QObject, QThread, QTimer, Signal
 from qtpy.QtWidgets import QApplication
 
 # Local imports
@@ -129,8 +128,15 @@ class FileInfo(QObject):
     sig_show_object_info = Signal(bool)
     sig_show_completion_object_info = Signal(str, str)
 
-    def __init__(self, filename, encoding, editor, new, threadmanager,
-                 remote_handle: Optional[RemoteFileHandle] = None):
+    def __init__(
+        self,
+        filename,
+        encoding,
+        editor,
+        new,
+        threadmanager,
+        remote_handle: RemoteFileHandle | None = None,
+    ):
         """Initialize the FileInfo."""
         QObject.__init__(self)
         self.threadmanager = threadmanager
@@ -140,7 +146,7 @@ class FileInfo(QObject):
         self.encoding = encoding
         self.editor = editor
         self.path = []
-        self.remote_handle: Optional[RemoteFileHandle] = None
+        self.remote_handle: RemoteFileHandle | None = None
         self.is_remote = False
 
         self.classes = (filename, None, None)
@@ -173,10 +179,7 @@ class FileInfo(QObject):
         positions = tuple(cursor.position() for cursor in all_cursors)
         self.text_changed_at.emit(self.filename, positions)
 
-    # ---- Remote helpers
-    def apply_remote_metadata(
-        self, handle: Optional[RemoteFileHandle]
-    ) -> None:
+    def apply_remote_metadata(self, handle: RemoteFileHandle | None) -> None:
         """Attach remote metadata to this file info."""
         if handle is None:
             if self.is_remote:
@@ -191,26 +194,31 @@ class FileInfo(QObject):
             handle.last_modified
         )
 
-    def refresh_lastmodified(self, timestamp: Optional[float] = None) -> None:
+    def refresh_lastmodified(self, timestamp: float | None = None) -> None:
         """Update last modified timestamp respecting remote/local state."""
         if self.is_remote:
             if self.remote_handle is not None and timestamp is not None:
                 self.remote_handle.last_modified = timestamp
+
             self.lastmodified = self._timestamp_to_qdatetime(
-                self.remote_handle.last_modified if self.remote_handle else None
+                self.remote_handle.last_modified
+                if self.remote_handle
+                else None
             )
         else:
             self.lastmodified = QFileInfo(self.filename).lastModified()
 
     @staticmethod
-    def _timestamp_to_qdatetime(timestamp: Optional[float]) -> QDateTime:
+    def _timestamp_to_qdatetime(timestamp: float | None) -> QDateTime:
         """Convert a float timestamp into a QDateTime."""
         if timestamp is None:
             return QDateTime.currentDateTime()
+
         try:
             value = float(timestamp)
         except (TypeError, ValueError):
             return QDateTime.currentDateTime()
+
         msecs = int(round(value * 1000))
         return QDateTime.fromMSecsSinceEpoch(msecs)
 

@@ -27,8 +27,16 @@ from qtpy.compat import from_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
-from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QMessageBox, QSplitter, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QActionGroup,
+    QApplication,
+    QDialog,
+    QMessageBox,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -806,7 +814,11 @@ class EditorMainWidget(PluginMainWidget):
 
     def _handle_remote_load_error(self, filename, error):
         """Notify users when a remote file couldn't be loaded."""
-        logger.exception("Failed to open remote file %s", filename)
+        logger.debug(
+            "Failed to open remote file {} with error\n\n{}".format(
+                filename, error
+            )
+        )
         QMessageBox.critical(
             self,
             _("Remote file error"),
@@ -1369,6 +1381,7 @@ class EditorMainWidget(PluginMainWidget):
         # component
         self.autosave.register_autosave_for_stack(editorstack.autosave)
 
+        # For remote files
         editorstack.set_remote_helper(self._remote_helper)
 
     def unregister_editorstack(self, editorstack):
@@ -1926,10 +1939,14 @@ class EditorMainWidget(PluginMainWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where,
-                    processevents=processevents, text=remote_text,
+                    filename,
+                    set_current=False,
+                    add_where=add_where,
+                    processevents=processevents,
+                    text=remote_text,
                     encoding_name=remote_encoding,
-                    remote_handle=remote_handle)
+                    remote_handle=remote_handle,
+                )
 
                 # This can happen when it was not possible to load filename
                 # from disk.

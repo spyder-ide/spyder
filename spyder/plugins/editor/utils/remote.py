@@ -3,14 +3,15 @@
 # Copyright © Spyder Project Contributors
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-"""Utilities to interact with remote files through Spyder Remote Client."""
+
+"""Utilities to interact with remote files through the Remote Client plugin."""
 
 from __future__ import annotations
 
 # Standard library imports
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -33,8 +34,8 @@ class RemoteFileHandle:
 
     client_id: str
     path: PurePosixPath
-    last_modified: Optional[float] = None
-    size: Optional[int] = None
+    last_modified: float | None = None
+    size: int | None = None
 
     def clone(self) -> RemoteFileHandle:
         """Return an independent copy of this handle."""
@@ -51,7 +52,7 @@ class RemoteFileHandle:
         return f"{self.client_id}{self.URI_SEP}{self.path}"
 
     @classmethod
-    def from_uri(cls, uri: str) -> Optional[RemoteFileHandle]:
+    def from_uri(cls, uri: str) -> RemoteFileHandle | None:
         """Return a RemoteFileHandle if ``uri`` encodes one."""
         if not isinstance(uri, str) or cls.URI_SEP not in uri:
             return None
@@ -63,7 +64,9 @@ class RemoteFileHandle:
 
         normalized = f"/{remainder.lstrip('/')}"
 
-        return RemoteFileHandle(client_id=prefix, path=PurePosixPath(normalized))
+        return RemoteFileHandle(
+            client_id=prefix, path=PurePosixPath(normalized)
+        )
 
 
 class RemoteFileHelper:
@@ -73,43 +76,54 @@ class RemoteFileHelper:
 
     def __init__(self, remote_client: RemoteClient):
         self.remote_client = remote_client
-        self._api_instances: Dict[str, SpyderRemoteFileServicesAPI] = {}
+        self._api_instances: dict[str, SpyderRemoteFileServicesAPI] = {}
+
         self._read_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._read_async)
+
         self._write_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._write_async)
+
         self._info_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._info_async)
+
         self._exists_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._exists_async)
+
         self._is_writable_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._is_writable_async)
+
         self._close_runner = AsyncDispatcher(
             loop=self.EVENT_LOOP_ID, early_return=False
         )(self._close_async)
 
-    # ------------------------------------------------------------------
-    # Public helpers
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # ---- Public helpers
+    # -------------------------------------------------------------------------
     @classmethod
-    def get_handle(cls, candidate: str) -> Optional[RemoteFileHandle]:
+    def get_handle(cls, candidate: str) -> RemoteFileHandle | None:
         """Return a RemoteFileHandle if ``candidate`` encodes one."""
         return RemoteFileHandle.from_uri(candidate)
 
     def get_display_name(self, handle: RemoteFileHandle) -> str:
         """Return a user-friendly representation of the remote file."""
-        return f"{self.remote_client.get_server_name(handle.client_id)}{handle.URI_SEP}{handle.path}"
+        return (
+            f"{self.remote_client.get_server_name(handle.client_id)}"
+            f"{handle.URI_SEP}{handle.path}"
+        )
 
     def read_text(
         self, handle: RemoteFileHandle
-    ) -> Tuple[str, str, RemoteFileHandle]:
+    ) -> tuple[str, str, RemoteFileHandle]:
         """Return file contents, encoding and updated metadata."""
-        data, info = self._read_runner(handle.client_id, handle.path.as_posix())
+        data, info = self._read_runner(
+            handle.client_id, handle.path.as_posix()
+        )
         text, detected_encoding = encoding.decode(data)
         updated = handle.clone()
         updated.last_modified = info.get("mtime")
@@ -137,7 +151,7 @@ class RemoteFileHelper:
             self._exists_runner(handle.client_id, handle.path.as_posix())
         )
 
-    def stat(self, handle: RemoteFileHandle) -> Optional[RemoteFileHandle]:
+    def stat(self, handle: RemoteFileHandle) -> RemoteFileHandle | None:
         """Return updated metadata if available."""
         info = self._info_runner(handle.client_id, handle.path.as_posix())
         if info is None:
@@ -159,9 +173,9 @@ class RemoteFileHelper:
             self._close_runner(api)
         self._api_instances.clear()
 
-    # ------------------------------------------------------------------
-    # Async runners
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # ---- Async runners
+    # -------------------------------------------------------------------------
     async def _read_async(self, client_id: str, posix_path: str):
         api = await self._ensure_api_async(client_id)
         remote_file = await api.open(posix_path, mode="rb")
@@ -200,7 +214,9 @@ class RemoteFileHelper:
         except (RemoteOSError, RemoteFileServicesError):
             return False
 
-    async def _is_writable_async(self, client_id: str, posix_path: str) -> bool:
+    async def _is_writable_async(
+        self, client_id: str, posix_path: str
+    ) -> bool:
         api = await self._ensure_api_async(client_id)
         try:
             remote_file = await api.open(posix_path, mode="ab")

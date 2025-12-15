@@ -220,7 +220,8 @@ class ExplorerWidget(PluginMainWidget):
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
         self.remote_treewidget.sig_open_file_requested.connect(
-            self.sig_open_file_requested)
+            self.sig_open_file_requested
+        )
         self.treewidget.sig_module_created.connect(self.sig_module_created)
         self.treewidget.sig_open_interpreter_requested.connect(
             self.sig_open_interpreter_requested)
