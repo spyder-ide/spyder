@@ -103,8 +103,7 @@ jobs:
         with:
           conda-remove-defaults: "true"
           auto-activate-base: false
-          python-version: ${{ matrix.PYTHON_VERSION }}
-          miniconda-version: "latest"
+          miniconda-version: "py312_25.1.1-2"
           channels: conda-forge
 
       - name: Create conda test environment
