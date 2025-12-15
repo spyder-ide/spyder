@@ -104,6 +104,7 @@ jobs:
           conda-remove-defaults: "true"
           auto-activate-base: false
           installer-url: https://repo.anaconda.com/miniconda/Miniconda3-py312_25.1.1-2-Windows-x86_64.exe
+          channels: conda-forge
 
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'

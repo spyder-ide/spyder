@@ -113,6 +113,7 @@ jobs:
           conda-remove-defaults: "true"
           auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
+          channels: conda-forge
 
       - name: Create conda test environment
         uses: mamba-org/setup-micromamba@v2
