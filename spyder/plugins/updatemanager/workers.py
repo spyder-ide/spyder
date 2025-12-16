@@ -291,6 +291,11 @@ class UpdateDownloadError(Exception):
     pass
 
 
+class UpdateUpdaterUACCancelled(Exception):
+    """UAC elevation was cancelled"""
+    pass
+
+
 class BaseWorker(QObject):
     """Base worker class for the updater"""
 
@@ -597,6 +602,16 @@ class WorkerUpdateUpdater(BaseWorker):
 
         # Check for errors
         if os.name == "nt":
+            # Stdout/err is only captured for the high-level subprocess.
+            # If there is an error here, it will only be if the user
+            # cancelled the UAC elevation
+            try:
+                proc.check_returncode()
+            except subprocess.CalledProcessError as err:
+                raise UpdateUpdaterUACCancelled(err.stderr)
+
+            # Stdout/err is not captured by subprocess for the updater_script
+            # Check for errors there by reading the logs
             updater_stdout = osp.join(installer_dir, "updater_stdout.log")
             updater_stderr = osp.join(installer_dir, "updater_stderr.log")
             with open(updater_stderr, "r") as f:
@@ -608,7 +623,7 @@ class WorkerUpdateUpdater(BaseWorker):
                     1, " ".join(cmd), output=stdout, stderr=stderr
                 )
         else:
-            proc.check_output()
+            proc.check_returncode()
 
     def start(self):
         """Main method of the worker."""
@@ -626,9 +641,12 @@ class WorkerUpdateUpdater(BaseWorker):
             elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()
+        except UpdateUpdaterUACCancelled as err:
+            self.error = err
+            logger.debug(err)
         except subprocess.CalledProcessError as err:
             self.error = err
-            logger.debug(err, exc_info=err)
+            logger.debug(err)
         except Exception as err:
             # Send untracked errors to our error reporter
             self.error = str(err)
