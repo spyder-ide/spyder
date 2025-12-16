@@ -7,6 +7,18 @@
 
 """
 Spyder API plugin registration mixins.
+
+.. deprecated:: 6.2
+
+    This module will be moved to a private :mod:`!spyder.api._mixins` module
+    and become a deprecated alias, raising a :exc:`DeprecationWarning`,
+    that will be removed in Spyder 7.0.
+
+    It is a private implementation detail of the plugin decorators in
+    :mod:`spyder.api.plugin_registration.decorators`, and wasn't designed
+    or intended to be used directly by external code. Plugins access its
+    functionality through the :class:`~spyder.api.plugins.SpyderPluginV2`
+    class instead.
 """
 
 from __future__ import annotations
@@ -33,11 +45,12 @@ class SpyderPluginObserver:
     Normally inherited and initialized automatically through
     :class:`~spyder.api.plugins.SpyderPluginV2` rather than used directly.
 
-    .. note::
+    .. caution::
 
         This mixin will only operate over the plugins listed under the
-        :attr:`!REQUIRES` and :attr:`!OPTIONAL` class constants of the class
-        inheriting the mixin.
+        :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants
+        of the class inheriting the mixin.
     """
 
     def __init__(self) -> None:
@@ -54,8 +67,9 @@ class SpyderPluginObserver:
         Raises
         ------
         SpyderAPIError
-            If trying to watch a plugin that is not listed in the watching
-            class' :attr:`!REQUIRES` or :attr:`!OPTIONAL` class constants.
+            If trying to watch a plugin that is not listed in the plugin class'
+            :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES`
+            or :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants.
         """
         self._plugin_listeners = {}
         self._plugin_teardown_listeners = {}

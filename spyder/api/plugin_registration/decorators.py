@@ -21,9 +21,13 @@ def on_plugin_available(
     plugin: str | None = None,
 ) -> Callable:
     """
-    Method decorator to handle a plugin becoming available in Spyder.
+    Decorate a method to be called back when a specific plugin becomes ready.
 
-    Methods that use this decorator must have the signature
+    The decorated method must be a member of a
+    :class:`~spyder.api.plugins.SpyderPluginV2` subclass for the decorator
+    to work as intended.
+
+    Methods to be decorated must have the signature
 
     .. code-block:: python
 
@@ -37,7 +41,16 @@ def on_plugin_available(
         def method(self, plugin: str):
             ...
 
-    when observing multiple plugins or all plugins listed as dependencies.
+    when observing all plugins listed as dependencies.
+
+    .. caution::
+
+        Any ``plugin``\\(s) specified must be listed under either the
+        :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants
+        of the plugin's :class:`~spyder.api.plugins.SpyderPluginV2` class.
+        If not, a :exc:`~spyder.api.exceptions.SpyderAPIError` will be raised
+        when the plugin class is initialized.
 
     Parameters
     ----------
@@ -45,12 +58,24 @@ def on_plugin_available(
         Method to decorate, passed automatically when applying the decorator.
     plugin: str | None, optional
         Name of the requested plugin whose availability triggers ``func``.
-        By default, observes all plugins listed as dependencies.
+        If ``None`` (the default), observes all plugins listed as dependencies.
+        Must be listed under the class'
+        ':attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants,
+        or else a :exc:`~spyder.api.exceptions.SpyderAPIError` will be raised.
 
     Returns
     -------
     func: Callable
         The method passed as ``func`` with the plugin listener set up.
+
+    Raises
+    ------
+    SpyderAPIError
+        When initializing a plugin class with decorated methods,
+        if trying to watch a ``plugin`` that is not listed in the plugin class'
+        :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants.
     """
     if func is None:
         return functools.partial(on_plugin_available, plugin=plugin)
@@ -69,7 +94,11 @@ def on_plugin_teardown(
     plugin: str | None = None,
 ) -> Callable:
     """
-    Method decorator to handle plugin teardown in Spyder.
+    Decorate a method to be called back when tearing down a specific plugin.
+
+    The decorated method must be a member of a
+    :class:`~spyder.api.plugins.SpyderPluginV2` subclass for the decorator
+    to work as intended.
 
     The decorator will be called **before** the specified ``plugin`` is deleted
     and also **before** the plugin that uses the decorator is destroyed.
@@ -87,6 +116,15 @@ def on_plugin_teardown(
         is accepted due to technical limitations, it will raise a
         :exc:`ValueError` at runtime.
 
+    .. caution::
+
+        Any ``plugin``\\(s) specified must be listed under either the
+        :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants
+        of the plugin's :class:`~spyder.api.plugins.SpyderPluginV2` class.
+        If not, a :exc:`~spyder.api.exceptions.SpyderAPIError` will be raised
+        when the plugin class is initialized.
+
     Parameters
     ----------
     func: Callable | None, optional
@@ -95,6 +133,10 @@ def on_plugin_teardown(
         Name of the requested plugin whose teardown triggers ``func``.
         While ``None``, the default, is accepted for technical reasons,
         :exc:`ValueError` is raised if a plugin name is not passed.
+        Must be listed under the class'
+        ':attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants,
+        or else a :exc:`~spyder.api.exceptions.SpyderAPIError` will be raised.
 
     Returns
     -------
@@ -105,6 +147,11 @@ def on_plugin_teardown(
     ------
     ValueError
         If an explicit plugin name is not passed to ``plugin``.
+    SpyderAPIError
+        When initializing a plugin class with decorated methods,
+        if trying to watch a ``plugin`` that is not listed in the plugin class'
+        :attr:`~spyder.api.plugins.SpyderPluginV2.REQUIRES` or
+        :attr:`~spyder.api.plugins.SpyderPluginV2.OPTIONAL` class constants.
     """
     if func is None:
         return functools.partial(on_plugin_teardown, plugin=plugin)

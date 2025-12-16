@@ -1,6 +1,21 @@
 # History of changes for Spyder 6
 
-## Version 6.1.2 (2025/12/17)
+## Version 6.1.3 (Unreleased)
+
+### API changes
+
+* The `spyder.api.plugin_registration.mixins` module, with the mixin for
+  handling the `@on_plugin_availible` and `@on_plugin_teardown` decorators
+  in the `SpyderPluginV2` class, is now documented as pending deprecation as
+  a public module, will become an alias of a private `_mixins` module
+  and issue a `DeprecationWarning` in Spyder 6.2, and have the public alias
+  be removed in Spyder 7.0. It is a private implementation detail that wasn't
+  designed or intended to be used directly by external code; plugins
+  access its functionality through the `SpyderPluginV2` class instead.
+
+----
+
+## Version 6.1.2 (2025-12-17)
 
 ### New features
 
