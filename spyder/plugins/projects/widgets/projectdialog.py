@@ -411,6 +411,16 @@ class SpyderDirectoryPage(NewDirectoryPage):
         return self.create_icon("folder_new")
 
     def setup_page(self):
+        self._rendered = False
+        self.show_this_page.connect(self._on_page_activated)
+
+    def _on_page_activated(self):
+        if self._rendered:
+            return
+        self.render_page()
+        self._rendered = True
+
+    def render_page(self):
         description = QLabel(_("Start a project in a new directory"))
         description.setWordWrap(True)
         description.setFont(self._description_font)
@@ -517,6 +527,12 @@ class ProjectDialog(SidebarDialog):
         )
         self.setWindowTitle(_('Create new project'))
         self.setWindowIcon(ima.icon("project_new"))
+
+    def current_page_changed(self, index):
+        page = self.get_page(index)
+
+        if page and hasattr(page, "show_this_page"):
+            page.show_this_page.emit()
 
     def create_buttons(self):
         bbox = SpyderDialogButtonBox(
