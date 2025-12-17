@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 New API for plugins.
@@ -49,8 +50,12 @@ from .enum import Plugins
 logger = logging.getLogger(__name__)
 
 
-class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
-                     SpyderPluginObserver):
+class SpyderPluginV2(
+    QObject,
+    SpyderActionMixin,
+    SpyderConfigurationObserver,
+    SpyderPluginObserver,
+):
     """
     A Spyder plugin to extend functionality without a dockable widget.
 
@@ -343,12 +348,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
         if self.CONTAINER_CLASS is not None:
             self._container = container = self.CONTAINER_CLASS(
-                name=self.NAME,
-                plugin=self,
-                parent=parent
+                name=self.NAME, plugin=self, parent=parent
             )
 
-            if hasattr(container, '_setup'):
+            if hasattr(container, "_setup"):
                 container._setup()
 
             if isinstance(container, SpyderWidgetMixin):
@@ -357,15 +360,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
 
             # Default signals to connect in main container or main widget.
             container.sig_free_memory_requested.connect(
-                self.sig_free_memory_requested)
+                self.sig_free_memory_requested
+            )
             container.sig_quit_requested.connect(self.sig_quit_requested)
             container.sig_restart_requested.connect(self.sig_restart_requested)
             container.sig_redirect_stdio_requested.connect(
-                self.sig_redirect_stdio_requested)
+                self.sig_redirect_stdio_requested
+            )
             container.sig_exception_occurred.connect(
-                self.sig_exception_occurred)
+                self.sig_exception_occurred
+            )
             container.sig_unmaximize_plugin_requested.connect(
-                self.sig_unmaximize_plugin_requested)
+                self.sig_unmaximize_plugin_requested
+            )
 
             self.after_container_creation()
 
@@ -384,7 +391,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         # Checks
         # --------------------------------------------------------------------
         if self.NAME is None:
-            raise SpyderAPIError('A Spyder Plugin must define a `NAME`!')
+            raise SpyderAPIError("A Spyder Plugin must define a `NAME`!")
 
         # Setup configuration
         # --------------------------------------------------------------------
@@ -465,7 +472,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         else:
             raise SpyderAPIError(
                 'Plugin "{}" not part of REQUIRES or '
-                'OPTIONAL requirements!'.format(plugin_name)
+                "OPTIONAL requirements!".format(plugin_name)
             )
 
     def is_plugin_enabled(self, plugin_name):
@@ -517,8 +524,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             section = self.CONF_SECTION if section is None else section
             if section is None:
                 raise SpyderAPIError(
-                    'A spyder plugin must define a `CONF_SECTION` class '
-                    'attribute!'
+                    "A spyder plugin must define a `CONF_SECTION` class "
+                    "attribute!"
                 )
             return self._conf.get(section, option, default, secure=secure)
 
@@ -559,8 +566,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             section = self.CONF_SECTION if section is None else section
             if section is None:
                 raise SpyderAPIError(
-                    'A spyder plugin must define a `CONF_SECTION` class '
-                    'attribute!'
+                    "A spyder plugin must define a `CONF_SECTION` class "
+                    "attribute!"
                 )
 
             self._conf.set(
@@ -590,8 +597,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             section = self.CONF_SECTION if section is None else section
             if section is None:
                 raise SpyderAPIError(
-                    'A spyder plugin must define a `CONF_SECTION` class '
-                    'attribute!'
+                    "A spyder plugin must define a `CONF_SECTION` class "
+                    "attribute!"
                 )
 
             self._conf.remove_option(section, option, secure=secure)
@@ -620,8 +627,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             section = self.CONF_SECTION if section is None else section
             if section is None:
                 raise SpyderAPIError(
-                    'A spyder plugin must define a `CONF_SECTION` class '
-                    'attribute!'
+                    "A spyder plugin must define a `CONF_SECTION` class "
+                    "attribute!"
                 )
             self._conf.disable_notifications(section, option)
 
@@ -640,8 +647,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             section = self.CONF_SECTION if section is None else section
             if section is None:
                 raise SpyderAPIError(
-                    'A spyder plugin must define a `CONF_SECTION` class '
-                    'attribute!'
+                    "A spyder plugin must define a `CONF_SECTION` class "
+                    "attribute!"
                 )
             self._conf.restore_notifications(section, option)
 
@@ -706,7 +713,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         CodeEditor used by the plugin.
         """
         if self._conf is not None:
-            return get_color_scheme(self._conf.get('appearance', 'selected'))
+            return get_color_scheme(self._conf.get("appearance", "selected"))
 
     def initialize(self):
         """
@@ -756,8 +763,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         """
         if font_type == SpyderFontType.Monospace:
             font_size_delta = cls.MONOSPACE_FONT_SIZE_DELTA
-        elif font_type in [SpyderFontType.Interface,
-                           SpyderFontType.MonospaceInterface]:
+        elif font_type in [
+            SpyderFontType.Interface,
+            SpyderFontType.MonospaceInterface,
+        ]:
             font_size_delta = cls.INTERFACE_FONT_SIZE_DELTA
         else:
             raise SpyderAPIError("Unrecognized font type")
@@ -794,7 +803,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -----
         This method needs to be decorated with `staticmethod`.
         """
-        raise NotImplementedError('A plugin name must be defined!')
+        raise NotImplementedError("A plugin name must be defined!")
 
     @staticmethod
     def get_description():
@@ -810,7 +819,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -----
         This method needs to be decorated with `staticmethod`.
         """
-        raise NotImplementedError('A plugin description must be defined!')
+        raise NotImplementedError("A plugin description must be defined!")
 
     @classmethod
     def get_icon(cls):
@@ -826,7 +835,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -----
         This method needs to be decorated with `classmethod` or `staticmethod`.
         """
-        raise NotImplementedError('A plugin icon must be defined!')
+        raise NotImplementedError("A plugin icon must be defined!")
 
     def on_initialize(self):
         """
@@ -836,14 +845,16 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         -----
         All calls performed on this method should not call other plugins.
         """
-        if hasattr(self, 'register'):
+        if hasattr(self, "register"):
             raise SpyderAPIError(
-                'register was replaced by on_initialize, please check the '
-                'Spyder 5.1.0 migration guide to get more information')
+                "register was replaced by on_initialize, please check the "
+                "Spyder 5.1.0 migration guide to get more information"
+            )
 
         raise NotImplementedError(
-            f'The plugin {type(self)} is missing an implementation of '
-            'on_initialize')
+            f"The plugin {type(self)} is missing an implementation of "
+            "on_initialize"
+        )
 
     # ---- API: Optional methods to override
     # -------------------------------------------------------------------------
@@ -863,7 +874,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
             with PyQt4'). It will be shown at startup in a QMessageBox.
         """
         valid = True
-        message = ''  # Note: Remember to use _('') to localize the string
+        message = ""  # Note: Remember to use _('') to localize the string
         return valid, message
 
     def on_first_registration(self):
@@ -897,11 +908,13 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderConfigurationObserver,
         This method **must** only operate on local attributes and not other
         plugins.
         """
-        if hasattr(self, 'unregister'):
-            warnings.warn('The unregister method was deprecated and it '
-                          'was replaced by `on_close`. Please see the '
-                          'Spyder 5.2.0 migration guide to get more '
-                          'information.')
+        if hasattr(self, "unregister"):
+            warnings.warn(
+                "The unregister method was deprecated and it "
+                "was replaced by `on_close`. Please see the "
+                "Spyder 5.2.0 migration guide to get more "
+                "information."
+            )
 
     def can_close(self) -> bool:
         """
@@ -965,6 +978,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     """
     A Spyder plugin to enhance functionality with a dockable widget.
     """
+
     # ---- API: Mandatory attributes
     # -------------------------------------------------------------------------
     # This is the main widget of the dockable plugin.
@@ -1056,8 +1070,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
     def __init__(self, parent, configuration):
         if not issubclass(self.WIDGET_CLASS, PluginMainWidget):
             raise SpyderAPIError(
-                'A SpyderDockablePlugin must define a valid WIDGET_CLASS '
-                'attribute!')
+                "A SpyderDockablePlugin must define a valid WIDGET_CLASS "
+                "attribute!"
+            )
 
         self.CONTAINER_CLASS = self.WIDGET_CLASS
         super().__init__(parent, configuration=configuration)
@@ -1071,12 +1086,14 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget = self._widget
         if widget is None:
             raise SpyderAPIError(
-                'A dockable plugin must define a WIDGET_CLASS!')
+                "A dockable plugin must define a WIDGET_CLASS!"
+            )
 
         if not isinstance(widget, PluginMainWidget):
             raise SpyderAPIError(
-                'The WIDGET_CLASS of a dockable plugin must be a subclass of '
-                'PluginMainWidget!')
+                "The WIDGET_CLASS of a dockable plugin must be a subclass of "
+                "PluginMainWidget!"
+            )
 
         widget.DISABLE_ACTIONS_WHEN_HIDDEN = self.DISABLE_ACTIONS_WHEN_HIDDEN
         widget.RAISE_AND_FOCUS = self.RAISE_AND_FOCUS
@@ -1092,7 +1109,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         # --------------------------------------------------------------------
         widget.sig_toggle_view_changed.connect(self.sig_toggle_view_changed)
         widget.sig_update_ancestor_requested.connect(
-            self.sig_update_ancestor_requested)
+            self.sig_update_ancestor_requested
+        )
 
     # ---- API: Optional methods to override
     # -------------------------------------------------------------------------
@@ -1358,7 +1376,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Return the plugin main widget.
         """
         if self._widget is None:
-            raise SpyderAPIError('Dockable Plugin must have a WIDGET_CLASS!')
+            raise SpyderAPIError("Dockable Plugin must have a WIDGET_CLASS!")
 
         return self._widget
 

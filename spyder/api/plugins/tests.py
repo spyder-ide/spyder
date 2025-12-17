@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2025- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 from __future__ import annotations
 import gc
@@ -70,9 +71,11 @@ def main_window_mock(qapp):
 
 
 @pytest.fixture(scope="session")
-def plugins_cls() -> typing.Generator[
-    typing.Iterable[typing.Tuple[str, type[SpyderPluginClass]]], None, None
-]:
+def plugins_cls() -> (
+    typing.Generator[
+        typing.Iterable[typing.Tuple[str, type[SpyderPluginClass]]], None, None
+    ]
+):
     """Fixture that yields the plugin's classes to be tested.
 
     before the yield statement, it will be run at startup.
@@ -102,6 +105,7 @@ def register_fixture(request: SubRequest, plugins_cls):
                     yield plugin
                 finally:
                     main_window_mock.unregister_plugin(plugin)
+
             return register_plugin
 
         request._fixturemanager._arg2fixturedefs[fixture_name] = [
