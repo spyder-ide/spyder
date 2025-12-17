@@ -1,24 +1,26 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
-spyder.api.plugins
-==================
+Base classes for constructing and accessing top-level Spyder plugin objects.
 
-Here, 'plugins' are Qt objects that can make changes to Spyder's main window
+Here, "plugins" are Qt objects that can make changes to Spyder's main window
 and call/connect to other plugins directly.
 
 There are two types of plugins available:
 
-1. SpyderPluginV2 is a plugin that does not create a new dock/pane on Spyder's
-   main window. Note: SpyderPluginV2 will be renamed to SpyderPlugin once the
-   migration to the new API is finished
+* :class:`SpyderPluginV2` does not create a new pane in Spyder's main window.
 
-2. SpyderDockablePlugin is a plugin that does create a new dock/pane on
-   Spyder's main window.
+   .. note::
+
+       :class:`SpyderPluginV2` will be aliased to :class:`!SpyderPlugin`
+       and deprecated in Spyder 6.2, and removed in Spyder 7.0.
+
+* :class:`SpyderDockablePlugin` creates a new pane in Spyder's main window.
 """
 
 from .enum import DockablePlugins, OptionalPlugins, Plugins  # noqa
