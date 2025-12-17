@@ -142,9 +142,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.plugin_availability: dict[str, bool] = {}
         """Mapping of plugin name to whether it is ready for use."""
 
-        self.old_plugins: set[str] = set()
-        """Set of the plugin names of all Spyder 4 plugins."""
-
         self.enabled_plugins: set[str] = set()
         """Set of the names of all enabled plugins."""
 
@@ -215,7 +212,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         PluginClass: type[SpyderPluginClass],
         external: bool,
     ) -> SpyderPluginClass:
-        """Instantiate and register a Spyder 5+ plugin."""
+        """Instantiate and register a Spyder plugin."""
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
         plugin_name = PluginClass.NAME
@@ -371,12 +368,10 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 f"{PluginClass} does not inherit from SpyderPluginV2"
             )
 
-        instance = None
-        if issubclass(PluginClass, SpyderPluginV2):
-            # Register a Spyder 5+ plugin
-            instance = self._instantiate_spyder_plugin(
-                main_window, PluginClass, external
-            )
+        # Register a Spyder plugin
+        instance = self._instantiate_spyder_plugin(
+            main_window, PluginClass, external
+        )
 
         return instance
 
@@ -576,7 +571,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                     plugin_dependencies.remove(plugin_name)
 
         self.plugin_availability.pop(plugin_name)
-        self.old_plugins -= {plugin_name}
         self.enabled_plugins -= {plugin_name}
         self.internal_plugins -= {plugin_name}
         self.external_plugins -= {plugin_name}
@@ -649,9 +643,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         """
         Remove all plugins from the registry.
 
-        The teardown mechanism will remove external plugins first and then
-        internal ones, where the Spyder 4 plugins will be removed first and
-        then the Spyder 5 ones.
+        The teardown mechanism will remove external plugins then internal ones.
 
         Parameters
         ----------
@@ -673,38 +665,25 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             ``True`` if all the plugins were deleted. ``False`` otherwise.
         """
         excluding = excluding or set({})
-        can_close = True
 
         # Check if all the plugins can be closed
         can_close = self.can_delete_all_plugins(excluding=excluding)
 
-        if not can_close and not close_immediately:
-            return False
+        # Delete external plugins first, then internal plugins
+        for plugins in [self.external_plugins, self.internal_plugins]:
+            if not can_close and not close_immediately:
+                return False
 
-        # Delete Spyder 5+ external plugins
-        for plugin_name in set(self.external_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False
-                    )
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close and not close_immediately:
-            return False
-
-        # Delete Spyder 5+ internal plugins
-        for plugin_name in set(self.internal_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False
-                    )
-                    if not can_close and not close_immediately:
-                        break
+            # Delete Spyder external plugins
+            for plugin_name in set(plugins):
+                if plugin_name not in excluding:
+                    plugin_instance = self.plugin_registry[plugin_name]
+                    if isinstance(plugin_instance, SpyderPluginV2):
+                        can_close &= self.delete_plugin(
+                            plugin_name, teardown=False, check_can_delete=False
+                        )
+                        if not can_close and not close_immediately:
+                            break
 
         return can_close
 
@@ -796,7 +775,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.plugin_registry = {}
         self.plugin_availability = {}
 
-        self.old_plugins = set()
         self.enabled_plugins = set()
         self.internal_plugins = set()
         self.external_plugins = set()

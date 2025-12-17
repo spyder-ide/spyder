@@ -12,6 +12,12 @@
   be removed in Spyder 7.0. It is a private implementation detail that wasn't
   designed or intended to be used directly by external code; plugins
   access its functionality through the `SpyderPluginV2` class instead.
+* The vestigial `SpyderPluginRegistry.old_plugins` attribute in the
+  `spyder.api.plugin_registration.registry` module, originally added
+  in Spyder 5 to list legacy Spyder 4 plugins, has been removed.
+  It was mistakenly left over when Spyder 5 ended up dropping support for
+  Spyder 4 plugins, so any code relying on it has never functioned as intended
+  and should be updated to support modern Spyder 5+ plugins instead.
 
 ----
 
