@@ -286,7 +286,7 @@ class RecoveryDialog(QDialog):
         heading = _('Error message:')
         msgbox = QMessageBox(
             QMessageBox.Critical, _('Restore'),
-            _('<b>{}</b><br><br>{}<br>{}').format(text, heading, error),
+            '<b>{}</b><br><br>{}<br>{}'.format(text, heading, error),
             parent=self)
         msgbox.exec_()
 
