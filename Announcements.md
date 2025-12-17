@@ -1,33 +1,40 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.1 is released!
+**Subject**: [ANN] Spyder 6.1.2 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.1** has been released and is available for
+I'm pleased to announce that Spyder **6.1.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months after version 6.1.0 and it comes with the following interesting new features, fixes and API changes:
+This release comes three weeks after version 6.1.1 and it comes with the following interesting new features, fixes and API changes:
 
 - New features
-    * Allow to set a custom Conda executable in `Preferences > Main interpreter`.
-    * Add action to context menu of Editor tabs to close all files to the left.
-    * Support viewing long bytes in the Variable Explorer.
-    * Allow to create a project if the selected directory after opening a project is not yet one.
+    * Added support for Pylint 4.
+    * Simplified UX to create directories and files from the files/project explorer.
 
 - Important fixes
-    * Several fixes related to remote development features.
-    * Several fixes related to Qt6 bindings (PySide6/PyQt6).
-    * Several fixes related to the Debugger.
-    * Fix Pixi environments activation on Posix systems.
-    * Performance and usability fixes related to multicursor support and linting markers.
-    * Prevent Flake8 cmd windows from appearing when it is selected as linting provider.
-    * Make user environment variables take precedence over system ones for kernels.
+    * Fix update process for installer based installations that require admin
+      permissions on Windows.
+    * Prevent memory leaks when generating many figures.
+    * Fix Profiler error when the IPython console kernel takes time to start.
+    * General fixes to API module (`spyder.api`) docstrings and typings.
 
 - API changes
-    * Remove old API for plugins, which was deprecated since Spyder 6.0
+    * Fix API version not being correctly bumped to 2.0.0 for Spyder 6.1,
+      and formally expose and document `VERSION_INFO` tuple.
+    * The `spyder.api.editor` module, containing legacy aliases of
+      `EditorExtension` and `Panel` that can be accessed directly from the
+      Editor plugin in Spyder 6.0+, is now documented as pending deprecation,
+      will issue a `DeprecationWarning` in Spyder 6.2 and be removed in Spyder 7.0.
+      Import them from `spyder.plugins.editor.api` instead.
+    * The `spyder.api.plugins.enum` and `spyder.api.plugins.new_api` modules
+      are now documented to be pending being marked as private, with a
+      `DeprecationWarning` on importing the old names in Spyder 6.2, and their
+      removal in Spyder 7.0. All of their public APIs are availible from
+      and are been canonically imported from `spyder.api.plugins` since Spyder 5.1.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
