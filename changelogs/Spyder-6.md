@@ -4,16 +4,17 @@
 
 ### New features
 
-* Added support for Pylint 4.
-* Simplified UX to create directories and files from the files/project explorer.
+* Set a maximum number of plots in the Plots pane to prevent a memory leak
+  when generating many of them.
+* Simplify UX to create directories and files from the files/project explorer.
+* Add support for Pylint 4.
 
 ### Important fixes
 
 * Fix update process for installer based installations that require admin
   permissions on Windows.
-* Prevent memory leaks when generating many figures.
 * Fix Profiler error when the IPython console kernel takes time to start.
-* General fixes to API module (`spyder.api`) docstrings and typings.
+* General fixes to the API module (`spyder.api`) docstrings and typings.
 
 ### API changes
 

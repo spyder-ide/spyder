@@ -12,15 +12,16 @@ Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 This release comes three weeks after version 6.1.1 and it comes with the following interesting new features, fixes and API changes:
 
 - New features
-    * Added support for Pylint 4.
-    * Simplified UX to create directories and files from the files/project explorer.
+    * Set a maximum number of plots in the Plots pane to prevent a memory leak
+      when generating many of them.
+    * Simplify UX to create directories and files from the files/project explorer.
+    * Add support for Pylint 4.
 
 - Important fixes
     * Fix update process for installer based installations that require admin
       permissions on Windows.
-    * Prevent memory leaks when generating many figures.
     * Fix Profiler error when the IPython console kernel takes time to start.
-    * General fixes to API module (`spyder.api`) docstrings and typings.
+    * General fixes to the API module (`spyder.api`) docstrings and typings.
 
 - API changes
     * Fix API version not being correctly bumped to 2.0.0 for Spyder 6.1,
