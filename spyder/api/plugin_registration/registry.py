@@ -117,7 +117,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         super().__init__()
         PreferencesAdapter.__init__(self)
 
-        self.main: spyder.app.mainwindow.MainWindow = None
+        self.main: spyder.app.mainwindow.MainWindow | None = None
         """Reference to the Spyder main window."""
 
         self.plugin_dependents: dict[str, dict[str, list[str]]] = {}
@@ -788,16 +788,69 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         dependencies.DEPENDENCIES = []
 
     def set_all_internal_plugins(
-        self, all_plugins: dict[str, type[SpyderPluginClass]]
+        self, all_plugins: dict[str, tuple[str, type[SpyderPluginClass]]]
     ) -> None:
+        """
+        Set the :attr:`all_internal_plugins` attribute to the given plugins.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be
+            removed in Spyder 7.0. Set the :attr:`all_internal_plugins`
+            attribute directly instead.
+
+        Parameters
+        ----------
+        all_plugins : dict[str, tuple[str, type[SpyderPluginClass]]]
+            Mapping of plugin name to plugin class to set the attribute to.
+
+        Returns
+        -------
+        None
+        """
         self.all_internal_plugins = all_plugins
 
     def set_all_external_plugins(
-        self, all_plugins: dict[str, type[SpyderPluginClass]]
+        self, all_plugins: dict[str, tuple[str, type[SpyderPluginClass]]]
     ) -> None:
+        """
+        Set the :attr:`all_external_plugins` attribute to the given plugins.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be
+            removed in Spyder 7.0. Set the :attr:`all_external_plugins`
+            attribute directly instead.
+
+        Parameters
+        ----------
+        all_plugins : dict[str, tuple[str, type[SpyderPluginClass]]]
+            Mapping of plugin name to plugin class to set the attribute to.
+
+        Returns
+        -------
+        None
+        """
         self.all_external_plugins = all_plugins
 
     def set_main(self, main: spyder.app.mainwindow.MainWindow) -> None:
+        """
+        Set the reference to the Spyder main window for the plugin registry.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be removed
+            in Spyder 7.0. Set the :attr:`main` attribute directly instead.
+
+        Parameters
+        ----------
+        main : spyder.app.mainwindow.MainWindow
+            The Spyder main window instance to set the reference to.
+
+        Returns
+        -------
+        None
+        """
         self.main = main
 
     def get_icon(self) -> QIcon:

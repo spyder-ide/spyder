@@ -648,7 +648,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             lambda plugin_name, omit_conf: self.register_plugin(
                 plugin_name, omit_conf=omit_conf))
 
-        PLUGIN_REGISTRY.set_main(self)
+        PLUGIN_REGISTRY.main = self
 
         logger.info("*** Start of MainWindow setup ***")
 
@@ -732,8 +732,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 enabled_plugins[plugin_name] = plugin
                 PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
 
-        PLUGIN_REGISTRY.set_all_internal_plugins(registry_internal_plugins)
-        PLUGIN_REGISTRY.set_all_external_plugins(registry_external_plugins)
+        PLUGIN_REGISTRY.all_internal_plugins = registry_internal_plugins
+        PLUGIN_REGISTRY.all_external_plugins = registry_external_plugins
 
         # Instantiate internal Spyder 5 plugins
         for plugin_name in internal_plugins:

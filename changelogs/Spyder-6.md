@@ -18,6 +18,13 @@
   It was mistakenly left over when Spyder 5 ended up dropping support for
   Spyder 4 plugins, so any code relying on it has never functioned as intended
   and should be updated to support modern Spyder 5+ plugins instead.
+* Setters for the `all_internal_plugins` (`set_all_internal_plugins()`),
+  `all_external_plugins` (`set_all_external_plugins()`) and
+  `main` (`set_main()`) instance attributes of the `SpyderPluginRegistry` class
+  in the `spyder.api.plugin_registration.registry` module are now
+  documented as pending deprecation, will raise a `DeprecationWarning`
+  in Spyder 6.2, and will be removed in Spyder 7.0. Set the attributes
+  directly instead.
 
 ----
 
