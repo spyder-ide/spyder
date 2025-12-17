@@ -25,6 +25,13 @@
   documented as pending deprecation, will raise a `DeprecationWarning`
   in Spyder 6.2, and will be removed in Spyder 7.0. Set the attributes
   directly instead.
+* Passing arbitrary `*args` and `**kwargs` to the
+  `SpyderPluginRegistry.register_plugin()` method of the
+  `spyder.api.plugin_registration.registry` module, needed for backward
+  compatibility before the Editor plugin was migrated in Spyder 6 to the
+  new plugin API introduced in Spyder 5, is now documented as pending
+  deprecation, will raise a DeprecationWarning in Spyder 6.2 and will be
+  removed in Spyder 7.0.
 
 ----
 

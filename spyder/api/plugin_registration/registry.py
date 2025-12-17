@@ -340,12 +340,26 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         *args: Any, optional
             Arbitrary positional arguments passed to the plugin instance's
             initializer.
+
+            .. deprecated:: 6.2
+
+                No longer needed following completion of the Spyder plugin
+                API migration in Spyder 6.0. Passing ``*args`` will raise a
+                :exc:`DeprecationWarning` in Spyder 6.2 and be removed in
+                Spyder 7.0.
         external: bool, optional
             If ``True``, then the plugin is stored as a external plugin.
             Otherwise, it will be marked as an internal plugin (the default).
         **kwargs: Any, optional
             Arbitrary positional arguments passed to the plugin instance's
             initializer.
+
+            .. deprecated:: 6.2
+
+                No longer needed following completion of the Spyder plugin
+                API migration in Spyder 6.0. Passing ``**kwargs`` will raise a
+                :exc:`DeprecationWarning` in Spyder 6.2 and be removed in
+                Spyder 7.0.
 
         Returns
         -------
@@ -355,13 +369,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Raises
         ------
         TypeError
-            If the `PluginClass` does not inherit from any of
+            If the ``PluginClass`` does not inherit from any of
             :data:`spyder.app.registry.SpyderPluginClass`.
-
-        Notes
-        -----
-        The optional ``*args`` and ``**kwargs`` will be removed once all
-        plugins are migrated.
         """
         if not issubclass(PluginClass, SpyderPluginV2):
             raise TypeError(
