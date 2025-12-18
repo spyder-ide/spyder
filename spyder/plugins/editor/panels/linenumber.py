@@ -320,11 +320,8 @@ class LineNumberArea(Panel):
 
     def get_markers_margin(self):
         """Get marker margins."""
-        if self._markers_margin:
-            font_height = self.editor.fontMetrics().height() + 2
-            return font_height
-        else:
-            return 0
+        font_height = self.editor.fontMetrics().height() + 2
+        return font_height
 
     def setup_margins(self, linenumbers=True, markers=True):
         """

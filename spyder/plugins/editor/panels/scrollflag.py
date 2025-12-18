@@ -63,6 +63,8 @@ class ScrollFlagArea(Panel):
         # Dictionary with flag lists
         self._dict_flag_list = {}
 
+        self.todo_enabled = True
+
         # Thread to update flags on it.
         self._update_flags_thread = QThread(None)
         self._update_flags_thread.run = self._update_flags
@@ -236,7 +238,7 @@ class ScrollFlagArea(Panel):
         dict_flag_lists_iter = reversed(dict_flag_lists)
 
         for flag_type in dict_flag_lists_iter:
-            if flag_type == 'todo' and not editor.has_markers():
+            if flag_type == 'todo' and not self.todo_enabled:
                 continue
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
@@ -452,3 +454,7 @@ class ScrollFlagArea(Panel):
         """Toggle scroll flag area visibility"""
         self.enabled = state
         self.setVisible(state)
+
+    def set_enabled_todo(self, state):
+        """Toggle todo flag visibility"""
+        self.todo_enabled = state
