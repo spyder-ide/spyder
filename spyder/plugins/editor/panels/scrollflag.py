@@ -236,6 +236,8 @@ class ScrollFlagArea(Panel):
         dict_flag_lists_iter = reversed(dict_flag_lists)
 
         for flag_type in dict_flag_lists_iter:
+            if flag_type == 'todo' and not editor.has_markers():
+                continue
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
             if editor.verticalScrollBar().maximum() == 0:
