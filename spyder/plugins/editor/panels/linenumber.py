@@ -104,7 +104,7 @@ class LineNumberArea(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
-            if self._markers_margin and data:
+            if data:
                 if data.code_analysis:
                     errors = 0
                     warnings = 0
@@ -126,7 +126,7 @@ class LineNumberArea(Panel):
                     elif hints:
                         draw_pixmap(1, top, self.hint_icon.pixmap(icon_size))
 
-                if data.todo:
+                if self._markers_margin and data.todo:
                     draw_pixmap(1, top, self.todo_icon.pixmap(icon_size))
 
     def draw_linenumbers(self, painter):
