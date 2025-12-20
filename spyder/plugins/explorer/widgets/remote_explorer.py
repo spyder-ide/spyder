@@ -830,7 +830,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     def set_files(self, files, reset=True):
         if reset:
-            self.model.setRowCount(0)
+            # This is necessary to prevent an error when closing Spyder with
+            # mixed local and remote consoles.
+            try:
+                self.model.setRowCount(0)
+            except RuntimeError:
+                pass
 
         if files:
             logger.debug(f"Setting {len(files)} files")
