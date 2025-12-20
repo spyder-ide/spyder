@@ -8,13 +8,14 @@
 
 # Standard library imports
 from ctypes import windll
-from packaging.version import parse
 import os.path as osp
 import sys
 
+# Third-party imports
+from packaging.version import parse
+
 # Local imports
 from spyder import __version__
-from spyder.config.base import is_conda_based_app
 
 # --- Window control ---
 
@@ -44,14 +45,12 @@ def is_attached_console_visible():
 
 def set_windows_appusermodelid():
     """
-    Make sure correct icon is used on Windows 7 taskbar by setting the
+    Make sure the correct icon is used on Windows taskbar by setting the
     AppUserModelID identical to that used by our menuinst shortcuts.
     """
     spy_ver = parse(__version__)
-    app_user_model_id = f"spyder-ide.Spyder-{spy_ver.major}"
-    if not is_conda_based_app():
-        env_name = osp.basename(osp.dirname(sys.executable))
-        app_user_model_id += "." + env_name
+    env_name = osp.basename(osp.dirname(sys.executable))
+    app_user_model_id = f"spyder-ide.Spyder-{spy_ver.major}.{env_name}"
 
     try:
         return windll.shell32.SetCurrentProcessExplicitAppUserModelID(
