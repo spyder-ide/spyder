@@ -569,17 +569,13 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         try:
             file_manager = await self.remote_files_manager.open(path, mode="r")
-            file_data = ""
-            async for data in file_manager:
-                file_data += data
+            file_data = await file_manager.read()
         except RemoteFileServicesError:
             try:
                 file_manager = await self.remote_files_manager.open(
                     path, mode="rb"
                 )
-                file_data = b""
-                async for data in file_manager:
-                    file_data += data
+                file_data = await file_manager.read()
             except RemoteFileServicesError as download_error:
                 logger.debug(f"Unable to download {path}")
                 logger.debug(
