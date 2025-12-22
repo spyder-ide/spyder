@@ -40,6 +40,7 @@ from spyder.plugins.remoteclient.api.modules.base import (
 from spyder.plugins.remoteclient.api.modules.file_services import (
     RemoteFileServicesError,
     RemoteOSError,
+    SpyderRemoteFileServicesAPI,
 )
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
@@ -111,7 +112,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         super().__init__(parent=parent, class_parent=parent)
 
         # General attributes
-        self.remote_files_manager = None
+        self.remote_files_manager: SpyderRemoteFileServicesAPI | None = None
         self.server_id: str | None = None
         self.root_prefix: dict[str, str] = {}
 
@@ -591,6 +592,64 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return file_data
 
     @AsyncDispatcher.QtSlot
+    def _check_if_upload_files(self, future):
+        self._handle_future_response_error(
+            future,
+            _("Upload error"),
+            _("An error occured while trying to upload files"),
+        )
+
+        yes_to_all = False
+        paths_existence = future.result()
+
+        if len(paths_existence) > 1:
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
+            )
+        else:
+            buttons = QMessageBox.Yes | QMessageBox.No
+
+        for path, response in paths_existence:
+            if not yes_to_all and response["exists"]:
+                answer = QMessageBox.warning(
+                    self,
+                    _("Overwrite file"),
+                    _(
+                        "The file <b>{}</b> that you're trying to upload to "
+                        "server <b>{}</b> already exists in the current "
+                        "location."
+                        "<br><br>"
+                        "Do you want to overwrite it?"
+                    ).format(os.path.basename(path), self._get_server_name()),
+                    buttons,
+                )
+
+                if answer == QMessageBox.YesToAll:
+                    yes_to_all = True
+                elif answer == QMessageBox.No:
+                    if self._files_to_upload[self.server_id] > 0:
+                        self._files_to_upload[self.server_id] -= 1
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    continue
+                elif answer == QMessageBox.Cancel:
+                    self._files_to_upload[self.server_id] = 0
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    return
+
+            self._do_remote_upload_file(path).connect(
+                self._on_remote_upload_file
+            )
+
+    @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
         self._handle_future_response_error(
             future,
@@ -708,6 +767,22 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.remote_files_manager = None
 
         return files
+
+    @AsyncDispatcher(loop="explorer")
+    async def _check_if_remote_files_exist(self, paths):
+        """Check if remote files exist in the remote cwd."""
+        paths_existence = []
+
+        for path in paths:
+            remote_file = posixpath.join(
+                self.root_prefix[self.server_id], os.path.basename(path)
+            )
+
+            paths_existence.append(
+                (path, await self.remote_files_manager.exists(remote_file))
+            )
+
+        return paths_existence
 
     async def _get_extra_files(self, generator, already_added):
         self.extra_files = []
@@ -1289,10 +1364,36 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self._files_to_upload[self.server_id] += len(local_paths)
         self.sig_start_spinner_requested.emit()
 
-        for path in local_paths:
-            self._do_remote_upload_file(path).connect(
-                self._on_remote_upload_file
+        check_for_files_existence = True
+        if len(local_paths) > 50:
+            answer = QMessageBox.warning(
+                self,
+                _("Existence check"),
+                _(
+                    "You are about to upload more than 50 files to server "
+                    "<b>{}</b>."
+                    "<br><br>"
+                    "Do you prefer to skip checking whether they exist on the "
+                    "server to upload them more quickly?"
+                ).format(self._get_server_name()),
+                QMessageBox.Yes | QMessageBox.No,
             )
+
+            if answer == QMessageBox.Yes:
+                check_for_files_existence = False
+
+        if check_for_files_existence:
+            # Check if the remote files exist first. If some of them do, then
+            # ask the user if they want to overwrite them with the local files
+            # to be uploaded.
+            self._check_if_remote_files_exist(local_paths).connect(
+                self._check_if_upload_files,
+            )
+        else:
+            for path in local_paths:
+                self._do_remote_upload_file(path).connect(
+                    self._on_remote_upload_file
+                )
 
     def reset(self, server_id):
         self.root_prefix[server_id] = None
