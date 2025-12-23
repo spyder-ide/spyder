@@ -13,6 +13,7 @@ import json
 import os
 import os.path as osp
 import sys
+from typing import Union
 
 # Third-party imports
 from packaging.version import parse
@@ -209,15 +210,31 @@ def is_anaconda_pkg(prefix=sys.prefix):
     return False
 
 
-def get_spyder_conda_channel():
-    """Get the conda channel from which Spyder was installed."""
+def get_conda_channel(pyexec: str, pkg: str) -> Union[str | None, str | None]:
+    """
+    Get the channel from which the given package is installed.
+
+    Parameters
+    ----------
+    pyexec : str
+        Path to the Python executable in the relevant environment.
+    pkg : str
+        Name of the package for which to get the installation channel.
+
+    Returns
+    -------
+    channel : str | None
+        Conda channel from which pkg is installed.
+    channel_url : str | None
+        URL for the channel from which pkg is installed.
+    """
     conda = find_conda()
 
     if conda is None:
         return None, None
 
-    env = get_conda_env_path(sys.executable)
-    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+    env = get_conda_env_path(pyexec, quote=True)
+    cmdstr = ' '.join([conda, 'list', pkg, '--json', '--prefix', env])
 
     try:
         out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
@@ -236,7 +253,7 @@ def get_spyder_conda_channel():
     channel, channel_url = None, None
 
     for package_info in out:
-        if package_info["name"] == 'spyder':
+        if package_info["name"] == pkg:
             channel = package_info["channel"]
             channel_url = package_info["base_url"]
 
@@ -244,6 +261,11 @@ def get_spyder_conda_channel():
         channel_url = None
 
     return channel, channel_url
+
+
+def get_spyder_conda_channel() -> Union[str | None, str | None]:
+    """Get the conda channel from which Spyder was installed."""
+    return get_conda_channel(sys.executable, "spyder")
 
 
 @lru_cache(maxsize=10)
