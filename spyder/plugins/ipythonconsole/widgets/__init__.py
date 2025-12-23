@@ -23,6 +23,7 @@ from .status import MatplotlibStatus, PythonEnvironmentStatus
 # ShellWidget contains the other widgets and ClientWidget
 # contains it
 from .shell import ShellWidget
+from .install_spyder_kernels import SpyderKernelInstallWidget
 from .client import ClientWidget
 
 # Constant for different types of completion available
