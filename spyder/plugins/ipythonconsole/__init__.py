@@ -53,3 +53,14 @@ class SpyderKernelError(RuntimeError):
       current console instead of a long and hard-to-read traceback.
     * This should only be used for errors whose cause we are certain of.
     """
+
+
+class SpyderKernelVersionError(SpyderKernelError):
+    """
+    Error when the environment does not have the correct
+    spyder-kernels version installed.
+    """
+
+    def __init__(self, pyexec, message):
+        self.pyexec = pyexec   # Environment's python executable
+        super().__init__(message)
