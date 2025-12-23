@@ -505,6 +505,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         else:
             self.shellwidget.pdb_execute_command('exit')
 
+    def connect_after_kernel_install(self):
+        pass
+
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
         if isinstance(error, Exception):
