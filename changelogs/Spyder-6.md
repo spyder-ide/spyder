@@ -1,6 +1,41 @@
 # History of changes for Spyder 6
 
-## Version 6.1.2 (2025/12/17)
+## Version 6.1.3 (Unreleased)
+
+### API changes
+
+* The `spyder.api.plugin_registration.mixins` module, with the mixin for
+  handling the `@on_plugin_available` and `@on_plugin_teardown` decorators
+  in the `SpyderPluginV2` class, is now documented as pending deprecation as
+  a public module, will become an alias of a private `_mixins` module
+  and issue a `DeprecationWarning` in Spyder 6.2, and have the public alias
+  be removed in Spyder 7.0. It is a private implementation detail that wasn't
+  designed or intended to be used directly by external code; plugins
+  access its functionality through the `SpyderPluginV2` class instead.
+* The vestigial `SpyderPluginRegistry.old_plugins` attribute in the
+  `spyder.api.plugin_registration.registry` module, originally added
+  in Spyder 5 to list legacy Spyder 4 plugins, has been removed.
+  It was mistakenly left over when Spyder 6 fully dropped support for
+  Spyder 4 plugins, which never actually functioned as intended
+  and should be updated to support modern Spyder 5+ plugins instead.
+* Setters for the `all_internal_plugins` (`set_all_internal_plugins()`),
+  `all_external_plugins` (`set_all_external_plugins()`) and
+  `main` (`set_main()`) instance attributes of the `SpyderPluginRegistry` class
+  in the `spyder.api.plugin_registration.registry` module are now
+  documented as pending deprecation, will raise a `DeprecationWarning`
+  in Spyder 6.2, and will be removed in Spyder 7.0. Set the attributes
+  directly instead.
+* Passing arbitrary `*args` and `**kwargs` to the
+  `SpyderPluginRegistry.register_plugin()` method of the
+  `spyder.api.plugin_registration.registry` module, needed for backward
+  compatibility before the Editor plugin was migrated in Spyder 6 to the
+  new plugin API introduced in Spyder 5, is now documented as pending
+  deprecation, will raise a DeprecationWarning in Spyder 6.2 and will be
+  removed in Spyder 7.0.
+
+----
+
+## Version 6.1.2 (2025-12-17)
 
 ### New features
 
