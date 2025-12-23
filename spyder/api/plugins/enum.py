@@ -8,11 +8,69 @@
 """Enums listing Spyder internal plugins."""
 
 
-class Plugins:
+class DockablePlugins:
+    """Pseudo-enum class listing the names of Spyder internal dockable plugins.
+
+    Values correspond to the plugin's
+    :attr:`~spyder.api.plugins.SpyderPluginV2.NAME`.
+    """
+
+    Console = "internal_console"
+    """The Spyder Internal Console plugin."""
+
+    Debugger = "debugger"
+    """The Spyder Debugger plugin."""
+
+    Editor = "editor"
+    """The Spyder Editor plugin."""
+
+    Explorer = "explorer"
+    """The Spyder Files plugin."""
+
+    Find = "find_in_files"
+    """The Spyder Find plugin."""
+
+    Help = "help"
+    """The Spyder Help plugin."""
+
+    History = "historylog"
+    """The Spyder History plugin."""
+
+    IPythonConsole = "ipython_console"
+    """The Spyder IPython Console plugin."""
+
+    OnlineHelp = "onlinehelp"
+    """The Spyder Online Help plugin."""
+
+    OutlineExplorer = "outline_explorer"
+    """The Spyder Outline plugin."""
+
+    Plots = "plots"
+    """The Spyder Plots plugin."""
+
+    Profiler = "profiler"
+    """The Spyder Profiler plugin."""
+
+    Projects = "project_explorer"
+    """The Spyder Projects plugin."""
+
+    Pylint = "pylint"
+    """The Spyder Code Analysis plugin."""
+
+    VariableExplorer = "variable_explorer"
+    """The Spyder Variable Explorer plugin."""
+
+
+class Plugins(DockablePlugins):
     """Pseudo-enum class listing the names of all Spyder internal plugins.
 
     Values correspond to the plugin's
     :attr:`~spyder.api.plugins.SpyderPluginV2.NAME`.
+
+    .. note::
+
+        This "enum" also includes all the members from :class:`DockablePlugins`
+        via inheritance from that class.
     """
 
     All = "all"
@@ -29,32 +87,8 @@ class Plugins:
     Completions = "completions"
     """The Spyder Completions plugin."""
 
-    Console = "internal_console"
-    """The Spyder Console plugin."""
-
-    Debugger = "debugger"
-    """The Spyder Debugger plugin."""
-
-    Editor = "editor"
-    """The Spyder Editor plugin."""
-
-    Explorer = "explorer"
-    """The Spyder Explorer plugin."""
-
     ExternalTerminal = "external_terminal"
     """The Spyder External Terminal plugin."""
-
-    Find = "find_in_files"
-    """The Spyder Find plugin."""
-
-    Help = "help"
-    """The Spyder Help plugin."""
-
-    History = "historylog"
-    """The Spyder History plugin."""
-
-    IPythonConsole = "ipython_console"
-    """The Spyder IPython Console plugin."""
 
     Layout = "layout"
     """The Spyder Layout plugin."""
@@ -65,26 +99,8 @@ class Plugins:
     MainMenu = "mainmenu"
     """The Spyder Main Menu plugin."""
 
-    OnlineHelp = "onlinehelp"
-    """The Spyder Online Help plugin."""
-
-    OutlineExplorer = "outline_explorer"
-    """The Spyder Outline Explorer plugin."""
-
-    Plots = "plots"
-    """The Spyder Plots plugin."""
-
     Preferences = "preferences"
     """The Spyder Preferences plugin."""
-
-    Profiler = "profiler"
-    """The Spyder Profiler plugin."""
-
-    Projects = "project_explorer"
-    """The Spyder Projects plugin."""
-
-    Pylint = "pylint"
-    """The Spyder Pylint plugin."""
 
     PythonpathManager = "pythonpath_manager"
     """The Spyder PYTHONPATH Manager plugin."""
@@ -113,64 +129,8 @@ class Plugins:
     UpdateManager = "update_manager"
     """The Spyder Update Manager plugin."""
 
-    VariableExplorer = "variable_explorer"
-    """The Spyder Variable Explorer plugin."""
-
     WorkingDirectory = "workingdir"
     """The Spyder Working Directory plugin."""
-
-
-class DockablePlugins:
-    """Pseudo-enum class listing the names of Spyder internal dockable plugins.
-
-    Values correspond to the plugin's
-    :attr:`~spyder.api.plugins.SpyderPluginV2.NAME`.
-    """
-
-    Console = "internal_console"
-    """The Spyder Console plugin."""
-
-    Debugger = "debugger"
-    """The Spyder Debugger plugin."""
-
-    Editor = "editor"
-    """The Spyder Editor plugin."""
-
-    Explorer = "explorer"
-    """The Spyder Explorer plugin."""
-
-    Find = "find_in_files"
-    """The Spyder Find plugin."""
-
-    Help = "help"
-    """The Spyder Help plugin."""
-
-    History = "historylog"
-    """The Spyder History plugin."""
-
-    IPythonConsole = "ipython_console"
-    """The Spyder IPython Console plugin."""
-
-    OnlineHelp = "onlinehelp"
-    """The Spyder Online Help plugin."""
-
-    OutlineExplorer = "outline_explorer"
-    """The Spyder Outline Explorer plugin."""
-
-    Plots = "plots"
-    """The Spyder Plots plugin."""
-
-    Profiler = "profiler"
-    """The Spyder Profiler plugin."""
-
-    Projects = "project_explorer"
-    """The Spyder Projects plugin."""
-
-    Pylint = "pylint"
-    """The Spyder Pylint plugin."""
-
-    VariableExplorer = "variable_explorer"
-    """The Spyder Variable Explorer plugin."""
 
 
 class OptionalPlugins:

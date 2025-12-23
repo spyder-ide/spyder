@@ -475,7 +475,9 @@ class SpyderPluginV2(
     def __init__(
         self,
         parent: spyder.app.mainwindow.MainWindow,
-        configuration: spyder.config.manager.ConfigurationManager | None = None,
+        configuration: (
+            spyder.config.manager.ConfigurationManager | None
+        ) = None,
     ):
         """
         Initialize the plugin object (called automatically by Spyder).
@@ -631,7 +633,9 @@ class SpyderPluginV2(
         """
         return self._container
 
-    def get_configuration(self) -> spyder.config.manager.ConfigurationManager | None:
+    def get_configuration(
+        self,
+    ) -> spyder.config.manager.ConfigurationManager | None:
         """
         Return the Spyder configuration object.
 
