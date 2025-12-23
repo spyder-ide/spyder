@@ -1,14 +1,23 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
-"""Global plugin registry."""
+"""Global registry for internal and external Spyder plugins."""
+
+from __future__ import annotations
 
 # Standard library imports
 import logging
-from typing import Dict, List, Union, Type, Any, Set, Optional
+import sys
+from typing import Any, Union, TYPE_CHECKING
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias  # noqa: ICN003
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -24,24 +33,37 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.utils.icon_manager import ima
 
+if TYPE_CHECKING:
+    from qtpy.QtGui import QIcon
 
-SpyderPluginClass = Union[SpyderPluginV2, SpyderDockablePlugin]
+    import spyder.app.mainwindow
 
 
-ALL_PLUGINS = [getattr(Plugins, attr) for attr in dir(Plugins)
-               if not attr.startswith('_') and attr != 'All']
+SpyderPluginClass: TypeAlias = Union[SpyderPluginV2, SpyderDockablePlugin]
+"""Type alias for the set of supported classes for Spyder plugin objects."""
+
+ALL_PLUGINS: list[str] = [
+    getattr(Plugins, attr)
+    for attr in dir(Plugins)
+    if not attr.startswith("_") and attr != "All"
+]
+"""List of all Spyder internal plugins."""
 
 logger = logging.getLogger(__name__)
 
 
 class PreferencesAdapter(SpyderConfigurationAccessor):
+    """Class with constants for the plugin manager preferences page."""
+
     # Fake class constants used to register the configuration page
     CONF_WIDGET_CLASS = PluginsConfigPage
-    NAME = 'plugin_registry'
+    """:meta private:"""
+    NAME = "plugin_registry"
     CONF_VERSION = None
     ADDITIONAL_CONF_OPTIONS = None
     ADDITIONAL_CONF_TABS = None
     CONF_SECTION = ""
+    """:meta private:"""
 
     def apply_plugin_settings(self, _unused):
         pass
@@ -52,72 +74,100 @@ class PreferencesAdapter(SpyderConfigurationAccessor):
 
 class SpyderPluginRegistry(QObject, PreferencesAdapter):
     """
-    Global plugin registry.
+    Global Spyder plugin registry.
 
-    This class handles a plugin initialization/teardown lifetime, including
-    notifications when a plugin is available or not.
+    This class handles a plugin's initialization/teardown lifetime, including
+    notifications when a plugin is available or about to be torn down.
 
     This registry alleviates the limitations of a topological sort-based
     plugin initialization by enabling plugins to have bidirectional
     dependencies instead of unidirectional ones.
 
-    Notes
-    -----
-    1. This class should be instantiated as a singleton.
-    2. A plugin should not depend on other plugin to perform its
-       initialization since it could cause deadlocks.
+    .. caution::
+
+        A plugin should not depend on other plugin to perform its
+        initialization, since this could cause deadlocks.
+
+    .. note::
+
+        This class should be instantiated as a singleton.
     """
 
-    sig_plugin_ready = Signal(str, bool)
+    sig_plugin_ready: Signal = Signal(str, bool)
     """
-    This signal is used to let the main window know that a plugin is ready.
+    Signal used to let the main window know that a plugin is ready for use.
 
     Parameters
     ----------
     plugin_name: str
-        Name of the plugin that is available.
+        Name of the plugin that has become available.
     omit_conf: bool
-        True if the plugin configuration does not need to be written.
+        ``True`` if the plugin configuration does not need to be written;
+        ``False`` otherwise.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Create a global registry for internal and external Spyder plugins.
+
+        Returns
+        -------
+        None
+        """
         super().__init__()
         PreferencesAdapter.__init__(self)
 
-        # Reference to the main window
-        self.main = None
+        self.main: spyder.app.mainwindow.MainWindow | None = None
+        """Reference to the Spyder main window."""
 
-        # Dictionary that maps a plugin name to a list of the plugin names
-        # that depend on it.
-        self.plugin_dependents = {}  # type: Dict[str, Dict[str, List[str]]]
+        self.plugin_dependents: dict[str, dict[str, list[str]]] = {}
+        """
+        Mapping of plugin names to the names of plugins depending on them.
 
-        # Dictionary that maps a plugin name to a list of the plugin names
-        # that the plugin depends on.
-        self.plugin_dependencies = {}  # type: Dict[str, Dict[str, List[str]]]
+        The second-level dictionary holds lists of dependencies for the plugin
+        by category, under the keys ``"requires"`` and ``"optional"``.
+        """
 
-        # Plugin dictionary mapped by their names
-        self.plugin_registry = {}  # type: Dict[str, SpyderPluginClass]
+        self.plugin_dependencies: dict[str, dict[str, list[str]]] = {}
+        """
+        Mapping of plugin names to the names of plugins they depend on.
 
-        # Dictionary that maps a plugin name to its availability.
-        self.plugin_availability = {}  # type: Dict[str, bool]
+        The second-level dictionary holds lists of dependencies for the plugin
+        by category, under the keys ``"requires"`` and ``"optional"``.
+        """
 
-        # Set that stores the plugin names of all Spyder 4 plugins.
-        self.old_plugins = set({})  # type: set[str]
+        self.plugin_registry: dict[str, SpyderPluginClass] = {}
+        """Mapping of plugin names to plugin objects."""
 
-        # Set that stores the names of the plugins that are enabled
-        self.enabled_plugins = set({})  # type: set[str]
+        self.plugin_availability: dict[str, bool] = {}
+        """Mapping of plugin name to whether it is ready for use."""
 
-        # Set that stores the names of the internal plugins
-        self.internal_plugins = set({})  # type: set[str]
+        self.enabled_plugins: set[str] = set()
+        """Set of the names of all enabled plugins."""
 
-        # Set that stores the names of the external plugins
-        self.external_plugins = set({})  # type: set[str]
+        self.internal_plugins: set[str] = set()
+        """Set of the names of all internal plugins (part of Spyder itself)."""
 
-        # Dictionary that contains all the internal plugins (enabled or not)
-        self.all_internal_plugins = {}  # type: Dict[str, Tuple[str, Type[SpyderPluginClass]]]
+        self.external_plugins: set[str] = set()
+        """Set of the names of all external plugins (installed separately)."""
 
-        # Dictionary that contains all the external plugins (enabled or not)
-        self.all_external_plugins = {}  # type: Dict[str, Tuple[str, Type[SpyderPluginClass]]]
+        self.all_internal_plugins: dict[
+            str, tuple[str, type[SpyderPluginClass]]
+        ] = {}
+        """Mapping of internal plugins to their name and plugin class.
+
+        Includes all internal plugins that are part of Spyder's source tree,
+        enabled or not.
+        """
+
+        self.all_external_plugins: dict[
+            str, tuple[str, type[SpyderPluginClass]]
+        ] = {}
+        """Mapping of external plugins to their name and plugin class.
+
+        Includes all externals plugins installed separately from Spyder,
+        enabled or not.
+        """
 
         # This is used to allow disabling external plugins through Preferences
         self._external_plugins_conf_section = "external_plugins"
@@ -131,8 +181,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_dependents[key] = plugin_strict_dependents
         self.plugin_dependents[plugin] = plugin_dependents
 
-    def _update_dependencies(self, plugin: str, required_plugin: str,
-                             key: str):
+    def _update_dependencies(
+        self, plugin: str, required_plugin: str, key: str
+    ):
         """Add `required_plugin` to the list of dependencies of `plugin`."""
         plugin_dependencies = self.plugin_dependencies.get(plugin, {})
         plugin_strict_dependencies = plugin_dependencies.get(key, [])
@@ -140,30 +191,33 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_dependencies[key] = plugin_strict_dependencies
         self.plugin_dependencies[plugin] = plugin_dependencies
 
-    def _update_plugin_info(self, plugin_name: str,
-                            required_plugins: List[str],
-                            optional_plugins: List[str]):
+    def _update_plugin_info(
+        self,
+        plugin_name: str,
+        required_plugins: list[str],
+        optional_plugins: list[str],
+    ):
         """Update the dependencies and dependents of `plugin_name`."""
         for plugin in required_plugins:
-            self._update_dependencies(plugin_name, plugin, 'requires')
-            self._update_dependents(plugin, plugin_name, 'requires')
+            self._update_dependencies(plugin_name, plugin, "requires")
+            self._update_dependents(plugin, plugin_name, "requires")
 
         for plugin in optional_plugins:
-            self._update_dependencies(plugin_name, plugin, 'optional')
-            self._update_dependents(plugin, plugin_name, 'optional')
+            self._update_dependencies(plugin_name, plugin, "optional")
+            self._update_dependents(plugin, plugin_name, "optional")
 
     def _instantiate_spyder_plugin(
         self,
         main_window: Any,
-        PluginClass: Type[SpyderPluginClass],
+        PluginClass: type[SpyderPluginClass],
         external: bool,
     ) -> SpyderPluginClass:
-        """Instantiate and register a Spyder 5+ plugin."""
+        """Instantiate and register a Spyder plugin."""
         required_plugins = list(set(PluginClass.REQUIRES))
         optional_plugins = list(set(PluginClass.OPTIONAL))
         plugin_name = PluginClass.NAME
 
-        logger.debug(f'Registering plugin {plugin_name} - {PluginClass}')
+        logger.debug(f"Registering plugin {plugin_name} - {PluginClass}")
 
         if PluginClass.CONF_FILE:
             CONF.register_plugin(PluginClass)
@@ -177,8 +231,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 optional_plugins = list(set(optional_plugins + ALL_PLUGINS))
 
         # Update plugin dependency information
-        self._update_plugin_info(plugin_name, required_plugins,
-                                 optional_plugins)
+        self._update_plugin_info(
+            plugin_name, required_plugins, optional_plugins
+        )
 
         # Create and store plugin instance
         plugin_instance = PluginClass(main_window, configuration=CONF)
@@ -187,7 +242,9 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         # Connect plugin availability signal to notification system
         plugin_instance.sig_plugin_ready.connect(
             lambda: self.notify_plugin_availability(
-                plugin_name, omit_conf=PluginClass.CONF_FILE))
+                plugin_name, omit_conf=PluginClass.CONF_FILE
+            )
+        )
 
         # Initialize plugin instance
         plugin_instance.initialize()
@@ -208,8 +265,14 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             package_name = PluginClass._spyder_package_name
             version = PluginClass._spyder_version
             description = plugin_instance.get_description()
-            dependencies.add(module, package_name, description,
-                                version, None, kind=dependencies.PLUGIN)
+            dependencies.add(
+                module,
+                package_name,
+                description,
+                version,
+                None,
+                kind=dependencies.PLUGIN,
+            )
 
         return plugin_instance
 
@@ -217,26 +280,28 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         """Notify a plugin of its available dependencies."""
         plugin_instance = self.plugin_registry[plugin_name]
         plugin_dependencies = self.plugin_dependencies.get(plugin_name, {})
-        required_plugins = plugin_dependencies.get('requires', [])
-        optional_plugins = plugin_dependencies.get('optional', [])
+        required_plugins = plugin_dependencies.get("requires", [])
+        optional_plugins = plugin_dependencies.get("optional", [])
 
         for plugin in required_plugins + optional_plugins:
             if plugin in self.plugin_registry:
                 if self.plugin_availability.get(plugin, False):
-                    logger.debug(f'Plugin {plugin} has already loaded')
+                    logger.debug(f"Plugin {plugin} has already loaded")
                     plugin_instance._on_plugin_available(plugin)
 
     def _notify_plugin_teardown(self, plugin_name: str):
         """Notify dependents of a plugin that is going to be unavailable."""
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
-        required_plugins = plugin_dependents.get('requires', [])
-        optional_plugins = plugin_dependents.get('optional', [])
+        required_plugins = plugin_dependents.get("requires", [])
+        optional_plugins = plugin_dependents.get("optional", [])
 
         for plugin in required_plugins + optional_plugins:
             if plugin in self.plugin_registry:
                 if self.plugin_availability.get(plugin, False):
-                    logger.debug(f'Notifying plugin {plugin} that '
-                                 f'{plugin_name} is going to be turned off')
+                    logger.debug(
+                        f"Notifying plugin {plugin} that "
+                        f"{plugin_name} is going to be turned off"
+                    )
                     plugin_instance = self.plugin_registry[plugin]
                     plugin_instance._on_plugin_teardown(plugin_name)
 
@@ -244,23 +309,26 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         """Disconnect a plugin from its dependencies."""
         plugin_instance = self.plugin_registry[plugin_name]
         plugin_dependencies = self.plugin_dependencies.get(plugin_name, {})
-        required_plugins = plugin_dependencies.get('requires', [])
-        optional_plugins = plugin_dependencies.get('optional', [])
+        required_plugins = plugin_dependencies.get("requires", [])
+        optional_plugins = plugin_dependencies.get("optional", [])
 
         for plugin in required_plugins + optional_plugins:
             if plugin in self.plugin_registry:
                 if self.plugin_availability.get(plugin, False):
-                    logger.debug(f'Disconnecting {plugin_name} from {plugin}')
+                    logger.debug(f"Disconnecting {plugin_name} from {plugin}")
                     plugin_instance._on_plugin_teardown(plugin)
 
     # -------------------------- PUBLIC API -----------------------------------
     def register_plugin(
-            self, main_window: Any,
-            PluginClass: Type[SpyderPluginClass],
-            *args: tuple, external: bool = False,
-            **kwargs: dict) -> SpyderPluginClass:
+        self,
+        main_window: spyder.app.mainwindow.MainWindow,
+        PluginClass: type[SpyderPluginClass],
+        *args: Any,
+        external: bool = False,
+        **kwargs: Any,
+    ) -> SpyderPluginClass:
         """
-        Register a plugin into the Spyder registry.
+        Register a plugin into the Spyder plugin registry.
 
         Parameters
         ----------
@@ -268,65 +336,83 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             Reference to Spyder's main window.
         PluginClass: type[SpyderPluginClass]
             The plugin class to register and create. It must be one of
-            `spyder.app.registry.SpyderPluginClass`.
-        *args: tuple
-            Positional arguments used to initialize the plugin
-            instance.
-        external: bool
-            If True, then the plugin is stored as a external plugin. Otherwise
-            it will be marked as an internal plugin. Default: False
-        **kwargs: dict
-            Optional keyword arguments used to initialize the plugin instance.
+            :data:`SpyderPluginClass`.
+        *args: Any, optional
+            Arbitrary positional arguments passed to the plugin instance's
+            initializer.
+
+            .. deprecated:: 6.2
+
+                No longer needed following completion of the Spyder plugin
+                API migration in Spyder 6.0. Passing ``*args`` will raise a
+                :exc:`DeprecationWarning` in Spyder 6.2 and be removed in
+                Spyder 7.0.
+        external: bool, optional
+            If ``True``, then the plugin is stored as an external plugin.
+            Otherwise, it will be marked as an internal plugin (the default).
+        **kwargs: Any, optional
+            Arbitrary positional arguments passed to the plugin instance's
+            initializer.
+
+            .. deprecated:: 6.2
+
+                No longer needed following completion of the Spyder plugin
+                API migration in Spyder 6.0. Passing ``**kwargs`` will raise a
+                :exc:`DeprecationWarning` in Spyder 6.2 and be removed in
+                Spyder 7.0.
 
         Returns
         -------
         plugin: SpyderPluginClass
-            The instance of the registered plugin.
+            The initialized instance of the registered plugin.
 
         Raises
         ------
         TypeError
-            If the `PluginClass` does not inherit from any of
-            `spyder.app.registry.SpyderPluginClass`
-
-        Notes
-        -----
-        The optional `*args` and `**kwargs` will be removed once all
-        plugins are migrated.
+            If the ``PluginClass`` does not inherit from any of
+            :data:`spyder.app.registry.SpyderPluginClass`.
         """
         if not issubclass(PluginClass, SpyderPluginV2):
             raise TypeError(
                 f"{PluginClass} does not inherit from SpyderPluginV2"
             )
 
-        instance = None
-        if issubclass(PluginClass, SpyderPluginV2):
-            # Register a Spyder 5+ plugin
-            instance = self._instantiate_spyder_plugin(
-                main_window, PluginClass, external
-            )
+        # Register a Spyder plugin
+        instance = self._instantiate_spyder_plugin(
+            main_window, PluginClass, external
+        )
 
         return instance
 
-    def notify_plugin_availability(self, plugin_name: str,
-                                   notify_main: bool = True,
-                                   omit_conf: bool = False):
+    def notify_plugin_availability(
+        self,
+        plugin_name: str,
+        notify_main: bool = True,
+        omit_conf: bool = False,
+    ) -> None:
         """
-        Notify dependent plugins of a given plugin of its availability.
+        Notify a plugin's dependents that the plugin is ready for use.
 
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin that is available.
-        notify_main: bool
-            If True, then a signal is emitted to the main window to perform
-            further registration steps.
-        omit_conf: bool
-            If True, then the main window is instructed to not write the
+            Name of the plugin that has become ready for use.
+        notify_main: bool, optional
+            If ``True``, then a signal is emitted to the main window to perform
+            further registration steps (the default). Otherwise, no signal is
+            emitted.
+        omit_conf: bool, optional
+            If ``True``, then the main window is instructed to not write the
             plugin configuration into the Spyder configuration file.
+            Otherwise, configuration will be written as normal (the default).
+
+        Returns
+        -------
+        None
         """
-        logger.debug(f'Plugin {plugin_name} has finished loading, '
-                     'sending notifications')
+        logger.debug(
+            f"Plugin {plugin_name} has finished loading, sending notifications"
+        )
 
         # Set plugin availability to True
         self.plugin_availability[plugin_name] = True
@@ -337,8 +423,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         # Notify plugin dependents
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
-        required_plugins = plugin_dependents.get('requires', [])
-        optional_plugins = plugin_dependents.get('optional', [])
+        required_plugins = plugin_dependents.get("requires", [])
+        optional_plugins = plugin_dependents.get("optional", [])
 
         for plugin in required_plugins + optional_plugins:
             if plugin in self.plugin_registry:
@@ -351,9 +437,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
     def can_delete_plugin(self, plugin_name: str) -> bool:
         """
-        Check if a plugin from the registry can be deleted by its name.
+        Check if a plugin with the given name can be deleted from the registry.
 
-        Paremeters
+        Calls :meth:`spyder.api.plugins.SpyderPluginV2.can_close` to
+        perform the check.
+
+        Parameters
         ----------
         plugin_name: str
             Name of the plugin to check for deletion.
@@ -361,27 +450,29 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Returns
         -------
         can_close: bool
-            True if the plugin can be closed. False otherwise.
+            ``True`` if the plugin can be removed; ``False`` otherwise.
         """
         plugin_instance = self.plugin_registry[plugin_name]
         # Determine if plugin can be closed
         return plugin_instance.can_close()
 
     def dock_undocked_plugin(
-            self, plugin_name: str, save_undocked: bool = False):
+        self, plugin_name: str, save_undocked: bool = False
+    ) -> None:
         """
-        Dock plugin if undocked and save undocked state if requested
+        Dock plugin if undocked and save undocked state if requested.
 
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin to check for deletion.
+            Name of the plugin to undock.
         save_undocked : bool, optional
-            True if the undocked state needs to be saved. The default is False.
+            ``True`` if the undocked state should be saved. If ``False``,
+            the default, don't persist the undocked state.
 
         Returns
         -------
-        None.
+        None
         """
         plugin_instance = self.plugin_registry[plugin_name]
 
@@ -389,29 +480,38 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             # Close undocked plugin if needed and save undocked state
             plugin_instance.close_window(save_undocked=save_undocked)
 
-    def delete_plugin(self, plugin_name: str, teardown: bool = True,
-                      check_can_delete: bool = True) -> bool:
+    def delete_plugin(
+        self,
+        plugin_name: str,
+        teardown: bool = True,
+        check_can_delete: bool = True,
+    ) -> bool:
         """
-        Remove and delete a plugin from the registry by its name.
+        Remove and delete the plugin with the given name from the registry.
 
-        Paremeters
+        Parameters
         ----------
         plugin_name: str
             Name of the plugin to delete.
-        teardown: bool
-            True if the teardown notification to other plugins should be sent
-            when deleting the plugin, False otherwise.
-        check_can_delete: bool
-            True if the plugin should validate if it can be closed when this
-            method is called, False otherwise.
+        teardown: bool, optional
+            ``True`` if the teardown notification to other plugins should be
+            sent when deleting the plugin (the default), ``False`` otherwise.
+        check_can_delete: bool, optional
+            ``True`` if the plugin should first check if it can be deleted
+            (using :meth:`can_delete_plugin`) before closing and removing
+            itself from the registry (the default). If this check then fails,
+            the plugin's removal is aborted and this method returns ``False``.
+            Otherwise, if this parameter is ``False``, the plugin is deleted
+            unconditionally without a check.
 
         Returns
         -------
         plugin_deleted: bool
-            True if the registry was able to teardown and remove the plugin.
-            False otherwise.
+            ``True`` if the registry was able to teardown and remove the
+            plugin; ``False`` otherwise. Will always return ``True``
+            if ``check_can_delete`` is ``False``.
         """
-        logger.debug(f'Deleting plugin {plugin_name}')
+        logger.debug(f"Deleting plugin {plugin_name}")
         plugin_instance = self.plugin_registry[plugin_name]
 
         # Determine if plugin can be closed
@@ -421,7 +521,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 return False
 
         if isinstance(plugin_instance, SpyderPluginV2):
-            # Cleanly delete plugin widgets. This avoids segfautls with
+            # Cleanly delete plugin widgets. This avoids segfaults with
             # PyQt 5.15
             if isinstance(plugin_instance, SpyderDockablePlugin):
                 try:
@@ -466,20 +566,19 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         for plugin in self.plugin_dependents:
             all_plugin_dependents = self.plugin_dependents[plugin]
-            for key in {'requires', 'optional'}:
+            for key in {"requires", "optional"}:
                 plugin_dependents = all_plugin_dependents.get(key, [])
                 if plugin_name in plugin_dependents:
                     plugin_dependents.remove(plugin_name)
 
         for plugin in self.plugin_dependencies:
             all_plugin_dependencies = self.plugin_dependencies[plugin]
-            for key in {'requires', 'optional'}:
+            for key in {"requires", "optional"}:
                 plugin_dependencies = all_plugin_dependencies.get(key, [])
                 if plugin_name in plugin_dependencies:
                     plugin_dependencies.remove(plugin_name)
 
         self.plugin_availability.pop(plugin_name)
-        self.old_plugins -= {plugin_name}
         self.enabled_plugins -= {plugin_name}
         self.internal_plugins -= {plugin_name}
         self.external_plugins -= {plugin_name}
@@ -489,46 +588,54 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         return True
 
-    def dock_all_undocked_plugins(self, save_undocked: bool = False):
+    def dock_all_undocked_plugins(self, save_undocked: bool = False) -> None:
         """
-        Dock undocked plugins and save undocked state if required.
+        Dock undocked plugins and save the undocked state if requested.
 
         Parameters
         ----------
-        save_undocked : bool, optional
-            True if the undocked state needs to be saved. The default is False.
+        save_undocked: bool, optional
+            ``True`` if the undocked state should be saved. If ``False``,
+            the default, don't persist the undocked state.
 
         Returns
         -------
-        None.
-
+        None
         """
-        for plugin_name in (
-                set(self.external_plugins) | set(self.internal_plugins)):
-            self.dock_undocked_plugin(
-                plugin_name, save_undocked=save_undocked)
+        for plugin_name in set(self.external_plugins) | set(
+            self.internal_plugins
+        ):
+            self.dock_undocked_plugin(plugin_name, save_undocked=save_undocked)
 
-    def can_delete_all_plugins(self,
-                               excluding: Optional[Set[str]] = None) -> bool:
+    def can_delete_all_plugins(
+        self,
+        excluding: set[str] | None = None,
+    ) -> bool:
         """
-        Determine if all plugins can be deleted except the ones to exclude.
+        Determine if all plugins can be deleted (except any specified).
+
+        Calls :meth:`spyder.api.plugins.SpyderPluginV2.can_close` to
+        perform the check.
 
         Parameters
         ----------
-        excluding: Optional[Set[str]]
-            A set that lists plugins (by name) that will not be deleted.
+        excluding: set[str] | None, optional
+            A set that lists plugins (by name) that will not be checked for
+            deletion. If ``None`` (the default) or an empty set, no plugins
+            are excluded from the check.
 
         Returns
         -------
         bool
-            True if all plugins can be closed. False otherwise.
+            ``True`` if all plugins can be closed. ``False`` otherwise.
         """
         excluding = excluding or set({})
         can_close = True
 
         # Check external plugins
-        for plugin_name in (
-                set(self.external_plugins) | set(self.internal_plugins)):
+        for plugin_name in set(self.external_plugins) | set(
+            self.internal_plugins
+        ):
             if plugin_name not in excluding:
                 can_close &= self.can_delete_plugin(plugin_name)
                 if not can_close:
@@ -536,58 +643,55 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         return can_close
 
-    def delete_all_plugins(self, excluding: Optional[Set[str]] = None,
-                           close_immediately: bool = False) -> bool:
+    def delete_all_plugins(
+        self,
+        excluding: set[str] | None = None,
+        close_immediately: bool = False,
+    ) -> bool:
         """
         Remove all plugins from the registry.
 
-        The teardown mechanism will remove external plugins first and then
-        internal ones, where the Spyder 4 plugins will be removed first and
-        then the Spyder 5 ones.
+        The teardown mechanism will remove external plugins then internal ones.
 
         Parameters
         ----------
-        excluding: Optional[Set[str]]
+        excluding: set[str] | None, optional
             A set that lists plugins (by name) that will not be deleted.
-        close_immediately: bool
-            If true, then the `can_close` status will be ignored.
+            If ``None`` (the default) or an empty set, no plugins
+            are excluded from being deleted.
+        close_immediately: bool, optional
+            If ``True``, then the
+            :meth:`~spyder.api.plugins.SpyderPluginV2.can_close` status
+            will be ignored, and all plugins will be closed unconditionally.
+            If ``False`` (the default), Spyder will not close any plugins
+            if they report they cannot be closed, i.e. if
+            :meth:`can_delete_all_plugins` returns ``False``.
 
         Returns
         -------
         all_deleted: bool
-            True if all the plugins were closed and deleted. False otherwise.
+            ``True`` if all the plugins were deleted. ``False`` otherwise.
         """
         excluding = excluding or set({})
-        can_close = True
 
         # Check if all the plugins can be closed
         can_close = self.can_delete_all_plugins(excluding=excluding)
 
-        if not can_close and not close_immediately:
-            return False
+        # Delete external plugins first, then internal plugins
+        for plugins in [self.external_plugins, self.internal_plugins]:
+            if not can_close and not close_immediately:
+                return False
 
-        # Delete Spyder 5+ external plugins
-        for plugin_name in set(self.external_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False)
-                    if not can_close and not close_immediately:
-                        break
-
-        if not can_close and not close_immediately:
-            return False
-
-        # Delete Spyder 5+ internal plugins
-        for plugin_name in set(self.internal_plugins):
-            if plugin_name not in excluding:
-                plugin_instance = self.plugin_registry[plugin_name]
-                if isinstance(plugin_instance, SpyderPluginV2):
-                    can_close &= self.delete_plugin(
-                        plugin_name, teardown=False, check_can_delete=False)
-                    if not can_close and not close_immediately:
-                        break
+            # Delete Spyder plugins
+            for plugin_name in set(plugins):
+                if plugin_name not in excluding:
+                    plugin_instance = self.plugin_registry[plugin_name]
+                    if isinstance(plugin_instance, SpyderPluginV2):
+                        can_close &= self.delete_plugin(
+                            plugin_name, teardown=False, check_can_delete=False
+                        )
+                        if not can_close and not close_immediately:
+                            break
 
         return can_close
 
@@ -598,7 +702,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin to retrieve.
+            Name of the plugin to retrieve the plugin object of.
 
         Returns
         -------
@@ -614,80 +718,74 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             plugin_instance = self.plugin_registry[plugin_name]
             return plugin_instance
         else:
-            raise SpyderAPIError(f'Plugin {plugin_name} was not found in '
-                                 'the registry')
+            raise SpyderAPIError(
+                f"Plugin {plugin_name} was not found in the registry"
+            )
 
-    def set_plugin_enabled(self, plugin_name: str):
+    def set_plugin_enabled(self, plugin_name: str) -> None:
         """
-        Add a plugin name to the set of enabled plugins.
+        Add a plugin by name to the set of enabled plugins.
 
         Parameters
         ----------
         plugin_name: str
             Name of the plugin to add.
+
+        Returns
+        -------
+        None
         """
         self.enabled_plugins |= {plugin_name}
 
     def is_plugin_enabled(self, plugin_name: str) -> bool:
         """
-        Determine if a given plugin is enabled and is going to be
-        loaded.
+        Determine if a given plugin is enabled and is going to be loaded.
 
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin to query.
+            Name of the plugin to check.
 
         Returns
         -------
         plugin_enabled: bool
-            True if the plugin is enabled and False if not.
+            ``True`` if the plugin is enabled and ``False`` if not.
         """
         return plugin_name in self.enabled_plugins
 
     def is_plugin_available(self, plugin_name: str) -> bool:
         """
-        Determine if a given plugin was loaded and is available.
+        Determine if a given plugin is loaded and ready for use.
 
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin to query.
+            Name of the plugin to check.
 
         Returns
         -------
         plugin_available: bool
-            True if the plugin is available and False if not.
+            ``True`` if the plugin is available and ``False`` if not.
         """
         return self.plugin_availability.get(plugin_name, False)
 
-    def reset(self):
-        """Reset and empty the plugin registry."""
-        # Dictionary that maps a plugin name to a list of the plugin names
-        # that depend on it.
-        self.plugin_dependents = {}  # type: Dict[str, Dict[str, List[str]]]
+    def reset(self) -> None:
+        """
+        Reset and empty the plugin registry.
 
-        # Dictionary that maps a plugin name to a list of the plugin names
-        # that the plugin depends on.
-        self.plugin_dependencies = {}  # type: Dict[str, Dict[str, List[str]]]
+        Returns
+        -------
+        None
+        """
+        self.plugin_dependents = {}
+        self.plugin_dependencies = {}
 
-        # Plugin dictionary mapped by their names
-        self.plugin_registry = {}  # type: Dict[str, SpyderPluginClass]
+        self.plugin_registry = {}
+        self.plugin_availability = {}
 
-        # Dictionary that maps a plugin name to its availability.
-        self.plugin_availability = {}  # type: Dict[str, bool]
-
-        # Set that stores the plugin names of all Spyder 4 plugins.
-        self.old_plugins = set({})  # type: set[str]
-
-        # Set that stores the names of the plugins that are enabled
-        self.enabled_plugins = set({})
-
-        # Set that stores the names of the internal plugins
-        self.internal_plugins = set({})
-
-        # Set that stores the names of the external plugins
-        self.external_plugins = set({})
+        self.enabled_plugins = set()
+        self.internal_plugins = set()
+        self.external_plugins = set()
 
         try:
             self.sig_plugin_ready.disconnect()
@@ -698,36 +796,93 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         dependencies.DEPENDENCIES = []
 
     def set_all_internal_plugins(
-            self, all_plugins: Dict[str, Type[SpyderPluginClass]]):
+        self, all_plugins: dict[str, tuple[str, type[SpyderPluginClass]]]
+    ) -> None:
+        """
+        Set the :attr:`all_internal_plugins` attribute to the given plugins.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be
+            removed in Spyder 7.0. Set the :attr:`all_internal_plugins`
+            attribute directly instead.
+
+        Parameters
+        ----------
+        all_plugins : dict[str, tuple[str, type[SpyderPluginClass]]]
+            Mapping of plugin name to plugin class to set the attribute to.
+
+        Returns
+        -------
+        None
+        """
         self.all_internal_plugins = all_plugins
 
     def set_all_external_plugins(
-            self, all_plugins: Dict[str, Type[SpyderPluginClass]]):
+        self, all_plugins: dict[str, tuple[str, type[SpyderPluginClass]]]
+    ) -> None:
+        """
+        Set the :attr:`all_external_plugins` attribute to the given plugins.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be
+            removed in Spyder 7.0. Set the :attr:`all_external_plugins`
+            attribute directly instead.
+
+        Parameters
+        ----------
+        all_plugins : dict[str, tuple[str, type[SpyderPluginClass]]]
+            Mapping of plugin name to plugin class to set the attribute to.
+
+        Returns
+        -------
+        None
+        """
         self.all_external_plugins = all_plugins
 
-    def set_main(self, main):
+    def set_main(self, main: spyder.app.mainwindow.MainWindow) -> None:
+        """
+        Set the reference to the Spyder main window for the plugin registry.
+
+        .. deprecated:: 6.2
+
+            Will raise a :exc:`DeprecationWarning` in Spyder 6.2 and be removed
+            in Spyder 7.0. Set the :attr:`main` attribute directly instead.
+
+        Parameters
+        ----------
+        main : spyder.app.mainwindow.MainWindow
+            The Spyder main window instance to set the reference to.
+
+        Returns
+        -------
+        None
+        """
         self.main = main
 
-    def get_icon(self):
-        return ima.icon('plugins')
+    def get_icon(self) -> QIcon:
+        """Icon of the plugin registry, for use in the Spyder interface."""
+        return ima.icon("plugins")
 
-    def get_name(self):
-        return _('Plugins')
+    def get_name(self) -> str:
+        """Name of the plugin registry, translated to the locale language."""
+        return _("Plugins")
 
     def __contains__(self, plugin_name: str) -> bool:
         """
-        Determine if a plugin name is contained in the registry.
+        Determine if a plugin with a given name is contained in the registry.
 
         Parameters
         ----------
         plugin_name: str
-            Name of the plugin to seek.
+            Name of the plugin to check.
 
         Returns
         -------
         is_contained: bool
-            If True, the plugin name is contained on the registry, False
-            otherwise.
+            If ``True``, `plugin_name` is contained in the registry;
+            ``False`` otherwise.
         """
         return plugin_name in self.plugin_registry
 
@@ -735,4 +890,5 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         return iter(self.plugin_registry)
 
 
-PLUGIN_REGISTRY = SpyderPluginRegistry()
+PLUGIN_REGISTRY: SpyderPluginRegistry = SpyderPluginRegistry()
+"""The global Spyder plugin registry instance."""
