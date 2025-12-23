@@ -226,7 +226,7 @@ class QInputDialogCombobox(QDialog):
         grid_layout.addWidget(QLabel(label), 0, 0)
         grid_layout.addWidget(self.text_edit, 1, 0)
 
-        combo_label = QLabel(_(label_combo))
+        combo_label = QLabel(label_combo)
         self.combo = SpyderComboBox(self)
         self.combo.addItems(items)
         grid_layout.addWidget(combo_label, 0, 1)

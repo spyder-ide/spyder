@@ -12,6 +12,8 @@ This file only deals with non-GUI configuration features
 sip API incompatibility issue in spyder's non-gui modules)
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from glob import glob
 import locale
@@ -514,7 +516,9 @@ def load_lang_conf():
     return lang
 
 
-def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
+def get_translation(
+    modname: str, dirname: str | None = None
+) -> Callable[[str], str]:
     """
     Return the translation callback for module ``modname``.
 
@@ -522,7 +526,7 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
     ----------
     modname : str
         The module to get the translation callback for.
-    dirname : str, optional
+    dirname : str | None, optional
         The directory name of the module, same as the module name by default.
 
     Returns
@@ -538,6 +542,7 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
         return x
 
     if building_autodoc():
+
         def translate_gettext(x: str) -> str:
             """
             Translate a text string to the current language for a module.
@@ -553,20 +558,22 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
                 The translated string.
             """
             return x
+
         return translate_gettext
 
-    locale_path = get_module_data_path(dirname, relpath="locale",
-                                       attr_name='LOCALEPATH')
+    locale_path = get_module_data_path(
+        dirname, relpath="locale", attr_name="LOCALEPATH"
+    )
 
     # If LANG is defined in Ubuntu, a warning message is displayed,
     # so in Unix systems we define the LANGUAGE variable.
     language = load_lang_conf()
-    if os.name == 'nt':
+    if os.name == "nt":
         # Trying to set LANG on Windows can fail when Spyder is
         # run with admin privileges.
         # Fixes spyder-ide/spyder#6886.
         try:
-            os.environ["LANG"] = language      # Works on Windows
+            os.environ["LANG"] = language  # Works on Windows
         except Exception:
             return translate_dumb
     else:
@@ -576,6 +583,7 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
         return translate_dumb
 
     import gettext
+
     try:
         _trans = gettext.translation(modname, locale_path)
 
@@ -594,13 +602,14 @@ def get_translation(modname: str, dirname: str = None) -> Callable[[str], str]:
                 The translated string.
             """
             return _trans.gettext(x)
+
         return translate_gettext
     except Exception as exc:
         # logging module is not yet initialised at this point
         print(
             f"Could not load translations for {language} due to: "
             f"{exc.__class__.__name__} - {exc}",
-            file=sys.stderr
+            file=sys.stderr,
         )
         return translate_dumb
 
@@ -628,7 +637,7 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
 def is_conda_based_app(pyexec=sys.executable):
     """
     Check if Spyder is running from the conda-based installer by looking for
-    the `spyder-menu.json` file.
+    the `conda_based_app` file.
 
     If a Python executable is provided, checks if it is in a conda-based
     installer environment or the root environment thereof.
@@ -647,6 +656,20 @@ def is_conda_based_app(pyexec=sys.executable):
         return True
     else:
         return False
+
+
+def is_installed_all_users():
+    """
+    Check if conda-based installer is installed for all users.
+    Only for conda-based installers.
+    """
+    real_pyexec = osp.realpath(sys.executable)  # may be symlink
+
+    if not is_conda_based_app(real_pyexec):
+        return False
+
+    root = real_pyexec.split("envs")[0]
+    return not osp.exists(root + ".nonadmin")
 
 
 #==============================================================================
