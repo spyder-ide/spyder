@@ -154,7 +154,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.all_internal_plugins: dict[
             str, tuple[str, type[SpyderPluginClass]]
         ] = {}
-        """Mapping of internal plugins to their confpage name and plugin class.
+        """Mapping of internal plugins to their name and plugin class.
 
         Includes all internal plugins that are part of Spyder's source tree,
         enabled or not.
@@ -163,7 +163,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         self.all_external_plugins: dict[
             str, tuple[str, type[SpyderPluginClass]]
         ] = {}
-        """Mapping of external plugins to their confpage name and plugin class.
+        """Mapping of external plugins to their name and plugin class.
 
         Includes all externals plugins installed separately from Spyder,
         enabled or not.
@@ -348,7 +348,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 :exc:`DeprecationWarning` in Spyder 6.2 and be removed in
                 Spyder 7.0.
         external: bool, optional
-            If ``True``, then the plugin is stored as a external plugin.
+            If ``True``, then the plugin is stored as an external plugin.
             Otherwise, it will be marked as an internal plugin (the default).
         **kwargs: Any, optional
             Arbitrary positional arguments passed to the plugin instance's
@@ -399,8 +399,8 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             Name of the plugin that has become ready for use.
         notify_main: bool, optional
             If ``True``, then a signal is emitted to the main window to perform
-            further registration steps. Otherwise, no signal is omitted
-            (the default).
+            further registration steps (the default). Otherwise, no signal is
+            emitted.
         omit_conf: bool, optional
             If ``True``, then the main window is instructed to not write the
             plugin configuration into the Spyder configuration file.
@@ -411,8 +411,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         None
         """
         logger.debug(
-            f"Plugin {plugin_name} has finished loading, "
-            "sending notifications"
+            f"Plugin {plugin_name} has finished loading, sending notifications"
         )
 
         # Set plugin availability to True
@@ -622,7 +621,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         ----------
         excluding: set[str] | None, optional
             A set that lists plugins (by name) that will not be checked for
-            deletion. If the empty set or ``None`` (the default), no plugins
+            deletion. If ``None`` (the default) or an empty set, no plugins
             are excluded from the check.
 
         Returns
@@ -658,7 +657,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         ----------
         excluding: set[str] | None, optional
             A set that lists plugins (by name) that will not be deleted.
-            If the empty set or ``None`` (the default), no plugins
+            If ``None`` (the default) or an empty set, no plugins
             are excluded from being deleted.
         close_immediately: bool, optional
             If ``True``, then the
@@ -683,7 +682,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if not can_close and not close_immediately:
                 return False
 
-            # Delete Spyder external plugins
+            # Delete Spyder plugins
             for plugin_name in set(plugins):
                 if plugin_name not in excluding:
                     plugin_instance = self.plugin_registry[plugin_name]
@@ -720,7 +719,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             return plugin_instance
         else:
             raise SpyderAPIError(
-                f"Plugin {plugin_name} was not found in " "the registry"
+                f"Plugin {plugin_name} was not found in the registry"
             )
 
     def set_plugin_enabled(self, plugin_name: str) -> None:

@@ -5,7 +5,7 @@
 ### API changes
 
 * The `spyder.api.plugin_registration.mixins` module, with the mixin for
-  handling the `@on_plugin_availible` and `@on_plugin_teardown` decorators
+  handling the `@on_plugin_available` and `@on_plugin_teardown` decorators
   in the `SpyderPluginV2` class, is now documented as pending deprecation as
   a public module, will become an alias of a private `_mixins` module
   and issue a `DeprecationWarning` in Spyder 6.2, and have the public alias
@@ -15,8 +15,8 @@
 * The vestigial `SpyderPluginRegistry.old_plugins` attribute in the
   `spyder.api.plugin_registration.registry` module, originally added
   in Spyder 5 to list legacy Spyder 4 plugins, has been removed.
-  It was mistakenly left over when Spyder 5 ended up dropping support for
-  Spyder 4 plugins, so any code relying on it has never functioned as intended
+  It was mistakenly left over when Spyder 6 fully dropped support for
+  Spyder 4 plugins, which never actually functioned as intended
   and should be updated to support modern Spyder 5+ plugins instead.
 * Setters for the `all_internal_plugins` (`set_all_internal_plugins()`),
   `all_external_plugins` (`set_all_external_plugins()`) and
