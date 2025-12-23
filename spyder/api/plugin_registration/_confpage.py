@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """Plugin registry configuration page."""
 
@@ -25,9 +26,11 @@ class PluginsConfigPage(PluginConfigPage):
         self.plugins_checkboxes = {}
 
         header_label = QLabel(
-            _("Disable a Spyder plugin (external or built-in) to prevent it "
-              "from loading until re-enabled here, to simplify the interface "
-              "or in case it causes problems.")
+            _(
+                "Disable a Spyder plugin (external or built-in) to prevent it "
+                "from loading until re-enabled here, to simplify the interface "
+                "or in case it causes problems."
+            )
         )
         header_label.setWordWrap(True)
 
@@ -37,17 +40,24 @@ class PluginsConfigPage(PluginConfigPage):
 
         # ------------------ Internal plugins ---------------------------------
         for plugin_name in self.plugin.all_internal_plugins:
-            (conf_section_name,
-             PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+            (conf_section_name, PluginClass) = (
+                self.plugin.all_internal_plugins[plugin_name]
+            )
 
-            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+            if not getattr(PluginClass, "CAN_BE_DISABLED", True):
                 # Do not list core plugins that can not be disabled
                 continue
 
             plugin_state = self.get_option(
-                'enable', section=conf_section_name, default=True)
-            cb = newcb('', 'enable', default=True, section=conf_section_name,
-                       restart=True)
+                "enable", section=conf_section_name, default=True
+            )
+            cb = newcb(
+                "",
+                "enable",
+                default=True,
+                section=conf_section_name,
+                restart=True,
+            )
 
             internal_elements.append(
                 dict(
@@ -64,28 +74,33 @@ class PluginsConfigPage(PluginConfigPage):
 
         # ------------------ External plugins ---------------------------------
         for plugin_name in self.plugin.all_external_plugins:
-            (conf_section_name,
-             PluginClass) = self.plugin.all_external_plugins[plugin_name]
+            (conf_section_name, PluginClass) = (
+                self.plugin.all_external_plugins[plugin_name]
+            )
 
-            if not getattr(PluginClass, 'CAN_BE_DISABLED', True):
+            if not getattr(PluginClass, "CAN_BE_DISABLED", True):
                 # Do not list external plugins that can not be disabled
                 continue
 
             plugin_state = self.get_option(
-                f'{conf_section_name}/enable',
+                f"{conf_section_name}/enable",
                 section=self.plugin._external_plugins_conf_section,
-                default=True
+                default=True,
             )
-            cb = newcb('', f'{conf_section_name}/enable', default=True,
-                       section=self.plugin._external_plugins_conf_section,
-                       restart=True)
+            cb = newcb(
+                "",
+                f"{conf_section_name}/enable",
+                default=True,
+                section=self.plugin._external_plugins_conf_section,
+                restart=True,
+            )
 
             external_elements.append(
                 dict(
                     title=PluginClass.get_name(),
                     description=PluginClass.get_description(),
                     icon=PluginClass.get_icon(),
-                    widget=cb
+                    widget=cb,
                 )
             )
 
@@ -93,8 +108,8 @@ class PluginsConfigPage(PluginConfigPage):
 
         # Sort elements by title for easy searching
         collator = Collator()
-        internal_elements.sort(key=lambda e: collator.sort_key(e['title']))
-        external_elements.sort(key=lambda e: collator.sort_key(e['title']))
+        internal_elements.sort(key=lambda e: collator.sort_key(e["title"]))
+        external_elements.sort(key=lambda e: collator.sort_key(e["title"]))
 
         # Build plugins table, showing external plugins first.
         self._plugins_table = ElementsTable(
@@ -130,11 +145,13 @@ class PluginsConfigPage(PluginConfigPage):
                 PluginClass = None
                 external = False
                 if plugin_name in self.plugin.all_internal_plugins:
-                    (__,
-                     PluginClass) = self.plugin.all_internal_plugins[plugin_name]
+                    (__, PluginClass) = self.plugin.all_internal_plugins[
+                        plugin_name
+                    ]
                 elif plugin_name in self.plugin.all_external_plugins:
-                    (__,
-                     PluginClass) = self.plugin.all_external_plugins[plugin_name]
+                    (__, PluginClass) = self.plugin.all_external_plugins[
+                        plugin_name
+                    ]
                     external = True  # noqa
 
                 # TODO: Once we can test that all plugins can be restarted
