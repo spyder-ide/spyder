@@ -12,6 +12,7 @@ import pytest
 
 from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.ipythonconsole import SpyderKernelVersionError
 
 
 def test_python_interpreter(tmpdir):
@@ -25,10 +26,9 @@ def test_python_interpreter(tmpdir):
     # Create a kernel spec
     kernel_spec = SpyderKernelSpec()
 
-    # Assert that the python interprerter is the default one
-    assert interpreter not in kernel_spec.argv
-    assert CONF.get('main_interpreter', 'default')
-    assert not CONF.get('main_interpreter', 'custom')
+    # Assert that SpyderKernelVersionError is raised
+    with pytest.raises(SpyderKernelVersionError):
+        kernel_spec.argv
 
 
 if __name__ == "__main__":
