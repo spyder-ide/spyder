@@ -104,7 +104,7 @@ class LineNumberArea(Panel):
 
         for top, line_number, block in self.editor.visible_blocks:
             data = block.userData()
-            if self._markers_margin and data:
+            if data:
                 if data.code_analysis:
                     errors = 0
                     warnings = 0
@@ -126,7 +126,7 @@ class LineNumberArea(Panel):
                     elif hints:
                         draw_pixmap(1, top, self.hint_icon.pixmap(icon_size))
 
-                if data.todo:
+                if self._markers_margin and data.todo:
                     draw_pixmap(1, top, self.todo_icon.pixmap(icon_size))
 
     def draw_linenumbers(self, painter):
@@ -320,11 +320,8 @@ class LineNumberArea(Panel):
 
     def get_markers_margin(self):
         """Get marker margins."""
-        if self._markers_margin:
-            font_height = self.editor.fontMetrics().height() + 2
-            return font_height
-        else:
-            return 0
+        font_height = self.editor.fontMetrics().height() + 2
+        return font_height
 
     def setup_margins(self, linenumbers=True, markers=True):
         """
