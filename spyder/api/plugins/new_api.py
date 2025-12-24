@@ -33,7 +33,6 @@ import logging
 import os
 import os.path as osp
 import sys
-import warnings
 from typing import TYPE_CHECKING
 
 # Third party imports
@@ -1271,20 +1270,7 @@ class SpyderPluginV2(
         Returns
         -------
         None
-
-        Raises
-        ------
-        SpyderAPIError
-            If a :meth:`!register` method is defined on the plugin class,
-            which was replaced by this method in Spyder 5.1.0.
         """
-
-        if hasattr(self, "register"):
-            raise SpyderAPIError(
-                "register was replaced by on_initialize, please check the "
-                "Spyder 5.1.0 migration guide to get more information"
-            )
-
         raise NotImplementedError(
             f"The plugin {type(self)} is missing an implementation of "
             "on_initialize"
@@ -1369,13 +1355,7 @@ class SpyderPluginV2(
         -------
         None
         """
-        if hasattr(self, "unregister"):
-            warnings.warn(
-                "The unregister method was deprecated and it "
-                "was replaced by `on_close`. Please see the "
-                "Spyder 5.2.0 migration guide to get more "
-                "information."
-            )
+        pass
 
     def can_close(self) -> bool:
         """

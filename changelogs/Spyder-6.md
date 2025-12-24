@@ -43,6 +43,10 @@
   to reduce duplication with the identically-valued `_main` attribute.
 * The `_added_toolbars` and `_actions` private attributes of `SpyderPluginV2`
   have been removed, as they are not used at least in Spyder 6 and above.
+* Obsolete checks/warnings for the removed `register` and `unregister`
+  methods of `SpyderPluginV2` have been removed, as they are unsupported since
+  Spyder 5.1/5.2 and any existing code still using them is already broken.
+  The `on_initialize` and `on_close` methods should be used instead.
 
 ----
 
