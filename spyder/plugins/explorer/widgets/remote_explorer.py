@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 import asyncio
+from enum import Enum
 import fnmatch
 import functools
 import io
@@ -60,7 +61,8 @@ class RemoteViewNewSubMenuSections:
 
 
 class RemoteExplorerActions:
-    CopyPaste = "remote_copy_paste_action"
+    Copy = "remote_copy_action"
+    Paste = "remote_paste_action"
     CopyPath = "remote_copy_path_action"
     Delete = "remote_delete_action"
     Download = "remote_download_action"
@@ -76,6 +78,11 @@ class RemoteExplorerContextMenuSections:
     CopyPaste = "remote_copy_paste_section"
     Extras = "remote_extras_section"
     New = "remote_new_section"
+
+
+class RemoteExistenceOperations(Enum):
+    Upload = "upload"
+    Paste = "paste"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -126,8 +133,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.history = []
         self.histindex = None
 
+        self._files_to_copy: dict[str, list[str]] = {}
         self._files_to_delete: dict[str, int] = {}
         self._files_to_download: dict[str, int] = {}
+        self._files_to_paste: dict[str, int] = {}
         self._files_to_rename: dict[str, int] = {}
         self._files_to_upload: dict[str, int] = {}
 
@@ -162,11 +171,17 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             icon=self.create_icon('TextFileIcon'),
             triggered=self.new_file,
         )
-        self.copy_paste_action = self.create_action(
-            RemoteExplorerActions.CopyPaste,
-            _("Copy and Paste..."),
+        self.copy_action = self.create_action(
+            RemoteExplorerActions.Copy,
+            _("Copy"),
             icon=self.create_icon("editcopy"),
-            triggered=self.copy_paste_item,
+            triggered=self.copy_items,
+        )
+        self.paste_action = self.create_action(
+            RemoteExplorerActions.Paste,
+            _("Paste"),
+            icon=self.create_icon("editpaste"),
+            triggered=self.paste_items,
         )
         self.rename_action = self.create_action(
             RemoteExplorerActions.Rename,
@@ -224,7 +239,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             )
 
         for item in [
-            self.copy_paste_action,
+            self.copy_action,
+            self.paste_action,
             self.copy_path_action,
         ]:
             self.add_item_to_menu(
@@ -328,7 +344,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.delete_action.setEnabled(data_available)
 
         # Disable actions not suitable for directories
-        self.copy_paste_action.setEnabled(is_file)
+        self.copy_action.setEnabled(is_file)
+        self.paste_action.setEnabled(
+            bool(self._files_to_copy.get(self.server_id, []))
+        )
 
         global_position = self.mapToGlobal(position)
         self.context_menu.popup(global_position)
@@ -357,6 +376,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return (
             self._files_to_delete.get(self.server_id, 0) > 0
             or self._files_to_download.get(self.server_id, 0) > 0
+            or self._files_to_paste.get(self.server_id, 0) > 0
             or self._files_to_rename.get(self.server_id, 0) > 0
             or self._files_to_upload.get(self.server_id, 0) > 0
         )
@@ -438,19 +458,22 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return response
 
     @AsyncDispatcher.QtSlot
-    def _on_remote_copy_paste(self, future):
+    def _on_remote_paste(self, future):
         self._handle_future_response_error(
             future,
-            _("Copy and Paste error"),
+            _("Paste error"),
             _(
-                "An error occured while trying to copy and paste a "
-                "file/directory"
+                "An error occured while trying to paste a file or directory"
             ),
         )
+
+        if self._files_to_paste[self.server_id] > 0:
+            self._files_to_paste[self.server_id] -= 1
+
         self.refresh(force_current=True)
 
     @AsyncDispatcher(loop="explorer")
-    async def _do_remote_copy_paste(self, old_path, new_path):
+    async def _do_remote_paste(self, old_path, new_path):
         if not self.remote_files_manager:
             self.sig_stop_spinner_requested.emit()
             return
@@ -591,8 +614,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         await file_manager.close()
         return file_data
 
-    @AsyncDispatcher.QtSlot
-    def _check_if_upload_files(self, future):
+    def _on_check_if_remote_files_exist(
+        self, future, operation: RemoteExistenceOperations
+    ):
         self._handle_future_response_error(
             future,
             _("Upload error"),
@@ -613,41 +637,67 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             buttons = QMessageBox.Yes | QMessageBox.No
 
         for path, response in paths_existence:
+            filename = os.path.basename(path)
+
             if not yes_to_all and response["exists"]:
+                if operation == RemoteExistenceOperations.Paste:
+                    opening_sentence = _(
+                        "The file <b>{}</b> that you're trying to paste on "
+                        "the server <b>{}</b> already exists in the current "
+                        "location."
+                    )
+
+                    files_counter = self._files_to_paste
+                elif operation == RemoteExistenceOperations.Upload:
+                    opening_sentence = _(
+                        "The file <b>{}</b> that you're trying to upload to "
+                        "the server <b>{}</b> already exists in the current "
+                        "location."
+                    )
+
+                    files_counter = self._files_to_upload
+
+                msg = (
+                    opening_sentence.format(filename, self._get_server_name())
+                    + "<br><br>"
+                    + _("Do you want to overwrite it?")
+                )
                 answer = QMessageBox.warning(
                     self,
                     _("Overwrite file"),
-                    _(
-                        "The file <b>{}</b> that you're trying to upload to "
-                        "server <b>{}</b> already exists in the current "
-                        "location."
-                        "<br><br>"
-                        "Do you want to overwrite it?"
-                    ).format(os.path.basename(path), self._get_server_name()),
+                    msg,
                     buttons,
                 )
 
                 if answer == QMessageBox.YesToAll:
                     yes_to_all = True
                 elif answer == QMessageBox.No:
-                    if self._files_to_upload[self.server_id] > 0:
-                        self._files_to_upload[self.server_id] -= 1
+                    if files_counter[self.server_id] > 0:
+                        files_counter[self.server_id] -= 1
 
                     if not self._operation_in_progress:
                         self.sig_stop_spinner_requested.emit()
 
                     continue
                 elif answer == QMessageBox.Cancel:
-                    self._files_to_upload[self.server_id] = 0
+                    files_counter[self.server_id] = 0
 
                     if not self._operation_in_progress:
                         self.sig_stop_spinner_requested.emit()
 
                     return
 
-            self._do_remote_upload_file(path).connect(
-                self._on_remote_upload_file
-            )
+            if operation == RemoteExistenceOperations.Paste:
+                new_path = posixpath.join(
+                    self.root_prefix[self.server_id], filename
+                )
+                self._do_remote_paste(path, new_path).connect(
+                    self._on_remote_paste
+                )
+            elif operation == RemoteExistenceOperations.Upload:
+                self._do_remote_upload_file(path).connect(
+                    self._on_remote_upload_file
+                )
 
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
@@ -1096,36 +1146,68 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if valid:
             self._new_item(new_name, for_file=True)
 
-    def copy_paste_item(self):
-        if (
-            not self.view.currentIndex()
-            or not self.view.currentIndex().isValid()
-        ):
+    def copy_items(self):
+        indexes = self._get_selected_indexes()
+        if not indexes:
             return
 
-        source_index = self.proxy_model.mapToSource(self.view.currentIndex())
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
-        if data:
-            old_path = data["name"]
-            relpath = os.path.relpath(
-                old_path, self.root_prefix[self.server_id]
-            )
-            new_relpath, valid = QInputDialog.getText(
+        self._files_to_copy[self.server_id] = []
+        for index in indexes:
+            source_index = self.proxy_model.mapToSource(index)
+            data_index = self.model.index(source_index.row(), 0)
+            data = self.model.data(data_index, Qt.UserRole + 1)
+            if data:
+                self._files_to_copy[self.server_id].append(data["name"])
+
+    def paste_items(self):
+        if not self._files_to_copy.get(self.server_id, []):
+            return
+
+        if self.server_id not in self._files_to_paste:
+            self._files_to_paste[self.server_id] = 0
+        self._files_to_paste[self.server_id] += len(self._files_to_copy)
+        self.sig_start_spinner_requested.emit()
+
+        check_for_files_existence = True
+        if self._files_to_paste[self.server_id] > 50:
+            answer = QMessageBox.warning(
                 self,
-                _("Copy and Paste"),
-                _("Paste as:"),
-                QLineEdit.Normal,
-                relpath,
+                _("Existence check"),
+                _(
+                    "You are about to paste more than 50 files in server "
+                    "<b>{}</b>."
+                    "<br><br>"
+                    "Do you prefer to skip checking whether they exist in the "
+                    "server to paste them more quickly?"
+                ).format(self._get_server_name()),
+                QMessageBox.Yes | QMessageBox.No,
             )
-            if valid:
+
+            if answer == QMessageBox.Yes:
+                check_for_files_existence = False
+
+        if check_for_files_existence:
+            # Check if the remote files exist first. If some of them do, then
+            # ask the user if they want to overwrite them with the files to be
+            # pasted.
+            self._check_if_remote_files_exist(
+                self._files_to_copy[self.server_id]
+            ).connect(
+                AsyncDispatcher.QtSlot(
+                    functools.partial(
+                        self._on_check_if_remote_files_exist,
+                        operation=RemoteExistenceOperations.Paste,
+                    )
+                )
+            )
+        else:
+            for file in self._files_to_copy[self.server_id]:
                 new_path = posixpath.join(
-                    self.root_prefix[self.server_id], new_relpath
+                    self.root_prefix[self.server_id], os.path.basename(file)
                 )
-                self._do_remote_copy_paste(old_path, new_path).connect(
-                    self._on_remote_copy_paste
+                self._do_remote_paste(file, new_path).connect(
+                    self._on_remote_paste
                 )
-                self.sig_start_spinner_requested.emit()
 
     def rename_items(self):
         indexes = self._get_selected_indexes()
@@ -1387,7 +1469,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             # ask the user if they want to overwrite them with the local files
             # to be uploaded.
             self._check_if_remote_files_exist(local_paths).connect(
-                self._check_if_upload_files,
+                AsyncDispatcher.QtSlot(
+                    functools.partial(
+                        self._on_check_if_remote_files_exist,
+                        operation=RemoteExistenceOperations.Upload,
+                    )
+                )
             )
         else:
             for path in local_paths:
