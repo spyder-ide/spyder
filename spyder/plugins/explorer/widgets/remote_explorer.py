@@ -614,91 +614,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         await file_manager.close()
         return file_data
 
-    def _on_check_if_remote_files_exist(
-        self, future, operation: RemoteExistenceOperations
-    ):
-        self._handle_future_response_error(
-            future,
-            _("Upload error"),
-            _("An error occured while trying to upload files"),
-        )
-
-        yes_to_all = False
-        paths_existence = future.result()
-
-        if len(paths_existence) > 1:
-            buttons = (
-                QMessageBox.Yes
-                | QMessageBox.YesToAll
-                | QMessageBox.No
-                | QMessageBox.Cancel
-            )
-        else:
-            buttons = QMessageBox.Yes | QMessageBox.No
-
-        for path, response in paths_existence:
-            filename = os.path.basename(path)
-
-            if not yes_to_all and response["exists"]:
-                if operation == RemoteExistenceOperations.Paste:
-                    opening_sentence = _(
-                        "The file <b>{}</b> that you're trying to paste on "
-                        "the server <b>{}</b> already exists in the current "
-                        "location."
-                    )
-
-                    files_counter = self._files_to_paste
-                elif operation == RemoteExistenceOperations.Upload:
-                    opening_sentence = _(
-                        "The file <b>{}</b> that you're trying to upload to "
-                        "the server <b>{}</b> already exists in the current "
-                        "location."
-                    )
-
-                    files_counter = self._files_to_upload
-
-                msg = (
-                    opening_sentence.format(filename, self._get_server_name())
-                    + "<br><br>"
-                    + _("Do you want to overwrite it?")
-                )
-                answer = QMessageBox.warning(
-                    self,
-                    _("Overwrite file"),
-                    msg,
-                    buttons,
-                )
-
-                if answer == QMessageBox.YesToAll:
-                    yes_to_all = True
-                elif answer == QMessageBox.No:
-                    if files_counter[self.server_id] > 0:
-                        files_counter[self.server_id] -= 1
-
-                    if not self._operation_in_progress:
-                        self.sig_stop_spinner_requested.emit()
-
-                    continue
-                elif answer == QMessageBox.Cancel:
-                    files_counter[self.server_id] = 0
-
-                    if not self._operation_in_progress:
-                        self.sig_stop_spinner_requested.emit()
-
-                    return
-
-            if operation == RemoteExistenceOperations.Paste:
-                new_path = posixpath.join(
-                    self.root_prefix[self.server_id], filename
-                )
-                self._do_remote_paste(path, new_path).connect(
-                    self._on_remote_paste
-                )
-            elif operation == RemoteExistenceOperations.Upload:
-                self._do_remote_upload_file(path).connect(
-                    self._on_remote_upload_file
-                )
-
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
         self._handle_future_response_error(
@@ -817,6 +732,91 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.remote_files_manager = None
 
         return files
+
+    def _on_check_if_remote_files_exist(
+        self, future, operation: RemoteExistenceOperations
+    ):
+        self._handle_future_response_error(
+            future,
+            _("Upload error"),
+            _("An error occured while trying to upload files"),
+        )
+
+        yes_to_all = False
+        paths_existence = future.result()
+
+        if len(paths_existence) > 1:
+            buttons = (
+                QMessageBox.Yes
+                | QMessageBox.YesToAll
+                | QMessageBox.No
+                | QMessageBox.Cancel
+            )
+        else:
+            buttons = QMessageBox.Yes | QMessageBox.No
+
+        for path, response in paths_existence:
+            filename = os.path.basename(path)
+
+            if not yes_to_all and response["exists"]:
+                if operation == RemoteExistenceOperations.Paste:
+                    opening_sentence = _(
+                        "The file <b>{}</b> that you're trying to paste on "
+                        "the server <b>{}</b> already exists in the current "
+                        "location."
+                    )
+
+                    files_counter = self._files_to_paste
+                elif operation == RemoteExistenceOperations.Upload:
+                    opening_sentence = _(
+                        "The file <b>{}</b> that you're trying to upload to "
+                        "the server <b>{}</b> already exists in the current "
+                        "location."
+                    )
+
+                    files_counter = self._files_to_upload
+
+                msg = (
+                    opening_sentence.format(filename, self._get_server_name())
+                    + "<br><br>"
+                    + _("Do you want to overwrite it?")
+                )
+                answer = QMessageBox.warning(
+                    self,
+                    _("Overwrite file"),
+                    msg,
+                    buttons,
+                )
+
+                if answer == QMessageBox.YesToAll:
+                    yes_to_all = True
+                elif answer == QMessageBox.No:
+                    if files_counter[self.server_id] > 0:
+                        files_counter[self.server_id] -= 1
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    continue
+                elif answer == QMessageBox.Cancel:
+                    files_counter[self.server_id] = 0
+
+                    if not self._operation_in_progress:
+                        self.sig_stop_spinner_requested.emit()
+
+                    return
+
+            if operation == RemoteExistenceOperations.Paste:
+                new_path = posixpath.join(
+                    self.root_prefix[self.server_id], filename
+                )
+                self._do_remote_paste(path, new_path).connect(
+                    self._on_remote_paste
+                )
+            elif operation == RemoteExistenceOperations.Upload:
+                self._do_remote_upload_file(path).connect(
+                    self._on_remote_upload_file
+                )
 
     @AsyncDispatcher(loop="explorer")
     async def _check_if_remote_files_exist(self, paths):
