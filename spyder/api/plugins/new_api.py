@@ -9,6 +9,20 @@
 The current API for Spyder plugins, originally introduced in Spyder 5.
 
 All Spyder plugins must inherit from the classes present in this file.
+
+.. deprecated:: 6.2
+
+    This module will be renamed to the private :mod:`!_api` in Spyder 6.2,
+    while the current public name will become an alias raising a
+    :exc:`DeprecationWarning` on import and be removed in 7.0.
+
+    Use the canonical location, the top-level :mod:`spyder.api.plugins` instead
+    which already exports all the public objects of this module.
+
+    For example, ``import spyder.api.plugins`` instead of
+    ``import spyder.api.plugins.new_api``, or
+    ``from spyder.api.plugins import SpyderDockablePlugin`` instead of
+    ``from spyder.api.plugins.new_api import SpyderDockablePlugin``.
 """
 
 from __future__ import annotations

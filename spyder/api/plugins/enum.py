@@ -5,7 +5,23 @@
 # (see LICENSE.txt in the project root directory for details)
 # -----------------------------------------------------------------------------
 
-"""Enums listing Spyder internal plugins."""
+"""
+Enums listing Spyder internal plugins.
+
+.. deprecated:: 6.2
+
+    This module will be renamed to the private :mod:`!_enum` in Spyder 6.2,
+    while the current public name will become an alias raising a
+    :exc:`DeprecationWarning` on import and be removed in 7.0.
+
+    Use the canonical location, the top-level :mod:`spyder.api.plugins` instead
+    which already exports all the public objects of this module.
+
+    For example, ``import spyder.api.plugins`` instead of
+    ``import spyder.api.plugins.enums``, or
+    ``from spyder.api.plugins import Plugins`` instead of
+    ``from spyder.api.plugins.enums import Plugins``.
+"""
 
 
 class DockablePlugins:
