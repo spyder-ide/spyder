@@ -39,6 +39,8 @@
   `DeprecationWarning` on import, that will be removed in Spyder 7.0.
   They should be imported from their canonical location, the top-level
   `spyder.api.plugins` module, instead.
+* The `main` attribute of `SpyderPluginV2` is now a property,
+  to reduce duplication with the identically-valued `_main` attribute.
 
 ----
 

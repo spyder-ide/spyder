@@ -528,6 +528,14 @@ class SpyderPluginV2(
         self._added_toolbars = OrderedDict()
         self._actions = {}
 
+        self.PLUGIN_NAME: str = self.NAME
+        """
+        Plugin name in the action, toolbar, toolbutton & menu registries.
+
+        Usually the same as :attr:`NAME`, but may be different from
+        :attr:`CONTEXT_NAME`.
+        """
+
         self.is_compatible: bool | None = None
         """Whether the plugin has passed Spyder's compatibility checks.
 
@@ -540,17 +548,6 @@ class SpyderPluginV2(
 
         ``True`` if it has been registered, ``False`` if it has been
         unregistered, and ``None`` if the plugin hasn't been set up yet.
-        """
-
-        self.main: spyder.app.mainwindow.MainWindow = parent
-        """Spyder main window to which this plugin belongs; i.e. its parent."""
-
-        self.PLUGIN_NAME: str = self.NAME
-        """
-        Plugin name in the action, toolbar, toolbutton & menu registries.
-
-        Always the same as :attr:`NAME`, but may be different from
-        :attr:`CONTEXT_NAME`.
         """
 
         if self.CONTAINER_CLASS is not None:
@@ -619,6 +616,18 @@ class SpyderPluginV2(
         self._container = None
         self.is_compatible = None
         self.is_registered = False
+
+    # ---- Convinience attributes as properties
+    # -------------------------------------------------------------------------
+    @property
+    def main(self) -> spyder.app.mainwindow.MainWindow:
+        """Spyder main window to which this plugin belongs; i.e. its parent."""
+        return self._main
+
+    @main.setter
+    def main(self, value: spyder.app.mainwindow.MainWindow) -> None:
+        """Spyder main window to which this plugin belongs; i.e. its parent."""
+        self._main = value
 
     # ---- API: available methods
     # -------------------------------------------------------------------------
