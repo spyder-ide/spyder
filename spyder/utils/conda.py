@@ -13,7 +13,7 @@ import json
 import os
 import os.path as osp
 import sys
-from typing import Union
+from typing import Union, Optional
 
 # Third-party imports
 from packaging.version import parse
@@ -210,7 +210,9 @@ def is_anaconda_pkg(prefix=sys.prefix):
     return False
 
 
-def get_conda_channel(pyexec: str, pkg: str) -> Union[str | None, str | None]:
+def get_conda_channel(
+    pyexec: str, pkg: str
+) -> Union[Optional[str], Optional[str]]:
     """
     Get the channel from which the given package is installed.
 
@@ -263,7 +265,7 @@ def get_conda_channel(pyexec: str, pkg: str) -> Union[str | None, str | None]:
     return channel, channel_url
 
 
-def get_spyder_conda_channel() -> Union[str | None, str | None]:
+def get_spyder_conda_channel() -> Union[Optional[str], Optional[str]]:
     """Get the conda channel from which Spyder was installed."""
     return get_conda_channel(sys.executable, "spyder")
 
