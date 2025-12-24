@@ -41,6 +41,8 @@
   `spyder.api.plugins` module, instead.
 * The `main` attribute of `SpyderPluginV2` is now a property,
   to reduce duplication with the identically-valued `_main` attribute.
+* The `_added_toolbars` and `_actions` private attributes of `SpyderPluginV2`
+  have been removed, as they are not used at least in Spyder 6 and above.
 
 ----
 

@@ -34,7 +34,6 @@ import os
 import os.path as osp
 import sys
 import warnings
-from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 # Third party imports
@@ -521,12 +520,11 @@ class SpyderPluginV2(
         SpyderConfigurationObserver.__init__(self)
 
         self._main = parent
-        self._widget = None
         self._conf = configuration
         self._plugin_path = os.path.dirname(inspect.getfile(self.__class__))
-        self._container = None
-        self._added_toolbars = OrderedDict()
-        self._actions = {}
+
+        self._widget: PluginMainContainer | None = None
+        self._container: PluginMainContainer | None = None
 
         self.PLUGIN_NAME: str = self.NAME
         """
