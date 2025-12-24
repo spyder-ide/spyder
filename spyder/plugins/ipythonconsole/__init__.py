@@ -35,8 +35,11 @@ if is_stable_version(SPYDER_KERNELS_MIN_VERSION):
     )
 else:
     SPYDER_KERNELS_CONDA = (
-        f'conda install {_d}c conda{_d}forge/label/spyder_kernels_rc {_d}c '
-        f'conda{_d}forge spyder{_d}kernels={SPYDER_KERNELS_MIN_VERSION}'
+        'conda install '
+        f'{_d}c conda{_d}forge/label/spyder_kernels_rc '
+        f'{_d}c conda{_d}forge/label/spyder_kernels_dev '
+        f'{_d}c conda{_d}forge '
+        f'spyder{_d}kernels={SPYDER_KERNELS_MIN_VERSION}'
     )
     SPYDER_KERNELS_PIP = (
         f'pip install spyder{_d}kernels=={SPYDER_KERNELS_MIN_VERSION}'
