@@ -1638,7 +1638,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if (client.info_page != client.blank_page and
+            if client.installwidget.isVisible():
+                # Keep install widget visible
+                pass
+            elif (client.info_page != client.blank_page and
                     self.enable_infowidget):
                 # Show info_page if it has content
                 client.set_info_page()
@@ -1952,17 +1955,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             special_kernel=special
         )
 
-        future = get_user_environment_variables()
-        future.connect(
-            AsyncDispatcher.QtSlot(
-                functools.partial(
-                    self._connect_new_client_to_kernel,
-                    cache,
-                    path_to_custom_interpreter,
-                    client,
+        def connect_client_to_kernel():
+            future = get_user_environment_variables()
+            future.connect(
+                AsyncDispatcher.QtSlot(
+                    functools.partial(
+                        self._connect_new_client_to_kernel,
+                        cache,
+                        path_to_custom_interpreter,
+                        client,
+                    )
                 )
             )
+
+        # Connect client to kernel after installing spyder-kernels
+        client.sig_connect_after_kernel_install.connect(
+            connect_client_to_kernel
         )
+
+        # Connect client to kernel now
+        connect_client_to_kernel()
 
         # Add client to widget
         self.add_tab(

@@ -41,7 +41,10 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
-from spyder.plugins.ipythonconsole import SpyderKernelError
+from spyder.plugins.ipythonconsole import (
+    SpyderKernelError,
+    SpyderKernelVersionError,
+)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState,
     KernelHandler
@@ -49,6 +52,7 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import (
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
+from spyder.plugins.ipythonconsole.widgets import SpyderKernelInstallWidget
 
 if typing.TYPE_CHECKING:
     from spyder.plugins.remoteclient.api.modules import JupyterAPI
@@ -90,6 +94,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
+
+    sig_connect_after_kernel_install = Signal()
 
     # Signals for remote kernels
     sig_restart_kernel_requested = Signal()
@@ -155,6 +161,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
+        self.installwidget = SpyderKernelInstallWidget(parent=self)
+        self.installwidget.hide()
+
         self.shellwidget = self.SHELL_WIDGET_CLASS(
             config=config_options,
             ipyclient=self,
@@ -183,6 +192,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
+        self.layout.addWidget(self.installwidget)
         if self.infowidget is not None:
             self.layout.addWidget(self.infowidget)
         self.setLayout(self.layout)
@@ -193,7 +203,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        #--- Remote kernels states
+        # --- Remote kernels states
         self.__remote_restart_requested = False
         self.__remote_reconnect_requested = False
 
@@ -263,9 +273,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
-            self.infowidget.show()
+            self.installwidget.hide()
             self.info_page = page if page else self.kernel_loading_page
             self.set_info_page()
+            self.infowidget.show()
 
     def _hide_loading_page(self):
         """Hide animation shown while loading."""
@@ -273,6 +284,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.infowidget.hide()
             self.info_page = self.blank_page
             self.set_info_page()
+        self.installwidget.hide()
         self.shellwidget.show()
 
     def _show_special_console_error(self, missing_dependency):
@@ -505,17 +517,26 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         else:
             self.shellwidget.pdb_execute_command('exit')
 
+    def show_kernel_install(self):
+        self._hide_loading_page()
+        self.shellwidget.hide()
+        self.installwidget.show()
+
     def connect_after_kernel_install(self):
-        pass
+        self._show_loading_page(self.env_loading_page)
+        self.sig_connect_after_kernel_install.emit()
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
-        if isinstance(error, Exception):
-            if isinstance(error, SpyderKernelError):
-                error = error.args[0]
-            else:
-                error = _("The error is:<br><br>"
-                          "<tt>{}</tt>").format(traceback.format_exc())
+        if isinstance(error, SpyderKernelVersionError):
+            self.installwidget.kernel_error = error
+            self.show_kernel_install()
+            return
+        elif isinstance(error, SpyderKernelError):
+            error = error.args[0]
+        elif isinstance(error, Exception):
+            error = _("The error is:<br><br>"
+                      "<tt>{}</tt>").format(traceback.format_exc())
         self.error_text = error
 
         if self.is_benign_error(error):
@@ -547,6 +568,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.infowidget is not None:
             self.set_info_page()
             self.shellwidget.hide()
+            self.installwidget.hide()
             self.infowidget.show()
 
         # Inform other plugins that the shell failed to start
