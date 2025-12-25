@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Main widget to use in plugins that show content that comes from the IPython
@@ -55,6 +56,7 @@ class ShellConnectMainWidget(PluginMainWidget):
     * The current widget in the stack will display the content associated to
       the console with focus.
     """
+
     def __init__(self, *args, set_layout=True, **kwargs):
         super().__init__(*args, **kwargs)
 

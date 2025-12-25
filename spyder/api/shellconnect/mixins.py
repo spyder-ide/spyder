@@ -1,17 +1,22 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Mixins for plugins/widgets that are connected to the IPython console.
 """
 
+# Third party imports
 from qtpy.QtCore import Signal
 
+# Local imports
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.plugins import Plugins
 
 
@@ -29,7 +34,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
         ipyconsole.sig_shellwidget_errored.connect(
-            self.add_errored_shellwidget)
+            self.add_errored_shellwidget
+        )
 
     def unregister_ipythonconsole(self, ipyconsole):
         """Unregister signals from the console."""
@@ -37,7 +43,8 @@ class ShellConnectMixin:
         ipyconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipyconsole.sig_shellwidget_deleted.disconnect(self.remove_shellwidget)
         ipyconsole.sig_shellwidget_errored.disconnect(
-            self.add_errored_shellwidget)
+            self.add_errored_shellwidget
+        )
 
     # ---- Public API
     # -------------------------------------------------------------------------
