@@ -10,6 +10,11 @@ Main widget to use in plugins that show content that comes from the IPython
 console, such as the Variable Explorer or Plots.
 """
 
+from __future__ import annotations
+
+# Standard library imports
+from typing import TYPE_CHECKING, Any
+
 # Third party imports
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 
@@ -18,11 +23,20 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
 
+if TYPE_CHECKING:
+    from qtpy.QtWidgets import QWidget
+
+    import spyder.plugins.ipythonconsole.widgets
+
 
 class _ErroredMessageWidget(EmptyMessageWidget):
     """Widget to show when the kernel's shell failed to start."""
 
-    def __init__(self, parent, shellwidget):
+    def __init__(
+        self,
+        parent: ShellConnectMainWidget,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         # Initialize EmptyMessageWidget with the content we want to show for
         # errors
         super().__init__(
@@ -57,7 +71,9 @@ class ShellConnectMainWidget(PluginMainWidget):
       the console with focus.
     """
 
-    def __init__(self, *args, set_layout=True, **kwargs):
+    def __init__(
+        self, *args: Any, set_layout: bool = True, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         # Widgets
@@ -78,7 +94,7 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     # ---- PluginMainWidget API
     # ------------------------------------------------------------------------
-    def current_widget(self):
+    def current_widget(self) -> QWidget:
         """
         Return the current widget in the stack.
 
@@ -89,17 +105,17 @@ class ShellConnectMainWidget(PluginMainWidget):
         """
         return self._content_widget
 
-    def get_focus_widget(self):
+    def get_focus_widget(self) -> QWidget:
         return self._stack.currentWidget()
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
-    def update_style(self):
+    def update_style(self) -> None:
         self._stack.setStyleSheet("QStackedWidget {padding: 0px; border: 0px}")
 
     # ---- Stack accesors
     # ------------------------------------------------------------------------
-    def count(self):
+    def count(self) -> int:
         """
         Return the number of widgets in the stack.
 
@@ -110,7 +126,10 @@ class ShellConnectMainWidget(PluginMainWidget):
         """
         return self._stack.count()
 
-    def get_widget_for_shellwidget(self, shellwidget):
+    def get_widget_for_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> QWidget | None:
         """return widget corresponding to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
@@ -119,7 +138,10 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     # ---- Public API
     # ------------------------------------------------------------------------
-    def add_shellwidget(self, shellwidget):
+    def add_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Create a new widget in the stack and associate it to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
@@ -136,7 +158,10 @@ class ShellConnectMainWidget(PluginMainWidget):
 
             self.set_shellwidget(shellwidget)
 
-    def remove_shellwidget(self, shellwidget):
+    def remove_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Remove widget associated to shellwidget."""
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
@@ -152,7 +177,10 @@ class ShellConnectMainWidget(PluginMainWidget):
 
             self.update_actions()
 
-    def set_shellwidget(self, shellwidget):
+    def set_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Set widget associated with shellwidget as the current widget."""
         old_widget = self.current_widget()
         widget = self.get_widget_for_shellwidget(shellwidget)
@@ -174,7 +202,10 @@ class ShellConnectMainWidget(PluginMainWidget):
         self.switch_widget(widget, old_widget)
         self.update_actions()
 
-    def add_errored_shellwidget(self, shellwidget):
+    def add_errored_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """
         Create a new _ErroredMessageWidget in the stack and associate it to
         shellwidget.
@@ -200,29 +231,32 @@ class ShellConnectMainWidget(PluginMainWidget):
         self._shellwidgets[shellwidget_id] = widget
         self.set_shellwidget(shellwidget)
 
-    def create_new_widget(self, shellwidget):
+    def create_new_widget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> QWidget:
         """Create a widget to communicate with shellwidget."""
         raise NotImplementedError
 
-    def close_widget(self, widget):
+    def close_widget(self, widget: QWidget) -> None:
         """Close the widget."""
         raise NotImplementedError
 
-    def switch_widget(self, widget, old_widget):
+    def switch_widget(self, widget: QWidget, old_widget: QWidget) -> None:
         """Switch the current widget."""
         raise NotImplementedError
 
-    def refresh(self):
+    def refresh(self) -> None:
         """Refresh widgets."""
         if self.count():
             widget = self.current_widget()
             widget.refresh()
 
-    def is_current_widget_error_message(self):
+    def is_current_widget_error_message(self) -> None:
         """Check if the current widget is showing an error message."""
         return isinstance(self.current_widget(), _ErroredMessageWidget)
 
-    def switch_empty_message(self, value: bool):
+    def switch_empty_message(self, value: bool) -> None:
         """Switch between the empty message widget or the one with content."""
         if value:
             self.show_empty_message()

@@ -9,12 +9,19 @@
 Status bar widget that shows content that comes from the IPython console.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import functools
+from typing import TYPE_CHECKING, Any
 
 # Local imports
 from spyder.api.shellconnect.mixins import ShellConnectMixin
 from spyder.api.widgets.status import StatusBarWidget
+
+if TYPE_CHECKING:
+    import spyder.plugins.ipythonconsole.widgets
+    from spyder.api.widgets.main_widget import PluginMainWidget
 
 
 class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
@@ -22,7 +29,7 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
     Base class for status bar widgets whose info depends on the current shell.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent: PluginMainWidget) -> None:
         super().__init__(parent)
 
         # Mapping from shellwidgets to their corresponding statuses
@@ -33,23 +40,32 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def update_status(self, status):
+    def update_status(self, status: str | None | Any) -> str:
         """
         Actions to take to update the widget status after switching consoles.
         """
         raise NotImplementedError
 
-    def on_kernel_start(self, shellwidget):
+    def on_kernel_start(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Actions to take when the kernel starts."""
         raise NotImplementedError
 
-    def config_spyder_kernel(self, shellwidget):
+    def config_spyder_kernel(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Actions to take to configure the kernel."""
         pass
 
     # ---- ShellConnectMixin API
     # -------------------------------------------------------------------------
-    def set_shellwidget(self, shellwidget):
+    def set_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """
         Actions to take when setting (i.e. giving focus to) a shellwidget.
         """
@@ -66,7 +82,10 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
                 self.current_shellwidget = shellwidget
                 self.update_status(status)
 
-    def add_shellwidget(self, shellwidget):
+    def add_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Actions to take when adding a shellwidget."""
         shellwidget.sig_config_spyder_kernel.connect(
             functools.partial(self.config_spyder_kernel, shellwidget)
@@ -80,12 +99,18 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         self.shellwidget_to_status[shellwidget] = None
         self.set_shellwidget(shellwidget)
 
-    def remove_shellwidget(self, shellwidget):
+    def remove_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Actions to take when removing a shellwidget."""
         if shellwidget in self.shellwidget_to_status:
             self.shellwidget_to_status.pop(shellwidget)
 
-    def add_errored_shellwidget(self, shellwidget):
+    def add_errored_shellwidget(
+        self,
+        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
+    ) -> None:
         """Actions to take when a shellwidget errored."""
         self.shellwidget_to_status[shellwidget] = None
         self.set_shellwidget(shellwidget)
