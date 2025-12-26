@@ -17,7 +17,12 @@ from datetime import datetime
 
 from qtpy.compat import getexistingdirectory, getopenfilenames
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
-from qtpy.QtGui import QClipboard, QStandardItem, QStandardItemModel
+from qtpy.QtGui import (
+    QClipboard,
+    QKeySequence,
+    QStandardItem,
+    QStandardItemModel,
+)
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -43,8 +48,13 @@ from spyder.plugins.remoteclient.api.modules.file_services import (
     RemoteOSError,
     SpyderRemoteFileServicesAPI,
 )
+from spyder.plugins.shortcuts.utils import (
+    ShortcutData,
+    SHORTCUTS_FOR_WIDGETS_DATA,
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.qthelpers import keyevent_to_keysequence_str
 
 
 logger = logging.getLogger(__name__)
@@ -191,7 +201,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         )
         self.copy_path_action = self.create_action(
             RemoteExplorerActions.CopyPath,
-            _("Copy path"),
+            _("Copy absolute path"),
             triggered=self.copy_paths,
         )
         self.delete_action = self.create_action(
@@ -258,6 +268,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._on_show_context_menu)
+
+        self._register_shortcuts()
 
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(
@@ -910,6 +922,63 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return self.get_conf(
             f"{self.server_id}/{auth_method}/name", section="remoteclient"
         )
+
+    def _register_shortcut_for_action(self, shortcut, action):
+        action.setShortcut(QKeySequence(shortcut))
+
+    def _register_shortcuts(self):
+        """
+        Register shortcuts for several actions.
+
+        We have to do this to use the same shortcuts as the ones set for the
+        local explorer without adding to Preferences more entries with
+        different ids for the same actions.
+        """
+        for name, action in [
+            ("copy file", self.copy_action),
+            ("paste file", self.paste_action),
+            ("copy absolute path", self.copy_path_action),
+        ]:
+            # This is necessary so that the shortcut options emit a
+            # notification when changed in Preferneces.
+            data = ShortcutData(
+                qobject=None,
+                name=name,
+                context=self.CONF_SECTION,
+            )
+            SHORTCUTS_FOR_WIDGETS_DATA.append(data)
+
+            # Add observer for shortcut to update it in its corresponding
+            # action
+            self.add_configuration_observer(
+                functools.partial(
+                    self._register_shortcut_for_action,
+                    action=action,
+                ),
+                option=f"{self.CONF_SECTION}/{name}",
+                section="shortcuts",
+            )
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def keyPressEvent(self, event):
+        """Handle keyboard shortcuts and special keys."""
+        key_seq = keyevent_to_keysequence_str(event)
+
+        if event.key() == Qt.Key_F2:
+            self.rename_items()
+        elif event.key() == Qt.Key_Delete:
+            self.delete_items()
+        elif event.key() == Qt.Key_Backspace:
+            self.go_to_parent_directory()
+        elif key_seq == self.copy_action.shortcut().toString():
+            self.copy_items()
+        elif key_seq == self.paste_action.shortcut().toString():
+            self.paste_items()
+        elif key_seq == self.copy_path_action.shortcut().toString():
+            self.copy_paths()
+        else:
+            super().keyPressEvent(event)
 
     # ---- Public API
     # -------------------------------------------------------------------------
