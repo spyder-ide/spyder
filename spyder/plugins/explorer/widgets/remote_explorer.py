@@ -959,6 +959,26 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 section="shortcuts",
             )
 
+    def _format_file_size(self, size):
+        """
+        Format file size using the same format used by Qt for local files.
+
+        Adapted from https://stackoverflow.com/a/58201995/438386
+        """
+        units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', "EiB", "ZiB"]
+        index = 0
+
+        if size > 0:
+            while size >= 1024:
+                size /= 1024
+                index += 1
+
+            formatted_size = f"{size:.2f}"
+        else:
+            formatted_size = "0"
+
+        return f'{formatted_size} {units[index]}'
+
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def keyPressEvent(self, event):
@@ -1060,7 +1080,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 file_name.setData(file)
                 file_name.setToolTip(file["name"])
 
-                file_size = QStandardItem(str(file["size"]))
+                if file_type == "directory":
+                    file_size = QStandardItem("")
+                else:
+                    file_size = QStandardItem(
+                        self._format_file_size(file["size"])
+                    )
                 file_type = QStandardItem(file_type)
                 file_date_modified = QStandardItem(
                     datetime.fromtimestamp(file["mtime"]).strftime(
