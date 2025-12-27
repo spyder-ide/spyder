@@ -33,8 +33,7 @@ if TYPE_CHECKING:
 
 class ShellConnectMixin:
     """
-    Mixin to connect any widget or object to the shell widgets in the IPython
-    console.
+    Mixin to connect any widget or object to an IPython Console shell widget.
     """
 
     # ---- Connection to the IPython console
@@ -43,7 +42,18 @@ class ShellConnectMixin:
         self,
         ipythonconsole: spyder.plugins.ipythonconsole.plugin.IPythonConsole,
     ) -> None:
-        """Register signals from the console."""
+        """
+        Connect this object to the signals of a given IPython Console.
+
+        Parameters
+        ----------
+        ipythonconsole : spyder.plugins.ipythonconsole.plugin.IPythonConsole
+            The IPython Console to connect this object to the signals of.
+
+        Returns
+        -------
+        None
+        """
         ipythonconsole.sig_shellwidget_changed.connect(self.set_shellwidget)
         ipythonconsole.sig_shellwidget_created.connect(self.add_shellwidget)
         ipythonconsole.sig_shellwidget_deleted.connect(self.remove_shellwidget)
@@ -55,7 +65,18 @@ class ShellConnectMixin:
         self,
         ipythonconsole: spyder.plugins.ipythonconsole.plugin.IPythonConsole,
     ) -> None:
-        """Unregister signals from the console."""
+        """
+        Disconnect this object from the signals of a given IPython Console.
+
+        Parameters
+        ----------
+        ipythonconsole : spyder.plugins.ipythonconsole.plugin.IPythonConsole
+            The IPython Console to disconnect this object from the signals of.
+
+        Returns
+        -------
+        None
+        """
         ipythonconsole.sig_shellwidget_changed.disconnect(self.set_shellwidget)
         ipythonconsole.sig_shellwidget_created.disconnect(self.add_shellwidget)
         ipythonconsole.sig_shellwidget_deleted.disconnect(
@@ -71,51 +92,109 @@ class ShellConnectMixin:
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Update the current shellwidget."""
+        """
+        Set the given shell widget as the one associated to an object.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with this object.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def add_shellwidget(
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Add a new shellwidget to be registered."""
+        """
+        Create a new object associated with the given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate the new widget to.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def remove_shellwidget(
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Remove a registered shellwidget."""
+        """
+        Remove the object associated to a given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to remove the associated object of.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def add_errored_shellwidget(
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Register a new shellwidget whose kernel failed to start."""
+        """
+        Register a new shellwidget whose kernel failed to start.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with a new error widget.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
 
 class ShellConnectWidgetForStackMixin:
     """
-    Mixin for widgets that will be added to the stacked widget part of
-    ShellConnectMainWidget.
+    Mixin for widgets added to a stack of those connected to different shells.
+
+    Used for the stacked widgets of
+    :class:`~spyder.api.shellconnect.main_widget.ShellConnectMainWidget`.
     """
 
-    sig_show_empty_message_requested = Signal(bool)
+    sig_show_empty_message_requested: Signal = Signal(bool)
     """
-    Signal to request that the empty message will be shown/hidden.
+    Request that the empty message be shown/hidden.
 
     Parameters
     ----------
     show_empty_message: bool
-        Whether show the empty message or this widget must be shown.
+        ``True`` to show the empty message; ``False`` for the normal widget.
     """
 
     def __init__(self) -> None:
-        # This attribute is necessary to track if this widget has content to
-        # display or not.
-        self.is_empty = True
+        """
+        Set up attributes on the mixin.
+
+        Returns
+        -------
+        None
+        """
+
+        self.is_empty: bool = True
+        """
+        If the current widget has content to show.
+
+        This attribute is necessary to track whether this widget has content
+        to display.
+        """
 
 
 class ShellConnectPluginMixin(ShellConnectMixin):
@@ -131,13 +210,25 @@ class ShellConnectPluginMixin(ShellConnectMixin):
     # -------------------------------------------------------------------------
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self) -> None:
-        """Connect to the IPython console."""
+        """
+        Connect this object to the signals of the IPython Console.
+
+        Returns
+        -------
+        None
+        """
         ipythonconsole = self.get_plugin(Plugins.IPythonConsole)
         self.register_ipythonconsole(ipythonconsole)
 
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self) -> None:
-        """Disconnect from the IPython console."""
+        """
+        Disconnect this object from the signals of the IPython Console.
+
+        Returns
+        -------
+        None
+        """
         ipythonconsole = self.get_plugin(Plugins.IPythonConsole)
         self.unregister_ipythonconsole(ipythonconsole)
 
@@ -148,12 +239,16 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Update the current shellwidget.
+        Set the given shell widget as the one associated to the current widget.
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with the current widget.
+
+        Returns
+        -------
+        None
         """
         self.get_widget().set_shellwidget(shellwidget)
 
@@ -162,15 +257,19 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Add a new shellwidget to be registered.
+        Create a new widget in the stack associated to a given shell widget.
 
-        This function registers a new widget to display content that
-        comes from shellwidget.
+        This method registers a new widget to display the content that
+        is associated with the given shell widget.
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate the new widget to.
+
+        Returns
+        -------
+        None
         """
         self.get_widget().add_shellwidget(shellwidget)
 
@@ -179,12 +278,16 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Remove a registered shellwidget.
+        Remove the widget associated to a given shell widget.
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to remove the associated widget of.
+
+        Returns
+        -------
+        None
         """
         self.get_widget().remove_shellwidget(shellwidget)
 
@@ -193,23 +296,32 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Add a new shellwidget whose kernel failed to start.
+        Add an error widget for a shell widget whose kernel failed to start.
+
+        This is necessary to show a meaningful message when switching to
+        consoles with dead kernels.
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with a new error widget.
+
+        Returns
+        -------
+        None
         """
         self.get_widget().add_errored_shellwidget(shellwidget)
 
     def current_widget(self) -> QWidget:
         """
-        Return the current widget displayed at the moment.
+        Get the widget corresponding to the currently active console tab.
 
         Returns
         -------
-        current_widget: QWidget
-            The widget displayed in the current tab.
+        QWidget
+            The current widget in the stack, associated with the active
+            :class:`~spyder.plugins.ipythonconsole.widgets.ShellWidget`
+            (i.e. :guilabel:`IPython Console` tab).
         """
         return self.get_widget().current_widget()
 
@@ -218,16 +330,17 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> QWidget:
         """
-        Return the widget registered with the given shellwidget.
+        Retrieve the plugin widget corresponding to the given shell widget.
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to return the associated widget of.
 
         Returns
         -------
-        current_widget: QWidget
-            The widget corresponding to the shellwidget, or None if not found.
+        QWidget | None
+            The widget in the stack associated with ``shellwidget``,
+            or ``None`` if not found.
         """
         return self.get_widget().get_widget_for_shellwidget(shellwidget)
