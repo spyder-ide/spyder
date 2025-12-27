@@ -6,8 +6,9 @@
 # -----------------------------------------------------------------------------
 
 """
-Main widget to use in plugins that show content that comes from the IPython
-console, such as the Variable Explorer or Plots.
+Main widget for plugins showing content from the IPython Console.
+
+Used in the :guilabel:`Variable Explorer` and :guilabel:`Plots` plugins.
 """
 
 from __future__ import annotations
@@ -37,8 +38,20 @@ class _ErroredMessageWidget(EmptyMessageWidget):
         parent: ShellConnectMainWidget,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        # Initialize EmptyMessageWidget with the content we want to show for
-        # errors
+        """
+        Initialize :class:`EmptyMessageWidget` with content to show for errors.
+
+        Parameters
+        ----------
+        parent : ShellConnectMainWidget
+            The parent widget of this one.
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget that failed to launch.
+
+        Returns
+        -------
+        None
+        """
         super().__init__(
             parent,
             icon_filename=(
@@ -54,26 +67,49 @@ class _ErroredMessageWidget(EmptyMessageWidget):
             adjust_on_resize=True,
         )
 
-        # This is necessary to show this widget in case ShellConnectMainWidget
-        # shows an empty message.
-        self.is_empty = False
+        self.is_empty: bool = False
+        """
+        If the current widget has no content to show.
+
+        Used to show this widget if :class:`ShellConnectMainWidget` has an
+        empty message.
+        """
 
 
 class ShellConnectMainWidget(PluginMainWidget):
     """
-    Main widget to use in a plugin that shows console-specific content.
+    Main widget to use in a plugin that shows different content per-console.
 
-    Notes
-    -----
-    * This is composed of a QStackedWidget to stack widgets associated to each
-      shell widget in the console and only show one of them at a time.
-    * The current widget in the stack will display the content associated to
-      the console with focus.
+    Used in the :guilabel:`Variable Explorer` and :guilabel:`Plots` plugins,
+    for example, to show the variables and plots of the current console.
+
+    It is composed of a :class:`QStackedWidget` to stack the widget associated
+    to each console shell widget, and only show one of them at a time.
+    The current widget in the stack displays the content corresponding to
+    the console with focus.
     """
 
     def __init__(
         self, *args: Any, set_layout: bool = True, **kwargs: Any
     ) -> None:
+        """
+        Create a new main widget to show console-specific content.
+
+        Parameters
+        ----------
+        *args : Any
+            Positional arguments to pass to
+            :meth:`PluginMainWidget.__init__() <spyder.api.widgets.main_widget.PluginMainWidget.__init__>`.
+        set_layout : bool, optional
+            Whether to add the created widget to a layout, ``True`` by default.
+        **kwargs : Any
+            Keyword arguments to pass to
+            :meth:`PluginMainWidget.__init__() <spyder.api.widgets.main_widget.PluginMainWidget.__init__>`.
+
+        Returns
+        -------
+        None
+        """
         super().__init__(*args, **kwargs)
 
         # Widgets
@@ -96,28 +132,53 @@ class ShellConnectMainWidget(PluginMainWidget):
     # ------------------------------------------------------------------------
     def current_widget(self) -> QWidget:
         """
-        Return the current widget in the stack.
+        Get the widget corresponding to the currently active console tab.
 
         Returns
         -------
         QWidget
-            The current widget.
+            The current widget in the stack, associated with the active
+            :class:`~spyder.plugins.ipythonconsole.widgets.ShellWidget`
+            (i.e. :guilabel:`IPython Console` tab).
         """
         return self._content_widget
 
     def get_focus_widget(self) -> QWidget:
+        """
+        Get the currently active widget to give focus to.
+
+        Used by
+        :meth:`~spyder.api.widgets.main_widget.PluginMainWidget.change_visibility`
+        when switching to the plugin.
+
+        Returns
+        -------
+        QWidget
+            The current widget in the stack, associated with the active
+            :class:`~spyder.plugins.ipythonconsole.widgets.ShellWidget`
+            (i.e. :guilabel:`IPython Console` tab), to give focus to.
+        """
         return self._stack.currentWidget()
 
     # ---- SpyderWidgetMixin API
     # ------------------------------------------------------------------------
     def update_style(self) -> None:
+        """
+        Update the stylesheet and style of the stack widget.
+
+        This method will be called recursively on all widgets on theme change.
+
+        Returns
+        -------
+        None
+        """
         self._stack.setStyleSheet("QStackedWidget {padding: 0px; border: 0px}")
 
     # ---- Stack accesors
     # ------------------------------------------------------------------------
     def count(self) -> int:
         """
-        Return the number of widgets in the stack.
+        Get the number of widgets in the stack.
 
         Returns
         -------
@@ -130,7 +191,20 @@ class ShellConnectMainWidget(PluginMainWidget):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> QWidget | None:
-        """return widget corresponding to shellwidget."""
+        """
+        Retrieve the plugin widget corresponding to the given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to return the associated widget of.
+
+        Returns
+        -------
+        QWidget | None
+            The widget in the stack associated with ``shellwidget``,
+            or ``None`` if not found.
+        """
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             return self._shellwidgets[shellwidget_id]
@@ -142,7 +216,21 @@ class ShellConnectMainWidget(PluginMainWidget):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Create a new widget in the stack and associate it to shellwidget."""
+        """
+        Create a new widget in the stack associated to a given shell widget.
+
+        This method registers a new widget to display the content that
+        is associated with the given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate the new widget to.
+
+        Returns
+        -------
+        None
+        """
         shellwidget_id = id(shellwidget)
         if shellwidget_id not in self._shellwidgets:
             widget = self.create_new_widget(shellwidget)
@@ -162,7 +250,18 @@ class ShellConnectMainWidget(PluginMainWidget):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Remove widget associated to shellwidget."""
+        """
+        Remove the widget associated to a given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to remove the associated widget of.
+
+        Returns
+        -------
+        None
+        """
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self._shellwidgets:
             widget = self._shellwidgets.pop(shellwidget_id)
@@ -181,7 +280,18 @@ class ShellConnectMainWidget(PluginMainWidget):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Set widget associated with shellwidget as the current widget."""
+        """
+        Set the given shell widget as the one associated to the current widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with the current widget.
+
+        Returns
+        -------
+        None
+        """
         old_widget = self.current_widget()
         widget = self.get_widget_for_shellwidget(shellwidget)
         if widget is None:
@@ -207,11 +317,19 @@ class ShellConnectMainWidget(PluginMainWidget):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Create a new _ErroredMessageWidget in the stack and associate it to
-        shellwidget.
+        Add an error widget for a shell widget whose kernel failed to start.
 
         This is necessary to show a meaningful message when switching to
         consoles with dead kernels.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to associate with a new error widget.
+
+        Returns
+        -------
+        None
         """
         shellwidget_id = id(shellwidget)
 
@@ -235,29 +353,91 @@ class ShellConnectMainWidget(PluginMainWidget):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> QWidget:
-        """Create a widget to communicate with shellwidget."""
+        """
+        Create a new widget to communicate with the given shell widget.
+
+        Parameters
+        ----------
+        shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
+            The shell widget to create a new associated widget for.
+
+        Returns
+        -------
+        QWidget
+            The newly-created widget associated with ``shellwidget``.
+        """
         raise NotImplementedError
 
     def close_widget(self, widget: QWidget) -> None:
-        """Close the widget."""
+        """
+        Close the given widget.
+
+        Parameters
+        ----------
+        widget : QWidget
+            The widget to close.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def switch_widget(self, widget: QWidget, old_widget: QWidget) -> None:
-        """Switch the current widget."""
+        """
+        Switch the given widget.
+
+        Parameters
+        ----------
+        widget : QWidget
+            The widget to switch to.
+        old_widget : QWidget
+            The previously-active widget.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def refresh(self) -> None:
-        """Refresh widgets."""
+        """
+        Refresh the current widget.
+
+        Returns
+        -------
+        None
+        """
         if self.count():
             widget = self.current_widget()
             widget.refresh()
 
-    def is_current_widget_error_message(self) -> None:
-        """Check if the current widget is showing an error message."""
+    def is_current_widget_error_message(self) -> bool:
+        """
+        Check if the current widget is showing an error message.
+
+        Returns
+        -------
+        bool
+            ``True`` if the current widget is showing an error message,
+            ``False`` if not.
+        """
         return isinstance(self.current_widget(), _ErroredMessageWidget)
 
     def switch_empty_message(self, value: bool) -> None:
-        """Switch between the empty message widget or the one with content."""
+        """
+        Switch between the empty message widget or the one with content.
+
+        Parameters
+        ----------
+        value : bool
+            If ``True``, switch to the empty widget; if ``False``, switch
+            to the content widget.
+
+        Returns
+        -------
+        None
+        """
         if value:
             self.show_empty_message()
         else:
