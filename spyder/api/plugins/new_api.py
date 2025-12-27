@@ -106,9 +106,6 @@ class SpyderPluginV2(
     """
     List of names of required dependencies for this plugin.
 
-    If a plugin uses a widget from another plugin, that other plugin must
-    be declared as a required dependency.
-
     .. note::
 
         Plugin names are defined in the :class:`~spyder.api.plugins.Plugins`
@@ -130,10 +127,8 @@ class SpyderPluginV2(
     features by connecting to another plugin, but does not depend on the
     other plugin for its core functionality. For example, the :guilabel:`Help`
     plugin might render information from the :guilabel:`Editor`,
-    :guilabel:`Console` or another source, but it does not depend on either
-    of those plugins to work. Methods in the plugin that make use of optional
-    plugins must first check that those plugins are available before calling
-    those methods or using their signals and slots.
+    :guilabel:`IPython Console` or another source, but it does not depend on
+    either of those plugins to work.
 
     .. note::
 
@@ -177,7 +172,7 @@ class SpyderPluginV2(
     Should always be set to ``True`` for external plugins.
 
     If ``True`` (the default), use a separate configuration file.
-    If ``False``, use the main Spyder config file, :file:`spyder.ini`.
+    If ``False``, use the main Spyder config file.
     """
 
     CONF_DEFAULTS: (
@@ -271,7 +266,7 @@ class SpyderPluginV2(
         dict[str, list[type[SpyderPreferencesTab]]] | None
     ) = None
     """
-    Define additional tabs of option for other plugins' configuration pages.
+    Define additional tabs of options for other plugins' configuration pages.
 
     All configuration tabs should inherit from
     :class:`~spyder.api.preferences.SpyderPreferencesTab`.
@@ -334,34 +329,35 @@ class SpyderPluginV2(
     We thus ask plugins to declare whether or not they need
     web widgets to make it easier to distribute Spyder without them.
 
-    `More information <https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043>`__
+    See `Spyder issue #22196 <https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043>`__
+    for more information.
     """
 
     # --- API: Signals -------------------------------------------------------
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and
     # connected to the the respective global actions defined on it.
-    sig_free_memory_requested = Signal()
+    sig_free_memory_requested: Signal = Signal()
     """
     Request the main application garbage collect deleted objects.
     """
 
-    sig_plugin_ready = Signal()
+    sig_plugin_ready: Signal = Signal()
     """
     Emitted once the plugin is initialized.
     """
 
-    sig_quit_requested = Signal()
+    sig_quit_requested: Signal = Signal()
     """
     Request that the main Spyder application quit.
     """
 
-    sig_restart_requested = Signal()
+    sig_restart_requested: Signal = Signal()
     """
     Request that the main Spyder application perform a restart.
     """
 
-    sig_status_message_requested = Signal(str, int)
+    sig_status_message_requested: Signal = Signal(str, int)
     """
     Request that the main application display a status bar message.
 
@@ -373,9 +369,13 @@ class SpyderPluginV2(
         The timeout before the message disappears, in milliseconds.
     """
 
-    sig_redirect_stdio_requested = Signal(bool)
+    sig_redirect_stdio_requested: Signal = Signal(bool)
     """
-    Request redirection of ``stdout``/``stderr`` when using Open/Save/Browse.
+    Request the main app redirect standard out/error within file pickers.
+    
+    This will redirect :data:`~sys.stdin`, :data:`~sys.stdout`, and
+    :data:`~sys.stderr` when using :guilabel:`Open`, :guilabel:`Save`,
+    and :guilabel:`Browse` dialogs within a plugin's widgets.
 
     Parameters
     ----------
@@ -384,11 +384,9 @@ class SpyderPluginV2(
         redirection.
     """
 
-    sig_exception_occurred = Signal(dict)
+    sig_exception_occurred: Signal = Signal(dict)
     """
     Report an exception from a plugin.
-
-    This signal is automatically connected to the main container/widget.
 
     Parameters
     ----------
@@ -416,7 +414,7 @@ class SpyderPluginV2(
         error dialog.
     """
 
-    sig_mainwindow_resized = Signal("QResizeEvent")
+    sig_mainwindow_resized: Signal = Signal("QResizeEvent")
     """
     Emitted when the main window is resized.
 
@@ -428,7 +426,7 @@ class SpyderPluginV2(
         The event triggered on main window resize.
     """
 
-    sig_mainwindow_moved = Signal("QMoveEvent")
+    sig_mainwindow_moved: Signal = Signal("QMoveEvent")
     """
     Emitted when the main window is moved.
 
@@ -440,7 +438,7 @@ class SpyderPluginV2(
         The event triggered on main window move.
     """
 
-    sig_unmaximize_plugin_requested = Signal((), (object,))
+    sig_unmaximize_plugin_requested: Signal = Signal((), (object,))
     """
     Request the main window unmaximize the currently maximized plugin, if any.
 
@@ -450,7 +448,7 @@ class SpyderPluginV2(
         Unmaximize current plugin only if it is not ``plugin_instance``.
     """
 
-    sig_mainwindow_state_changed = Signal(object)
+    sig_mainwindow_state_changed: Signal = Signal(object)
     """
     Emitted when the main window state has changed (e.g. maximized/minimized).
 
@@ -460,7 +458,7 @@ class SpyderPluginV2(
         The new main window state.
     """
 
-    sig_focused_plugin_changed = Signal(object)
+    sig_focused_plugin_changed: Signal = Signal(object)
     """
     Emitted when the plugin with keyboard focus changes.
 
@@ -496,7 +494,7 @@ class SpyderPluginV2(
 
         .. important::
 
-            Plugins are initialized automatically by Spyder; plugins shouldn't
+            Plugins are initialized automatically by Spyder, so they shouldn't
             call or override this method directly.
 
         Parameters
@@ -522,8 +520,8 @@ class SpyderPluginV2(
         self._conf = configuration
         self._plugin_path = os.path.dirname(inspect.getfile(self.__class__))
 
-        self._widget: PluginMainContainer | None = None
-        self._container: PluginMainContainer | None = None
+        self._widget: PluginMainWidget | PluginMainContainer | None = None
+        self._container: PluginMainWidget | PluginMainContainer | None = None
 
         self.PLUGIN_NAME: str = self.NAME
         """
@@ -635,12 +633,12 @@ class SpyderPluginV2(
         Returns
         -------
         str
-            The path to the directory in which the plugin's ':file:`plugin.py`
-            module is located, i.e. its top-level site package directory.
+            The path to the directory containing the module with the plugin
+            class (:class:`SpyderPluginV2` or :class:`SpyderDockablePlugin`).
         """
         return self._plugin_path
 
-    def get_container(self) -> PluginMainContainer | None:
+    def get_container(self) -> PluginMainWidget | PluginMainContainer | None:
         """
         Return the plugin's main container object.
 
@@ -811,8 +809,8 @@ class SpyderPluginV2(
         -------
         value: spyder.api.config.mixins.BasicTypes | None
             Value of ``option`` in the configuration ``section``, or ``None``
-            if the Spyder configuration is not available (typically only the
-            case in tests).
+            if the Spyder configuration object is not available (typically only
+            the case in tests).
 
         Raises
         ------
@@ -860,7 +858,7 @@ class SpyderPluginV2(
             If ``True``, all objects that observe all changes on the
             configuration ``section`` as well as objects that observe
             partial tuple paths are notified. For example, if the
-            ``option`` ``"opt"`` of ``section`` ``"sec"`` changes, then
+            option ``opt`` of section ``sec`` changes, then
             all observers for section ``sec`` are notified. Likewise,
             if the option ``("a", "b", "c")`` changes, then observers for
             ``("a", "b", "c")``, ``("a", "b")`` and ``"a"`` are all notified.
@@ -1059,10 +1057,10 @@ class SpyderPluginV2(
 
     def before_long_process(self, message: str) -> None:
         """
-        Perform actions required before starting a longer-running process.
+        Perform actions required before starting a long-running process.
 
         Shows a message in the main window's status bar,
-        changes the mouse pointer to a ``WaitCursor``, and starts a spinner.
+        and changes the mouse pointer to a wait cursor.
 
         Parameters
         ----------
@@ -1081,10 +1079,10 @@ class SpyderPluginV2(
 
     def after_long_process(self, message: str = "") -> None:
         """
-        Perform actions required after starting a longer-running process.
+        Perform actions required after starting a long-running process.
 
-        Clears the message in the Spyder main window's status bar,
-        restores the mouse pointer to the OS default, and stops spinner.
+        Clears the message in the Spyder main window's status bar
+        and restores the mouse pointer to the OS default.
 
         Parameters
         ----------
@@ -1113,8 +1111,8 @@ class SpyderPluginV2(
         -------
         dict[str, str | tuple[str, bool, bool]] | None
             Dictionary with properties and colors of the color scheme
-            used in the Editor, or ``None`` if the Spyder configuration is
-            not available (usually only ever the case in tests).
+            used in the Editor, or ``None`` if the Spyder configuration
+            object is not available (usually only ever the case in tests).
         """
         if self._conf is None:
             return None
@@ -1336,7 +1334,7 @@ class SpyderPluginV2(
         """
         pass
 
-    def on_close(self, cancelable=False) -> None:
+    def on_close(self, cancelable: bool = False) -> None:
         """
         Perform actions before the plugin is closed.
 
@@ -1348,7 +1346,7 @@ class SpyderPluginV2(
         Parameters
         ----------
         cancelable: bool, optional
-            ``True`` if the close operation can potentially canceled;
+            ``True`` if the close operation can potentially be canceled;
             ``False`` by default.
 
         Returns
@@ -1370,7 +1368,9 @@ class SpyderPluginV2(
 
     def update_font(self) -> None:
         """
-        Reimplemented by plugins that need to adjust their fonts.
+        Modify the font used in the plugin's interface.
+        
+        This must be reimplemented by plugins that need to adjust their fonts.
 
         The following plugins illustrate the usage of this method:
           * :mod:`spyder.plugins.help.plugin`
@@ -1384,7 +1384,9 @@ class SpyderPluginV2(
 
     def update_style(self) -> None:
         """
-        Reimplemented by plugins that need to adjust their style.
+        Modify the interface styling used by the plugin.
+        
+        This must be reimplemented by plugins that need to adjust their style.
 
         Changing from the dark to the light interface theme might
         require specific styles or stylesheets to be applied. When
@@ -1402,7 +1404,8 @@ class SpyderPluginV2(
         Perform necessary operations before setting up the container.
 
         This must be reimplemented by plugins whose containers emit signals
-        that need to be connected.
+        that need to be connected before applying options to Spyder's config
+        system.
 
         Returns
         -------
@@ -1452,14 +1455,14 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     TABIFY: list[str] = []
     """
-    Define a list of plugins next to which we want to to tabify this plugin.
+    Define a list of plugins next to which we want to tabify this plugin.
 
     Examples
     --------
 
     .. code-block:: python
 
-        TABIFY = ["Plugins.Editor"]
+        TABIFY = [Plugins.Editor]
     """
 
     DISABLE_ACTIONS_WHEN_HIDDEN: bool = True
@@ -1549,12 +1552,12 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     # ---- API: Available signals
     # -------------------------------------------------------------------------
-    sig_focus_changed = Signal()
+    sig_focus_changed: Signal = Signal()
     """
     Report the focus state of this plugin has changed.
     """
 
-    sig_toggle_view_changed = Signal(bool)
+    sig_toggle_view_changed: Signal = Signal(bool)
     """
     Report that visibility of a dockable plugin has changed.
 
@@ -1567,26 +1570,21 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Whether the dockwidget has been shown (``True``) or hidden (``False``).
     """
 
-    sig_switch_to_plugin_requested = Signal(object, bool)
+    sig_switch_to_plugin_requested: Signal = Signal(object, bool)
     """
     Request the main window show this plugin's widget.
-
-    This is automatically connected to main container/widget at plugin
-    registration.
 
     Parameters
     ----------
     plugin: SpyderDockablePlugin
         The plugin object to show.
-    force_focus: bool | None
+    force_focus: bool
         If ``True``, always give the plugin's widget focus when showing
-        or hiding it with this method. If ``None``, only give it focus when
-        showing, not hiding (i.e. setting ``state`` to ``True``),
-        and only if :attr:`RAISE_AND_FOCUS` is ``True``. If ``False``,
-        the default, don't give it focus regardless.
+        or hiding it with this method. If ``False``, the default,
+        don't give it focus.
     """
 
-    sig_update_ancestor_requested = Signal()
+    sig_update_ancestor_requested: Signal = Signal()
     """
     Notify the main window that a child widget needs its ancestor updated.
     """
@@ -1603,7 +1601,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
         .. important::
 
-            Plugins are initialized automatically by Spyder; plugins shouldn't
+            Plugins are initialized automatically by Spyder, so they shouldn't
             call or override this method directly.
 
         Parameters
@@ -1690,7 +1688,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
         This method will be called if the user wants to open a file with one
         of the file name extensions listed in :attr:`FILE_EXTENSIONS`,
-        so that attribute needs to be too in order to use this method.
+        so that attribute needs to be set too in order to use this method.
 
         Parameters
         ----------
@@ -1967,7 +1965,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def find_previous(self) -> None:
         """
-        Move to the previous occurrence pf found text in the plugin.
+        Move to the previous occurrence of found text in the plugin.
 
         This method will be called if the
         :menuselection:`Search --> Find previous` menu item is selected,
@@ -1999,10 +1997,10 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # -------------------------------------------------------------------------
     def before_long_process(self, message: str) -> None:
         """
-        Perform actions required before starting a longer-running process.
+        Perform actions required before starting a long-running process.
 
         Shows a message in the main window's status bar,
-        changes the mouse pointer to a ``WaitCursor``, and starts a spinner.
+        changes the mouse pointer to a wait cursor, and starts a spinner.
 
         Parameters
         ----------
@@ -2018,7 +2016,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def after_long_process(self, message: str = "") -> None:
         """
-        Perform actions required after starting a longer-running process.
+        Perform actions required after starting a long-running process.
 
         Clears the message in the Spyder main window's status bar,
         restores the mouse pointer to the OS default, and stops spinner.
@@ -2046,7 +2044,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
             The plugin's main widget, an instance of :attr:`WIDGET_CLASS`.
         """
         if self._widget is None:
-            raise SpyderAPIError("Dockable Plugin must have a WIDGET_CLASS!")
+            raise SpyderAPIError("Dockable plugin must have a WIDGET_CLASS!")
 
         return self._widget
 
@@ -2085,10 +2083,8 @@ class SpyderDockablePlugin(SpyderPluginV2):
         ----------
         force_focus : bool | None, optional
             If ``True``, always give the plugin's widget focus when showing
-            or hiding it with this method. If ``None``, only give it focus when
-            showing, not hiding (i.e. setting ``state`` to ``True``),
-            and only if :attr:`RAISE_AND_FOCUS` is ``True``. If ``False``,
-            the default, don't give it focus regardless.
+            or hiding it with this method. If ``False``, the default,
+            don't give it focus.
 
         Returns
         -------
@@ -2150,7 +2146,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def create_window(self) -> None:
         """
-        Create a window for the plugin.
+        Create an undocked window for the plugin.
 
         Returns
         -------
@@ -2160,13 +2156,15 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     def close_window(self, save_undocked: bool = False) -> None:
         """
-        Close the plugin's window, optionally saving the undocked state.
+        Close the plugin's undocked window, optionally saving its state.
+        
+        This is a convenience wrapper to close an undocked plugin.
 
         Parameters
         ----------
         save_undocked : bool, optional
-            ``True`` if the undocked state should be saved. If ``False``,
-            the default, don't persist the undocked state.
+            ``True`` if the window state (size and position) should be saved.
+            If ``False``, the default, don't persist the window state.
 
         Returns
         -------
@@ -2183,7 +2181,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
         Parameters
         ----------
         state : bool
-            Whether the plugin's widget is being raise to the foreground
+            Whether the plugin's widget is being raised to the foreground
             (``True``) or set as not in the foreground (``False``).
             The latter does not actually send it to the background, but
             does configure it for not being actively shown (e.g. it disables

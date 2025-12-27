@@ -157,4 +157,4 @@ class OptionalPlugins:
     """
 
     EnvManager = "spyder_env_manager"
-    """The Spyder Env Manager plugin."""
+    """The Spyder Environment Manager plugin."""
