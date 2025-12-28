@@ -32,6 +32,21 @@
   new plugin API introduced in Spyder 5, is now documented as pending
   deprecation, will raise a DeprecationWarning in Spyder 6.2 and will be
   removed in Spyder 7.0.
+* Importing from the `enum` and `new_api` submodules of the
+  `spyder.api.plugins` module is now documented as pending deprecation.
+  In Spyder 6.2, they will be renamed to the private `_enum` and `_api`
+  modules, respectively, with the original names becoming aliases raising a
+  `DeprecationWarning` on import, that will be removed in Spyder 7.0.
+  They should be imported from their canonical location, the top-level
+  `spyder.api.plugins` module, instead.
+* The `main` attribute of `SpyderPluginV2` is now a property,
+  to reduce duplication with the identically-valued `_main` attribute.
+* The `_added_toolbars` and `_actions` private attributes of `SpyderPluginV2`
+  have been removed, as they are not used at least in Spyder 6 and above.
+* Obsolete checks/warnings for the removed `register` and `unregister`
+  methods of `SpyderPluginV2` have been removed, as they are unsupported since
+  Spyder 5.1/5.2 and any existing code still using them is already broken.
+  The `on_initialize` and `on_close` methods should be used instead.
 
 ----
 
