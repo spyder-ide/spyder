@@ -25,11 +25,9 @@ _P = ParamSpec("_P")
 _T = typing.TypeVar("_T")
 
 
-def get_class_values(cls) -> list[str]:
+def get_class_values(cls: type[object]) -> list[str]:
     """
     Get the attribute values for the class enumerations used in our API.
-
-    Idea from `Stack Overflow <https://stackoverflow.com/a/17249228/438386>`__.
 
     Parameters
     ----------
@@ -41,7 +39,9 @@ def get_class_values(cls) -> list[str]:
     list[str]
         String attribute values from a Spyder pseudo-"enum" class.
     """
-    return [v for (k, v) in cls.__dict__.items() if k[:1] != "_"]
+    return [
+        getattr(cls, attr) for attr in dir(cls) if not attr.startswith("_")
+    ]
 
 
 class PrefixNode:
