@@ -43,6 +43,7 @@ from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.remoteclient.api.modules.base import (
     SpyderRemoteSessionClosed,
 )
+from spyder.plugins.remoteclient.api.protocol import ClientType
 from spyder.plugins.remoteclient.api.modules.file_services import (
     RemoteFileServicesError,
     RemoteOSError,
@@ -915,13 +916,25 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         return [idx for idx in indexes if idx.column() == 0]
 
     def _get_server_name(self):
-        auth_method = self.get_conf(
-            f"{self.server_id}/auth_method", section="remoteclient"
-        )
+        if (
+            self.get_conf(
+                f"{self.server_id}/client_type", section="remoteclient"
+            )
+            == ClientType.SSH
+        ):
+            auth_method = self.get_conf(
+                f"{self.server_id}/auth_method", section="remoteclient"
+            )
+            name = self.get_conf(
+                f"{self.server_id}/{auth_method}/name", section="remoteclient"
+            )
+        else:
+            name = self.get_conf(
+                f"{self.server_id}/jupyterhub_login/name",
+                section="remoteclient",
+            )
 
-        return self.get_conf(
-            f"{self.server_id}/{auth_method}/name", section="remoteclient"
-        )
+        return name
 
     def _register_shortcut_for_action(self, shortcut, action):
         action.setShortcut(QKeySequence(shortcut))

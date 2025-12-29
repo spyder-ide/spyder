@@ -14,6 +14,7 @@ from io import RawIOBase
 
 import aiohttp
 
+from spyder.config.base import running_in_ci
 from spyder.plugins.remoteclient import SPYDER_PLUGIN_NAME
 from spyder.plugins.remoteclient.api.manager.base import (
     SpyderRemoteAPIManagerBase,
@@ -374,12 +375,23 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         )
 
     async def ls(self, path: Path, *, detail: bool = True):
-        async with self.session.get(
-            self.api_url / "ls",
-            params={"path": f"file://{path}", "detail": str(detail).lower()},
-        ) as response:
-            async for line in response.content:
-                yield json.loads(line)
+        # The try/except is neccessary to prevent an error on CIs
+        try:
+            async with self.session.get(
+                self.api_url / "ls",
+                params={
+                    "path": f"file://{path}",
+                    "detail": str(detail).lower(),
+                },
+            ) as response:
+                async for line in response.content:
+                    yield json.loads(line)
+        except (
+            aiohttp.client_exceptions.ClientConnectionError,
+            RuntimeError,
+        ) as error:
+            if not running_in_ci():
+                raise error
 
     async def info(self, path: Path):
         async with self.session.get(
