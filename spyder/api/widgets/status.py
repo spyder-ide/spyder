@@ -55,8 +55,9 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     This signal is emmitted when the widget is clicked.
     """
 
-    def __init__(self, parent=None, show_icon=True, show_label=True,
-                 show_spinner=False):
+    def __init__(
+        self, parent=None, show_icon=True, show_label=True, show_spinner=False
+    ):
         """
         Base class for status bar widgets.
 
@@ -122,14 +123,14 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         # Label
         if self.show_label:
             self.label_value = QLabel(self)
-            self.set_value('')
+            self.set_value("")
             self.label_value.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         # Custom widget
         if self.CUSTOM_WIDGET_CLASS:
             if not issubclass(self.CUSTOM_WIDGET_CLASS, QWidget):
                 raise SpyderAPIError(
-                    'Any custom status widget must subclass QWidget!'
+                    "Any custom status widget must subclass QWidget!"
                 )
             self.custom_widget = self.CUSTOM_WIDGET_CLASS(self._parent)
 
@@ -198,7 +199,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def get_tooltip(self):
         """Get the widget's tooltip text."""
-        return ''
+        return ""
 
     def update_tooltip(self):
         """Update tooltip for widget."""
@@ -233,9 +234,11 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             self._css.QWidget.setValues(
                 # Mac doesn't correctly restore the background color after
                 # clicking on a widget that shows a menu
-                backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
-                if MAC and self.menu
-                else SpyderPalette.COLOR_BACKGROUND_5
+                backgroundColor=(
+                    SpyderPalette.COLOR_BACKGROUND_4
+                    if MAC and self.menu
+                    else SpyderPalette.COLOR_BACKGROUND_5
+                )
             )
             self.setStyleSheet(self._css.toString())
 
@@ -278,7 +281,7 @@ class BaseTimerStatus(StatusBarWidget):
 
         # Widget setup
         fm = self.label_value.fontMetrics()
-        self.label_value.setMinimumWidth(fm.width('000%'))
+        self.label_value.setMinimumWidth(fm.width("000%"))
 
         # Setup
         self.timer = QTimer(self)
