@@ -67,7 +67,7 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
                 option.rect.left() + AppStyle.MarginSize,
                 option.rect.center().y(),
                 option.rect.right() - AppStyle.MarginSize,
-                option.rect.center().y()
+                option.rect.center().y(),
             )
             return
 
@@ -104,7 +104,7 @@ class _SpyderComboBoxLineEdit(QLineEdit):
             border="none",
             padding="0px",
             # Make text look centered for short comboboxes
-            paddingRight=f"-{3 if WIN else 2}px"
+            paddingRight=f"-{3 if WIN else 2}px",
         )
 
         self.setStyleSheet(css.toString())
@@ -229,21 +229,19 @@ class _SpyderComboBoxMixin:
         css = qstylizer.style.StyleSheet()
 
         # Make our comboboxes have a uniform height
-        css.QComboBox.setValues(
-            minHeight=f'{AppStyle.ComboBoxMinHeight}em'
-        )
+        css.QComboBox.setValues(minHeight=f"{AppStyle.ComboBoxMinHeight}em")
 
         # Add top and bottom padding to the inner contents of comboboxes
         css["QComboBox QAbstractItemView"].setValues(
             paddingTop=f"{AppStyle.MarginSize + 1}px",
-            paddingBottom=f"{AppStyle.MarginSize + 1}px"
+            paddingBottom=f"{AppStyle.MarginSize + 1}px",
         )
 
         # Add margin and padding to combobox items
         css["QComboBox QAbstractItemView::item"].setValues(
             marginLeft=f"{AppStyle.MarginSize}px",
             marginRight=f"{AppStyle.MarginSize}px",
-            padding=f"{AppStyle.MarginSize}px"
+            padding=f"{AppStyle.MarginSize}px",
         )
 
         # Make color of hovered combobox items match the one used in other
@@ -348,10 +346,10 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
 
 class SpyderComboBoxWithIcons(SpyderComboBox):
-    """"Combobox widget for Spyder when its items have icons."""
+    """ "Combobox widget for Spyder when its items have icons."""
 
     def __init__(self, parent=None, items_elide_mode=None):
-        """"
+        """ "
         Combobox widget for Spyder when its items have icons.
 
         Parameters
@@ -364,9 +362,7 @@ class SpyderComboBoxWithIcons(SpyderComboBox):
         super().__init__(parent, items_elide_mode)
 
         # Padding is not necessary because icons give items enough of it.
-        self._css["QComboBox QAbstractItemView::item"].setValues(
-            padding="0px"
-        )
+        self._css["QComboBox QAbstractItemView::item"].setValues(padding="0px")
 
         self.setStyleSheet(self._css.toString())
 

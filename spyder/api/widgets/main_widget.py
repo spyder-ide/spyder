@@ -34,20 +34,25 @@ from qtpy.QtWidgets import (
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets import PluginMainWidgetActions, PluginMainWidgetWidgets
-from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
-                                                  SpyderWindowWidget)
+from spyder.api.widgets.auxiliary_widgets import (
+    MainCornerWidget,
+    SpyderWindowWidget,
+)
 from spyder.api.widgets.menus import (
     PluginMainWidgetOptionsMenu,
     OptionsMenuSections,
-    PluginMainWidgetMenus
+    PluginMainWidgetMenus,
 )
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.utils.qthelpers import create_waitspinner, qbytearray_to_str
 from spyder.utils.registries import ACTION_REGISTRY, TOOLBAR_REGISTRY
 from spyder.utils.stylesheet import (
-    AppStyle, APP_STYLESHEET, PANES_TABBAR_STYLESHEET,
-    PANES_TOOLBAR_STYLESHEET)
+    AppStyle,
+    APP_STYLESHEET,
+    PANES_TABBAR_STYLESHEET,
+    PANES_TOOLBAR_STYLESHEET,
+)
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
 from spyder.widgets.tabs import Tabs
@@ -322,35 +327,42 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
-        self._corner_widget.ID = 'main_corner'
+        self._corner_widget.ID = "main_corner"
 
         self._main_toolbar = MainWidgetToolbar(
             parent=self,
             title=_("Main widget toolbar"),
         )
-        self._main_toolbar.ID = 'main_toolbar'
+        self._main_toolbar.ID = "main_toolbar"
 
         TOOLBAR_REGISTRY.register_reference(
-            self._main_toolbar, self._main_toolbar.ID,
-            self.PLUGIN_NAME, self.CONTEXT_NAME)
+            self._main_toolbar,
+            self._main_toolbar.ID,
+            self.PLUGIN_NAME,
+            self.CONTEXT_NAME,
+        )
 
         self._corner_toolbar = MainWidgetToolbar(
             parent=self,
             title=_("Main widget corner toolbar"),
         )
-        self._corner_toolbar.ID = 'corner_toolbar'
+        self._corner_toolbar.ID = "corner_toolbar"
 
         TOOLBAR_REGISTRY.register_reference(
-            self._corner_toolbar, self._corner_toolbar.ID,
-            self.PLUGIN_NAME, self.CONTEXT_NAME)
+            self._corner_toolbar,
+            self._corner_toolbar.ID,
+            self.PLUGIN_NAME,
+            self.CONTEXT_NAME,
+        )
 
-        self._corner_toolbar.setSizePolicy(QSizePolicy.Minimum,
-                                           QSizePolicy.Expanding)
+        self._corner_toolbar.setSizePolicy(
+            QSizePolicy.Minimum, QSizePolicy.Expanding
+        )
 
         self._options_menu = self._create_menu(
             PluginMainWidgetMenus.Options,
-            title=_('Options menu'),
-            MenuClass=PluginMainWidgetOptionsMenu
+            title=_("Options menu"),
+            MenuClass=PluginMainWidgetOptionsMenu,
         )
 
         # Margins
@@ -359,7 +371,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         # inside this one and the window separator and borders.
         self._margin_right = AppStyle.MarginSize
         self._margin_bottom = AppStyle.MarginSize
-        if not self.get_conf('vertical_tabs', section='main'):
+        if not self.get_conf("vertical_tabs", section="main"):
             self._margin_left = AppStyle.MarginSize
         else:
             self._margin_left = 0
@@ -371,7 +383,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_toolbar_layout = QHBoxLayout()
 
         self._toolbars_layout.setContentsMargins(
-            self._margin_left, 0, self._margin_right, 0)
+            self._margin_left, 0, self._margin_right, 0
+        )
         self._toolbars_layout.setSpacing(0)
         self._main_toolbar_layout.setContentsMargins(0, 0, 0, 0)
         self._main_toolbar_layout.setSpacing(0)
@@ -429,8 +442,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         self._options_button = self.create_toolbutton(
             PluginMainWidgetWidgets.OptionsToolButton,
-            text=_('Options'),
-            icon=self.create_icon('tooloptions'),
+            text=_("Options"),
+            icon=self.create_icon("tooloptions"),
         )
 
         self.add_corner_widget(self._options_button)
@@ -449,41 +462,45 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             name=PluginMainWidgetActions.DockPane,
             text=_("Dock"),
             tip=_("Dock the pane"),
-            icon=self.create_icon('dock'),
+            icon=self.create_icon("dock"),
             triggered=self.dock_window,
         )
         self.lock_unlock_action = self.create_action(
             name=PluginMainWidgetActions.LockUnlockPosition,
             text=_("Move"),
             tip=_("Unlock to move pane to another position"),
-            icon=self.create_icon('drag_dock_widget'),
+            icon=self.create_icon("drag_dock_widget"),
             triggered=self.lock_unlock_position,
         )
         self.undock_action = self.create_action(
             name=PluginMainWidgetActions.UndockPane,
             text=_("Undock"),
             tip=_("Undock the pane"),
-            icon=self.create_icon('undock'),
+            icon=self.create_icon("undock"),
             triggered=self.create_window,
         )
         self.close_action = self.create_action(
             name=PluginMainWidgetActions.ClosePane,
             text=_("Close"),
             tip=_("Close the pane"),
-            icon=self.create_icon('close_pane'),
+            icon=self.create_icon("close_pane"),
             triggered=self.close_dock,
         )
         # We use this instead of the QDockWidget.toggleViewAction
         self.toggle_view_action = self.create_action(
-            name='switch to ' + self._name,
+            name="switch to " + self._name,
             text=self.get_title(),
             toggled=lambda checked: self.toggle_view(checked),
             context=Qt.WidgetWithChildrenShortcut,
-            shortcut_context='_',
+            shortcut_context="_",
         )
 
-        for item in [self.lock_unlock_action, self.undock_action,
-                     self.dock_action, self.close_action]:
+        for item in [
+            self.lock_unlock_action,
+            self.undock_action,
+            self.dock_action,
+            self.close_action,
+        ]:
             self.add_item_to_menu(
                 item,
                 self._options_menu,
@@ -537,16 +554,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Actions to perform when the title bar is shown/hidden.
         """
         if visible:
-            self.lock_unlock_action.setText(_('Lock'))
-            self.lock_unlock_action.setIcon(self.create_icon('lock_open'))
-            for method_name in ['setToolTip', 'setStatusTip']:
+            self.lock_unlock_action.setText(_("Lock"))
+            self.lock_unlock_action.setIcon(self.create_icon("lock_open"))
+            for method_name in ["setToolTip", "setStatusTip"]:
                 method = getattr(self.lock_unlock_action, method_name)
                 method(_("Lock pane to the current position"))
         else:
-            self.lock_unlock_action.setText(_('Move'))
+            self.lock_unlock_action.setText(_("Move"))
             self.lock_unlock_action.setIcon(
-                self.create_icon('drag_dock_widget'))
-            for method_name in ['setToolTip', 'setStatusTip']:
+                self.create_icon("drag_dock_widget")
+            )
+            for method_name in ["setToolTip", "setStatusTip"]:
                 method = getattr(self.lock_unlock_action, method_name)
                 method(_("Unlock to move pane to another position"))
 
@@ -559,8 +577,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_layout.addLayout(layout, stretch=1000000)
         super().setLayout(self._main_layout)
         layout.setContentsMargins(
-            self._margin_left, self.MARGIN_TOP, self._margin_right,
-            self._margin_bottom
+            self._margin_left,
+            self.MARGIN_TOP,
+            self._margin_right,
+            self._margin_bottom,
         )
         layout.setSpacing(0)
 
@@ -586,8 +606,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         return self._plugin
 
-    def get_action(self, name, context: Optional[str] = None,
-                   plugin: Optional[str] = None):
+    def get_action(
+        self, name, context: Optional[str] = None, plugin: Optional[str] = None
+    ):
         """
         Return action by name.
         """
@@ -661,7 +682,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         toolbar.ID = toolbar_id
 
         TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME)
+            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+        )
 
         self._auxiliary_toolbars[toolbar_id] = toolbar
         self._toolbars_layout.addWidget(toolbar)
@@ -875,11 +897,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         window.resize(self.size())
 
         # Restore window geometry
-        geometry = self.get_conf('window_geometry', default='')
+        geometry = self.get_conf("window_geometry", default="")
         if geometry:
             try:
                 window.restoreGeometry(
-                    QByteArray().fromHex(str(geometry).encode('utf-8'))
+                    QByteArray().fromHex(str(geometry).encode("utf-8"))
                 )
 
                 # Move to the primary screen if the window is not placed in a
@@ -903,7 +925,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         logger.debug(f"Docking window of plugin {self._name}")
 
         # Reset undocked state
-        self.set_conf('window_was_undocked_before_hiding', False)
+        self.set_conf("window_was_undocked_before_hiding", False)
 
         # This avoids trying to close the window twice: once when calling
         # _close_window below and the other when Qt calls the closeEvent of
@@ -934,7 +956,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
           That gives users the ability to show/hide plugins without
           docking/undocking them first.
         """
-        if self.get_conf('window_was_undocked_before_hiding', default=False):
+        if self.get_conf("window_was_undocked_before_hiding", default=False):
             self.close_dock()
         else:
             self.dock_window()
@@ -959,11 +981,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             # Save window geometry to restore it when undocking the plugin
             # again.
             geometry = self.windowwidget.saveGeometry()
-            self.set_conf('window_geometry', qbytearray_to_str(geometry))
+            self.set_conf("window_geometry", qbytearray_to_str(geometry))
 
             # Save undocking state if requested
             if save_undocked:
-                self.set_conf('undocked_on_window_close', True)
+                self.set_conf("undocked_on_window_close", True)
 
             # Fixes spyder-ide/spyder#10704
             self.__unsafe_window = self.windowwidget
@@ -987,7 +1009,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 self._update_actions()
         else:
             # Reset undocked state
-            self.set_conf('undocked_on_window_close', False)
+            self.set_conf("undocked_on_window_close", False)
 
     # ---- SpyderDockwidget handling
     # -------------------------------------------------------------------------
@@ -1002,7 +1024,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             self.dockwidget.raise_()
             self.dockwidget.blockSignals(False)
 
-        raise_and_focus = getattr(self, 'RAISE_AND_FOCUS', None)
+        raise_and_focus = getattr(self, "RAISE_AND_FOCUS", None)
 
         if force_focus is None:
             if raise_and_focus and enable:
@@ -1069,7 +1091,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 # affect setting up the layout at startup.
                 not self._plugin.main.is_setting_up
                 and self.get_conf(
-                    'window_was_undocked_before_hiding', default=False
+                    "window_was_undocked_before_hiding", default=False
                 )
             ):
                 undock = True
@@ -1086,7 +1108,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 self._close_window(switch_to_plugin=False)
 
                 # Save undocked state to restore it afterwards.
-                self.set_conf('window_was_undocked_before_hiding', True)
+                self.set_conf("window_was_undocked_before_hiding", True)
 
             self.dockwidget.hide()
             self.is_visible = False
@@ -1117,7 +1139,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.dockwidget = dock = SpyderDockWidget(title, mainwindow)
 
         # Setup
-        dock.setObjectName(self.__class__.__name__ + '_dw')
+        dock.setObjectName(self.__class__.__name__ + "_dw")
         dock.setWidget(self)
 
         # Signals
@@ -1165,7 +1187,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         Return the title that will be displayed on dockwidget or window title.
         """
-        raise NotImplementedError('PluginMainWidget must define `get_title`!')
+        raise NotImplementedError("PluginMainWidget must define `get_title`!")
 
     def set_ancestor(self, ancestor):
         """
@@ -1178,7 +1200,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Create widget actions, add to menu and other setup requirements.
         """
         raise NotImplementedError(
-            f'{type(self)} must define a `setup` method!')
+            f"{type(self)} must define a `setup` method!"
+        )
 
     def update_actions(self):
         """
@@ -1187,8 +1210,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Exposed actions are actions created by the self.create_action method.
         """
         raise NotImplementedError(
-            'A PluginMainWidget subclass must define an `update_actions` '
-            f'method! Hint: {type(self)} should implement `update_actions`')
+            "A PluginMainWidget subclass must define an `update_actions` "
+            f"method! Hint: {type(self)} should implement `update_actions`"
+        )
 
     def on_close(self):
         """
@@ -1216,8 +1240,8 @@ def run_test():
 
     app = qapplication()
     main = QMainWindow()
-    widget = PluginMainWidget('test', main)
-    widget.get_title = lambda x=None: 'Test title'
+    widget = PluginMainWidget("test", main)
+    widget.get_title = lambda x=None: "Test title"
     widget._setup()
     layout = QHBoxLayout()
     layout.addWidget(QTableWidget())
@@ -1230,5 +1254,5 @@ def run_test():
     app.exec_()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_test()

@@ -32,7 +32,6 @@ class _SpyderButtonsProxyStyle(QProxyStyle):
             else:  # PySide2/PyQt5
                 return int(QDialogButtonBox.ButtonLayout.WinLayout)
 
-
         return super().styleHint(hint, option, widget, return_data)
 
 

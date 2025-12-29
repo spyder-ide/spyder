@@ -31,17 +31,17 @@ MENU_SEPARATOR = None
 
 
 # Generic type annotations
-T = TypeVar('T', bound='SpyderMenu')
+T = TypeVar("T", bound="SpyderMenu")
 
 
 class OptionsMenuSections:
-    Top = 'top_section'
-    Bottom = 'bottom_section'
+    Top = "top_section"
+    Bottom = "bottom_section"
 
 
 class PluginMainWidgetMenus:
-    Context = 'context_menu'
-    Options = 'options_menu'
+    Context = "context_menu"
+    Options = "options_menu"
 
 
 # ---- Style
@@ -68,6 +68,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     """
     A QMenu subclass to implement additional functionality for Spyder.
     """
+
     MENUS = []
     APP_MENU = False
     HORIZONTAL_MARGIN_FOR_ITEMS = 2 * AppStyle.MarginSize
@@ -127,7 +128,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self.aboutToShow.connect(self.render)
 
         # Adjustmens for Mac
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             # Needed to enable the dynamic population of actions in app menus
             # in the aboutToShow signal.
             # See spyder-ide/spyder#14612
@@ -162,13 +163,15 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self._unintroduced_actions = {}
         self._after_sections = {}
 
-    def add_action(self: T,
-                   action: Union[SpyderAction, T],
-                   section: Optional[str] = None,
-                   before: Optional[str] = None,
-                   before_section: Optional[str] = None,
-                   check_before: bool = True,
-                   omit_id: bool = False):
+    def add_action(
+        self: T,
+        action: Union[SpyderAction, T],
+        section: Optional[str] = None,
+        before: Optional[str] = None,
+        before_section: Optional[str] = None,
+        check_before: bool = True,
+        omit_id: bool = False,
+    ):
         """
         Add action to a given menu section.
 
@@ -193,19 +196,19 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             Spyder 4 plugins. Default: False
         """
         item_id = None
-        if isinstance(action, SpyderAction) or hasattr(action, 'action_id'):
+        if isinstance(action, SpyderAction) or hasattr(action, "action_id"):
             item_id = action.action_id
 
             # This is necessary when we set a menu for `action`, e.g. for
             # todo_list_action in EditorMainWidget.
             if action.menu() and isinstance(action.menu(), SpyderMenu):
                 action.menu()._is_submenu = True
-        elif isinstance(action, SpyderMenu) or hasattr(action, 'menu_id'):
+        elif isinstance(action, SpyderMenu) or hasattr(action, "menu_id"):
             item_id = action.menu_id
             action._is_submenu = True
 
         if not omit_id and item_id is None and action is not None:
-            raise AttributeError(f'Item {action} must declare an id.')
+            raise AttributeError(f"Item {action} must declare an id.")
 
         if before is None:
             self._actions.append((section, action))
@@ -267,7 +270,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         """
         actions = []
         for section in self._sections:
-            for (sec, action) in self._actions:
+            for sec, action in self._actions:
                 if sec == section:
                     actions.append(action)
 
@@ -290,10 +293,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         for before, actions in self._unintroduced_actions.items():
             for section, action in actions:
                 self.add_action(
-                    action,
-                    section=section,
-                    before=before,
-                    check_before=False
+                    action, section=section, before=before, check_before=False
                 )
 
         self._unintroduced_actions = {}
@@ -395,14 +395,14 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         css.QMenu.setValues(
             # Only add top and bottom padding so that menu separators can go
             # completely from the left to right border.
-            paddingTop=f'{2 * AppStyle.MarginSize}px',
-            paddingBottom=f'{2 * AppStyle.MarginSize}px',
+            paddingTop=f"{2 * AppStyle.MarginSize}px",
+            paddingBottom=f"{2 * AppStyle.MarginSize}px",
             # This uses the same color as the separator
-            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}"
+            border=f"1px solid {SpyderPalette.COLOR_BACKGROUND_6}",
         )
 
         # Set the right background color. This is the only way to do it!
-        css['QWidget:disabled QMenu'].setValues(
+        css["QWidget:disabled QMenu"].setValues(
             backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
         )
 
@@ -411,42 +411,42 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         css["QMenu::separator"].setValues(
             # Only add top and bottom margins so that the separators can go
             # completely from the left to right border.
-            margin=f'{2 * AppStyle.MarginSize}px 0px',
+            margin=f"{2 * AppStyle.MarginSize}px 0px",
         )
 
         # Set menu item properties
         delta_top = 0 if (MAC or WIN) else 1
         delta_bottom = 0 if MAC else (2 if WIN else 1)
         css["QMenu::item"].setValues(
-            height='1.1em' if MAC else ('1.35em' if WIN else '1.25em'),
-            marginLeft=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
-            marginRight=f'{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px',
-            paddingTop=f'{AppStyle.MarginSize + delta_top}px',
-            paddingBottom=f'{AppStyle.MarginSize + delta_bottom}px',
-            paddingLeft=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
-            paddingRight=f'{cls.HORIZONTAL_PADDING_FOR_ITEMS}px',
+            height="1.1em" if MAC else ("1.35em" if WIN else "1.25em"),
+            marginLeft=f"{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px",
+            marginRight=f"{cls.HORIZONTAL_MARGIN_FOR_ITEMS}px",
+            paddingTop=f"{AppStyle.MarginSize + delta_top}px",
+            paddingBottom=f"{AppStyle.MarginSize + delta_bottom}px",
+            paddingLeft=f"{cls.HORIZONTAL_PADDING_FOR_ITEMS}px",
+            paddingRight=f"{cls.HORIZONTAL_PADDING_FOR_ITEMS}px",
             fontFamily=font.family(),
-            fontSize=f'{font.pointSize()}pt',
-            backgroundColor='transparent'
+            fontSize=f"{font.pointSize()}pt",
+            backgroundColor="transparent",
         )
 
         # Set hover and pressed state of items
-        for state in ['selected', 'pressed']:
-            if state == 'selected':
+        for state in ["selected", "pressed"]:
+            if state == "selected":
                 bg_color = SpyderPalette.COLOR_BACKGROUND_4
             else:
                 bg_color = SpyderPalette.COLOR_BACKGROUND_5
 
             css[f"QMenu::item:{state}"].setValues(
                 backgroundColor=bg_color,
-                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS
+                borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             )
 
         # Set disabled state of items
-        for state in ['disabled', 'selected:disabled']:
+        for state in ["disabled", "selected:disabled"]:
             css[f"QMenu::item:{state}"].setValues(
                 color=SpyderPalette.COLOR_DISABLED,
-                backgroundColor="transparent"
+                backgroundColor="transparent",
             )
 
         return css
@@ -465,7 +465,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 self.move(
                     self.pos().x(),
                     # Current vertical pos - padding - border
-                    self.pos().y() - 2 * AppStyle.MarginSize - 1
+                    self.pos().y() - 2 * AppStyle.MarginSize - 1,
                 )
 
             self._is_shown = True
@@ -512,14 +512,14 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
             bottom = OptionsMenuSections.Bottom
             actions = []
             for section in self._sections:
-                for (sec, action) in self._actions:
+                for sec, action in self._actions:
                     if sec == section and sec != bottom:
                         actions.append(action)
 
                 actions.append(MENU_SEPARATOR)
 
             # Add bottom actions
-            for (sec, action) in self._actions:
+            for sec, action in self._actions:
                 if sec == bottom:
                     actions.append(action)
 
