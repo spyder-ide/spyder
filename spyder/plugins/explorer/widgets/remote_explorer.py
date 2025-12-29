@@ -259,7 +259,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 section=RemoteExplorerContextMenuSections.CopyPaste,
             )
 
-        for item in [self.download_action]:
+        for item in [self.upload_file_action, self.download_action]:
             self.add_item_to_menu(
                 item,
                 self.context_menu,
