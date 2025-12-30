@@ -43,7 +43,7 @@ class ShellConnectMixin:
         ipythonconsole: spyder.plugins.ipythonconsole.plugin.IPythonConsole,
     ) -> None:
         """
-        Connect this object to the signals of a given IPython Console.
+        Connect this object to the relevant signals of the IPython Console.
 
         Parameters
         ----------
@@ -66,7 +66,7 @@ class ShellConnectMixin:
         ipythonconsole: spyder.plugins.ipythonconsole.plugin.IPythonConsole,
     ) -> None:
         """
-        Disconnect this object from the signals of a given IPython Console.
+        Disconnect this object from the relevant signals of the IPython Console.
 
         Parameters
         ----------
@@ -93,12 +93,13 @@ class ShellConnectMixin:
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Set the given shell widget as the one associated to an object.
+        Set as active the stack widget associated to the given shell widget.
 
         Parameters
         ----------
         shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget to associate with this object.
+            The shell widget that corresponds to the stacked widget to set
+            as currently active.
 
         Returns
         -------
@@ -147,7 +148,7 @@ class ShellConnectMixin:
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Register a new shellwidget whose kernel failed to start.
+        Register an error widget if the shell widget's kernel failed to start.
 
         Parameters
         ----------
@@ -211,7 +212,7 @@ class ShellConnectPluginMixin(ShellConnectMixin):
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipython_console_available(self) -> None:
         """
-        Connect this object to the signals of the IPython Console.
+        Connect this object to the relevant signals of the IPython Console.
 
         Returns
         -------
@@ -223,7 +224,7 @@ class ShellConnectPluginMixin(ShellConnectMixin):
     @on_plugin_teardown(plugin=Plugins.IPythonConsole)
     def on_ipython_console_teardown(self) -> None:
         """
-        Disconnect this object from the signals of the IPython Console.
+        Disconnect this object from the relevant signals of the IPython Console.
 
         Returns
         -------
@@ -239,12 +240,13 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Set the given shell widget as the one associated to the current widget.
+        Set as active the stack widget associated to the given shell widget.
 
         Parameters
         ----------
         shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget to associate with the current widget.
+            The shell widget that corresponds to the stacked widget to set
+            as currently active.
 
         Returns
         -------
@@ -330,7 +332,7 @@ class ShellConnectPluginMixin(ShellConnectMixin):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> QWidget:
         """
-        Retrieve the plugin widget corresponding to the given shell widget.
+        Retrieve the stacked widget corresponding to the given shell widget.
 
         Parameters
         ----------

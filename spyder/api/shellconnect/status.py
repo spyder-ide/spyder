@@ -77,12 +77,12 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
         self,
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
-        """Actions to take when the kernel starts.
+        """Actions to take after the kernel starts.
 
         Parameters
         ----------
         shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget whose kernel will be started.
+            The shell widget whose kernel was started.
 
         Returns
         -------

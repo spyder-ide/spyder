@@ -8,7 +8,8 @@
 """
 Main widget for plugins showing content from the IPython Console.
 
-Used in the :guilabel:`Variable Explorer` and :guilabel:`Plots` plugins.
+Used in, for example, the :guilabel:`Variable Explorer`, :guilabel:`Plots`,
+:guilabel:`Debugger` and :guilabel:`Profiler` plugins.
 """
 
 from __future__ import annotations
@@ -80,13 +81,13 @@ class ShellConnectMainWidget(PluginMainWidget):
     """
     Main widget to use in a plugin that shows different content per-console.
 
-    Used in the :guilabel:`Variable Explorer` and :guilabel:`Plots` plugins,
-    for example, to show the variables and plots of the current console.
-
     It is composed of a :class:`QStackedWidget` to stack the widget associated
     to each console shell widget, and only show one of them at a time.
     The current widget in the stack displays the content corresponding to
     the console with focus.
+
+    Used in the :guilabel:`Variable Explorer` and :guilabel:`Plots` plugins,
+    for example, to show the variables and plots of the current console.
     """
 
     def __init__(
@@ -132,20 +133,22 @@ class ShellConnectMainWidget(PluginMainWidget):
     # ------------------------------------------------------------------------
     def current_widget(self) -> QWidget:
         """
-        Get the widget corresponding to the currently active console tab.
+        Get the currently displayed widget (either the stack or error widget).
 
         Returns
         -------
         QWidget
-            The current widget in the stack, associated with the active
+            The currently displayed widget, either the active widget in the
+            stack associated with the current
             :class:`~spyder.plugins.ipythonconsole.widgets.ShellWidget`
-            (i.e. :guilabel:`IPython Console` tab).
+            (i.e. :guilabel:`IPython Console` tab),
+            or if that kernel failed with an error, the error message widget.
         """
         return self._content_widget
 
     def get_focus_widget(self) -> QWidget:
         """
-        Get the currently active widget to give focus to.
+        Get the stack widget associated to the currently active shell widget.
 
         Used by
         :meth:`~spyder.api.widgets.main_widget.PluginMainWidget.change_visibility`
@@ -166,7 +169,10 @@ class ShellConnectMainWidget(PluginMainWidget):
         """
         Update the stylesheet and style of the stack widget.
 
-        This method will be called recursively on all widgets on theme change.
+        .. caution::
+
+            If overriding this method, :class:`super` must be called
+            for this widget to display correctly in the Spyder UI.
 
         Returns
         -------
@@ -192,7 +198,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> QWidget | None:
         """
-        Retrieve the plugin widget corresponding to the given shell widget.
+        Retrieve the stacked widget corresponding to the given shell widget.
 
         Parameters
         ----------
@@ -251,7 +257,7 @@ class ShellConnectMainWidget(PluginMainWidget):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Remove the widget associated to a given shell widget.
+        Remove the stacked widget associated to a given shell widget.
 
         Parameters
         ----------
@@ -281,12 +287,13 @@ class ShellConnectMainWidget(PluginMainWidget):
         shellwidget: spyder.plugins.ipythonconsole.widgets.ShellWidget,
     ) -> None:
         """
-        Set the given shell widget as the one associated to the current widget.
+        Set as active the stack widget associated with the given shell widget.
 
         Parameters
         ----------
         shellwidget : spyder.plugins.ipythonconsole.widgets.ShellWidget
-            The shell widget to associate with the current widget.
+            The shell widget that corresponds to the stacked widget to set
+            as currently active.
 
         Returns
         -------
@@ -370,7 +377,7 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     def close_widget(self, widget: QWidget) -> None:
         """
-        Close the given widget.
+        Close the given stacked widget.
 
         Parameters
         ----------
@@ -385,7 +392,7 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     def switch_widget(self, widget: QWidget, old_widget: QWidget) -> None:
         """
-        Switch the given widget.
+        Switch the given stacked widget.
 
         Parameters
         ----------
@@ -402,7 +409,7 @@ class ShellConnectMainWidget(PluginMainWidget):
 
     def refresh(self) -> None:
         """
-        Refresh the current widget.
+        Refresh the current stacked widget.
 
         Returns
         -------
