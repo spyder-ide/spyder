@@ -205,6 +205,7 @@ class DocstringWriterExtension:
         for __ in range(min(remain_lines, 20)):
             cur_text = str(cursor.block().text()).rstrip()
             cur_text = remove_comments(cur_text)
+            strip_text = cur_text.strip()
 
             if is_first_line:
                 if not is_start_of_function(cur_text):
@@ -212,14 +213,19 @@ class DocstringWriterExtension:
 
                 func_indent = get_indent(cur_text)
                 is_first_line = False
+            elif not strip_text:  # Skip empty lines
+                pass
             else:
                 cur_indent = get_indent(cur_text)
-                if cur_indent <= func_indent and cur_text.strip() != '':
+                if cur_indent < func_indent:  # Outside the function scope
+                    return None
+                if cur_indent == func_indent and not re.search(
+                    r'^([\])]\s*:|\)\s*->.*[\[(:])$', strip_text
+                ):  # Black-style function last line
                     return None
                 if is_start_of_function(cur_text):
                     return None
-                if (cur_text.strip() == '' and
-                        not is_in_scope_forward(func_text)):
+                if not is_in_scope_forward(func_text):
                     return None
 
             if len(cur_text) > 0 and cur_text[-1] == '\\':
