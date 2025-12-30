@@ -1,10 +1,10 @@
 # %% sig
 def test(
-        arg1,
-        arg2 = True
-        ):
+    arg1,
+    arg2=True
+) -> str:  # test
 # %% body
-    return True
+    return "foo"
 # %% numpy
     """
     SUMMARY.
@@ -18,7 +18,7 @@ def test(
 
     Returns
     -------
-    bool
+    str
         DESCRIPTION.
     """
 # %% google
@@ -29,7 +29,7 @@ def test(
         arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        bool: DESCRIPTION.
+        str: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
@@ -39,5 +39,5 @@ def test(
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE, optional
     :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: str
     """

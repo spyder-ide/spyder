@@ -1,8 +1,8 @@
 # %% sig
 def test(
         arg1,
-        arg2 = True
-        ):
+        arg2=True
+    ):  # Test
 # %% body
     return True
 # %% numpy

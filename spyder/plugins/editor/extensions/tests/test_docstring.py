@@ -272,7 +272,7 @@ def editor_docstring_inside_def(editor_docstring_start):
         editor, writer, cursor = editor_docstring_start(test_case, doc_type)
 
         # Position cursor somewhere inside the `def` statement
-        cursor.setPosition(11, QTextCursor.MoveAnchor)
+        cursor.setPosition(9, QTextCursor.MoveAnchor)
 
         editor.setTextCursor(cursor)
         writer.line_number_cursor = cursor.blockNumber() + 1
