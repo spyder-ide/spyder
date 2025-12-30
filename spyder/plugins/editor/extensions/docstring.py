@@ -23,7 +23,7 @@ from spyder.config.manager import CONF
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
     if isinstance(text, str):
-        function_prefix = ['def', 'async def']
+        function_prefix = ['def ', 'async def ']
         text = text.lstrip()
 
         for prefix in function_prefix:
