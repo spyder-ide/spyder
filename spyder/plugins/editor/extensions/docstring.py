@@ -465,9 +465,11 @@ class DocstringWriterExtension:
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{}{}{}'.format(header, indent1,
-                                             return_type_annotated)
-            return_section += '\n{}DESCRIPTION.'.format(indent2)
+            return_section = '{}{}{}'.format(
+                header, indent1, return_type_annotated
+            )
+            if return_type_annotated != 'None':
+                return_section += '\n{}DESCRIPTION.'.format(indent2)
         else:
             return_element_type = indent1 + '{return_type}\n' + indent2 + \
                 'DESCRIPTION.'
@@ -485,7 +487,7 @@ class DocstringWriterExtension:
                     return_element_name, return_element_type, placeholder,
                     indent1)
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent1)
+                return_section = '{}{}None'.format(header, indent1)
 
         numpy_doc += return_section
 
@@ -553,8 +555,11 @@ class DocstringWriterExtension:
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{}{}{}: DESCRIPTION.'.format(
-                header, indent2, return_type_annotated)
+            return_section = '{}{}{}'.format(
+                header, indent2, return_type_annotated
+            )
+            if return_type_annotated != 'None':
+                return_section += ': DESCRIPTION.'
         else:
             return_element_type = indent2 + '{return_type}: DESCRIPTION.'
             placeholder = return_element_type.format(return_type='TYPE')
@@ -567,7 +572,7 @@ class DocstringWriterExtension:
                     return_element_name, return_element_type, placeholder,
                     indent2)
             except (ValueError, IndexError):
-                return_section = '{}{}None.'.format(header, indent2)
+                return_section = '{}{}None'.format(header, indent2)
 
         google_doc += return_section
 
@@ -633,9 +638,12 @@ class DocstringWriterExtension:
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = '{} DESCRIPTION\n'.format(header)
-            return_section += '{}:rtype: {}'.format(indent1,
-                                                    return_type_annotated)
+            return_section = ''
+            if return_type_annotated != 'None':
+                return_section += '{} DESCRIPTION\n'.format(header)
+            return_section += '{}:rtype: {}'.format(
+                indent1, return_type_annotated
+            )
         else:
             return_section = '{} DESCRIPTION\n'.format(header)
             return_section += '{}:rtype: TYPE'.format(indent1)
@@ -772,7 +780,7 @@ class DocstringWriterExtension:
         non_none_vals = [return_val for return_val in return_vals
                          if return_val and return_val != 'None']
         if not non_none_vals:
-            return header + indent + 'None.'
+            return header + indent + 'None'
 
         # Get only values with matching brackets that can be cleaned up
         non_none_vals = [return_val.strip(' ()\t\n').rstrip(',')
