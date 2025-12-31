@@ -18,7 +18,7 @@ def spam(
 
     Returns
     -------
-    None.
+    None
     """
 # %% google
     """SUMMARY.
@@ -28,7 +28,7 @@ def spam(
         arg2 (TYPE, optional): DESCRIPTION. Defaults to "test\"string".
 
     Returns:
-        None.
+        None
     """
 # %% sphinx
     """SUMMARY.

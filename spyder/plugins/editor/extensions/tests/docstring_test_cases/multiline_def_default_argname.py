@@ -18,7 +18,7 @@ def spam(
 
     Returns
     -------
-    None.
+    None
     """
 # %% google
     """SUMMARY.
@@ -28,7 +28,7 @@ def spam(
         async (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        None.
+        None
     """
 # %% sphinx
     """SUMMARY.

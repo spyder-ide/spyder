@@ -13,7 +13,7 @@ class F:
 
         Returns
         -------
-        None.
+        None
 
         Raises
         ------
@@ -24,7 +24,7 @@ class F:
         """SUMMARY.
 
         Returns:
-            None.
+            None
 
         Raises:
             ValueError: DESCRIPTION.

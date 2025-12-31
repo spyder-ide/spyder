@@ -9,13 +9,13 @@
 
       Returns
       -------
-      None.
+      None
       """
 # %% google
       """SUMMARY.
 
       Returns:
-          None.
+          None
       """
 # %% sphinx
       """SUMMARY.

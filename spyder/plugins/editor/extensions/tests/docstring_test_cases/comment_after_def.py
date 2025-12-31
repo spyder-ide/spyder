@@ -11,7 +11,7 @@
 
       Returns
       -------
-      None.
+      None
       """
 # %% google
       """SUMMARY.
@@ -20,7 +20,7 @@
           v (str, optional): DESCRIPTION. Defaults to "#".
 
       Returns:
-          None.
+          None
       """
 # %% sphinx
       """SUMMARY.

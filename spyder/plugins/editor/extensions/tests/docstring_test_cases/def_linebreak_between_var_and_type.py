@@ -12,7 +12,7 @@
 
       Returns
       -------
-      None.
+      None
       """
 # %% google
       """SUMMARY.
@@ -21,7 +21,7 @@
           v (int): DESCRIPTION.
 
       Returns:
-          None.
+          None
       """
 # %% sphinx
       """SUMMARY.

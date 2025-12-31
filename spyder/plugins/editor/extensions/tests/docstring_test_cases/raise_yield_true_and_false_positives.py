@@ -16,7 +16,7 @@
 
       Returns
       -------
-      None.
+      None
 
       Raises
       ------
@@ -29,7 +29,7 @@
       """SUMMARY.
 
       Returns:
-          None.
+          None
 
       Raises:
           ValueError: DESCRIPTION.

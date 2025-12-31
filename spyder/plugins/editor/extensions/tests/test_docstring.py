@@ -189,7 +189,7 @@ TEST_CASES_DELAYED_POPUP = {
 
     Returns
     -------
-    None.
+    None
     """''',
         ),
         Qt.Key_Enter,
