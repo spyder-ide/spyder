@@ -18,6 +18,11 @@ import uuid
 from collections import OrderedDict
 from typing import Dict, List, Optional, Tuple, Union
 
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias  # noqa: ICN003
+
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt, Signal
 from qtpy.QtWidgets import (
@@ -30,6 +35,7 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+import spyder.utils.qthelpers  # For fully-qualified SpyderAction in type alias
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu, SpyderMenuProxyStyle
@@ -41,11 +47,14 @@ from spyder.utils.stylesheet import (
 )
 
 
-# Generic type annotations
-ToolbarItem = Union[SpyderAction, QWidget]
-ToolbarItemEntry = Tuple[
+# Generic type aliases
+ToolbarItem: TypeAlias = Union[spyder.utils.qthelpers.SpyderAction, QWidget]
+"""Type alias for the set of supported objects that can be toolbar items."""
+
+ToolbarItemEntry: TypeAlias = Tuple[
     ToolbarItem, Optional[str], Optional[str], Optional[str]
 ]
+"""Type alias for the full tuple entry in the list of toolbar items."""
 
 
 # ---- Constants
@@ -166,7 +175,7 @@ class SpyderToolbar(QToolBar):
 
         Parameters
         ----------
-        item: SpyderAction or QWidget
+        action_or_widget: ToolbarItem
             The item to add to the `toolbar`.
         toolbar_id: str or None
             The application toolbar unique string identifier.
