@@ -35,16 +35,27 @@ MENU_SEPARATOR = None
 
 # Generic type annotations
 T = TypeVar("T", bound="SpyderMenu")
+"""Generic :class:`SpyderMenu` type variable (:class:`~typing.TypeVar`)."""
 
 
 class OptionsMenuSections:
-    Top = "top_section"
-    Bottom = "bottom_section"
+    """Pseudo-enum listing sections in the pane options (hamburger) menu."""
+
+    Top: str = "top_section"
+    """The top section of the options menu."""
+
+    Bottom: str = "bottom_section"
+    """The button section of the options menu."""
 
 
 class PluginMainWidgetMenus:
-    Context = "context_menu"
-    Options = "options_menu"
+    """Pseudo-enum listing the menu types dockable plugin main widgets have."""
+
+    Context: str = "context_menu"
+    """The widget context menu."""
+
+    Options: str = "options_menu"
+    """The widget options (hamburger) menu."""
 
 
 # ---- Style
@@ -98,8 +109,9 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             Localized text string for the menu.
         min_width: int or None
             Minimum width for the menu.
-        reposition: bool, optional (default True)
-            Whether to vertically reposition the menu due to it's padding.
+        reposition: bool, optional
+            Whether to vertically reposition the menu due to its padding.
+            ``True`` by default.
         """
         self._parent = parent
         self.menu_id = menu_id
@@ -157,7 +169,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         Returns
         -------
-        None.
+        None
         """
         self.clear()
         self._sections = []
@@ -180,7 +192,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         Parameters
         ----------
-        action: SpyderAction
+        action: spyder.utils.qthelpers.SpyderAction
             The action to add.
         section: str or None
             The section id in which to insert the `action`.
