@@ -13,19 +13,24 @@ from __future__ import annotations
 
 # Standard library imports
 import sys
-from typing import Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union, TYPE_CHECKING
 
 # Third party imports
 import qstylizer.style
 from qtpy.QtCore import QTimer
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle, QWidget
+from qtpy.QtWidgets import QAction, QMenu, QProxyStyle, QStyle
 
 # Local imports
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.utils.qthelpers import add_actions, set_menu_icons, SpyderAction
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
+
+if TYPE_CHECKING:
+    from qtpy.QtWidgets import QWidget
+
+    import spyder.utils.qthelpers  # For SpyderAction
 
 
 # ---- Constants
@@ -180,7 +185,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     def add_action(
         self: T,
-        action: Union[SpyderAction, T],
+        action: Union[spyder.utils.qthelpers.SpyderAction, T],
         section: Optional[str] = None,
         before: Optional[str] = None,
         before_section: Optional[str] = None,
