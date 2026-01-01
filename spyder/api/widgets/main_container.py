@@ -13,10 +13,12 @@ subclass of PluginMainContainer, if they provide additional widgets like
 status bar widgets or toolbars.
 """
 
+# Third party imports
 from qtpy import PYSIDE2
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
+# Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 
 

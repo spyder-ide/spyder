@@ -11,7 +11,7 @@ Spyder API menu widgets.
 
 # Standard library imports
 import sys
-from typing import Optional, Union, TypeVar
+from typing import Optional, TypeVar, Union
 
 # Third party imports
 import qstylizer.style
