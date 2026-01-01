@@ -12,7 +12,7 @@ Spyder API Mixins.
 
 # Standard library imports
 from collections import OrderedDict
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
@@ -23,8 +23,8 @@ from qtpy.QtWidgets import (
     QMainWindow,
     QSizePolicy,
     QToolBar,
-    QWidget,
     QToolButton,
+    QWidget,
 )
 
 # Local imports

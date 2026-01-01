@@ -10,11 +10,11 @@ Spyder API toolbar widgets.
 """
 
 # Standard library imports
-from collections import OrderedDict
 import os
 import sys
-from typing import Dict, List, Optional, Tuple, Union
 import uuid
+from collections import OrderedDict
+from typing import Dict, List, Optional, Tuple, Union
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt, Signal

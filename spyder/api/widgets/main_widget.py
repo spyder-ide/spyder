@@ -13,8 +13,8 @@ subclass of PluginMainWidget.
 """
 
 # Standard library imports
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 from typing import Optional
 
 # Third party imports
@@ -40,8 +40,8 @@ from spyder.api.widgets.auxiliary_widgets import (
     SpyderWindowWidget,
 )
 from spyder.api.widgets.menus import (
-    PluginMainWidgetOptionsMenu,
     OptionsMenuSections,
+    PluginMainWidgetOptionsMenu,
     PluginMainWidgetMenus,
 )
 from spyder.api.widgets.mixins import SpyderWidgetMixin
