@@ -212,7 +212,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     Parameters
     ----------
-    # --- Optional overridable methods
     error_data: dict
         The dictionary containing error data. The expected keys are:
 
@@ -677,7 +676,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         Returns
         -------
-        SpyderPluginToolbar
+        MainWidgetToolbar
             The auxiliary toolbar that was created and added to the plugin
             interface.
         """
@@ -1234,7 +1233,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         pass
 
 
-def run_test():
+def _run_test():
     # Third party imports
     from qtpy.QtWidgets import QHBoxLayout, QTableWidget, QMainWindow
 
@@ -1258,4 +1257,4 @@ def run_test():
 
 
 if __name__ == "__main__":
-    run_test()
+    _run_test()

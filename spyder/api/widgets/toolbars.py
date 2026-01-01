@@ -60,8 +60,13 @@ ToolbarItemEntry: TypeAlias = Tuple[
 # ---- Constants
 # ----------------------------------------------------------------------------
 class ToolbarLocation:
-    Top = Qt.TopToolBarArea
-    Bottom = Qt.BottomToolBarArea
+    """Pseudo-enum listing possible locations for a toolbar."""
+
+    Top: Qt.ToolBarArea = Qt.TopToolBarArea
+    """Toolbar at the top of the layout."""
+
+    Bottom: Qt.ToolBarArea = Qt.BottomToolBarArea
+    """Toobar at the bottom of the layout."""
 
 
 # ---- Event filters
