@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
 # Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Distributed under the terms of the MIT License
+# Released under the terms of the MIT License
 # (see NOTICE.txt in the Spyder root directory for details)
 # -----------------------------------------------------------------------------
 
