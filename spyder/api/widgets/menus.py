@@ -9,6 +9,8 @@
 Spyder API menu widgets.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import sys
 from typing import Optional, TypeVar, Union

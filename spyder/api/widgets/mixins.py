@@ -10,6 +10,8 @@
 Spyder API Mixins.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 from collections import OrderedDict
 from typing import Any, Dict, Optional
