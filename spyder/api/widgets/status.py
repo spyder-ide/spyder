@@ -7,6 +7,8 @@
 
 """Status bar widgets."""
 
+from __future__ import annotations
+
 # Third party imports
 import qstylizer.parser
 from qtpy import PYSIDE2

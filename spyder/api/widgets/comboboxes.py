@@ -11,6 +11,8 @@ Spyder combobox widgets.
 Use these widgets for any combobox you want to add to Spyder.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import sys
 

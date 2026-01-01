@@ -12,6 +12,8 @@ SpyderDockablePlugin plugins must provide a WIDGET_CLASS attribute that is a
 subclass of PluginMainWidget.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import logging
 from collections import OrderedDict

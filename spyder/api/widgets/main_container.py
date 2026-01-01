@@ -13,6 +13,8 @@ subclass of PluginMainContainer, if they provide additional widgets like
 status bar widgets or toolbars.
 """
 
+from __future__ import annotations
+
 # Third party imports
 from qtpy import PYSIDE2
 from qtpy.QtCore import Signal

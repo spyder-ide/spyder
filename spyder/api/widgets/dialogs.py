@@ -9,6 +9,8 @@
 Spyder dialog widgets.
 """
 
+from __future__ import annotations
+
 # Third-party imports
 from qtpy import QT6
 from qtpy.QtCore import Qt
