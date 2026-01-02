@@ -13,7 +13,7 @@ from __future__ import annotations
 
 # Standard library imports
 import sys
-from typing import Optional, TypeVar, Union, TYPE_CHECKING
+from typing import TypeVar, TYPE_CHECKING
 
 # Third party imports
 import qstylizer.style
@@ -95,22 +95,22 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
-        menu_id: Optional[str] = None,
-        title: Optional[str] = None,
-        min_width: Optional[int] = None,
-        reposition: Optional[bool] = True,
+        parent: QWidget | None = None,
+        menu_id: str | None = None,
+        title: str | None = None,
+        min_width: int | None = None,
+        reposition: bool = True,
     ):
         """
         Create a menu for Spyder.
 
         Parameters
         ----------
-        parent: QWidget or None
+        parent: QWidget | None, optional
             The menu's parent
-        menu_id: str
+        menu_id: str | None, optional
             Unique str identifier for the menu.
-        title: str or None
+        title: str | None, optional
             Localized text string for the menu.
         min_width: int or None
             Minimum width for the menu.
@@ -185,10 +185,10 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     def add_action(
         self: T,
-        action: Union[spyder.utils.qthelpers.SpyderAction, T],
-        section: Optional[str] = None,
-        before: Optional[str] = None,
-        before_section: Optional[str] = None,
+        action: spyder.utils.qthelpers.SpyderAction | T,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
         check_before: bool = True,
         omit_id: bool = False,
     ):
@@ -199,18 +199,18 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         ----------
         action: spyder.utils.qthelpers.SpyderAction
             The action to add.
-        section: str or None
+        section: str | None, optional
             The section id in which to insert the `action`.
-        before: str
+        before: str | None, optional
             Make the action appear before the given action identifier.
-        before_section: str or None
+        before_section: str | None, optional
             Make the item section (if provided) appear before another
             given section.
-        check_before: bool
+        check_before: bool, optional
             Check if the `before` action is part of the menu. This is
             necessary to avoid an infinite recursion when adding
             unintroduced actions with this method again.
-        omit_id: bool
+        omit_id: bool, optional
             If True, then the menu will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
