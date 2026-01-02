@@ -14,7 +14,7 @@ from __future__ import annotations
 
 # Standard library imports
 from collections import OrderedDict
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
@@ -104,8 +104,8 @@ class SpyderToolButtonMixin:
     def get_toolbutton(
         self,
         name: str,
-        context: Optional[str] = None,
-        plugin: Optional[str] = None,
+        context: str | None = None,
+        plugin: str | None = None,
     ) -> QToolButton:
         """
         Return toolbutton by name, plugin and context.
@@ -114,10 +114,10 @@ class SpyderToolButtonMixin:
         ----------
         name: str
             Name of the toolbutton to retrieve.
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the toolbutton was stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the toolbutton was defined. If None, then
             `PLUGIN_NAME` is used.
 
@@ -138,23 +138,23 @@ class SpyderToolButtonMixin:
         return TOOLBUTTON_REGISTRY.get_reference(name, plugin, context)
 
     def get_toolbuttons(
-        self, context: Optional[str] = None, plugin: Optional[str] = None
-    ) -> Dict[str, QToolButton]:
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, QToolButton]:
         """
         Return all toolbuttons defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the toolbuttons were
             stored. If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the toolbuttons were defined.
             If None, then `PLUGIN_NAME` is used.
 
         Returns
         -------
-        toolbuttons: Dict[str, QToolButton]
+        toolbuttons: dict[str, QToolButton]
             A dictionary that maps string keys to their corresponding
             toolbuttons.
         """
@@ -223,8 +223,8 @@ class SpyderToolbarMixin:
     def get_toolbar(
         self,
         name: str,
-        context: Optional[str] = None,
-        plugin: Optional[str] = None,
+        context: str | None = None,
+        plugin: str | None = None,
     ) -> QToolBar:
         """
         Return toolbar by name, plugin and context.
@@ -233,10 +233,10 @@ class SpyderToolbarMixin:
         ----------
         name: str
             Name of the toolbar to retrieve.
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the toolbar was stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the toolbar was defined. If None, then
             `PLUGIN_NAME` is used.
 
@@ -257,23 +257,23 @@ class SpyderToolbarMixin:
         return TOOLBAR_REGISTRY.get_reference(name, plugin, context)
 
     def get_toolbars(
-        self, context: Optional[str] = None, plugin: Optional[str] = None
-    ) -> Dict[str, QToolBar]:
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, QToolBar]:
         """
         Return all toolbars defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the toolbars were stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the toolbars were defined. If None, then
             `PLUGIN_NAME` is used.
 
         Returns
         -------
-        toolbars: Dict[str, QToolBar]
+        toolbars: dict[str, QToolBar]
             A dictionary that maps string keys to their corresponding toolbars.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
@@ -313,13 +313,13 @@ class SpyderMenuMixin:
     def _create_menu(
         self,
         menu_id: str,
-        parent: Optional[QWidget] = None,
-        title: Optional[str] = None,
-        icon: Optional[QIcon] = None,
-        reposition: Optional[bool] = True,
+        parent: QWidget | None = None,
+        title: str | None = None,
+        icon: QIcon | None = None,
+        reposition: bool = True,
         register: bool = True,
-        min_width: Optional[int] = None,
-        MenuClass=SpyderMenu,
+        min_width: int | None = None,
+        MenuClass: type[SpyderMenu] = SpyderMenu,
     ) -> SpyderMenu:
         """
         Create a SpyderMenu or a subclass of it.
@@ -363,9 +363,9 @@ class SpyderMenuMixin:
     def create_menu(
         self,
         menu_id: str,
-        title: Optional[str] = None,
-        icon: Optional[QIcon] = None,
-        reposition: Optional[bool] = True,
+        title: str | None = None,
+        icon: QIcon | None = None,
+        reposition: bool = True,
         register: bool = True,
     ) -> SpyderMenu:
         """
@@ -375,14 +375,14 @@ class SpyderMenuMixin:
         ----------
         menu_id: str
             Unique str identifier for the menu.
-        title: str or None
+        title: str | None, optional
             Localized text string for the menu.
-        icon: QIcon or None
+        icon: QIcon | None, optional
             Icon to use for the menu.
         reposition: bool, optional
             Whether to vertically reposition the menu due to its padding.
             ``True`` by default.
-        register: bool
+        register: bool, optional
             Whether to register the menu in the global registry.
 
         Returns
@@ -401,8 +401,8 @@ class SpyderMenuMixin:
     def get_menu(
         self,
         name: str,
-        context: Optional[str] = None,
-        plugin: Optional[str] = None,
+        context: str | None = None,
+        plugin: str | None = None,
     ) -> SpyderMenu:
         """
         Return a menu by name, plugin and context.
@@ -411,10 +411,10 @@ class SpyderMenuMixin:
         ----------
         name: str
             Name of the menu to retrieve.
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the menu was stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the menu was defined. If None, then
             `PLUGIN_NAME` is used.
 
@@ -435,23 +435,23 @@ class SpyderMenuMixin:
         return MENU_REGISTRY.get_reference(name, plugin, context)
 
     def get_menus(
-        self, context: Optional[str] = None, plugin: Optional[str] = None
-    ) -> Dict[str, SpyderMenu]:
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, SpyderMenu]:
         """
         Return all menus defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the menus were stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the menus were defined. If None, then
             `PLUGIN_NAME` is used.
 
         Returns
         -------
-        menus: Dict[str, SpyderMenu]
+        menus: dict[str, SpyderMenu]
             A dictionary that maps string keys to their corresponding menus.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
@@ -514,40 +514,47 @@ class SpyderActionMixin:
             unique identifiable name for the action
         text: str
            Localized text for the action
-        icon: QIcon,
+        icon: QIcon | None, optional
             Icon for the action when applied to menu or toolbutton.
-        icon_text: str
+        icon_text: str, optional
             Icon for text in toolbars. If True, this will also disable
             the tooltip on this toolbutton if part of a toolbar.
-        tip: str
+        tip: str | None, optional
             Tooltip to define for action on menu or toolbar.
-        toggled: Optional[Union[Callable, bool]]
+        toggled: Callable | bool | None, optional
             If True, then the action modifies the configuration option on the
             section specified. Otherwise, it should be a callable to use
             when toggling this action. If None, then the action does not
             behave like a checkbox.
-        triggered: callable
+        triggered: Callable | None, optional
             The callable to use when triggering this action.
-        data: Any
+        data: Any | None, optional
             Data to be set on the action.
-        shortcut_context: str
+        shortcut: str | None, optional
+            A fixed (not configurable) keyboard shortcut to use for an action,
+            in cases where it is not practical for the user to configure the
+            shortcut. For a normal configurable shortcut, you'd instead need
+            to set ``register_shortcut`` to ``True`` and list the shortcut
+            as one of the plugin's configuration options.
+            See :mod:`spyder.api.shortcuts` for more details.
+        shortcut_context: str | None, optional
             Set the `str` context of the shortcut.
-        context: Qt.ShortcutContext
+        context: Qt.ShortcutContext, optional
             Set the context for the shortcut.
-        initial: object
+        initial: object | None, optional
             Sets the initial state of a togglable action. This does not emit
             the toggled signal.
-        section: Optional[str]
-            Name of the configuration section whose option is going to be
-            modified. If None, and `option` is not None, then it defaults to
-            the class `CONF_SECTION` attribute.
-        option: ConfigurationKey
-            Name of the configuration option whose value is reflected and
-            affected by the action.
         register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
             The default value is `False`.
-        parent: QWidget (None)
+        section: str | None, optional
+            Name of the configuration section whose option is going to be
+            modified. If None, and `option` is not None, then it defaults to
+            the class `CONF_SECTION` attribute.
+        option: ConfigurationKey | None, optional
+            Name of the configuration option whose value is reflected and
+            affected by the action.
+        parent: QWidget | None, optional
             Define the parent of the widget. Use `self` if not provided.
         register_action: bool, optional
             If True, the action will be registered and searchable.
@@ -555,12 +562,12 @@ class SpyderActionMixin:
         overwrite: bool, optional
             If True, in case of action overwriting no warning will be shown.
             The default value is `False`
-        context_name: Optional[str]
+        context_name: str | None, optional
             Name of the context that holds the action in case of registration.
             The combination of `name` and `context_name` is unique so trying
             to register an action with the same `name` and `context_name` will
             cause a warning unless `overwrite` is set to `True`.
-        menurole: QAction.MenuRole, optional
+        menurole: QAction.MenuRole | None, optional
             Menu role for the action (it only has effect on macOS).
 
         Notes
@@ -638,8 +645,8 @@ class SpyderActionMixin:
     def get_action(
         self,
         name: str,
-        context: Optional[str] = None,
-        plugin: Optional[str] = None,
+        context: str | None = None,
+        plugin: str | None = None,
     ) -> Any:
         """
         Return an action by name, context and plugin.
@@ -648,10 +655,10 @@ class SpyderActionMixin:
         ----------
         name: str
             Name of the action to retrieve.
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the action was stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the action was defined. If None, then
             `PLUGIN_NAME` is used.
 
@@ -673,23 +680,23 @@ class SpyderActionMixin:
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
     def get_actions(
-        self, context: Optional[str] = None, plugin: Optional[str] = None
+        self, context: str | None = None, plugin: str | None = None
     ) -> dict:
         """
         Return all actions defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
+        context: str | None, optional
             Widget or context identifier under which the actions were stored.
             If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
+        plugin: str | None, optional
             Name of the plugin where the actions were defined. If None, then
             `PLUGIN_NAME` is used.
 
         Returns
         -------
-        actions: Dict[str, spyder.utils.qthelpers.SpyderAction]
+        actions: dict[str, spyder.utils.qthelpers.SpyderAction]
             A dictionary that maps string keys to their corresponding actions.
 
         Notes

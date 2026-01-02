@@ -17,7 +17,6 @@ from __future__ import annotations
 # Standard library imports
 import logging
 from collections import OrderedDict
-from typing import Optional
 
 # Third party imports
 from qtpy import PYSIDE2
@@ -609,7 +608,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         return self._plugin
 
     def get_action(
-        self, name, context: Optional[str] = None, plugin: Optional[str] = None
+        self, name, context: str | None = None, plugin: str | None = None
     ):
         """
         Return action by name.

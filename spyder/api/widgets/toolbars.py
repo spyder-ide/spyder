@@ -16,7 +16,7 @@ import os
 import sys
 import uuid
 from collections import OrderedDict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Union
 
 if sys.version_info < (3, 10):
     from typing_extensions import TypeAlias
@@ -51,8 +51,8 @@ from spyder.utils.stylesheet import (
 ToolbarItem: TypeAlias = Union[spyder.utils.qthelpers.SpyderAction, QWidget]
 """Type alias for the set of supported objects that can be toolbar items."""
 
-ToolbarItemEntry: TypeAlias = Tuple[
-    ToolbarItem, Optional[str], Optional[str], Optional[str]
+ToolbarItemEntry: TypeAlias = tuple[
+    ToolbarItem, Union[str, None], Union[str, None], Union[str, None]
 ]
 """Type alias for the full tuple entry in the list of toolbar items."""
 
@@ -143,8 +143,8 @@ class SpyderToolbar(QToolBar):
         # Attributes
         self._title = title
         self._section_items = OrderedDict()
-        self._item_map: Dict[str, ToolbarItem] = {}
-        self._pending_items: Dict[str, List[ToolbarItemEntry]] = {}
+        self._item_map: dict[str, ToolbarItem] = {}
+        self._pending_items: dict[str, list[ToolbarItemEntry]] = {}
         self._default_section = "default_section"
         self._filter = None
 
@@ -170,9 +170,9 @@ class SpyderToolbar(QToolBar):
     def add_item(
         self,
         action_or_widget: ToolbarItem,
-        section: Optional[str] = None,
-        before: Optional[str] = None,
-        before_section: Optional[str] = None,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
         omit_id: bool = False,
     ):
         """
@@ -182,16 +182,14 @@ class SpyderToolbar(QToolBar):
         ----------
         action_or_widget: ToolbarItem
             The item to add to the `toolbar`.
-        toolbar_id: str or None
-            The application toolbar unique string identifier.
-        section: str or None
+        section: str | None, optional
             The section id in which to insert the `item` on the `toolbar`.
-        before: str or None
+        before: str | None, optional
             Make the item appear before another given item.
-        before_section: str or None
+        before_section: str | None, optional
             Make the item defined section appear before another given section
             (must be already defined).
-        omit_id: bool
+        omit_id: bool, optional
             If True, then the toolbar will check if the item to add declares an
             id, False otherwise. This flag exists only for items added on
             Spyder 4 plugins. Default: False
