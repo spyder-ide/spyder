@@ -374,12 +374,19 @@ class SpyderRemoteFileServicesAPI(SpyderBaseJupyterAPI):
         )
 
     async def ls(self, path: Path, *, detail: bool = True):
-        async with self.session.get(
-            self.api_url / "ls",
-            params={"path": f"file://{path}", "detail": str(detail).lower()},
-        ) as response:
-            async for line in response.content:
-                yield json.loads(line)
+        # The try/except is neccessary to prevent an error on CIs
+        try:
+            async with self.session.get(
+                self.api_url / "ls",
+                params={
+                    "path": f"file://{path}",
+                    "detail": str(detail).lower(),
+                },
+            ) as response:
+                async for line in response.content:
+                    yield json.loads(line)
+        except (aiohttp.client_exceptions.ClientConnectionError, RuntimeError):
+            pass
 
     async def info(self, path: Path):
         async with self.session.get(

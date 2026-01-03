@@ -56,7 +56,8 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
             '--container-scope=class',
             '--remote-client',
             '-c',
-            'pytest_remoteclient.ini'
+            'pytest_remoteclient.ini',
+            '-x'
         ]
         os.environ["SPYDER_TEST_REMOTE_CLIENT"] = "true"
     else:

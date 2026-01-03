@@ -49,7 +49,7 @@ concurrency:
 jobs:
   build:
     # Use this to disable the workflow
-    # if: false
+    if: false
     name: Linux - Py${{ matrix.PYTHON_VERSION }}
     runs-on: ubuntu-latest
     env:
