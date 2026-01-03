@@ -15,6 +15,7 @@ import os
 import posixpath
 from datetime import datetime
 
+from aiohttp.client_exceptions import ClientResponseError
 from qtpy.compat import getexistingdirectory, getopenfilenames
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import (
@@ -490,7 +491,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        return await self.remote_files_manager.copy(old_path, new_path)
+        try:
+            response = self.remote_files_manager.copy(old_path, new_path)
+        except (RemoteOSError, OSError) as error:
+            response = error
+
+        return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_rename(self, future):
@@ -511,7 +517,14 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        return await self.remote_files_manager.replace(old_path, new_path)
+        try:
+            response = await self.remote_files_manager.replace(
+                old_path, new_path
+            )
+        except (RemoteOSError, OSError) as error:
+            response = error
+
+        return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_delete(self, future):
@@ -554,17 +567,20 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     ):
         data = future.result()
 
-        if os.path.isdir(local_directory):
-            # Local filename
-            local_filename = os.path.join(local_directory, remote_filename)
+        if isinstance(data, str):
+            QMessageBox.critical(self, _("Download error"), data)
+        else:
+            if os.path.isdir(local_directory):
+                # Local filename
+                local_filename = os.path.join(local_directory, remote_filename)
 
-            # Write remote contents to local file
-            try:
-                with open(local_filename, "w") as download_file:
-                    download_file.write(data)
-            except TypeError:
-                with open(local_filename, "wb") as download_file:
-                    download_file.write(data)
+                # Write remote contents to local file
+                try:
+                    with open(local_filename, "w") as download_file:
+                        download_file.write(data)
+                except TypeError:
+                    with open(local_filename, "wb") as download_file:
+                        download_file.write(data)
 
         if self._files_to_download[self.server_id] > 0:
             self._files_to_download[self.server_id] -= 1
@@ -584,18 +600,30 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             async for data in zip_generator:
                 zip_data.write(data)
             zip_data.seek(0)
+            response = zip_data.getbuffer()
         except RemoteFileServicesError as download_error:
             logger.debug(f"Unable to download {path}")
-            logger.debug(
-                f"Error while trying to download directory (compressed): "
-                f"{download_error.message}"
+            response = _(
+                "An error occurred while trying to download the directory "
+                "<b>{}</b> as a zip file from server <b>{}</b>:"
+                "<br><br>"
+                "{}"
+            ).format(
+                os.path.basename(path),
+                self._get_server_name(),
+                download_error.message,
             )
-            error_message = _(
-                "An error occured while trying to download {path}"
-            ).format(path=path)
-            QMessageBox.critical(self, _("Download error"), error_message)
+        except ClientResponseError:
+            logger.debug(f"Unable to download {path}")
+            response = _(
+                "It seems you don't have permissions to read the directory "
+                "<b>{}</b> in server <b>{}</b>."
+            ).format(
+                os.path.basename(path),
+                self._get_server_name(),
+            )
 
-        return zip_data.getbuffer()
+        return response
 
     @AsyncDispatcher(loop="explorer")
     async def _do_remote_download_file(self, path):
@@ -603,28 +631,33 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
+        file_manager = None
         try:
             file_manager = await self.remote_files_manager.open(path, mode="r")
-            file_data = await file_manager.read()
+            response = await file_manager.read()
         except RemoteFileServicesError:
             try:
                 file_manager = await self.remote_files_manager.open(
                     path, mode="rb"
                 )
-                file_data = await file_manager.read()
+                response = await file_manager.read()
             except RemoteFileServicesError as download_error:
                 logger.debug(f"Unable to download {path}")
-                logger.debug(
-                    f"Error while trying to download file: "
-                    f"{download_error.message}"
+                response = _(
+                    "An error occurred while trying to download the file "
+                    "<b>{}</b> from server <b>{}</b>:"
+                    "<br><br>"
+                    "{}"
+                ).format(
+                    os.path.basename(path),
+                    self._get_server_name(),
+                    download_error.message,
                 )
-                error_message = _(
-                    "An error occured while trying to download {path}"
-                ).format(path=path)
-                QMessageBox.critical(self, _("Download error"), error_message)
 
-        await file_manager.close()
-        return file_data
+        if file_manager is not None:
+            await file_manager.close()
+
+        return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
@@ -1437,6 +1470,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         directory = getexistingdirectory(
             self, _("Download directory"), getcwd_or_home()
         )
+
+        if not directory:
+            return
 
         # Keep track of how many files will be downloaded to stop the spinner
         # when all of them are processed.
