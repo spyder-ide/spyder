@@ -540,7 +540,7 @@ class ProfilerWidget(ShellConnectMainWidget):
 
     def _stop_profiling(self):
         widget = self.current_widget()
-        if widget is None:
+        if widget is None or self.is_current_widget_error_message():
             return
 
         if widget.is_profiling:

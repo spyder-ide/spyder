@@ -20,7 +20,7 @@ import sys
 
 # Third party imports
 from qtpy import PYSIDE2
-from qtpy.compat import getexistingdirectory, getsavefilename
+from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (
     QDir,
     QFile,
@@ -39,6 +39,7 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileSystemModel,
+    QGridLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
@@ -47,7 +48,6 @@ from qtpy.QtWidgets import (
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
-    QTextEdit,
     QToolTip,
     QTreeView,
     QVBoxLayout,
@@ -56,6 +56,8 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
+from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_home_dir
 from spyder.plugins.explorer.widgets.utils import (
@@ -205,6 +207,53 @@ class DirViewItemDelegate(QStyledItemDelegate):
 
 # ---- Widgets
 # ----------------------------------------------------------------------------
+class QInputDialogCombobox(QDialog):
+    """
+    Custom input dialog with a text edit and combobox.
+    """
+
+    def __init__(self, parent, title, label, items, label_combo, **kwargs):
+        super().__init__(parent, **kwargs)
+
+        if title is not None:
+            self.setWindowTitle(title)
+
+        self.setMinimumWidth(350)
+
+        grid_layout = QGridLayout()
+
+        self.text_edit = QLineEdit()
+        grid_layout.addWidget(QLabel(label), 0, 0)
+        grid_layout.addWidget(self.text_edit, 1, 0)
+
+        combo_label = QLabel(label_combo)
+        self.combo = SpyderComboBox(self)
+        self.combo.addItems(items)
+        grid_layout.addWidget(combo_label, 0, 1)
+        grid_layout.addWidget(self.combo, 1, 1)
+
+        bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+
+        layout = QVBoxLayout()
+        layout.addLayout(grid_layout)
+        layout.addWidget(bbox)
+        self.setLayout(layout)
+
+    @staticmethod
+    def get_text_and_item(parent, title, label, items, label_combo):
+        dialog = QInputDialogCombobox(parent, title, label, items, label_combo)
+
+        ok = dialog.exec_()
+        if ok:
+            return dialog.text_edit.text(), dialog.combo.currentText(), True
+        else:
+            return '', '', False
+
+
 class DirView(QTreeView, SpyderWidgetMixin):
     """Base file/directory tree view."""
 
@@ -864,6 +913,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
 
         Taken from https://stackoverflow.com/a/13142586/438386
         """
+        if event.button() == Qt.RightButton:
+            return
         clicked_index = self.indexAt(event.pos())
         if clicked_index.isValid():
             vrect = self.visualRect(clicked_index)
@@ -1317,17 +1368,34 @@ class DirView(QTreeView, SpyderWidgetMixin):
         subtitle = _('Folder name:')
         self.create_new_folder(basedir, title, subtitle, is_package=False)
 
-    def create_new_file(self, current_path, title, filters, create_func):
+    def create_new_file(self, current_path, title, subtitle, ext, create_func):
         """Create new file
         Returns True if successful"""
         if current_path is None:
             current_path = ''
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
+
         self.sig_redirect_stdio_requested.emit(False)
-        fname, _selfilter = getsavefilename(self, title, current_path, filters)
+
+        if not ext:
+            name, valid = QInputDialog.getText(
+                self, title, subtitle, QLineEdit.Normal, ""
+            )
+            fname = osp.join(current_path, str(name))
+        else:
+            name, ext, valid = QInputDialogCombobox.get_text_and_item(
+                self,
+                title,
+                label=subtitle,
+                items=ext,
+                label_combo=_("Extension:"),
+            )
+            fname = osp.join(current_path, str(name) + str(ext))
+
         self.sig_redirect_stdio_requested.emit(True)
-        if fname:
+
+        if fname and valid:
             try:
                 create_func(fname)
                 return fname
@@ -1346,7 +1414,7 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New file")
-        filters = _("All files")+" (*)"
+        subtitle = _('File name:')
 
         def create_func(fname):
             """File creation callback"""
@@ -1355,7 +1423,10 @@ class DirView(QTreeView, SpyderWidgetMixin):
             else:
                 with open(fname, 'wb') as f:
                     f.write(b'')
-        fname = self.create_new_file(basedir, title, filters, create_func)
+
+        fname = self.create_new_file(
+            basedir, title, subtitle, None, create_func
+        )
         if fname is not None:
             self.open([fname])
 
@@ -1439,19 +1510,12 @@ class DirView(QTreeView, SpyderWidgetMixin):
         if not isinstance(fnames, (tuple, list)):
             fnames = [fnames]
         if len(fnames) >= 1:
-            try:
-                selected_item = osp.commonpath(fnames)
-            except AttributeError:
-                #  py2 does not have commonpath
-                if len(fnames) > 1:
-                    selected_item = osp.normpath(
-                            osp.dirname(osp.commonprefix(fnames)))
-                else:
-                    selected_item = fnames[0]
+            selected_item = osp.commonpath(fnames)
             if osp.isfile(selected_item):
                 parent_path = osp.dirname(selected_item)
             else:
                 parent_path = osp.normpath(selected_item)
+
             cb_data = QApplication.clipboard().mimeData()
             if cb_data.hasUrls():
                 urls = cb_data.urls()
@@ -1773,12 +1837,13 @@ class DirView(QTreeView, SpyderWidgetMixin):
             basedir = self.get_selected_dir()
 
         title = _("New module")
-        filters = _("Python files")+" (*.py *.pyw *.ipy)"
+        subtitle = _('Module name:')
+        filters = ['.py', '.pyw', '.ipy']
 
         def create_func(fname):
             self.sig_module_created.emit(fname)
 
-        self.create_new_file(basedir, title, filters, create_func)
+        self.create_new_file(basedir, title, subtitle, filters, create_func)
 
     def go_to_parent_directory(self):
         pass

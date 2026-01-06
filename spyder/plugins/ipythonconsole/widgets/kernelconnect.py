@@ -25,8 +25,9 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, get_home_dir
+from spyder.config.base import get_home_dir
 
 
 KERNEL_CONNECTION_SCHEMA = {
@@ -256,10 +257,11 @@ class KernelConnectionDialog(QDialog, SpyderConfigurationAccessor):
 
         try:
             # We do this so that users can paste only the kernel id
-            if not cf_filename.startswith("kernel-"):
-                cf_filename = "kernel-" + cf_filename
-            if not cf_filename.endswith(".json"):
-                cf_filename += ".json"
+            if not cf_path:
+                if not cf_filename.startswith("kernel-"):
+                    cf_filename = "kernel-" + cf_filename
+                if not cf_filename.endswith(".json"):
+                    cf_filename += ".json"
 
             connection_file = find_connection_file(
                 filename=cf_filename, path=cf_path if cf_path else None

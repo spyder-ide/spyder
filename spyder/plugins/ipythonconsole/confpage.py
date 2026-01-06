@@ -168,7 +168,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Automatically import NumPy and Matplotlib modules"),
             'pylab/autoload',
             tip=_(
-                "This is a convinience to use NumPy and Matplotlib\n"
+                "This is a convenience to use NumPy and Matplotlib\n"
                 "in the console without explicitly importing the modules."
             )
         )
@@ -354,7 +354,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_(
-            "Implictly insert parethesis after any callable object, "
+            "Implicitly insert parethesis after any callable object, "
             "treating anything following it as arguments.<br>"
             "For example, typing <tt>print 'Number:', 42</tt> will execute "
             "<tt>print('Number:', 42)</tt>."
@@ -386,7 +386,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autoreload_group = QGroupBox(_("Autoreload"))
         autoreload_label = QLabel(_(
             "Reload imported modules automatically before running code. "
-            "This is a different mechanism than the User Module Reloader"
+            "This is a different mechanism than the User Module Reloader "
             "and can be slow on Windows due to limitations of its file system."
         ))
         autoreload_label.setWordWrap(True)

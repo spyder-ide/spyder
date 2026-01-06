@@ -83,7 +83,7 @@ def test_banners(ipyconsole, qtbot):
     [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval<br>..."]),
+       "positional arguments:<br>..."]),
      ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
       ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
@@ -112,10 +112,14 @@ def test_banners(ipyconsole, qtbot):
       ["My function"])
      ]
 )
-@pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
-                    reason="Times out on macOS and fails on Linux")
-@pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
-                    reason="Documentation for np.vectorize is different")
+@pytest.mark.skipif(
+    running_in_ci() and not os.name == 'nt',
+    reason="Times out on macOS and fails on Linux"
+)
+@pytest.mark.skipif(
+    parse(np.__version__) < parse('2.4.0'),
+    reason="Documentation for np.arange is different"
+)
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1585,7 +1589,8 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Run a line on startup
     ipyconsole.set_conf(
         'startup/pdb_run_lines',
-        'abba = 12; print("Hello")'
+        'abba = 12; print("Hello")',
+        section='debugger'
     )
 
     shell.execute('%debug print()')
@@ -1595,7 +1600,11 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     assert shell.get_value('abba') == 12
 
     # Reset setting
-    ipyconsole.set_conf('startup/pdb_run_lines', '')
+    ipyconsole.set_conf(
+        'startup/pdb_run_lines',
+        '',
+        section='debugger'
+    )
 
 
 @flaky(max_runs=3)

@@ -13,6 +13,11 @@ import logging
 import os
 import os.path as osp
 
+try:
+    from win32api import GetShortPathName
+except Exception:
+    GetShortPathName = None
+
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
@@ -250,6 +255,10 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         """Setter for environment variables for kernels"""
         env_vars = dict(env_vars)
         if os.name == "nt":
+            # Expand variables in case some are unexpanded.
+            # Fixes spyder-ide/spyder#25275
+            env_vars = {k: osp.expandvars(v) for k, v in env_vars.items()}
+
             # Use case insensitive dictionary
             env_vars = CaseInsensitiveDict(env_vars)
 
@@ -258,6 +267,14 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             path.extend(env_vars.get("path", "").split(";"))  # HKCU Path
             path = ";".join([p for p in path if p])  # Stringify
             env_vars["PATH"] = path
+
+            # Use short path name for temporary directories in case path has
+            # spaces. See spyder-ide/spyder#25403
+            if GetShortPathName is not None:
+                if "tmp" in env_vars:
+                    env_vars["tmp"] = GetShortPathName(env_vars["tmp"])
+                if "temp" in env_vars:
+                    env_vars["temp"] = GetShortPathName(env_vars["temp"])
 
         # User variables supersede system variables
         for k, v in os.environ.items():

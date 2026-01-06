@@ -12,7 +12,8 @@ import os.path as osp
 import sys
 
 # Local imports
-from spyder.config.base import _, running_in_ci, is_conda_based_app
+from spyder.api.translations import _
+from spyder.config.base import running_in_ci, is_conda_based_app
 from spyder.utils import programs
 
 
@@ -57,9 +58,9 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGITHUB_REQVER = '>=2.3.0'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=3.1,<4'
+PYLINT_REQVER = '>=3.1,<5'
 PYLINT_VENV_REQVER = '>=3.0.2'
-PYLSP_REQVER = '>=1.13.0,<1.14.0'
+PYLSP_REQVER = '>=1.14.0,<1.15.0'
 PYLSP_BLACK_REQVER = '>=2.0.0,<3.0.0'
 PYLSP_RUFF_REQVER = '>=2.3.0,<3.0.0'
 PYLS_SPYDER_REQVER = '>=0.4.0'

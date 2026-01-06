@@ -207,14 +207,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     # --- Optional overridable methods
     error_data: dict
         The dictionary containing error data. The expected keys are:
-        >>> error_data= {
-            "text": str,
-            "is_traceback": bool,
-            "repo": str,
-            "title": str,
-            "label": str,
-            "steps": str,
-        }
+
+        .. code-block:: python
+
+            error_data = {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
 
     Notes
     -----
@@ -255,7 +258,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     Parameters
     ----------
-    plugin_instance: SpyderDockablePlugin
+    plugin_instance: spyder.api.plugins.SpyderDockablePlugin
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 
@@ -1155,9 +1158,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             True if the plugin is maximized, False otherwise.
         """
         self._is_maximized = state
-
-        # This is necessary for old API plugins interacting with new ones.
-        self._plugin._ismaximized = state
 
     # ---- API: methods to define or override
     # ------------------------------------------------------------------------

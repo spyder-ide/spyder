@@ -28,8 +28,9 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 
 
 class RecoveryDialog(QDialog):
@@ -285,7 +286,7 @@ class RecoveryDialog(QDialog):
         heading = _('Error message:')
         msgbox = QMessageBox(
             QMessageBox.Critical, _('Restore'),
-            _('<b>{}</b><br><br>{}<br>{}').format(text, heading, error),
+            '<b>{}</b><br><br>{}<br>{}'.format(text, heading, error),
             parent=self)
         msgbox.exec_()
 

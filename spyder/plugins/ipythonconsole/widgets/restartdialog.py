@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.stylesheet import AppStyle, MAC
 
 

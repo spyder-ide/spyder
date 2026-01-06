@@ -667,7 +667,9 @@ class DebuggingWidget(DebuggingHistoryWidget, SpyderConfigurationAccessor):
 
         self._pdb_input_ready = True
 
-        start_line = self.get_conf('startup/pdb_run_lines', default='')
+        start_line = self.get_conf(
+            'startup/pdb_run_lines', default='', section='debugger'
+        )
         # Only run these lines when printing a new prompt
         if start_line and print_prompt and self.is_waiting_pdb_input():
             # Send a few commands

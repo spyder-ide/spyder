@@ -24,6 +24,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.remoteclient.api.protocol import (
     ConnectionInfo,
     ConnectionStatus,
+    ClientType,
 )
 from spyder.plugins.remoteclient.widgets.connectionpages import (
     ConnectionPage,
@@ -284,8 +285,12 @@ class ConnectionDialog(SidebarDialog):
         if not page.validate_page():
             return
 
-        # Validate env info
-        if ENV_MANAGER and page.NEW_CONNECTION:
+        # Validate env info for SSH connections
+        if (
+            ENV_MANAGER
+            and page.NEW_CONNECTION
+            and page.get_client_type() == ClientType.SSH
+        ):
             if (
                 self._new_connection_page.is_env_creation_widget_shown()
                 and not self._new_connection_page.validate_env_creation()
@@ -306,7 +311,12 @@ class ConnectionDialog(SidebarDialog):
             # Save connection info if necessary
             self._save_connection_info()
 
-        if ENV_MANAGER and page.NEW_CONNECTION:
+        # Create env if requested for SSH connections
+        if (
+            ENV_MANAGER
+            and page.NEW_CONNECTION
+            and page.get_client_type() == ClientType.SSH
+        ):
             if page.selected_env_creation_method() == CreateEnvMethods.NewEnv:
                 env_name, python_version = page.get_create_env_info()
                 packages_list = page.get_env_packages_list()

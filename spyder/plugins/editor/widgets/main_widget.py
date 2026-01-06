@@ -32,8 +32,9 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import get_conf_path
 from spyder.plugins.editor.api.panel import Panel
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
@@ -1936,13 +1937,16 @@ class EditorMainWidget(PluginMainWidget):
         self._print_editor.set_font(self._font)
 
         # Create printer
-        printer = SpyderPrinter(mode=QPrinter.HighResolution,
-                                header_font=self._font)
+        printer = SpyderPrinter(
+            mode=QPrinter.PrinterMode.HighResolution, header_font=self._font
+        )
         print_dialog = QPrintDialog(printer, self._print_editor)
 
         # Adjust print options when user has selected text
         if editor.has_selected_text():
-            print_dialog.setOption(QAbstractPrintDialog.PrintSelection, True)
+            print_dialog.setOption(
+                QAbstractPrintDialog.PrintDialogOption.PrintSelection, True
+            )
 
             # Copy selection from current editor to print editor
             cursor_1 = editor.textCursor()
@@ -1978,8 +1982,9 @@ class EditorMainWidget(PluginMainWidget):
         self._print_editor.set_font(self._font)
 
         # Create printer
-        printer = SpyderPrinter(mode=QPrinter.HighResolution,
-                                header_font=self._font)
+        printer = SpyderPrinter(
+            mode=QPrinter.PrinterMode.HighResolution, header_font=self._font
+        )
 
         # Create preview
         preview = SpyderPrintPreviewDialog(printer, self)

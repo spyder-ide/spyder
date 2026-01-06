@@ -76,25 +76,24 @@ from spyder.app.utils import (
     set_opengl_implementation)
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
-from spyder.config.base import (_, DEV, get_conf_path, get_debug_level,
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 get_home_dir, is_conda_based_app,
                                 running_under_pytest, STDERR)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
-from spyder.config.utils import IMPORT_EXT
 from spyder.utils import encoding, programs
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.qthelpers import file_uri, qapplication, start_file
+from spyder.utils.qthelpers import qapplication
 from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
-from spyder.api.plugins._old_api import SpyderPlugin, SpyderPluginWidget
 
 #==============================================================================
 # Windows only local imports
@@ -343,7 +342,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         dockable_plugins = []
         for plugin_name in PLUGIN_REGISTRY:
             plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            if isinstance(plugin, (SpyderDockablePlugin, SpyderPluginWidget)):
+            if isinstance(plugin, SpyderDockablePlugin):
                 dockable_plugins.append((plugin_name, plugin))
         return dockable_plugins
 
@@ -649,7 +648,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             lambda plugin_name, omit_conf: self.register_plugin(
                 plugin_name, omit_conf=omit_conf))
 
-        PLUGIN_REGISTRY.set_main(self)
+        PLUGIN_REGISTRY.main = self
 
         logger.info("*** Start of MainWindow setup ***")
 
@@ -733,8 +732,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 enabled_plugins[plugin_name] = plugin
                 PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
 
-        PLUGIN_REGISTRY.set_all_internal_plugins(registry_internal_plugins)
-        PLUGIN_REGISTRY.set_all_external_plugins(registry_external_plugins)
+        PLUGIN_REGISTRY.all_internal_plugins = registry_internal_plugins
+        PLUGIN_REGISTRY.all_external_plugins = registry_external_plugins
 
         # Instantiate internal Spyder 5 plugins
         for plugin_name in internal_plugins:
@@ -746,7 +745,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     # See spyder-ide/spyder#16518
                     # The plugins that require QtWebengine must declare
                     # themselves as needing that dependency
-                    # https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043
+                    # https://github.com/spyder-ide/spyder/pull/
+                    # 22196#issuecomment-2189377043
                     if PluginClass.REQUIRE_WEB_WIDGETS and (
                         not WEBENGINE or
                         self._cli_options.no_web_widgets
@@ -756,23 +756,14 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     PLUGIN_REGISTRY.register_plugin(self, PluginClass,
                                                     external=False)
 
-        # Instantiate internal Spyder 4 plugins
-        for plugin_name in internal_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = internal_plugins[plugin_name]
-                if issubclass(PluginClass, SpyderPlugin):
-                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=False)
-                    self.preferences.register_plugin_preferences(
-                        plugin_instance)
-
-        # Instantiate external Spyder 5 plugins
+        # Instantiate external Spyder 5+ plugins
         for plugin_name in external_plugins:
             if plugin_name in enabled_plugins:
                 PluginClass = external_plugins[plugin_name]
                 try:
-                    plugin_instance = PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=True)
+                    PLUGIN_REGISTRY.register_plugin(
+                        self, PluginClass, external=True
+                    )
                 except Exception as error:
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -814,10 +805,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         for plugin_name in PLUGIN_REGISTRY:
             plugin_instance = PLUGIN_REGISTRY.get_plugin(plugin_name)
-            try:
-                plugin_instance.before_mainwindow_visible()
-            except AttributeError:
-                pass
+            plugin_instance.before_mainwindow_visible()
 
         if self.splash is not None:
             self.splash.hide()
@@ -866,11 +854,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         for plugin_name in PLUGIN_REGISTRY:
             if plugin_name not in (Plugins.Layout, Plugins.Application):
                 plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
-                try:
-                    plugin.on_mainwindow_visible()
-                    QApplication.processEvents()
-                except AttributeError:
-                    pass
+                plugin.on_mainwindow_visible()
+                QApplication.processEvents()
 
         self.restore_scrollbar_position.emit()
 
@@ -944,10 +929,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             if isinstance(plugin, SpyderDockablePlugin):
                 if plugin.get_conf('undocked_on_window_close', default=False):
                     plugin.create_window()
-            elif isinstance(plugin, SpyderPluginWidget):
-                if plugin.get_option('undocked_on_window_close',
-                                     default=False):
-                    plugin._create_window()
 
     def set_window_title(self):
         """Set window title."""
@@ -1043,17 +1024,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Reimplement Qt method"""
         try:
             for plugin in (self.widgetlist + self.thirdparty_plugins):
-                # TODO: Remove old API
-                try:
-                    # New API
-                    if plugin.get_widget().isAncestorOf(
-                            self.last_focused_widget):
-                        plugin.change_visibility(True)
-                except AttributeError:
-                    # Old API
-                    if plugin.isAncestorOf(self.last_focused_widget):
-                        plugin._visibility_changed(True)
-
+                if plugin.get_widget().isAncestorOf(self.last_focused_widget):
+                    plugin.change_visibility(True)
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -1187,18 +1159,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """
         Add a plugin QDockWidget to the main window.
         """
-        try:
-            # New API
-            if plugin.is_compatible:
-                dockwidget, location = plugin.create_dockwidget(self)
-                self.addDockWidget(location, dockwidget)
-                self.widgetlist.append(plugin)
-        except AttributeError:
-            # Old API
-            if plugin._is_compatible:
-                dockwidget, location = plugin._create_dockwidget()
-                self.addDockWidget(location, dockwidget)
-                self.widgetlist.append(plugin)
+        if plugin.is_compatible:
+            dockwidget, location = plugin.create_dockwidget(self)
+            self.addDockWidget(location, dockwidget)
+            self.widgetlist.append(plugin)
 
     def redirect_internalshell_stdio(self, state):
         console = self.get_plugin(Plugins.Console, error=False)
@@ -1260,18 +1224,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Update dockwidgets features settings."""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.dockwidget.FEATURES
-
             plugin.dockwidget.setFeatures(features)
 
-            try:
-                # New API
-                margin = 0
-                if self.get_conf('use_custom_margin'):
-                    margin = self.get_conf('custom_margin')
-                plugin.update_margins(margin)
-            except AttributeError:
-                # Old API
-                plugin._update_margins()
+            margin = 0
+            if self.get_conf('use_custom_margin'):
+                margin = self.get_conf('custom_margin')
+            plugin.update_margins(margin)
 
     @Slot()
     def show_preferences(self):

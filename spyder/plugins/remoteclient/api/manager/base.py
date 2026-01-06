@@ -250,6 +250,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         try:
             if await self._start_remote_server():
                 self.__starting_event.set()
+                # emit signal that connection and server are established
+                if self._plugin:
+                    self._plugin.sig_connection_established.emit(
+                        self.config_id
+                    )
                 return True
         finally:
             self.__starting_server = False
