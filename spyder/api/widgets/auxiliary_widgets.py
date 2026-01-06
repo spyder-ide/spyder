@@ -11,6 +11,9 @@ Spyder API auxiliary widgets.
 
 from __future__ import annotations
 
+# Standard library imports
+from typing import TYPE_CHECKING
+
 # Third party imports
 from qtpy.QtCore import QEvent, QSize, Signal
 from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolBar, QWidget
@@ -21,16 +24,22 @@ from spyder.api.widgets import PluginMainWidgetWidgets
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
 from spyder.utils.stylesheet import APP_STYLESHEET
 
+if TYPE_CHECKING:
+    from qtpy.QtGui import QCloseEvent
+
+    import spyder.utils.qthelpers  # For SpyderAction
+    from spyder.api.widgets.main_widget import PluginMainWidget
+
 
 class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
     """MainWindow subclass that contains a SpyderDockablePlugin."""
 
     # ---- Signals
     # ------------------------------------------------------------------------
-    sig_closed = Signal()
+    sig_closed: Signal = Signal()
     """This signal is emitted when the close event is fired."""
 
-    sig_window_state_changed = Signal(object)
+    sig_window_state_changed: Signal = Signal(object)
     """
     This signal is emitted when the window state has changed (for instance,
     between maximized and minimized states).
@@ -41,22 +50,22 @@ class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
         The window state.
     """
 
-    def __init__(self, widget):
+    def __init__(self, widget: PluginMainWidget) -> None:
         super().__init__()
-        self.widget = widget
+        self.widget: PluginMainWidget = widget
 
         # To distinguish these windows from the main Spyder one
-        self.is_window_widget = True
+        self.is_window_widget: bool = True
 
         # Setting interface theme
         self.setStyleSheet(str(APP_STYLESHEET))
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """Override Qt method to emit a custom `sig_close` signal."""
         super().closeEvent(event)
         self.sig_closed.emit()
 
-    def changeEvent(self, event):
+    def changeEvent(self, event: QEvent) -> None:
         """
         Override Qt method to emit a custom `sig_windowstate_changed` signal
         when there's a change in the window state.
@@ -71,7 +80,7 @@ class MainCornerWidget(QToolBar):
     Corner widget to hold options menu, spinner and additional options.
     """
 
-    def __init__(self, parent, name):
+    def __init__(self, parent: PluginMainWidget, name: str) -> None:
         super().__init__(parent)
         self._icon_size = QSize(16, 16)
         self.setIconSize(self._icon_size)
@@ -88,7 +97,11 @@ class MainCornerWidget(QToolBar):
         self._strut.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.addWidget(self._strut)
 
-    def add_widget(self, widget, before=None):
+    def add_widget(
+        self,
+        widget: spyder.utils.qthelpers.SpyderAction | QWidget,
+        before: spyder.utils.qthelpers.SpyderAction | QWidget | None = None,
+    ) -> None:
         """
         Add a widget to the left of the last widget added to the corner.
         """
@@ -144,12 +157,16 @@ class MainCornerWidget(QToolBar):
         self._widgets[widget.name] = (widget, action)
         self._actions.append(action)
 
-    def get_widget(self, widget_id):
+    def get_widget(self, widget_id: str) -> QWidget | None:
         """Return a widget by unique id."""
         if widget_id in self._widgets:
             return self._widgets[widget_id][0]
+        return None
 
-    def get_action(self, widget_id):
+    def get_action(
+        self, widget_id: str
+    ) -> spyder.utils.qthelpers.SpyderAction | None:
         """Return action corresponding to `widget_id`."""
         if widget_id in self._widgets:
             return self._widgets[widget_id][1]
+        return None
