@@ -11,6 +11,9 @@ Spyder dialog widgets.
 
 from __future__ import annotations
 
+# Standard library imports
+from typing import TYPE_CHECKING
+
 # Third-party imports
 from qtpy import QT6
 from qtpy.QtCore import Qt
@@ -19,6 +22,9 @@ from qtpy.QtWidgets import QDialogButtonBox, QProxyStyle, QStyle
 
 # Local imports
 from spyder.utils.stylesheet import AppStyle
+
+if TYPE_CHECKING:
+    from qtpy.QtWidgets import QWidget
 
 
 class _SpyderButtonsProxyStyle(QProxyStyle):
@@ -41,7 +47,12 @@ class _SpyderButtonsProxyStyle(QProxyStyle):
 class SpyderDialogButtonBox(QDialogButtonBox):
     """QDialogButtonBox widget for Spyder."""
 
-    def __init__(self, buttons=None, orientation=Qt.Horizontal, parent=None):
+    def __init__(
+        self,
+        buttons: QDialogButtonBox.StandardButton | None = None,
+        orientation: Qt.Orientation = Qt.Horizontal,
+        parent: QWidget | None = None,
+    ):
         if buttons:
             super().__init__(buttons, orientation, parent)
         elif orientation:
