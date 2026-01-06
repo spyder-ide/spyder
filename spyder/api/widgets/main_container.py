@@ -15,6 +15,9 @@ status bar widgets or toolbars.
 
 from __future__ import annotations
 
+# Standard library imports
+from typing import TYPE_CHECKING
+
 # Third party imports
 from qtpy import PYSIDE2
 from qtpy.QtCore import Signal
@@ -22,6 +25,12 @@ from qtpy.QtWidgets import QWidget
 
 # Local imports
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+
+if TYPE_CHECKING:
+    from qtpy.QtGui import QCloseEvent
+
+    import spyder.app.mainwindow
+    from spyder.api.plugins import SpyderPluginV2
 
 
 class PluginMainContainer(QWidget, SpyderWidgetMixin):
@@ -38,7 +47,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     subclass this.
     """
 
-    CONTEXT_NAME = None
+    CONTEXT_NAME: str | None = None
     """
     This optional attribute defines the context name under which actions,
     toolbars, toolbuttons and menus should be registered on the
@@ -50,23 +59,23 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
 
     # ---- Signals
     # ------------------------------------------------------------------------
-    sig_free_memory_requested = Signal()
+    sig_free_memory_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to garbage
     collect deleted objects.
     """
 
-    sig_quit_requested = Signal()
+    sig_quit_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to quit.
     """
 
-    sig_restart_requested = Signal()
+    sig_restart_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to restart.
     """
 
-    sig_redirect_stdio_requested = Signal(bool)
+    sig_redirect_stdio_requested: Signal = Signal(bool)
     """
     This signal can be emitted to request the main application to redirect
     standard output/error when using Open/Save/Browse dialogs within widgets.
@@ -77,7 +86,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         Enable/Disable standard input/output redirection.
     """
 
-    sig_exception_occurred = Signal(dict)
+    sig_exception_occurred: Signal = Signal(dict)
     """
     This signal can be emitted to report an exception handled by this widget.
 
@@ -109,7 +118,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     error dialog.
     """
 
-    sig_unmaximize_plugin_requested = Signal((), (object,))
+    sig_unmaximize_plugin_requested: Signal = Signal((), (object,))
     """
     This signal is emitted to inform the main window that it needs to
     unmaximize the currently maximized plugin, if any.
@@ -120,7 +129,12 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(
+        self,
+        name: str,
+        plugin: SpyderPluginV2,
+        parent: spyder.app.mainwindow.MainWindow | None = None,
+    ) -> None:
         if not PYSIDE2:
             super().__init__(parent=parent, class_parent=plugin)
         else:
@@ -135,7 +149,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
-        self.PLUGIN_NAME = name
+        self.PLUGIN_NAME: str = name
 
         # Widget setup
         # A PluginMainContainer inherits from QWidget so it can be a parent
@@ -149,13 +163,13 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
 
     # ---- Public Qt overridden methods
     # -------------------------------------------------------------------------
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         self.on_close()
         super().closeEvent(event)
 
     # ---- API: methods to define or override
     # ------------------------------------------------------------------------
-    def setup(self):
+    def setup(self) -> None:
         """
         Create actions, widgets, add to menu and other setup requirements.
         """
@@ -163,7 +177,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
             "A PluginMainContainer subclass must define a `setup` method!"
         )
 
-    def update_actions(self):
+    def update_actions(self) -> None:
         """
         Update the state of exposed actions.
 
@@ -174,7 +188,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
             "method!"
         )
 
-    def on_close(self):
+    def on_close(self) -> None:
         """
         Perform actions before the container is closed.
 
