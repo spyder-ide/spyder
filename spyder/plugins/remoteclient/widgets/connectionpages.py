@@ -745,19 +745,22 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         address_re = re.compile(combined_pattern)
         return True if address_re.match(address) else False
 
-    def _validate_config_file(self, config_filepath):
+    def _validate_config_file(self, config_filepath, from_gui=True):
         logger.info(config_filepath)
-        auth_method = self.auth_method(from_gui=True)
+        auth_method = self.auth_method(from_gui=from_gui)
 
         widgets = self._widgets_for_validation[auth_method]
         host_widget = widgets[1]
         host = host_widget.textbox.text()
-        username_textbox = widgets[2].textbox
+        username_widget = widgets[2]
+        username_textbox = username_widget.textbox
         username = username_textbox.text() if username_textbox.text() else ()
+        keyfile_widget = None
         keyfile_textbox = None
 
         if auth_method == AuthenticationMethod.KeyFile:
-            keyfile_textbox = widgets[4].textbox
+            keyfile_widget = widgets[4]
+            keyfile_textbox = keyfile_widget.textbox
 
         config = None
         if osp.isfile(config_filepath):
@@ -791,9 +794,12 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if config.get("IdentityFile", None) and keyfile_textbox:
             keyfile_textbox.setPlaceholderText(config.get("IdentityFile")[0])
 
-        # Host/address widget is valid since OpenSSH config file parsing was
-        # successful
+        # Host/address, username and keyfile widgets should be valid since
+        # OpenSSH config file parsing was successful
         host_widget.status_action.setVisible(False)
+        username_widget.status_action.setVisible(False)
+        if keyfile_widget:
+            keyfile_widget.status_action.setVisible(False)
 
         return True
 
@@ -1304,14 +1310,25 @@ class ConnectionPage(BaseConnectionPage):
         self.create_tab(_("Connection info"), info_widget)
 
     def initialize(self):
-        super().initialize()
-        # Validate config file if available so related widgets get updated
-        # when initializing the page
+        # Validate if config file is available so related widgets get updated
+        # when initializing the page. Also ensured that previously created
+        # configs get an initual value set
         configfile_path = self.get_option(
-            f"{self.host_id}/{self.auth_method()}/configfile", default=""
+            f"{self.host_id}/{self.auth_method()}/configfile", default=None
         )
         if configfile_path:
-            self._validate_config_file(configfile_path)
+            super().initialize()
+            self._validate_config_file(configfile_path, from_gui=False)
+        elif configfile_path is None:
+            AuthenticationMethod.Password
+            self.set_option(
+                f"{self.host_id}/{AuthenticationMethod.Password}/configfile", ""
+            )
+            self.set_option(
+                f"{self.host_id}/{AuthenticationMethod.KeyFile}/configfile", ""
+            )
+            super().initialize()
+
 
     def get_icon(self):
         return self.create_icon("remote_server")
