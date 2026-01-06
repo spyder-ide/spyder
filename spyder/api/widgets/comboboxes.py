@@ -15,6 +15,7 @@ from __future__ import annotations
 
 # Standard library imports
 import sys
+from typing import TYPE_CHECKING
 
 # Third-party imports
 import qstylizer.style
@@ -36,6 +37,10 @@ from superqt.utils import qdebounced
 # Local imports
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, WIN
+
+if TYPE_CHECKING:
+    from qtpy.QtGui import QShowEvent
+    from qtpy.QtWidgets import QWidget
 
 
 class _SpyderComboBoxProxyStyle(QProxyStyle):
@@ -259,21 +264,25 @@ class _SpyderComboBoxMixin:
 class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
     """Default combobox widget for Spyder."""
 
-    def __init__(self, parent=None, items_elide_mode=None):
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        items_elide_mode: Qt.TextElideMode | None = None,
+    ) -> None:
         """
         Default combobox widget for Spyder.
 
         Parameters
         ----------
-        parent: QWidget, optional
+        parent: QWidget | None, optional
             The combobox parent.
-        items_elide_mode: Qt.TextElideMode, optional
+        items_elide_mode: Qt.TextElideMode | None, optional
             Elide mode for the combobox items.
         """
         QComboBox.__init__(self, parent)
         _SpyderComboBoxMixin.__init__(self)
 
-        self.is_editable = None
+        self.is_editable: bool | None = None
         self._is_shown = False
         self._is_popup_shown = False
 
@@ -284,7 +293,7 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
             _SpyderComboBoxDelegate(self, elide_mode=items_elide_mode)
         )
 
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         """Adjustments when the widget is shown."""
 
         if not self._is_shown:
@@ -308,7 +317,7 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
         super().showEvent(event)
 
-    def showPopup(self):
+    def showPopup(self) -> None:
         """Adjustments when the popup is shown."""
         super().showPopup()
 
@@ -332,7 +341,7 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
             self.setStyleSheet(self._css.toString())
 
-    def hidePopup(self):
+    def hidePopup(self) -> None:
         """Adjustments when the popup is hidden."""
         super().hidePopup()
         self.sig_popup_is_hidden.emit()
@@ -351,15 +360,19 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 class SpyderComboBoxWithIcons(SpyderComboBox):
     """ "Combobox widget for Spyder when its items have icons."""
 
-    def __init__(self, parent=None, items_elide_mode=None):
-        """ "
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        items_elide_mode: Qt.TextElideMode | None = None,
+    ) -> None:
+        """
         Combobox widget for Spyder when its items have icons.
 
         Parameters
         ----------
-        parent: QWidget, optional
+        parent: QWidget | None, optional
             The combobox parent.
-        items_elide_mode: Qt.TextElideMode, optional
+        items_elide_mode: Qt.TextElideMode | None, optional
             Elide mode for the combobox items.
         """
         super().__init__(parent, items_elide_mode)
@@ -372,7 +385,7 @@ class SpyderComboBoxWithIcons(SpyderComboBox):
 
 class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         QFontComboBox.__init__(self, parent)
         _SpyderComboBoxMixin.__init__(self)
 
@@ -394,7 +407,7 @@ class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
             QComboBox.AdjustToMinimumContentsLengthWithIcon
         )
 
-    def showPopup(self):
+    def showPopup(self) -> None:
         """Adjustments when the popup is shown."""
         super().showPopup()
 
@@ -402,6 +415,6 @@ class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
             popup = self.findChild(QFrame)
             popup.move(popup.x() - 3, popup.y() + 4)
 
-    def hidePopup(self):
+    def hidePopup(self) -> None:
         super().hidePopup()
         self.sig_popup_is_hidden.emit()
