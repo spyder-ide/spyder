@@ -9,6 +9,9 @@
 
 from __future__ import annotations
 
+# Standard library import
+from typing import TYPE_CHECKING
+
 # Third party imports
 import qstylizer.parser
 from qtpy import PYSIDE2
@@ -23,6 +26,10 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import create_waitspinner
 from spyder.utils.stylesheet import MAC
 
+if TYPE_CHECKING:
+    import qstylizer.style.StyleSheet
+    from qtpy.QtGui import QCloseEvent, QEnterEvent, QEvent, QMouseEvent
+
 
 class StatusBarWidget(QWidget, SpyderWidgetMixin):
     """
@@ -36,30 +43,34 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     and the spinner.
     """
 
-    ID = None
+    ID: str | None = None
     """
     Unique string widget identifier.
     """
 
-    CUSTOM_WIDGET_CLASS = None
+    CUSTOM_WIDGET_CLASS: str | type[QWidget] = None
     """
     Custom widget class to add to the default layout.
     """
 
-    INTERACT_ON_CLICK = False
+    INTERACT_ON_CLICK: bool = False
     """
     Whether the user can interact with widget when clicked (e.g. to show a
     menu)
     """
 
-    sig_clicked = Signal()
+    sig_clicked: Signal = Signal()
     """
     This signal is emmitted when the widget is clicked.
     """
 
     def __init__(
-        self, parent=None, show_icon=True, show_label=True, show_spinner=False
-    ):
+        self,
+        parent: QWidget | None = None,
+        show_icon: bool = True,
+        show_label: bool = True,
+        show_spinner: bool = False,
+    ) -> None:
         """
         Base class for status bar widgets.
 
@@ -73,11 +84,11 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         Parameters
         ----------
-        show_icon: bool
+        show_icon: bool, optional
             Show an icon in the widget.
-        show_label: bool
+        show_label: bool, optional
             Show a label in the widget.
-        show_spinner: bool
+        show_spinner: bool, optional
             Show a spinner.
 
         Notes
@@ -112,7 +123,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _set_layout(self):
+    def _set_layout(self) -> None:
         """Set layout for default widgets."""
         # Icon
         if self.show_icon:
@@ -160,7 +171,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         # Setup
         self.update_tooltip()
 
-    def _generate_stylesheet(self):
+    def _generate_stylesheet(self) -> qstylizer.style.StyleSheet:
         """Generate the widget's stylesheet."""
         # Remove opacity that comes from QDarkstyle.
         # This work around is necessary because qstylizer doesn't have support
@@ -180,11 +191,11 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def get_icon(self):
+    def get_icon(self) -> QIcon | None:
         """Get the widget's icon."""
         return None
 
-    def set_icon(self):
+    def set_icon(self) -> None:
         """Set the icon for the status bar widget."""
         if self.label_icon:
             icon = self._icon
@@ -193,17 +204,17 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
                 self._pixmap = icon.pixmap(self._icon_size)
                 self.label_icon.setPixmap(self._pixmap)
 
-    def set_value(self, value):
+    def set_value(self, value: str) -> None:
         """Set formatted text value."""
         if self.label_value:
             self.value = value
             self.label_value.setText(value)
 
-    def get_tooltip(self):
+    def get_tooltip(self) -> str:
         """Get the widget's tooltip text."""
         return ""
 
-    def update_tooltip(self):
+    def update_tooltip(self) -> str:
         """Update tooltip for widget."""
         tooltip = self.get_tooltip()
         if tooltip:
@@ -215,7 +226,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         """Change background color when the widget is clicked."""
         if self.INTERACT_ON_CLICK:
             self._css.QWidget.setValues(
@@ -225,7 +236,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         super().mousePressEvent(event)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """
         Change background color and emit signal to inform the widget was
         clicked.
@@ -246,7 +257,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
         self.sig_clicked.emit()
 
-    def enterEvent(self, event):
+    def enterEvent(self, event: QEnterEvent) -> None:
         """Change background color and cursor shape on hover."""
         if self.INTERACT_ON_CLICK:
             self._css.QWidget.setValues(
@@ -259,7 +270,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
         self.update_tooltip()
         super().enterEvent(event)
 
-    def leaveEvent(self, event):
+    def leaveEvent(self, event: QEvent) -> None:
         """Restore background color when not hovering."""
         if self.INTERACT_ON_CLICK:
             self._css.QWidget.setValues(
@@ -292,11 +303,11 @@ class BaseTimerStatus(StatusBarWidget):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         self.timer.stop()
         super().closeEvent(event)
 
-    def setVisible(self, value):
+    def setVisible(self, value: bool) -> None:
         """Stop timer if widget is not visible."""
         if self.timer is not None:
             if value:
@@ -307,17 +318,17 @@ class BaseTimerStatus(StatusBarWidget):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def update_status(self):
+    def update_status(self) -> None:
         """Update status label widget, if widget is visible."""
         if self.isVisible():
             self.label_value.setText(self.get_value())
 
-    def set_interval(self, interval):
+    def set_interval(self, interval: int) -> None:
         """Set timer interval (ms)."""
         self._interval = interval
         if self.timer is not None:
             self.timer.setInterval(interval)
 
-    def get_value(self):
+    def get_value(self) -> str:
         """Return formatted text value."""
         raise NotImplementedError
