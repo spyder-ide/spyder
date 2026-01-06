@@ -17,11 +17,12 @@ from __future__ import annotations
 # Standard library imports
 import logging
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 # Third party imports
 from qtpy import PYSIDE2
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
-from qtpy.QtGui import QFocusEvent, QIcon
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -59,6 +60,15 @@ from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
 from spyder.widgets.tabs import Tabs
 
+if TYPE_CHECKING:
+    from qtpy.QtGui import QCloseEvent, QFocusEvent
+    from qtpy.QWidget import QLayout
+
+    import spyder.app.mainwindow  # For MainWindow
+    import spyder.utils.qthelpers  # For SpyderAction
+    import spyder.widgets.dock  # For SpyderDockWidget
+
+    from spyder.api.plugins import SpyderPluginV2
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -86,7 +96,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Attributes
     # -------------------------------------------------------------------------
-    ENABLE_SPINNER = False
+    ENABLE_SPINNER: bool = False
     """
     This attribute enables/disables showing a spinner on the top right to the
     left of the corner menu widget (Hamburguer menu).
@@ -105,7 +115,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         is False.
     """
 
-    CONTEXT_NAME = None
+    CONTEXT_NAME: str | None = None
     """
     This optional attribute defines the context name under which actions,
     toolbars, toolbuttons and menus should be registered on the
@@ -115,12 +125,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     the plugin, then this attribute should have a `None` value.
     """
 
-    MARGIN_TOP = 0
+    MARGIN_TOP: int = 0
     """
     Use this attribute to adjust the widget's top margin in pixels.
     """
 
-    SHOW_MESSAGE_WHEN_EMPTY = False
+    SHOW_MESSAGE_WHEN_EMPTY: bool = False
     """
     This attribute enables/disables showing a message when the widget is empty.
 
@@ -131,7 +141,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     - The Find in files plugin is an example of a core plugin that uses it.
     """
 
-    MESSAGE_WHEN_EMPTY = None
+    MESSAGE_WHEN_EMPTY: str | None = None
     """
     This is the main message that will be shown when the widget is empty.
 
@@ -141,7 +151,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     - The Find in files plugin is an example of a core plugin that uses it.
     """
 
-    IMAGE_WHEN_EMPTY = None
+    IMAGE_WHEN_EMPTY: str | None = None
     """
     Name of or path to the svg image to show when the widget is empty
     (optional).
@@ -153,7 +163,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     - The Find in files plugin is an example of a core plugin that uses it.
     """
 
-    DESCRIPTION_WHEN_EMPTY = None
+    DESCRIPTION_WHEN_EMPTY: str | None = None
     """
     This is the description (i.e. additional text) that will be shown when the
     widget is empty (optional).
@@ -164,7 +174,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     - The Find in files plugin is an example of a core plugin that uses this.
     """
 
-    SET_LAYOUT_WHEN_EMPTY = True
+    SET_LAYOUT_WHEN_EMPTY: bool = True
     """
     Whether to automatically set a vertical layout for the stacked widget that
     holds the empty message widget and the content one.
@@ -178,23 +188,23 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Signals
     # -------------------------------------------------------------------------
-    sig_free_memory_requested = Signal()
+    sig_free_memory_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to garbage
     collect deleted objects.
     """
 
-    sig_quit_requested = Signal()
+    sig_quit_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to quit.
     """
 
-    sig_restart_requested = Signal()
+    sig_restart_requested: Signal = Signal()
     """
     This signal can be emitted to request the main application to restart.
     """
 
-    sig_redirect_stdio_requested = Signal(bool)
+    sig_redirect_stdio_requested: Signal = Signal(bool)
     """
     This signal can be emitted to request the main application to redirect
     standard output/error when using Open/Save/Browse dialogs within widgets.
@@ -205,7 +215,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Enable/Disable standard input/output redirection.
     """
 
-    sig_exception_occurred = Signal(dict)
+    sig_exception_occurred: Signal = Signal(dict)
     """
     This signal can be emitted to report an exception handled by this widget.
 
@@ -237,7 +247,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     error dialog.
     """
 
-    sig_toggle_view_changed = Signal(bool)
+    sig_toggle_view_changed: Signal = Signal(bool)
     """
     This signal is emitted to inform the visibility of a dockable plugin
     has changed.
@@ -251,13 +261,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         New visibility of the dockwidget.
     """
 
-    sig_update_ancestor_requested = Signal()
+    sig_update_ancestor_requested: Signal = Signal()
     """
     This signal is emitted to inform the main window that a child widget
     needs its ancestor to be updated.
     """
 
-    sig_unmaximize_plugin_requested = Signal((), (object,))
+    sig_unmaximize_plugin_requested: Signal = Signal((), (object,))
     """
     This signal is emitted to inform the main window that it needs to
     unmaximize the currently maximized plugin, if any.
@@ -268,7 +278,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         Unmaximize plugin only if it is not `plugin_instance`.
     """
 
-    sig_focus_status_changed = Signal(bool)
+    sig_focus_status_changed: Signal = Signal(bool)
     """
     This signal is emitted to inform the focus status of the widget.
 
@@ -278,7 +288,12 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         True if the widget is focused. False otherwise.
     """
 
-    def __init__(self, name, plugin, parent=None):
+    def __init__(
+        self,
+        name: str,
+        plugin: SpyderPluginV2,
+        parent: spyder.app.mainwindow.MainWindow | None = None,
+    ) -> None:
         if not PYSIDE2:
             super().__init__(parent=parent, class_parent=plugin)
         else:
@@ -292,27 +307,29 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._plugin = plugin
         self._parent = parent
         self._default_margins = None
-        self.is_visible = None
-        self.dock_action = None
-        self.undock_action = None
-        self.close_action = None
+        self.is_visible: bool | None = None
+        self.dock_action: spyder.utils.qthelpers.SpyderAction | None = None
+        self.undock_action: spyder.utils.qthelpers.SpyderAction | None = None
+        self.close_action: spyder.utils.qthelpers.SpyderAction | None = None
         self._toolbars_already_rendered = False
         self._is_maximized = False
 
         # Attribute used to access the action, toolbar, toolbutton and menu
         # registries
-        self.PLUGIN_NAME = name
+        self.PLUGIN_NAME: str = name
 
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
-        self.toggle_view_action = None
+        self.toggle_view_action: spyder.utils.qthelpers.SpyderAction | None = (
+            None
+        )
         self._toolbars = OrderedDict()
         self._auxiliary_toolbars = OrderedDict()
 
         # Widgets
         # --------------------------------------------------------------------
-        self.windowwidget = None
-        self.dockwidget = None
+        self.windowwidget: SpyderWindowWidget | None = None
+        self.dockwidget: spyder.widgets.dock.SpyderDockWidget | None = None
         self._icon = QIcon()
         self._spinner = None
         self._stack = None
@@ -426,7 +443,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Private Methods
     # -------------------------------------------------------------------------
-    def _setup(self):
+    def _setup(self) -> None:
         """
         Setup default actions, create options menu, and connect signals.
         """
@@ -524,7 +541,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         # Update title
         self.setWindowTitle(self.get_title())
 
-    def _update_actions(self):
+    def _update_actions(self) -> None:
         """
         Refresh Options menu.
         """
@@ -537,7 +554,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.update_actions()
 
     @Slot(bool)
-    def _on_top_level_change(self, top_level):
+    def _on_top_level_change(self, top_level: bool) -> None:
         """
         Actions to perform when a plugin is undocked to be moved.
         """
@@ -550,7 +567,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             QApplication.restoreOverrideCursor()
 
     @Slot(bool)
-    def _on_title_bar_shown(self, visible):
+    def _on_title_bar_shown(self, visible: bool) -> None:
         """
         Actions to perform when the title bar is shown/hidden.
         """
@@ -571,7 +588,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Public Qt overriden methods
     # -------------------------------------------------------------------------
-    def setLayout(self, layout):
+    def setLayout(self, layout: QLayout) -> None:
         """
         Set layout of the main widget of this plugin.
         """
@@ -585,7 +602,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         )
         layout.setSpacing(0)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         self.on_close()
         super().closeEvent(event)
 
@@ -601,15 +618,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- Public methods to use
     # -------------------------------------------------------------------------
-    def get_plugin(self):
+    def get_plugin(self) -> SpyderPluginV2:
         """
         Return the parent plugin.
         """
         return self._plugin
 
     def get_action(
-        self, name, context: str | None = None, plugin: str | None = None
-    ):
+        self, name: str, context: str | None = None, plugin: str | None = None
+    ) -> spyder.utils.qthelpers.SpyderAction:
         """
         Return action by name.
         """
@@ -618,15 +635,19 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def add_corner_widget(self, action_or_widget, before=None):
+    def add_corner_widget(
+        self,
+        action_or_widget: spyder.utils.qthelpers.SpyderAction | QWidget,
+        before: spyder.utils.qthelpers.SpyderAction | QWidget | None = None,
+    ) -> None:
         """
         Add widget to corner, that is to the left of the last added widget.
 
         Parameters
         ----------
-        action_or_widget: QAction or QWidget
+        action_or_widget: spyder.utils.qthelpers.SpyderAction | QWidget
             Any action or widget to add to the corner widget.
-        before: QAction or QWidget
+        before: spyder.utils.qthelpers.SpyderAction | QWidget | None, optional
             Insert action_or_widget before this one.
 
         Notes
@@ -639,7 +660,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         self._corner_widget.add_widget(action_or_widget, before=before)
 
-    def get_corner_widget(self, name):
+    def get_corner_widget(
+        self, name: str
+    ) -> spyder.utils.qthelpers.SpyderAction | QWidget | None:
         """
         Return the a widget inside the corner widget by name.
 
@@ -650,21 +673,21 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         return self._corner_widget.get_widget(name)
 
-    def start_spinner(self):
+    def start_spinner(self) -> None:
         """
         Start default status spinner.
         """
         if self.ENABLE_SPINNER:
             self._spinner.start()
 
-    def stop_spinner(self):
+    def stop_spinner(self) -> None:
         """
         Stop default status spinner.
         """
         if self.ENABLE_SPINNER:
             self._spinner.stop()
 
-    def create_toolbar(self, toolbar_id):
+    def create_toolbar(self, toolbar_id: str) -> MainWidgetToolbar:
         """
         Create and add an auxiliary toolbar to the top of the plugin.
 
@@ -691,42 +714,42 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         return toolbar
 
-    def get_options_menu(self):
+    def get_options_menu(self) -> PluginMainWidgetOptionsMenu:
         """
         Return the main options menu of the widget.
         """
         return self._options_menu
 
-    def get_options_menu_button(self):
+    def get_options_menu_button(self) -> QToolButton:
         """
         Return the main options menu button of the widget.
         """
         return self._options_button
 
-    def get_main_toolbar(self):
+    def get_main_toolbar(self) -> MainWidgetToolbar:
         """
         Return the main toolbar of the plugin.
 
         Returns
         -------
-        QToolBar
+        MainWidgetToolbar
             The main toolbar of the widget that contains the options button.
         """
         return self._main_toolbar
 
-    def get_auxiliary_toolbars(self):
+    def get_auxiliary_toolbars(self) -> OrderedDict[MainWidgetToolbar]:
         """
         Return the auxiliary toolbars of the plugin.
 
         Returns
         -------
-        OrderedDict
+        OrderedDict[MainWidgetToolbar]
             A dictionary of wirh toolbar IDs as keys and auxiliary toolbars as
             values.
         """
         return self._auxiliary_toolbars
 
-    def set_icon_size(self, icon_size):
+    def set_icon_size(self, icon_size: int) -> None:
         """
         Set the icon size of the plugin's toolbars.
 
@@ -739,7 +762,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._icon_size = icon_size
         self._main_toolbar.set_icon_size(QSize(icon_size, icon_size))
 
-    def show_status_message(self, message, timeout):
+    def show_status_message(self, message: str, timeout: int) -> None:
         """
         Show a status message in the Spyder widget.
         """
@@ -747,13 +770,13 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         if status_bar.isVisible():
             status_bar.showMessage(message, timeout)
 
-    def get_focus_widget(self):
+    def get_focus_widget(self) -> PluginMainWidget:
         """
         Get the widget to give focus to.
 
         Returns
         -------
-        QWidget
+        PluginMainWidget
             QWidget to give focus to.
 
         Notes
@@ -775,7 +798,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         else:
             layout.setContentsMargins(*self._default_margins)
 
-    def update_title(self):
+    def update_title(self) -> None:
         """
         Update title of dockwidget or plugin window.
         """
@@ -788,31 +811,31 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         widget.setWindowTitle(self.get_title())
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         """
         Set widget name (plugin.NAME).
         """
         self._name = name
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Return widget name (plugin.NAME).
         """
         return self._name
 
-    def set_icon(self, icon):
+    def set_icon(self, icon: QIcon) -> None:
         """
         Set widget icon.
         """
         self._icon = icon
 
-    def get_icon(self):
+    def get_icon(self) -> QIcon:
         """
         Return widget icon.
         """
         return self._icon
 
-    def render_toolbars(self):
+    def render_toolbars(self) -> None:
         """
         Render all the toolbars of the widget.
 
@@ -830,7 +853,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- For widgets with an empty message
     # -------------------------------------------------------------------------
-    def set_content_widget(self, widget, add_to_stack=True):
+    def set_content_widget(
+        self, widget: QWidget, add_to_stack: bool = True
+    ) -> None:
         """
         Set the widget that actually displays content when there is an empty
         message.
@@ -839,7 +864,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         ----------
         widget: QWidget
             Widget to set as the widget with content.
-        add_to_stack: bool
+        add_to_stack: bool, optional
             Whether to add this widget to stacked widget that holds the empty
             message.
         """
@@ -856,7 +881,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 layout.addWidget(self._content_widget)
                 self.setLayout(layout)
 
-    def show_content_widget(self):
+    def show_content_widget(self) -> None:
         """
         Show the widget that actually displays content when there is an empty
         message.
@@ -868,7 +893,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         ):
             self._stack.setCurrentWidget(self._content_widget)
 
-    def show_empty_message(self):
+    def show_empty_message(self) -> None:
         """Show the empty message widget."""
         if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
             "show_message_when_panes_are_empty", section="main"
@@ -878,7 +903,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     # ---- SpyderWindowWidget handling
     # -------------------------------------------------------------------------
     @Slot()
-    def create_window(self):
+    def create_window(self) -> None:
         """
         Create an undocked window containing this widget.
         """
@@ -921,7 +946,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         window.show()
 
     @Slot()
-    def dock_window(self):
+    def dock_window(self) -> None:
         """Dock undocked window back to the main window."""
         logger.debug(f"Docking window of plugin {self._name}")
 
@@ -941,7 +966,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.dockwidget.raise_()
 
     @Slot()
-    def close_window(self):
+    def close_window(self) -> None:
         """
         Close undocked window when clicking on the close window button.
 
@@ -962,7 +987,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         else:
             self.dock_window()
 
-    def _close_window(self, save_undocked=False, switch_to_plugin=True):
+    def _close_window(
+        self, save_undocked: bool = False, switch_to_plugin: bool = True
+    ) -> None:
         """
         Helper function to close the undocked window with different parameters.
 
@@ -976,7 +1003,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
         Returns
         -------
-        None.
+        None
         """
         if self.windowwidget is not None:
             # Save window geometry to restore it when undocking the plugin
@@ -1014,7 +1041,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- SpyderDockwidget handling
     # -------------------------------------------------------------------------
-    def change_visibility(self, enable, force_focus=None):
+    def change_visibility(
+        self, enable: bool, force_focus: bool | None = None
+    ) -> None:
         """Dock widget visibility has changed."""
         if self.dockwidget is None:
             return
@@ -1058,7 +1087,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         #     for __, action in self.get_actions().items():
         #         action.setEnabled(is_visible)
 
-    def toggle_view(self, checked):
+    def toggle_view(self, checked: bool) -> None:
         """
         Toggle dockwidget's visibility when its entry is selected in
         the menu `Window > Panes`.
@@ -1131,7 +1160,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             # updated correctly.
             self.create_window()
 
-    def create_dockwidget(self, mainwindow):
+    def create_dockwidget(
+        self, mainwindow: spyder.app.mainwindow.MainWindow
+    ) -> tuple[spyder.widgets.dock.SpyderDockWidget, Qt.DockWidgetArea]:
         """
         Add to parent QMainWindow as a dock widget.
         """
@@ -1151,14 +1182,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         return (dock, dock.LOCATION)
 
     @Slot()
-    def close_dock(self):
+    def close_dock(self) -> None:
         """
         Close the dockwidget.
         """
         logger.debug(f"Hiding plugin {self._name}")
         self.toggle_view_action.setChecked(False)
 
-    def lock_unlock_position(self):
+    def lock_unlock_position(self) -> None:
         """
         Show/hide title bar to move/lock position.
         """
@@ -1167,11 +1198,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         else:
             self.dockwidget.set_title_bar()
 
-    def get_maximized_state(self):
+    def get_maximized_state(self) -> bool:
         """Get dockwidget's maximized state."""
         return self._is_maximized
 
-    def set_maximized_state(self, state):
+    def set_maximized_state(self, state: bool) -> None:
         """
         Set internal attribute that holds dockwidget's maximized state.
 
@@ -1184,19 +1215,19 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     # ---- API: methods to define or override
     # ------------------------------------------------------------------------
-    def get_title(self):
+    def get_title(self) -> str:
         """
         Return the title that will be displayed on dockwidget or window title.
         """
         raise NotImplementedError("PluginMainWidget must define `get_title`!")
 
-    def set_ancestor(self, ancestor):
+    def set_ancestor(self, ancestor: QWidget) -> None:
         """
         Needed to update the ancestor/parent of child widgets when undocking.
         """
         pass
 
-    def setup(self):
+    def setup(self) -> None:
         """
         Create widget actions, add to menu and other setup requirements.
         """
@@ -1204,7 +1235,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             f"{type(self)} must define a `setup` method!"
         )
 
-    def update_actions(self):
+    def update_actions(self) -> None:
         """
         Update the state of exposed actions.
 
@@ -1215,7 +1246,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             f"method! Hint: {type(self)} should implement `update_actions`"
         )
 
-    def on_close(self):
+    def on_close(self) -> None:
         """
         Perform actions before the widget is closed.
 
@@ -1223,16 +1254,16 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         pass
 
-    def on_focus_in(self):
+    def on_focus_in(self) -> None:
         """Perform actions when the widget receives focus."""
         pass
 
-    def on_focus_out(self):
+    def on_focus_out(self) -> None:
         """Perform actions when the widget loses focus."""
         pass
 
 
-def _run_test():
+def _run_test() -> None:
     # Third party imports
     from qtpy.QtWidgets import QHBoxLayout, QTableWidget, QMainWindow
 
