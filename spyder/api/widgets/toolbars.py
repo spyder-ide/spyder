@@ -16,7 +16,7 @@ import os
 import sys
 import uuid
 from collections import OrderedDict
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 if sys.version_info < (3, 10):
     from typing_extensions import TypeAlias
@@ -45,6 +45,9 @@ from spyder.utils.stylesheet import (
     APP_TOOLBAR_STYLESHEET,
     PANES_TOOLBAR_STYLESHEET,
 )
+
+if TYPE_CHECKING:
+    from qtpy.QtWidgets import QMainWindow, QStyleOption
 
 
 # Generic type aliases
@@ -76,7 +79,7 @@ class ToolTipFilter(QObject):
     Filter tool tip events on toolbuttons.
     """
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         event_type = event.type()
         action = obj.defaultAction() if isinstance(obj, QToolButton) else None
         if event_type == QEvent.ToolTip and action is not None:
@@ -91,9 +94,11 @@ class ToolTipFilter(QObject):
 class ToolbarStyle(QProxyStyle):
 
     # The toolbar type. This can be 'Application' or 'MainWidget'
-    TYPE = None
+    TYPE: str | None = None
 
-    def pixelMetric(self, pm, option, widget):
+    def pixelMetric(
+        self, pm: QStyle.PixelMetric, option: QStyleOption, widget: QWidget
+    ) -> int:
         """
         Adjust size of toolbar extension button (in pixels).
 
@@ -131,13 +136,13 @@ class SpyderToolbar(QToolBar):
     This class provides toolbars with some predefined functionality.
     """
 
-    sig_is_rendered = Signal()
+    sig_is_rendered: Signal = Signal()
     """
     This signal is emitted to let other objects know that the toolbar is now
     rendered.
     """
 
-    def __init__(self, parent, title):
+    def __init__(self, parent: QWidget | None, title: str) -> None:
         super().__init__(parent=parent)
 
         # Attributes
@@ -174,7 +179,7 @@ class SpyderToolbar(QToolBar):
         before: str | None = None,
         before_section: str | None = None,
         omit_id: bool = False,
-    ):
+    ) -> None:
         """
         Add action or widget item to given toolbar `section`.
 
@@ -267,7 +272,7 @@ class SpyderToolbar(QToolBar):
                         before_section=before_section,
                     )
 
-    def remove_item(self, item_id: str):
+    def remove_item(self, item_id: str) -> None:
         """Remove action or widget from toolbar by id."""
         try:
             item = self._item_map.pop(item_id)
@@ -282,7 +287,7 @@ class SpyderToolbar(QToolBar):
         except KeyError:
             pass
 
-    def render(self):
+    def render(self) -> None:
         """Create the toolbar taking into account sections and locations."""
         sec_items = []
         for sec, items in self._section_items.items():
@@ -325,14 +330,16 @@ class ApplicationToolbar(SpyderToolbar):
     Spyder Main application Toolbar.
     """
 
-    ID = None
+    ID: str | None = None
     """
     Unique string toolbar identifier.
 
     This is used by Qt to be able to save and restore the state of widgets.
     """
 
-    def __init__(self, parent, toolbar_id, title):
+    def __init__(
+        self, parent: QMainWindow, toolbar_id: str, title: str
+    ) -> None:
         super().__init__(parent=parent, title=title)
         self.ID = toolbar_id
 
@@ -343,10 +350,10 @@ class ApplicationToolbar(SpyderToolbar):
 
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ApplicationToolbar('{self.ID}')"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"ApplicationToolbar('{self.ID}')"
 
 
@@ -358,12 +365,14 @@ class MainWidgetToolbar(SpyderToolbar):
     to their interface.
     """
 
-    ID = None
+    ID: str | None = None
     """
     Unique string toolbar identifier.
     """
 
-    def __init__(self, parent=None, title=None):
+    def __init__(
+        self, parent: QWidget | None = None, title: str | None = None
+    ) -> None:
         super().__init__(parent, title=title or "")
         self._icon_size = QSize(16, 16)
 
@@ -385,6 +394,6 @@ class MainWidgetToolbar(SpyderToolbar):
 
         self._filter = ToolTipFilter()
 
-    def set_icon_size(self, icon_size):
+    def set_icon_size(self, icon_size: QSize) -> None:
         self._icon_size = icon_size
         self.setIconSize(icon_size)
