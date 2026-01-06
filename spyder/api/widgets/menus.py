@@ -28,14 +28,15 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 
 if TYPE_CHECKING:
-    from qtpy.QtWidgets import QWidget
+    from qtpy.QtGui import QShowEvent
+    from qtpy.QtWidgets import QStyleOption, QWidget
 
     import spyder.utils.qthelpers  # For SpyderAction
 
 
 # ---- Constants
 # -----------------------------------------------------------------------------
-MENU_SEPARATOR = None
+MENU_SEPARATOR: None = None
 
 
 # Generic type annotations
@@ -68,7 +69,12 @@ class PluginMainWidgetMenus:
 class SpyderMenuProxyStyle(QProxyStyle):
     """Style adjustments that can only be done with a proxy style."""
 
-    def pixelMetric(self, metric, option=None, widget=None):
+    def pixelMetric(
+        self,
+        metric: QStyle.PixelMetric,
+        option: QStyleOption | None = None,
+        widget: QWidget | None = None,
+    ) -> int:
         if metric == QStyle.PM_SmallIconSize:
             # Change icon size for menus.
             # Taken from https://stackoverflow.com/a/42145885/438386
@@ -88,10 +94,10 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
     A QMenu subclass to implement additional functionality for Spyder.
     """
 
-    MENUS = []
-    APP_MENU = False
-    HORIZONTAL_MARGIN_FOR_ITEMS = 2 * AppStyle.MarginSize
-    HORIZONTAL_PADDING_FOR_ITEMS = 3 * AppStyle.MarginSize
+    MENUS: list[tuple[QWidget | None, str | None, SpyderMenu]] = []
+    APP_MENU: bool = False
+    HORIZONTAL_MARGIN_FOR_ITEMS: int = 2 * AppStyle.MarginSize
+    HORIZONTAL_PADDING_FOR_ITEMS: int = 3 * AppStyle.MarginSize
 
     def __init__(
         self,
@@ -112,14 +118,14 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             Unique str identifier for the menu.
         title: str | None, optional
             Localized text string for the menu.
-        min_width: int or None
+        min_width: int or None, optional
             Minimum width for the menu.
         reposition: bool, optional
             Whether to vertically reposition the menu due to its padding.
             ``True`` by default.
         """
         self._parent = parent
-        self.menu_id = menu_id
+        self.menu_id: str | None = menu_id
         self._title = title
         self._reposition = reposition
 
@@ -159,7 +165,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             self.aboutToShow.connect(self._set_icons)
 
         # Style
-        self.css = self._generate_stylesheet()
+        self.css: qstylizer.style.StyleSheet = self._generate_stylesheet()
         self.setStyleSheet(self.css.toString())
 
         style = SpyderMenuProxyStyle(None)
@@ -168,7 +174,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def clear_actions(self):
+    def clear_actions(self) -> None:
         """
         Remove actions from the menu (including custom references)
 
@@ -191,13 +197,13 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         before_section: str | None = None,
         check_before: bool = True,
         omit_id: bool = False,
-    ):
+    ) -> None:
         """
         Add action to a given menu section.
 
         Parameters
         ----------
-        action: spyder.utils.qthelpers.SpyderAction
+        action: spyder.utils.qthelpers.SpyderAction | SpyderMenu
             The action to add.
         section: str | None, optional
             The section id in which to insert the `action`.
@@ -262,7 +268,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self._dirty = True
         self._actions_map[item_id] = action
 
-    def remove_action(self, item_id: str):
+    def remove_action(self, item_id: str) -> None:
         if item_id in self._actions_map:
             action = self._actions_map.pop(item_id)
             position = None
@@ -276,13 +282,15 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 self._actions.pop(position)
                 self._dirty = True
 
-    def get_title(self):
+    def get_title(self) -> str | None:
         """
         Return the title for menu.
         """
         return self._title
 
-    def get_actions(self):
+    def get_actions(
+        self,
+    ) -> list[SpyderMenu | spyder.utils.qthelpers.SpyderAction]:
         """
         Return a parsed list of menu actions.
 
@@ -297,7 +305,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             actions.append(MENU_SEPARATOR)
         return actions
 
-    def get_sections(self):
+    def get_sections(self) -> tuple[str, ...]:
         """
         Return a tuple of menu sections.
         """
@@ -305,7 +313,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _add_missing_actions(self):
+    def _add_missing_actions(self) -> None:
         """
         Add actions that were not introduced to the menu because a `before`
         action they require is not part of it.
@@ -318,7 +326,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         self._unintroduced_actions = {}
 
-    def render(self, force=False):
+    def render(self, force: bool = False) -> None:
         """
         Create the menu prior to showing it. This takes into account sections
         and location of menus.
@@ -338,13 +346,17 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
             self._dirty = False
 
-    def _add_section(self, section, before_section=None):
+    def _add_section(
+        self, section: str, before_section: str | None = None
+    ) -> None:
         """
         Add a new section to the list of sections in this menu.
 
         Parameters
         ----------
-        before_section: str or None
+        section: str
+            The name of the section to add.
+        before_section: str | None, optional
             Make `section` appear before another one.
         """
         inserted_before_other = False
@@ -392,7 +404,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 idx = self._sections.index(section)
                 self._sections.insert(idx, after_section)
 
-    def _set_icons(self):
+    def _set_icons(self) -> None:
         """
         Unset menu icons for app menus and set them for regular menus.
 
@@ -406,7 +418,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
                 set_menu_icons(self, True)
 
     @classmethod
-    def _generate_stylesheet(cls):
+    def _generate_stylesheet(cls) -> qstylizer.style.StyleSheet:
         """Generate base stylesheet for menus."""
         css = qstylizer.style.StyleSheet()
         font = cls.get_font(SpyderFontType.Interface)
@@ -471,13 +483,13 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
         return css
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"SpyderMenu('{self.menu_id}')"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SpyderMenu('{self.menu_id}')"
 
-    def _adjust_menu_position(self):
+    def _adjust_menu_position(self) -> str:
         """Menu position adjustment logic to follow custom style."""
         if not self._is_shown:
             # Reposition submenus vertically due to padding and border
@@ -507,7 +519,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         """Call adjustments when the menu is going to be shown."""
         # To prevent race conditions which can cause partially showing a menu
         # (as in spyder-ide/spyder#22266), we use a timer to queue the move
@@ -523,7 +535,7 @@ class PluginMainWidgetOptionsMenu(SpyderMenu):
     Options menu for PluginMainWidget.
     """
 
-    def render(self):
+    def render(self) -> None:
         """Render the menu's bottom section as expected."""
         if self._dirty:
             self.clear()
