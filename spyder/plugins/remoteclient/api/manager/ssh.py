@@ -348,9 +348,12 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
         }
         self.logger.debug("Opening SSH connection")
 
-        self._ssh_connection = await asyncssh.connect(
-            **connect_kwargs, client_factory=self.client_factory
-        )
+        try:
+            self._ssh_connection = await asyncssh.connect(
+                **connect_kwargs, client_factory=self.client_factory
+            )
+        except asyncssh.misc.PermissionDenied:
+            return False
 
         self.logger.info("SSH connection established for %s", self.peer_host)
 

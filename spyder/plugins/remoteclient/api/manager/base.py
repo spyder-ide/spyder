@@ -342,7 +342,10 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
             # Connection completed
             try:
-                if await self.__connection_task:
+                if (
+                    self.__connection_task is not None
+                    and await self.__connection_task
+                ):
                     self._emit_connection_status(
                         ConnectionStatus.Connected,
                         _("The connection was successfully established"),
@@ -355,9 +358,10 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
                 # Cancel and reset connection tasks to allow re-tries after
                 # errors
-                self.__connection_task.cancel()
+                if self.__connection_task is not None:
+                    self.__connection_task.cancel()
+                    self.__connection_task = None
                 abort_task.cancel()
-                self.__connection_task = None
 
                 self._emit_connection_status(
                     ConnectionStatus.Error,
