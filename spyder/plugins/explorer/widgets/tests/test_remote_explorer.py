@@ -327,5 +327,94 @@ def test_copy_paths(
     )
 
 
+@mark_remote_test
+def test_new_files_and_directories(
+    remote_explorer, remote_client_id, mocker, monkeypatch, qtbot
+):
+    treewidget = remote_explorer.remote_treewidget
+    dirname = "test-new-files"
+    files_to_create = ["a.txt", "b.py"]
+    directories_to_create = ["foo", "bar"]
+
+    # Create a new directory with the UI and move to it
+    monkeypatch.setattr(QInputDialog, "getText", lambda *args: (dirname, True))
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.new_directory_action.triggered.emit()
+
+    treewidget.chdir(dirname, server_id=remote_client_id)
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 0)
+
+    # Create new files
+    for fname in files_to_create:
+        monkeypatch.setattr(
+            QInputDialog, "getText", lambda *args: (fname, True)
+        )
+
+        action = (
+            treewidget.new_module_action
+            if fname.endswith(".py")
+            else treewidget.new_file_action
+        )
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 2)
+
+    # Try to create the same files again and test we checked for existence
+    mocker.patch.object(QMessageBox, "warning", return_value=QMessageBox.No)
+
+    for action in [treewidget.new_file_action, treewidget.new_module_action]:
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    assert len(QMessageBox.warning.mock_calls) == 2
+
+    # Create new directories
+    for dname in directories_to_create:
+        monkeypatch.setattr(
+            QInputDialog, "getText", lambda *args: (dname, True)
+        )
+
+        action = (
+            treewidget.new_directory_action
+            if dname == "foo"
+            else treewidget.new_package_action
+        )
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 4)
+
+    # Try to create one of the dirs again and test we checked for existence
+    monkeypatch.setattr(QInputDialog, "getText", lambda *args: ("foo", True))
+    mocker.patch.object(QMessageBox, "critical", return_value=QMessageBox.Ok)
+
+    for action in [
+        treewidget.new_directory_action,
+        treewidget.new_package_action,
+    ]:
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 2
+
+    # Check "foo" directory is still empty. That checks that trying to create
+    # a Python package with that name doesn't add an __init__.py file to it.
+    treewidget.chdir(f"/home/ubuntu/{dirname}/foo", server_id=remote_client_id)
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 0)
+
+    treewidget.chdir(f"/home/ubuntu/{dirname}/bar", server_id=remote_client_id)
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 1)
+
+    assert get_filenames_from_ui(treewidget) == {"__init__.py"}
+
+    # Delete remote test directory
+    await_future(
+        treewidget._do_remote_delete(f"/home/ubuntu/{dirname}", is_file=False),
+        timeout=2,
+    )
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -94,6 +94,9 @@ class RemoteExplorerContextMenuSections:
 class RemoteExistenceOperations(Enum):
     Upload = "upload"
     Paste = "paste"
+    NewFile = "new_file"
+    NewFileWithContent = "new_file_with_content"
+    NewDirectoryWithContent = "new_directory_with_content"
 
 
 class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
@@ -770,6 +773,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         for path, response in paths_existence:
             filename = os.path.basename(path)
+            files_counter = None
 
             if not yes_to_all and response["exists"]:
                 if operation == RemoteExistenceOperations.Paste:
@@ -788,6 +792,33 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                     )
 
                     files_counter = self._files_to_upload
+                elif operation in [
+                    RemoteExistenceOperations.NewFile,
+                    RemoteExistenceOperations.NewFileWithContent,
+                ]:
+                    opening_sentence = _(
+                        "The file <b>{}</b> that you're trying to create on "
+                        "the server <b>{}</b> already exists in the current "
+                        "location."
+                    )
+                elif (
+                    operation
+                    == RemoteExistenceOperations.NewDirectoryWithContent
+                ):
+                    # Show the same message as the one for empty directories.
+                    opening_sentence = _(
+                        "An error occurred while trying to create a file/"
+                        "directory"
+                    )
+                    msg = (
+                        opening_sentence
+                        + "<br><br>"
+                        + "[Errno 17] File exists: '{}'".format(path)
+                    )
+
+                    QMessageBox.critical(self, _("Error"), msg)
+                    self.sig_stop_spinner_requested.emit()
+                    return
 
                 msg = (
                     opening_sentence.format(filename, self._get_server_name())
@@ -804,7 +835,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 if answer == QMessageBox.YesToAll:
                     yes_to_all = True
                 elif answer == QMessageBox.No:
-                    if files_counter[self.server_id] > 0:
+                    if (
+                        files_counter is not None
+                        and files_counter[self.server_id] > 0
+                    ):
                         files_counter[self.server_id] -= 1
 
                     if not self._operation_in_progress:
@@ -812,7 +846,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
                     continue
                 elif answer == QMessageBox.Cancel:
-                    files_counter[self.server_id] = 0
+                    if files_counter is not None:
+                        files_counter[self.server_id] = 0
 
                     if not self._operation_in_progress:
                         self.sig_stop_spinner_requested.emit()
@@ -830,9 +865,28 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self._do_remote_upload_file(path).connect(
                     self._on_remote_upload_file
                 )
+            elif operation == RemoteExistenceOperations.NewFile:
+                self._do_remote_new(path, for_file=True).connect(
+                    self._on_remote_new
+                )
+            elif operation == RemoteExistenceOperations.NewFileWithContent:
+                file_content, __, __ = get_default_file_content(
+                    get_conf_path("template.py")
+                )
+                self._do_remote_new_module(path, file_content).connect(
+                    self._on_remote_new_module
+                )
+            elif (
+                operation == RemoteExistenceOperations.NewDirectoryWithContent
+            ):
+                @AsyncDispatcher.QtSlot
+                def remote_package(future):
+                    self._on_remote_new_package(future, filename)
+
+                self._do_remote_new(path).connect(remote_package)
 
     @AsyncDispatcher(loop="explorer")
-    async def _check_if_remote_files_exist(self, paths):
+    async def _check_if_remote_files_exist(self, paths: list[str]):
         """Check if remote files exist in the remote cwd."""
         paths_existence = []
 
@@ -884,24 +938,43 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     def _new_item(self, new_name, for_file=False, with_content=False):
         new_path = posixpath.join(self.root_prefix[self.server_id], new_name)
-        if not with_content:
-            self._do_remote_new(new_path, for_file=for_file).connect(
-                self._on_remote_new
-            )
-        elif for_file and with_content:
-            file_content, __, __ = get_default_file_content(
-                get_conf_path("template.py")
-            )
-            self._do_remote_new_module(new_path, file_content).connect(
-                self._on_remote_new_module
-            )
-        elif not for_file and with_content:
 
-            @AsyncDispatcher.QtSlot
-            def remote_package(future):
-                self._on_remote_new_package(future, new_name)
-
-            self._do_remote_new(new_path).connect(remote_package)
+        if for_file:
+            # Check if remote file with the same name exists before trying to
+            # create it.
+            self._check_if_remote_files_exist([new_path]).connect(
+                AsyncDispatcher.QtSlot(
+                    functools.partial(
+                        self._on_check_if_remote_files_exist,
+                        operation=(
+                            RemoteExistenceOperations.NewFileWithContent
+                            if with_content
+                            else RemoteExistenceOperations.NewFile
+                        ),
+                    )
+                )
+            )
+        else:
+            if with_content:
+                # This is necessary because although an existing directory is
+                # not overwritten by the files API, an __init__.py file inside
+                # it is.
+                self._check_if_remote_files_exist([new_path]).connect(
+                    AsyncDispatcher.QtSlot(
+                        functools.partial(
+                            self._on_check_if_remote_files_exist,
+                            operation=(
+                                RemoteExistenceOperations.NewDirectoryWithContent
+                            ),
+                        )
+                    )
+                )
+            else:
+                # No need to check for existence because the files API raises
+                # an error.
+                self._do_remote_new(new_path, for_file=False).connect(
+                    self._on_remote_new
+                )
 
         self.sig_start_spinner_requested.emit()
 
@@ -1411,7 +1484,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         _(
                             "Do you really want to delete <b>{filename}</b>?"
                             "<br><br>"
-                            "<b>Note</b>: The file will be removed "
+                            "<b>Note</b>: The file/directory will be removed "
                             "permanently from the remote filesystem."
                         ).format(filename=filename),
                         buttons
