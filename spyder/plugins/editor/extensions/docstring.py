@@ -985,7 +985,10 @@ class FunctionInfo:
             idx_arg_start = pos_comma + 1
 
         if idx_arg_start < len(args_text):
-            args_list.append(args_text[idx_arg_start:])
+            arg_text = args_text[idx_arg_start:]
+            # Skip arg if its empty (e.g. trailing comma)
+            if arg_text.strip():
+                args_list.append(arg_text)
 
         return args_list
 
