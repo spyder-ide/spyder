@@ -36,8 +36,7 @@ def is_start_of_function(text):
 def get_indent(text):
     """Get indent of text.
 
-    https://stackoverflow.com/questions/2268532/grab-a-lines-whitespace-
-    indention-with-python
+    Originally adapted from https://stackoverflow.com/q/2268532
     """
     indent = ''
 
@@ -60,19 +59,20 @@ def is_in_scope_forward(text):
         return (text.count(")") != text.count("(") or
                 text.count("]") != text.count("[") or
                 text.count("}") != text.count("{"))
+
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
     ls = len(s)
     if s in text[p + ls:]:
         text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
         return is_in_scope_forward(text)
-    elif ls == 3:
+    if ls == 3:
         text = text[:p]
         return (text.count(")") != text.count("(") or
                 text.count("]") != text.count("[") or
                 text.count("}") != text.count("{"))
-    else:
-        return False
+
+    return False
 
 
 def is_tuple_brackets(text):
@@ -90,8 +90,7 @@ def is_tuple_brackets(text):
     if s in text[p + 1:]:
         text = text[:p] + text[p + 1:][text[p + 1:].index(s) + 1:]
         return is_tuple_brackets(text)
-    else:
-        return False
+    return False
 
 
 def is_tuple_strings(text):
@@ -110,8 +109,7 @@ def is_tuple_strings(text):
     if s in text[p + ls:]:
         text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
         return is_tuple_strings(text)
-    else:
-        return False
+    return False
 
 
 def is_in_scope_backward(text):
@@ -122,13 +120,15 @@ def is_in_scope_backward(text):
 
 def remove_comments(text):
     """
-    Remove code comments from text while ignoring hash symbols (#) inside
-    quotes, which can be part of function arguments.
+    Remove code comments from text.
+
+    Ignores hash symbols (``#``) inside quotes, which can be part of
+    function arguments.
     """
     return re.sub(pattern=r"""(?<!['"])(#.*)""", repl="", string=text)
 
 
-class DocstringWriterExtension(object):
+class DocstringWriterExtension:
     """Class for insert docstring template automatically."""
 
     def __init__(self, code_editor):
@@ -157,11 +157,13 @@ class DocstringWriterExtension(object):
              "->" in text_without_whitespace)
         ):
             return True
-        elif text_without_whitespace.endswith(":") and line_number > 1:
+
+        if text_without_whitespace.endswith(":") and line_number > 1:
             complete_text = text_without_whitespace
             document = self.code_editor.document()
             cursor = QTextCursor(
                 document.findBlockByNumber(line_number - 2))  # previous line
+
             for i in range(line_number - 2, -1, -1):
                 txt = "".join(str(cursor.block().text()).split())
                 if txt.endswith("\\") or is_in_scope_backward(complete_text):
@@ -170,8 +172,9 @@ class DocstringWriterExtension(object):
                     complete_text = txt + complete_text
                 else:
                     break
-                if i != 0:
+                if i:
                     cursor.movePosition(QTextCursor.PreviousBlock)
+
             if is_start_of_function(complete_text):
                 return (
                     complete_text.endswith("):") or
@@ -179,10 +182,9 @@ class DocstringWriterExtension(object):
                     (complete_text.endswith(":") and
                      "->" in complete_text)
                 )
-            else:
-                return False
-        else:
             return False
+
+        return False
 
     def get_function_definition_from_first_line(self):
         """Get func def when the cursor is located on the first def line."""
@@ -281,7 +283,7 @@ class DocstringWriterExtension(object):
             text = str(cursor.block().text())
             text_indent = get_indent(text)
 
-            if text.strip() == '':
+            if not text.strip():
                 pass
             elif len(text_indent) <= len(func_indent):
                 break
@@ -435,10 +437,8 @@ class DocstringWriterExtension(object):
         numpy_doc += arg_text
 
         numpy_doc += '\n'
-        if func_info.has_yield:
-            header = '{0}Yields\n{0}------\n'.format(indent1)
-        else:
-            header = '{0}Returns\n{0}-------\n'.format(indent1)
+        heading = "Yields" if func_info.has_yield else "Returns"
+        header = f"{indent1}{heading}\n{indent1}{'-' * len(heading)}\n"
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
@@ -525,10 +525,8 @@ class DocstringWriterExtension(object):
         google_doc += arg_text
 
         google_doc += '\n'
-        if func_info.has_yield:
-            header = '{}Yields:\n'.format(indent1)
-        else:
-            header = '{}Returns:\n'.format(indent1)
+        heading = "Yields" if func_info.has_yield else "Returns"
+        header = f"{indent1}{heading}:\n"
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
@@ -607,10 +605,8 @@ class DocstringWriterExtension(object):
                 sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(indent1,
                                                                    raise_type)
 
-        if func_info.has_yield:
-            header = '{}:yield:'.format(indent1)
-        else:
-            header = '{}:return:'.format(indent1)
+        heading = "yield" if func_info.has_yield else "return"
+        header = f"{indent1}:{heading}:"
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
@@ -674,29 +670,43 @@ class DocstringWriterExtension(object):
         return string_toparse
 
     @staticmethod
-    def parse_return_elements(return_vals_group, return_element_name,
-                              return_element_type, placeholder):
+    def parse_return_elements(
+        return_vals_group,
+        return_element_name,
+        return_element_type,
+        placeholder,
+    ):
         """Return the appropriate text for a group of return elements."""
-        all_eq = (return_vals_group.count(return_vals_group[0])
-                  == len(return_vals_group))
-        if all([{'[list]', '(tuple)', '{dict}', '{set}'}.issuperset(
-                return_vals_group)]) and all_eq:
+        all_eq = return_vals_group.count(return_vals_group[0]) == len(
+            return_vals_group
+        )
+        builtin_collections = {"[list]", "(tuple)", "{dict}", "{set}"}
+        if builtin_collections.issuperset(return_vals_group) and all_eq:
             return return_element_type.format(
-                return_type=return_vals_group[0][1:-1])
+                return_type=return_vals_group[0][1:-1]
+            )
+
         # Output placeholder if special Python chars present in name
         py_chars = {' ', '+', '-', '*', '/', '%', '@', '<', '>', '&', '|', '^',
                     '~', '=', ',', ':', ';', '#', '(', '[', '{', '}', ']',
                     ')', }
-        if any([any([py_char in return_val for py_char in py_chars])
-                for return_val in return_vals_group]):
+        if any(
+            any(py_char in return_val for py_char in py_chars)
+            for return_val in return_vals_group
+        ):
             return placeholder
+
         # Output str type and no name if only string literals
-        if all(['"' in return_val or '\'' in return_val
-                for return_val in return_vals_group]):
-            return return_element_type.format(return_type='str')
+        if all(
+            '"' in return_val or "'" in return_val
+            for return_val in return_vals_group
+        ):
+            return return_element_type.format(return_type="str")
+
         # Output bool type and no name if only bool literals
         if {'True', 'False'}.issuperset(return_vals_group):
             return return_element_type.format(return_type='bool')
+
         # Output numeric types and no name if only numeric literals
         try:
             [float(return_val) for return_val in return_vals_group]
@@ -705,28 +715,37 @@ class DocstringWriterExtension(object):
                 try:
                     int(return_val)
                 except ValueError:  # If not an integer (EAFP)
-                    num_not_int = num_not_int + 1
+                    num_not_int += 1
             if num_not_int == 0:
                 return return_element_type.format(return_type='int')
-            elif num_not_int == len(return_vals_group):
+            if num_not_int == len(return_vals_group):
                 return return_element_type.format(return_type='float')
-            else:
-                return return_element_type.format(return_type='numeric')
+            return return_element_type.format(return_type='numeric')
+
         except ValueError:  # Not a numeric if float conversion didn't work
             pass
+
         # If names are not equal, don't contain "." or are a builtin
-        if ({'self', 'cls', 'None'}.isdisjoint(return_vals_group) and all_eq
-                and all(['.' not in return_val
-                         for return_val in return_vals_group])):
+        if (
+            {"self", "cls", "None"}.isdisjoint(return_vals_group)
+            and all_eq
+            and all("." not in return_val for return_val in return_vals_group)
+        ):
+
             return return_element_name.format(return_name=return_vals_group[0])
         return placeholder
 
-    def _generate_docstring_return_section(self, return_vals, header,
-                                           return_element_name,
-                                           return_element_type,
-                                           placeholder, indent):
+    def _generate_docstring_return_section(
+        self,
+        return_vals,
+        header,
+        return_element_name,
+        return_element_type,
+        placeholder,
+        indent,
+    ):
         """Generate the Returns section of a function/method docstring."""
-        # If all return values are None, return none
+        # If all return values are None, return None
         non_none_vals = [return_val for return_val in return_vals
                          if return_val and return_val != 'None']
         if not non_none_vals:
@@ -751,8 +770,10 @@ class DocstringWriterExtension(object):
         # If remaining are a mix of tuples and not, return single placeholder
         single_vals, tuple_vals = [], []
         for return_val in unambiguous_vals:
-            (tuple_vals.append(return_val) if ',' in return_val
-             else single_vals.append(return_val))
+            if ',' in return_val:
+                tuple_vals.append(return_val)
+            else:
+                single_vals.append(return_val)
         if single_vals and tuple_vals:
             return header + placeholder
 
@@ -787,7 +808,7 @@ class DocstringWriterExtension(object):
         return header + '\n'.join(return_elements_out)
 
 
-class FunctionInfo(object):
+class FunctionInfo:
     """Parse function definition text."""
 
     def __init__(self):
@@ -818,10 +839,12 @@ class FunctionInfo(object):
         """Return the start and end position of pairs of quotes."""
         pos = {}
         is_found_left_quote = False
+        quote = None
+        left_pos = None
 
         for idx, character in enumerate(text):
-            if is_found_left_quote is False:
-                if character == "'" or character == '"':
+            if not is_found_left_quote:
+                if character in {"'", '"'}:
                     is_found_left_quote = True
                     quote = character
                     left_pos = idx
@@ -831,16 +854,16 @@ class FunctionInfo(object):
                     is_found_left_quote = False
 
         if is_found_left_quote:
-            raise IndexError("No matching close quote at: " + str(left_pos))
+            raise IndexError(f"No matching close quote at: {left_pos}")
 
         return pos
 
-    def _find_bracket_position(self, text, bracket_left, bracket_right,
-                               pos_quote):
+    def _find_bracket_position(
+        self, text, bracket_left, bracket_right, pos_quote
+    ):
         """Return the start and end position of pairs of brackets.
 
-        https://stackoverflow.com/questions/29991917/
-        indices-of-matching-parentheses-in-python
+        Originally adapted from https://stackoverflow.com/q/29991917
         """
         pos = {}
         pstack = []
@@ -851,7 +874,7 @@ class FunctionInfo(object):
                 pstack.append(idx)
             elif character == bracket_right and \
                     not self.is_char_in_pairs(idx, pos_quote):
-                if len(pstack) == 0:
+                if not len(pstack):
                     raise IndexError(
                         "No matching closing parens at: " + str(idx))
                 pos[pstack.pop()] = idx
