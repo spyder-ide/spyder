@@ -1063,6 +1063,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
         executor_name, __ = self.executors_model.get_selected_run_executor(
             self.executor_combo.currentIndex()
         )
+        print("Here switched the file 3.6.8==============================")
 
         self.saved_conf = (
             metadata_info["uuid"],
