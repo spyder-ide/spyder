@@ -232,8 +232,16 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
         if user_data is None:
             self.logger.error(
-                "Error connecting to JupyterHub: %s", response.status,
+                "Error connecting to JupyterHub with code {}, which "
+                "corresponds to a {} reason".format(
+                    response.status, response.reason
+                ),
             )
+
+            # Close and reset connection to allow retries after errors
+            await self._session.close()
+            self._session = None
+
             return False
 
         self._user_name = user_data["name"]

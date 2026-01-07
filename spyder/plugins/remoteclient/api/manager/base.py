@@ -340,8 +340,8 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
                 return False
 
-            # Connection completed
             try:
+                # Connection completed
                 if (
                     self.__connection_task is not None
                     and await self.__connection_task
@@ -352,21 +352,22 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
                     )
                     return True
             except BaseException:
+                # Log any error
                 self.logger.exception(
                     "Error creating a new connection for %s", self.server_name
                 )
 
-                # Cancel and reset connection tasks to allow re-tries after
-                # errors
-                if self.__connection_task is not None:
-                    self.__connection_task.cancel()
-                    self.__connection_task = None
-                abort_task.cancel()
+            # Cancel and reset connection tasks to allow retries after errors
+            if self.__connection_task is not None:
+                self.__connection_task.cancel()
+                self.__connection_task = None
+            abort_task.cancel()
 
-                self._emit_connection_status(
-                    ConnectionStatus.Error,
-                    _("There was an error establishing the connection"),
-                )
+            # Report that the connection failed
+            self._emit_connection_status(
+                ConnectionStatus.Error,
+                _("There was an error establishing the connection"),
+            )
 
             return False
 
