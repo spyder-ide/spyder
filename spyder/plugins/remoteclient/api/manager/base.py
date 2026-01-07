@@ -351,10 +351,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
                         _("The connection was successfully established"),
                     )
                     return True
-            except BaseException:
+            except BaseException as error:
                 # Log any error
-                self.logger.exception(
-                    "Error creating a new connection for %s", self.server_name
+                self.logger.error(
+                    "Error creating a new connection for {}. The error was:"
+                    "<br>{}".format(self.server_name, str(error))
                 )
 
             # Cancel and reset connection tasks to allow retries after errors
@@ -404,7 +405,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             async with self.get_jupyter_api() as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
-            self.logger.exception("Error stopping remote server", exc_info=err)
+            self.logger.error(
+                "Error stopping remote server. The error was:<br>{}".format(
+                    str(err)
+                )
+            )
 
         self.__starting_event.clear()
         self.logger.info(
