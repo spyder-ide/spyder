@@ -1,7 +1,7 @@
 # %% sig
 def test(
     arg1,
-    arg2=True
+    arg2=True,
 ):
 # %% body
     return "foo"
