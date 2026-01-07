@@ -226,19 +226,29 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         )
 
         user_data = None
-        async with self._session.get("hub/api/user") as response:
-            if response.ok:
-                user_data = await response.json()
-
-        if user_data is None:
+        response = None
+        try:
+            async with self._session.get("hub/api/user") as response:
+                if response.ok:
+                    user_data = await response.json()
+        except aiohttp.client_exceptions.ClientConnectionError as error:
             self.logger.error(
-                "Error connecting to JupyterHub with code {}, which "
-                "corresponds to a {} reason".format(
-                    response.status, response.reason
-                ),
+                "Error connecting to JupyterHub. The error was:<br>{}".format(
+                    str(error)
+                )
             )
 
-            # Close and reset connection to allow retries after errors
+        if user_data is None:
+            if response is not None:
+                self.logger.error(
+                    "Error connecting to JupyterHub with code {}, which "
+                    "corresponds to a {} reason".format(
+                        response.status, response.reason
+                    ),
+                )
+
+            # Close and reset sessions for discarded connections to allow
+            # retries after connection info errors
             await self._session.close()
             self._session = None
 
