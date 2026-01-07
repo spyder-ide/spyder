@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2019- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see LICENSE.txt for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """Tests for docstring generation."""
 
@@ -13,9 +14,9 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.utils.qthelpers import qapplication
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.extensions.docstring import FunctionInfo
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.utils.qthelpers import qapplication
 
 
 # =============================================================================
@@ -24,13 +25,11 @@ from spyder.plugins.editor.extensions.docstring import FunctionInfo
 @pytest.fixture
 def editor_auto_docstring():
     """Set up Editor with auto docstring activated."""
-    app = qapplication()
+    app = qapplication()  # noqa
     editor = CodeEditor(parent=None)
-    kwargs = {}
-    kwargs['language'] = 'Python'
-    kwargs['close_quotes'] = True
-    kwargs['close_parentheses'] = True
-    editor.setup_editor(**kwargs)
+    editor.setup_editor(
+        language='Python', close_quotes=True, close_parentheses=True
+    )
     return editor
 
 
@@ -340,7 +339,7 @@ def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
       """
       ''',)
     ])
-def test_editor_docstring_below_def_by_shortcut(qtbot, editor_auto_docstring,
+def test_editor_docstring_below_def_by_shortcut(editor_auto_docstring,
                                                 text, expected):
     """Test auto docstring below function definition by shortcut."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
@@ -515,7 +514,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     return no, (ano, eo, dken)
     ''')
     ])
-def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
+def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
                                              text, expected):
     """Test auto docstring of numpydoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
@@ -605,7 +604,7 @@ def test_editor_docstring_with_body_numpydoc(qtbot, editor_auto_docstring,
     return no, (ano, eo, dken)
     ''')
     ])
-def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
+def test_editor_docstring_with_body_googledoc(editor_auto_docstring,
                                               text, expected):
     """Test auto docstring of googledoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Googledoc')

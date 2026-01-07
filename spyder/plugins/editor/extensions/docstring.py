@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2019- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
-"""Generate Docstring."""
+"""Automatically generate function docstrings."""
 
 # Standard library imports
 import re
 from collections import OrderedDict
 
 # Third party imports
-from qtpy.QtGui import QTextCursor
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMenu
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
