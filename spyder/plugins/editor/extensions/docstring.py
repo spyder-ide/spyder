@@ -320,7 +320,7 @@ class DocstringWriterExtension:
 
         return None
 
-    def get_function_docstring(self, func_indent):
+    def get_function_docstring(self, func_indent, delete_existing=True):
         """Get the function's existing docstring content."""
         cursor = self.code_editor.textCursor()
         line_number = cursor.blockNumber()
@@ -329,8 +329,9 @@ class DocstringWriterExtension:
         docstring_quotes = None
         last_line = False
 
+        cursor.clearSelection()
         for __ in range(number_of_lines - line_number):
-            cursor.movePosition(QTextCursor.NextBlock)
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
             if last_line:
                 break
 
@@ -355,16 +356,23 @@ class DocstringWriterExtension:
                 # One line docstring
                 if text.count(docstring_quotes) > 1:
                     last_line = True
+                cursor.clearSelection()
             # Look for the end
             elif docstring_quotes in text:
                 last_line = True
 
             docstring_list.append(text)
+            # So the final line is selected if docstring ends at the EOF
+            cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
 
         # If docstring was found and terminated
         if last_line:
+            if delete_existing:
+                cursor.removeSelectedText()
+            cursor.clearSelection()
             return '\n'.join(docstring_list)
         else:
+            cursor.clearSelection()
             return None
 
     def get_function_body(self, func_indent):
