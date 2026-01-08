@@ -190,8 +190,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     reasons["repeated_name"] = True
                     widget.status_action.setVisible(True)
             elif widget == self._address_widgets.get(auth_method):
-                widget.status_action.setVisible(False)
                 if not config_file:
+                    widget.status_action.setVisible(False)
                     # Validate address
                     address = widget.textbox.text()
                     if not self._validate_address(address):
@@ -466,7 +466,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             option=f"{self.host_id}/{auth_method}/configfile",
             tip=_("File with the OpenSSH client configuration to use"),
             validate_callback=self._validate_config_file,
-            validate_reason=_("Invalid OpenSSH client configuration file"),
+            validate_reason=_(
+                "Unable to get OpenSSH client configuration from "
+                "the given file.\nCheck that the defined address provided "
+                "corresponds with the values available from the file"),
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
             word_wrap=False,
@@ -746,7 +749,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         return True if address_re.match(address) else False
 
     def _validate_config_file(self, config_filepath, from_gui=True):
-        logger.info(config_filepath)
         auth_method = self.auth_method(from_gui=from_gui)
 
         widgets = self._widgets_for_validation[auth_method]
@@ -755,6 +757,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         username_widget = widgets[2]
         username_textbox = username_widget.textbox
         username = username_textbox.text() if username_textbox.text() else ()
+        configfile_widget = widgets[3]
         keyfile_widget = None
         keyfile_textbox = None
 
@@ -775,16 +778,17 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 host,
                 ()
             )
-            logger.info(config.get_options(False))
 
         if config and not config.get_options(False) or not config:
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
                 keyfile_textbox.setPlaceholderText("")
-            if not config:
-                # If no config is available. Focus host/address widget to
-                # trigger validations eventually via focus change
-                host_widget.textbox.setFocus()
+            # If no config is available point to host/address widget
+            # since the current value could be incorrect
+            host_widget.status_action.setVisible(True)
+            # Set configfile widget status visibility also in case the
+            # validation wasn't triggered from the own widget
+            configfile_widget.textbox.error_action.setVisible(True)
 
             return False
 
@@ -800,6 +804,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         username_widget.status_action.setVisible(False)
         if keyfile_widget:
             keyfile_widget.status_action.setVisible(False)
+        # Set configfile widget status visibility also in case the validation
+        # wasn't triggered from the own widget
+        configfile_widget.textbox.error_action.setVisible(False)
 
         return True
 
@@ -1313,22 +1320,19 @@ class ConnectionPage(BaseConnectionPage):
         # Validate if config file is available so related widgets get updated
         # when initializing the page. Also ensured that previously created
         # configs get an initual value set
+        super().initialize()
         configfile_path = self.get_option(
             f"{self.host_id}/{self.auth_method()}/configfile", default=None
         )
         if configfile_path:
-            super().initialize()
             self._validate_config_file(configfile_path, from_gui=False)
         elif configfile_path is None:
-            AuthenticationMethod.Password
             self.set_option(
                 f"{self.host_id}/{AuthenticationMethod.Password}/configfile", ""
             )
             self.set_option(
                 f"{self.host_id}/{AuthenticationMethod.KeyFile}/configfile", ""
             )
-            super().initialize()
-
 
     def get_icon(self):
         return self.create_icon("remote_server")
