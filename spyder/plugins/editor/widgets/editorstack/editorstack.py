@@ -837,6 +837,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def __update_editor_margins(self, editor):
         editor.linenumberarea.setup_margins(
             linenumbers=self.linenumbers_enabled, markers=self.has_markers())
+        editor.scrollflagarea.set_todo_enabled(self.has_markers())
 
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
