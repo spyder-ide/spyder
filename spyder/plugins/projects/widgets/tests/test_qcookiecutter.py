@@ -24,7 +24,7 @@ def mock_load_cookiecutter_project(monkeypatch):
     """
     Avoid real filesystem access in CookiecutterWidget constructor.
     """
-    def fake_loader(path):
+    def fake_loader(path, token):
         return {}, None
 
     monkeypatch.setattr(
