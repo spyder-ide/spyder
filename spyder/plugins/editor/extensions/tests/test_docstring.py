@@ -104,7 +104,7 @@ class Case:
         """Generate the expected output for a given docstring format."""
         doc = getattr(self, doc_type)
         return self._join_parts(
-            [self.pre, self.sig, doc, self.doc, self.body, self.post]
+            [self.pre, self.sig, doc, self.body, self.post]
         )
 
 
