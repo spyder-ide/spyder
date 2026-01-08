@@ -320,20 +320,66 @@ class DocstringWriterExtension:
 
         return None
 
-    def get_function_body(self, func_indent):
-        """Get the function body text."""
+    def get_function_docstring(self, func_indent):
+        """Get the function's existing docstring content."""
         cursor = self.code_editor.textCursor()
-        line_number = cursor.blockNumber() + 1
+        line_number = cursor.blockNumber()
         number_of_lines = self.code_editor.blockCount()
-        body_list = []
+        docstring_list = []
+        docstring_quotes = None
+        last_line = False
 
-        for __ in range(number_of_lines - line_number + 1):
+        for __ in range(number_of_lines - line_number):
+            cursor.movePosition(QTextCursor.NextBlock)
+            if last_line:
+                break
+
             text = str(cursor.block().text())
             text_indent = get_indent(text)
 
-            if not text.strip():
-                pass
-            elif len(text_indent) <= len(func_indent):
+            # Stop if outside the function scope
+            if text.strip() and len(text_indent) <= len(func_indent):
+                break
+
+            # Look for the start of the docstring
+            if not docstring_quotes:
+                if not remove_comments(text).strip():
+                    continue
+                elif '"""' in text:
+                    docstring_quotes = '"""'
+                elif "'''" in text:
+                    docstring_quotes = "'''"
+                else:  # Found function body, no docstring
+                    return None
+
+                # One line docstring
+                if text.count(docstring_quotes) > 1:
+                    last_line = True
+            # Look for the end
+            elif docstring_quotes in text:
+                last_line = True
+
+            docstring_list.append(text)
+
+        # If docstring was found and terminated
+        if last_line:
+            return '\n'.join(docstring_list)
+        else:
+            return None
+
+    def get_function_body(self, func_indent):
+        """Get the function body text."""
+        cursor = self.code_editor.textCursor()
+        line_number = cursor.blockNumber()
+        number_of_lines = self.code_editor.blockCount()
+        body_list = []
+
+        for __ in range(number_of_lines - line_number):
+            text = str(cursor.block().text())
+            text_indent = get_indent(text)
+
+            # Stop if outside the function scope
+            if text.strip() and len(text_indent) <= len(func_indent):
                 break
 
             body_list.append(text)
@@ -345,40 +391,45 @@ class DocstringWriterExtension:
     def write_docstring(self):
         """Write docstring to editor."""
         line_to_cursor = self.code_editor.get_text('sol', 'cursor')
-        if self.is_beginning_triple_quotes(line_to_cursor):
-            cursor = self.code_editor.textCursor()
-            prev_pos = cursor.position()
+        if not self.is_beginning_triple_quotes(line_to_cursor):
+            return False
 
-            quote = line_to_cursor[-1]
-            docstring_type = CONF.get('editor', 'docstring_type')
-            docstring = self._generate_docstring(docstring_type, quote)
+        cursor = self.code_editor.textCursor()
+        prev_pos = cursor.position()
 
-            if docstring:
-                self.code_editor.insert_text(docstring)
+        quote = line_to_cursor[-1]
+        docstring_type = CONF.get('editor', 'docstring_type')
+        docstring = self._generate_docstring(docstring_type, quote)
 
-                cursor = self.code_editor.textCursor()
-                cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
-                cursor.movePosition(QTextCursor.NextBlock)
-                cursor.movePosition(QTextCursor.EndOfLine,
-                                    QTextCursor.KeepAnchor)
-                cursor.clearSelection()
-                self.code_editor.setTextCursor(cursor)
-                return True
+        if not docstring:
+            return False
 
-        return False
+        self.code_editor.insert_text(docstring)
+
+        # Set cursor to first line of summary
+        cursor = self.code_editor.textCursor()
+        cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
+        cursor.movePosition(QTextCursor.NextBlock)
+        cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+        cursor.clearSelection()
+        self.code_editor.setTextCursor(cursor)
+
+        return True
 
     def write_docstring_at_first_line_of_function(self):
         """Write docstring to editor at mouse position."""
-        result = self.get_function_definition_from_first_line()
+        func_def_info = self.get_function_definition_from_first_line()
         editor = self.code_editor
-        if result:
-            func_text, number_of_line_func = result
-            line_number_function = (self.line_number_cursor +
-                                    number_of_line_func - 1)
+
+        if func_def_info:
+            func_text, number_of_line_func = func_def_info
+            func_last_line_number = (
+                self.line_number_cursor + number_of_line_func - 1
+            )
 
             cursor = editor.textCursor()
-            line_number_cursor = cursor.blockNumber() + 1
-            offset = line_number_function - line_number_cursor
+            cursor_line_number = cursor.blockNumber() + 1
+            offset = func_last_line_number - cursor_line_number
             if offset > 0:
                 for __ in range(offset):
                     cursor.movePosition(QTextCursor.NextBlock)
@@ -388,16 +439,16 @@ class DocstringWriterExtension:
             cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
             editor.setTextCursor(cursor)
 
-            indent = get_indent(func_text)
-            editor.insert_text('\n{}{}"""'.format(indent, editor.indent_chars))
+            body_indent = get_indent(func_text) + editor.indent_chars
+            editor.insert_text(f'\n{body_indent}"""')
             self.write_docstring()
 
     def write_docstring_for_shortcut(self):
         """Write docstring to editor by shortcut of code editor."""
         # cursor placed below function definition
-        result = self.get_function_definition_from_below_last_line()
-        if result is not None:
-            __, number_of_lines_of_function = result
+        func_def_info = self.get_function_definition_from_below_last_line()
+        if func_def_info is not None:
+            __, number_of_lines_of_function = func_def_info
             cursor = self.code_editor.textCursor()
             for __ in range(number_of_lines_of_function):
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -419,14 +470,20 @@ class DocstringWriterExtension:
         else:
             self.quote3_other = '"""'
 
-        result = self.get_function_definition_from_below_last_line()
+        func_def_info = self.get_function_definition_from_below_last_line()
 
-        if result:
-            func_def, __ = result
+        if func_def_info:
+            func_def, __ = func_def_info
             func_info = FunctionInfo()
             func_info.parse_def(func_def)
 
             if func_info.has_info:
+                func_docstring = self.get_function_docstring(
+                    func_info.func_indent
+                )
+                if func_docstring:
+                    func_info.parse_docstring(func_docstring)
+
                 func_body = self.get_function_body(func_info.func_indent)
                 if func_body:
                     func_info.parse_body(func_body)
@@ -456,7 +513,8 @@ class DocstringWriterExtension:
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        numpy_doc += '\n{}SUMMARY.\n'.format(indent1)
+        summary = func_info.docstring_text or 'SUMMARY.'
+        numpy_doc += '\n{}{}\n'.format(indent1, summary)
 
         if len(arg_names) > 0:
             numpy_doc += '\n{}Parameters'.format(indent1)
@@ -549,7 +607,8 @@ class DocstringWriterExtension:
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
 
-        google_doc += 'SUMMARY.\n'
+        summary = func_info.docstring_text or 'SUMMARY.'
+        google_doc += '{}\n'.format(summary)
 
         if len(arg_names) > 0:
             google_doc += '\n{0}Args:\n'.format(indent1)
@@ -639,7 +698,8 @@ class DocstringWriterExtension:
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
 
-        sphinx_doc += 'SUMMARY.\n\n'
+        summary = func_info.docstring_text or 'SUMMARY.'
+        sphinx_doc += '{}\n\n'.format(summary)
 
         arg_text = ''
         for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
@@ -919,10 +979,9 @@ class FunctionInfo:
     RETURN_TUPLE_REGEX = r'^(?:typing\.)?[Tt]uple\[\s*((?:\s|.)+)\s*\]$'
 
     def __init__(self):
-        """."""
         self.has_info = False
-        self.func_text = ''
         self.args_text = ''
+        self.docstring_text = None
         self.func_indent = ''
         self.arg_name_list = []
         self.arg_type_list = []
@@ -1142,6 +1201,20 @@ class FunctionInfo:
         if args_list is not None:
             self.has_info = True
             self.split_arg_to_name_type_value(args_list)
+
+    def parse_docstring(self, text):
+        """Process the function's docstring into a more usable form."""
+        if not text:
+            self.docstring_text = False
+
+        # Stip leading/trailing whitespace and quotes
+        text = text.strip()
+        for quotes in ['"""', "'''"]:
+            text = text.removeprefix(quotes).removesuffix(quotes)
+        text = text.strip()
+        text = "\n".join(line.rstrip() for line in text.split("\n"))
+
+        self.docstring_text = text
 
     def parse_body(self, text):
         """Parse the function body text."""
