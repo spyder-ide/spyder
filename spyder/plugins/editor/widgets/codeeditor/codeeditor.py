@@ -712,7 +712,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     def toggle_line_numbers(self, linenumbers=True, markers=False):
         """Enable/disable line numbers."""
         self.linenumberarea.setup_margins(linenumbers, markers)
-        self.scrollflagarea.set_enabled_todo(markers)
+        self.scrollflagarea.set_todo_enabled(markers)
 
     @property
     def panels(self):

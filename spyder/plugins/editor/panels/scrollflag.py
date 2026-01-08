@@ -63,6 +63,7 @@ class ScrollFlagArea(Panel):
         # Dictionary with flag lists
         self._dict_flag_list = {}
 
+        # Keep track if todo markers are enabled.
         self.todo_enabled = True
 
         # Thread to update flags on it.
@@ -238,8 +239,11 @@ class ScrollFlagArea(Panel):
         dict_flag_lists_iter = reversed(dict_flag_lists)
 
         for flag_type in dict_flag_lists_iter:
+            # Don't paint todo's if they are not enabled.
+            # Fixes spyder-ide/spyder#24940.
             if flag_type == 'todo' and not self.todo_enabled:
                 continue
+
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
             if editor.verticalScrollBar().maximum() == 0:
@@ -455,6 +459,6 @@ class ScrollFlagArea(Panel):
         self.enabled = state
         self.setVisible(state)
 
-    def set_enabled_todo(self, state):
+    def set_todo_enabled(self, state):
         """Toggle todo flag visibility"""
         self.todo_enabled = state
