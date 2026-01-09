@@ -174,7 +174,8 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         await self.close_connection()
 
     def _handle_connection_lost(self, exc: Exception | None = None):
-        self.__connection_task = None
+        if self.connected:
+            self.__connection_task = None
         self.__starting_event.clear()
         self._port_forwarder = None
         if exc:
@@ -342,10 +343,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
             try:
                 # Connection completed
-                if (
-                    self.__connection_task is not None
-                    and await self.__connection_task
-                ):
+                if await self.__connection_task:
                     self._emit_connection_status(
                         ConnectionStatus.Connected,
                         _("The connection was successfully established"),
@@ -359,9 +357,8 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
                 )
 
             # Cancel and reset connection tasks to allow retries after errors
-            if self.__connection_task is not None:
-                self.__connection_task.cancel()
-                self.__connection_task = None
+            self.__connection_task.cancel()
+            self.__connection_task = None
             abort_task.cancel()
 
             # Report that the connection failed
