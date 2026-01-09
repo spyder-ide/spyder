@@ -70,6 +70,7 @@ class CookiecutterWidget(SpyderConfigPage):
 
     It provides the process exit code and the output captured.
     """
+    sig_fatal_render = QtCore.Signal(bool)
 
     def __init__(self, parent, project_path=None):
         super().__init__(parent)
@@ -77,6 +78,7 @@ class CookiecutterWidget(SpyderConfigPage):
         # Attributes
         self._parent = parent
         self.project_path = project_path
+        self.fatal_render = False
         token = None
         # Get token from keyring
         try:
@@ -95,7 +97,6 @@ class CookiecutterWidget(SpyderConfigPage):
         ):
             if not running_under_pytest():
                 credentials = DlgGitHubLogin.login(self._parent, token, True)
-
                 if credentials["token"]:
                     try:
                         keyring.set_password(
@@ -107,18 +108,11 @@ class CookiecutterWidget(SpyderConfigPage):
                             )
                         )
                     except Exception:
-                        if self._show_msgbox:
-                            QMessageBox.warning(
-                                self._parent,
-                                _("Failed to store token"),
-                                _(
-                                    "It was not possible to securely "
-                                    "save your token. You will be "
-                                    "prompted for your Github token "
-                                    "next time you want to create "
-                                    "a project."
-                                ),
-                            )
+                        self.fatal_render = True
+                        return
+                else:
+                    self.fatal_render = True
+                    return
         self._cookiecutter_settings = cookiecutter_settings
         self._pre_gen_code = pre_gen_code
         self._widgets = OrderedDict()
@@ -282,6 +276,9 @@ class CookiecutterWidget(SpyderConfigPage):
         Setup the widget using options.
         """
         # self._cookiecutter_settings = cookiecutter_settings
+        if self.fatal_render:
+            self.sig_fatal_render.emit(True)
+            return
         self._check_jinja_options()
 
         for setting, value in self._cookiecutter_settings.items():
@@ -391,18 +388,3 @@ class CookiecutterWidget(SpyderConfigPage):
             self.project_path, location, self.get_values()
         )
         return status
-
-
-if __name__ == "__main__":
-    from spyder.utils.qthelpers import qapplication
-
-    app = qapplication()
-    dlg = CookiecutterDialog(parent=None)
-    spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
-    cookiecutter_settings, pre_gen_code = load_cookiecutter_project(
-        project_path=spyder_url, token="algo"
-    )
-    dlg.setup(cookiecutter_settings)
-    dlg.set_pre_gen_code(pre_gen_code)
-    dlg.show()
-    sys.exit(app.exec_())

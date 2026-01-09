@@ -24,6 +24,8 @@ from qtpy.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
+    QMessageBox,
+    QDialog,
 )
 
 # Local imports
@@ -455,18 +457,31 @@ class SpyderDirectoryPage(NewDirectoryPage):
         layout_cookiecutter.setContentsMargins(4, 4, 4, 4)
         spyder_url = "https://github.com/spyder-ide/spyder5-plugin-cookiecutter"
         self.cookiecutter_widget = CookiecutterWidget(self, spyder_url)
+        self.cookiecutter_widget.sig_fatal_render.connect(self._set_message)
         self.cookiecutter_widget.setup()
-        self.cookiecutter_widget.sig_validated.connect(self._set_message)
         layout_cookiecutter.addWidget(self.cookiecutter_widget)
         layout.addLayout(layout_cookiecutter)
         layout.addStretch()
         layout.addWidget(self._validation_label)
         self.setLayout(layout)
 
-    def _set_message(self, exit_code, message):
-        if exit_code != 0:
-            self._validation_label.setText(message)
-            self._validation_label.setVisible(True)
+    def _set_message(self, failed):
+        QMessageBox.warning(
+                                self,
+                                _("Failed to store token"),
+                                _(
+                                    "It was not possible to securely "
+                                    "save your token. You will be "
+                                    "prompted for your Github token "
+                                    "next time you want to create "
+                                    "a Spyder project."
+                                ),
+                            )
+        dialog = self.parent()
+        while dialog and not isinstance(dialog, QDialog):
+            dialog = dialog.parent()
+        if dialog:
+            dialog.reject()
 
     def validate_page(self):
         basic_valid = super().validate_page()
