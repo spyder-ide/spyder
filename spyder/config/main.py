@@ -514,6 +514,7 @@ DEFAULTS = [
               'editor/cut': 'Ctrl+X',
               'editor/copy': 'Ctrl+C',
               'editor/copy html': "",
+              'editor/copy rtf': "",
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Del',
               'editor/select all': "Ctrl+A",
