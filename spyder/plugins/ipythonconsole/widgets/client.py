@@ -967,19 +967,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # It's only at this point that we can allow users to close the client.
         self.can_close = True
 
-        # Handle failures to launch a kernel
+        # The future returns the kernel info or an error.
         try:
             kernel_info = future.result()
-        except Exception as err:
-            self.show_kernel_error(err)
-            return
-
-        if not kernel_info:
+        except RuntimeError:
             self.show_kernel_error(
                 _(
-                    "There was an error connecting to the server <b>{}</b>. "
-                    "Please check your connection is working."
-                ).format(self._jupyter_api.server_name)
+                    "There was an error connecting to the server <b>{}</b>."
+                    "<br><br>"
+                    "Please check your connection is working in the menu "
+                    "entry <tt>Tools > Manage remote connections</tt>."
+                ).format(self.jupyter_api.server_name)
             )
             return
 

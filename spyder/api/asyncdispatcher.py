@@ -34,7 +34,7 @@ from asyncio.futures import (
 from asyncio.tasks import (
     _current_tasks,  # type: ignore[attr-defined] # noqa: PLC2701
 )
-from concurrent.futures import CancelledError, Future
+from concurrent.futures import Future
 from heapq import heappop
 
 if sys.version_info < (3, 10):
@@ -270,9 +270,6 @@ class AsyncDispatcher(typing.Generic[_RT]):
     @staticmethod
     def _callback_task_done(future: Future):
         AsyncDispatcher._running_tasks.remove(future)
-        with contextlib.suppress(asyncio.CancelledError, CancelledError):
-            if (exception := future.exception()) is not None:
-                raise exception
 
     @classmethod
     def get_event_loop(
