@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Editor widget html export helper functions
+Editor widget export helper functions for rich text
 """
 
 # Standard library imports
@@ -15,7 +15,7 @@ from io import BytesIO, StringIO
 
 # Third party imports
 from qtpy.QtGui import QTextCharFormat, QTextCursor
-import rtfunicode
+# import rtfunicode  # TODO for later
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -23,29 +23,30 @@ HTML_TEMPLATE = cleandoc("""
      <html>
      <head></head>
      <body>
-     <pre>{}</pre>
+     <pre><code>{}</code></pre>
      </body>
      </html>
 """)
 
+
 class NewL: pass  # NewLine flag
 
-def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
 
+def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
     if not cursor.hasSelection():
         return
-
     selection_start = cursor.selectionStart()
     selection_end = cursor.selectionEnd()
     document = cursor.document()
-    first_span_in_block = False  # for emitting NewL between blocks
+    first_block = True  # for emitting NewL between blocks
     block = document.findBlock(selection_start)
     while block.isValid():
-
-
         rel_start = selection_start - block.position()
         rel_end = selection_end - block.position()
         block_text = block.text()
+        if not first_block:
+            yield None, NewL()
+        first_block = False
         for f_range in block.layout().additionalFormats():
             range_end = f_range.start + f_range.length
             if rel_start > range_end:
@@ -53,17 +54,11 @@ def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
             s_start = max(f_range.start, rel_start)
             s_end = min(range_end, rel_end)
             s_text = block_text[s_start:s_end]
-
-            if s_text and first_span_in_block:
-                yield None, NewL()
-                first_span_in_block = False
             if s_text:
                 yield f_range.format, s_text
-
             if s_end == rel_end: #last span
                 return
         block = block.next()
-        first_span_in_block = True
 
 
 def format_to_style(char_format: QTextCharFormat) -> str:
@@ -93,7 +88,9 @@ def selection_to_html(cursor: QTextCursor) -> str:
             s_text = html.escape(span)
             style = format_to_style(s_format)
             sio.write(f"<span style=\"{style}\">{s_text}</span>")
-    return HTML_TEMPLATE.format(sio.getvalue())
+    _html = HTML_TEMPLATE.format(sio.getvalue())
+    print(_html)
+    return _html
 
 
 def format_to_rtf_controls(char_format: QTextCharFormat) -> bytes:
@@ -103,12 +100,17 @@ def format_to_rtf_controls(char_format: QTextCharFormat) -> bytes:
     """
     return b""  # TODO write this
 
+
 def selection_to_rtf(cursor: QTextCursor) -> bytes:
     """
     Create an rtf document from a QTextCursor selection
     to capture syntax highlighting.
     """
+
+    header = rb"{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard"
+    footer = rb"}"
     bio = BytesIO()
+    bio.write(header)
     for s_format, span in yield_spans(cursor):
         if isinstance(span, NewL):
             bio.write(b"\n")
@@ -116,4 +118,7 @@ def selection_to_rtf(cursor: QTextCursor) -> bytes:
             s_text = span.encode("rtfunicode")
             style = format_to_rtf_controls(s_format)  # TODO write out style characters
             bio.write(s_text)
+    bio.write(footer)
     return bio.getvalue()
+
+

@@ -17,7 +17,7 @@ import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtCore import QEvent, QMimeData, QPoint, Qt, Signal, Slot
 from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
 from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
@@ -27,6 +27,7 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
+from spyder.plugins.editor.utils.rich_text import selection_to_html
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
@@ -477,11 +478,20 @@ class TextEditBaseWidget(
         Reimplement Qt method
         Copy text to clipboard with correct EOL chars
         """
+        data = QMimeData()
         if self.get_selected_text():
-            QApplication.clipboard().setText(self.get_selected_text())
+            html = selection_to_html(self.textCursor())
+            if html:
+                data.setHtml(html)
+            data.setText(self.get_selected_text())
+            QApplication.clipboard().setMimeData(data)
         else:
             cursor = self.select_current_line_and_sep(set_cursor=False)
-            QApplication.clipboard().setText(self.get_selected_text(cursor))
+            html = selection_to_html(cursor)
+            if html:
+                data.setHtml(html)
+            data.setText(self.get_selected_text(cursor))
+            QApplication.clipboard().setMimeData(data)
 
     def toPlainText(self):
         """

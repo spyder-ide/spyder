@@ -29,12 +29,11 @@ import textwrap
 from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
-from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
-    QEvent, QMimeData, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
+    QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
-                        QTextDocument, QTextFormat, QTextOption,
+                        QTextDocument, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj
@@ -56,8 +55,7 @@ from spyder.plugins.editor.panels import (
     LineNumberArea, PanelsManager, ScrollFlagArea)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
-from spyder.plugins.editor.utils.html_export import (selection_to_rtf,
-                                                     selection_to_html)
+
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
@@ -93,8 +91,6 @@ class CodeEditorActions:
     Redo = 'redo'
     Cut = 'cut'
     Copy = 'copy'
-    CopyHtml = 'copy html'
-    CopyRtf = 'copy rtf'
     Paste = 'paste'
     SelectAll = 'select all'
     ToggleComment = 'toggle comment'
@@ -663,8 +659,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             ('redo', self.redo),  # TODO multi-cursor (cursor positions?)
             ('cut', self.cut),
             ('copy', self.copy),
-            ('copy html', self.copy_html),
-            ('copy rtf', self.copy_rtf),
             ('paste', self.paste),
             ('delete', self.delete),
             ('select all', self.clears_extra_cursors(self.selectAll)),
@@ -2097,22 +2091,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._save_clipboard_indentation()
 
     @Slot()
-    def copy_html(self):
-        html = selection_to_html(self.textCursor())
-        if html:
-            data = QMimeData()
-            data.setHtml(html)
-            QApplication.clipboard().setMimeData(data)
-
-    @Slot()
-    def copy_rtf(self):
-        rtf = selection_to_rtf(self.textCursor())
-        if rtf:
-            data = QMimeData()
-            data.setData("application/rtf", rtf)
-            QApplication.clipboard().setMimeData(data)
-
-    @Slot()
     def undo(self):
         """Reimplement undo to decrease text version number."""
         if self.document().isUndoAvailable():
@@ -3514,22 +3492,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             register_action=False,
             triggered=self.copy
         )
-        self.copy_html_action = self.create_action(
-            CodeEditorActions.CopyHtml,
-            text=_("Copy HTML"),
-            icon=self.create_icon("CodeFileIcon"),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.copy_html
-        )
-        self.copy_rtf_action = self.create_action(
-            CodeEditorActions.CopyRtf,
-            text=_("Copy RTF"),
-            icon=self.create_icon("CodeFileIcon"),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.copy_rtf
-        )
         self.paste_action = self.create_action(
             CodeEditorActions.Paste,
             text=_("Paste"),
@@ -3698,8 +3660,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.copy_action,
             self.paste_action,
             selectall_action,
-            self.copy_html_action,
-            self.copy_rtf_action
+            # self.copy_html_action,
+            # self.copy_rtf_action
         ]
         for menu_action in edit_actions:
             self.add_item_to_menu(
@@ -4671,8 +4633,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         """Reimplement Qt method"""
         nonempty_selection = self.has_selected_text()
         self.copy_action.setEnabled(nonempty_selection)
-        self.copy_html_action.setEnabled(nonempty_selection)
-        self.copy_rtf_action.setEnabled(nonempty_selection)
         self.cut_action.setEnabled(nonempty_selection)
         self.clear_all_output_action.setVisible(self.is_json() and
                                                 nbformat is not None)
