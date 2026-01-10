@@ -11,6 +11,7 @@ Editor widget html export helper functions
 # Standard library imports
 import html
 from inspect import cleandoc
+from io import StringIO
 
 # Third party imports
 from qtpy.QtGui import QTextCharFormat, QTextCursor
@@ -48,12 +49,17 @@ def selection_to_html(cursor: QTextCursor) -> str:
     if not cursor.hasSelection():
         return
 
-    spans = []
+    sio = StringIO()
     selection_start = cursor.selectionStart()
     selection_end = cursor.selectionEnd()
     document = cursor.document()
+    first_block = True
     block = document.findBlock(selection_start)
     while block.isValid():
+        if not first_block:
+                sio.write("\n")
+        else:
+            first_block = False
         rel_start = selection_start - block.position()
         rel_end = selection_end - block.position()
         block_text = block.text()
@@ -63,9 +69,9 @@ def selection_to_html(cursor: QTextCursor) -> str:
                 continue  # skip ranges until start of selection
             s_start = max(f_range.start, rel_start)
             s_end = min(range_end, rel_end)
-            s_text = html.escape(block_text[s_start:s_end])
+            s_text = block_text[s_start:s_end]
             style = format_to_style(f_range.format)
-            spans.append(f"<span style=\"{style}\">{s_text}</span>")
+            sio.write(f"<span style=\"{style}\">{html.escape(s_text)}</span>")
             if s_end == rel_end: #last span
-                return HTML_TEMPLATE.format("\n".join(spans))
+                return HTML_TEMPLATE.format(sio.getvalue())
         block = block.next()
