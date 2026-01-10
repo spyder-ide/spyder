@@ -174,7 +174,8 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         await self.close_connection()
 
     def _handle_connection_lost(self, exc: Exception | None = None):
-        self.__connection_task = None
+        if self.connected:
+            self.__connection_task = None
         self.__starting_event.clear()
         self._port_forwarder = None
         if exc:
@@ -340,29 +341,31 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
                 return False
 
-            # Connection completed
             try:
+                # Connection completed
                 if await self.__connection_task:
                     self._emit_connection_status(
                         ConnectionStatus.Connected,
                         _("The connection was successfully established"),
                     )
                     return True
-            except BaseException:
-                self.logger.exception(
-                    "Error creating a new connection for %s", self.server_name
+            except BaseException as error:
+                # Log any error
+                self.logger.error(
+                    "Error creating a new connection for {}. The error was:"
+                    "<br>{}".format(self.server_name, str(error))
                 )
 
-                # Cancel and reset connection tasks to allow re-tries after
-                # errors
-                self.__connection_task.cancel()
-                abort_task.cancel()
-                self.__connection_task = None
+            # Cancel and reset connection tasks to allow retries after errors
+            self.__connection_task.cancel()
+            self.__connection_task = None
+            abort_task.cancel()
 
-                self._emit_connection_status(
-                    ConnectionStatus.Error,
-                    _("There was an error establishing the connection"),
-                )
+            # Report that the connection failed
+            self._emit_connection_status(
+                ConnectionStatus.Error,
+                _("There was an error establishing the connection"),
+            )
 
             return False
 
@@ -399,7 +402,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             async with self.get_jupyter_api() as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
-            self.logger.exception("Error stopping remote server", exc_info=err)
+            self.logger.error(
+                "Error stopping remote server. The error was:<br>{}".format(
+                    str(err)
+                )
+            )
 
         self.__starting_event.clear()
         self.logger.info(
