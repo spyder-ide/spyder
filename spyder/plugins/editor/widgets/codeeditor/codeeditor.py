@@ -661,6 +661,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             ('redo', self.redo),  # TODO multi-cursor (cursor positions?)
             ('cut', self.cut),
             ('copy', self.copy),
+            ('copy html', self.copy_html),
             ('paste', self.paste),
             ('delete', self.delete),
             ('select all', self.clears_extra_cursors(self.selectAll)),

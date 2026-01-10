@@ -513,6 +513,7 @@ DEFAULTS = [
               'editor/redo': 'Ctrl+Shift+Z',
               'editor/cut': 'Ctrl+X',
               'editor/copy': 'Ctrl+C',
+              'editor/copy html': "",
               'editor/paste': 'Ctrl+V',
               'editor/delete': 'Del',
               'editor/select all': "Ctrl+A",
