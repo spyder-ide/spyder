@@ -55,7 +55,6 @@ from spyder.plugins.editor.panels import (
     LineNumberArea, PanelsManager, ScrollFlagArea)
 from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
                                                 get_file_language)
-
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.editor.widgets.gotoline import GoToLineDialog
@@ -3659,9 +3658,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.cut_action,
             self.copy_action,
             self.paste_action,
-            selectall_action,
-            # self.copy_html_action,
-            # self.copy_rtf_action
+            selectall_action
         ]
         for menu_action in edit_actions:
             self.add_item_to_menu(

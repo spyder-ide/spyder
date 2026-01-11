@@ -15,7 +15,7 @@ from io import BytesIO, StringIO
 
 # Third party imports
 from qtpy.QtGui import QTextCharFormat, QTextCursor
-# import rtfunicode  # TODO for later
+import rtfunicode  # TODO for later
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -92,13 +92,84 @@ def selection_to_html(cursor: QTextCursor) -> str:
     print(_html)
     return _html
 
+"""
+# notes on rtf format
+# https://latex2rtf.sourceforge.net/rtfspec.html
 
-def format_to_rtf_controls(char_format: QTextCharFormat) -> bytes:
+#header:
+    {\rtf1\ansi\ansicpg1252
+    {
+#   ^ start enclosing group of whole document
+     \rtf1
+#    ^ rft magic and major version
+          \ansi
+#         ^ charset
+
+#font table:
+    {\fonttbl\f0\fmodern\fcharset0 CourierNewPSMT;\f1\fmod...}
+             \f0
+#            ^ font 0
+                \fmodern
+#               ^ font family: Fixed-pitch serif and sans serif fonts
+                        \fcharset0
+#                       ^ optional maybe? charset 0 is ANSI
+                                   CourierNewPSMT
+#                                  ^ font name
+                                                  \f1
+#                                                 ^ font 1
+                                                          ...}
+
+#   separate fonts for bold and italic don't seem to be necessary?
+#   use only one font? use \b and \i control words to apply style?
+
+#   apple textedit is picky about semicolon terminating a list not only a
+#   separator. MS word is less picky.
+#color table:
+    {\colortbl;\redN\greenN\blueN;\redN\greenN\blueN}
+#   implied color 0 is "Auto"
+               \redN\greenN\blueN
+#              ^ color 1
+                                  \redN\greenN\blueN
+#                                 ^ color 2 .. etc
+    \viewkind0\pard
+    \viewkind0
+#   ^ 0 - None, 1 - page layout, 2 - outline, 3 - master document view,
+#     4 - normal, 5 - online layout view
+              \pard
+#             ^ reset paragraph style to default properties
+
+#document:
+    \f0\fs24\cf0 this is some text\
+    \f0
+#   ^  font 0 from \fonttbl
+       \fs24
+#      ^ font size 12 (24 half points)
+            \cf0
+#           ^ foreground color 0
+                 this is some text
+#                ^ body text
+                                  \<CR>|<LF>|<CRLF>|<line>
+#                                 ^ indicates newline (needs literal backslash)
+    \b     this is bold indented text\
+    \b
+#   ^ turn bold on
+           this is bold indented text\
+#      ^ body text starts after single space which delimits control word \b
+"""
+
+
+def format_to_rtf(char_format: QTextCharFormat) -> tuple[bytes, str]:
     """
     Gather the foreground color, font-style, and font-weight from a
     QTextCharFormat, and generate the correct RFT control words.
     """
-    return b""  # TODO write this
+    color = char_format.foreground().color()
+    r, g, b = color.red(), color.green(), color.blue()
+    color_string = f"\\red{r}\\green{g}\\blue{b};".encode("ascii")
+    font = char_format.font()
+    style = "\\i" if font.italic() else "\\i0"
+    weight = "\\b" if font.bold() else "\\b0"
+    return color_string, f"{style}{weight}"
 
 
 def selection_to_rtf(cursor: QTextCursor) -> bytes:
@@ -107,18 +178,22 @@ def selection_to_rtf(cursor: QTextCursor) -> bytes:
     to capture syntax highlighting.
     """
 
-    header = rb"{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard"
-    footer = rb"}"
+    # TODO spaces between spans are sometimes swallowed? always?
+    # TODO bold and italic working? some sources reference binary switch \b0 others don't \b
+    color_table = []
     bio = BytesIO()
-    bio.write(header)
     for s_format, span in yield_spans(cursor):
         if isinstance(span, NewL):
-            bio.write(b"\n")
+            bio.write(b"\\\n")
         else:
-            s_text = span.encode("rtfunicode")
-            style = format_to_rtf_controls(s_format)  # TODO write out style characters
-            bio.write(s_text)
-    bio.write(footer)
-    return bio.getvalue()
+            s_text = span.encode("rtfunicode").decode("ascii")
+            color, style = format_to_rtf(s_format)  # TODO write out style characters
+            if color not in color_table:
+                color_table.append(color)
+            color_index = color_table.index(color) + 1
+            bio.write(f"{style}\\cf{color_index} {s_text}".encode("ascii"))
+    header = b"{\\rtf1{\\colortbl " + b" ".join(color_table) + b"}"
+    bio.write(b"}") #footer
+    return header + bio.getvalue()
 
 
