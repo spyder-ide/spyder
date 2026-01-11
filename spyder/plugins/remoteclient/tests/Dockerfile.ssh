@@ -34,12 +34,20 @@ RUN ex +"%s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" -scwq! /etc/sudoers
 USER ubuntu
 RUN ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
-
 # Configure and Install the spyder-remote-services
-
 COPY --from=external-deps --chown=ubuntu spyder-remote-services /home/ubuntu/spyder-remote-services
 COPY --from=external-deps --chown=ubuntu spyder-kernels /home/ubuntu/spyder-kernels
 
+# Create directory and files with restricted permissions for tests
+RUN mkdir -p /home/ubuntu/test-errors/cant-read-dir
+RUN touch /home/ubuntu/test-errors/cant-read-dir/a.txt
+RUN chmod u-r /home/ubuntu/test-errors/cant-read-dir
+RUN echo "This is a read-only file" > /home/ubuntu/test-errors/cant-read-file.txt
+RUN chmod u-r /home/ubuntu/test-errors/cant-read-file.txt
+RUN mkdir /home/ubuntu/test-errors/cant-write-dir
+RUN chmod u-w /home/ubuntu/test-errors/cant-write-dir
+
+# Install Spyder remote services
 RUN bash /home/ubuntu/spyder-remote-services/scripts/installer_dev.sh /home/ubuntu/spyder-remote-services /home/ubuntu/spyder-kernels
 
 CMD ["/usr/bin/sudo", "/usr/sbin/sshd", "-D", "-o", "ListenAddress=172.16.128.2"]

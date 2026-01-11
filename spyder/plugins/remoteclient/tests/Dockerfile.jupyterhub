@@ -50,3 +50,12 @@ c.JupyterHub.load_roles = [
 EOF
 
 CMD ["micromamba", "run", "-n", "spyder-remote", "jupyterhub", "-f", "jupyterhub_config.py"]
+
+# Create directory and files with restricted permissions for tests
+RUN mkdir -p /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-dir
+RUN touch /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-dir/a.txt
+RUN chmod u-r /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-dir
+RUN echo "This is a read-only file" > /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-file.txt
+RUN chmod u-r /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-file.txt
+RUN mkdir /home/${JUPYTERHUB_USERNAME}/test-errors/cant-write-dir
+RUN chmod u-w /home/${JUPYTERHUB_USERNAME}/test-errors/cant-write-dir

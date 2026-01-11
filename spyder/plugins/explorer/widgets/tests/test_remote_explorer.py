@@ -416,5 +416,91 @@ def test_new_files_and_directories(
     )
 
 
+@mark_remote_test
+def test_permission_errors(
+    remote_explorer, remote_client_id, mocker, monkeypatch, qtbot, tmp_path
+):
+    treewidget = remote_explorer.remote_treewidget
+
+    # This directory is created and populated by the Docker test files
+    dirname = "test-errors"
+
+    # Move to directory with the UI
+    treewidget.chdir(dirname, server_id=remote_client_id)
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 3)
+
+    # Get indexes to select them
+    treewidget.view.selectAll()
+    all_indexes = treewidget._get_selected_indexes()
+
+    # Try to download directory that can't be read
+    mocker.patch.object(QMessageBox, "critical", return_value=QMessageBox.Ok)
+    mocker.patch(
+        "spyder.plugins.explorer.widgets.remote_explorer.getexistingdirectory",
+        return_value=str(tmp_path),
+    )
+
+    treewidget.view.setCurrentIndex(all_indexes[0])
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.download_action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 1
+
+    # Try to download file that can't be read
+    treewidget.view.setCurrentIndex(all_indexes[2])
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.download_action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 2
+
+    # Move to directory that doesn't have write permissions
+    treewidget.chdir(
+        f"/home/ubuntu/{dirname}/cant-write-dir", server_id=remote_client_id
+    )
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 0)
+
+    # Try to upload file
+    mocker.patch(
+        "spyder.plugins.explorer.widgets.remote_explorer.getopenfilenames",
+        return_value=([__file__], "ignored"),
+    )
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.upload_file_action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 3
+    assert treewidget.model.rowCount() == 0
+
+    # Try to create new files
+    for fname, action in [
+        ("a.txt", treewidget.new_file_action),
+        ("b.py", treewidget.new_module_action)
+    ]:
+        monkeypatch.setattr(
+            QInputDialog, "getText", lambda *args: (fname, True)
+        )
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 5
+    assert treewidget.model.rowCount() == 0
+
+    # Try to create new directories
+    for dname, action in [
+        ("foo", treewidget.new_directory_action),
+        ("bar", treewidget.new_package_action)
+    ]:
+        monkeypatch.setattr(
+            QInputDialog, "getText", lambda *args: (dname, True)
+        )
+        with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+            action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 7
+    assert treewidget.model.rowCount() == 0
+
+
 if __name__ == "__main__":
     pytest.main()
