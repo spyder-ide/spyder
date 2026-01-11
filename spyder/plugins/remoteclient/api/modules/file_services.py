@@ -144,7 +144,14 @@ class SpyderRemoteFileIOAPI(SpyderBaseJupyterAPI, RawIOBase):
         try:
             await self._check_connection()
         except Exception as e:
+            # It's necessary to close and reset the connection to avoid a
+            # warning about the close method not being awaited when (it seems)
+            # this object is garbage-collected by Python, which sometimes
+            # shows Spyder's error report dialog.
+            await self.close()
             self._websocket = None
+
+            # The error must be handled by consumers of this API.
             raise e
 
     async def _check_connection(self):
