@@ -15,6 +15,7 @@ import os
 import posixpath
 from datetime import datetime
 
+from aiohttp.client_exceptions import ClientResponseError
 from qtpy.compat import getexistingdirectory, getopenfilenames
 from qtpy.QtCore import QSortFilterProxyModel, Qt, Signal
 from qtpy.QtGui import (
@@ -397,22 +398,42 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             or self._files_to_upload.get(self.server_id, 0) > 0
         )
 
-    def _handle_future_response_error(self, response, error_title, error_message):
-        result = response.result()
-        if isinstance(result, Exception):
-            logger.debug(result)
-            error_message = f"{error_message}<br><br>{result.message}"
+    def _handle_future_response_error(
+        self, response, error_title, error_message
+    ):
+        # Catch errors raised when running async methods.
+        # Fixes spyder-ide/spyder#24974
+        try:
+            response.result()
+            return False
+        except (RemoteOSError, OSError) as error:
+            logger.debug(error)
+
+            if hasattr(error, "message"):
+                str_error = error.message
+            else:
+                str_error = str(error)
+
+            error_message = f"{error_message}<br><br>{str_error}"
             QMessageBox.critical(self, error_title, error_message)
+            return True
 
     @AsyncDispatcher.QtSlot
     def _on_remote_new_package(self, future, package_name):
-        self._handle_future_response_error(
+        error = self._handle_future_response_error(
             future,
             _("New Python Package error"),
             _("An error occured while trying to create a new Python package"),
         )
-        new_name = posixpath.join(package_name, "__init__.py")
-        self._new_item(new_name, for_file=True, with_content=True)
+
+        if not error:
+            # Only create init file if there weren't errors creating its
+            # parent.
+            new_name = posixpath.join(package_name, "__init__.py")
+            self._new_item(new_name, for_file=True, with_content=True)
+        else:
+            if not self._operation_in_progress:
+                self.sig_stop_spinner_requested.emit()
 
     @AsyncDispatcher.QtSlot
     def _on_remote_new_module(self, future):
@@ -429,18 +450,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        try:
-            file_manager = await self.remote_files_manager.open(new_path, mode="w")
-            remote_file_response = await file_manager.write(file_content)
-            await file_manager.close()
-        except (RemoteOSError, OSError) as error:
-            # Catch error raised when awaiting. The error will be available
-            # and will be shown when handling the result with the usage of
-            # `_handle_future_response_error`
-            # See spyder-ide/spyder#24974
-            remote_file_response = error
-
-        return remote_file_response
+        async with await self.remote_files_manager.open(
+            new_path, mode="w"
+        ) as file_manager:
+            return await file_manager.write(file_content)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_new(self, future):
@@ -459,17 +472,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        try:
-            if for_file:
-                response = await self.remote_files_manager.touch(new_path)
-            else:
-                response = await self.remote_files_manager.mkdir(new_path)
-        except (RemoteOSError, OSError) as error:
-            # Catch error raised when awaiting. The error will be available
-            # and will be shown when handling the result with the usage of
-            # `_handle_future_response_error`
-            # See spyder-ide/spyder#24974
-            response = error
+        if for_file:
+            response = await self.remote_files_manager.touch(new_path)
+        else:
+            response = await self.remote_files_manager.mkdir(new_path)
 
         return response
 
@@ -536,29 +542,57 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        try:
-            if is_file:
-                response = await self.remote_files_manager.unlink(path)
-            else:
-                response = await self.remote_files_manager.rmdir(
-                    path, non_empty=True
-                )
-        except (RemoteOSError, OSError) as error:
-            # Catch error raised when awaiting. The error will be available
-            # and will be shown when handling the result with the usage of
-            # `_handle_future_response_error`
-            # See spyder-ide/spyder#24974
-            response = error
+        if is_file:
+            response = await self.remote_files_manager.unlink(path)
+        else:
+            response = await self.remote_files_manager.rmdir(
+                path, non_empty=True
+            )
 
         return response
 
     @AsyncDispatcher.QtSlot
     def _on_remote_download_file(
-        self, future, remote_filename, local_directory
+        self, future, remote_filename, local_directory, is_file
     ):
-        data = future.result()
+        download_error = False
+        try:
+            data = future.result()
+        except (RemoteFileServicesError, ClientResponseError) as error:
+            download_error = True
+            logger.debug(error)
 
-        if os.path.isdir(local_directory):
+            if is_file:
+                message = _(
+                    "An error occurred while trying to download the file "
+                    "<b>{}</b> from server <b>{}</b>:"
+                    "<br><br>"
+                    "{}"
+                ).format(
+                    remote_filename, self._get_server_name(), error.message
+                )
+            else:
+                remote_dir = remote_filename.split(".")[0]
+
+                if isinstance(error, ClientResponseError):
+                    message = _(
+                        "It seems you don't have permissions to read the "
+                        "directory <b>{}</b> in server <b>{}</b>."
+                    ).format(remote_dir, self._get_server_name())
+                else:
+                    message = _(
+                        "An error occurred while trying to download the "
+                        "directory <b>{}</b> as a zip file from server "
+                        "<b>{}</b>:"
+                        "<br><br>"
+                        "{}"
+                    ).format(
+                        remote_dir, self._get_server_name(), error.message
+                    )
+
+        if download_error:
+            QMessageBox.critical(self, _("Download error"), message)
+        elif os.path.isdir(local_directory):
             # Local filename
             local_filename = os.path.join(local_directory, remote_filename)
 
@@ -582,23 +616,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
-        try:
-            zip_generator = self.remote_files_manager.zip_directory(path)
-            zip_data = io.BytesIO()
-            async for data in zip_generator:
-                zip_data.write(data)
-            zip_data.seek(0)
-        except RemoteFileServicesError as download_error:
-            logger.debug(f"Unable to download {path}")
-            logger.debug(
-                f"Error while trying to download directory (compressed): "
-                f"{download_error.message}"
-            )
-            error_message = _(
-                "An error occured while trying to download {path}"
-            ).format(path=path)
-            QMessageBox.critical(self, _("Download error"), error_message)
-
+        zip_generator = self.remote_files_manager.zip_directory(path)
+        zip_data = io.BytesIO()
+        async for data in zip_generator:
+            zip_data.write(data)
+        zip_data.seek(0)
         return zip_data.getbuffer()
 
     @AsyncDispatcher(loop="explorer")
@@ -608,27 +630,15 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             return
 
         try:
-            file_manager = await self.remote_files_manager.open(path, mode="r")
-            file_data = await file_manager.read()
+            async with await self.remote_files_manager.open(
+                path, mode="r"
+            ) as file_manager:
+                return await file_manager.read()
         except RemoteFileServicesError:
-            try:
-                file_manager = await self.remote_files_manager.open(
-                    path, mode="rb"
-                )
-                file_data = await file_manager.read()
-            except RemoteFileServicesError as download_error:
-                logger.debug(f"Unable to download {path}")
-                logger.debug(
-                    f"Error while trying to download file: "
-                    f"{download_error.message}"
-                )
-                error_message = _(
-                    "An error occured while trying to download {path}"
-                ).format(path=path)
-                QMessageBox.critical(self, _("Download error"), error_message)
-
-        await file_manager.close()
-        return file_data
+            async with await self.remote_files_manager.open(
+                path, mode="rb"
+            ) as file_manager:
+                return await file_manager.read()
 
     @AsyncDispatcher.QtSlot
     def _on_remote_upload_file(self, future):
@@ -649,40 +659,29 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self.sig_stop_spinner_requested.emit()
             return
 
+        file_content = None
         remote_file = posixpath.join(
             self.root_prefix[self.server_id], os.path.basename(local_path)
         )
-        file_content = None
 
         try:
-            try:
-                with open(local_path, mode="r") as local_file:
-                    file_content = local_file.read()
-                file_manager = await self.remote_files_manager.open(
-                    remote_file, mode="w"
-                )
-            except UnicodeDecodeError:
-                with open(local_path, mode="rb") as local_file:
-                    file_content = local_file.read()
-                file_manager = await self.remote_files_manager.open(
-                    remote_file, mode="wb"
-                )
+            with open(local_path, mode="r") as local_file:
+                file_content = local_file.read()
+            mode = "w"
+        except UnicodeDecodeError:
+            with open(local_path, mode="rb") as local_file:
+                file_content = local_file.read()
+            mode="wb"
 
-            if file_content:
-                remote_file_response = await file_manager.write(file_content)
-
-            await file_manager.close()
-        except (RemoteOSError, OSError) as error:
-            # Catch error raised when awaiting. The error will be available
-            # and will be shown when handling the result with the usage of
-            # `_handle_future_response_error`
-            # See spyder-ide/spyder#24974
-            remote_file_response = error
-
-        return remote_file_response
+        if file_content:
+            async with await self.remote_files_manager.open(
+                remote_file, mode=mode
+            ) as file_manager:
+                return await file_manager.write(file_content)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_ls(self, future):
+        # TODO: We should manage errors raised by _do_remote_ls
         data = future.result()
         self.set_files(data)
 
@@ -740,10 +739,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 )
                 self.background_files_load.add(task)
                 task.add_done_callback(self.background_files_load.discard)
-
-        except RemoteOSError as error:
-            # TODO: Should the error be shown in some way?
-            logger.debug(error)
         except SpyderRemoteSessionClosed:
             self.remote_files_manager = None
 
@@ -1524,6 +1519,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             self, _("Download directory"), getcwd_or_home()
         )
 
+        # This is necessary in case the user clicks Cancel in the dialog
+        if not directory:
+            return
+
         # Keep track of how many files will be downloaded to stop the spinner
         # when all of them are processed.
         if self.server_id not in self._files_to_download:
@@ -1605,6 +1604,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                             self._on_remote_download_file,
                             remote_filename=remote_filename,
                             local_directory=directory,
+                            is_file=is_file,
                         )
                     )
                 )
