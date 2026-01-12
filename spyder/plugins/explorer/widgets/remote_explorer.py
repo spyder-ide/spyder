@@ -681,9 +681,19 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     @AsyncDispatcher.QtSlot
     def _on_remote_ls(self, future):
-        # TODO: We should manage errors raised by _do_remote_ls
-        data = future.result()
-        self.set_files(data)
+        error = self._handle_future_response_error(
+            future,
+            _("List contents error"),
+            _("An error occured while trying to view a directory"),
+        )
+
+        if not error:
+            data = future.result()
+            self.set_files(data)
+        else:
+            # Set parent directory as root because the selected one can't be
+            # accessed
+            self.chdir(os.path.dirname(self.root_prefix[self.server_id]))
 
         if not self._operation_in_progress:
             self.sig_stop_spinner_requested.emit()

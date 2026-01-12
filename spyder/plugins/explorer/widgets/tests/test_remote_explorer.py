@@ -241,7 +241,9 @@ def test_copy_paste(
     treewidget.copy_action.triggered.emit()
 
     # Move to paste directory
-    treewidget.go_to_previous_directory()
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.go_to_previous_directory()
+
     qtbot.waitUntil(lambda: treewidget.model.rowCount() > 2)
 
     treewidget.chdir(copy_paste_dirs[1], server_id=remote_client_id)
@@ -518,6 +520,18 @@ def test_permission_errors(
 
     assert len(QMessageBox.critical.mock_calls) == 9
     assert treewidget.model.rowCount() == 1
+
+    # Try to move to directory that can't be read
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.go_to_previous_directory()
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.chdir(
+            f"/home/ubuntu/{dirname}/cant-read-dir", server_id=remote_client_id
+        )
+
+    assert len(QMessageBox.critical.mock_calls) == 10
+    assert treewidget.model.rowCount() == 3
 
 
 if __name__ == "__main__":
