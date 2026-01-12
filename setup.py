@@ -310,6 +310,7 @@ install_requires += [
     'qstylizer>=0.2.2',
     'qtawesome>=1.4.0,<1.5.0',
     'qtpy>=2.4.0',
+    'rtfunicode>=2.0',
     'rtree>=0.9.7',
     'sphinx>=7.2.0',
     'spyder-kernels>=3.1.0b1,<3.2.0a2',

@@ -72,6 +72,7 @@ QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.4.0,<1.5.0'
 QTCONSOLE_REQVER = '>=5.7.0,<5.8.0'
 QTPY_REQVER = '>=2.4.0'
+RTFUNICODE = '>=2.0'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=7.2.0'
 SPYDER_KERNELS_REQVER = '>=3.1.0b1,<3.2.0a2'
@@ -272,6 +273,10 @@ DESCRIPTIONS = [
      'package_name': "rtree",
      'features': _("Fast access to code snippet regions"),
      'required_version': RTREE_REQVER},
+    {'modname': "rtfunicode",
+     'package_name': "rtfunicode",
+     'features': _("Encode unicode code points to Rich Text Format command words"),
+     'required_version': RTFUNICODE},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
