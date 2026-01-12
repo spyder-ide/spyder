@@ -20,11 +20,13 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install build
-        run: python -m pip install build
+        run: python -m pip install build twine hatch
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Build package
-        run: pyproject-build -s -w . -o dist
+        run: python -m build
+      - name: Check build
+        run: twine check dist/*
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.11
