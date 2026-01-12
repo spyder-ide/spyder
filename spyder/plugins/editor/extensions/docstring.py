@@ -562,14 +562,17 @@ class DocstringWriterExtension:
         else:
             return_element_type = indent2 + '{return_type}: DESCRIPTION.'
             placeholder = return_element_type.format(return_type='TYPE')
-            return_element_name = indent2 + '{return_name} ' + \
-                '(TYPE): DESCRIPTION.'
 
             try:
                 return_section = self._generate_docstring_return_section(
-                    func_info.return_value_in_body, header,
-                    return_element_name, return_element_type, placeholder,
-                    indent2)
+                    return_vals=func_info.return_value_in_body,
+                    header=header,
+                    return_element_name=placeholder,
+                    return_element_type=return_element_type,
+                    placeholder=placeholder,
+                    indent=indent2,
+                    expand_tuple=False,
+                )
             except (ValueError, IndexError):
                 return_section = '{}{}None'.format(header, indent2)
 
