@@ -75,19 +75,19 @@ def terrain_model(file, grid_size=10, buffer_val=20, figsize=(12,12),
     :param file: DESCRIPTION
     :type file: TYPE
     :param grid_size: DESCRIPTION, defaults to 10
-    :type grid_size: TYPE, optional
+    :type grid_size: TYPE
     :param buffer_val: DESCRIPTION, defaults to 20
-    :type buffer_val: TYPE, optional
+    :type buffer_val: TYPE
     :param figsize: DESCRIPTION, defaults to (12,12)
-    :type figsize: TYPE, optional
+    :type figsize: TYPE
     :param plot: DESCRIPTION, defaults to True
-    :type plot: TYPE, optional
+    :type plot: TYPE
     :param plot_grid: DESCRIPTION, defaults to True
-    :type plot_grid: TYPE, optional
+    :type plot_grid: TYPE
     :param mp: DESCRIPTION, defaults to True
-    :type mp: TYPE, optional
+    :type mp: TYPE
     :param path2asc: DESCRIPTION, defaults to r'O:\Diverse\EDW\Master\Terrænmodel 10m grid\\'
-    :type path2asc: TYPE, optional
+    :type path2asc: TYPE
     :rtype: TYPE
     :returns: DESCRIPTION
     """

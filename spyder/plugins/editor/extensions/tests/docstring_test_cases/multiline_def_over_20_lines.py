@@ -117,47 +117,47 @@ def spam(
     :param arg1: DESCRIPTION
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
-    :type arg2: bool, optional
+    :type arg2: bool
     :param arg3: DESCRIPTION, defaults to True
-    :type arg3: bool, optional
+    :type arg3: bool
     :param arg4: DESCRIPTION, defaults to True
-    :type arg4: bool, optional
+    :type arg4: bool
     :param arg5: DESCRIPTION, defaults to True
-    :type arg5: bool, optional
+    :type arg5: bool
     :param arg6: DESCRIPTION, defaults to True
-    :type arg6: bool, optional
+    :type arg6: bool
     :param arg7: DESCRIPTION, defaults to True
-    :type arg7: bool, optional
+    :type arg7: bool
     :param arg8: DESCRIPTION, defaults to True
-    :type arg8: bool, optional
+    :type arg8: bool
     :param arg9: DESCRIPTION, defaults to True
-    :type arg9: bool, optional
+    :type arg9: bool
     :param arga: DESCRIPTION, defaults to "eggs"
-    :type arga: str, optional
+    :type arga: str
     :param argb: DESCRIPTION, defaults to "eggs"
-    :type argb: str, optional
+    :type argb: str
     :param argc: DESCRIPTION, defaults to "eggs"
-    :type argc: str, optional
+    :type argc: str
     :param argd: DESCRIPTION, defaults to "eggs"
-    :type argd: str, optional
+    :type argd: str
     :param arge: DESCRIPTION, defaults to "eggs"
-    :type arge: str, optional
+    :type arge: str
     :param argf: DESCRIPTION, defaults to "eggs"
-    :type argf: str, optional
+    :type argf: str
     :param argg: DESCRIPTION, defaults to "eggs"
-    :type argg: str, optional
+    :type argg: str
     :param argh: DESCRIPTION, defaults to "eggs"
-    :type argh: str, optional
+    :type argh: str
     :param argi: DESCRIPTION, defaults to "eggs"
-    :type argi: str, optional
+    :type argi: str
     :param argj: DESCRIPTION, defaults to "eggs"
-    :type argj: str, optional
+    :type argj: str
     :param argk: DESCRIPTION, defaults to "eggs"
-    :type argk: str, optional
+    :type argk: str
     :param argl: DESCRIPTION, defaults to "eggs"
-    :type argl: str, optional
+    :type argl: str
     :param argm: DESCRIPTION, defaults to "eggs"
-    :type argm: str, optional
+    :type argm: str
     :rtype: bool
     :returns: DESCRIPTION
     """

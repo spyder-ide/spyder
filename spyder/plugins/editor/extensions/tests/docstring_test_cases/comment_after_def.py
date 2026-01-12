@@ -26,6 +26,6 @@
       """SUMMARY.
 
       :param v: DESCRIPTION, defaults to "#"
-      :type v: str, optional
+      :type v: str
       :rtype: None
       """

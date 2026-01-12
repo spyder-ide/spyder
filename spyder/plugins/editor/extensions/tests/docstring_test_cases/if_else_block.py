@@ -32,6 +32,6 @@ class F:
 # %% sphinx
         """SUMMARY.
 
-        :raises ValueError: DESCRIPTION
         :rtype: None
+        :raises ValueError: DESCRIPTION
         """

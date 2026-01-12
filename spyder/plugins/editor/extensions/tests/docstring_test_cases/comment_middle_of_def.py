@@ -31,9 +31,9 @@
       """SUMMARY.
 
       :param v1: DESCRIPTION, defaults to "#"
-      :type v1: str, optional
+      :type v1: str
       :param v2: DESCRIPTION, defaults to '#'
-      :type v2: str, optional
+      :type v2: str
       :rtype: str
       :returns: DESCRIPTION
       """

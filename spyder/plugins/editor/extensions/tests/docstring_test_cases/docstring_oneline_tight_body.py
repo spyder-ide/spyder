@@ -1,13 +1,15 @@
 # %% sig
 def test(
-        arg1,
-        arg2=True,
-    ):  # Test
+    arg1,
+    arg2=True,
+):
+# %% doc
+    """This is a test docstring."""
 # %% body
-    return True
+    return "foo"
 # %% numpy
     """
-    SUMMARY.
+    This is a test docstring.
 
     Parameters
     ----------
@@ -18,26 +20,26 @@ def test(
 
     Returns
     -------
-    bool
+    str
         DESCRIPTION.
     """
 # %% google
-    """SUMMARY.
+    """This is a test docstring.
 
     Args:
         arg1 (TYPE): DESCRIPTION.
         arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        bool: DESCRIPTION.
+        str: DESCRIPTION.
     """
 # %% sphinx
-    """SUMMARY.
+    """This is a test docstring.
 
     :param arg1: DESCRIPTION
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE
-    :rtype: bool
+    :rtype: str
     :returns: DESCRIPTION
     """

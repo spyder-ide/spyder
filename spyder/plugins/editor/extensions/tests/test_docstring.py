@@ -89,6 +89,12 @@ class Case:
         return def_text.replace('\n', ''), def_text.count('\n') + 1
 
     @property
+    def function_docstring(self):
+        """Get the processed existing function docstring."""
+        docstring = self.normalize_part(self.doc).rstrip()
+        return docstring or None
+
+    @property
     def function_body(self):
         """Get the processed function body."""
         parts = [self.normalize_part(part) for part in [self.doc, self.body]]
@@ -114,7 +120,7 @@ def load_docstring_test_case(test_case_path):
         lines = block.split('\n')
         block_title = lines[0].strip()
         block_content = '\n'.join(
-            line.removesuffix('#') if line.strip() == '#' else line
+            line[:-1] if len(line) > 1 and line[-2:] in {' #', '\t#'} else line
             for line in lines[1:]
         )
         sections[block_title] = block_content
@@ -150,6 +156,48 @@ TEST_CASES_DEF_PARSE = {
         [None, None, 'str'],
         [None, "':'", "'-> (float, str):'"],
         ['float, int'],
+    ),
+}
+
+TEST_CASES_DOCSTRING_PARSE = {
+    'empty': ('', ''),
+    'oneline': (
+        '''
+            """This is a test docstring."""
+        ''',
+        '''This is a test docstring.''',
+    ),
+    'oneline_fenced': (
+        '''
+            """
+            This is a test docstring.   #
+            """  #
+        ''',
+        '''This is a test docstring.''',
+    ),
+    'multiline_compressed': (
+        '''
+            """This is a multi line docstring.
+
+            It is very long.
+                Sub indent."""
+        ''',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+    ),
+    'multiline_fenced': (
+        '''"""
+            This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+            """''',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
     ),
 }
 
@@ -245,18 +293,38 @@ def editor_docstring_start(base_editor_docstring):
 
 
 @pytest.fixture
-def editor_docstring_after_def(editor_docstring_start):
-    """Editor with cursor on the line after function signature's end."""
+def editor_docstring_end_def(editor_docstring_start):
+    """Editor with cursor at the end of the function signature."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
         editor, writer, cursor = editor_docstring_start(test_case, doc_type)
 
-        for __ in range(test_case.normalize_part(test_case.sig).count('\n')):
+        for __ in range(
+            test_case.normalize_part(test_case.sig).count("\n") - 1
+        ):
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
 
         editor.setTextCursor(cursor)
         writer.line_number_cursor = cursor.blockNumber() + 1
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_after_def(editor_docstring_end_def):
+    """Editor with cursor on the line after the function signature's end."""
+
+    def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_end_def(test_case, doc_type)
+
+        cursor.movePosition(QTextCursor.NextBlock)
+        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+
+        editor.setTextCursor(cursor)
+        writer.line_number_cursor += 1
 
         return editor, writer, cursor
 
@@ -318,6 +386,22 @@ def test_get_function_def_below(editor_docstring_after_def, test_case):
     TEST_CASES_DOCSTRING.values(),
     ids=TEST_CASES_DOCSTRING.keys(),
 )
+def test_get_function_docstring(editor_docstring_end_def, test_case):
+    """Test get function docstring."""
+    __, writer, __ = editor_docstring_end_def(test_case)
+    func_info = FunctionInfo()
+    func_info.parse_def(test_case.input_text)
+
+    result = writer.get_function_docstring(func_info.func_indent)
+
+    assert result == test_case.function_docstring
+
+
+@pytest.mark.parametrize(
+    'test_case',
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
+)
 def test_get_function_body(editor_docstring_after_def, test_case):
     """Test get function body."""
     __, writer, __ = editor_docstring_after_def(test_case)
@@ -355,6 +439,19 @@ def test_parse_function_def(
     assert func_info.arg_type_list == type_list
     assert func_info.arg_value_list == value_list
     assert func_info.return_type_annotated == return_type
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'expected_text'],
+    TEST_CASES_DOCSTRING_PARSE.values(),
+    ids=TEST_CASES_DOCSTRING_PARSE.keys(),
+)
+def test_parse_function_docstring(input_text, expected_text):
+    """Test the parse_body method of the FunctionInfo class."""
+    func_info = FunctionInfo()
+    func_info.parse_docstring(input_text.replace('#\n', '\n'))
+
+    assert func_info.docstring_text == expected_text
 
 
 @pytest.mark.parametrize(
