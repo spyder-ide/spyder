@@ -40,6 +40,5 @@
 
       :raises ValueError: DESCRIPTION
       :raises TypeError: DESCRIPTION
-      :return: DESCRIPTION
-      :rtype: TYPE
+      :rtype: None
       """

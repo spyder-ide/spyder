@@ -28,6 +28,5 @@
 
       :param v: DESCRIPTION
       :type v: int
-      :return: DESCRIPTION
-      :rtype: TYPE
+      :rtype: None
       """

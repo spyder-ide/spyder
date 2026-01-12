@@ -27,6 +27,5 @@
 
       :param v: DESCRIPTION, defaults to "#"
       :type v: str, optional
-      :return: DESCRIPTION
-      :rtype: TYPE
+      :rtype: None
       """

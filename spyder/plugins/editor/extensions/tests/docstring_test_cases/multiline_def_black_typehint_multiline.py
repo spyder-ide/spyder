@@ -40,6 +40,6 @@ def test(
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE, optional
-    :return: DESCRIPTION
     :rtype: (str,    bool,)
+    :returns: DESCRIPTION
     """

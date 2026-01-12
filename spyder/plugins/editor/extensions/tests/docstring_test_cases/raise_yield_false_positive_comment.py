@@ -32,6 +32,6 @@ def spam(arg2=True):
 
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE, optional
-    :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: bool
+    :returns: DESCRIPTION
     """

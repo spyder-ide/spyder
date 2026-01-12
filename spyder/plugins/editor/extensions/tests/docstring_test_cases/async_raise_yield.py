@@ -37,6 +37,6 @@ async def foo():
 
     :raises ValueError: DESCRIPTION
     :raises TypeError: DESCRIPTION
-    :yield: DESCRIPTION
     :rtype: TYPE
+    :returns: DESCRIPTION
     """

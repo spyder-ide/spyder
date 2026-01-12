@@ -18,6 +18,6 @@
 # %% sphinx
       """SUMMARY.
 
-      :return: DESCRIPTION
       :rtype: Annotated[str, int("2")]
+      :returns: DESCRIPTION
       """

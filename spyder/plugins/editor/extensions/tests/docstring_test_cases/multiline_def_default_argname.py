@@ -37,6 +37,5 @@ def spam(
     :type default: TYPE
     :param async: DESCRIPTION, defaults to True
     :type async: TYPE, optional
-    :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: None
     """

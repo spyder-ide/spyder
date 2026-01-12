@@ -58,6 +58,6 @@ def foo():
 # %% sphinx
     """SUMMARY.
 
-    :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: tuple[str, TYPE, TYPE, numeric, float, tuple, dict, list, TYPE, TYPE, TYPE, TYPE, bool]
+    :returns: DESCRIPTION
     """

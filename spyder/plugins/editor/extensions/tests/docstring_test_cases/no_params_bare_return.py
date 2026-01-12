@@ -19,6 +19,5 @@ def foo():
 # %% sphinx
     """SUMMARY.
 
-    :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: None
     """

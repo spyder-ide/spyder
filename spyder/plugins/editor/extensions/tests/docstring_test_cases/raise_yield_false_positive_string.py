@@ -30,6 +30,5 @@ def spam(arg1):
 
     :param arg1: DESCRIPTION
     :type arg1: TYPE
-    :return: DESCRIPTION
-    :rtype: TYPE
+    :rtype: None
     """
