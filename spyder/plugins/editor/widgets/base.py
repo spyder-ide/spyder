@@ -27,7 +27,8 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.utils.rich_text import selection_to_html
+from spyder.plugins.editor.utils.rich_text import (selection_to_html,
+                                                   selection_to_rtf)
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
@@ -483,6 +484,9 @@ class TextEditBaseWidget(
             html = selection_to_html(self.textCursor())
             if html:
                 data.setHtml(html)
+            rtf = selection_to_rtf(self.textCursor())
+            if rtf:
+                data.setData("application/rtf", rtf)  # Can't seem to find an application on windows that can see this data
             data.setText(self.get_selected_text())
             QApplication.clipboard().setMimeData(data)
         else:
@@ -490,6 +494,9 @@ class TextEditBaseWidget(
             html = selection_to_html(cursor)
             if html:
                 data.setHtml(html)
+            rtf = selection_to_rtf(cursor)
+            if rtf:
+                data.setData("application/rtf", rtf)  # Can't seem to find an application on windows that can see this data
             data.setText(self.get_selected_text(cursor))
             QApplication.clipboard().setMimeData(data)
 

@@ -8,14 +8,15 @@
 Editor widget export helper functions for rich text
 """
 
+
 # Standard library imports
 import html
 from inspect import cleandoc
-from io import BytesIO, StringIO
+from io import StringIO
 
 # Third party imports
 from qtpy.QtGui import QTextCharFormat, QTextCursor
-import rtfunicode  # TODO for later
+import rtfunicode  # noqa F401 this registers a new encoding for str.encode
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -33,6 +34,12 @@ class NewL: pass  # NewLine flag
 
 
 def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
+    """
+    Generator to break up text into spans of equal formatting.
+    Handle partial spans at beginning and end of the selection.
+    Emit newline flags separately (between blocks) from text.
+    """
+
     if not cursor.hasSelection():
         return
     selection_start = cursor.selectionStart()
@@ -67,6 +74,7 @@ def format_to_style(char_format: QTextCharFormat) -> str:
     QTextCharFormat, and generate the contents of a 'style' tag for a <span>
     html element.
     """
+
     color = char_format.foreground().color().name()
     font = char_format.font()
     style = "italic" if font.italic() else "normal"
@@ -89,8 +97,8 @@ def selection_to_html(cursor: QTextCursor) -> str:
             style = format_to_style(s_format)
             sio.write(f"<span style=\"{style}\">{s_text}</span>")
     _html = HTML_TEMPLATE.format(sio.getvalue())
-    print(_html)
     return _html
+
 
 """
 # notes on rtf format
@@ -158,14 +166,15 @@ def selection_to_html(cursor: QTextCursor) -> str:
 """
 
 
-def format_to_rtf(char_format: QTextCharFormat) -> tuple[bytes, str]:
+def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
     """
     Gather the foreground color, font-style, and font-weight from a
     QTextCharFormat, and generate the correct RFT control words.
     """
+
     color = char_format.foreground().color()
     r, g, b = color.red(), color.green(), color.blue()
-    color_string = f"\\red{r}\\green{g}\\blue{b};".encode("ascii")
+    color_string = f"\\red{r}\\green{g}\\blue{b};"
     font = char_format.font()
     style = "\\i" if font.italic() else "\\i0"
     weight = "\\b" if font.bold() else "\\b0"
@@ -178,22 +187,27 @@ def selection_to_rtf(cursor: QTextCursor) -> bytes:
     to capture syntax highlighting.
     """
 
-    # TODO spaces between spans are sometimes swallowed? always?
-    # TODO bold and italic working? some sources reference binary switch \b0 others don't \b
     color_table = []
-    bio = BytesIO()
+    font_table = None
+    font_size = None
+    sio = StringIO()
     for s_format, span in yield_spans(cursor):
+        if font_size is None and s_format is not None:
+            font = s_format.font()
+            font_size = font.pointSize()
+            font_name = font.family()
+            font_table = f"{{\\fonttbl\\f0\\fmodern\\fcharset0 {font_name};}}"
         if isinstance(span, NewL):
-            bio.write(b"\\\n")
+            sio.write("\\\n")
         else:
-            s_text = span.encode("rtfunicode").decode("ascii")
-            color, style = format_to_rtf(s_format)  # TODO write out style characters
+            s_text = span.encode("rtfunicode").decode("ansi")
+            s_text.replace("\t", "\\tab ")
+            color, style = format_to_rtf(s_format)
             if color not in color_table:
                 color_table.append(color)
             color_index = color_table.index(color) + 1
-            bio.write(f"{style}\\cf{color_index} {s_text}".encode("ascii"))
-    header = b"{\\rtf1{\\colortbl " + b" ".join(color_table) + b"}"
-    bio.write(b"}") #footer
-    return header + bio.getvalue()
-
-
+            sio.write(f"{style}\\cf{color_index} {s_text}")
+    color_table = f"{{\\colortbl;{''.join(color_table)}}}"
+    header = f"{{\\rtf1{font_table}{color_table}\n\\f0\\fs{font_size*2} "
+    sio.write("}") #footer
+    return (header + sio.getvalue()).encode("ansi")
