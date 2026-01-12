@@ -484,9 +484,8 @@ class DocstringWriterExtension:
 
         numpy_doc += arg_text
 
-        numpy_doc += '\n'
-        heading = "Yields" if func_info.has_yield else "Returns"
-        header = f"{indent1}{heading}\n{indent1}{'-' * len(heading)}\n"
+        heading = 'Yields' if func_info.has_yield else 'Returns'
+        header = f'\n{indent1}{heading}\n{indent1}{"-" * len(heading)}\n'
 
         return_types = func_info.return_type_annotated
         if return_types:
@@ -520,10 +519,10 @@ class DocstringWriterExtension:
             except (ValueError, IndexError):
                 return_section = '{}{}None'.format(header, indent1)
 
-        numpy_doc += return_section
+        numpy_doc += return_section + '\n'
 
         if func_info.raise_list:
-            numpy_doc += '\n\n{}Raises'.format(indent1)
+            numpy_doc += '\n{}Raises'.format(indent1)
             numpy_doc += '\n{}------'.format(indent1)
             for raise_type in func_info.raise_list:
                 numpy_doc += '\n{}{}'.format(indent1, raise_type)
@@ -580,9 +579,8 @@ class DocstringWriterExtension:
 
         google_doc += arg_text
 
-        google_doc += '\n'
-        heading = "Yields" if func_info.has_yield else "Returns"
-        header = f"{indent1}{heading}:\n"
+        heading = 'Yields' if func_info.has_yield else 'Returns'
+        header = f'\n{indent1}{heading}:\n'
 
         return_types = func_info.return_type_annotated
         if return_types:
@@ -613,10 +611,10 @@ class DocstringWriterExtension:
             except (ValueError, IndexError):
                 return_section = '{}{}None'.format(header, indent2)
 
-        google_doc += return_section
+        google_doc += return_section + '\n'
 
         if func_info.raise_list:
-            google_doc += '\n\n{0}Raises:'.format(indent1)
+            google_doc += '\n{0}Raises:'.format(indent1)
             for raise_type in func_info.raise_list:
                 google_doc += '\n{}{}'.format(indent2, raise_type)
                 google_doc += ': DESCRIPTION.'
@@ -703,7 +701,7 @@ class DocstringWriterExtension:
             except (ValueError, IndexError):
                 return_section = f'{header}None'
 
-        sphinx_doc += return_section
+        sphinx_doc += return_section + '\n'
 
         sphinx_doc = sphinx_doc.rstrip('\n')
         sphinx_doc += '\n{}{}'.format(indent1, self.quote3)
