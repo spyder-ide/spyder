@@ -67,7 +67,7 @@ def terrain_model(file, grid_size=10, buffer_val=20, figsize=(12,12),
         path2asc (TYPE, optional): DESCRIPTION. Defaults to r'O:\Diverse\EDW\Master\Terrænmodel 10m grid\\'.
 
     Returns:
-        terrain_slices (TYPE): DESCRIPTION.
+        TYPE: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.

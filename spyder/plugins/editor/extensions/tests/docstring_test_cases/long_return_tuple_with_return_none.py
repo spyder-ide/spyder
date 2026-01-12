@@ -41,19 +41,7 @@ def foo():
     """SUMMARY.
 
     Returns:
-        str: DESCRIPTION.
-        v1 (TYPE): DESCRIPTION.
-        TYPE: DESCRIPTION.
-        numeric: DESCRIPTION.
-        float: DESCRIPTION.
-        tuple: DESCRIPTION.
-        dict: DESCRIPTION.
-        list: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        bool: DESCRIPTION.
+        tuple[str, TYPE, TYPE, numeric, float, tuple, dict, list, TYPE, TYPE, TYPE, TYPE, bool]: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.

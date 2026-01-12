@@ -26,7 +26,7 @@ async def foo():
     """SUMMARY.
 
     Yields:
-        value (TYPE): DESCRIPTION.
+        TYPE: DESCRIPTION.
 
     Raises:
         ValueError: DESCRIPTION.

@@ -16,7 +16,7 @@
       """SUMMARY.
 
       Returns:
-          spam (TYPE): DESCRIPTION.
+          TYPE: DESCRIPTION.
       """
 # %% sphinx
       """SUMMARY.
