@@ -7,8 +7,12 @@
 
 """Automatically generate function docstrings."""
 
+from __future__ import annotations
+
 # Standard library imports
 import re
+import textwrap
+from dataclasses import dataclass
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -35,6 +39,12 @@ MAX_RETURN_TYPE_LINES = 100
 MAX_RETURN_TYPE_CHARS = MAX_RETURN_TYPE_LINES * _MAX_CHARACTERS_PER_LINE
 """Maximum number of characters in the return type annotation."""
 
+MIN_HEADING = 3
+"""Minimum number of characters in a docstring heading name."""
+
+MAX_HEADING = 39
+"""Maximum number of characters in a docstring heading name."""
+
 
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
@@ -50,16 +60,24 @@ def is_start_of_function(text):
 
 
 def get_indent(text):
-    """Get indent of text.
+    """Get the leading whitespace characters of a line of text.
 
     Originally adapted from https://stackoverflow.com/q/2268532
     """
-    indent = ''
+    match = re.match(r'(\s*)', text)
+    return match.group(1) if match else ''
 
-    ret = re.match(r'(\s*)', text)
-    if ret:
-        indent = ret.group(1)
 
+def get_common_indent(text):
+    """Get the common indentation characters of a block of text."""
+    indent = None
+    lines = text.split("\n")
+    for line in lines:
+        if not line:
+            continue
+        line_indent = get_indent(line)
+        if indent is None or len(line_indent) < len(indent):
+            indent = line_indent
     return indent
 
 
@@ -168,6 +186,27 @@ def collapse_line_breaks_annotation(text):
             collapsed_lines.append(f" {line}")
 
     return "".join(collapsed_lines)
+
+
+def dedent_docstring(text):
+    """Remove indentation up to the current scope."""
+    if "\n" not in text:
+        return text, None
+    lines = text.split("\n")
+    text_dedented = textwrap.dedent("\n".join(lines[1:]))
+    text = "\n".join([lines[0], text_dedented])
+    indent = get_common_indent("\n".join(lines[1:]))
+    return text, indent
+
+
+def indent_docstring(text, indent):
+    """Add the specified indentation to all lines but the first."""
+    if "\n" not in text:
+        return text
+    lines = text.split("\n")
+    indent_lines = [indent + line if line else line for line in lines[1:]]
+    text = "\n".join([lines[0], *indent_lines])
+    return text
 
 
 class DocstringWriterExtension:
@@ -493,40 +532,44 @@ class DocstringWriterExtension:
         func_docstring = self.get_function_docstring(
             func_info.func_indent
         )
-        if func_docstring:
-            func_info.parse_docstring(func_docstring)
+        doc_info = DocstringInfo()
+        doc_info.parse_docstring(func_docstring)
 
         func_body = self.get_function_body(func_info.func_indent)
         if func_body:
             func_info.parse_body(func_body)
 
+        doc_type = doc_info.format_name or doc_type
         if doc_type == "Numpydoc":
-            docstring = self._generate_numpy_doc(func_info)
+            docstring = self._generate_numpy_doc(func_info, doc_info)
         elif doc_type == "Googledoc":
-            docstring = self._generate_google_doc(func_info)
+            docstring = self._generate_google_doc(func_info, doc_info)
         elif doc_type == "Sphinxdoc":
-            docstring = self._generate_sphinx_doc(func_info)
+            docstring = self._generate_sphinx_doc(func_info, doc_info)
         else:
             raise ValueError(f"Unknown docstring format {doc_type!r}")
 
         return docstring
 
-    def _generate_numpy_doc(self, func_info):
+    def _generate_numpy_doc(self, func_info, doc_info):
         """Generate a NumPy format docstring."""
         numpy_doc = ''
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = self.code_editor.indent_chars
 
-        summary = func_info.docstring_text or 'SUMMARY.'
+        summary = doc_info.description or 'SUMMARY.'
         numpy_doc += '\n{}{}\n'.format(indent1, summary)
 
-        for section_fn in [
-            self._generate_numpy_param_section,
-            self._generate_numpy_return_section,
-            self._generate_numpy_raise_section,
+        for section_fn, existing_section in [
+            (self._generate_numpy_param_section, doc_info.parameters),
+            (self._generate_numpy_return_section, doc_info.returns),
+            (self._generate_numpy_raise_section, doc_info.raises),
+            (lambda *__: None, doc_info.other),
         ]:
-            doc_section = section_fn(func_info, indent1, indent2)
+            doc_section = (
+                existing_section or section_fn(func_info, indent1, indent2)
+            )
             if doc_section:
                 numpy_doc += f"\n{indent1}{doc_section}\n"
 
@@ -637,24 +680,28 @@ class DocstringWriterExtension:
 
         return f'\n{indent1}'.join(sum(body_lines, header_lines))
 
-    def _generate_google_doc(self, func_info):
+    def _generate_google_doc(self, func_info, doc_info):
         """Generate a Google format docstring."""
         google_doc = ''
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = self.code_editor.indent_chars
 
-        summary = func_info.docstring_text or 'SUMMARY.'
+        summary = doc_info.description or 'SUMMARY.'
         google_doc += '{}\n'.format(summary)
 
-        for section_fn in [
-            self._generate_google_param_section,
-            self._generate_google_return_section,
-            self._generate_google_raise_section,
+        for section_fn, existing_section in [
+            (self._generate_google_param_section, doc_info.parameters),
+            (self._generate_google_return_section, doc_info.returns),
+            (self._generate_google_raise_section, doc_info.raises),
+            (lambda *__: None, doc_info.other),
         ]:
-            doc_section = section_fn(func_info, indent1, indent2)
+            doc_section = (
+                existing_section or section_fn(func_info, indent1, indent2)
+            )
             if doc_section:
                 google_doc += f"\n{indent1}{doc_section}\n"
+
 
         google_doc = google_doc.rstrip()
         google_doc += '\n{}{}'.format(indent1, self.quote3)
@@ -748,20 +795,23 @@ class DocstringWriterExtension:
 
         return f'\n{indent1}'.join(header_lines + body_lines)
 
-    def _generate_sphinx_doc(self, func_info):
+    def _generate_sphinx_doc(self, func_info, doc_info):
         """Generate a Sphinx format docstring."""
         sphinx_doc = ''
         indent1 = func_info.func_indent + self.code_editor.indent_chars
 
-        summary = func_info.docstring_text or 'SUMMARY.'
+        summary = doc_info.description or 'SUMMARY.'
         sphinx_doc += '{}\n'.format(summary)
 
-        for section_fn in [
-            self._generate_sphinx_param_section,
-            self._generate_sphinx_return_section,
-            self._generate_sphinx_raise_section,
+        for section_fn, existing_section in [
+            (self._generate_sphinx_param_section, doc_info.parameters),
+            (self._generate_sphinx_return_section, doc_info.returns),
+            (self._generate_sphinx_raise_section, doc_info.raises),
+            (lambda *__: None, doc_info.other),
         ]:
-            doc_section = section_fn(func_info, indent1)
+            doc_section = (
+                existing_section or section_fn(func_info, indent1)
+            )
             if doc_section:
                 sphinx_doc += f"\n{indent1}{doc_section}\n"
 
@@ -1068,7 +1118,6 @@ class FunctionInfo:
     def __init__(self):
         self.has_info = False
         self.args_text = ''
-        self.docstring_text = None
         self.func_indent = ''
         self.arg_name_list = []
         self.arg_type_list = []
@@ -1289,20 +1338,6 @@ class FunctionInfo:
             self.has_info = True
             self.split_arg_to_name_type_value(args_list)
 
-    def parse_docstring(self, text):
-        """Process the function's docstring into a more usable form."""
-        if not text:
-            self.docstring_text = False
-
-        # Stip leading/trailing whitespace and quotes
-        text = text.strip()
-        for quotes in ['"""', "'''"]:
-            text = text.removeprefix(quotes).removesuffix(quotes)
-        text = text.strip()
-        text = "\n".join(line.rstrip() for line in text.split("\n"))
-
-        self.docstring_text = text
-
     def parse_body(self, text):
         """Parse the function body text."""
         re_raise = re.findall(r'(?:^|\n)[ \t]+raise +(\w+)', text)
@@ -1352,6 +1387,272 @@ class FunctionInfo:
 
                 is_found_return = False
                 line_return_tmp = ''
+
+
+@dataclass
+class DocstringFormat:
+    """Collection of static data for each known docstring format."""
+    name: str
+    param_sections: list[str]
+    return_sections: list[str]
+    raise_sections: list[str]
+    other_sections: list[str] | None
+    before_section_regex: str | None = None
+    section_regex: str = r"^({})$"
+    after_section_regex: str | None = None
+    non_section_regex: str = None
+    any_section_name_regex: str = fr"[A-Za-z ]{{{MIN_HEADING},{MAX_HEADING}}}"
+
+    @staticmethod
+    def _strip_multiline(pattern):
+        """Convert a multi-line mode regex to a standard regex."""
+        return pattern.lstrip(r"^").replace(r"$", r"\n")
+
+    def _build_section_regex(self, sections: list[str]) -> str:
+        """Build a regex for different section headings from the template."""
+        return self.section_regex.format(r"|".join(sections))
+
+    @property
+    def param_section_regex(self) -> str:
+        """Regex matching the Parameters section heading."""
+        return self._build_section_regex(self.param_sections)
+
+    @property
+    def return_section_regex(self) -> str:
+        """Regex matching the Returns section heading."""
+        return self._build_section_regex(self.return_sections)
+
+    @property
+    def raise_section_regex(self) -> str:
+        """Regex matching the Raises section heading."""
+        return self._build_section_regex(self.raise_sections)
+
+    @property
+    def other_section_regex(self) -> str:
+        """Regex matching other section headings."""
+        if self.non_section_regex is None and self.other_sections is not None:
+            return self._build_section_regex(self.other_sections)
+        return self.non_section_regex
+
+    @property
+    def known_sections(self) -> list[str]:
+        """List of section names specified by this docstring format."""
+        return (
+            self.param_sections
+            + self.return_sections
+            + self.raise_sections
+            + (self.other_sections or [])
+        )
+
+    @property
+    def known_section_regex(self) -> str:
+        """Regex matching section names specified by this docstring format."""
+        return self._build_section_regex(self.known_sections)
+
+    @property
+    def any_section_regex(self) -> str:
+        """Regex matching any possible section of a docstring format."""
+        if self.other_sections is None:
+            return self.known_section_regex
+        return self.section_regex.format(self.any_section_name_regex)
+
+    @property
+    def any_other_section_regex(self) -> str:
+        """Regex matching any non-param/return/raise content."""
+        if self.non_section_regex is not None:
+            return self.non_section_regex
+        return self.any_section_regex
+
+    @property
+    def detection_regex(self) -> str:
+        """Regex that should match any docstring of the specified format."""
+        regexes = [
+            r"\n",
+            self.before_section_regex or "",
+            self.known_section_regex,
+            self.after_section_regex or "",
+        ]
+        return "".join(self._strip_multiline(regex) for regex in regexes)
+
+
+DOC_FORMATS = {
+    "Numpydoc": DocstringFormat(
+        name="Numpydoc",
+        param_sections=["Parameters"],
+        return_sections=["Returns", "Yields"],
+        raise_sections=["Raises"],
+        other_sections=[
+            "Warns",
+            "Warnings",
+            "See Also",
+            "Notes",
+            "References",
+            "Examples",
+        ],
+        before_section_regex=r"^$",
+        section_regex=r"^({})$",
+        after_section_regex=fr"^-{{{MIN_HEADING},{MAX_HEADING}}}$",
+    ),
+    "Googledoc": DocstringFormat(
+        name="Googledoc",
+        param_sections=["Args"],
+        return_sections=["Returns", "Yields"],
+        raise_sections=["Raises"],
+        other_sections=["Example", "Examples"],
+        before_section_regex=r"^$",
+        section_regex=r"^({}):$",
+        after_section_regex=r"^(\t|(  ){1,4})[A-Za-z]",
+    ),
+    "Sphinxdoc": DocstringFormat(
+        name="Sphinxdoc",
+        param_sections=[
+            "param",
+            "parameters",
+            "arg",
+            "arguments",
+            "key",
+            "keyword",
+            "type",
+        ],
+        return_sections=["return", "returns", "rtype"],
+        raise_sections=["raise", "raises", "except", "exception"],
+        other_sections=None,
+        before_section_regex=None,
+        section_regex=r"^:({}):? ",
+        after_section_regex=None,
+        non_section_regex=r"^\S",
+    ),
+}
+
+
+class DocstringInfo:
+    """Parse docstring sections and content."""
+
+    def __init__(self):
+        self.text = None
+        self.doc_indent = None
+        self.doc_format = None
+        self.format_name = None
+        self.description = None
+        self.parameters = None
+        self.returns = None
+        self.raises = None
+        self.other = None
+
+    @staticmethod
+    def _strip_docstring(text):
+        """Strip leading/trailing whitespace and quotes."""
+        text = text.strip()
+        for quotes in ['"""', "'''"]:
+            text = text.removeprefix(quotes).removesuffix(quotes)
+        text = text.strip()
+        text = "\n".join(line.rstrip() for line in text.split("\n"))
+        return text
+
+    @staticmethod
+    def _detect_docstring_format(text):
+        """Detect the format (Sphinx, NumPy, Google) of a docstring."""
+        # Reverse the format order to reduce the false positive chance
+        for name, doc_format in reversed(DOC_FORMATS.items()):
+            if re.search(doc_format.detection_regex, text):
+                return name, doc_format
+        return None, None
+
+    def _lines_to_text(self, lines):
+        """Convert a list of text lines to a block of docstring text."""
+        text = "\n".join(lines).rstrip()
+        return indent_docstring(text, self.doc_indent)
+
+    def _match_each_line(self, before, line, after, line_regex):
+        """Match before, line and after with its corresponding regex."""
+        match_pairs = [
+            (before, self.doc_format.before_section_regex),
+            (line, line_regex),
+            (after, self.doc_format.after_section_regex),
+        ]
+        for text, regex in match_pairs:
+            if regex is not None and not re.search(regex, text):
+                return False
+        return True
+
+    def _is_section_start(self, before, line, after):
+        """Check if this line starts a new docstring section."""
+        return self._match_each_line(
+            before, line, after, self.doc_format.any_section_regex
+        )
+
+    def _parse_generic_doc(self, text):
+        """Parse a generic docstring without a known format."""
+        self.description = indent_docstring(text, self.doc_indent)
+
+    def _parse_known_doc(self, text):
+        """Parse a known format docstring into its sections."""
+        desc_ended = False
+        current_section = None
+
+        description = []
+        parameters = []
+        returns = []
+        raises = []
+        other = []
+
+        # Add dummy first and last lines to avoid special casing
+        text_lines = ["", *text.split("\n"), ""]
+
+        sections = [
+            (self.doc_format.param_section_regex, parameters),
+            (self.doc_format.return_section_regex, returns),
+            (self.doc_format.raise_section_regex, raises),
+            (self.doc_format.any_other_section_regex, other),
+        ]
+
+        for idx, line in enumerate(text_lines):
+            # Skip dummy first and last lines
+            if not idx or idx == len(text_lines) - 1:
+                continue
+            before = text_lines[idx - 1]
+            after = text_lines[idx + 1]
+
+            desc_ended = desc_ended or self._is_section_start(
+                before, line, after
+            )
+            if not desc_ended:
+                description.append(line)
+                continue
+
+            for regex, section_lines in sections:
+                matched = self._match_each_line(before, line, after, regex)
+                if matched:
+                    current_section = section_lines
+                    break
+
+            current_section.append(line)
+
+        self.description = self._lines_to_text(description)
+        self.parameters = self._lines_to_text(parameters)
+        self.returns = self._lines_to_text(returns)
+        self.raises = self._lines_to_text(raises)
+        self.other = self._lines_to_text(other)
+
+    def parse_docstring(self, text):
+        """Process a callable's docstring into a structured form."""
+        if not text:
+            self.text = False
+            return
+
+        text = self._strip_docstring(text)
+        self.text = text
+
+        # Detect existing docstring format
+        dedented_text, self.doc_indent = dedent_docstring(text)
+        self.format_name, self.doc_format = self._detect_docstring_format(
+            dedented_text
+        )
+
+        if self.doc_format:
+            self._parse_known_doc(dedented_text)
+        else:
+            self._parse_generic_doc(dedented_text)
 
 
 class QMenuOnlyForEnter(SpyderMenu):
