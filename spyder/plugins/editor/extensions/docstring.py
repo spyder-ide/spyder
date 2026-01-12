@@ -629,23 +629,34 @@ class DocstringWriterExtension:
 
         if func_info.raise_list:
             for raise_type in func_info.raise_list:
-                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(indent1,
-                                                                   raise_type)
+                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(
+                    indent1, raise_type
+                )
 
-        heading = "yield" if func_info.has_yield else "return"
-        header = f"{indent1}:{heading}:"
+        header = f'{indent1}:rtype: '
+        return_desc = f'{indent1}:returns: DESCRIPTION'
 
         return_type_annotated = func_info.return_type_annotated
         if return_type_annotated:
-            return_section = ''
+            return_section = f'{header}{return_type_annotated}'
             if return_type_annotated != 'None':
-                return_section += '{} DESCRIPTION\n'.format(header)
-            return_section += '{}:rtype: {}'.format(
-                indent1, return_type_annotated
-            )
+                return_section += f'\n{return_desc}'
         else:
-            return_section = '{} DESCRIPTION\n'.format(header)
-            return_section += '{}:rtype: TYPE'.format(indent1)
+            return_element_type = f'{{return_type}}\n{return_desc}'
+            placeholder = return_element_type.format(return_type='TYPE')
+
+            try:
+                return_section = self._generate_docstring_return_section(
+                    return_vals=func_info.return_value_in_body,
+                    header=header,
+                    return_element_name=placeholder,
+                    return_element_type=return_element_type,
+                    placeholder=placeholder,
+                    indent="",
+                    expand_tuple=False,
+                )
+            except (ValueError, IndexError):
+                return_section = f'{header}None'
 
         sphinx_doc += return_section
 
@@ -700,21 +711,14 @@ class DocstringWriterExtension:
         return string_toparse
 
     @staticmethod
-    def parse_return_elements(
-        return_vals_group,
-        return_element_name,
-        return_element_type,
-        placeholder,
-    ):
+    def parse_return_elements(return_vals_group):
         """Return the appropriate text for a group of return elements."""
         all_eq = return_vals_group.count(return_vals_group[0]) == len(
             return_vals_group
         )
         builtin_collections = {"[list]", "(tuple)", "{dict}", "{set}"}
         if builtin_collections.issuperset(return_vals_group) and all_eq:
-            return return_element_type.format(
-                return_type=return_vals_group[0][1:-1]
-            )
+            return return_vals_group[0][1:-1], None
 
         # Output placeholder if special Python chars present in name
         py_chars = {' ', '+', '-', '*', '/', '%', '@', '<', '>', '&', '|', '^',
@@ -724,18 +728,18 @@ class DocstringWriterExtension:
             any(py_char in return_val for py_char in py_chars)
             for return_val in return_vals_group
         ):
-            return placeholder
+            return None, None
 
         # Output str type and no name if only string literals
         if all(
             '"' in return_val or "'" in return_val
             for return_val in return_vals_group
         ):
-            return return_element_type.format(return_type="str")
+            return 'str', None
 
         # Output bool type and no name if only bool literals
         if {'True', 'False'}.issuperset(return_vals_group):
-            return return_element_type.format(return_type='bool')
+            return 'bool', None
 
         # Output numeric types and no name if only numeric literals
         try:
@@ -747,10 +751,10 @@ class DocstringWriterExtension:
                 except ValueError:  # If not an integer (EAFP)
                     num_not_int += 1
             if num_not_int == 0:
-                return return_element_type.format(return_type='int')
+                return 'int', None
             if num_not_int == len(return_vals_group):
-                return return_element_type.format(return_type='float')
-            return return_element_type.format(return_type='numeric')
+                return 'float', None
+            return 'numeric', None
 
         except ValueError:  # Not a numeric if float conversion didn't work
             pass
@@ -762,8 +766,8 @@ class DocstringWriterExtension:
             and all("." not in return_val for return_val in return_vals_group)
         ):
 
-            return return_element_name.format(return_name=return_vals_group[0])
-        return placeholder
+            return None, return_vals_group[0]
+        return None, None
 
     def _generate_docstring_return_section(
         self,
@@ -773,6 +777,8 @@ class DocstringWriterExtension:
         return_element_type,
         placeholder,
         indent,
+        *,
+        expand_tuple=True,
     ):
         """Generate the Returns section of a function/method docstring."""
         # If all return values are None, return None
@@ -817,25 +823,50 @@ class DocstringWriterExtension:
         else:
             num_elements = 1
 
-        # If all have the same len but some ambiguous return that placeholders
+        # If all have the same len but some ambiguous return placeholders
         if len(unambiguous_vals) != len(non_none_vals):
-            return header + '\n'.join(
-                [placeholder for __ in range(num_elements)])
+            if expand_tuple:
+                return header + '\n'.join([placeholder] * len(num_elements))
+
+            return_elements_out = ', '.join(['TYPE'] * len(num_elements))
+            return header + return_element_type.format(
+                return_type=f'tuple[{return_elements_out}]'
+            )
 
         # Handle tuple (or single) values position by position
         return_vals_grouped = zip(*[
             [return_element.strip() for return_element in
              return_val.split(',')]
             for return_val in unambiguous_vals])
-        return_elements_out = []
+        return_vals_parsed = []
         for return_vals_group in return_vals_grouped:
-            return_elements_out.append(
-                self.parse_return_elements(return_vals_group,
-                                           return_element_name,
-                                           return_element_type,
-                                           placeholder))
+            return_vals_parsed.append(
+                self.parse_return_elements(return_vals_group)
+            )
 
-        return header + '\n'.join(return_elements_out)
+        # Represent a tuple as a single tuple return value
+        if not expand_tuple:
+            return_elements = [
+                rtype if rtype is not None else 'TYPE'
+                for rtype, __ in return_vals_parsed
+            ]
+            if len(return_elements) == 1:
+                return_type = return_elements[0]
+            else:
+                return_type = 'tuple[{}]'.format(', '.join(return_elements))
+            return header + return_element_type.format(return_type=return_type)
+
+        # Represent a tuple as multiple return values
+        return_elements = []
+        for rtype, rname in return_vals_parsed:
+            if rtype is not None:
+                element = return_element_type.format(return_type=rtype)
+            elif rname is not None:
+                element = return_element_name.format(return_name=rname)
+            else:
+                element = placeholder
+            return_elements.append(element)
+        return header + '\n'.join(return_elements)
 
 
 class FunctionInfo:
