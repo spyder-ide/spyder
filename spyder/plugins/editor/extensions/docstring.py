@@ -659,17 +659,9 @@ class DocstringWriterExtension:
             else:
                 arg_text += 'TYPE'
 
-            if arg_value:
-                arg_text += ', optional'
             arg_text += '\n'
 
         sphinx_doc += arg_text
-
-        if func_info.raise_list:
-            for raise_type in func_info.raise_list:
-                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(
-                    indent1, raise_type
-                )
 
         header = f'{indent1}:rtype: '
         return_desc = f'{indent1}:returns: DESCRIPTION'
@@ -702,6 +694,12 @@ class DocstringWriterExtension:
                 return_section = f'{header}None'
 
         sphinx_doc += return_section + '\n'
+
+        if func_info.raise_list:
+            for raise_type in func_info.raise_list:
+                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(
+                    indent1, raise_type
+                )
 
         sphinx_doc = sphinx_doc.rstrip('\n')
         sphinx_doc += '\n{}{}'.format(indent1, self.quote3)
