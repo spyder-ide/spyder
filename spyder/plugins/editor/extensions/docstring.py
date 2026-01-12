@@ -469,7 +469,7 @@ class DocstringWriterExtension:
         self.write_docstring_at_first_line_of_function()
 
     def _generate_docstring(self, doc_type, quote):
-        """Generate docstring."""
+        """Generate a function/method docstring of the specified format."""
         docstring = None
 
         self.quote3 = quote * 3
@@ -480,43 +480,40 @@ class DocstringWriterExtension:
 
         func_def_info = self.get_function_definition_from_below_last_line()
 
-        if func_def_info:
-            func_def, __ = func_def_info
-            func_info = FunctionInfo()
-            func_info.parse_def(func_def)
+        if not func_def_info:
+            return None
 
-            if func_info.has_info:
-                func_docstring = self.get_function_docstring(
-                    func_info.func_indent
-                )
-                if func_docstring:
-                    func_info.parse_docstring(func_docstring)
+        func_def, __ = func_def_info
+        func_info = FunctionInfo()
+        func_info.parse_def(func_def)
 
-                func_body = self.get_function_body(func_info.func_indent)
-                if func_body:
-                    func_info.parse_body(func_body)
+        if not func_info.has_info:
+            return None
 
-                if doc_type == 'Numpydoc':
-                    docstring = self._generate_numpy_doc(func_info)
-                elif doc_type == 'Googledoc':
-                    docstring = self._generate_google_doc(func_info)
-                elif doc_type == "Sphinxdoc":
-                    docstring = self._generate_sphinx_doc(func_info)
+        func_docstring = self.get_function_docstring(
+            func_info.func_indent
+        )
+        if func_docstring:
+            func_info.parse_docstring(func_docstring)
+
+        func_body = self.get_function_body(func_info.func_indent)
+        if func_body:
+            func_info.parse_body(func_body)
+
+        if doc_type == "Numpydoc":
+            docstring = self._generate_numpy_doc(func_info)
+        elif doc_type == "Googledoc":
+            docstring = self._generate_google_doc(func_info)
+        elif doc_type == "Sphinxdoc":
+            docstring = self._generate_sphinx_doc(func_info)
+        else:
+            raise ValueError(f"Unknown docstring format {doc_type!r}")
 
         return docstring
 
     def _generate_numpy_doc(self, func_info):
-        """Generate a docstring of numpy type."""
+        """Generate a NumPy format docstring."""
         numpy_doc = ''
-
-        arg_names = func_info.arg_name_list
-        arg_types = func_info.arg_type_list
-        arg_values = func_info.arg_value_list
-
-        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
-            del arg_names[0]
-            del arg_types[0]
-            del arg_values[0]
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
@@ -524,32 +521,60 @@ class DocstringWriterExtension:
         summary = func_info.docstring_text or 'SUMMARY.'
         numpy_doc += '\n{}{}\n'.format(indent1, summary)
 
-        if len(arg_names) > 0:
-            numpy_doc += '\n{}Parameters'.format(indent1)
-            numpy_doc += '\n{}----------\n'.format(indent1)
+        for section_fn in [
+            self._generate_numpy_param_section,
+            self._generate_numpy_return_section,
+            self._generate_numpy_raise_section,
+        ]:
+            numpy_doc += section_fn(func_info, indent1, indent2)
 
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}{} : '.format(indent1, arg_name)
+        numpy_doc = numpy_doc.rstrip()
+        numpy_doc += '\n{}{}'.format(indent1, self.quote3)
+
+        return numpy_doc
+
+    def _generate_numpy_param_section(self, func_info, indent1, indent2):
+        """Generate the Parameters section for a NumPy format docstring."""
+        arg_names = func_info.arg_name_list.copy()
+        arg_types = func_info.arg_type_list.copy()
+        arg_values = func_info.arg_value_list.copy()
+
+        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
+            del arg_names[0]
+            del arg_types[0]
+            del arg_values[0]
+
+        if not arg_names:
+            return ''
+
+        param_section = '\n{}Parameters'.format(indent1)
+        param_section += '\n{}----------\n'.format(indent1)
+
+        for arg_name, arg_type, arg_value in zip(
+            arg_names, arg_types, arg_values
+        ):
+            param_section += '{}{} : '.format(indent1, arg_name)
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                param_section += '{}'.format(arg_type)
             else:
-                arg_text += 'TYPE'
+                param_section += 'TYPE'
 
             if arg_value:
-                arg_text += ', optional'
+                param_section += ', optional'
 
-            arg_text += '\n{}DESCRIPTION.'.format(indent2)
+            param_section += '\n{}DESCRIPTION.'.format(indent2)
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' The default is {}.'.format(arg_value)
+                param_section += ' The default is {}.'.format(arg_value)
 
-            arg_text += '\n'
+            param_section += '\n'
 
-        numpy_doc += arg_text
+        return param_section
 
+
+    def _generate_numpy_return_section(self, func_info, indent1, indent2):
+        """Generate the Returns section for a NumPy format docstring."""
         heading = 'Yields' if func_info.has_yield else 'Returns'
         header = f'\n{indent1}{heading}\n{indent1}{"-" * len(heading)}\n'
 
@@ -566,51 +591,56 @@ class DocstringWriterExtension:
             )
             if return_type_annotated != 'None':
                 return_section += '\n{}DESCRIPTION.'.format(indent2)
+            return return_section + '\n'
+
+        return_element_type = (
+            indent1 + '{return_type}\n' + indent2 + 'DESCRIPTION.'
+        )
+        placeholder = return_element_type.format(return_type='TYPE')
+        return_values = [
+            rv for rvs in func_info.return_value_in_body
+            for rv in rvs.split(",")
+        ]
+        if len(return_values) == 1:
+            # numpydoc RT02, only include type and not name if it's a single return value
+            return_element_name = indent1 + placeholder.lstrip()
         else:
-            return_element_type = indent1 + '{return_type}\n' + indent2 + \
-                'DESCRIPTION.'
-            placeholder = return_element_type.format(return_type='TYPE')
-            if len([rv for rvs in func_info.return_value_in_body for rv in rvs.split(",")]) == 1:
-                # numpydoc RT02, only include type and not name if it's a single return value
-                return_element_name = indent1 + placeholder.lstrip()
-            else:
-                return_element_name = indent1 + '{return_name} : ' + \
-                    placeholder.lstrip()
+            return_element_name = (
+                indent1 + '{return_name} : ' + placeholder.lstrip()
+            )
 
-            try:
-                return_section = self._generate_docstring_return_section(
-                    func_info.return_value_in_body, header,
-                    return_element_name, return_element_type, placeholder,
-                    indent1)
-            except (ValueError, IndexError):
-                return_section = '{}{}None'.format(header, indent1)
+        try:
+            return_section = self._generate_docstring_return_section(
+                return_vals=func_info.return_value_in_body,
+                header=header,
+                return_element_name=return_element_name,
+                return_element_type=return_element_type,
+                placeholder=placeholder,
+                indent=indent1,
+                expand_tuple=True,
+            )
+        except (ValueError, IndexError):
+            return_section = '{}{}None'.format(header, indent1)
 
-        numpy_doc += return_section + '\n'
+        return return_section + '\n'
 
-        if func_info.raise_list:
-            numpy_doc += '\n{}Raises'.format(indent1)
-            numpy_doc += '\n{}------'.format(indent1)
-            for raise_type in func_info.raise_list:
-                numpy_doc += '\n{}{}'.format(indent1, raise_type)
-                numpy_doc += '\n{}DESCRIPTION.'.format(indent2)
+    @staticmethod
+    def _generate_numpy_raise_section(func_info, indent1, indent2):
+        """Generate the Raises section for a NumPy format docstring."""
+        if not func_info.raise_list:
+            return ''
 
-        numpy_doc = numpy_doc.rstrip('\n')
-        numpy_doc += '\n{}{}'.format(indent1, self.quote3)
+        raise_section = '\n{}Raises'.format(indent1)
+        raise_section += '\n{}------'.format(indent1)
+        for raise_type in func_info.raise_list:
+            raise_section += '\n{}{}'.format(indent1, raise_type)
+            raise_section += '\n{}DESCRIPTION.'.format(indent2)
 
-        return numpy_doc
+        return raise_section
 
     def _generate_google_doc(self, func_info):
-        """Generate a docstring of google type."""
+        """Generate a Google format docstring."""
         google_doc = ''
-
-        arg_names = func_info.arg_name_list
-        arg_types = func_info.arg_type_list
-        arg_values = func_info.arg_value_list
-
-        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
-            del arg_names[0]
-            del arg_types[0]
-            del arg_values[0]
 
         indent1 = func_info.func_indent + self.code_editor.indent_chars
         indent2 = func_info.func_indent + self.code_editor.indent_chars * 2
@@ -618,34 +648,61 @@ class DocstringWriterExtension:
         summary = func_info.docstring_text or 'SUMMARY.'
         google_doc += '{}\n'.format(summary)
 
-        if len(arg_names) > 0:
-            google_doc += '\n{0}Args:\n'.format(indent1)
+        for section_fn in [
+            self._generate_google_param_section,
+            self._generate_google_return_section,
+            self._generate_google_raise_section,
+        ]:
+            google_doc += section_fn(func_info, indent1, indent2)
 
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}{} '.format(indent2, arg_name)
+        google_doc = google_doc.rstrip()
+        google_doc += '\n{}{}'.format(indent1, self.quote3)
 
-            arg_text += '('
+        return google_doc
+
+    def _generate_google_param_section(self, func_info, indent1, indent2):
+        """Generate the Args section for a Google format docstring."""
+        arg_names = func_info.arg_name_list.copy()
+        arg_types = func_info.arg_type_list.copy()
+        arg_values = func_info.arg_value_list.copy()
+
+        if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
+            del arg_names[0]
+            del arg_types[0]
+            del arg_values[0]
+
+        if not arg_names:
+            return ''
+
+        param_section = '\n{}Args:\n'.format(indent1)
+
+        for arg_name, arg_type, arg_value in zip(
+            arg_names, arg_types, arg_values
+        ):
+            param_section += '{}{} '.format(indent2, arg_name)
+
+            param_section += '('
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                param_section += '{}'.format(arg_type)
             else:
-                arg_text += 'TYPE'
+                param_section += 'TYPE'
 
             if arg_value:
-                arg_text += ', optional'
-            arg_text += '):'
+                param_section += ', optional'
+            param_section += '):'
 
-            arg_text += ' DESCRIPTION.'
+            param_section += ' DESCRIPTION.'
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ' Defaults to {}.'.format(arg_value)
+                param_section += ' Defaults to {}.'.format(arg_value)
 
-            arg_text += '\n'
+            param_section += '\n'
 
-        google_doc += arg_text
+        return param_section
 
+    def _generate_google_return_section(self, func_info, indent1, indent2):
+        """Generate the Returns section for a Google format docstring."""
         heading = 'Yields' if func_info.has_yield else 'Returns'
         header = f'\n{indent1}{heading}:\n'
 
@@ -661,76 +718,97 @@ class DocstringWriterExtension:
             )
             if return_type_annotated != 'None':
                 return_section += ': DESCRIPTION.'
-        else:
-            return_element_type = indent2 + '{return_type}: DESCRIPTION.'
-            placeholder = return_element_type.format(return_type='TYPE')
+            return return_section + '\n'
 
-            try:
-                return_section = self._generate_docstring_return_section(
-                    return_vals=func_info.return_value_in_body,
-                    header=header,
-                    return_element_name=placeholder,
-                    return_element_type=return_element_type,
-                    placeholder=placeholder,
-                    indent=indent2,
-                    expand_tuple=False,
-                )
-            except (ValueError, IndexError):
-                return_section = '{}{}None'.format(header, indent2)
+        return_element_type = indent2 + '{return_type}: DESCRIPTION.'
+        placeholder = return_element_type.format(return_type='TYPE')
 
-        google_doc += return_section + '\n'
+        try:
+            return_section = self._generate_docstring_return_section(
+                return_vals=func_info.return_value_in_body,
+                header=header,
+                return_element_name=placeholder,
+                return_element_type=return_element_type,
+                placeholder=placeholder,
+                indent=indent2,
+                expand_tuple=False,
+            )
+        except (ValueError, IndexError):
+            return_section = '{}{}None'.format(header, indent2)
 
-        if func_info.raise_list:
-            google_doc += '\n{0}Raises:'.format(indent1)
-            for raise_type in func_info.raise_list:
-                google_doc += '\n{}{}'.format(indent2, raise_type)
-                google_doc += ': DESCRIPTION.'
+        return return_section + '\n'
 
-        google_doc = google_doc.rstrip('\n')
-        google_doc += '\n{}{}'.format(indent1, self.quote3)
+    @staticmethod
+    def _generate_google_raise_section(func_info, indent1, indent2):
+        """Generate the Raises section for a Google format docstring."""
+        if not func_info.raise_list:
+            return ''
 
-        return google_doc
+        raise_section = '\n{}Raises:'.format(indent1)
+        for raise_type in func_info.raise_list:
+            raise_section += '\n{}{}'.format(indent2, raise_type)
+            raise_section += ': DESCRIPTION.'
+
+        return raise_section
 
     def _generate_sphinx_doc(self, func_info):
-        """Generate a docstring of sphinx type."""
+        """Generate a Sphinx format docstring."""
         sphinx_doc = ''
+        indent1 = func_info.func_indent + self.code_editor.indent_chars
 
-        arg_names = func_info.arg_name_list
-        arg_types = func_info.arg_type_list
-        arg_values = func_info.arg_value_list
+        summary = func_info.docstring_text or 'SUMMARY.'
+        sphinx_doc += '{}\n\n'.format(summary)
+
+        for section_fn in [
+            self._generate_sphinx_param_section,
+            self._generate_sphinx_return_section,
+            self._generate_sphinx_raise_section,
+        ]:
+            sphinx_doc += section_fn(func_info, indent1)
+
+        sphinx_doc = sphinx_doc.rstrip()
+        sphinx_doc += '\n{}{}'.format(indent1, self.quote3)
+
+        return sphinx_doc
+
+    def _generate_sphinx_param_section(self, func_info, indent1):
+        """Generate the :param: sections for a Sphinx format docstring."""
+        arg_names = func_info.arg_name_list.copy()
+        arg_types = func_info.arg_type_list.copy()
+        arg_values = func_info.arg_value_list.copy()
 
         if len(arg_names) > 0 and arg_names[0] in ('self', 'cls'):
             del arg_names[0]
             del arg_types[0]
             del arg_values[0]
 
-        indent1 = func_info.func_indent + self.code_editor.indent_chars
-
-        summary = func_info.docstring_text or 'SUMMARY.'
-        sphinx_doc += '{}\n\n'.format(summary)
-
-        arg_text = ''
-        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
-                                                 arg_values):
-            arg_text += '{}:param {}: DESCRIPTION'.format(indent1, arg_name)
+        param_section = ''
+        for arg_name, arg_type, arg_value in zip(
+            arg_names, arg_types, arg_values
+        ):
+            param_section += '{}:param {}: DESCRIPTION'.format(
+                indent1, arg_name
+            )
 
             if arg_value:
                 arg_value = arg_value.replace(self.quote3, self.quote3_other)
-                arg_text += ', defaults to {}\n'.format(arg_value)
+                param_section += ', defaults to {}\n'.format(arg_value)
             else:
-                arg_text += '\n'
+                param_section += '\n'
 
-            arg_text += '{}:type {}: '.format(indent1, arg_name)
+            param_section += '{}:type {}: '.format(indent1, arg_name)
 
             if arg_type:
-                arg_text += '{}'.format(arg_type)
+                param_section += '{}'.format(arg_type)
             else:
-                arg_text += 'TYPE'
+                param_section += 'TYPE'
 
-            arg_text += '\n'
+            param_section += '\n'
 
-        sphinx_doc += arg_text
+        return param_section
 
+    def _generate_sphinx_return_section(self, func_info, indent1):
+        """Generate the :return: section for a Sphinx format docstring."""
         header = f'{indent1}:rtype: '
         return_desc = f'{indent1}:returns: DESCRIPTION'
 
@@ -744,35 +822,39 @@ class DocstringWriterExtension:
             return_section = f'{header}{return_type_annotated}'
             if return_type_annotated != 'None':
                 return_section += f'\n{return_desc}'
-        else:
-            return_element_type = f'{{return_type}}\n{return_desc}'
-            placeholder = return_element_type.format(return_type='TYPE')
+            return return_section + '\n'
 
-            try:
-                return_section = self._generate_docstring_return_section(
-                    return_vals=func_info.return_value_in_body,
-                    header=header,
-                    return_element_name=placeholder,
-                    return_element_type=return_element_type,
-                    placeholder=placeholder,
-                    indent="",
-                    expand_tuple=False,
-                )
-            except (ValueError, IndexError):
-                return_section = f'{header}None'
+        return_element_type = f'{{return_type}}\n{return_desc}'
+        placeholder = return_element_type.format(return_type='TYPE')
 
-        sphinx_doc += return_section + '\n'
+        try:
+            return_section = self._generate_docstring_return_section(
+                return_vals=func_info.return_value_in_body,
+                header=header,
+                return_element_name=placeholder,
+                return_element_type=return_element_type,
+                placeholder=placeholder,
+                indent="",
+                expand_tuple=False,
+            )
+        except (ValueError, IndexError):
+            return_section = f'{header}None'
 
-        if func_info.raise_list:
-            for raise_type in func_info.raise_list:
-                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(
-                    indent1, raise_type
-                )
+        return return_section + '\n'
 
-        sphinx_doc = sphinx_doc.rstrip('\n')
-        sphinx_doc += '\n{}{}'.format(indent1, self.quote3)
+    @staticmethod
+    def _generate_sphinx_raise_section(func_info, indent1):
+        """Generate the :raises: sections for a Sphinx format docstring."""
+        if not func_info.raise_list:
+            return ''
 
-        return sphinx_doc
+        raise_section = ''
+        for raise_type in func_info.raise_list:
+            raise_section += '{}:raises {}: DESCRIPTION\n'.format(
+                indent1, raise_type
+            )
+
+        return raise_section
 
     @staticmethod
     def find_top_level_bracket_locations(string_toparse):
