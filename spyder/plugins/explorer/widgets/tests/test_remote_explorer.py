@@ -455,11 +455,20 @@ def test_permission_errors(
 
     assert len(QMessageBox.critical.mock_calls) == 2
 
+    # Try to delete non-writable directory
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args: QMessageBox.Yes)
+    treewidget.view.setCurrentIndex(all_indexes[1])
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.delete_action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 3
+
     # Move to directory that doesn't have write permissions
     treewidget.chdir(
         f"/home/ubuntu/{dirname}/cant-write-dir", server_id=remote_client_id
     )
-    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 0)
+    qtbot.waitUntil(lambda: treewidget.model.rowCount() == 1)
 
     # Try to upload file
     mocker.patch(
@@ -470,8 +479,8 @@ def test_permission_errors(
     with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
         treewidget.upload_file_action.triggered.emit()
 
-    assert len(QMessageBox.critical.mock_calls) == 3
-    assert treewidget.model.rowCount() == 0
+    assert len(QMessageBox.critical.mock_calls) == 4
+    assert treewidget.model.rowCount() == 1
 
     # Try to create new files
     for fname, action in [
@@ -484,8 +493,8 @@ def test_permission_errors(
         with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
             action.triggered.emit()
 
-    assert len(QMessageBox.critical.mock_calls) == 5
-    assert treewidget.model.rowCount() == 0
+    assert len(QMessageBox.critical.mock_calls) == 6
+    assert treewidget.model.rowCount() == 1
 
     # Try to create new directories
     for dname, action in [
@@ -498,8 +507,17 @@ def test_permission_errors(
         with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
             action.triggered.emit()
 
-    assert len(QMessageBox.critical.mock_calls) == 7
-    assert treewidget.model.rowCount() == 0
+    assert len(QMessageBox.critical.mock_calls) == 8
+    assert treewidget.model.rowCount() == 1
+
+    # Try to delete non-writable file
+    treewidget.view.selectAll()
+
+    with qtbot.waitSignal(treewidget.sig_stop_spinner_requested):
+        treewidget.delete_action.triggered.emit()
+
+    assert len(QMessageBox.critical.mock_calls) == 9
+    assert treewidget.model.rowCount() == 1
 
 
 if __name__ == "__main__":

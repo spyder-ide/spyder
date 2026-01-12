@@ -58,4 +58,5 @@ RUN chmod u-r /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-dir
 RUN echo "This is a read-only file" > /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-file.txt
 RUN chmod u-r /home/${JUPYTERHUB_USERNAME}/test-errors/cant-read-file.txt
 RUN mkdir /home/${JUPYTERHUB_USERNAME}/test-errors/cant-write-dir
+RUN touch /home/${JUPYTERHUB_USERNAME}/test-errors/cant-write-dir/zz.txt
 RUN chmod u-w /home/${JUPYTERHUB_USERNAME}/test-errors/cant-write-dir

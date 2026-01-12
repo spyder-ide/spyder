@@ -45,6 +45,7 @@ RUN chmod u-r /home/ubuntu/test-errors/cant-read-dir
 RUN echo "This is a read-only file" > /home/ubuntu/test-errors/cant-read-file.txt
 RUN chmod u-r /home/ubuntu/test-errors/cant-read-file.txt
 RUN mkdir /home/ubuntu/test-errors/cant-write-dir
+RUN touch /home/ubuntu/test-errors/cant-write-dir/zz.txt
 RUN chmod u-w /home/ubuntu/test-errors/cant-write-dir
 
 # Install Spyder remote services
