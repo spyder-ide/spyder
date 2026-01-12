@@ -19,7 +19,7 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.config.manager import CONF
 from spyder.plugins.editor.extensions.docstring import (
-    FunctionInfo, remove_comments
+    DocstringInfo, FunctionInfo, remove_comments
 )
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.qthelpers import qapplication
@@ -160,12 +160,19 @@ TEST_CASES_DEF_PARSE = {
 }
 
 TEST_CASES_DOCSTRING_PARSE = {
-    'empty': ('', ''),
+    'empty': ('', False, None, None, None, None, None, None, None),
     'oneline': (
         '''
             """This is a test docstring."""
         ''',
         '''This is a test docstring.''',
+        None,
+        None,
+        '''This is a test docstring.''',
+        None,
+        None,
+        None,
+        None,
     ),
     'oneline_fenced': (
         '''
@@ -174,6 +181,13 @@ TEST_CASES_DOCSTRING_PARSE = {
             """  #
         ''',
         '''This is a test docstring.''',
+        None,
+        None,
+        '''This is a test docstring.''',
+        None,
+        None,
+        None,
+        None,
     ),
     'multiline_compressed': (
         '''
@@ -186,6 +200,16 @@ TEST_CASES_DOCSTRING_PARSE = {
 
             It is very long.
                 Sub indent.''',
+        '            ',
+        None,
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+        None,
+        None,
+        None,
+        None,
     ),
     'multiline_fenced': (
         '''"""
@@ -198,6 +222,233 @@ TEST_CASES_DOCSTRING_PARSE = {
 
             It is very long.
                 Sub indent.''',
+        '            ',
+        None,
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+        None,
+        None,
+        None,
+        None,
+    ),
+    'numpy': (
+        '''"""
+            This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            Parameters
+            ----------
+            arg1 : str
+                The first arg.
+            arg2 : bool, optional
+                The second arg. The default is True.
+
+            Returns
+            -------
+            str
+                The string value passed.
+            bool
+                The boolean value passed.
+
+            Examples
+            --------
+            Examples.
+
+            Raises
+            ------
+            ValueError
+                If the wrong arg is passed.
+
+            See also
+            --------
+            See also stuff.
+            """''',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            Parameters
+            ----------
+            arg1 : str
+                The first arg.
+            arg2 : bool, optional
+                The second arg. The default is True.
+
+            Returns
+            -------
+            str
+                The string value passed.
+            bool
+                The boolean value passed.
+
+            Examples
+            --------
+            Examples.
+
+            Raises
+            ------
+            ValueError
+                If the wrong arg is passed.
+
+            See also
+            --------
+            See also stuff.''',
+        '            ',
+        'Numpydoc',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+        '''Parameters
+            ----------
+            arg1 : str
+                The first arg.
+            arg2 : bool, optional
+                The second arg. The default is True.''',
+        '''Returns
+            -------
+            str
+                The string value passed.
+            bool
+                The boolean value passed.''',
+        '''Raises
+            ------
+            ValueError
+                If the wrong arg is passed.''',
+        '''Examples
+            --------
+            Examples.
+
+            See also
+            --------
+            See also stuff.''',
+    ),
+    'google': (
+        '''"""This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            Args:
+                arg1 (str): The first arg.
+                arg2 (bool, optional): The second arg. Defaults to True.
+
+            Returns:
+                tuple[str, bool]: The string and boolean value passed.
+
+            Examples:
+                An example.
+
+            Raises:
+                ValueError: If the wrong value is passed.
+
+            See Also:
+                See also stuff.
+            """''',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            Args:
+                arg1 (str): The first arg.
+                arg2 (bool, optional): The second arg. Defaults to True.
+
+            Returns:
+                tuple[str, bool]: The string and boolean value passed.
+
+            Examples:
+                An example.
+
+            Raises:
+                ValueError: If the wrong value is passed.
+
+            See Also:
+                See also stuff.''',
+        '            ',
+        'Googledoc',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+        '''Args:
+                arg1 (str): The first arg.
+                arg2 (bool, optional): The second arg. Defaults to True.''',
+        '''Returns:
+                tuple[str, bool]: The string and boolean value passed.''',
+        '''Raises:
+                ValueError: If the wrong value is passed.''',
+        '''Examples:
+                An example.
+
+            See Also:
+                See also stuff.''',
+    ),
+    'sphinx': (
+        '''"""This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            :param arg1: The first arg
+            :type arg1: str
+            :param arg2: The second arg, defaults to True
+            :type arg2: bool
+
+            Other content here.
+
+            :rtype: tuple[str, bool]
+            :returns: The string and boolean value passed.
+
+            More content here.
+
+            :raises ValueError: If the wrong value is passed.
+
+            Some other content.
+            """''',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.
+
+            :param arg1: The first arg
+            :type arg1: str
+            :param arg2: The second arg, defaults to True
+            :type arg2: bool
+
+            Other content here.
+
+            :rtype: tuple[str, bool]
+            :returns: The string and boolean value passed.
+
+            More content here.
+
+            :raises ValueError: If the wrong value is passed.
+
+            Some other content.''',
+        '            ',
+        'Sphinxdoc',
+        '''This is a multi line docstring.
+
+            It is very long.
+                Sub indent.''',
+        ''':param arg1: The first arg
+            :type arg1: str
+            :param arg2: The second arg, defaults to True
+            :type arg2: bool''',
+        ''':rtype: tuple[str, bool]
+            :returns: The string and boolean value passed.''',
+        ''':raises ValueError: If the wrong value is passed.''',
+        '''Other content here.
+
+            More content here.
+
+            Some other content.''',
     ),
 }
 
@@ -431,6 +682,7 @@ def test_parse_function_def(
 ):
     """Test the parse_def method of the FunctionInfo class."""
     func_info = FunctionInfo()
+
     func_info.parse_def(input_text)
 
     assert func_info.has_info == has_info
@@ -442,16 +694,46 @@ def test_parse_function_def(
 
 
 @pytest.mark.parametrize(
-    ['input_text', 'expected_text'],
+    [
+        "input_text",
+        "expected_text",
+        "doc_indent",
+        "format_name",
+        "description",
+        "parameters",
+        "returns",
+        "raises",
+        "other",
+    ],
     TEST_CASES_DOCSTRING_PARSE.values(),
     ids=TEST_CASES_DOCSTRING_PARSE.keys(),
 )
-def test_parse_function_docstring(input_text, expected_text):
-    """Test the parse_body method of the FunctionInfo class."""
-    func_info = FunctionInfo()
-    func_info.parse_docstring(input_text.replace('#\n', '\n'))
+def test_parse_function_docstring(
+    input_text,
+    expected_text,
+    doc_indent,
+    format_name,
+    description,
+    parameters,
+    returns,
+    raises,
+    other,
+):
+    """Test the parse_docstring method of the DocstringInfo class."""
+    doc_info = DocstringInfo()
 
-    assert func_info.docstring_text == expected_text
+    doc_info.parse_docstring(input_text.replace('#\n', '\n'))
+    doc_format = doc_info.doc_format
+
+    assert doc_info.text == expected_text
+    assert doc_info.doc_indent == doc_indent
+    assert doc_info.format_name == format_name
+    assert (doc_format.name if doc_format else doc_format) == format_name
+    assert doc_info.description == description
+    assert doc_info.parameters == parameters
+    assert doc_info.returns == returns
+    assert doc_info.raises == raises
+    assert doc_info.other == other
 
 
 @pytest.mark.parametrize(
