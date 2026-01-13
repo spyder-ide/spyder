@@ -481,28 +481,16 @@ class TextEditBaseWidget(
         """
         data = QMimeData()
         if self.get_selected_text():
-            try:
-                html = selection_to_html(self.textCursor())
-                if html:
-                    data.setHtml(html)
-                rtf = selection_to_rtf(self.textCursor())
-                if rtf:
-                    data.setData("application/rtf", rtf)
-            except:
-                pass  # TODO copying text in the internal console throws error
+            html = selection_to_html(self.textCursor())
+            if html:
+                data.setHtml(html)
             data.setText(self.get_selected_text())
             QApplication.clipboard().setMimeData(data)
         else:
             cursor = self.select_current_line_and_sep(set_cursor=False)
-            try:
-                html = selection_to_html(cursor)
-                if html:
-                    data.setHtml(html)
-                rtf = selection_to_rtf(cursor)
-                if rtf:
-                    data.setData("application/rtf", rtf)  # Can't seem to find an application on windows that can see this data
-            except:
-                pass # TODO copying text in internal console throws error
+            html = selection_to_html(cursor)
+            if html:
+                data.setHtml(html)
             data.setText(self.get_selected_text(cursor))
             QApplication.clipboard().setMimeData(data)
 
