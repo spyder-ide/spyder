@@ -20,6 +20,23 @@ from spyder.api.widgets.menus import SpyderMenu
 from spyder.config.manager import CONF
 
 
+# Constants
+
+_MAX_CHARACTERS_PER_LINE = 120
+
+MAX_SIG_LINES = 1000
+"""Maximum number of lines scanned for function signatures."""
+
+MAX_SIG_CHARS = MAX_SIG_LINES * _MAX_CHARACTERS_PER_LINE
+"""Maximum number of characters in a function signature."""
+
+MAX_RETURN_TYPE_LINES = 100
+"""Maximum number of lines for the return type annotation."""
+
+MAX_RETURN_TYPE_CHARS = MAX_RETURN_TYPE_LINES * _MAX_CHARACTERS_PER_LINE
+"""Maximum number of characters in the return type annotation."""
+
+
 def is_start_of_function(text):
     """Return True if text is the beginning of the function definition."""
     if isinstance(text, str):
@@ -51,11 +68,11 @@ def is_in_scope_forward(text):
     """Check if the next empty line could be part of the definition."""
     text = text.replace(r"\"", "").replace(r"\'", "")
     scopes = ["'''", '"""', "'", '"']
-    indices = [10**6] * 4  # Limits function def length to 10**6
+    indices = [MAX_SIG_CHARS] * 4
     for i in range(len(scopes)):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
-    if min(indices) == 10**6:
+    if min(indices) == MAX_SIG_CHARS:
         return (text.count(")") != text.count("(") or
                 text.count("]") != text.count("[") or
                 text.count("}") != text.count("{"))
@@ -79,11 +96,11 @@ def is_tuple_brackets(text):
     """Check if the return type is a tuple."""
     scopes = ["(", "[", "{"]
     complements = [")", "]", "}"]
-    indices = [10**6] * 4  # Limits return type length to 10**6
+    indices = [MAX_RETURN_TYPE_CHARS] * 4
     for i in range(len(scopes)):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
-    if min(indices) == 10**6:
+    if min(indices) == MAX_RETURN_TYPE_CHARS:
         return "," in text
     s = complements[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
@@ -97,11 +114,11 @@ def is_tuple_strings(text):
     """Check if the return type is a string."""
     text = text.replace(r"\"", "").replace(r"\'", "")
     scopes = ["'''", '"""', "'", '"']
-    indices = [10**6] * 4  # Limits return type length to 10**6
+    indices = [MAX_RETURN_TYPE_CHARS] * 4
     for i in range(len(scopes)):
         if scopes[i] in text:
             indices[i] = text.index(scopes[i])
-    if min(indices) == 10**6:
+    if min(indices) == MAX_RETURN_TYPE_CHARS:
         return is_tuple_brackets(text)
     s = scopes[indices.index(min(indices))]
     p = indices[indices.index(min(indices))]
@@ -202,7 +219,7 @@ class DocstringWriterExtension:
         remain_lines = number_of_lines - line_number + 1
         number_of_lines_of_function = 0
 
-        for __ in range(min(remain_lines, 20)):
+        for __ in range(min(remain_lines, MAX_SIG_LINES)):
             cur_text = str(cursor.block().text()).rstrip()
             cur_text = remove_comments(cur_text)
             strip_text = cur_text.strip()
@@ -250,7 +267,7 @@ class DocstringWriterExtension:
         line_number = cursor.blockNumber() + 1
         number_of_lines_of_function = 0
 
-        for __ in range(min(line_number, 20)):
+        for __ in range(min(line_number, MAX_SIG_LINES)):
             if cursor.block().blockNumber() == 0:
                 return None
 
