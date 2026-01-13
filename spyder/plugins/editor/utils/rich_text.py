@@ -8,6 +8,7 @@
 Editor widget export helper functions for rich text
 """
 
+from __future__ import annotations
 
 # Standard library imports
 import html
@@ -33,7 +34,7 @@ HTML_TEMPLATE = cleandoc("""
 class NewL: pass  # NewLine flag
 
 
-def yield_spans(cursor: QTextCursor):
+def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
     """
     Generator to break up text into spans of equal formatting.
     Handle partial spans at beginning and end of the selection.
@@ -68,7 +69,7 @@ def yield_spans(cursor: QTextCursor):
         block = block.next()
 
 
-def format_to_style(char_format: QTextCharFormat):
+def format_to_style(char_format: QTextCharFormat) -> str:
     """
     Gather the foreground color, font-style, and font-weight from a
     QTextCharFormat, and generate the contents of a 'style' tag for a <span>
@@ -82,7 +83,7 @@ def format_to_style(char_format: QTextCharFormat):
     return f"color:{color};font-style: {style};font-weight: {weight}"
 
 
-def selection_to_html(cursor: QTextCursor):
+def selection_to_html(cursor: QTextCursor) -> str:
     """
     Create an html document from a QTextCursor selection
     to capture syntax highlighting.
@@ -166,7 +167,7 @@ def selection_to_html(cursor: QTextCursor):
 """
 
 
-def format_to_rtf(char_format: QTextCharFormat):
+def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
     """
     Gather the foreground color, font-style, and font-weight from a
     QTextCharFormat, and generate the correct RFT control words.
@@ -181,7 +182,7 @@ def format_to_rtf(char_format: QTextCharFormat):
     return color_string, f"{style}{weight}"
 
 
-def selection_to_rtf(cursor: QTextCursor):
+def selection_to_rtf(cursor: QTextCursor) -> bytes:
     """
     Create an rtf document from a QTextCursor selection
     to capture syntax highlighting.
