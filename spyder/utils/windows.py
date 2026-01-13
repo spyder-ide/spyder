@@ -6,9 +6,16 @@
 
 """Windows-specific utilities"""
 
-
+# Standard library imports
 from ctypes import windll
+import os.path as osp
+import sys
 
+# Third-party imports
+from packaging.version import parse
+
+# Local imports
+from spyder import __version__
 
 # --- Window control ---
 
@@ -37,9 +44,18 @@ def is_attached_console_visible():
     return IsWindowVisible(console_window_handle)
 
 def set_windows_appusermodelid():
-    """Make sure correct icon is used on Windows 7 taskbar"""
+    """
+    Make sure the correct icon is used on Windows taskbar by setting the
+    AppUserModelID identical to that used by our menuinst shortcuts.
+    """
+    spy_ver = parse(__version__)
+    env_name = osp.basename(osp.dirname(sys.executable))
+    app_user_model_id = f"spyder-ide.Spyder-{spy_ver.major}.{env_name}"
+
     try:
-        return windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyder.Spyder")
+        return windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            app_user_model_id
+        )
     except AttributeError:
         return "SetCurrentProcessExplicitAppUserModelID not found"
 

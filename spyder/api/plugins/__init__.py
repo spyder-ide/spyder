@@ -28,9 +28,9 @@ from .new_api import SpyderDockablePlugin, SpyderPluginV2  # noqa
 
 
 __all__ = [
+    "Plugins",
     "DockablePlugins",
     "OptionalPlugins",
-    "Plugins",
-    "SpyderDockablePlugin",
     "SpyderPluginV2",
+    "SpyderDockablePlugin",
 ]
