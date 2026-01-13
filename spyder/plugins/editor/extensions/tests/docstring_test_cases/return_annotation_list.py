@@ -32,6 +32,7 @@ def get_action(
 
     :param widget_id: DESCRIPTION
     :type widget_id: TYPE
+
     :rtype: list[QTextCharFormat | None, str | NewL]
     :returns: DESCRIPTION
     """

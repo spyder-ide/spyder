@@ -34,6 +34,7 @@ def yield_spans(
 
     :param cursor: DESCRIPTION
     :type cursor: QTextCursor
+
     :rtype: tuple[QTextCharFormat | None, str | NewL]
     :returns: DESCRIPTION
     """

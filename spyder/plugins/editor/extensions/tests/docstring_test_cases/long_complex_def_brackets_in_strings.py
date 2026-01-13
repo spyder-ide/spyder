@@ -59,6 +59,7 @@ def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     :type arg4: TYPE
     :param arg5: DESCRIPTION, defaults to '""'
     :type arg5: str
+
     :rtype: List[Tuple[str, float]], str, float
     :returns: DESCRIPTION
     """

@@ -39,6 +39,7 @@
       """SUMMARY.
 
       :rtype: None
+
       :raises ValueError: DESCRIPTION
       :raises TypeError: DESCRIPTION
       """

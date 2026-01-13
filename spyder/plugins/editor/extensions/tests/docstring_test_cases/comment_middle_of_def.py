@@ -34,6 +34,7 @@
       :type v1: str
       :param v2: DESCRIPTION, defaults to '#'
       :type v2: str
+
       :rtype: str
       :returns: DESCRIPTION
       """

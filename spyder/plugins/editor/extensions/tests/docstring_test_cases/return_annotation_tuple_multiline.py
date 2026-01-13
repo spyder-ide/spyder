@@ -42,6 +42,7 @@ def spam(
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE
+
     :rtype: tuple[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]
     :returns: DESCRIPTION
     """

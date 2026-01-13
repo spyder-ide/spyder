@@ -37,5 +37,6 @@ def spam(
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to "test\"string"
     :type arg2: TYPE
+
     :rtype: None
     """

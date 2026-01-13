@@ -33,5 +33,6 @@ class F:
         """SUMMARY.
 
         :rtype: None
+
         :raises ValueError: DESCRIPTION
         """

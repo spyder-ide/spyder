@@ -33,6 +33,7 @@ def spam(arg1) -> list[
 
     :param arg1: DESCRIPTION
     :type arg1: TYPE
+
     :rtype: list[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]
     :returns: DESCRIPTION
     """

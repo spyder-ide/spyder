@@ -88,6 +88,7 @@ def terrain_model(file, grid_size=10, buffer_val=20, figsize=(12,12),
     :type mp: TYPE
     :param path2asc: DESCRIPTION, defaults to r'O:\Diverse\EDW\Master\Terrænmodel 10m grid\\'
     :type path2asc: TYPE
+
     :rtype: TYPE
     :returns: DESCRIPTION
     """

@@ -158,6 +158,7 @@ def spam(
     :type argl: str
     :param argm: DESCRIPTION, defaults to "eggs"
     :type argm: str
+
     :rtype: bool
     :returns: DESCRIPTION
     """

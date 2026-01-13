@@ -34,6 +34,7 @@ def get_action(
 
     :param widget_id: DESCRIPTION
     :type widget_id: TYPE
+
     :rtype: spyder.utils.qthelpers.SpyderAction | None
     :returns: DESCRIPTION
     """
