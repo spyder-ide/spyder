@@ -391,8 +391,8 @@ class WorkerUpdate(BaseWorker):
 
             if self.channel == "pypi":
                 url = "https://pypi.python.org/pypi/spyder/json"
-            else:
-                url += '/channeldata.json'
+            elif url is not None:
+                url += "/channeldata.json"
 
         try:
             release = None
