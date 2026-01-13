@@ -56,7 +56,8 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             Name of the shortcut context, e.g. ``"editor"`` for shortcuts
             that have effect when the :guilabel:`Editor` is focused or
             ``"_"`` for global shortcuts. If not set, the widget's
-            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` will
+            be used as context.
         plugin_name: str | None, optional
             Name of the plugin where the shortcut is defined. Defaults to the
             context name; necessary for third-party plugins that have shortcuts
@@ -95,7 +96,8 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             Name of the shortcut context, e.g. ``"editor"`` for shortcuts
             that have effect when the :guilabel:`Editor` is focused or
             ``"_"`` for global shortcuts. If not set, the widget's
-            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` will
+            be used as context.
         plugin_name: str | None, optional
             Name of the plugin where the shortcut is defined. Defaults to the
             context name; necessary for third-party plugins that have shortcuts
@@ -137,7 +139,8 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             Name of the shortcut context, e.g. ``"editor"`` for shortcuts
             that have effect when the :guilabel:`Editor` is focused or
             ``"_"`` for global shortcuts. If not set, the widget's
-            :attr:`~SpyderPluginV2.CONF_SECTION` will be used as context.
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` will
+            be used as context.
         plugin_name: str | None, optional
             Name of the plugin where the shortcut is defined. Defaults to the
             context name; necessary for third-party plugins that have shortcuts
