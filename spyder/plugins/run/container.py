@@ -278,7 +278,7 @@ class RunContainer(PluginMainContainer):
             print("Re-running last executed file Test 3==============================")
 
         self.edit_run_configurations(
-            display_dialog=True,
+            display_dialog=False,
             selected_executor=selected_executor
         )
         print("Re-running last executed file Test 4==============================")
@@ -413,6 +413,9 @@ class RunContainer(PluginMainContainer):
             metadata = self.metadata_model[uuid]
             self.current_input_provider = metadata['source']
             self.current_input_extension = metadata['input_extension']
+
+            input_provider = self.run_metadata_provider[uuid]
+            input_provider.focus_run_configuration(uuid)
             self.set_actions_status()
 
             return
