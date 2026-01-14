@@ -33,7 +33,7 @@ from spyder.api.translations import _
 from spyder.config.base import (
     is_conda_based_app,
     is_installed_all_users,
-    running_in_ci
+    running_in_ci,
 )
 from spyder.plugins.updatemanager.utils import get_updater_info
 from spyder.utils.conda import get_spyder_conda_channel, find_conda
@@ -45,19 +45,19 @@ logger = logging.getLogger(__name__)
 CURRENT_VERSION = parse(__version__)
 
 CONNECT_ERROR_MSG = _(
-    'Unable to connect to the Spyder update service.'
-    '<br><br>Make sure your connection is working properly.'
+    "Unable to connect to the Spyder update service."
+    "<br><br>Make sure your connection is working properly."
 )
 
 HTTP_ERROR_MSG = _(
-    'HTTP error {status_code} when checking for updates.'
-    '<br><br>Make sure your connection is working properly,'
-    'and try again later.'
+    "HTTP error {status_code} when checking for updates."
+    "<br><br>Make sure your connection is working properly,"
+    "and try again later."
 )
 
 SSL_ERROR_MSG = _(
-    'SSL certificate verification failed while checking for Spyder updates.'
-    '<br><br>Please contact your network administrator for assistance.'
+    "SSL certificate verification failed while checking for Spyder updates."
+    "<br><br>Please contact your network administrator for assistance."
 )
 
 OS_ERROR_MSG = _(
@@ -68,7 +68,7 @@ OS_ERROR_MSG = _(
 )
 
 GH_HEADERS = {"Accept": "application/vnd.github+json"}
-_token = os.getenv('GITHUB_TOKEN')
+_token = os.getenv("GITHUB_TOKEN")
 if running_in_ci() and _token:
     GH_HEADERS.update(Authorization=f"Bearer {_token}")
 
@@ -101,8 +101,7 @@ class AssetInfo(TypedDict):
 
 
 def get_github_releases(
-    tags: str | tuple[str] | None = None,
-    updater: bool = False
+    tags: str | tuple[str] | None = None, updater: bool = False
 ) -> dict[Version, dict]:
     """
     Get Github release information
@@ -148,7 +147,7 @@ def get_github_releases(
                 page.raise_for_status()
                 data.append(page.json())
 
-    return {parse(item['tag_name']): item for item in data}
+    return {parse(item["tag_name"]): item for item in data}
 
 
 def get_asset_info(
@@ -176,7 +175,9 @@ def get_asset_info(
 
     if current_version.major < release.major or not is_conda_based_app():
         update_type = UpdateType.Major
-    elif current_version.minor < release.minor or current_version.is_prerelease:
+    elif (
+        current_version.minor < release.minor or current_version.is_prerelease
+    ):
         update_type = UpdateType.Minor
     else:
         update_type = UpdateType.Micro
@@ -187,11 +188,11 @@ def get_asset_info(
         filename = "spyder-conda-lock.zip"
     else:
         machine = platform.machine().lower().replace("amd64", "x86_64")
-        if os.name == 'nt':
+        if os.name == "nt":
             filename = f"Spyder-Windows-{machine}.exe"
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             filename = f"Spyder-macOS-{machine}.pkg"
-        if sys.platform.startswith('linux'):
+        if sys.platform.startswith("linux"):
             filename = f"Spyder-Linux-{machine}.sh"
 
     asset_info = None
@@ -212,7 +213,7 @@ def get_asset_info(
 def _check_asset_available(
     releases: dict[Version, dict],
     current_version: Version,
-    updater: bool = False
+    updater: bool = False,
 ) -> AssetInfo | None:
     latest_release = max(releases) if releases else current_version
     update_available = current_version < latest_release
@@ -273,8 +274,8 @@ def validate_download(file: str, checksum: str) -> bool:
     logger.debug(f"Valid {file}: {valid}")
 
     # Extract validated zip files
-    if valid and file.endswith('.zip'):
-        with ZipFile(file, 'r') as f:
+    if valid and file.endswith(".zip"):
+        with ZipFile(file, "r") as f:
             f.extractall(osp.dirname(file))
         logger.debug(f"{file} extracted.")
 
@@ -283,16 +284,19 @@ def validate_download(file: str, checksum: str) -> bool:
 
 class UpdateDownloadCancelledException(Exception):
     """Download for installer to update was cancelled."""
+
     pass
 
 
 class UpdateDownloadError(Exception):
     """Error occured while downloading file"""
+
     pass
 
 
 class UpdateUpdaterUACCancelled(Exception):
     """UAC elevation was cancelled"""
+
     pass
 
 
@@ -391,8 +395,8 @@ class WorkerUpdate(BaseWorker):
 
             if self.channel == "pypi":
                 url = "https://pypi.python.org/pypi/spyder/json"
-            else:
-                url += '/channeldata.json'
+            elif url is not None:
+                url += "/channeldata.json"
 
         try:
             release = None
@@ -407,13 +411,14 @@ class WorkerUpdate(BaseWorker):
 
                 if self.channel == "pypi":
                     releases = [
-                        parse(k) for k in data["releases"].keys()
+                        parse(k)
+                        for k in data["releases"].keys()
                         if not parse(k).is_prerelease
                     ]
                     release = max(releases)
                 else:
                     # Conda pkgs/main or conda-forge url
-                    spyder_data = data['packages'].get('spyder')
+                    spyder_data = data["packages"].get("spyder")
                     if spyder_data:
                         release = parse(spyder_data["version"])
 
@@ -504,11 +509,8 @@ class WorkerUpdateUpdater(BaseWorker):
             self.asset_info["filename"],
         )
 
-        if (
-            osp.exists(self.installer_path)
-            and validate_download(
-                self.installer_path, self.asset_info["checksum"]
-            )
+        if osp.exists(self.installer_path) and validate_download(
+            self.installer_path, self.asset_info["checksum"]
         ):
             logger.debug(f"{self.installer_path} already downloaded.")
             return
@@ -522,11 +524,11 @@ class WorkerUpdateUpdater(BaseWorker):
 
         page = requests.get(url, headers=GH_HEADERS)
         page.raise_for_status()
-        with open(self.installer_path, 'wb') as f:
+        with open(self.installer_path, "wb") as f:
             f.write(page.content)
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
-            logger.info('Download successfully completed.')
+            logger.info("Download successfully completed.")
         else:
             raise UpdateDownloadError("Download failed!")
 
@@ -552,7 +554,7 @@ class WorkerUpdateUpdater(BaseWorker):
         updater_script = osp.join(
             osp.dirname(__file__),
             "scripts",
-            "updater.bat" if os.name == "nt" else "updater.sh"
+            "updater.bat" if os.name == "nt" else "updater.sh",
         )
         conda_exe = find_conda()
         conda_cmd = "create"
@@ -567,7 +569,9 @@ class WorkerUpdateUpdater(BaseWorker):
             plat = "osx-arm64" if platform.machine() == "arm64" else "osx-64"
         else:
             plat = "linux-64"
-        spy_updater_lock = osp.join(installer_dir, f"conda-updater-{plat}.lock")
+        spy_updater_lock = osp.join(
+            installer_dir, f"conda-updater-{plat}.lock"
+        )
         spy_updater_conda = glob(
             osp.join(installer_dir, "spyder-updater*.conda")
         )[0]
@@ -719,7 +723,7 @@ class WorkerDownloadInstaller(BaseWorker):
             size = int(r.headers["content-length"])
             self._progress_reporter(0, size)
 
-            with open(self.installer_path, 'wb') as f:
+            with open(self.installer_path, "wb") as f:
                 chunk_size = 8 * 1024
                 size_read = 0
                 for chunk in r.iter_content(chunk_size=chunk_size):
@@ -728,7 +732,7 @@ class WorkerDownloadInstaller(BaseWorker):
                     self._progress_reporter(size_read, size)
 
         if validate_download(self.installer_path, self.asset_info["checksum"]):
-            logger.info('Download successfully completed.')
+            logger.info("Download successfully completed.")
         else:
             raise UpdateDownloadError("Download failed!")
 
@@ -756,16 +760,15 @@ class WorkerDownloadInstaller(BaseWorker):
             logger.warning(err, exc_info=err)
         except Exception as err:
             error = traceback.format_exc()
-            formatted_error = (
-                error.replace('\n', '<br>')
-                .replace(' ', '&nbsp;')
+            formatted_error = error.replace("\n", "<br>").replace(
+                " ", "&nbsp;"
             )
 
             self.error = _(
-                'It was not possible to download the installer due to the '
-                'following error:'
-                '<br><br>'
-                '<tt>{}</tt>'
+                "It was not possible to download the installer due to the "
+                "following error:"
+                "<br><br>"
+                "<tt>{}</tt>"
             ).format(formatted_error)
             logger.warning(err, exc_info=err)
             self._clean_installer_dir()
