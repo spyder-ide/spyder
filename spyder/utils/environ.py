@@ -58,6 +58,11 @@ def _get_user_env_script():
             f"""\
             #!{shell} -i
             unset HISTFILE
+
+            # PackageKit-command-not-found package can cause recursion, so unset it here
+            # See spyder-ide/spyder#24716
+            type command_not_found_handle &>/dev/null && unset -f command_not_found_handle
+
             {shell} -l -c "'{sys.executable}' -c 'import os; print(dict(os.environ))'"
             """
         )
