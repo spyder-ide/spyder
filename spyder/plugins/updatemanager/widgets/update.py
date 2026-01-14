@@ -715,7 +715,7 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
                 result = super().event(event)
             else:
                 result = False
-            
+
             # Allow resize only if details is available and visible.
             if self.details and self.details.isVisible():
                 self.details.setMaximumSize(10000, 10000)
@@ -858,8 +858,10 @@ def manual_update_messagebox(parent, latest_release, channel):
         else:
             if channel == 'pkgs/main':
                 channel = '-c defaults'
-            else:
+            elif channel is not None:
                 channel = f'-c {channel}'
+            else:
+                channel = ''
 
             msg += (
                 f"<code>conda install {channel} "
