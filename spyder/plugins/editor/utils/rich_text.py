@@ -55,7 +55,7 @@ def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
         if not first_block:
             yield None, NewL()
         first_block = False
-        for f_range in block.layout().additionalFormats():
+        for f_range in block.layout().formats():
             range_end = f_range.start + f_range.length
             if rel_start > range_end:
                 continue  # skip ranges until start of selection
