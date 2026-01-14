@@ -861,7 +861,7 @@ def manual_update_messagebox(parent, latest_release, channel):
             elif channel is not None:
                 channel = f'-c {channel}'
             else:
-                channel = '-c conda-forge'
+                channel = ''
 
             msg += (
                 f"<code>conda install {channel} "
