@@ -480,15 +480,19 @@ class TextEditBaseWidget(
         Copy text to clipboard with correct EOL chars
         """
         data = QMimeData()
+        bg_color = ""
+        if hasattr(self, "highlighter"):
+            if self.highlighter is not None:
+                bg_color = self.highlighter.background_color
         if self.get_selected_text():
-            html = selection_to_html(self.textCursor())
+            html = selection_to_html(self.textCursor(), bg_color)
             if html:
                 data.setHtml(html)
             data.setText(self.get_selected_text())
             QApplication.clipboard().setMimeData(data)
         else:
             cursor = self.select_current_line_and_sep(set_cursor=False)
-            html = selection_to_html(cursor)
+            html = selection_to_html(cursor, bg_color)
             if html:
                 data.setHtml(html)
             data.setText(self.get_selected_text(cursor))
