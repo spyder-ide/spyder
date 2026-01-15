@@ -99,6 +99,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     SEPARATOR = '{0}## ---({1})---'.format(os.linesep*2, time.ctime())
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***', ]
+    SHELL_WIDGET_CLASS = ShellWidget
 
     def __init__(
         self,
@@ -154,7 +155,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
-        self.shellwidget = ShellWidget(
+        self.shellwidget = self.SHELL_WIDGET_CLASS(
             config=config_options,
             ipyclient=self,
             additional_options=additional_options,
