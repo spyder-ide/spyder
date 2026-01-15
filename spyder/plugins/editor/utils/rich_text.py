@@ -220,4 +220,4 @@ def selection_to_rtf(cursor: QTextCursor) -> bytes:
     color_table = f"{{\\colortbl;{''.join(color_table)}}}"
     header = f"{{\\rtf1{font_table}{color_table}\n\\f0\\fs{font_size*2} "
     sio.write("}") #footer
-    return (header + sio.getvalue()).encode("ansi")
+    return (header + sio.getvalue()).encode("ascii")
