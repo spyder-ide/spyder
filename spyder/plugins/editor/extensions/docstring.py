@@ -462,8 +462,14 @@ class DocstringWriterExtension:
         heading = "Yields" if func_info.has_yield else "Returns"
         header = f"{indent1}{heading}\n{indent1}{'-' * len(heading)}\n"
 
-        return_type_annotated = func_info.return_type_annotated
-        if return_type_annotated:
+        return_types = func_info.return_type_annotated
+        if return_types:
+            if len(return_types) > 1:
+                return_type_annotated = (
+                    f'\n{indent3}DESCRIPTION.\n{indent1}'.join(return_types)
+                )
+            else:
+                return_type_annotated = return_types[0]
             return_section = '{}{}{}'.format(
                 header, indent1, return_type_annotated
             )
@@ -552,8 +558,13 @@ class DocstringWriterExtension:
         heading = "Yields" if func_info.has_yield else "Returns"
         header = f"{indent1}{heading}:\n"
 
-        return_type_annotated = func_info.return_type_annotated
-        if return_type_annotated:
+        return_types = func_info.return_type_annotated
+        if return_types:
+            if len(return_types) > 1:
+                tuple_values = ', '.join(return_types)
+                return_type_annotated = f'tuple[{tuple_values}]'
+            else:
+                return_type_annotated = return_types[0]
             return_section = '{}{}{}'.format(
                 header, indent2, return_type_annotated
             )
@@ -639,8 +650,13 @@ class DocstringWriterExtension:
         header = f'{indent1}:rtype: '
         return_desc = f'{indent1}:returns: DESCRIPTION'
 
-        return_type_annotated = func_info.return_type_annotated
-        if return_type_annotated:
+        return_types = func_info.return_type_annotated
+        if return_types:
+            if len(return_types) > 1:
+                tuple_values = ', '.join(return_types)
+                return_type_annotated = f'tuple[{tuple_values}]'
+            else:
+                return_type_annotated = return_types[0]
             return_section = f'{header}{return_type_annotated}'
             if return_type_annotated != 'None':
                 return_section += f'\n{return_desc}'
@@ -875,6 +891,11 @@ class DocstringWriterExtension:
 class FunctionInfo:
     """Parse function definition text."""
 
+    RETURN_TYPE_REGEX = (
+        r'->\s*((?:\s|[\"\'a-zA-Z0-9_,.()\[\]|])+)\s*\: *$'
+    )
+    RETURN_TUPLE_REGEX = r'^(?:typing\.)?[Tt]uple\[\s*((?:\s|.)+)\s*\]$'
+
     def __init__(self):
         """."""
         self.has_info = False
@@ -1033,6 +1054,48 @@ class FunctionInfo:
 
         return args_list
 
+    def split_return_tuple(self, text):
+        """Split the type variables to a return tuple."""
+        return_items = self.split_args_text_to_list(text)
+        return_items_stripped = []
+
+        for item in return_items:
+            item = item.strip().strip(""" "'""")
+            if item and item != '...':
+                return_items_stripped.append(item)
+
+        return return_items_stripped
+
+    def parse_return_type_annotation(self, text):
+        """Extract, parse and format the function's return type annotation."""
+        return_type_match = re.search(self.RETURN_TYPE_REGEX, text)
+
+        if not return_type_match:
+            return None, len(text)
+
+        return_type = return_type_match.group(1).strip().strip(
+            """ "'()\\"""
+        )
+        text_end = text.rfind(return_type_match.group(0))
+
+        # If not a tuple, return the whole type
+        return_tuple_match = re.search(self.RETURN_TUPLE_REGEX, return_type)
+        if not return_tuple_match:
+            return [return_type], text_end
+
+        # If a 1-tuple, return the whole type
+        tuple_values = return_tuple_match.group(1).strip()
+        if not is_tuple_brackets(tuple_values):
+            return [return_type], text_end
+
+        # If only one item or an arbitrary-length tuple, return the whole type
+        return_types = self.split_return_tuple(tuple_values)
+        if len(return_types) < 2:
+            return [return_type], text_end
+
+        # Else, return the list of return tuple items
+        return return_types, text_end
+
     def parse_def(self, text):
         """Parse the function definition text."""
         self.__init__()
@@ -1043,19 +1106,9 @@ class FunctionInfo:
         self.func_indent = get_indent(text)
 
         text = text.strip()
-
-        return_type_re = re.search(
-            r'->[ ]*([\"\'a-zA-Z0-9_,()\[\] ]*):$', text)
-        if return_type_re:
-            self.return_type_annotated = return_type_re.group(1).strip(" ()\\")
-            if is_tuple_strings(self.return_type_annotated):
-                self.return_type_annotated = (
-                    "(" + self.return_type_annotated + ")"
-                )
-            text_end = text.rfind(return_type_re.group(0))
-        else:
-            self.return_type_annotated = None
-            text_end = len(text)
+        self.return_type_annotated, text_end = (
+            self.parse_return_type_annotation(text)
+        )
 
         pos_args_start = text.find('(') + 1
         pos_args_end = text.rfind(')', pos_args_start, text_end)
