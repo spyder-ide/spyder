@@ -144,6 +144,32 @@ def remove_comments(text):
     return re.sub(pattern=r"""(?<!['"])(#.*)""", repl="", string=text)
 
 
+def collapse_line_breaks_annotation(text):
+    """Collapse a type annotation into a single line."""
+    lines = re.sub("\s{2,}", "\n", text.strip()).split("\n")
+    collapsed_lines = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        if not collapsed_lines:
+            collapsed_lines.append(line)
+            continue
+
+        prev = collapsed_lines[-1][-1]
+        this = line[0]
+        if this in {")", "]", "}"}:
+            collapsed_lines[-1] = collapsed_lines[-1].rstrip(",")
+            collapsed_lines.append(line)
+        elif prev in {"(", "[", "{"}:
+            collapsed_lines.append(line)
+        else:
+            collapsed_lines.append(f" {line}")
+
+    return "".join(collapsed_lines)
+
+
 class DocstringWriterExtension:
     """Class for insert docstring template automatically."""
 
@@ -1076,6 +1102,7 @@ class FunctionInfo:
         return_type = return_type_match.group(1).strip().strip(
             """ "'()\\"""
         )
+        return_type = collapse_line_breaks_annotation(return_type)
         text_end = text.rfind(return_type_match.group(0))
 
         # If not a tuple, return the whole type
