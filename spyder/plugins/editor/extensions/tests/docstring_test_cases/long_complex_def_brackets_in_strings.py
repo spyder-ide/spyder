@@ -24,7 +24,7 @@ def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
 
     Returns
     -------
-    (List[Tuple[str, float]], str, float)
+    List[Tuple[str, float]], str, float
         DESCRIPTION.
     """
 # %% google
@@ -40,7 +40,7 @@ def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
         arg5 (str, optional): DESCRIPTION. Defaults to '""'.
 
     Returns:
-        (List[Tuple[str, float]], str, float): DESCRIPTION.
+        List[Tuple[str, float]], str, float: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
@@ -59,6 +59,6 @@ def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     :type arg4: TYPE, optional
     :param arg5: DESCRIPTION, defaults to '""'
     :type arg5: str, optional
-    :rtype: (List[Tuple[str, float]], str, float)
+    :rtype: List[Tuple[str, float]], str, float
     :returns: DESCRIPTION
     """

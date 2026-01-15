@@ -149,7 +149,7 @@ TEST_CASES_DEF_PARSE = {
         ['arg0', 'arg1', 'arg2'],
         [None, None, 'str'],
         [None, "':'", "'-> (float, str):'"],
-        '(float, int)',
+        ['float, int'],
     ),
 }
 

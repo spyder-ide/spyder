@@ -1,10 +1,10 @@
 # %% sig
-def test(
+def spam(
     arg1, arg2=True
-) -> (
-    str,
-    bool,
-):
+) -> tuple[
+    _P,
+    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],
+]:
 # %% body
     pass
 # %% numpy
@@ -20,7 +20,9 @@ def test(
 
     Returns
     -------
-    str,    bool,
+    _P
+        DESCRIPTION.
+    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]
         DESCRIPTION.
     """
 # %% google
@@ -31,7 +33,7 @@ def test(
         arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        str,    bool,: DESCRIPTION.
+        tuple[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
@@ -40,6 +42,6 @@ def test(
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE, optional
-    :rtype: str,    bool,
+    :rtype: tuple[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]
     :returns: DESCRIPTION
     """

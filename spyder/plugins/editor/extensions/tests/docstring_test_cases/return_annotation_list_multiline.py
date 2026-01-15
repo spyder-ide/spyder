@@ -1,10 +1,8 @@
 # %% sig
-def test(
-    arg1, arg2=True
-) -> (
-    str,
-    bool,
-):
+def spam(arg1) -> list[
+    _P,
+    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],
+]:
 # %% body
     pass
 # %% numpy
@@ -15,12 +13,10 @@ def test(
     ----------
     arg1 : TYPE
         DESCRIPTION.
-    arg2 : TYPE, optional
-        DESCRIPTION. The default is True.
 
     Returns
     -------
-    str,    bool,
+    list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]
         DESCRIPTION.
     """
 # %% google
@@ -28,18 +24,15 @@ def test(
 
     Args:
         arg1 (TYPE): DESCRIPTION.
-        arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        str,    bool,: DESCRIPTION.
+        list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
 
     :param arg1: DESCRIPTION
     :type arg1: TYPE
-    :param arg2: DESCRIPTION, defaults to True
-    :type arg2: TYPE, optional
-    :rtype: str,    bool,
+    :rtype: list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]
     :returns: DESCRIPTION
     """
