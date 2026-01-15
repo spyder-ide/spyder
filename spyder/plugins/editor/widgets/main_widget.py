@@ -27,8 +27,16 @@ from qtpy.compat import from_qvariant
 from qtpy.QtCore import QByteArray, Qt, Signal, Slot
 from qtpy.QtGui import QTextCursor
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
-from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
-                            QSplitter, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QAction,
+    QActionGroup,
+    QApplication,
+    QDialog,
+    QMessageBox,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -48,6 +56,7 @@ from spyder.plugins.editor.api.run import (
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
+from spyder.plugins.editor.utils.remote import RemoteFileHelper
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -301,6 +310,9 @@ class EditorMainWidget(PluginMainWidget):
         # Multiply by 1000 to convert seconds to milliseconds
         self.autosave.interval = self.get_conf('autosave_interval') * 1000
         self.autosave.enabled = self.get_conf('autosave_enabled')
+
+        # Remote file helper
+        self._remote_helper = None
 
         # SimpleCodeEditor instance used to print file contents
         self._print_editor = self._create_print_editor()
@@ -789,6 +801,9 @@ class EditorMainWidget(PluginMainWidget):
             window.close()
         self.autosave.stop_autosave_timer()
 
+        if self._remote_helper is not None:
+            self._remote_helper.close()
+
     # ---- Private API
     # ------------------------------------------------------------------------
     def _get_mainwindow(self):
@@ -796,6 +811,21 @@ class EditorMainWidget(PluginMainWidget):
 
     def _get_color_scheme(self):
         return self._plugin.get_color_scheme()
+
+    def _handle_remote_load_error(self, filename, error):
+        """Notify users when a remote file couldn't be loaded."""
+        logger.debug(
+            "Failed to open remote file {} with error\n\n{}".format(
+                filename, error
+            )
+        )
+        QMessageBox.critical(
+            self,
+            _("Remote file error"),
+            _("<b>Unable to open %s</b><br><br>%s")
+            % (filename, error),
+            QMessageBox.Ok
+        )
 
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -1351,6 +1381,9 @@ class EditorMainWidget(PluginMainWidget):
         # component
         self.autosave.register_autosave_for_stack(editorstack.autosave)
 
+        # For remote files
+        editorstack.set_remote_helper(self._remote_helper)
+
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
         logger.debug("Unregistering EditorStack")
@@ -1838,8 +1871,15 @@ class EditorMainWidget(PluginMainWidget):
               and not isinstance(focus_widget, CodeEditor)):
             self.switch_to_plugin()
 
+        remote_handles = {}
+
         def _convert(fname):
             fname = encoding.to_unicode_from_fs(fname)
+            remote_handle = RemoteFileHelper.get_handle(fname)
+            if remote_handle is not None:
+                normalized = remote_handle.uri
+                remote_handles[normalized] = remote_handle
+                return normalized
             if os.name == 'nt':
                 # Try to get the correct capitalization and absolute path
                 try:
@@ -1870,14 +1910,27 @@ class EditorMainWidget(PluginMainWidget):
             goto = None
 
         for index, filename in enumerate(filenames):
+            remote_handle = remote_handles.get(filename)
+            remote_text = None
+            remote_encoding = None
             # -- Do not open an already opened file
             focus = set_focus and index == 0
             current_editor = self.set_current_filename(filename,
                                                        editorwindow,
                                                        focus=focus)
             if current_editor is None:
+                if remote_handle is not None:
+                    try:
+                        remote_helper = self._require_remote_helper()
+                        remote_text, remote_encoding, remote_handle = (
+                            remote_helper.read_text(remote_handle)
+                        )
+                    except Exception as error:
+                        self._handle_remote_load_error(filename, error)
+                        continue
+                    remote_handles[filename] = remote_handle
                 # Not a valid filename, we need to continue.
-                if not osp.isfile(filename):
+                if remote_handle is None and not osp.isfile(filename):
                     continue
 
                 current_es = self.get_current_editorstack(editorwindow)
@@ -1886,8 +1939,14 @@ class EditorMainWidget(PluginMainWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where,
-                    processevents=processevents)
+                    filename,
+                    set_current=False,
+                    add_where=add_where,
+                    processevents=processevents,
+                    text=remote_text,
+                    encoding_name=remote_encoding,
+                    remote_handle=remote_handle,
+                )
 
                 # This can happen when it was not possible to load filename
                 # from disk.
@@ -3064,3 +3123,17 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks:
             editorstack.register_panel(
                 panel_class, *args, position=position, **kwargs)
+
+    # ---- Remote files
+    # -------------------------------------------------------------------------
+    def set_remote_helper(self, remote_client):
+        """Set the remote file helper."""
+        self._remote_helper = RemoteFileHelper(remote_client)
+        for editorstack in self.editorstacks:
+            editorstack.set_remote_helper(self._remote_helper)
+
+    def _require_remote_helper(self):
+        """Ensure that a remote file helper is available."""
+        if self._remote_helper is None:
+            raise RuntimeError("Remote Client plugin is not available.")
+        return self._remote_helper
