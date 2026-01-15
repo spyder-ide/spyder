@@ -20,7 +20,7 @@ def test(
 
     Returns
     -------
-    str,    bool,
+    str, bool
         DESCRIPTION.
     """
 # %% google
@@ -31,7 +31,7 @@ def test(
         arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
 
     Returns:
-        str,    bool,: DESCRIPTION.
+        str, bool: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
@@ -40,6 +40,6 @@ def test(
     :type arg1: TYPE
     :param arg2: DESCRIPTION, defaults to True
     :type arg2: TYPE, optional
-    :rtype: str,    bool,
+    :rtype: str, bool
     :returns: DESCRIPTION
     """

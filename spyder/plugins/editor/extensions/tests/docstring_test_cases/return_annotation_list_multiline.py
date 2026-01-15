@@ -16,7 +16,7 @@ def spam(arg1) -> list[
 
     Returns
     -------
-    list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]
+    list[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]
         DESCRIPTION.
     """
 # %% google
@@ -26,13 +26,13 @@ def spam(arg1) -> list[
         arg1 (TYPE): DESCRIPTION.
 
     Returns:
-        list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]: DESCRIPTION.
+        list[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]: DESCRIPTION.
     """
 # %% sphinx
     """SUMMARY.
 
     :param arg1: DESCRIPTION
     :type arg1: TYPE
-    :rtype: list[    _P,    _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T],]
+    :rtype: list[_P, _T | DispatcherFuture[_T] | collections.abc.Awaitable[_T]]
     :returns: DESCRIPTION
     """
