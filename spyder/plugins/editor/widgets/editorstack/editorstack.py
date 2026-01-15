@@ -45,8 +45,8 @@ from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.utils.rich_text import (selection_to_html,
-                                                   selection_to_rtf)
+from spyder.plugins.editor.utils.rich_text import (
+    selection_to_html, selection_to_rtf)
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
@@ -2217,7 +2217,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         return all_saved
 
     def export_with_formatting(self, suffix):
-        """Save file with syntax highlighting"""
+        """Save file with syntax highlighting."""
 
         if not self.data:
             return
@@ -2253,9 +2253,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                         f.write(selection_to_rtf(cursor))
 
     def export_html(self):
+        """Export the current file as HTML."""
         self.export_with_formatting(".html")
 
     def export_rtf(self):
+        """Export the current file as RTF."""
         self.export_with_formatting(".rtf")
 
     # ---- Update UI

@@ -367,7 +367,7 @@ class EditorMainWidget(PluginMainWidget):
             EditorWidgetActions.ExportMenu,
             text=_("Export"),
             # icon=self.create_icon('mdi.file-export'),  # TODO Pick an Icon?
-            tip=_("Export file with syntax highlighting"),
+            tip=_("Export the current file with syntax highlighting"),
             triggered=lambda: None
         )
         self.export_menu = self.create_menu(EditorWidgetMenus.ExportMenu)
@@ -375,14 +375,14 @@ class EditorMainWidget(PluginMainWidget):
 
         self.export_html_action = self.create_action(
             EditorWidgetActions.ExportHtml,
-            text=_("Export HTML"),
+            text=_("Export as HTML"),
             icon=self.create_icon("CodeFileIcon"),  # TODO code file icon name?
             triggered=lambda: self.get_current_editorstack().export_html(),
             register_shortcut=True
         )
         self.export_rtf_action = self.create_action(
             EditorWidgetActions.ExportRtf,
-            text=_("Export RTF"),
+            text=_("Export as RTF"),
             icon=self.create_icon("WordFileIcon"),  # TODO code file icon name?
             triggered=lambda: self.get_current_editorstack().export_rtf(),
             register_shortcut=True
