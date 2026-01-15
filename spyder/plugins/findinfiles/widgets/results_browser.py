@@ -259,9 +259,9 @@ class ResultsBrowser(OneColumnTree, SpyderFontsMixin):
         self.files = {}
         self.set_sorting(OFF)
         self.search_text = search_text
-        title = "'%s' - " % search_text
-        text = _('String not found')
-        self.set_title(title + text)
+
+        # See spyder-ide/spyder#25575 for the rationale to select this title
+        self.set_title(f"'{search_text}' - " + _("Searching..."))
 
     def set_title(self, title):
         # Prevent the title's width to be bigger than the widget's one.
