@@ -275,7 +275,7 @@ DESCRIPTIONS = [
      'required_version': RTREE_REQVER},
     {'modname': "rtfunicode",
      'package_name': "rtfunicode",
-     'features': _("Encode unicode code points to Rich Text Format command words"),
+     'features': _("Encode Unicode code points to Rich Text Format command words"),
      'required_version': RTFUNICODE},
     {'modname': "sphinx",
      'package_name': "sphinx",

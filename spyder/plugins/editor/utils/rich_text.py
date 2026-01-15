@@ -16,8 +16,8 @@ from inspect import cleandoc
 from io import StringIO
 
 # Third party imports
-from qtpy.QtGui import QTextCharFormat, QTextCursor
 import rtfunicode  # noqa F401 this registers a new encoding for str.encode
+from qtpy.QtGui import QTextCharFormat, QTextCursor
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -34,9 +34,12 @@ HTML_TEMPLATE = cleandoc("""
 class NewL: pass  # NewLine flag
 
 
-def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
+def yield_spans(
+    cursor: QTextCursor,
+) -> tuple[QTextCharFormat | None, str | NewL]:
     """
     Generator to break up text into spans of equal formatting.
+
     Handle partial spans at beginning and end of the selection.
     Emit newline flags separately (between blocks) from text.
     """
@@ -71,9 +74,11 @@ def yield_spans(cursor: QTextCursor) -> tuple[QTextCharFormat|None, str|NewL]:
 
 def format_to_style(char_format: QTextCharFormat) -> str:
     """
+	Convert the style properties of a :class:`QTextCharFormat` to CSS.
+
     Gather the foreground color, font-style, and font-weight from a
-    QTextCharFormat, and generate the contents of a 'style' tag for a <span>
-    html element.
+    QTextCharFormat, and generate the contents of a CSS ``style=`` tag
+    for a ``<span>`` HTML element.
     """
 
     color = char_format.foreground().color().name()
@@ -85,8 +90,9 @@ def format_to_style(char_format: QTextCharFormat) -> str:
 
 def selection_to_html(cursor: QTextCursor) -> str:
     """
-    Create an html document from a QTextCursor selection
-    to capture syntax highlighting.
+    Create an HTML document from a QTextCursor selection.
+    
+    Includes rich-text syntax highlighting.
     """
 
     sio = StringIO()
@@ -169,8 +175,10 @@ def selection_to_html(cursor: QTextCursor) -> str:
 
 def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
     """
-    Gather the foreground color, font-style, and font-weight from a
-    QTextCharFormat, and generate the correct RFT control words.
+	Gather style from a :class:`QTextCharFormat` and convert it to RTF.
+
+    Gathers the foreground color, font-style, and font-weight from a
+    :class:`QTextCharFormat`, and generate the correct RTF control words.
     """
 
     color = char_format.foreground().color()
@@ -184,8 +192,9 @@ def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
 
 def selection_to_rtf(cursor: QTextCursor) -> bytes:
     """
-    Create an rtf document from a QTextCursor selection
-    to capture syntax highlighting.
+    Create an RTF document from a :class:`QTextCursor` selection.
+    
+    Includes rich text syntax highlighting.
     """
 
     color_table = []
