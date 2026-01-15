@@ -2247,10 +2247,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                         QTextCursor.MoveOperation.End,
                         QTextCursor.MoveMode.KeepAnchor
                     )
+                    bg_color = ""
+                    if finfo.editor.highlighter is not None:
+                        bg_color = finfo.editor.highlighter.background_color
                     if file_suffix == ".html":
-                        f.write(selection_to_html(cursor).encode("utf-8"))
+                        _html = selection_to_html(cursor, bg_color)
+                        f.write(_html.encode("utf-8"))
                     elif file_suffix == ".rtf":
-                        f.write(selection_to_rtf(cursor))
+                        f.write(selection_to_rtf(cursor, bg_color))
 
     def export_html(self):
         """Export the current file as HTML."""
