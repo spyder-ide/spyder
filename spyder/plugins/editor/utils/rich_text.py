@@ -17,7 +17,7 @@ from io import StringIO
 
 # Third party imports
 import rtfunicode  # noqa F401 this registers a new encoding for str.encode
-from qtpy.QtGui import QTextCharFormat, QTextCursor
+from qtpy.QtGui import QColor, QTextCharFormat, QTextCursor
 
 
 HTML_TEMPLATE = cleandoc("""
@@ -25,7 +25,7 @@ HTML_TEMPLATE = cleandoc("""
      <html>
      <head></head>
      <body>
-     <pre><code>{}</code></pre>
+     <pre{}><code>{}</code></pre>
      </body>
      </html>
 """)
@@ -88,7 +88,7 @@ def format_to_style(char_format: QTextCharFormat) -> str:
     return f"color:{color};font-style: {style};font-weight: {weight}"
 
 
-def selection_to_html(cursor: QTextCursor) -> str:
+def selection_to_html(cursor: QTextCursor, bg_color: str = "") -> str:
     """
     Create an HTML document from a QTextCursor selection.
     
@@ -96,6 +96,10 @@ def selection_to_html(cursor: QTextCursor) -> str:
     """
 
     sio = StringIO()
+    if bg_color:
+        pre_style = f" style=\"background-color:{bg_color};\""
+    else:
+        pre_style = ""
     for s_format, span in yield_spans(cursor):
         if isinstance(span, NewL):
             sio.write("\n")
@@ -103,74 +107,8 @@ def selection_to_html(cursor: QTextCursor) -> str:
             s_text = html.escape(span)
             style = format_to_style(s_format)
             sio.write(f"<span style=\"{style}\">{s_text}</span>")
-    _html = HTML_TEMPLATE.format(sio.getvalue())
+    _html = HTML_TEMPLATE.format(pre_style, sio.getvalue())
     return _html
-
-
-"""
-# notes on rtf format
-# https://latex2rtf.sourceforge.net/rtfspec.html
-
-#header:
-    {\rtf1\ansi\ansicpg1252
-    {
-#   ^ start enclosing group of whole document
-     \rtf1
-#    ^ rft magic and major version
-          \ansi
-#         ^ charset
-
-#font table:
-    {\fonttbl\f0\fmodern\fcharset0 CourierNewPSMT;\f1\fmod...}
-             \f0
-#            ^ font 0
-                \fmodern
-#               ^ font family: Fixed-pitch serif and sans serif fonts
-                        \fcharset0
-#                       ^ optional maybe? charset 0 is ANSI
-                                   CourierNewPSMT
-#                                  ^ font name
-                                                  \f1
-#                                                 ^ font 1
-                                                          ...}
-
-#   separate fonts for bold and italic don't seem to be necessary?
-#   use only one font? use \b and \i control words to apply style?
-
-#   apple textedit is picky about semicolon terminating a list not only a
-#   separator. MS word is less picky.
-#color table:
-    {\colortbl;\redN\greenN\blueN;\redN\greenN\blueN}
-#   implied color 0 is "Auto"
-               \redN\greenN\blueN
-#              ^ color 1
-                                  \redN\greenN\blueN
-#                                 ^ color 2 .. etc
-    \viewkind0\pard
-    \viewkind0
-#   ^ 0 - None, 1 - page layout, 2 - outline, 3 - master document view,
-#     4 - normal, 5 - online layout view
-              \pard
-#             ^ reset paragraph style to default properties
-
-#document:
-    \f0\fs24\cf0 this is some text\
-    \f0
-#   ^  font 0 from \fonttbl
-       \fs24
-#      ^ font size 12 (24 half points)
-            \cf0
-#           ^ foreground color 0
-                 this is some text
-#                ^ body text
-                                  \<CR>|<LF>|<CRLF>|<line>
-#                                 ^ indicates newline (needs literal backslash)
-    \b     this is bold indented text\
-    \b
-#   ^ turn bold on
-           this is bold indented text\
-#      ^ body text starts after single space which delimits control word \b
-"""
 
 
 def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
@@ -190,7 +128,7 @@ def format_to_rtf(char_format: QTextCharFormat) -> tuple[str, str]:
     return color_string, f"{style}{weight}"
 
 
-def selection_to_rtf(cursor: QTextCursor) -> bytes:
+def selection_to_rtf(cursor: QTextCursor, bg_color: str = "") -> bytes:
     """
     Create an RTF document from a :class:`QTextCursor` selection.
     
@@ -217,7 +155,14 @@ def selection_to_rtf(cursor: QTextCursor) -> bytes:
                 color_table.append(color)
             color_index = color_table.index(color) + 1
             sio.write(f"{style}\\cf{color_index} {s_text}")
+    # notes on rtf format
+    # https://latex2rtf.sourceforge.net/rtfspec.html
+    color = QColor(bg_color)
+    r,g,b = color.red(), color.green(), color.blue()
+    color_table.append(f"\\red{r}\\green{g}\\blue{b};")
+    bg_color_index = len(color_table)
     color_table = f"{{\\colortbl;{''.join(color_table)}}}"
-    header = f"{{\\rtf1{font_table}{color_table}\n\\f0\\fs{font_size*2} "
+    header = (f"{{\\rtf1{font_table}{color_table}\n"
+              f"\\f0\\fs{font_size*2}\\shading\\cbpat{bg_color_index} ")
     sio.write("}") #footer
     return (header + sio.getvalue()).encode("ascii")
