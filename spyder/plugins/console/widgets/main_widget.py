@@ -388,9 +388,13 @@ class ConsoleWidget(PluginMainWidget):
         label = error_data.get("label", "")
         steps = error_data.get("steps", "")
 
+        omit_messages = [
+            "ERROR:root:No data to measure...!\n",
+        ]
+
         # Skip errors without traceback (and no text) or dismiss
         if ((not text and not is_traceback and self.error_dlg is None)
-                or self.dismiss_error):
+                or self.dismiss_error or text in omit_messages):
             return
 
         InstallerInternalError(title + text)
