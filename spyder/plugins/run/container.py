@@ -271,17 +271,14 @@ class RunContainer(PluginMainContainer):
 
         return anonymous_execution_run
 
-    def run_file(self, selected_uuid=None, selected_executor=None):
-        print("Re-running last executed file Test 2==============================")
+    def run_file(self, selected_uuid=None, selected_executor=None, rerun_flag=False):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
-            self.switch_focused_run_configuration(selected_uuid)
-            print("Re-running last executed file Test 3==============================")
+            self.switch_focused_run_configuration(selected_uuid, rerun_flag)
 
         self.edit_run_configurations(
             display_dialog=False,
             selected_executor=selected_executor
         )
-        print("Re-running last executed file Test 4==============================")
 
     def edit_run_configurations(
         self,
@@ -314,7 +311,6 @@ class RunContainer(PluginMainContainer):
         if selected_executor is not None:
             self.dialog.select_executor(selected_executor)
 
-        print("Here switched the file 3.6==============================")
         if display_dialog:
             self.dialog.open()
         else:
@@ -388,14 +384,15 @@ class RunContainer(PluginMainContainer):
             executor.exec_run_configuration(run_conf, ext_params)
 
     def re_run_file(self):
-        print("Here switched the file 1")
-        self.run_file(self.last_executed_file, selected_executor=None)
+        self.run_file(self.last_executed_file, selected_executor=None,
+                      rerun_flag=True)
 
     @property
     def currently_selected_configuration(self):
         return self.metadata_model.get_current_run_configuration()
 
-    def switch_focused_run_configuration(self, uuid: Optional[str]):
+    def switch_focused_run_configuration(self, uuid: Optional[str],
+                                         rerun_flag=False):
         uuid = uuid or None
 
         # We need the first check to correctly update the run and context
@@ -405,7 +402,6 @@ class RunContainer(PluginMainContainer):
             return
 
         self.metadata_model.set_current_run_configuration(uuid)
-
         if uuid is not None:
             self.run_action.setEnabled(True)
             self.configure_action.setEnabled(True)
@@ -414,8 +410,9 @@ class RunContainer(PluginMainContainer):
             self.current_input_provider = metadata['source']
             self.current_input_extension = metadata['input_extension']
 
-            input_provider = self.run_metadata_provider[uuid]
-            input_provider.focus_run_configuration(uuid)
+            if not rerun_flag:
+                input_provider = self.run_metadata_provider[uuid]
+                input_provider.focus_run_configuration(uuid)
             self.set_actions_status()
 
             return
