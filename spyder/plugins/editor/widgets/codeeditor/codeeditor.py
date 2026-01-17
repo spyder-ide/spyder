@@ -53,6 +53,8 @@ from spyder_kernels.utils.dochelpers import getobj
 from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
+from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
@@ -97,13 +99,6 @@ logger = logging.getLogger(__name__)
 
 
 class CodeEditorActions:
-    Undo = 'undo'
-    Redo = 'redo'
-    Cut = 'cut'
-    Copy = 'copy'
-    Paste = 'paste'
-    SelectAll = 'select all'
-    ToggleComment = 'toggle comment'
     ClearAllOutput = 'clear_all_output_action'
     ConvertToPython = 'convert_to_python_action'
     GoToDefinition = 'go to definition'
@@ -112,7 +107,6 @@ class CodeEditorActions:
     ZoomOut = 'zoom out'
     ZoomReset = 'zoom reset'
     Docstring = 'docstring'
-    Autoformat = 'autoformatting'
 
 
 class CodeEditorMenus:
@@ -3470,61 +3464,28 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     def setup_context_menu(self):
         """Setup context menu"""
         # -- Actions
-        self.undo_action = self.create_action(
-            CodeEditorActions.Undo,
-            text=_('Undo'),
-            icon=self.create_icon('undo'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.undo,  # TODO multi-cursor position history
+        # TODO: Handle multi-cursor position history
+        self.undo_action = self.get_action(
+            ApplicationActions.Undo, plugin=Plugins.Application
         )
-        self.redo_action = self.create_action(
-            CodeEditorActions.Redo,
-            text=_("Redo"),
-            icon=self.create_icon('redo'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.redo  # TODO multi-cursor position history
+        # TODO: Handle multi-cursor position history
+        self.redo_action = self.get_action(
+            ApplicationActions.Redo, plugin=Plugins.Application
         )
-        self.cut_action = self.create_action(
-            CodeEditorActions.Cut,
-            text=_("Cut"),
-            icon=self.create_icon('editcut'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.cut
+        self.cut_action = self.get_action(
+            ApplicationActions.Cut, plugin=Plugins.Application
         )
-        self.copy_action = self.create_action(
-            CodeEditorActions.Copy,
-            text=_("Copy"),
-            icon=self.create_icon('editcopy'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.copy
+        self.copy_action = self.get_action(
+            ApplicationActions.Copy, plugin=Plugins.Application
         )
-        self.paste_action = self.create_action(
-            CodeEditorActions.Paste,
-            text=_("Paste"),
-            icon=self.create_icon('editpaste'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.paste
+        paste_action = self.get_action(
+            ApplicationActions.Paste, plugin=Plugins.Application
         )
-        selectall_action = self.create_action(
-            CodeEditorActions.SelectAll,
-            text=_("Select All"),
-            icon=self.create_icon('selectall'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.selectAll)
+        selectall_action = self.get_action(
+            ApplicationActions.SelectAll, plugin=Plugins.Application
         )
-        toggle_comment_action = self.create_action(
-            CodeEditorActions.ToggleComment,
-            text=_('Comment')+'/'+_('Uncomment'),
-            icon=self.create_icon('comment'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.toggle_comment
+        toggle_comment_action = self.get_action(
+            EditorWidgetActions.ToggleComment
         )
         self.clear_all_output_action = self.create_action(
             CodeEditorActions.ClearAllOutput,
@@ -3609,21 +3570,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         )
 
         # Document formatting
-        formatter = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'formatting'),
-            default='',
-            section='completions',
-        )
-        self.format_action = self.create_action(
-            CodeEditorActions.Autoformat,
-            text=_('Format file or selection with {0}').format(
-                    formatter.capitalize()),
-            icon=self.create_icon("transparent"),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.format_document_or_range)
-        )
-        self.format_action.setEnabled(False)
+        self.format_action = self.get_action(EditorWidgetActions.FormatCode)
 
         # -- Build menu
         self.menu = self.create_menu(
@@ -3668,7 +3615,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         edit_actions = [
             self.cut_action,
             self.copy_action,
-            self.paste_action,
+            paste_action,
             selectall_action
         ]
         for menu_action in edit_actions:
