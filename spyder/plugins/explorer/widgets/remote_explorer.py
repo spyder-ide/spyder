@@ -30,6 +30,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import get_conf_path
+from spyder.config.utils import EDIT_EXTENSIONS
 from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.remoteclient.api.modules.base import (
     SpyderRemoteSessionClosed,
@@ -333,6 +334,19 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             data_type = data["type"]
             if data_type == "directory":
                 self.chdir(data_name, emit=True)
+            elif (
+                data_type == "file"
+                and os.path.splitext(data_name)[1] in EDIT_EXTENSIONS
+            ):
+                QMessageBox.warning(
+                    self,
+                    _("Unsupported functionality"),
+                    _(
+                        "Opening remote files in the Editor is not yet "
+                        "supported. This feature will be added in Spyder "
+                        "6.2.0"
+                    )
+                )
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
 
