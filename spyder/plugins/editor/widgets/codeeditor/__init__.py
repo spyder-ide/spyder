@@ -14,4 +14,9 @@ spyder.plugins.editor.widgets.codeeditor
 Main Editor widget based on QtGui.QPlainTextEdit.
 """
 
-from .codeeditor import CodeEditor
+from .codeeditor import (
+    CodeEditor,
+    CodeEditorActions,
+    CodeEditorMenus,
+    CodeEditorContextMenuSections,
+)

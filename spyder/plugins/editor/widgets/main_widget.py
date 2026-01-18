@@ -32,6 +32,7 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_conf_path
@@ -48,7 +49,12 @@ from spyder.plugins.editor.api.run import (
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.editor import get_default_file_content
 from spyder.plugins.editor.utils.switcher_manager import EditorSwitcherManager
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import (
+    CodeEditor,
+    CodeEditorActions,
+    CodeEditorMenus,
+    CodeEditorContextMenuSections,
+)
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWindow
@@ -323,7 +329,7 @@ class EditorMainWidget(PluginMainWidget):
         return self.get_current_editor()
 
     def setup(self):
-        # ---- File operations ----
+        # ---- File operations
         self.print_preview_action = self.create_action(
             EditorWidgetActions.PrintPreview,
             text=_("Print preview"),
@@ -362,7 +368,7 @@ class EditorMainWidget(PluginMainWidget):
                 register_shortcut=True
             )
 
-        # ---- Find/Search operations ----
+        # ---- Find/Search operations
         self.gotoline_action = self.create_action(
             EditorWidgetActions.GoToLine,
             text=_("Go to line..."),
@@ -376,7 +382,7 @@ class EditorMainWidget(PluginMainWidget):
             self.gotoline_action
         ]
 
-        # ---- Source code operations ----
+        # ---- Source code operations
         # Checkable actions
         self.showblanks_action = self._create_checkable_action(
             EditorWidgetActions.ShowBlanks,
@@ -572,7 +578,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.formatting_action.setEnabled(False)
 
-        # ---- Edit operations ----
+        # ---- Edit operations
         self.create_new_cell = self.create_action(
             EditorWidgetActions.NewCell,
             text=_("Create new cell"),
@@ -660,6 +666,63 @@ class EditorMainWidget(PluginMainWidget):
             self.text_uppercase_action,
             self.text_lowercase_action
         ]
+
+        # ---- CodeEditor context menu
+        self.create_action(
+            CodeEditorActions.ClearAllOutput,
+            text=_('Clear all ouput'),
+            icon=self.create_icon('ipython_console'),
+            triggered=self._current_editor_clear_all_output,
+        )
+        self.create_action(
+            CodeEditorActions.ConvertToPython,
+            text=_('Convert to Python file'),
+            icon=self.create_icon('python'),
+            triggered=self._current_editor_convert_notebook,
+        )
+        self.create_action(
+            CodeEditorActions.GoToDefinition,
+            text=_('Go to definition'),
+            register_shortcut=True,
+            triggered=self._current_editor_go_to_definition,
+        )
+        self.create_action(
+            CodeEditorActions.InspectCurrentObject,
+            text=_('Inspect current object'),
+            icon=self.create_icon('MessageBoxInformation'),
+            register_shortcut=True,
+            triggered=self._current_editor_inspect_current_object,
+        )
+
+        self.create_action(
+            CodeEditorActions.ZoomIn,
+            text=_('Zoom in'),
+            icon=self.create_icon('zoom_in'),
+            register_shortcut=True,
+            triggered=self._current_editor_zoom_in,
+        )
+        self.create_action(
+            CodeEditorActions.ZoomOut,
+            text=_('Zoom out'),
+            icon=self.create_icon('zoom_out'),
+            register_shortcut=True,
+            triggered=self._current_editor_zoom_out,
+        )
+        self.create_action(
+            CodeEditorActions.ZoomReset,
+            text=_('Zoom reset'),
+            register_shortcut=True,
+            triggered=self._current_editor_zoom_reset,
+        )
+
+        self.create_action(
+            CodeEditorActions.Docstring,
+            text=_('Generate docstring'),
+            register_shortcut=True,
+            triggered=self._current_editor_write_docstring,
+        )
+
+        self._setup_codeeditor_context_menu()
 
         # ---- Dockwidget and file dependent actions lists ----
         self.pythonfile_dependent_actions = [
@@ -3042,6 +3105,177 @@ class EditorMainWidget(PluginMainWidget):
         """Switch to previous file tab on the current editor stack."""
         editorstack = self.get_current_editorstack()
         editorstack.tabs.tab_navigate(-1)
+
+    # ---- CodeEditor context menu
+    # -------------------------------------------------------------------------
+    def add_application_actions_to_codeeditor_context_menu(self):
+        # -- Main menu
+        menu = self.get_menu(CodeEditorMenus.ContextMenu)
+
+        # Undo/redo section
+        # TODO: Handle multi-cursor position history
+        for action_name in [ApplicationActions.Undo, ApplicationActions.Redo]:
+            action = self.get_action(action_name, plugin=Plugins.Application)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.UndoRedoSection,
+                before_section=CodeEditorContextMenuSections.EditSection,
+            )
+
+        # Edit section
+        for action_name in [
+            ApplicationActions.Cut,
+            ApplicationActions.Copy,
+            ApplicationActions.Paste,
+            ApplicationActions.SelectAll,
+        ]:
+            action = self.get_action(action_name, plugin=Plugins.Application)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.EditSection,
+                before_section=CodeEditorContextMenuSections.NbformatSection,
+            )
+
+        # -- Read-only menu
+        readonly_menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
+
+        # Copy section
+        for action_name in [
+            ApplicationActions.Copy,
+            ApplicationActions.SelectAll,
+        ]:
+            action = self.get_action(action_name, plugin=Plugins.Application)
+            self.add_item_to_menu(
+                action,
+                readonly_menu,
+                section=CodeEditorContextMenuSections.CopySection,
+            )
+
+    def add_run_actions_to_codeeditor_context_menu(self):
+        menu = self.get_menu(CodeEditorMenus.ContextMenu)
+
+        for action_name in [
+            "run cell",
+            "run cell and advance",
+            "re-run cell",
+            "run selection and advance",
+        ]:
+            action = self.get_action(action_name, plugin=Plugins.Run)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.RunSection,
+                before_section=CodeEditorContextMenuSections.InspectSection,
+            )
+
+    def _setup_codeeditor_context_menu(self):
+        """Setup CodeEditor context menu"""
+        # -- Main menu
+        menu = self.create_menu(CodeEditorMenus.ContextMenu)
+
+        # Inspect section
+        for action_name in [
+            CodeEditorActions.GoToDefinition,
+            CodeEditorActions.InspectCurrentObject,
+        ]:
+            action = self.get_action(action_name)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.InspectSection,
+            )
+
+        # Nbformat section
+        for action_name in [
+            CodeEditorActions.ClearAllOutput,
+            CodeEditorActions.ConvertToPython,
+        ]:
+            action = self.get_action(action_name)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.NbformatSection,
+            )
+
+        # Zoom section
+        for action_name in [
+            CodeEditorActions.ZoomIn,
+            CodeEditorActions.ZoomOut,
+            CodeEditorActions.ZoomReset,
+        ]:
+            action = self.get_action(action_name)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.ZoomSection,
+            )
+
+        # Refactor/code section
+        for action_name in [
+            EditorWidgetActions.ToggleComment,
+            CodeEditorActions.Docstring,
+            EditorWidgetActions.FormatCode,
+        ]:
+            action = self.get_action(action_name)
+            self.add_item_to_menu(
+                action,
+                menu,
+                section=CodeEditorContextMenuSections.RefactorCodeSection,
+            )
+
+        # -- Read-only context-menu
+        readonly_menu = self.create_menu(CodeEditorMenus.ReadOnlyMenu)
+
+        # Others section
+        self.add_item_to_menu(
+            self.get_action(CodeEditorActions.GoToDefinition),
+            readonly_menu,
+            section=CodeEditorContextMenuSections.InspectSection,
+        )
+
+    def _current_editor_clear_all_output(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.clears_extra_cursors()
+            editor.clear_all_output()
+
+    def _current_editor_convert_notebook(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.clears_extra_cursors()
+            editor.convert_notebook()
+
+    def _current_editor_go_to_definition(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.go_to_definition_from_cursor()
+
+    def _current_editor_inspect_current_object(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.sig_show_object_info.emit()
+
+    def _current_editor_zoom_in(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.zoom_in.emit()
+
+    def _current_editor_zoom_out(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.zoom_out.emit()
+
+    def _current_editor_zoom_reset(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.zoom_reset.emit()
+
+    def _current_editor_write_docstring(self):
+        editor = self.get_current_editor()
+        if editor:
+            editor.writer_docstring.write_docstring_at_first_line_of_function()
 
     # ---- Misc
     # -------------------------------------------------------------------------
