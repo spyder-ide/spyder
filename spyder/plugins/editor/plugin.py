@@ -321,6 +321,8 @@ class Editor(SpyderDockablePlugin):
             context_modificator=SelectionContextModificator.FromLine
         )
 
+        self.get_widget().add_run_actions_to_codeeditor_context_menu()
+
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         widget = self.get_widget()
@@ -703,6 +705,8 @@ class Editor(SpyderDockablePlugin):
         self._enable_search_action(ApplicationActions.FindNext, True)
         self._enable_search_action(ApplicationActions.FindPrevious, True)
         self._enable_search_action(ApplicationActions.ReplaceText, True)
+
+        self.get_widget().add_application_actions_to_codeeditor_context_menu()
 
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):

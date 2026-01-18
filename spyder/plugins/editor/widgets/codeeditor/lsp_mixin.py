@@ -323,7 +323,7 @@ class LSPMixin:
         )
 
         if self.formatting_enabled:
-            self.format_action.setEnabled(True)
+            # FIXME self.format_action.setEnabled(True)
             self.sig_refresh_formatting.emit(True)
 
         self.completions_available = True
