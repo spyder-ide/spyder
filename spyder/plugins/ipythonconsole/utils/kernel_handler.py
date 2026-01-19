@@ -680,7 +680,7 @@ class KernelHandler(QObject):
 
     def reopen_comm(self):
         """Reopen comm (following a crash)"""
-        self.kernel_comm.remove()
+        self.kernel_comm.remove(only_closing=True)
         self.connection_state = KernelConnectionState.Crashed
         self.kernel_comm.open_comm(self.kernel_client)
 
