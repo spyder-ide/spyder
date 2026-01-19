@@ -1105,18 +1105,18 @@ class QtWSHBChannel(_WebSocketHBChannel, SuperQObject):
 class QtWSChannel(_WebSocketChannel, SuperQObject):
     """A channel emitting a Qt signal when a message is received."""
 
-    # Emitted when a message is received.
     message_received = Signal(object)
 
     def call_handlers(self, msg):
         """
+        Emit signal when a message is received.
+
         This method is called in the ioloop thread when a message arrives.
 
         It is important to remember that this method is called in the thread
         so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
-        # Emit the generic signal.
         self.message_received.emit(msg)
 
     def closed(self):
