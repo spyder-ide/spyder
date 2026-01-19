@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/spyder-ide/qtconsole.git
-	branch = main
-	commit = a2f1c420ab5f63c2768a6dd86594b7b99ebe6554
-	parent = 68d58aafc0d6de964b66141be3a0862b5167b69d
+	remote = https://github.com/hlouzada/qtconsole.git
+	branch = fix-kernel-restart-handling
+	commit = e606e6eddb678e6302ab4f8bba6c070b54eb2b9d
+	parent = 158058809645a231ffb96afdfcacb6bf79b05acb
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.9
