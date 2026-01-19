@@ -13,6 +13,7 @@ Remote Client Plugin API Manager.
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import aiohttp
@@ -45,6 +46,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         self._server_url = None
         self._user_name = None
         self._session: aiohttp.ClientSession = None
+        self._hb_task: asyncio.Task = None
 
     @property
     def api_token(self):
@@ -124,21 +126,23 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 if line.startswith("data:"):
                     ready = json.loads(line.split(":", 1)[1])["ready"]
 
-        if ready and await self.check_server_version():
-            self._emit_connection_status(
-                ConnectionStatus.Active,
-                _("Spyder remote services are active"),
+        if not ready or not await self.check_server_version():
+            self.logger.error(
+                "Spyder remote server was unable to start, please check the "
+                "JupyterHub logs for more information",
             )
-            return True
+            self._emit_connection_status(
+                ConnectionStatus.Error, _("Error starting the remote server"),
+            )
+            return False
 
-        self.logger.error(
-            "Spyder remote server was unable to start, please check the "
-            "JupyterHub logs for more information",
-        )
+        self._hb_task = asyncio.create_task(self._heartbeat())
+
         self._emit_connection_status(
-            ConnectionStatus.Error, _("Error starting the remote server"),
+            ConnectionStatus.Active,
+            _("Spyder remote services are active"),
         )
-        return False
+        return True
 
     async def ensure_server_installed(self) -> bool:
         """Assume the server is installed."""
@@ -273,3 +277,14 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),
         )
+
+    async def _heartbeat(self):
+        while self.connected and self.server_started:
+            await asyncio.sleep(30)
+            async with self._session.get(self.server_url) as response:
+                if not response.ok:
+                    self.logger.warning(
+                        "Heartbeat failed with status: %s",
+                        response.status,
+                    )
+                    self._handle_connection_lost()
