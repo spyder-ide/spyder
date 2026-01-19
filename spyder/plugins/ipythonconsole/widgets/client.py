@@ -918,7 +918,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         """Handle restarts for remote kernels."""
         if future.result():
             # Reset shellwidget and print restart message
-            self.kernel_handler.reconnect_kernel()
+            # self.kernel_handler.reconnect_kernel()
             self.shellwidget.reset(clear=True)
         else:
             self.remote_kernel_restarted_failure_message(shutdown=True)
