@@ -1388,7 +1388,6 @@ class EditorMainWidget(PluginMainWidget):
             self.refresh_save_actions
         )
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
-        editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
         editorstack.plugin_load.connect(self.load)
@@ -1653,9 +1652,6 @@ class EditorMainWidget(PluginMainWidget):
         else:
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
-
-    def refresh_formatting(self, status):
-        self.formatting_action.setEnabled(status)
 
     def refresh_formatter_name(self):
         formatter = self.get_conf(
