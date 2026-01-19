@@ -157,8 +157,8 @@ class _Session:
     async def recv(
         self,
         stream: aiohttp.ClientWebSocketResponse,
-        timeout: t.Optional[float] = None,
-    ) -> tuple[str, dict[str, t.Any]]:
+        timeout: float | None = None,
+    ) -> tuple[str, dict[str, t.Any] | dict[int, t.Any]]:
         """
         Receive a message from the websocket stream.
 
@@ -187,6 +187,9 @@ class _Session:
             If the received message is not of type WSMsgType.BINARY.
         """
         msg = await stream.receive(timeout=timeout)
+        if msg.type in {aiohttp.WSMsgType.PING, aiohttp.WSMsgType.PONG}:
+            return "hb", {msg.type: msg.data}
+
         if msg.type in {aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING}:
             _LOGGER.debug(
                 "WebSocket connection closed with type %s and code %s",
@@ -412,15 +415,16 @@ class _ChannelQueues:
         self.iopub = asyncio.Queue()
         self.stdin = asyncio.Queue()
         self.control = asyncio.Queue()
+        self.hb = asyncio.Queue()
 
-    def __getitem__(self, channel: str) -> asyncio.Queue[dict[str, t.Any]]:
+    def __getitem__(self, channel: str) -> asyncio.Queue[dict]:
         return getattr(self, channel)
 
 
 class _WebSocketChannel:
     def __init__(
         self,
-        queue: asyncio.Queue[dict[str, t.Any]],
+        queue: asyncio.Queue[dict],
         websocket: aiohttp.ClientWebSocketResponse,
         session: _Session,
         channel_name: str,
@@ -429,7 +433,7 @@ class _WebSocketChannel:
         self._websocket = websocket
         self.session = session
         self.channel_name = channel_name
-        self._running: t.Optional[asyncio.Task[None]] = None
+        self._running: asyncio.Task[t.NoReturn] | None = None
         self._inspect = None
 
     async def _loop(self):
@@ -468,70 +472,78 @@ class _WebSocketChannel:
         """Send a message to the channel."""
         await self.session.send(self._websocket, self.channel_name, msg)
 
-    def call_handlers(self, msg: dict[str, t.Any]):
+    def call_handlers(self, msg: dict):
         pass
 
 
-class _WebSocketHBChannel:
-    time_to_dead: float = 1.0
+class _WebSocketHBChannel(_WebSocketChannel):
+    time_to_dead: float = 25.0
 
-    def __init__(
-        self,
-        websocket: aiohttp.ClientWebSocketResponse,
-    ):
-        self._websocket = websocket
-        self._websocket._handle_ping_pong_exception = MethodType(
-            self._handle_heartbeat_exc(
-                self._websocket._handle_ping_pong_exception
-            ),
-            self._websocket,
-        )
-        self._running = False
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._time_last_heartbeat: float = 0.0
+        self._beat_task: asyncio.Task[t.NoReturn] | None = None
 
     def start(self):
         """Start the channel."""
-        self._running = True
-        self._set_heartbeat()
+        super().start()
+        self._hb = asyncio.Event()
+        self._beating = asyncio.Event()
+        self._beating.set()
+        self._beat_task = asyncio.create_task(
+            self._beat_loop(), name=f"{self.session.session}-hb-beat"
+        )
 
-    def stop(self):
+    async def stop(self) -> None:
         """Stop the channel."""
-        self._running = False
-        self._unset_heartbeat()
+        if self._beat_task is not None:
+            self._beat_task.cancel()
+            self._beat_task = None
+        await super().stop()
 
-    def is_alive(self) -> bool:
-        """Test whether the channel is alive."""
-        return self._running and not self._websocket.closed
+    async def _loop(self):
+        """Receive messages from the websocket stream."""
+        while True:
+            msg = await self._queue.get()
+            if aiohttp.WSMsgType.PING in msg:
+                await self._websocket.pong(msg[aiohttp.WSMsgType.PING])
+            elif aiohttp.WSMsgType.PONG in msg:
+                self._hb.set()
+            self._queue.task_done()
+
+    async def _beat_loop(self):
+        """Send heartbeat pings at regular intervals."""
+        loop = asyncio.get_running_loop()
+        while True:
+            await self._beating.wait()
+            await self._websocket.ping()
+            try:
+                await asyncio.wait_for(self._hb.wait(), timeout=self.time_to_dead)
+            except asyncio.TimeoutError:
+                _LOGGER.warning(
+                    "Heartbeat timeout, no pong received in %s seconds",
+                    self.time_to_dead,
+                )
+                self.call_handlers(loop.time() - self._time_last_heartbeat)
+            else:
+                self._hb.clear()
+                self._time_last_heartbeat = loop.time()
+            finally:
+                await asyncio.sleep(self.time_to_dead / 2)
 
     def pause(self):
         """Pause the heartbeat channel."""
-        self._unset_heartbeat()
+        self._beating.clear()
 
     def unpause(self):
         """Unpause the heartbeat channel."""
-        self._set_heartbeat()
+        self._beating.set()
 
     def is_beating(self) -> bool:
         """Test whether the channel is beating."""
-        return True
-
-    def _set_heartbeat(self):
-        """Set the heartbeat for the channel."""
-        self._websocket._heartbeat = self.time_to_dead * 2
-        self._websocket._pong_heartbeat = self.time_to_dead
-        self._websocket._reset_heartbeat()
-
-    def _unset_heartbeat(self):
-        """Unset the heartbeat for the channel."""
-        self._websocket._heartbeat = None
-        self._websocket._reset_heartbeat()
-
-    def _handle_heartbeat_exc(self, func):
-        @wraps(func)
-        def wrapper(ws: aiohttp.ClientWebSocketResponse, *args, **kwargs):
-            self.call_handlers(ws._loop.time() - ws._heartbeat_when)
-            return func(*args, **kwargs)
-
-        return wrapper
+        return (self._beat_task is not None and
+                not self._beat_task.done() and
+                self._beating.is_set())
 
     def call_handlers(self, since_last_heartbeat: float):
         pass
@@ -648,7 +660,10 @@ class _WebSocketKernelClient(Configurable):
 
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(
+                self._queues.hb,
                 self._ws,
+                self.session,
+                "hb",
             )
         return self._hb_channel
 
@@ -739,7 +754,7 @@ class _WebSocketKernelClient(Configurable):
             self._endpoint,
             params=qs,
             protocols=("v1.kernel.websocket.jupyter.org",),
-            autoping=True,
+            autoping=False,
             autoclose=True,
             max_msg_size=104857600,  # 100 MB
         )
