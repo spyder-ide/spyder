@@ -577,11 +577,11 @@ class _WebSocketKernelClient(Configurable):
 
         self._queues = _ChannelQueues()
 
-        self._shell_channel: t.Optional[_WebSocketChannel] = None
-        self._iopub_channel: t.Optional[_WebSocketChannel] = None
-        self._stdin_channel: t.Optional[_WebSocketChannel] = None
-        self._control_channel: t.Optional[_WebSocketChannel] = None
-        self._hb_channel: t.Optional[_WebSocketHBChannel] = None
+        self._shell_channel: _WebSocketChannel | None = None
+        self._iopub_channel: _WebSocketChannel | None = None
+        self._stdin_channel: _WebSocketChannel | None = None
+        self._control_channel: _WebSocketChannel | None = None
+        self._hb_channel: _WebSocketHBChannel | None = None
 
     @property
     def allow_stdin(self) -> bool:
@@ -738,7 +738,8 @@ class _WebSocketKernelClient(Configurable):
             self._shell_channel._inspect = None
 
     async def _connect(self):
-        if self._owns_session:
+        if self._aiohttp_session is None:
+            self._owns_session = True
             self._aiohttp_session = aiohttp.ClientSession()
 
         qs = {"session_id": self.session.session}
@@ -757,6 +758,9 @@ class _WebSocketKernelClient(Configurable):
 
     async def _receiver_loop(self):
         """Receive messages from the websocket stream."""
+        if self._ws is None:
+            msg = "WebSocket connection is not established."
+            raise RuntimeError(msg)
         try:
             channel = None
             while channel != "closed":
@@ -778,12 +782,12 @@ class _WebSocketKernelClient(Configurable):
             _LOGGER.debug(
                 "Receiver loop cancelled for %s", self.session.session
             )
-        except BaseException as exc:
+        except Exception as exc:
             await self._ws.close(code=aiohttp.WSCloseCode.INTERNAL_ERROR)
             self._handle_receiver_exception(exc)
 
     @staticmethod
-    def _handle_receiver_exception(exc: BaseException):
+    def _handle_receiver_exception(exc: Exception):
         """Handle exceptions in the receiver loop."""
         raise exc
 
@@ -818,7 +822,7 @@ class _WebSocketKernelClient(Configurable):
         if self._owns_session and self._aiohttp_session is not None:
             await self._aiohttp_session.close()
 
-    def _handle_kernel_info_reply(self, msg: t.Dict[str, t.Any]) -> None:
+    def _handle_kernel_info_reply(self, msg: dict[str, t.Any]) -> None:
         """
         Handle kernel info reply.
 
@@ -838,8 +842,8 @@ class _WebSocketKernelClient(Configurable):
         code: str,
         silent: bool = False,
         store_history: bool = True,
-        user_expressions: t.Optional[t.Dict[str, t.Any]] = None,
-        allow_stdin: t.Optional[bool] = None,
+        user_expressions: dict[str, t.Any] | None = None,
+        allow_stdin: bool | None = None,
         stop_on_error: bool = True,
     ) -> str:
         """
@@ -874,7 +878,7 @@ class _WebSocketKernelClient(Configurable):
 
         Raises
         ------
-        ValueError
+        TypeError
             If the code is not a string.
         """
         if user_expressions is None:
@@ -884,7 +888,8 @@ class _WebSocketKernelClient(Configurable):
 
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, str):
-            raise ValueError("code %r must be a string" % code)
+            msg = f"code {code!r} must be a string"
+            raise TypeError(msg)
         validate_string_dict(user_expressions)
 
         # Create class for content/msg creation. Related to, but possibly
@@ -928,7 +933,7 @@ class _WebSocketKernelClient(Configurable):
     def inspect(
         self,
         code: str,
-        cursor_pos: t.Optional[int] = None,
+        cursor_pos: int | None = None,
         detail_level: int = 0,
     ) -> str:
         """
@@ -967,7 +972,7 @@ class _WebSocketKernelClient(Configurable):
         raw: bool = True,
         output: bool = False,
         hist_access_type: str = "range",
-        **kwargs: t.Any,
+        **kwargs,
     ) -> str:
         """
         Get entries from the kernel's history list.
@@ -1021,7 +1026,7 @@ class _WebSocketKernelClient(Configurable):
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
 
-    def comm_info(self, target_name: t.Optional[str] = None) -> str:
+    def comm_info(self, target_name: str | None = None) -> str:
         """
         Request comm info.
 
