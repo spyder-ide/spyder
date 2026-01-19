@@ -1065,6 +1065,7 @@ class _WebSocketKernelClient(Configurable):
         content = {"value": string}
         msg = self.session.msg("input_reply", content)
         self.stdin_channel.send(msg)
+        return msg["header"]["msg_id"]
 
     def shutdown(self, restart: bool = False) -> str:
         """
