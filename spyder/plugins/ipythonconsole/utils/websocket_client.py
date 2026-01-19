@@ -443,6 +443,7 @@ class _WebSocketChannel:
             self.call_handlers(msg)
             if self._inspect is not None:
                 self._inspect(msg)
+            self._queue.task_done()
 
     def start(self):
         """Start the channel."""
@@ -451,17 +452,12 @@ class _WebSocketChannel:
             self._loop(), name=f"{self.session.session}-{self.channel_name}"
         )
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the channel."""
         if self._running is not None:
+            await self._queue.join()
             self._running.cancel()
             self._running = None
-
-        if not self._queue.empty():
-            _LOGGER.warning(
-                "Channel %s has messages in the queue, but is being stopped.",
-                self.channel_name,
-            )
 
     def is_alive(self) -> bool:
         """Test whether the channel is alive."""
@@ -801,15 +797,15 @@ class _WebSocketKernelClient(Configurable):
             self._receiver = None
 
         if self.shell_channel.is_alive():
-            self.shell_channel.stop()
+            await self.shell_channel.stop()
         if self.iopub_channel.is_alive():
-            self.iopub_channel.stop()
+            await self.iopub_channel.stop()
         if self.stdin_channel.is_alive():
-            self.stdin_channel.stop()
+            await self.stdin_channel.stop()
         if self.hb_channel.is_alive():
-            self.hb_channel.stop()
+            await self.hb_channel.stop()
         if self.control_channel.is_alive():
-            self.control_channel.stop()
+            await self.control_channel.stop()
 
         await self._disconnect()
 
