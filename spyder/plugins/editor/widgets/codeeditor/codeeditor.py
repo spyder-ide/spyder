@@ -165,7 +165,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     sig_show_object_info = Signal(bool)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
-    sig_refresh_formatting = Signal(bool)
+    sig_refresh_formatting = Signal()
 
     #: Signal emitted when the editor loses focus
     sig_focus_changed = Signal()
@@ -4283,11 +4283,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.sig_focus_changed.emit()
         self._restore_editor_cursor_and_selections()
         super().focusOutEvent(event)
-
-    def focusInEvent(self, event):
-        formatting_enabled = getattr(self, 'formatting_enabled', False)
-        self.sig_refresh_formatting.emit(formatting_enabled)
-        super().focusInEvent(event)
 
     def leaveEvent(self, event):
         """Extend Qt method"""
