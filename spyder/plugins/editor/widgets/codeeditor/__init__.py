@@ -19,4 +19,5 @@ from .codeeditor import (
     CodeEditorActions,
     CodeEditorMenus,
     CodeEditorContextMenuSections,
+    DocstringContext,
 )
