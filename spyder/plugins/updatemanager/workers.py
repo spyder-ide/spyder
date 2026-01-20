@@ -422,7 +422,17 @@ class WorkerUpdate(BaseWorker):
                     if spyder_data:
                         release = parse(spyder_data["version"])
 
-            self._check_update_available(release)
+            if (
+                # Always check for updates for our installers or pip
+                # installations
+                is_conda_based_app()
+                or self.channel == "pypi"
+                # Only offer updates for conda envs if we're able to detect the
+                # channel. That's because Anaconda is always several versions
+                # behind the latest one.
+                or is_conda_env(sys.prefix) and url is not None
+            ):
+                self._check_update_available(release)
 
         except SSLError as err:
             self.error = SSL_ERROR_MSG
