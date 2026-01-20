@@ -6,11 +6,12 @@
 # -----------------------------------------------------------------------------
 
 """
-Main container widget.
+Main container widget for Spyder plugins.
 
-SpyderPluginV2 plugins must provide a CONTAINER_CLASS attribute that is a
-subclass of PluginMainContainer, if they provide additional widgets like
-status bar widgets or toolbars.
+:class:`~spyder.api.plugins.SpyderPluginV2` plugins must provide a
+:attr:`~spyder.api.plugins.SpyderPluginV2.CONTAINER_CLASS` attribute that is
+a subclass of :class:`PluginMainContainer`, if they provide additional widgets
+like status bar items or toolbars.
 """
 
 from __future__ import annotations
@@ -35,64 +36,71 @@ if TYPE_CHECKING:
 
 class PluginMainContainer(QWidget, SpyderWidgetMixin):
     """
-    Spyder plugin main container class.
+    Main container widget class for Spyder plugins.
 
-    This class handles a non-dockable widget to be able to contain, parent and
-    store references to other widgets, like status bar widgets, toolbars,
+    This class is used by non-dockable widget to be able to contain, parent
+    and store references to other widgets, like status bar widgets, toolbars,
     context menus, etc.
 
-    Notes
-    -----
-    All Spyder non dockable plugins can define a plugin container that must
-    subclass this.
+    .. important::
+
+        If a Spyder non-dockable plugins defines a
+        :attr:`~spyder.api.plugins.SpyderPluginV2.CONTAINER_CLASS`
+        it must inherit from this class, :class`PluginMainContainer`.
     """
 
     CONTEXT_NAME: str | None = None
     """
+    The name under which to store actions, toolbars, toolbuttons and menus.
+
     This optional attribute defines the context name under which actions,
-    toolbars, toolbuttons and menus should be registered on the
+    toolbars, toolbuttons and menus should be registered in the
     Spyder global registry.
 
     If actions, toolbars, toolbuttons or menus belong to the global scope of
-    the plugin, then this attribute should have a `None` value.
+    the plugin, then this attribute should have a ``None`` value,
+    which will use the plugin's name as the context scope.
     """
 
     # ---- Signals
     # ------------------------------------------------------------------------
     sig_free_memory_requested: Signal = Signal()
     """
-    This signal can be emitted to request the main application to garbage
-    collect deleted objects.
+    Signal to request the main application garbage-collect deleted objects.
     """
 
     sig_quit_requested: Signal = Signal()
     """
-    This signal can be emitted to request the main application to quit.
+    Signal to request the main Spyder application quit.
     """
 
     sig_restart_requested: Signal = Signal()
     """
-    This signal can be emitted to request the main application to restart.
+    Signal to request the main Spyder application quit and restart itself.
     """
 
     sig_redirect_stdio_requested: Signal = Signal(bool)
     """
-    This signal can be emitted to request the main application to redirect
-    standard output/error when using Open/Save/Browse dialogs within widgets.
+    Request the main app redirect standard out/error within file pickers.
+
+    This will redirect :data:`~sys.stdin`, :data:`~sys.stdout`, and
+    :data:`~sys.stderr` when using :guilabel:`Open`, :guilabel:`Save`,
+    and :guilabel:`Browse` dialogs within a plugin's widgets.
 
     Parameters
     ----------
     enable: bool
-        Enable/Disable standard input/output redirection.
+        Enable (``True``) or disable (``False``) standard input/output
+        redirection.
     """
 
     sig_exception_occurred: Signal = Signal(dict)
     """
-    This signal can be emitted to report an exception handled by this widget.
+    Signal to report an exception from a plugin.
 
     Parameters
     ----------
-    error_data: dict
+    error_data: dict[str, str | bool]
         The dictionary containing error data. The expected keys are:
 
         .. code-block:: python
@@ -106,27 +114,24 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
                 "steps": str,
             }
 
-    Notes
-    -----
-    The `is_traceback` key indicates if `text` contains plain text or a
-    Python error traceback.
+        The ``is_traceback`` key indicates if ``text`` contains plain text or a
+        Python error traceback.
 
-    The `title` and `repo` keys indicate how the error data should
-    customize the report dialog and Github error submission.
+        The ``title`` and ``repo`` keys indicate how the error data should
+        customize the report dialog and GitHub error submission.
 
-    The `label` and `steps` keys allow customizing the content of the
-    error dialog.
+        The ``label`` and ``steps`` keys allow customizing the content of the
+        error dialog.
     """
 
     sig_unmaximize_plugin_requested: Signal = Signal((), (object,))
     """
-    This signal is emitted to inform the main window that it needs to
-    unmaximize the currently maximized plugin, if any.
+    Request the main window unmaximize the currently maximized plugin, if any.
 
     Parameters
     ----------
-    plugin_instance: spyder.api.plugins.SpyderDockablePlugin
-        Unmaximize plugin only if it is not `plugin_instance`.
+    plugin_instance: SpyderDockablePlugin
+        Unmaximize current plugin only if it is not ``plugin_instance``.
     """
 
     def __init__(
@@ -135,6 +140,24 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         plugin: SpyderPluginV2,
         parent: spyder.app.mainwindow.MainWindow | None = None,
     ) -> None:
+        """
+        Create a new container class for a plugin.
+
+        Parameters
+        ----------
+        name : str
+            The name of the plugin, i.e. the
+            :attr:`SpyderPluginV2.NAME <spyder.api.plugins.SpyderPluginV2.NAME>`.
+        plugin : SpyderPluginV2
+            The plugin object this is to be the container class of.
+        parent : spyder.app.mainwindow.MainWindow | None, optional
+            The container's parent widget, normally the Spyder main window.
+            By default (``None``), no parent widget (used for testing).
+
+        Returns
+        -------
+        None
+        """
         if not PYSIDE2:
             super().__init__(parent=parent, class_parent=plugin)
         else:
@@ -147,9 +170,14 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         self._plugin = plugin
         self._parent = parent
 
-        # Attribute used to access the action, toolbar, toolbutton and menu
-        # registries
         self.PLUGIN_NAME: str = name
+        """
+        Plugin name in the action, toolbar, toolbutton & menu registries.
+
+        Usually the same as
+        :attr:`SpyderPluginV2.NAME <spyder.api.plugins.SpyderPluginV2.NAME>`,
+        but may be different from :attr:`CONTEXT_NAME`.
+        """
 
         # Widget setup
         # A PluginMainContainer inherits from QWidget so it can be a parent
@@ -164,6 +192,18 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     # ---- Public Qt overridden methods
     # -------------------------------------------------------------------------
     def closeEvent(self, event: QCloseEvent) -> None:
+        """
+        Handle closing this container widget.
+
+        Parameters
+        ----------
+        event : QCloseEvent
+            The event object closing this widget.
+
+        Returns
+        -------
+        None
+        """
         self.on_close()
         super().closeEvent(event)
 
@@ -171,7 +211,16 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def setup(self) -> None:
         """
-        Create actions, widgets, add to menu and other setup requirements.
+        Create widget actions, add to menu and perform other setup steps.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        NotImplementedError
+            If the container subclass doesn't define a ``setup`` method.
         """
         raise NotImplementedError(
             "A PluginMainContainer subclass must define a `setup` method!"
@@ -181,7 +230,18 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         """
         Update the state of exposed actions.
 
-        Exposed actions are actions created by the self.create_action method.
+        Exposed actions are actions created by the
+        :meth:`~spyder.api.widgets.mixins.SpyderActionMixin.create_action`
+        method.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        NotImplementedError
+            If the subclass doesn't define an ``update_actions`` method.
         """
         raise NotImplementedError(
             "A PluginMainContainer subclass must define a `update_actions` "
@@ -190,8 +250,17 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
 
     def on_close(self) -> None:
         """
-        Perform actions before the container is closed.
+        Perform actions before the container widget is closed.
 
-        This method **must** only operate on local attributes.
+        Does nothing by default; intended to be overridden for widgets
+        that need to perform actions on close.
+
+        .. warning::
+
+            This method **must** only operate on local attributes.
+
+        Returns
+        -------
+        None
         """
         pass
