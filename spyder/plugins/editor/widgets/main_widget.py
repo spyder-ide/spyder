@@ -1045,7 +1045,7 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Update menus
     # -------------------------------------------------------------------------
-    def update_edit_menu(self):
+    def update_edit_actions(self):
         """
         Set enable state for edition related actions when the Editor has focus.
         """
@@ -3175,6 +3175,7 @@ class EditorMainWidget(PluginMainWidget):
         """Setup CodeEditor context menu"""
         # -- Main menu
         menu = self.create_menu(CodeEditorMenus.ContextMenu)
+        menu.aboutToShow.connect(self.update_edit_actions)
 
         # Inspect section
         for action_name in [
@@ -3228,6 +3229,7 @@ class EditorMainWidget(PluginMainWidget):
 
         # -- Read-only context-menu
         readonly_menu = self.create_menu(CodeEditorMenus.ReadOnlyMenu)
+        readonly_menu.aboutToShow.connect(self.update_edit_actions)
 
         # Others section
         self.add_item_to_menu(
