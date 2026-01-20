@@ -272,10 +272,10 @@ class RunContainer(PluginMainContainer):
         return anonymous_execution_run
 
     def run_file(
-        self, selected_uuid=None, selected_executor=None, rerun_flag=False
+        self, selected_uuid=None, selected_executor=None, rerun=False
     ):
         if not isinstance(selected_uuid, bool) and selected_uuid is not None:
-            self.switch_focused_run_configuration(selected_uuid, rerun_flag)
+            self.switch_focused_run_configuration(selected_uuid, rerun)
 
         self.edit_run_configurations(
             display_dialog=False,
@@ -387,7 +387,7 @@ class RunContainer(PluginMainContainer):
 
     def re_run_file(self):
         self.run_file(
-            self.last_executed_file, selected_executor=None, rerun_flag=True
+            self.last_executed_file, selected_executor=None, rerun=True
         )
 
     @property
@@ -395,7 +395,7 @@ class RunContainer(PluginMainContainer):
         return self.metadata_model.get_current_run_configuration()
 
     def switch_focused_run_configuration(
-        self, uuid: Optional[str], rerun_flag: bool = False
+        self, uuid: Optional[str], rerun: bool = False
     ):
         uuid = uuid or None
 
@@ -415,7 +415,7 @@ class RunContainer(PluginMainContainer):
             self.current_input_provider = metadata['source']
             self.current_input_extension = metadata['input_extension']
 
-            if not rerun_flag:
+            if not rerun:
                 input_provider = self.run_metadata_provider[uuid]
                 input_provider.focus_run_configuration(uuid)
 
