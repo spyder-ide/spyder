@@ -23,6 +23,7 @@ import os
 import os.path as osp
 import re
 import sys
+from typing import TypedDict
 import textwrap
 
 # Third party imports
@@ -116,6 +117,14 @@ class CodeEditorContextMenuSections:
     ZoomSection = "zoom_section"
     RefactorCodeSection = "refactor_code_section"
     CopySection = "copy_section"
+
+
+class DocstringContext(TypedDict):
+
+    at_cursor_position: bool
+    """
+    Whether a docstring should be generated at the current cursor position.
+    """
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
@@ -440,6 +449,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)
+        self.menu_docstring= None
 
         # Tab key behavior
         self.tab_indents = None
@@ -4367,10 +4377,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         writer.line_number_cursor = self.get_line_number_at(event.pos())
         result = writer.get_function_definition_from_first_line()
 
+        docstring_action = self.get_action(CodeEditorActions.Docstring)
+        docstring_action.setData(DocstringContext(at_cursor_position=True))
+
         if result:
-            self.get_action(CodeEditorActions.Docstring).setEnabled(True)
+            docstring_action.setEnabled(True)
         else:
-            self.get_action(CodeEditorActions.Docstring).setEnabled(False)
+            docstring_action.setEnabled(False)
 
         if self.isReadOnly():
             menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
@@ -4517,16 +4530,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             point = self.calculate_real_position(point)
             point = self.mapToGlobal(point)
 
-            self.menu_docstring = QMenuOnlyForEnter(self)
-            self.docstring_action = self.create_action(
-                CodeEditorActions.Docstring,
-                text=_("Generate docstring"),
-                icon=self.create_icon('TextFileIcon'),
-                register_action=False,
-                triggered=self.for_each_cursor(writer.write_docstring)
+            docstring_action = self.get_action(CodeEditorActions.Docstring)
+            docstring_action.setData(
+                DocstringContext(at_cursor_position=False)
             )
-            self.menu_docstring.addAction(self.docstring_action)
-            self.menu_docstring.setActiveAction(self.docstring_action)
+            if self.menu_docstring is None:
+                self.menu_docstring = QMenuOnlyForEnter(self)
+                self.menu_docstring.addAction(docstring_action)
+
+            self.menu_docstring.setActiveAction(docstring_action)
             self.menu_docstring.popup(point)
 
     def delayed_popup_docstring(self):

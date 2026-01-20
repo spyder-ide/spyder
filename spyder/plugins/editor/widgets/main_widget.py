@@ -54,6 +54,7 @@ from spyder.plugins.editor.widgets.codeeditor import (
     CodeEditorActions,
     CodeEditorMenus,
     CodeEditorContextMenuSections,
+    DocstringContext,
 )
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
@@ -719,6 +720,9 @@ class EditorMainWidget(PluginMainWidget):
             CodeEditorActions.Docstring,
             text=_('Generate docstring'),
             register_shortcut=True,
+            # This metadata is used to decide how to write a docstring
+            # according to the context
+            data=DocstringContext(at_cursor_position=False),
             triggered=self._current_editor_write_docstring,
         )
 
@@ -3271,7 +3275,13 @@ class EditorMainWidget(PluginMainWidget):
     def _current_editor_write_docstring(self):
         editor = self.get_current_editor()
         if editor:
-            editor.writer_docstring.write_docstring_at_first_line_of_function()
+            action = self.get_action(CodeEditorActions.Docstring)
+            writer = editor.writer_docstring
+
+            if action.data()["at_cursor_position"]:
+                writer.write_docstring_at_first_line_of_function()
+            else:
+                editor.for_each_cursor(writer.write_docstring)()
 
     # ---- Misc
     # -------------------------------------------------------------------------
