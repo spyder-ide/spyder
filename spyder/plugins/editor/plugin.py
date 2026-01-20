@@ -383,7 +383,7 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        edit_menu.aboutToShow.connect(widget.update_edit_menu)
+        edit_menu.aboutToShow.connect(widget.update_edit_actions)
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -488,7 +488,7 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
+        edit_menu.aboutToShow.disconnect(widget.update_edit_actions)
 
         # Editor section
         for edit_item in widget.edit_menu_actions:

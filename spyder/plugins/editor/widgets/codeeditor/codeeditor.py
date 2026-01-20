@@ -4348,11 +4348,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        # FIXME
-        # nonempty_selection = self.has_selected_text()
-        # self.copy_action.setEnabled(nonempty_selection)
-        # self.cut_action.setEnabled(nonempty_selection)
-
         for action_name in [
             CodeEditorActions.ClearAllOutput,
             CodeEditorActions.ConvertToPython,
@@ -4376,10 +4371,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             self.get_action(CodeEditorActions.Docstring).setEnabled(True)
         else:
             self.get_action(CodeEditorActions.Docstring).setEnabled(False)
-
-        # FIXME
-        # self.undo_action.setEnabled(self.document().isUndoAvailable())
-        # self.redo_action.setEnabled(self.document().isRedoAvailable())
 
         if self.isReadOnly():
             menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
