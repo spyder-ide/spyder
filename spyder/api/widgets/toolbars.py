@@ -16,7 +16,7 @@ import os
 import sys
 import uuid
 from collections import OrderedDict
-from typing import Union, TYPE_CHECKING
+from typing import Literal, Union, TYPE_CHECKING
 
 if sys.version_info < (3, 10):
     from typing_extensions import TypeAlias
@@ -69,17 +69,32 @@ class ToolbarLocation:
     """Toolbar at the top of the layout."""
 
     Bottom: Qt.ToolBarArea = Qt.BottomToolBarArea
-    """Toobar at the bottom of the layout."""
+    """Toolbar at the bottom of the layout."""
 
 
 # ---- Event filters
 # ----------------------------------------------------------------------------
 class ToolTipFilter(QObject):
     """
-    Filter tool tip events on toolbuttons.
+    Filter tooltip events on toolbar buttons.
     """
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        """
+        Filter tooltip events on toolbar buttons.
+
+        Parameters
+        ----------
+        obj : QObject
+            The object receiving the event.
+        event : QEvent
+            The event object.
+
+        Returns
+        -------
+        bool
+            ``True`` the event should be filtered out, ``False`` otherwise.
+        """
         event_type = event.type()
         action = obj.defaultAction() if isinstance(obj, QToolButton) else None
         if event_type == QEvent.ToolTip and action is not None:
@@ -92,9 +107,14 @@ class ToolTipFilter(QObject):
 # ---- Styles
 # ----------------------------------------------------------------------------
 class ToolbarStyle(QProxyStyle):
+    """Proxy style class to control the style of Spyder toolbars."""
 
-    # The toolbar type. This can be 'Application' or 'MainWidget'
-    TYPE: str | None = None
+    TYPE: Literal["Application"] | Literal["MainWidget"] | None = None
+    """
+    The toolbar type, either "Application" or "MainWidget".
+
+    If ``None``, an unknown toolbar type.
+    """
 
     def pixelMetric(
         self, pm: QStyle.PixelMetric, option: QStyleOption, widget: QWidget
@@ -102,7 +122,24 @@ class ToolbarStyle(QProxyStyle):
         """
         Adjust size of toolbar extension button (in pixels).
 
-        From https://stackoverflow.com/a/27042352/438386
+        From `Stack Overflow <https://stackoverflow.com/a/27042352/438386>`__.
+
+        This is a callback intended to be called internally by Qt.
+
+        Parameters
+        ----------
+        pm : QStyle.PixelMetric
+            The pixel metric to calculate.
+        option : QStyleOption | None, optional
+            The current style options, or ``None`` (default).
+        widget : QWidget | None, optional
+            The widget the pixel metric will be used for,
+            or ``None`` (default).
+
+        Returns
+        -------
+        int
+            The resulting pixel metric value, used internally by Qt.
         """
         # Important: These values need to be updated in case we change the size
         # of our toolbar buttons in utils/stylesheet.py. That's because Qt only
@@ -131,18 +168,29 @@ class ToolbarStyle(QProxyStyle):
 # ----------------------------------------------------------------------------
 class SpyderToolbar(QToolBar):
     """
-    Spyder Toolbar.
-
     This class provides toolbars with some predefined functionality.
     """
 
     sig_is_rendered: Signal = Signal()
     """
-    This signal is emitted to let other objects know that the toolbar is now
-    rendered.
+    Signal to let other objects know that the toolbar is now rendered.
     """
 
     def __init__(self, parent: QWidget | None, title: str) -> None:
+        """
+        Create a new toolbar object.
+
+        Parameters
+        ----------
+        parent : QWidget | None
+            The parent widget of this one, or ``None``.
+        title : str
+            The localized title of this toolbar, to display in the UI.
+
+        Returns
+        -------
+        None
+        """
         super().__init__(parent=parent)
 
         # Attributes
@@ -186,18 +234,37 @@ class SpyderToolbar(QToolBar):
         Parameters
         ----------
         action_or_widget: ToolbarItem
-            The item to add to the `toolbar`.
+            The item to add to the toolbar.
         section: str | None, optional
-            The section id in which to insert the `item` on the `toolbar`.
+            The section id in which to insert the ``action_or_widget``,
+            or ``None`` (default) for no section.
         before: str | None, optional
-            Make the item appear before another given item.
-        before_section: str | None, optional
-            Make the item defined section appear before another given section
-            (must be already defined).
+            Make the ``action_or_widget`` appear before the action with the
+            identifier ``before``. If ``None`` (default), add it to the end.
+            If ``before`` is not ``None``, ``before_section`` will be ignored.
+        before_section : str | None, optional
+            Make the ``section`` appear prior to ``before_section``.
+            If ``None`` (the default), add the section to the end.
+            If you provide a ``before`` action, the new action will be placed
+            before this one, so the section option will be ignored, since the
+            action will now be placed in the same section as the ``before``
+            action.
         omit_id: bool, optional
-            If True, then the toolbar will check if the item to add declares an
-            id, False otherwise. This flag exists only for items added on
-            Spyder 4 plugins. Default: False
+            If ``False``, the default, then the toolbar will check if
+            ``action.action_id`` exists and is set to a string, and raise
+            an :exc:`~spyder.api.exceptions.SpyderAPIError` if either is not
+            the case. If ``True``, it will add the ``action_or_widget`` anyway.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        SpyderAPIError
+            If ``omit_id`` is ``False`` (the default) and
+            ``action_or_widget.action_id`` does not exist or is not set to
+            a string.
         """
         item_id = None
         if isinstance(action_or_widget, SpyderAction) or hasattr(
@@ -273,7 +340,18 @@ class SpyderToolbar(QToolBar):
                     )
 
     def remove_item(self, item_id: str) -> None:
-        """Remove action or widget from toolbar by id."""
+        """
+        Remove the toolbar item with the given string identifier.
+
+        Parameters
+        ----------
+        item_id : str
+            The string identifier of the toolbar item to remove.
+
+        Returns
+        -------
+        None
+        """
         try:
             item = self._item_map.pop(item_id)
             for section in list(self._section_items.keys()):
@@ -288,7 +366,13 @@ class SpyderToolbar(QToolBar):
             pass
 
     def render(self) -> None:
-        """Create the toolbar taking into account sections and locations."""
+        """
+        Create the toolbar taking into account sections and locations.
+
+        Returns
+        -------
+        None
+        """
         sec_items = []
         for sec, items in self._section_items.items():
             for item in items:
@@ -327,7 +411,7 @@ class SpyderToolbar(QToolBar):
 
 class ApplicationToolbar(SpyderToolbar):
     """
-    Spyder Main application Toolbar.
+    The Spyder main application Toolbar.
     """
 
     ID: str | None = None
@@ -340,6 +424,22 @@ class ApplicationToolbar(SpyderToolbar):
     def __init__(
         self, parent: QMainWindow, toolbar_id: str, title: str
     ) -> None:
+        """
+        Create the main Spyder application toolbar.
+
+        Parameters
+        ----------
+        parent : QMainWindow
+            The parent main window of this toolbar.
+        toolbar_id : str
+            The unique string identifier of this toolbar.
+        title : str
+            The localized name of this toolbar, displayed in the interface.
+
+        Returns
+        -------
+        None
+        """
         super().__init__(parent=parent, title=title)
         self.ID = toolbar_id
 
@@ -351,15 +451,33 @@ class ApplicationToolbar(SpyderToolbar):
         self.setStyleSheet(str(APP_TOOLBAR_STYLESHEET))
 
     def __str__(self) -> str:
+        """
+        Output this toolbar's class name and identifier as a string.
+
+        Returns
+        -------
+        str
+            The toolbar's class name and string identifier, in the format
+            :file:``ApplicationToolbar({TOOLBAR_ID})``.
+        """
         return f"ApplicationToolbar('{self.ID}')"
 
     def __repr__(self) -> str:
+        """
+        Output this toolbar's class name and identifier as a string.
+
+        Returns
+        -------
+        str
+            The menu's class name and string identifier, in the format
+            :file:``ApplicationToolbar({TOOLBAR_ID})``.
+        """
         return f"ApplicationToolbar('{self.ID}')"
 
 
 class MainWidgetToolbar(SpyderToolbar):
     """
-    Spyder Widget toolbar class.
+    Spyder widget toolbar class.
 
     A toolbar used in Spyder dockable plugins to add internal toolbars
     to their interface.
@@ -373,6 +491,21 @@ class MainWidgetToolbar(SpyderToolbar):
     def __init__(
         self, parent: QWidget | None = None, title: str | None = None
     ) -> None:
+        """
+        Create a new toolbar.
+
+        Parameters
+        ----------
+        parent : QWidget | None, optional
+            The parent widget of this one, or ``None`` (default).
+        title : str | None, optional
+            The localized title of this toolbar, or ``None`` (default) for
+            no title.
+
+        Returns
+        -------
+        None
+        """
         super().__init__(parent, title=title or "")
         self._icon_size = QSize(16, 16)
 
@@ -395,5 +528,17 @@ class MainWidgetToolbar(SpyderToolbar):
         self._filter = ToolTipFilter()
 
     def set_icon_size(self, icon_size: QSize) -> None:
+        """
+        Set the icon size for this toolbar.
+
+        Parameters
+        ----------
+        icon_size : QSize
+            The icon size to set.
+
+        Returns
+        -------
+        None
+        """
         self._icon_size = icon_size
         self.setIconSize(icon_size)
