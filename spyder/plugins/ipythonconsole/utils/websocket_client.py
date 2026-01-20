@@ -484,11 +484,27 @@ class _WebSocketHBChannel(_WebSocketChannel):
         """Start the channel."""
         super().start()
         self._hb = asyncio.Event()
-        self._beating = asyncio.Event()
-        self._beating.set()
+        self.__beating = asyncio.Event()
+        self.__beating.set()
         self._beat_task = asyncio.create_task(
             self._beat_loop(), name=f"{self.session.session}-hb-beat"
         )
+
+    @property
+    def _beating(self) -> bool:
+        """Beating status.
+
+        Required for ipythonconsole compatibility.
+        """
+        return self.__beating.is_set()
+
+    @_beating.setter
+    def _beating(self, value: bool) -> None:
+        """Beating status."""
+        if value:
+            self.__beating.set()
+        else:
+            self.__beating.clear()
 
     async def stop(self) -> None:
         """Stop the channel."""
@@ -511,9 +527,10 @@ class _WebSocketHBChannel(_WebSocketChannel):
         """Send heartbeat pings at regular intervals."""
         loop = asyncio.get_running_loop()
         while True:
-            await self._beating.wait()
-            await self._websocket.ping()
+            await self.__beating.wait()
+            start_time = loop.time()
             try:
+                await self._websocket.ping()
                 await asyncio.wait_for(self._hb.wait(), timeout=self.time_to_dead)
             except asyncio.TimeoutError:
                 _LOGGER.warning(
@@ -525,21 +542,23 @@ class _WebSocketHBChannel(_WebSocketChannel):
                 self._hb.clear()
                 self._time_last_heartbeat = loop.time()
             finally:
-                await asyncio.sleep(self.time_to_dead / 2)
+                await asyncio.sleep(
+                    max(self.time_to_dead - (loop.time() - start_time), 0)
+                )
 
     def pause(self):
         """Pause the heartbeat channel."""
-        self._beating.clear()
+        self.__beating.clear()
 
     def unpause(self):
         """Unpause the heartbeat channel."""
-        self._beating.set()
+        self.__beating.set()
 
     def is_beating(self) -> bool:
         """Test whether the channel is beating."""
         return (self._beat_task is not None and
                 not self._beat_task.done() and
-                self._beating.is_set())
+                self.__beating.is_set())
 
     def call_handlers(self, since_last_heartbeat: float):
         pass
