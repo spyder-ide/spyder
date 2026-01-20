@@ -538,6 +538,9 @@ class _WebSocketHBChannel(_WebSocketChannel):
                     self.time_to_dead,
                 )
                 self.call_handlers(loop.time() - self._time_last_heartbeat)
+            except aiohttp.ClientConnectionResetError:
+                _LOGGER.warning("Heartbeat connection reset error")
+                self.call_handlers(loop.time() - self._time_last_heartbeat)
             else:
                 self._hb.clear()
                 self._time_last_heartbeat = loop.time()
