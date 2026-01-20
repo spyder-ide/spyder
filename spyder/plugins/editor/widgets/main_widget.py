@@ -1063,15 +1063,17 @@ class EditorMainWidget(PluginMainWidget):
         # happens when the menu is tried to be rendered automatically in some
         # Linux distros.
         # Fixes spyder-ide/spyder#22432
-        if editor is not None and not editor.isReadOnly():
-            # Case where the current editor has the focus
-            if self.is_file_opened():
+        # The second validation covers the case where the current editor has
+        # focus.
+        if editor is not None and self.is_file_opened():
+            has_selection = editor.has_selected_text()
+
+            if not editor.isReadOnly():
+                not_readonly = not editor.isReadOnly()
+
                 # Undo, redo
                 undo_action_enabled = editor.document().isUndoAvailable()
                 redo_action_enabled = editor.document().isRedoAvailable()
-
-                not_readonly = not editor.isReadOnly()
-                has_selection = editor.has_selected_text()
 
         # Copy, cut, paste, select all
         copy_action_enabled = has_selection
@@ -3145,10 +3147,12 @@ class EditorMainWidget(PluginMainWidget):
                 action,
                 readonly_menu,
                 section=CodeEditorContextMenuSections.CopySection,
+                before_section=CodeEditorContextMenuSections.ZoomSection,
             )
 
     def add_run_actions_to_codeeditor_context_menu(self):
-        menu = self.get_menu(CodeEditorMenus.ContextMenu)
+        main_menu = self.get_menu(CodeEditorMenus.ContextMenu)
+        readonly_menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
 
         for action_name in [
             "run cell",
@@ -3157,32 +3161,38 @@ class EditorMainWidget(PluginMainWidget):
             "run selection and advance",
         ]:
             action = self.get_action(action_name, plugin=Plugins.Run)
-            self.add_item_to_menu(
-                action,
-                menu,
-                section=CodeEditorContextMenuSections.RunSection,
-                before_section=CodeEditorContextMenuSections.InspectSection,
-            )
+            for menu in [main_menu, readonly_menu]:
+                self.add_item_to_menu(
+                    action,
+                    menu,
+                    section=CodeEditorContextMenuSections.RunSection,
+                    before_section=CodeEditorContextMenuSections.InspectSection,
+                )
 
     def _setup_codeeditor_context_menu(self):
         """Setup CodeEditor context menu"""
-        # -- Main menu
-        menu = self.create_menu(CodeEditorMenus.ContextMenu)
-        menu.aboutToShow.connect(self.update_edit_actions)
+        # -- Menus
+        main_menu = self.create_menu(CodeEditorMenus.ContextMenu)
+        readonly_menu = self.create_menu(CodeEditorMenus.ReadOnlyMenu)
 
-        # Inspect section
+        # -- Signals
+        for menu in [main_menu, readonly_menu]:
+            menu.aboutToShow.connect(self.update_edit_actions)
+
+        # -- Inspect section
         for action_name in [
             CodeEditorActions.GoToDefinition,
             CodeEditorActions.InspectCurrentObject,
         ]:
             action = self.get_action(action_name)
-            self.add_item_to_menu(
-                action,
-                menu,
-                section=CodeEditorContextMenuSections.InspectSection,
-            )
+            for menu in [main_menu, readonly_menu]:
+                self.add_item_to_menu(
+                    action,
+                    menu,
+                    section=CodeEditorContextMenuSections.InspectSection,
+                )
 
-        # Nbformat section
+        # -- Nbformat section
         for action_name in [
             CodeEditorActions.ClearAllOutput,
             CodeEditorActions.ConvertToPython,
@@ -3190,7 +3200,7 @@ class EditorMainWidget(PluginMainWidget):
             action = self.get_action(action_name)
             self.add_item_to_menu(
                 action,
-                menu,
+                main_menu,
                 section=CodeEditorContextMenuSections.NbformatSection,
             )
 
@@ -3201,11 +3211,12 @@ class EditorMainWidget(PluginMainWidget):
             CodeEditorActions.ZoomReset,
         ]:
             action = self.get_action(action_name)
-            self.add_item_to_menu(
-                action,
-                menu,
-                section=CodeEditorContextMenuSections.ZoomSection,
-            )
+            for menu in [main_menu, readonly_menu]:
+                self.add_item_to_menu(
+                    action,
+                    menu,
+                    section=CodeEditorContextMenuSections.ZoomSection,
+                )
 
         # Refactor/code section
         for action_name in [
@@ -3216,20 +3227,9 @@ class EditorMainWidget(PluginMainWidget):
             action = self.get_action(action_name)
             self.add_item_to_menu(
                 action,
-                menu,
+                main_menu,
                 section=CodeEditorContextMenuSections.RefactorCodeSection,
             )
-
-        # -- Read-only context-menu
-        readonly_menu = self.create_menu(CodeEditorMenus.ReadOnlyMenu)
-        readonly_menu.aboutToShow.connect(self.update_edit_actions)
-
-        # Others section
-        self.add_item_to_menu(
-            self.get_action(CodeEditorActions.GoToDefinition),
-            readonly_menu,
-            section=CodeEditorContextMenuSections.InspectSection,
-        )
 
     def _current_editor_clear_all_output(self):
         editor = self.get_current_editor()
