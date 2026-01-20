@@ -1653,16 +1653,14 @@ class EditorMainWidget(PluginMainWidget):
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
 
-    def refresh_formatter_name(self):
-        formatter = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'formatting'),
-            default='',
-            section='completions'
-        )
-
+    @on_conf_change(
+        option=('provider_configuration', 'lsp', 'values', 'formatting'),
+        section='completions',
+    )
+    def refresh_formatter_name(self, value):
         self.formatting_action.setText(
-            _('Format file or selection with {0}').format(
-                formatter.capitalize()))
+            _("Format file or selection with {0}").format(value.capitalize())
+        )
 
     # ---- Slots
     def opened_files_list_changed(self):
