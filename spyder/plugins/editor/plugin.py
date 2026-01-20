@@ -422,12 +422,6 @@ class Editor(SpyderDockablePlugin):
                 before_section=SearchMenuSections.FindInFiles,
             )
 
-        # ---- Source menu ----
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source
-        )
-        source_menu.aboutToShow.connect(widget.refresh_formatter_name)
-
         # Options section
         option_actions = widget.checkable_actions.values()
         for option_item in option_actions:
@@ -537,12 +531,6 @@ class Editor(SpyderDockablePlugin):
                 cursor_item,
                 menu_id=ApplicationMenus.Search
             )
-
-        # ---- Source menu ----
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source
-        )
-        source_menu.aboutToShow.disconnect(widget.refresh_formatter_name)
 
         # Options section
         option_actions = widget.checkable_actions.values()
