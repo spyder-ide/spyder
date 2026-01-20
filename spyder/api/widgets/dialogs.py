@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class _SpyderButtonsProxyStyle(QProxyStyle):
-    """Style adjustments for SpyderDialogButtonBox."""
+    """Style adjustments for :class:`SpyderDialogButtonBox`."""
 
     def styleHint(self, hint, option=None, widget=None, return_data=None):
         if hint == QStyle.SH_DialogButtonLayout:
@@ -45,7 +45,7 @@ class _SpyderButtonsProxyStyle(QProxyStyle):
 
 
 class SpyderDialogButtonBox(QDialogButtonBox):
-    """QDialogButtonBox widget for Spyder."""
+    """Action button section (OK, Cancel, etc) widget for dialog boxes."""
 
     def __init__(
         self,
@@ -53,6 +53,28 @@ class SpyderDialogButtonBox(QDialogButtonBox):
         orientation: Qt.Orientation = Qt.Horizontal,
         parent: QWidget | None = None,
     ):
+        """
+        Create a new group of dialog box buttons.
+
+        Parameters
+        ----------
+        buttons : QDialogButtonBox.StandardButton | None, optional
+            The standard buttons to include in the dialog box button group,
+            such as "OK", "Cancel" or "Apply", passed as a single argument
+            composed of Qt enum members bitwise or-ed (``|``) together.
+            For example, ``QDialogButtonBox.Ok | QDialogButtonBox.Cancel``.
+            If ``None``, the default, is an empty button box with no buttons.
+        orientation : Qt.Orientation, optional
+            Whether the button box is laid out horizontally, with buttons
+            side by side, or vertically, with buttons on top of one another.
+            By default, horizontal (``Qt.Horizontal``).
+        parent : QWidget | None, optional
+            The parent widget of this button box, ``None`` by default.
+
+        Returns
+        -------
+        None
+        """
         if buttons:
             super().__init__(buttons, orientation, parent)
         elif orientation:
