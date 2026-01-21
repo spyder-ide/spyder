@@ -687,12 +687,6 @@ class KernelHandler(QObject):
             self.kernel_comm.remove()
         self.kernel_comm.open_comm(self.kernel_client)
 
-    def reconnect_kernel(self):
-        """Kernel restarted successfully, so reconnect to it."""
-        self.reopen_comm()
-        self.disconnect_std_pipes()
-        self.connect_std_pipes()
-
     def set_time_to_dead(self, time_to_dead):
         """Set time to detect if the kernel is dead in seconds."""
         if self.kernel_client is not None:
