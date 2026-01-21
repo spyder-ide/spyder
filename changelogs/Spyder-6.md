@@ -54,6 +54,16 @@
     The respective `on_initialize()` and `on_close()` methods should be used
     instead.
 * `spyder.api.widgets` modules
+  * In the `menus` and `toolbars` modules, the `SpyderMenuProxyStyle` and
+    `ToolbarStyle` proxy style classes are now documented as pending
+    deprecation. In Spyder 6.2, they will be renamed to the private
+    `_SpyderMenuProxyStyle` and `_ToolbarStyle` classes, respectively,
+    with the original names becoming aliases raising a `DeprecationWarning`
+    on use, that will be removed in Spyder 7.0. They were never intended to
+    be used directly by plugins, like their currently-private
+    `_SpyderComboBoxProxyStyle` and `_SpyderButtonsProxyStyle` brethren,
+    and their functionality is inherited automatically with the `SpyderMenu`
+    and `ApplicationToolbar`/`MainWidgetToolbar` classes, respectively.
   * In the `toolbars` module, `ToolbarStyle.pixelMetric()` now correctly
     raises a SpyderAPIError` (instead of silently not working as intended
     save for a spurious `print()` call) if the `TYPE` class attribute is not
