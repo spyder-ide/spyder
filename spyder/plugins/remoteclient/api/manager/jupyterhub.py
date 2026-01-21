@@ -279,6 +279,13 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             _("The connection was closed successfully"),
         )
 
+    async def stop_remote_server(self) -> bool:
+        """Stop remote server."""
+        if self._hb_task:
+            self._hb_task.cancel()
+            self._hb_task = None
+        return await super().stop_remote_server()
+
     async def _heartbeat(self):
         while self.connected and self.server_started:
             await asyncio.sleep(30)
