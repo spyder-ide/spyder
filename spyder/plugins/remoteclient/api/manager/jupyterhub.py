@@ -75,6 +75,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         ) as response:
             if response.status in {201, 400}:
                 if await self.check_server_version():
+                    self._hb_task = asyncio.create_task(self._heartbeat())
                     self._emit_connection_status(
                         ConnectionStatus.Active,
                         _("Spyder remote services are active"),
