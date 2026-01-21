@@ -901,17 +901,12 @@ class SpyderActionMixin:
         context = self.CONTEXT_NAME if context is None else context
         return ACTION_REGISTRY.get_references(plugin, context)
 
-    def update_actions(self, options) -> None:
+    def update_actions(self) -> None:
         """
         Update the state of exposed actions.
 
         Exposed actions are actions created by the :meth:`create_action`
         method.
-
-        Parameters
-        ----------
-        options : Any
-            Options to pass to this method (deprecated).
 
         Returns
         -------
