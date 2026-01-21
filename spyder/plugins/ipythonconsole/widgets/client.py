@@ -911,24 +911,26 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.shellwidget._append_html(error_html, before_prompt=False)
         self.shellwidget.insert_horizontal_ruler()
 
+        # Inform other plugins that the shell failed to start
+        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
+
         if shutdown:
             self.shutdown(is_last_client=False, close_console=False)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_restarted(self, future):
         """Handle restarts for remote kernels."""
-        if future.result():
-            # Reset shellwidget and print restart message
-            # self.kernel_handler.reconnect_kernel()
-            self.shellwidget.reset(clear=True)
+        try:
+            restarted = future.result()
+        except Exception as err:
+            self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
         else:
-            self.remote_kernel_restarted_failure_message(shutdown=True)
-            # This will show an error message in the plugins connected to the
-            # IPython console and disable kernel related actions in its Options
-            # menu.
-            sw = self.shellwidget
-            sw.sig_shellwidget_errored.emit(sw)
-        self.__remote_restart_requested = False
+            if restarted:
+                self.shellwidget.reset(clear=True)
+            else:
+                self.remote_kernel_restarted_failure_message(shutdown=True) 
+        finally:
+            self.__remote_restart_requested = False
 
     @AsyncDispatcher.QtSlot
     def _reconnect_on_kernel_info(self, future):
