@@ -196,6 +196,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         #--- Remote kernels states
         self.__remote_restart_requested = False
         self.__remote_reconnect_requested = False
+        self._remote_reconnect_attempts = 5
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -931,33 +932,55 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @AsyncDispatcher.QtSlot
     def _reconnect_on_kernel_info(self, future):
-        if (kernel_info := future.result()):
-            try:
-                kernel_handler = KernelHandler.from_websocket(
-                    (
-                        self.jupyter_api.api_url
-                        / "kernels"
-                        / self.kernel_id
-                        / "channels"
-                    ).with_scheme("ws"),
-                    aiohttp_session=self._jupyter_api.session,
+        try:
+            kernel_info = future.result()
+        except Exception as err:
+            if self._remote_reconnect_attempts <= 0:
+                logger.error(
+                    "Exceeded maximum attempts to reconnect to remote kernel",
+                    exc_info=True,
                 )
-            except Exception as err:
-                self.remote_kernel_restarted_failure_message(
-                    err, shutdown=True
-                )
-            else:
-                self.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=False
-                )
+                self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
+                self.__remote_reconnect_requested = False
+                return
+            self._remote_reconnect_attempts -= 1
+            logger.warning(
+                "Reconnecting to remote kernel, attempts left: %d",
+                self._remote_reconnect_attempts,
+                exc_info=True,
+            )
+            # self.reconnect_remote_kernel(delay=10)
+            self.__remote_reconnect_requested = False
+            return
         else:
-            self.remote_kernel_restarted_failure_message(shutdown=True)
-            # This will show an error message in the plugins connected to the
-            # IPython console and disable kernel related actions in its Options
-            # menu.
-            sw = self.shellwidget
-            sw.sig_shellwidget_errored.emit(sw)
-        self.__remote_reconnect_requested = False
+            if kernel_info is None:
+                logger.error("Server returned no info for remote kernel")
+                self.remote_kernel_restarted_failure_message(shutdown=True)
+                self.__remote_reconnect_requested = False
+                return
+
+        try:
+            kernel_handler = KernelHandler.from_websocket(
+                (
+                    self.jupyter_api.api_url
+                    / "kernels"
+                    / self.kernel_id
+                    / "channels"
+                ).with_scheme("ws"),
+                aiohttp_session=self._jupyter_api.session,
+            )
+        except Exception as err:
+            logger.error("Failed to create KernelHandler for remote kernel")
+            self.remote_kernel_restarted_failure_message(
+                err, shutdown=True
+            )
+        else:
+            self._remote_reconnect_attempts = 5
+            self.replace_kernel(
+                kernel_handler, shutdown_kernel=False, clear=False
+            )
+        finally:
+            self.__remote_reconnect_requested = False
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_started(self, future):
@@ -1015,6 +1038,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole")
     async def _get_remote_kernel_info(self):
+        await self.jupyter_api.connect()  # Reensure connection
         return await self._jupyter_api.get_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
