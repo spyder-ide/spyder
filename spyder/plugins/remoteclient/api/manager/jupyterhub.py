@@ -281,10 +281,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
     async def _heartbeat(self):
         while self.connected and self.server_started:
             await asyncio.sleep(30)
-            async with self._session.get(self.server_url) as response:
-                if not response.ok:
-                    self.logger.warning(
-                        "Heartbeat failed with status: %s",
-                        response.status,
-                    )
-                    self._handle_connection_lost()
+            try:
+                async with self._session.get(self.server_url) as response:
+                    response.raise_for_status()
+            except aiohttp.ClientError as e:
+                self.logger.warning("Heartbeat failed: %s", str(e))
+                self._handle_connection_lost()
