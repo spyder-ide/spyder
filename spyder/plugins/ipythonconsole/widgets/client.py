@@ -1072,7 +1072,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         )
         self.__remote_restart_requested = True
 
-    def reconnect_remote_kernel(self):
+    def handle_remote_kernel_died(self):
         if self.__remote_reconnect_requested:
             return
         self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)

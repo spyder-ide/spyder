@@ -1452,11 +1452,10 @@ overrided by the Sympy module (e.g. plot)
         )
         stop_button.setEnabled(False)
 
+        super()._handle_kernel_died(since_last_heartbeat)
+
         if self.is_remote():
-            self._kernel_restarted_message(died=True)
-            self.ipyclient.reconnect_remote_kernel()
-        else:
-            super()._handle_kernel_died(since_last_heartbeat)
+            self.ipyclient.handle_remote_kernel_died()
 
     def _kernel_restarted_message(self, died=True):
         msg = (
