@@ -784,9 +784,10 @@ class _WebSocketKernelClient(Configurable):
             msg = "WebSocket connection is not established."
             raise RuntimeError(msg)
         try:
-            channel = None
-            while channel != "closed":
+            while True:
                 channel, msg = await self.session.recv(self._ws)
+                if channel == "closed":
+                    break
                 await self._queues[channel].put(msg)
         except asyncio.CancelledError:
             _LOGGER.debug(
