@@ -54,6 +54,11 @@
     The respective `on_initialize()` and `on_close()` methods should be used
     instead.
 * `spyder.api.widgets` modules
+  * In the `mixins` module's `SpyderActionMixin.update_actions()` method,
+    remove the spurious leftover `options` parameter that does nothing, and
+    is inconsistent and incompatible with all its actual current usage.
+    As this is an abstract method and none of its implementations do not include
+    it, any plugin code that does will already raise an error at runtime.
   * In the `menus` and `toolbars` modules, the `SpyderMenuProxyStyle` and
     `ToolbarStyle` proxy style classes are now documented as pending
     deprecation. In Spyder 6.2, they will be renamed to the private
