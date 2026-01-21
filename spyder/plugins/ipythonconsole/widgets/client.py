@@ -955,8 +955,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.__remote_reconnect_requested = False
             return
         else:
-            if kernel_info is None:
-                logger.error("Server returned no info for remote kernel")
+            if not kernel_info:
+                logger.error("Remote kernel info not found")
                 self.remote_kernel_restarted_failure_message(shutdown=True)
                 self.__remote_reconnect_requested = False
                 return
@@ -972,7 +972,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 aiohttp_session=self._jupyter_api.session,
             )
         except Exception as err:
-            logger.error("Failed to create KernelHandler for remote kernel")
+            logger.error("Failed to create KernelHandler for remote kernel", exc_info=True)
             self.remote_kernel_restarted_failure_message(
                 error=err, shutdown=True
             )
