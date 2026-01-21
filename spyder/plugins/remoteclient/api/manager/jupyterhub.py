@@ -292,6 +292,14 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             try:
                 async with self._session.get(f"user/{self._user_name}/spyder/", timeout=30) as response:
                     response.raise_for_status()
-            except aiohttp.ClientError as e:
-                self.logger.warning("Heartbeat failed: %s", str(e))
+            except asyncio.CancelledError:
+                raise
+            except asyncio.TimeoutError:
+                self.logger.warning("Heartbeat timed out")
+                self._handle_connection_lost()
+            except aiohttp.ClientConnectorError:
+                self.logger.warning("Heartbeat connection error")
+                self._handle_connection_lost()
+            except Exception:
+                self.logger.warning("Heartbeat failed", exc_info=True)
                 self._handle_connection_lost()
