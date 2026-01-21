@@ -191,11 +191,6 @@ class _Session:
             return "hb", {msg.type: msg.data}
 
         if msg.type in {aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING}:
-            _LOGGER.debug(
-                "WebSocket connection closed with type %s and code %s",
-                msg.type,
-                msg.data,
-            )
             return "closed", {}
 
         if msg.type is not aiohttp.WSMsgType.BINARY:
@@ -1170,4 +1165,9 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
             )
             self.sig_ws_msg_size_overflow.emit(self._ws._reader._max_msg_size)
         else:
+            _LOGGER.error(
+                "Receiver loop exception for %s: %s",
+                self.session.session,
+                exc,
+            )
             super()._handle_receiver_exception(exc)
