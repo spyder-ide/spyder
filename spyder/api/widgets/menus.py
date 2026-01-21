@@ -68,7 +68,17 @@ class PluginMainWidgetMenus:
 # ---- Style
 # -----------------------------------------------------------------------------
 class SpyderMenuProxyStyle(QProxyStyle):
-    """Menu style adjustments that can only be done with a proxy style."""
+    """Menu style adjustments that can only be done with a proxy style.
+
+    .. deprecated:: 6.2
+
+        This class will be moved to the private :class:`!_SpyderMenuProxyStyle`
+        in Spyder 6.2, while the current public name will become an alias
+        raising a :exc:`DeprecationWarning` on use, and removed in 7.0.
+
+        It was never intended to be used directly by plugins, and its
+        functionality is automatically inherited by using :class:`SpyderMenu`.
+    """
 
     def pixelMetric(
         self,

@@ -107,7 +107,18 @@ class ToolTipFilter(QObject):
 # ---- Styles
 # ----------------------------------------------------------------------------
 class ToolbarStyle(QProxyStyle):
-    """Proxy style class to control the style of Spyder toolbars."""
+    """Proxy style class to control the style of Spyder toolbars.
+
+    .. deprecated:: 6.2
+
+        This class will be renamed to the private :class:`!_ToolbarStyle`
+        in Spyder 6.2, while the current public name will become an alias
+        raising a :exc:`DeprecationWarning` on use, and removed in 7.0.
+
+        It was never intended to be used directly by plugins, and its
+        functionality is automatically inherited by using the appropriate
+        :class:`ApplicationToolbar` and :class:`MainWidgetToolbar` classes.
+    """
 
     TYPE: Literal["Application"] | Literal["MainWidget"] | None = None
     """
