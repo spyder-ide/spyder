@@ -974,7 +974,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except Exception as err:
             logger.error("Failed to create KernelHandler for remote kernel")
             self.remote_kernel_restarted_failure_message(
-                err, shutdown=True
+                error=err, shutdown=True
             )
         else:
             self._remote_reconnect_attempts = 5
