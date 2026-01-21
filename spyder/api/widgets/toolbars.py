@@ -111,9 +111,7 @@ class ToolbarStyle(QProxyStyle):
 
     TYPE: Literal["Application"] | Literal["MainWidget"] | None = None
     """
-    The toolbar type, either "Application" or "MainWidget".
-
-    If ``None``, an unknown toolbar type.
+    The toolbar type; must be either "Application" or "MainWidget".
     """
 
     def pixelMetric(
@@ -140,6 +138,12 @@ class ToolbarStyle(QProxyStyle):
         -------
         int
             The resulting pixel metric value, used internally by Qt.
+
+        Raises
+        ------
+        SpyderAPIError
+            If :attr:`TYPE` is not ``"Application"`` or ``"MainWidget"``,
+            as then this mixin would do nothing.
         """
         # Important: These values need to be updated in case we change the size
         # of our toolbar buttons in utils/stylesheet.py. That's because Qt only
@@ -160,7 +164,10 @@ class ToolbarStyle(QProxyStyle):
                 else:
                     return 44
             else:
-                print("Unknown toolbar style type")  # spyder: test-skip
+                raise SpyderAPIError(
+                    "Toolbar style must be 'Application' or 'MainWidget', not"
+                    f" {self.TYPE!r}"
+                )
         return super().pixelMetric(pm, option, widget)
 
 
@@ -169,6 +176,11 @@ class ToolbarStyle(QProxyStyle):
 class SpyderToolbar(QToolBar):
     """
     This class provides toolbars with some predefined functionality.
+
+    .. caution::
+
+        This class isn't intended to be used directly; use its subclasses
+        :class:`ApplicationToolbar` and :class:`MainWidgetToolbar` instead.
     """
 
     sig_is_rendered: Signal = Signal()

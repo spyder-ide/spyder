@@ -53,6 +53,14 @@
     since Spyder 5.1/5.2 and any code still using them is already broken.
     The respective `on_initialize()` and `on_close()` methods should be used
     instead.
+* `spyder.api.widgets` modules
+  * In the `toolbars` module, `ToolbarStyle.pixelMetric()` now correctly
+    raises a SpyderAPIError` (instead of silently not working as intended
+    save for a spurious `print()` call) if the `TYPE` class attribute is not
+    set to one of the two valid values, `"Application"` or `"MainWindow".
+    Additionally, using `SpyderToolbar` directly rather than its
+    `ApplicationToolbar` and `MainWidgetToolbar` subclasses is now documented
+    as formally discouraged so their respective styling will be applied.
 
 ----
 
