@@ -643,6 +643,16 @@ def is_conda_based_app(pyexec=sys.executable):
     installer environment or the root environment thereof.
     """
     real_pyexec = osp.realpath(pyexec)  # pyexec may be symlink
+
+    # It seems in some cases the check below detects that a regular conda env
+    # corresponds to our installer. This makes things a bit more strict by
+    # also validating the env name where Spyder is installed.
+    # Fixes spyder-ide/spyder#25549.
+    if not "spyder-runtime" in real_pyexec:
+        return False
+
+    # Check the presence of conda-based-app file, which is added when creating
+    # the installers.
     if os.name == 'nt':
         env_path = osp.dirname(real_pyexec)
     else:
