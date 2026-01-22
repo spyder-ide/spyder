@@ -601,43 +601,36 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
             result |= Qt.ItemFlag.ItemIsEditable
         return result
 
-    def setData(self, index, value, role=Qt.EditRole, change_type=None):
+    def setData(self, index, value, role=Qt.EditRole):
         """Cell content change"""
         column = index.column()
         row = index.row()
 
         if index in self.display_error_idxs:
             return False
-        if change_type is not None:
+
+        val = from_qvariant(value, str)
+        current_value = self.get_value(row, column)
+        if isinstance(current_value, (bool, np.bool_)):
+            val = bool_false_check(val)
+        supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
+
+        if (
+            isinstance(current_value, supported_types)
+            or isinstance(current_value, str)
+        ):
             try:
-                value = self.data(index, role=Qt.DisplayRole)
-                val = from_qvariant(value, str)
-                if change_type is bool:
-                    val = bool_false_check(val)
-                self.df.iloc[row, column] = change_type(val)
-            except ValueError:
-                self.df.iloc[row, column] = change_type('0')
-        else:
-            val = from_qvariant(value, str)
-            current_value = self.get_value(row, column)
-            if isinstance(current_value, (bool, np.bool_)):
-                val = bool_false_check(val)
-            supported_types = (bool, np.bool_) + REAL_NUMBER_TYPES
-            if (
-                isinstance(current_value, supported_types)
-                or isinstance(current_value, str)
-            ):
-                try:
-                    self.df.iloc[row, column] = current_value.__class__(val)
-                except (ValueError, OverflowError) as e:
-                    QMessageBox.critical(self.dialog, "Error",
-                                         str(type(e).__name__) + ": " + str(e))
-                    return False
-            else:
+                self.df.iloc[row, column] = current_value.__class__(val)
+            except (ValueError, OverflowError) as e:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "Editing dtype {0!s} not yet supported."
-                                     .format(type(current_value).__name__))
+                                     str(type(e).__name__) + ": " + str(e))
                 return False
+        else:
+            QMessageBox.critical(self.dialog, "Error",
+                                 "Editing dtype {0!s} not yet supported."
+                                 .format(type(current_value).__name__))
+            return False
+
         self.max_min_col_update()
         self.dataChanged.emit(index, index)
         return True
@@ -769,7 +762,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.remove_col_action = None
         self.duplicate_row_action = None
         self.duplicate_col_action = None
-        self.convert_to_menu = None
         self.resize_action = None
         self.resize_columns_action = None
         self.histogram_action = None
@@ -1010,32 +1002,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             register_action=False
         )
 
-        # ---- Create "Convert to" submenu and actions
-
-        self.convert_to_menu = self.create_menu(
-            menu_id=DataframeEditorMenus.ConvertTo,
-            title=_('Convert to'),
-            register=False
-        )
-        functions = (
-            (_("Bool"), bool, DataframeEditorActions.ConvertToBool),
-            (_("Complex"), complex, DataframeEditorActions.ConvertToComplex),
-            (_("Int"), int, DataframeEditorActions.ConvertToInt),
-            (_("Float"), float, DataframeEditorActions.ConvertToFloat),
-            (_("Str"), str, DataframeEditorActions.ConvertToStr)
-        )
-        for text, func, name in functions:
-            def slot():
-                self.change_type(func)
-            action = self.create_action(
-                name=name,
-                text=text,
-                triggered=slot,
-                context=Qt.WidgetShortcut,
-                register_action=False
-            )
-            self.add_item_to_menu(action, self.convert_to_menu)
-
         # ---- Create context menu and fill it
 
         menu = self.create_menu(DataframeEditorMenus.Context, register=False)
@@ -1059,19 +1025,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 menu,
                 section=DataframeEditorContextMenuSections.Column
             )
-        self.add_item_to_menu(
-            self.convert_to_menu,
-            menu,
-            section=DataframeEditorContextMenuSections.Convert
-        )
 
         return menu
-
-    def change_type(self, func):
-        """A function that changes types of cells."""
-        model = self.model()
-        index_list = self.selectedIndexes()
-        [model.setData(i, '', change_type=func) for i in index_list]
 
     @Slot()
     def copy(self):
