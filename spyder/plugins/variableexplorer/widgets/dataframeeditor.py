@@ -1229,7 +1229,10 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
 
             # Insert the row in the upper half dataframe
             new_row = df.iloc[[row]]
-            new_row.axes[0].values[0] = new_name
+            if parse(pd.__version__) >= parse("3.0.0"):
+                new_row.index = [new_name]
+            else:
+                new_row.axes[0].values[0] = new_name
 
             for col in range(len(new_row.columns)):
                 module = new_row.iat[0, col].__class__.__module__
@@ -1280,8 +1283,13 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             label = new_row.axes[0].values[0]
             indexes = self.model().df.axes[0].tolist()
             indexes.remove(label)
+
             new_name = self.next_index_name(indexes, label)
-            new_row.axes[0].values[0] = new_name
+            if parse(pd.__version__) >= parse("3.0.0"):
+                new_row.index = [new_name]
+            else:
+                new_row.axes[0].values[0] = new_name
+
             self.model().df = pd.concat([df1, new_row, df2])
             row = row + 1
         else:

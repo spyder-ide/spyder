@@ -610,13 +610,13 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     view.setCurrentIndex(view.model().index(1, 0))
     assert dfm.rowCount() == 2
     assert dfm.columnCount() == 1
-    view.remove_row_action.triggered.emit(True)
+    view.remove_row_action.triggered.emit()
     assert editor.btn_save_and_close.isEnabled()
     assert dfm.rowCount() == 1
 
     # test remove item2 (row)
     view.setCurrentIndex(view.model().index(0, 0))
-    view.remove_row_action.triggered.emit(True)
+    view.remove_row_action.triggered.emit()
     assert editor.btn_save_and_close.isEnabled()
     assert dfm.rowCount() == 0
     qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
@@ -627,7 +627,7 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     view.setCurrentIndex(view.model().index(0, 0))
     assert dfm.rowCount() == 2
     assert dfm.columnCount() == 1
-    view.remove_col_action.triggered.emit(True)
+    view.remove_col_action.triggered.emit()
     assert dfm.columnCount() == 0
     assert editor.btn_save_and_close.isEnabled()
     qtbot.mouseClick(editor.btn_save_and_close, Qt.LeftButton)
@@ -638,47 +638,47 @@ def test_dataframeeditor_menu_options(qtbot, monkeypatch):
     view.setCurrentIndex(view.model().index(0, 0))
     assert dfm.rowCount() == 3
     assert dfm.columnCount() == 2
-    view.insert_action_above.triggered.emit(True)
+    view.insert_action_above.triggered.emit()
     assert dfm.rowCount() == 4
     assert dfm.columnCount() == 2
 
     # test insert bellow
     view.setCurrentIndex(view.model().index(2, 0))
-    view.insert_action_below.triggered.emit(True)
+    view.insert_action_below.triggered.emit()
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 2
 
     # test insert after
     view.setCurrentIndex(view.model().index(4, 1))
-    view.insert_action_after.triggered.emit(True)
+    view.insert_action_after.triggered.emit()
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 3
 
     # test insert before
     view.setCurrentIndex(view.model().index(4, 0))
-    view.insert_action_before.triggered.emit(True)
+    view.insert_action_before.triggered.emit()
     assert dfm.rowCount() == 5
     assert dfm.columnCount() == 4
 
     # duplicate row
     view.setCurrentIndex(view.model().index(0, 3))
-    view.duplicate_row_action.triggered.emit(True)
+    view.duplicate_row_action.triggered.emit()
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 4
 
     # duplicate column (2x)
     view.setCurrentIndex(view.model().index(1, 3))
-    view.duplicate_col_action.triggered.emit(True)
+    view.duplicate_col_action.triggered.emit()
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 5
     view.setCurrentIndex(view.model().index(0, 1))
-    view.duplicate_col_action.triggered.emit(True)
+    view.duplicate_col_action.triggered.emit()
     assert dfm.rowCount() == 6
     assert dfm.columnCount() == 6
 
     # test edit item
     view.setCurrentIndex(view.model().index(0, 2))
-    view.edit_action.triggered.emit(True)
+    view.edit_action.triggered.emit()
     qtbot.wait(200)
     view.setCurrentIndex(view.model().index(0, 2))
     assert data(dfm, 0, 2) == '0'
