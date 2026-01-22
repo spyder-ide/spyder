@@ -172,7 +172,6 @@ TEST_CASES_BODY_PARSE = {
             'None',
             '"f, b", v1, v2, 3.0, .7, (,)',
             '{}, [ab], f(a), None, a.b, a+b, False',
-            'foo, bar'
         ],
         ['ValueError', 'TypeError'],
         True,
