@@ -1641,12 +1641,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             if client.installwidget.isVisible():
                 # Keep install widget visible
                 pass
-            elif (client.info_page != client.blank_page and
-                    self.enable_infowidget):
+            elif (
+                client.info_page != client.blank_page
+                and self.enable_infowidget
+            ):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
-                client.layout.addWidget(self.infowidget)
                 if self.infowidget is not None:
                     self.infowidget.show()
             else:
