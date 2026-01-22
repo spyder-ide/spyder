@@ -38,6 +38,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.ipythonconsole import SpyderKernelVersionError
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
@@ -1440,6 +1441,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             )
             kernel_spec.env = future.result()
             kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
+        except SpyderKernelVersionError as e:
+            client.show_kernel_error(e)
+            client.show_install_mbox(e.pyexec)
+            return
         except Exception as e:
             client.show_kernel_error(e)
             return

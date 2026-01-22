@@ -15,7 +15,6 @@ from qtpy.QtCore import QByteArray, QProcess
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (
     QDialogButtonBox,
-    QLabel,
     QPlainTextEdit,
     QVBoxLayout,
     QWidget,
@@ -28,11 +27,7 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
-from spyder.plugins.ipythonconsole import (
-    SpyderKernelError,
-    SpyderKernelVersionError,
-    SPYDER_KERNELS_VERSION,
-)
+from spyder.plugins.ipythonconsole import SPYDER_KERNELS_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +36,8 @@ INSTALL_TEXT = _(
     "<tt>{}</tt><br>environment in order to work with Spyder.<br><br>"
     "Do you want Spyder to install it for you?"
 )
+SHOW_DETAILS = _("Show details")
+HIDE_DETAILS = _("Hide details")
 
 
 class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
@@ -52,14 +49,12 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
 
         self.ipyclient = parent
 
-        self._kernel_error = None
+        self.info_page = None
 
         self.bbox = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
-
-        self._text_label = QLabel()
-        self._text_label.setWordWrap(True)
+        self.bbox.button(QDialogButtonBox.Ok).setText(SHOW_DETAILS)
 
         # Process to run the installation scripts
         self._process = QProcess(self)
@@ -69,19 +64,16 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
             lambda: self._update_details(error=True)
         )
         self._process.finished.connect(self._handle_process_finished)
-        self._process.errorOccurred.connect(self._handle_error)
 
         # Area to show stdout/stderr streams of the process that performs the
         # update
         self._streams_area = QPlainTextEdit(self)
-        self._streams_area.setMinimumHeight(300)
         self._streams_area.setReadOnly(True)
         self._streams_area.setLineWrapMode(QPlainTextEdit.NoWrap)
         self._streams_area.setFont(self.get_font(SpyderFontType.Monospace))
         self._streams_area.hide()
 
         layout = QVBoxLayout()
-        layout.addWidget(self._text_label)
         layout.addWidget(self._streams_area)
         layout.addWidget(self.bbox)
         self.setLayout(layout)
@@ -92,20 +84,15 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def accepted(self):
-        self._text_label.hide()
-        self.bbox.hide()
-        self._streams_area.show()
-
-        # Install spyder kernels...
-        self.install_spyder_kernels(self.kernel_error.pyexec)
+        if self._streams_area.isVisible():
+            self._hide_details()
+        else:
+            self._show_details()
 
     def rejected(self):
-        # pass through kernel error
-        if isinstance(self.kernel_error, SpyderKernelVersionError):
-            # Recast to avoid recursion.
-            self.kernel_error.__class__ = SpyderKernelError
-
-        self.ipyclient.show_kernel_error(self.kernel_error)
+        self._process.terminate()
+        logger.info("Install spyder-kernels cancelled by user.")
+        # Note: QProcess.finished is still emitted
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -131,54 +118,31 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
         text = str(qba.data(), "utf-8")
         self._add_text_to_streams_area(text)
 
+    def _show_details(self):
+        self.ipyclient.infowidget.hide()
+        self._streams_area.show()
+        self.bbox.button(QDialogButtonBox.Ok).setText(HIDE_DETAILS)
+
+    def _hide_details(self):
+        self._streams_area.hide()
+        self.ipyclient.infowidget.show()
+        self.bbox.button(QDialogButtonBox.Ok).setText(SHOW_DETAILS)
+
     def _handle_process_finished(self, exit_code, exit_status):
+        output = self._streams_area.toPlainText()
         logger.info(
             "Install spyder-kernels QProcess finished. "
             f"Exit code: {exit_code}; exit status: {exit_status}"
         )
         logger.debug(
             "Install spyder-kernels output:\n"
-            f"{self._streams_area.toPlainText()}"
+            f"{output}"
         )
 
-        if exit_code != 0:
-            return
-
-        self._streams_area.hide()
-        self._streams_area.clear()
-        self._text_label.show()
-        self.bbox.show()
-
-        self.ipyclient.connect_after_kernel_install()
-
-    def _handle_error(self, error):
-        if error == QProcess.FailedToStart:
-            text = "The process failed to start."
-        elif error == QProcess.Crashed:
-            text = "The process crashed."
-        else:
-            text = "Unknown error."
-
-        self._add_text_to_streams_area(text)
+        self.ipyclient.process_kernel_install(exit_code, exit_status, output)
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    @property
-    def kernel_error(self):
-        return self._kernel_error
-
-    @kernel_error.setter
-    def kernel_error(self, kernel_error):
-        self._kernel_error = kernel_error
-        self._text_label.setText(
-            INSTALL_TEXT.format(
-                SPYDER_KERNELS_VERSION.replace(">", "&gt;").replace(
-                    "<", "&lt;"
-                ),
-                kernel_error.pyexec,
-            )
-        )
-
     def install_spyder_kernels(self, pyexec):
         """Install spyder-kernels"""
 
