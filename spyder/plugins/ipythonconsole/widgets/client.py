@@ -192,9 +192,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.shellwidget)
-        self.layout.addWidget(self.installwidget)
         if self.infowidget is not None:
             self.layout.addWidget(self.infowidget)
+        self.layout.addWidget(self.installwidget)
         self.setLayout(self.layout)
 
         # --- Exit function
