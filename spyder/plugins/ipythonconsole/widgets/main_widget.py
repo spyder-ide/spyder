@@ -304,6 +304,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.interrupt_action = None
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
+        self._envs_disabled = set()
 
         # Attributes needed for the restart dialog
         self._restart_dialog = ConsoleRestartDialog(self)
@@ -1314,6 +1315,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 tip=text,
             )
 
+            # Disable action for environments while installing spyder-kernels
+            action.setEnabled(path_to_interpreter not in self._envs_disabled)
+
             # Add default env as the first entry in the menu
             if text.startswith(_("Default")):
                 self.add_item_to_menu(
@@ -1577,6 +1581,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             return self._infowidget
         except AttributeError:
             return None
+
+    def environment_menu_item_state(self, pyexec, enable=False):
+        if enable and pyexec in self._envs_disabled:
+            self._envs_disabled.remove(pyexec)
+        elif not enable:
+            self._envs_disabled.add(pyexec)
+
+        default_interpreter = self.get_conf(
+            "executable", section="main_interpreter"
+        )
+        self.create_client_action.setEnabled(
+            default_interpreter not in self._envs_disabled
+        )
 
     # ---- General
     # -------------------------------------------------------------------------
