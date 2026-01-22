@@ -318,43 +318,38 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
         self._set_installer_path()
         version = self.asset_info["version"]
 
-        if self._validate_download():
-            if self.asset_info["update_type"] == UpdateType.Major:
-                # Major updates don't need Updater, start install
-                self.set_status(DOWNLOAD_FINISHED)
-                self._confirm_install()
-            else:
-                # Minor/micro updates need the Updater
-                self._start_update_updater()
-        elif not is_conda_based_app():
-            msg = _(
-                "Would you like to download and install the update "
-                "using Spyder's installer?<br><br>"
-                "We <a href='{}'>recommend our own installer</a> "
-                "because it's more stable and makes updating easy. "
-                "This will leave your existing Spyder installation "
-                "untouched."
-            ).format(URL_I + "#standalone-installers")
-
-            box = confirm_messagebox(
-                self, msg, _('Spyder update'), version=version, checkbox=True
-            )
-            if box.result() == QMessageBox.Yes:
-                self._start_download()
-            else:
-                manual_update_messagebox(
-                    self, version, self.update_worker.channel
-                )
-        else:
-            msg = _("Would you like to download the update?")
-            box = confirm_messagebox(
-                self, msg, _('Spyder update'), version=version, checkbox=True
-            )
-            if box.result() == QMessageBox.Yes:
+        if is_conda_based_app():
+            # Only perform updates for the standalone installers. Otherwise,
+            # users find the process confusing and it leads to weird errors
+            # when updating in conda envs.
+            # See spyder-ide/spyder#25560, spyder-ide/spyder#25549 and
+            # spyder-ide/spyder#25533
+            if self._validate_download():
                 if self.asset_info["update_type"] == UpdateType.Major:
-                    self._start_download()
+                    # Major updates don't need Updater, start install
+                    self.set_status(DOWNLOAD_FINISHED)
+                    self._confirm_install()
                 else:
+                    # Minor/micro updates need the Updater
                     self._start_update_updater()
+            else:
+                msg = _("Would you like to download the update?")
+                box = confirm_messagebox(
+                    self,
+                    msg,
+                    _("Spyder update"),
+                    version=version,
+                    checkbox=True,
+                )
+                if box.result() == QMessageBox.Yes:
+                    if self.asset_info["update_type"] == UpdateType.Major:
+                        self._start_download()
+                    else:
+                        self._start_update_updater()
+        else:
+            # For any other type of installation, simply tell users the command
+            # they need to run to perform the update.
+            manual_update_messagebox(self, version, self.update_worker.channel)
 
     def _start_update_updater(self):
         """Check for and install updates for Spyder-updater."""
