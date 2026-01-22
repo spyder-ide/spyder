@@ -121,13 +121,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             if self.path_to_custom_interpreter:
                 pyexec = self.path_to_custom_interpreter
 
-            has_spyder_kernels(pyexec)
-
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
                 self.set_conf('executable', '', section='main_interpreter')
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
+
+            has_spyder_kernels(pyexec)
 
         # Command used to start kernels
         kernel_cmd = []

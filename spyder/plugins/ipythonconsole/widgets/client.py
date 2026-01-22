@@ -195,6 +195,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.spyk_installing_page = self._create_loading_page(
             message=_("Installing spyder-kernels...")
         )
+        self._pyexec = None
 
         if self.is_remote():
             # Keep a reference
@@ -491,7 +492,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @Slot()
     def _install_spyder_kernels(self, pyexec):
-        # TODO: Disable create new client with same environment
+        self._pyexec = pyexec
+        self.container.environment_menu_item_state(pyexec, enable=False)
 
         # Store existing error page for reuse later, if necessary
         self.installwidget.info_page = self.info_page
@@ -649,7 +651,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.shellwidget.pdb_execute_command('exit')
 
     def process_kernel_install(self, exit_code, exit_status, output=None):
-        # TODO: Re-enable create new client with same environment
+        if self._pyexec:
+            self.container.environment_menu_item_state(
+                self._pyexec, enable=True
+            )
 
         if exit_code == 0 and exit_status == 0:
             # Success!
