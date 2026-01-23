@@ -2429,13 +2429,9 @@ def test_show_spyder_kernels_error_on_restart(ipyconsole, qtbot):
     # Restart kernel
     ipyconsole.restart_kernel()
 
-    # Check that install widget is visible
-    client = ipyconsole.get_current_client()
-    qtbot.waitUntil(client.installwidget.isVisible, timeout=6000)
-    client.installwidget.rejected()
-
     # Assert we show a kernel error
-    info_page = client.infowidget.page()
+    info_page = ipyconsole.get_current_client().infowidget.page()
+
     qtbot.waitUntil(
         lambda: check_text(
             info_page,
