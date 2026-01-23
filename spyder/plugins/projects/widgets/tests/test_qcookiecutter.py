@@ -8,10 +8,6 @@
 Tests for qcookiecutter widget.
 """
 
-# Standard library imports
-import os
-from unittest.mock import Mock
-
 # Third party imports
 import pytest
 
@@ -31,6 +27,7 @@ def mock_load_cookiecutter_project(monkeypatch):
         "spyder.plugins.projects.widgets.qcookiecutter.load_cookiecutter_project",
         fake_loader
     )
+
 
 @pytest.fixture
 def coookie_widget(qtbot):
@@ -203,7 +200,8 @@ def test_cookiecutter_widget_create_project(monkeypatch, coookie_widget):
 
     monkeypatch.setattr(
         "spyder.plugins.projects.widgets.qcookiecutter.generate_cookiecutter_project",
-        fake_generate)
+        fake_generate
+    )
 
     status = coookie_widget.create_project("/tmp")
 

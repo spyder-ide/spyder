@@ -194,19 +194,3 @@ class EmptyProject(BaseProjectType):
 
     def close_project(self):
         return True, ""
-    
-class CookieCutterProject(BaseProjectType):
-    ID = 'cookie-cutter-project-type'
-
-    @staticmethod
-    def get_name():
-        return _("Cookiecutter project")
-
-    def create_project(self):
-        return True, ""
-
-    def open_project(self):
-        return True, ""
-
-    def close_project(self):
-        return True, ""

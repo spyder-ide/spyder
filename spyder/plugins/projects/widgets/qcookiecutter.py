@@ -23,22 +23,20 @@ except Exception:
     pass
 
 from github import BadCredentialsException, RateLimitExceededException
-from requests.exceptions import RetryError
-from urllib3.exceptions import MaxRetryError
 from jinja2 import Template
 from qtpy import QtCore
 from qtpy import QtWidgets
-from qtpy.QtWidgets import QMessageBox
-
+from requests.exceptions import RetryError
+from urllib3.exceptions import MaxRetryError
 
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.projects.utils.cookie import (
     generate_cookiecutter_project,
     load_cookiecutter_project,
 )
 from spyder.utils.icon_manager import ima
 from spyder.widgets.config import SpyderConfigPage
-from spyder.config.base import running_under_pytest
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 
@@ -79,8 +77,9 @@ class CookiecutterWidget(SpyderConfigPage):
         self._parent = parent
         self.project_path = project_path
         self.fatal_render = False
-        token = None
+
         # Get token from keyring
+        token = None
         try:
             token = keyring.get_password("github", "token")
         except Exception:
@@ -113,6 +112,7 @@ class CookiecutterWidget(SpyderConfigPage):
                 else:
                     self.fatal_render = True
                     return
+
         self._cookiecutter_settings = cookiecutter_settings
         self._pre_gen_code = pre_gen_code
         self._widgets = OrderedDict()
@@ -218,6 +218,7 @@ class CookiecutterWidget(SpyderConfigPage):
             else:
                 for choice in value:
                     choices.append((str(choice).capitalize(), choice))
+
             # https://cookiecutter.readthedocs.io/en/latest/advanced/choice_variables.html
             widget = self.create_combobox(
                 text=label, option=setting, choices=choices
@@ -267,7 +268,6 @@ class CookiecutterWidget(SpyderConfigPage):
             message = message.replace("\r\n", " ")
             message = message.replace("\n", " ")
             return message
-            # self.sig_validated.emit(self._process.exitCode(), message)
 
     # --- API
     # ------------------------------------------------------------------------
@@ -306,7 +306,7 @@ class CookiecutterWidget(SpyderConfigPage):
         """
         Return all entered and generated values.
         """
-        cookiecutter_settings = cs = OrderedDict()
+        cookiecutter_settings = OrderedDict()
         if self._cookiecutter_settings:
             for setting, value in self._cookiecutter_settings.items():
                 if setting.startswith(("__", "_")):
@@ -324,6 +324,7 @@ class CookiecutterWidget(SpyderConfigPage):
                         cookiecutter_settings[setting] = widget_in.isChecked()
                     elif type == "textbox":
                         cookiecutter_settings[setting] = widget_in.text()
+
         # Cookiecutter special variables
         cookiecutter_settings["_extensions"] = self._extensions
         cookiecutter_settings["_copy_without_render"] = (
@@ -351,6 +352,7 @@ class CookiecutterWidget(SpyderConfigPage):
                         widget.status_action.setVisible(True)
                         widget.status_action.setToolTip(_("This is empty"))
                         reasons["missing_info"] = True
+
         if reasons:
             return reasons
         if self._pre_gen_code is not None:
@@ -381,7 +383,7 @@ class CookiecutterWidget(SpyderConfigPage):
                 reasons["cookiecutter_error_detail"] = message
                 return reasons
 
-        return None
+        return
 
     def create_project(self, location):
         status, result = generate_cookiecutter_project(

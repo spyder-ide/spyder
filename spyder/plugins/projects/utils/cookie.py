@@ -10,11 +10,10 @@ Cookiecutter utilities.
 
 import json
 import os
-import tempfile
+from urllib.parse import urlparse
 
 from cookiecutter.main import cookiecutter
 from github import Github, GithubRetry
-from urllib.parse import urlparse
 
 
 def generate_cookiecutter_project(cookiecutter_path, output_path,
@@ -45,14 +44,18 @@ def load_cookiecutter_project(project_path, token=None):
     options = None
     pre_gen_code = None
     if urlparse(project_path).scheme in ("http", "https", "git", "ssh"):
-        parsed = urlparse(project_path)
-        parts = parsed.path.strip("/").split("/")
+        parsed_url = urlparse(project_path)
+        parts = parsed_url.path.strip("/").split("/")
         if len(parts) < 2:
             raise ValueError("Invalid GitHub URL")
 
         user, repo_name = parts[0], parts[1].replace(".git", "")
-        g = Github(token, retry=GithubRetry(total=0)) if token else Github(retry=GithubRetry(total=0))
-        repo = g.get_repo(f"{user}/{repo_name}")
+        gh = (
+            Github(token, retry=GithubRetry(total=0))
+            if token
+            else Github(retry=GithubRetry(total=0))
+        )
+        repo = gh.get_repo(f"{user}/{repo_name}")
         repo.raw_data
 
         try:
@@ -70,7 +73,9 @@ def load_cookiecutter_project(project_path, token=None):
             pre_gen_code = None
     elif os.path.isdir(project_path):
         cookiepath = os.path.join(project_path, "cookiecutter.json")
-        pre_gen_path = os.path.join(project_path, "hooks", "pre_gen_project.py")
+        pre_gen_path = os.path.join(
+            project_path, "hooks", "pre_gen_project.py"
+        )
         if os.path.isfile(cookiepath):
             with open(cookiepath, 'r') as fh:
                 options = json.loads(fh.read())

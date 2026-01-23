@@ -19,13 +19,13 @@ from typing import TypedDict
 # Third party imports
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import (
+    QDialog,
     QDialogButtonBox,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
-    QMessageBox,
-    QDialog,
 )
 
 # Local imports
@@ -33,13 +33,12 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.projects.widgets.qcookiecutter import CookiecutterWidget
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.config import SpyderConfigPage
 from spyder.widgets.sidebardialog import SidebarDialog
 from spyder.widgets.helperwidgets import MessageLabel
-from spyder.plugins.projects.widgets.qcookiecutter import CookiecutterWidget
-from spyder.plugins.projects.utils.cookie import generate_cookiecutter_project
 
 
 # =============================================================================
@@ -467,16 +466,14 @@ class SpyderDirectoryPage(NewDirectoryPage):
 
     def _set_message(self, failed):
         QMessageBox.warning(
-                                self,
-                                _("Failed to store token"),
-                                _(
-                                    "It was not possible to securely "
-                                    "save your token. You will be "
-                                    "prompted for your Github token "
-                                    "next time you want to create "
-                                    "a Spyder project."
-                                ),
-                            )
+            self,
+            _("Failed to store token"),
+            _(
+                "It was not possible to securely ave your token. You will be "
+                "prompted for your Github token next time you want to create "
+                "a Spyder project."
+            ),
+        )
         dialog = self.parent()
         while dialog and not isinstance(dialog, QDialog):
             dialog = dialog.parent()
@@ -514,8 +511,12 @@ class ProjectDialog(SidebarDialog):
     MIN_WIDTH = 740 if MAC else (670 if WIN else 730)
     MIN_HEIGHT = 470 if MAC else (420 if WIN else 450)
     PAGES_MINIMUM_WIDTH = 450
-    PAGE_CLASSES = [EmptyDirectoryPage, ExistingDirectoryPage,
-                    None, SpyderDirectoryPage]
+    PAGE_CLASSES = [
+        EmptyDirectoryPage,
+        ExistingDirectoryPage,
+        None,
+        SpyderDirectoryPage,
+    ]
 
     sig_project_creation_requested = Signal(str, str, object)
     """
