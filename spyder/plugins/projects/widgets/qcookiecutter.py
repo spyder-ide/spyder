@@ -10,22 +10,15 @@
 Cookiecutter widget.
 """
 
-import os
 import sys
 import tempfile
 from collections import OrderedDict
 
-try:
-    # See: spyder-ide/spyder#10221
-    if os.environ.get("SSH_CONNECTION") is None:
-        import keyring
-except Exception:
-    pass
-
 from github import BadCredentialsException, RateLimitExceededException
 from jinja2 import Template
-from qtpy import QtCore
-from qtpy import QtWidgets
+import keyring
+from qtpy.QtCore import QProcess, QEventLoop, Signal
+from qtpy.QtWidgets import QFormLayout
 from requests.exceptions import RetryError
 from urllib3.exceptions import MaxRetryError
 
@@ -62,13 +55,14 @@ class CookiecutterWidget(SpyderConfigPage):
 
     CONF_SECTION = "project_explorer"
 
-    sig_validated = QtCore.Signal(int, str)
+    sig_validated = Signal(int, str)
     """
     This signal is emitted after validation has been executed.
 
     It provides the process exit code and the output captured.
     """
-    sig_fatal_render = QtCore.Signal(bool)
+
+    sig_fatal_render = Signal(bool)
 
     def __init__(self, parent, project_path=None):
         super().__init__(parent)
@@ -130,7 +124,7 @@ class CookiecutterWidget(SpyderConfigPage):
         self._rendered_private_var = None
 
         # Layout
-        self._form_layout = QtWidgets.QFormLayout()
+        self._form_layout = QFormLayout()
         self._form_layout.setFieldGrowthPolicy(
             self._form_layout.AllNonFixedFieldsGrow
         )
@@ -368,11 +362,11 @@ class CookiecutterWidget(SpyderConfigPage):
             if self._process is not None:
                 self._process.close()
 
-            self._process = QtCore.QProcess(self)
+            self._process = QProcess(self)
             self._process.setProgram(sys.executable)
             self._process.setArguments([self._tempfile])
 
-            loop = QtCore.QEventLoop()
+            loop = QEventLoop(None)
             self._process.finished.connect(loop.quit)
             self._process.start()
             loop.exec_()
