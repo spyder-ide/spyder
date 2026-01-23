@@ -247,6 +247,7 @@ DEFAULTS = [
               'code_folding': True,
               'show_code_folding_warning': True,
               'scroll_past_end': False,
+              'enable_enter_completions': True,
               'toolbox_panel': True,
               'close_parentheses': True,
               'close_quotes': True,

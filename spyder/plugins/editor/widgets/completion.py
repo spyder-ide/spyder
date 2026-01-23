@@ -355,6 +355,11 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # Check that what was selected can be selected,
             # otherwise timing issues
             item = self.currentItem()
+            if not self.get_conf(
+                    'enable_enter_completions', section='editor'):
+                self.hide()
+                self.textedit.keyPressEvent(event)
+
             if item is None:
                 item = self.item(0)
 
@@ -367,7 +372,6 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             self.hide()
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
-            self.textedit.keyPressEvent(event)
         elif (
             key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown)
             and not modifier
