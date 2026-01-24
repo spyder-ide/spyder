@@ -360,9 +360,15 @@ class FilesRESTMixin:
         """List objects at path, like fsspec.ls()."""
         path = self._load_path(path_str)
         if not path.exists():
-            raise FileNotFoundError(errno.ENOENT,
-                                    os.strerror(errno.ENOENT),
-                                    str(path))
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), str(path)
+            )
+        elif not os.access(str(path), os.R_OK):
+            # The directory doesn't have read access
+            raise PermissionError(
+                errno.EPERM, os.strerror(errno.EPERM), str(path)
+            )
+
         if path.is_file():
             # fsspec.ls of a file often returns a single entry
             if detail:
@@ -408,7 +414,7 @@ class FilesRESTMixin:
         """Like fsspec.rmdir() - remove if empty."""
         path = self._load_path(path_str)
         if non_empty:
-            rmtree(path)
+            rmtree(str(path))
         else:
             path.rmdir()
         return {"success": True}
