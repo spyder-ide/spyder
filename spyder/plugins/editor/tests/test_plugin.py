@@ -484,7 +484,7 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
 
 
 def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
-    """Check that saving files with preferred eol chars works as expected."""
+    """Check that exporting with formatting works as expected."""
     tmpdir = tmpdir_factory.mktemp("rich_text_files")
     editorstack = editor_plugin.get_current_editorstack()
     
