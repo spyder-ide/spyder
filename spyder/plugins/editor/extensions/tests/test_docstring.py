@@ -40,14 +40,20 @@ def editor_auto_docstring():
     "text, indent, name_list, type_list, value_list, rtype",
     [
         ('def foo():', '', [], [], [], None),
-        (""" def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
+        (
+            """ def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
              (float, int): """,
-         ' ', ['arg0', 'arg1', 'arg2'], [None, None, 'str'],
-         [None, "':'", "'-> (float, str):'"],
-         '(float, int)')
-    ])
-def test_parse_function_definition(text, indent, name_list, type_list,
-                                   value_list, rtype):
+            ' ',
+            ['arg0', 'arg1', 'arg2'],
+            [None, None, 'str'],
+            [None, "':'", "'-> (float, str):'"],
+            '(float, int)',
+        ),
+    ],
+)
+def test_parse_function_definition(
+    text, indent, name_list, type_list, value_list, rtype
+):
     """Test the parse_def method of FunctionInfo class."""
     func_info = FunctionInfo()
     func_info.parse_def(text)
@@ -62,22 +68,27 @@ def test_parse_function_definition(text, indent, name_list, type_list,
 @pytest.mark.parametrize(
     "text, indent, expected",
     [
-        ("""    def foo():\n
+        (
+            """    def foo():\n
         if 1:
             raise ValueError
         else:
             return\n
     class F:""",
-         "    ",
-         """\n        if 1:
+            "    ",
+            """\n        if 1:
             raise ValueError
         else:
-            return\n"""),
-        ("""def foo():
+            return\n""",
+        ),
+        (
+            """def foo():
     return""",
-         "",
-         """    return""")
-    ])
+            "",
+            """    return""",
+        ),
+    ],
+)
 def test_get_function_body(editor_auto_docstring, text, indent, expected):
     """Test get function body."""
     editor = editor_auto_docstring
@@ -98,22 +109,17 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
 @pytest.mark.parametrize(
     "doc_type, text, expected",
     [
-        ('Numpydoc',
-         '',
-         ''
-         ),
-        ('Numpydoc',
-         'if 1:\n    ',
-         'if 1:\n    '
-         ),
-        ('Numpydoc',
-         '''async def foo():
+        ('Numpydoc', '', ''),
+        ('Numpydoc', 'if 1:\n    ', 'if 1:\n    '),
+        (
+            'Numpydoc',
+            '''async def foo():
     raise
     raise ValueError
     raise ValueError("test")
     raise TypeError("test")
     yield ''',
-         '''async def foo():
+            '''async def foo():
     """
     SUMMARY.
 
@@ -132,13 +138,14 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     raise ValueError
     raise ValueError("test")
     raise TypeError("test")
-    yield '''
-         ),
-        ('Numpydoc',
-         '''  def foo():
+    yield ''',
+        ),
+        (
+            'Numpydoc',
+            '''  def foo():
       print('{}' % foo_raise Value)
       foo_yield''',
-         '''  def foo():
+            '''  def foo():
       """
       SUMMARY.
 
@@ -148,13 +155,14 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
       """
       print('{}' % foo_raise Value)
       foo_yield''',
-         ),
-        ('Numpydoc',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+        ),
+        (
+            'Numpydoc',
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """
@@ -182,15 +190,17 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     (List[Tuple[str, float]], str, float)
         DESCRIPTION.
     """
-    '''),
-        ('Googledoc',
-         '''async def foo():
+    ''',
+        ),
+        (
+            'Googledoc',
+            '''async def foo():
     raise
     raise ValueError
     raise TypeError("test")
     yield value
     ''',
-         '''async def foo():
+            '''async def foo():
     """SUMMARY.
 
     Yields:
@@ -204,25 +214,27 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     raise ValueError
     raise TypeError("test")
     yield value
-    '''
-         ),
-        ('Googledoc',
-         '''  def foo():
+    ''',
+        ),
+        (
+            'Googledoc',
+            '''  def foo():
       ''',
-         '''  def foo():
+            '''  def foo():
       """SUMMARY.
 
       Returns:
           None.
       """
       ''',
-         ),
-        ('Googledoc',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+        ),
+        (
+            'Googledoc',
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """SUMMARY.
@@ -239,15 +251,17 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     Returns:
         (List[Tuple[str, float]], str, float): DESCRIPTION.
     """
-    '''),
-        ('Sphinxdoc',
-         '''async def foo():
+    ''',
+        ),
+        (
+            'Sphinxdoc',
+            '''async def foo():
     raise
     raise ValueError
     raise TypeError("test")
     yield value
     ''',
-         '''async def foo():
+            '''async def foo():
     """SUMMARY.
 
     :raises ValueError: DESCRIPTION
@@ -259,25 +273,27 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     raise ValueError
     raise TypeError("test")
     yield value
-    '''
-         ),
-        ('Sphinxdoc',
-         '''  def foo():
+    ''',
+        ),
+        (
+            'Sphinxdoc',
+            '''  def foo():
       ''',
-         '''  def foo():
+            '''  def foo():
       """SUMMARY.
 
       :return: DESCRIPTION
       :rtype: TYPE
       """
       ''',
-         ),
-        ('Sphinxdoc',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+        ),
+        (
+            'Sphinxdoc',
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """SUMMARY.
@@ -299,10 +315,13 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     :return: DESCRIPTION
     :rtype: (List[Tuple[str, float]], str, float)
     """
-    ''')
-    ])
-def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
-                                      text, expected, use_shortcut):
+    ''',
+        ),
+    ],
+)
+def test_editor_docstring_by_shortcut(
+    editor_auto_docstring, doc_type, text, expected, use_shortcut
+):
     """Test auto docstring by shortcut."""
     CONF.set('editor', 'docstring_type', doc_type)
     editor = editor_auto_docstring
@@ -327,9 +346,10 @@ def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def foo():
+        (
+            '''  def foo():
       ''',
-         '''  def foo():
+            '''  def foo():
       """
       SUMMARY.
 
@@ -337,10 +357,13 @@ def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
       -------
       None.
       """
-      ''',)
-    ])
-def test_editor_docstring_below_def_by_shortcut(editor_auto_docstring,
-                                                text, expected):
+      ''',
+        )
+    ],
+)
+def test_editor_docstring_below_def_by_shortcut(
+    editor_auto_docstring, text, expected
+):
     """Test auto docstring below function definition by shortcut."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
     editor = editor_auto_docstring
@@ -359,9 +382,10 @@ def test_editor_docstring_below_def_by_shortcut(editor_auto_docstring,
 @pytest.mark.parametrize(
     'text, expected, key',
     [
-        ('''def foo():
+        (
+            '''def foo():
 ''',
-         '''def foo():
+            '''def foo():
     """
     SUMMARY.
 
@@ -369,15 +393,20 @@ def test_editor_docstring_below_def_by_shortcut(editor_auto_docstring,
     -------
     None.
     """''',
-         Qt.Key_Enter),
-        ('''def foo():
+            Qt.Key_Enter,
+        ),
+        (
+            '''def foo():
 ''',
-         '''def foo():
+            '''def foo():
     """a''',
-         Qt.Key_A)
-    ])
-def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
-                                        text, expected, key):
+            Qt.Key_A,
+        ),
+    ],
+)
+def test_editor_docstring_delayed_popup(
+    qtbot, editor_auto_docstring, text, expected, key
+):
     """Test auto docstring using delayed popup."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
     editor = editor_auto_docstring
@@ -405,7 +434,8 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def foo():
+        (
+            '''  def foo():
       raise
       foo_raise()
       raisefoo()
@@ -416,7 +446,7 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
       \traise TypeError('tt')
       _yield
       ''',
-         '''  def foo():
+            '''  def foo():
       """
       SUMMARY.
 
@@ -440,12 +470,14 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
       yieldfoo()
       \traise TypeError('tt')
       _yield
-      ''',),
-        ('''  def foo():
+      ''',
+        ),
+        (
+            '''  def foo():
       spam = 42
       return spam
       ''',
-         '''  def foo():
+            '''  def foo():
       """
       SUMMARY.
 
@@ -456,13 +488,15 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
       """
       spam = 42
       return spam
-      ''',),
-        ('''def foo():
+      ''',
+        ),
+        (
+            '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-         '''def foo():
+            '''def foo():
     """
     SUMMARY.
 
@@ -498,11 +532,13 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    '''),
-        ('''def foo():
+    ''',
+        ),
+        (
+            '''def foo():
     return no, (ano, eo, dken)
     ''',
-         '''def foo():
+            '''def foo():
     """
     SUMMARY.
 
@@ -512,10 +548,13 @@ def test_editor_docstring_delayed_popup(qtbot, editor_auto_docstring,
         DESCRIPTION.
     """
     return no, (ano, eo, dken)
-    ''')
-    ])
-def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
-                                             text, expected):
+    ''',
+        ),
+    ],
+)
+def test_editor_docstring_with_body_numpydoc(
+    editor_auto_docstring, text, expected
+):
     """Test auto docstring of numpydoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Numpydoc')
     editor = editor_auto_docstring
@@ -534,7 +573,8 @@ def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def foo():
+        (
+            '''  def foo():
       raise
       foo_raise()
       raisefoo()
@@ -545,7 +585,7 @@ def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
       \traise TypeError('tt')
       _yield
       ''',
-         '''  def foo():
+            '''  def foo():
       """SUMMARY.
 
       Returns:
@@ -564,13 +604,15 @@ def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
       yieldfoo()
       \traise TypeError('tt')
       _yield
-      ''',),
-        ('''def foo():
+      ''',
+        ),
+        (
+            '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-         '''def foo():
+            '''def foo():
     """SUMMARY.
 
     Returns:
@@ -591,21 +633,26 @@ def test_editor_docstring_with_body_numpydoc(editor_auto_docstring,
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    '''),
-        ('''def foo():
+    ''',
+        ),
+        (
+            '''def foo():
     return no, (ano, eo, dken)
     ''',
-         '''def foo():
+            '''def foo():
     """SUMMARY.
 
     Returns:
         TYPE: DESCRIPTION.
     """
     return no, (ano, eo, dken)
-    ''')
-    ])
-def test_editor_docstring_with_body_googledoc(editor_auto_docstring,
-                                              text, expected):
+    ''',
+        ),
+    ],
+)
+def test_editor_docstring_with_body_googledoc(
+    editor_auto_docstring, text, expected
+):
     """Test auto docstring of googledoc when the function body is complex."""
     CONF.set('editor', 'docstring_type', 'Googledoc')
     editor = editor_auto_docstring
@@ -624,9 +671,10 @@ def test_editor_docstring_with_body_googledoc(editor_auto_docstring,
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def test(self) -> Annotated[str, int("2")]:
+        (
+            '''  def test(self) -> Annotated[str, int("2")]:
       ''',
-         '''  def test(self) -> Annotated[str, int("2")]:
+            '''  def test(self) -> Annotated[str, int("2")]:
       """
       SUMMARY.
 
@@ -635,8 +683,10 @@ def test_editor_docstring_with_body_googledoc(editor_auto_docstring,
       Annotated[str, int("2")]
           DESCRIPTION.
       """
-      ''',)
-    ])
+      ''',
+        )
+    ],
+)
 def test_docstring_annotated_call(editor_auto_docstring, text, expected):
     """
     Test auto docstring with annotated function call.
@@ -660,10 +710,11 @@ def test_docstring_annotated_call(editor_auto_docstring, text, expected):
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def test(v:
+        (
+            '''  def test(v:
            int):
       ''',
-         '''  def test(v:
+            '''  def test(v:
            int):
       """
       SUMMARY.
@@ -677,8 +728,10 @@ def test_docstring_annotated_call(editor_auto_docstring, text, expected):
       -------
       None.
       """
-      ''',)
-    ])
+      ''',
+        )
+    ],
+)
 def test_docstring_line_break(editor_auto_docstring, text, expected):
     """
     Test auto docstring with function call with line breaks.
@@ -702,9 +755,10 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
 @pytest.mark.parametrize(
     'text, expected',
     [
-        ('''  def test(v: str = "#"):  # comment, with '#' and "#"
+        (
+            '''  def test(v: str = "#"):  # comment, with '#' and "#"
       ''',
-         '''  def test(v: str = "#"):  # comment, with '#' and "#"
+            '''  def test(v: str = "#"):  # comment, with '#' and "#"
       """
       SUMMARY.
 
@@ -717,11 +771,13 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
       -------
       None.
       """
-      '''),
-        ('''  def test(v1: str = "#", # comment, with '#' and "#"
+      ''',
+        ),
+        (
+            '''  def test(v1: str = "#", # comment, with '#' and "#"
          v2: str = '#') -> str:
       ''',
-         '''  def test(v1: str = "#", # comment, with '#' and "#"
+            '''  def test(v1: str = "#", # comment, with '#' and "#"
          v2: str = '#') -> str:
       """
       SUMMARY.
@@ -738,8 +794,10 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
       str
           DESCRIPTION.
       """
-      '''),
-    ])
+      ''',
+        ),
+    ],
+)
 def test_docstring_comments(editor_auto_docstring, text, expected):
     """
     Test auto docstring with comments on lines of function definition.
