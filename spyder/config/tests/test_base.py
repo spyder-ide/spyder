@@ -73,11 +73,12 @@ def test_is_conda_based_app():
 
     # Create dir and file necessary to detect the app
     menu_dir = env_root / "Menu"
-    menu_dir.mkdir()
+    menu_dir.mkdir(exist_ok=True)
     (menu_dir / "conda-based-app").touch()
 
-    # Check the env is detected as belonging to the app
-    assert spyder.config.base.is_conda_based_app(pyexec=pyexec)
+    # Check the env is not detected as belonging to the app because it's not
+    # named spyder-runtime.
+    assert not spyder.config.base.is_conda_based_app(pyexec=pyexec)
 
     # Remove added dir
     shutil.rmtree(menu_dir, ignore_errors=True)

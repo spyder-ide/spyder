@@ -307,7 +307,7 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
             key = event.key()
             shift = event.modifiers() & Qt.ShiftModifier
 
-            if key == Qt.Key_Return:
+            if key in (Qt.Key_Return, Qt.Key_Enter):
                 if shift:
                     self.return_shift_pressed.emit()
                 else:

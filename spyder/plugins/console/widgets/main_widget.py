@@ -388,9 +388,19 @@ class ConsoleWidget(PluginMainWidget):
         label = error_data.get("label", "")
         steps = error_data.get("steps", "")
 
+        benign_messages = [
+            # Skip log message when opening PyVista objects in the Variable
+            # Explorer.
+            # Fixes spyder-ide/spyder#21639
+            "ERROR:root:No data to measure...!\n",
+        ]
+
         # Skip errors without traceback (and no text) or dismiss
-        if ((not text and not is_traceback and self.error_dlg is None)
-                or self.dismiss_error):
+        if (
+            (not text and not is_traceback and self.error_dlg is None)
+            or self.dismiss_error
+            or text in benign_messages
+        ):
             return
 
         InstallerInternalError(title + text)
