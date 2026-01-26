@@ -118,6 +118,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._address_widgets: dict[str, QWidget] = {}
         self._port_widgets: dict[str, QWidget] = {}
         self._username_widgets: dict[str, QWidget] = {}
+        self._config_file_widgets: dict[str, QWidget] = {}
         self._url_widgets: dict[str, QWidget] = {}
 
     # ---- Public API
@@ -150,10 +151,14 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         reasons: ValidationReasons = {}
 
-        config_file_widget = widgets[3]
-        config_file = config_file_widget.textbox.text()
+        if auth_method == AuthenticationMethod.JupyterHub:
+            config_file = None
+        else:
+            config_file_widget = self._config_file_widgets[auth_method]
+            config_file = config_file_widget.textbox.text()
+
         if config_file:
-            host_widget = widgets[1]
+            host_widget = self._address_widgets[auth_method]
             host = host_widget.textbox.text()
             config_file_widget.textbox._validate(config_file)
 
@@ -167,11 +172,14 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         for widget in widgets:
             if not widget.textbox.text():
-                if (
+                if auth_method != AuthenticationMethod.JupyterHub and (
                     config_file
-                    and (widget == widgets[2] or widget == widgets[4])
+                    and (
+                        widget == self._username_widgets[auth_method]
+                        or widget == self._keyfile
+                    )
                     or not config_file
-                    and widget == widgets[3]
+                    and widget == self._config_file_widgets[auth_method]
                 ):
                     # Skip validation for empty username/keyfile when using a
                     # config file or for config file if no config file is
@@ -488,6 +496,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         self._address_widgets[f"{auth_method}"] = address
         self._port_widgets[f"{auth_method}"] = port
         self._username_widgets[f"{auth_method}"] = username
+        self._config_file_widgets[f"{auth_method}"] = configfile
 
         # Set 22 as the default port for new conenctions
         if not self.LOAD_FROM_CONFIG:
@@ -728,8 +737,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     def _validate_address(self, address):
         """Validate if address introduced by users is correct."""
         auth_method = self.auth_method(from_gui=True)
-        widgets = self._widgets_for_validation[auth_method]
-        config_filepath_widget = widgets[3]
+        config_filepath_widget = self._config_file_widgets[auth_method]
         if config_filepath_widget.textbox.text():
             # Address validation depends on config file parsing
             return self._validate_config_file(
@@ -758,18 +766,17 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     def _validate_config_file(self, config_filepath, from_gui=True):
         auth_method = self.auth_method(from_gui=from_gui)
 
-        widgets = self._widgets_for_validation[auth_method]
-        host_widget = widgets[1]
+        host_widget = self._address_widgets[auth_method]
         host = host_widget.textbox.text()
-        username_widget = widgets[2]
+        username_widget = self._username_widgets[auth_method]
         username_textbox = username_widget.textbox
         username = username_textbox.text() if username_textbox.text() else ()
-        configfile_widget = widgets[3]
+        configfile_widget = self._config_file_widgets[auth_method]
         keyfile_widget = None
         keyfile_textbox = None
 
         if auth_method == AuthenticationMethod.KeyFile:
-            keyfile_widget = widgets[4]
+            keyfile_widget = self._keyfile
             keyfile_textbox = keyfile_widget.textbox
 
         config = None
@@ -1330,11 +1337,11 @@ class ConnectionPage(BaseConnectionPage):
         # Validate if config file is available so related widgets get updated
         # when initializing the page. Also, ensure that previously created
         # configs get an initial value set.
-        super().initialize()
         configfile_path = self.get_option(
             f"{self.host_id}/{self.auth_method()}/configfile", default=None
         )
         if configfile_path:
+            super().initialize()
             self._validate_config_file(configfile_path, from_gui=False)
         elif configfile_path is None:
             self.set_option(
@@ -1343,6 +1350,7 @@ class ConnectionPage(BaseConnectionPage):
             self.set_option(
                 f"{self.host_id}/{AuthenticationMethod.KeyFile}/configfile", ""
             )
+            super().initialize()
 
     def get_icon(self):
         return self.create_icon("remote_server")
