@@ -342,7 +342,7 @@ class RemoteClient(SpyderPluginV2):
 
             # Some validations to avoid passing empty values
             if options["port"] == 0:
-                # Ignore value if 0 is set because it means the port we'll be
+                # Ignore value if 0 is set because it means the port will be
                 # read from the config file.
                 options.pop("port")
 

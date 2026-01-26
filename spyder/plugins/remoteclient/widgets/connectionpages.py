@@ -177,6 +177,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     # config file or for config file if no config file is
                     # provided
                     continue
+
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
                 widget.status_action.setToolTip(_("This field is empty"))
@@ -450,7 +451,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             max_=65535,
             tip=_(
                 "Introduce a port to use for this connection. Set <b>0</b> "
-                "to use the port specified in the configuration file if provided"
+                "to use the port specified in the configuration file if "
+                "provided"
             ),
         )
         port.spinbox.setStyleSheet("margin-left: 5px")
@@ -468,8 +470,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             validate_callback=self._validate_config_file,
             validate_reason=_(
                 "Unable to get OpenSSH client configuration from "
-                "the given file.\nCheck that the defined address provided "
-                "corresponds with the values available from the file"),
+                "the given file.\nCheck that the provided address corresponds "
+                "to the values available in the file"
+            ),
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
             word_wrap=False,
@@ -520,8 +523,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _create_password_subpage(self):
         # Widgets
-        name, address_layout, username, configfile = self._create_common_elements(
-            auth_method=AuthenticationMethod.Password
+        name, address_layout, username, configfile = (
+            self._create_common_elements(
+                auth_method=AuthenticationMethod.Password
+            )
         )
 
         password = self.create_lineedit(
@@ -571,8 +576,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
     def _create_keyfile_subpage(self):
         # Widgets
-        name, address_layout, username, configfile = self._create_common_elements(
-            auth_method=AuthenticationMethod.KeyFile
+        name, address_layout, username, configfile = (
+            self._create_common_elements(
+                auth_method=AuthenticationMethod.KeyFile
+            )
         )
 
         self._keyfile = self.create_browsefile(
@@ -783,9 +790,11 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
                 keyfile_textbox.setPlaceholderText("")
+
             # If no config is available point to host/address widget
             # since the current value could be incorrect
             host_widget.status_action.setVisible(True)
+
             # Set configfile widget status visibility also in case the
             # validation wasn't triggered from the own widget
             configfile_widget.textbox.error_action.setVisible(True)
@@ -804,6 +813,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         username_widget.status_action.setVisible(False)
         if keyfile_widget:
             keyfile_widget.status_action.setVisible(False)
+
         # Set configfile widget status visibility also in case the validation
         # wasn't triggered from the own widget
         configfile_widget.textbox.error_action.setVisible(False)
@@ -1318,8 +1328,8 @@ class ConnectionPage(BaseConnectionPage):
 
     def initialize(self):
         # Validate if config file is available so related widgets get updated
-        # when initializing the page. Also ensured that previously created
-        # configs get an initual value set
+        # when initializing the page. Also, ensure that previously created
+        # configs get an initial value set.
         super().initialize()
         configfile_path = self.get_option(
             f"{self.host_id}/{self.auth_method()}/configfile", default=None
