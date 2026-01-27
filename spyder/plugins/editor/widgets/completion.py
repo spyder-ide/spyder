@@ -357,7 +357,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             item = self.currentItem()
             if not self.get_conf(
                 'use_enter_for_completions', section='editor'
-            ):
+            ) and not key == Qt.Key_Tab:
                 self.hide()
                 self.textedit.keyPressEvent(event)
                 return
