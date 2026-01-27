@@ -356,7 +356,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # otherwise timing issues
             item = self.currentItem()
             if not self.get_conf(
-                    'enable_enter_completions', section='editor'):
+                'use_enter_for_completions', section='editor'
+            ):
                 self.hide()
                 self.textedit.keyPressEvent(event)
 
