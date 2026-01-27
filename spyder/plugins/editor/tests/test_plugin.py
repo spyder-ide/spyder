@@ -500,7 +500,6 @@ def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
     html_fname = str(pathlib.Path(fname_full_path).with_suffix(".html"))
     
     mocker.patch.object(editor_module, 'getsavefilename')
-    
 
     # Load a test file\
     editor_plugin.load(fname_full_path)
