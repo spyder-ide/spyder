@@ -169,7 +169,7 @@ def test_parse_function_definition(
 )
 def test_get_function_body(editor_docstring_next, text, indent, expected):
     """Test get function body."""
-    editor, writer, __ = editor_docstring_next(text)
+    __, writer, __ = editor_docstring_next(text)
 
     result = writer.get_function_body(indent)
 
@@ -264,6 +264,126 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     ''',
         ),
         (
+            DOC_TYPE_NUMPY,
+            '''  def foo():
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+            '''  def foo():
+      """
+      SUMMARY.
+
+      Returns
+      -------
+      None.
+
+      Raises
+      ------
+      ValueError
+          DESCRIPTION.
+      TypeError
+          DESCRIPTION.
+      """
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+        ),
+        (
+            DOC_TYPE_NUMPY,
+            '''  def foo():
+      spam = 42
+      return spam
+      ''',
+            '''  def foo():
+      """
+      SUMMARY.
+
+      Returns
+      -------
+      TYPE
+          DESCRIPTION.
+      """
+      spam = 42
+      return spam
+      ''',
+        ),
+        (
+            DOC_TYPE_NUMPY,
+            '''def foo():
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+            '''def foo():
+    """
+    SUMMARY.
+
+    Returns
+    -------
+    str
+        DESCRIPTION.
+    v1 : TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    numeric
+        DESCRIPTION.
+    float
+        DESCRIPTION.
+    tuple
+        DESCRIPTION.
+    dict
+        DESCRIPTION.
+    list
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+    bool
+        DESCRIPTION.
+    """
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+        ),
+        (
+            DOC_TYPE_NUMPY,
+            '''def foo():
+    return no, (ano, eo, dken)
+    ''',
+            '''def foo():
+    """
+    SUMMARY.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    """
+    return no, (ano, eo, dken)
+    ''',
+        ),
+        (
             DOC_TYPE_GOOGLE,
             '''async def foo():
     raise
@@ -322,6 +442,84 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     Returns:
         (List[Tuple[str, float]], str, float): DESCRIPTION.
     """
+    ''',
+        ),
+        (
+            DOC_TYPE_GOOGLE,
+            '''  def foo():
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+            '''  def foo():
+      """SUMMARY.
+
+      Returns:
+          None.
+
+      Raises:
+          ValueError: DESCRIPTION.
+          TypeError: DESCRIPTION.
+      """
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+        ),
+        (
+            DOC_TYPE_GOOGLE,
+            '''def foo():
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+            '''def foo():
+    """SUMMARY.
+
+    Returns:
+        str: DESCRIPTION.
+        v1 (TYPE): DESCRIPTION.
+        TYPE: DESCRIPTION.
+        numeric: DESCRIPTION.
+        float: DESCRIPTION.
+        tuple: DESCRIPTION.
+        dict: DESCRIPTION.
+        list: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        TYPE: DESCRIPTION.
+        bool: DESCRIPTION.
+    """
+    return None
+    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
+    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
+    ''',
+        ),
+        (
+            DOC_TYPE_GOOGLE,
+            '''def foo():
+    return no, (ano, eo, dken)
+    ''',
+            '''def foo():
+    """SUMMARY.
+
+    Returns:
+        TYPE: DESCRIPTION.
+    """
+    return no, (ano, eo, dken)
     ''',
         ),
         (
@@ -422,7 +620,45 @@ def test_editor_docstring_by_shortcut(
       None.
       """
       ''',
-        )
+        ),
+        # Test auto docstring with annotated function call.
+        # Regression test for issue spyder-ide/spyder#14520
+        (
+            '''  def test(self) -> Annotated[str, int("2")]:
+      ''',
+            '''  def test(self) -> Annotated[str, int("2")]:
+      """
+      SUMMARY.
+
+      Returns
+      -------
+      Annotated[str, int("2")]
+          DESCRIPTION.
+      """
+      ''',
+        ),
+        # Test auto docstring with function call with line breaks.
+        # Regression test for issue spyder-ide/spyder#14521
+        (
+            '''  def test(v:
+           int):
+      ''',
+            '''  def test(v:
+           int):
+      """
+      SUMMARY.
+
+      Parameters
+      ----------
+      v : int
+          DESCRIPTION.
+
+      Returns
+      -------
+      None.
+      """
+      ''',
+        ),
     ],
 )
 def test_editor_docstring_below_def_by_shortcut(
@@ -465,7 +701,7 @@ def test_editor_docstring_delayed_popup(
     qtbot, editor_docstring_next_end, text, expected, key
 ):
     """Test auto docstring using delayed popup."""
-    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
+    editor, __, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
 
     qtbot.keyPress(editor, Qt.Key_Space)
     qtbot.keyPress(editor, Qt.Key_Space)
@@ -477,299 +713,6 @@ def test_editor_docstring_delayed_popup(
     qtbot.wait(1000)
     qtbot.keyPress(editor.menu_docstring, key)
     qtbot.wait(1000)
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    'text, expected',
-    [
-        (
-            '''  def foo():
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-            '''  def foo():
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      None.
-
-      Raises
-      ------
-      ValueError
-          DESCRIPTION.
-      TypeError
-          DESCRIPTION.
-      """
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-        ),
-        (
-            '''  def foo():
-      spam = 42
-      return spam
-      ''',
-            '''  def foo():
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      TYPE
-          DESCRIPTION.
-      """
-      spam = 42
-      return spam
-      ''',
-        ),
-        (
-            '''def foo():
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-            '''def foo():
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    str
-        DESCRIPTION.
-    v1 : TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    numeric
-        DESCRIPTION.
-    float
-        DESCRIPTION.
-    tuple
-        DESCRIPTION.
-    dict
-        DESCRIPTION.
-    list
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    bool
-        DESCRIPTION.
-    """
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        ),
-        (
-            '''def foo():
-    return no, (ano, eo, dken)
-    ''',
-            '''def foo():
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-    """
-    return no, (ano, eo, dken)
-    ''',
-        ),
-    ],
-)
-def test_editor_docstring_with_body_numpydoc(
-    editor_docstring_start, text, expected
-):
-    """Test auto docstring of numpydoc when the function body is complex."""
-    editor, writer, __ = editor_docstring_start(text, DOC_TYPE_NUMPY)
-
-    writer.write_docstring_for_shortcut()
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    'text, expected',
-    [
-        (
-            '''  def foo():
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-            '''  def foo():
-      """SUMMARY.
-
-      Returns:
-          None.
-
-      Raises:
-          ValueError: DESCRIPTION.
-          TypeError: DESCRIPTION.
-      """
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-        ),
-        (
-            '''def foo():
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-            '''def foo():
-    """SUMMARY.
-
-    Returns:
-        str: DESCRIPTION.
-        v1 (TYPE): DESCRIPTION.
-        TYPE: DESCRIPTION.
-        numeric: DESCRIPTION.
-        float: DESCRIPTION.
-        tuple: DESCRIPTION.
-        dict: DESCRIPTION.
-        list: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        bool: DESCRIPTION.
-    """
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        ),
-        (
-            '''def foo():
-    return no, (ano, eo, dken)
-    ''',
-            '''def foo():
-    """SUMMARY.
-
-    Returns:
-        TYPE: DESCRIPTION.
-    """
-    return no, (ano, eo, dken)
-    ''',
-        ),
-    ],
-)
-def test_editor_docstring_with_body_googledoc(
-    editor_docstring_start, text, expected
-):
-    """Test auto docstring of googledoc when the function body is complex."""
-    editor, writer, __ = editor_docstring_start(text, DOC_TYPE_GOOGLE)
-
-    writer.write_docstring_for_shortcut()
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    'text, expected',
-    [
-        (
-            '''  def test(self) -> Annotated[str, int("2")]:
-      ''',
-            '''  def test(self) -> Annotated[str, int("2")]:
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      Annotated[str, int("2")]
-          DESCRIPTION.
-      """
-      ''',
-        )
-    ],
-)
-def test_docstring_annotated_call(editor_docstring_next_end, text, expected):
-    """
-    Test auto docstring with annotated function call.
-
-    This is a regression tests for issue spyder-ide/spyder#14520
-    """
-    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
-
-    writer.write_docstring_for_shortcut()
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    'text, expected',
-    [
-        (
-            '''  def test(v:
-           int):
-      ''',
-            '''  def test(v:
-           int):
-      """
-      SUMMARY.
-
-      Parameters
-      ----------
-      v : int
-          DESCRIPTION.
-
-      Returns
-      -------
-      None.
-      """
-      ''',
-        )
-    ],
-)
-def test_docstring_line_break(editor_docstring_next_end, text, expected):
-    """
-    Test auto docstring with function call with line breaks.
-
-    This is a regression tests for issue spyder-ide/spyder#14521
-    """
-    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
-
-    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
 
@@ -821,9 +764,7 @@ def test_docstring_line_break(editor_docstring_next_end, text, expected):
     ],
 )
 def test_docstring_comments(editor_docstring_inside_def, text, expected):
-    """
-    Test auto docstring with comments on lines of function definition.
-    """
+    """Test auto docstring with comments on lines of function definition."""
     editor, writer, __ = editor_docstring_inside_def(text, DOC_TYPE_NUMPY)
 
     writer.write_docstring_for_shortcut()
