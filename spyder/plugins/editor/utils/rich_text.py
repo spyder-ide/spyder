@@ -148,7 +148,7 @@ def selection_to_rtf(cursor: QTextCursor, bg_color: str = "") -> bytes:
         if isinstance(span, NewL):
             sio.write("\\\n")
         else:
-            s_text = span.encode("rtfunicode").decode("ansi")
+            s_text = span.encode("rtfunicode").decode("ascii")
             s_text.replace("\t", "\\tab ")
             color, style = format_to_rtf(s_format)
             if color not in color_table:
