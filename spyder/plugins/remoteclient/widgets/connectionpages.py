@@ -172,19 +172,21 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         for widget in widgets:
             if not widget.textbox.text():
-                if auth_method != AuthenticationMethod.JupyterHub and (
-                    config_file
-                    and (
-                        widget == self._username_widgets[auth_method]
-                        or widget == self._keyfile
-                    )
-                    or not config_file
-                    and widget == self._config_file_widgets[auth_method]
-                ):
-                    # Skip validation for empty username/keyfile when using a
-                    # config file or for config file if no config file is
-                    # provided
-                    continue
+                if auth_method != AuthenticationMethod.JupyterHub:
+                    if (
+                        config_file
+                        and (
+                            widget == self._username_widgets[auth_method]
+                            or widget == self._keyfile
+                        )
+                        or not config_file
+                        and widget == self._config_file_widgets[auth_method]
+                    ):
+                        # Skip validation for empty username/keyfile when using
+                        # a config file or for config file if no config file is
+                        # provided for password and keyfile based
+                        # authentication
+                        continue
 
                 # Validate that the required fields are not empty
                 widget.status_action.setVisible(True)
@@ -770,6 +772,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         host = host_widget.textbox.text()
         username_widget = self._username_widgets[auth_method]
         username_textbox = username_widget.textbox
+        # Pass empty tuple to prevent setting an `User` entry in the asynssh
+        # parsed config
+        # See https://github.com/spyder-ide/spyder/pull/24343#discussion_r2733719853
         username = username_textbox.text() if username_textbox.text() else ()
         configfile_widget = self._config_file_widgets[auth_method]
 
@@ -794,6 +799,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             )
 
         if config and not config.get_options(False) or not config:
+            # If no valid config is available there is no value to set as
+            # placeholder for username and keyfile and there is a need to set
+            # it to an empty string in case previous a value was able to be set
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
                 keyfile_textbox.setPlaceholderText("")
@@ -1343,13 +1351,16 @@ class ConnectionPage(BaseConnectionPage):
         if configfile_path:
             super().initialize()
             self._validate_config_file(configfile_path, from_gui=False)
-        elif configfile_path is None:
-            self.set_option(
-                f"{self.host_id}/{AuthenticationMethod.Password}/configfile", ""
-            )
-            self.set_option(
-                f"{self.host_id}/{AuthenticationMethod.KeyFile}/configfile", ""
-            )
+        else:
+            if configfile_path is None:
+                self.set_option(
+                    f"{self.host_id}/{AuthenticationMethod.Password}/configfile",
+                    ""
+                )
+                self.set_option(
+                    f"{self.host_id}/{AuthenticationMethod.KeyFile}/configfile",
+                    ""
+                )
             super().initialize()
 
     def get_icon(self):
