@@ -20,10 +20,22 @@ from spyder.utils.qthelpers import qapplication
 
 
 # =============================================================================
+# ---- Constants
+# =============================================================================
+
+DOC_TYPE_NUMPY = 'Numpydoc'
+DOC_TYPE_GOOGLE = 'Googledoc'
+DOC_TYPE_SPHINX = 'Sphinxdoc'
+
+DOC_TYPE_DEFAULT = DOC_TYPE_NUMPY
+DOC_TYPES = {DOC_TYPE_NUMPY, DOC_TYPE_GOOGLE, DOC_TYPE_SPHINX}
+
+
+# =============================================================================
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def editor_auto_docstring():
+def base_editor_docstring():
     """Set up Editor with auto docstring activated."""
     app = qapplication()  # noqa
     editor = CodeEditor(parent=None)
@@ -31,6 +43,72 @@ def editor_auto_docstring():
         language='Python', close_quotes=True, close_parentheses=True
     )
     return editor
+
+
+@pytest.fixture
+def editor_docstring_start(base_editor_docstring):
+    """Editor with cursor at the start of the text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        CONF.set('editor', 'docstring_type', doc_type)
+
+        editor = base_editor_docstring
+        writer = editor.writer_docstring
+        cursor = editor.textCursor()
+
+        editor.set_text(text)
+        cursor.setPosition(0, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_next(editor_docstring_start):
+    """Editor with cursor at the end of the second line of text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(text, doc_type)
+
+        cursor.movePosition(QTextCursor.NextBlock)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_next_end(editor_docstring_next):
+    """Editor with cursor at the end of the second line of text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_next(text, doc_type)
+
+        cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_inside_def(editor_docstring_start):
+    """Editor with cursor at the end of the second line of text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(text, doc_type)
+
+        # Position cursor somewhere inside the `def` statement
+        cursor.setPosition(11, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
 
 
 # =============================================================================
@@ -89,17 +167,10 @@ def test_parse_function_definition(
         ),
     ],
 )
-def test_get_function_body(editor_auto_docstring, text, indent, expected):
+def test_get_function_body(editor_docstring_next, text, indent, expected):
     """Test get function body."""
-    editor = editor_auto_docstring
-    editor.set_text(text)
+    editor, writer, __ = editor_docstring_next(text)
 
-    cursor = editor.textCursor()
-    cursor.setPosition(0, QTextCursor.MoveAnchor)
-    cursor.movePosition(QTextCursor.NextBlock)
-    editor.setTextCursor(cursor)
-
-    writer = editor.writer_docstring
     result = writer.get_function_body(indent)
 
     assert expected == result
@@ -109,10 +180,10 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
 @pytest.mark.parametrize(
     "doc_type, text, expected",
     [
-        ('Numpydoc', '', ''),
-        ('Numpydoc', 'if 1:\n    ', 'if 1:\n    '),
+        (DOC_TYPE_NUMPY, '', ''),
+        (DOC_TYPE_NUMPY, 'if 1:\n    ', 'if 1:\n    '),
         (
-            'Numpydoc',
+            DOC_TYPE_NUMPY,
             '''async def foo():
     raise
     raise ValueError
@@ -141,7 +212,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     yield ''',
         ),
         (
-            'Numpydoc',
+            DOC_TYPE_NUMPY,
             '''  def foo():
       print('{}' % foo_raise Value)
       foo_yield''',
@@ -157,7 +228,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
       foo_yield''',
         ),
         (
-            'Numpydoc',
+            DOC_TYPE_NUMPY,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -193,7 +264,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     ''',
         ),
         (
-            'Googledoc',
+            DOC_TYPE_GOOGLE,
             '''async def foo():
     raise
     raise ValueError
@@ -217,7 +288,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     ''',
         ),
         (
-            'Googledoc',
+            DOC_TYPE_GOOGLE,
             '''  def foo():
       ''',
             '''  def foo():
@@ -229,7 +300,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
       ''',
         ),
         (
-            'Googledoc',
+            DOC_TYPE_GOOGLE,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -254,7 +325,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     ''',
         ),
         (
-            'Sphinxdoc',
+            DOC_TYPE_SPHINX,
             '''async def foo():
     raise
     raise ValueError
@@ -276,7 +347,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     ''',
         ),
         (
-            'Sphinxdoc',
+            DOC_TYPE_SPHINX,
             '''  def foo():
       ''',
             '''  def foo():
@@ -288,7 +359,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
       ''',
         ),
         (
-            'Sphinxdoc',
+            DOC_TYPE_SPHINX,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -320,17 +391,10 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     ],
 )
 def test_editor_docstring_by_shortcut(
-    editor_auto_docstring, doc_type, text, expected, use_shortcut
+    editor_docstring_start, doc_type, text, expected, use_shortcut
 ):
     """Test auto docstring by shortcut."""
-    CONF.set('editor', 'docstring_type', doc_type)
-    editor = editor_auto_docstring
-    editor.set_text(text)
-
-    cursor = editor.textCursor()
-    cursor.setPosition(0, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-    writer = editor.writer_docstring
+    editor, writer, __ = editor_docstring_start(text, doc_type)
 
     if use_shortcut:
         writer.write_docstring_for_shortcut()
@@ -362,19 +426,12 @@ def test_editor_docstring_by_shortcut(
     ],
 )
 def test_editor_docstring_below_def_by_shortcut(
-    editor_auto_docstring, text, expected
+    editor_docstring_next_end, text, expected
 ):
     """Test auto docstring below function definition by shortcut."""
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
+    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
 
-    cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.NextBlock)
-    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-
-    editor.writer_docstring.write_docstring_for_shortcut()
+    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
 
@@ -405,17 +462,10 @@ def test_editor_docstring_below_def_by_shortcut(
     ],
 )
 def test_editor_docstring_delayed_popup(
-    qtbot, editor_auto_docstring, text, expected, key
+    qtbot, editor_docstring_next_end, text, expected, key
 ):
     """Test auto docstring using delayed popup."""
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
-
-    cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.NextBlock)
-    cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
+    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
 
     qtbot.keyPress(editor, Qt.Key_Space)
     qtbot.keyPress(editor, Qt.Key_Space)
@@ -553,17 +603,10 @@ def test_editor_docstring_delayed_popup(
     ],
 )
 def test_editor_docstring_with_body_numpydoc(
-    editor_auto_docstring, text, expected
+    editor_docstring_start, text, expected
 ):
     """Test auto docstring of numpydoc when the function body is complex."""
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
-
-    cursor = editor.textCursor()
-    cursor.setPosition(0, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-    writer = editor.writer_docstring
+    editor, writer, __ = editor_docstring_start(text, DOC_TYPE_NUMPY)
 
     writer.write_docstring_for_shortcut()
 
@@ -651,17 +694,10 @@ def test_editor_docstring_with_body_numpydoc(
     ],
 )
 def test_editor_docstring_with_body_googledoc(
-    editor_auto_docstring, text, expected
+    editor_docstring_start, text, expected
 ):
     """Test auto docstring of googledoc when the function body is complex."""
-    CONF.set('editor', 'docstring_type', 'Googledoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
-
-    cursor = editor.textCursor()
-    cursor.setPosition(0, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-    writer = editor.writer_docstring
+    editor, writer, __ = editor_docstring_start(text, DOC_TYPE_GOOGLE)
 
     writer.write_docstring_for_shortcut()
 
@@ -687,22 +723,15 @@ def test_editor_docstring_with_body_googledoc(
         )
     ],
 )
-def test_docstring_annotated_call(editor_auto_docstring, text, expected):
+def test_docstring_annotated_call(editor_docstring_next_end, text, expected):
     """
     Test auto docstring with annotated function call.
 
     This is a regression tests for issue spyder-ide/spyder#14520
     """
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
+    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
 
-    cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.NextBlock)
-    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-
-    editor.writer_docstring.write_docstring_for_shortcut()
+    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
 
@@ -732,22 +761,15 @@ def test_docstring_annotated_call(editor_auto_docstring, text, expected):
         )
     ],
 )
-def test_docstring_line_break(editor_auto_docstring, text, expected):
+def test_docstring_line_break(editor_docstring_next_end, text, expected):
     """
     Test auto docstring with function call with line breaks.
 
     This is a regression tests for issue spyder-ide/spyder#14521
     """
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
+    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
 
-    cursor = editor.textCursor()
-    cursor.movePosition(QTextCursor.NextBlock)
-    cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-
-    editor.writer_docstring.write_docstring_for_shortcut()
+    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
 
@@ -798,19 +820,12 @@ def test_docstring_line_break(editor_auto_docstring, text, expected):
         ),
     ],
 )
-def test_docstring_comments(editor_auto_docstring, text, expected):
+def test_docstring_comments(editor_docstring_inside_def, text, expected):
     """
     Test auto docstring with comments on lines of function definition.
     """
-    CONF.set('editor', 'docstring_type', 'Numpydoc')
-    editor = editor_auto_docstring
-    editor.set_text(text)
+    editor, writer, __ = editor_docstring_inside_def(text, DOC_TYPE_NUMPY)
 
-    # position cursor somewhere inside the `def` statement
-    cursor = editor.textCursor()
-    cursor.setPosition(11, QTextCursor.MoveAnchor)
-    editor.setTextCursor(cursor)
-
-    editor.writer_docstring.write_docstring_for_shortcut()
+    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
