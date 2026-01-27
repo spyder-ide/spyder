@@ -199,9 +199,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     reasons["repeated_name"] = True
                     widget.status_action.setVisible(True)
             elif widget == self._address_widgets.get(auth_method):
+                # Validate address
                 if not config_file:
                     widget.status_action.setVisible(False)
-                    # Validate address
                     address = widget.textbox.text()
                     if not self._validate_address(address):
                         reasons["invalid_address"] = True
@@ -474,7 +474,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         configfile = self.create_browsefile(
             text=_("Configuration file"),
             option=f"{self.host_id}/{auth_method}/configfile",
-            tip=_("File with the OpenSSH client configuration to use"),
+            tip=_("OpenSSH client configuration file to use"),
             validate_callback=self._validate_config_file,
             validate_reason=_(
                 "Unable to get OpenSSH client configuration from "
@@ -772,9 +772,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         username_textbox = username_widget.textbox
         username = username_textbox.text() if username_textbox.text() else ()
         configfile_widget = self._config_file_widgets[auth_method]
+
         keyfile_widget = None
         keyfile_textbox = None
-
         if auth_method == AuthenticationMethod.KeyFile:
             keyfile_widget = self._keyfile
             keyfile_textbox = keyfile_widget.textbox
