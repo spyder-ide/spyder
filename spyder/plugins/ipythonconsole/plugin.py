@@ -689,8 +689,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """
         cli_options = self.get_command_line_options()
         connection_file = cli_options.connection_file
+        projects = self.get_plugin(Plugins.Projects)
 
         if connection_file is not None:
+            # Projects plugin will not restart a console in this case, even if
+            # there is a current project path, so go ahead and start a console.
             cf_path = self.get_widget().find_connection_file(connection_file)
             if cf_path is None:
                 # Show an error if the connection file passed on the command
@@ -701,7 +704,13 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 client.show_kernel_connection_error()
             else:
                 self.create_client_for_kernel(cf_path, give_focus=False)
+        elif projects is not None and projects.get_active_project():
+            # If there is a current project path, the Projects plugin will
+            # start a console
+            pass
         else:
+            # If there is no current project path, Projects plugin will not
+            # restart a console, so go ahead and start a console
             self.create_new_client(give_focus=False)
 
     # ---- Private methods
@@ -936,6 +945,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         """Close client tab from index or client (or close current tab)"""
         self.get_widget().close_client(index=index, client=client,
                                        ask_recursive=ask_recursive)
+
     def undo(self) -> None:
         return self.get_widget().current_client_undo()
 
