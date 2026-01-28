@@ -704,16 +704,11 @@ def test_editor_docstring_delayed_popup(
     """Test auto docstring using delayed popup."""
     editor, __, __ = editor_docstring_next_end(input_text, DOC_TYPE_NUMPY)
 
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_Space)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
-    qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.keyPress(editor, Qt.Key_Tab)
+    for __ in range(3):
+        qtbot.keyPress(editor, Qt.Key_QuoteDbl)
     qtbot.wait(1000)
     qtbot.keyPress(editor.menu_docstring, key)
-    qtbot.wait(1000)
 
     assert editor.toPlainText() == expected
 
