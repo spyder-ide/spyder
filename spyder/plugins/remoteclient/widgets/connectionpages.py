@@ -772,7 +772,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         host = host_widget.textbox.text()
         username_widget = self._username_widgets[auth_method]
         username_textbox = username_widget.textbox
-        # Pass empty tuple to prevent setting an `User` entry in the asynssh
+        # Pass empty tuple to prevent setting a `User` entry in the asyncssh
         # parsed config
         # See https://github.com/spyder-ide/spyder/pull/24343#discussion_r2733719853
         username = username_textbox.text() if username_textbox.text() else ()
@@ -801,7 +801,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if config and not config.get_options(False) or not config:
             # If no valid config is available there is no value to set as
             # placeholder for username and keyfile and there is a need to set
-            # it to an empty string in case previous a value was able to be set
+            # it to an empty string in case previously a value was able to be
+            # set.
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
                 keyfile_textbox.setPlaceholderText("")
