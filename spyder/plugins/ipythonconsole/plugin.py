@@ -704,10 +704,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
                 client.show_kernel_connection_error()
             else:
                 self.create_client_for_kernel(cf_path, give_focus=False)
-        elif (
-            projects is not None
-            and projects.get_conf('current_project_path', default=None)
-        ):
+        elif projects is not None and projects.get_active_project():
             # If there is a current project path, the Projects plugin will
             # start a console
             pass
