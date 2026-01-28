@@ -1265,6 +1265,9 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
 
     @Slot(str)
     def _on_remote_server_disconnected(self, server_id):
+        # Try to reconnect any remote consoles bound to this server before
+        # altering menus.
+        self.get_widget().reconnect_remote_clients(server_id)
         self.get_widget().clear_server_consoles_submenu(server_id)
 
     # ---- Methods related to the Application plugin

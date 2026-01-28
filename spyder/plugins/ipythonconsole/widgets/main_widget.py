@@ -2287,6 +2287,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client.close_client(is_last_client)
                 open_clients.remove(client)
 
+    def reconnect_remote_clients(self, server_id):
+        """Request reconnection for all clients bound to a remote server."""
+        for client in self.clients:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
+                client.reconnect_remote_kernel()
+
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
         for index, client in enumerate(self.clients):
