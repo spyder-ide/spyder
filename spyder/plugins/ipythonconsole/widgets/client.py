@@ -171,6 +171,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.slow_connection_loading_page = self._create_loading_page(
             message=_("Waiting for the remote kernel to respond...")
         )
+        self.reconnecting_loading_page = self._create_loading_page(
+            message=_("Reconnecting to remote kernel...")
+        )
 
         if self.is_remote():
             # Keep a reference
@@ -209,7 +212,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         #--- Remote kernels states
         self.__remote_restart_requested = False
         self.__remote_reconnect_requested = False
-        self._remote_reconnect_attempts = 5
+        self._remote_reconnect_attempts_max = 10
+        self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -967,6 +971,46 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if shutdown:
             self.shutdown(is_last_client=False, close_console=False)
 
+    def remote_kernel_reconnect_failiure(self, error=None):
+        """Handle failures while trying to reconnect to a remote kernel."""
+        msg = _("It was not possible to reconnect to the remote kernel")
+
+        if error is None:
+            error_html = f"<br>{msg}<br>"
+        else:
+            if isinstance(error, SpyderKernelError):
+                error = error.args[0]
+            elif isinstance(error, Exception):
+                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
+
+            eol = sourcecode.get_eol_chars(error)
+            if eol:
+                error = error.replace(eol, '<br>')
+            error = error.replace('-', '&#8209')
+
+            kernel_error_template = Template(KERNEL_ERROR)
+            error_html = kernel_error_template.substitute(
+                css_path=self.css_path,
+                message=msg,
+                error=error,
+            )
+
+        # Prefer showing in the info widget to avoid mixing with console I/O
+        if self.infowidget is not None:
+            self.info_page = error_html
+            self.set_info_page()
+            self.shellwidget.hide()
+            self.infowidget.show()
+        else:
+            # Fallback inline if info widget is unavailable
+            self.shellwidget._append_html(error_html, before_prompt=False)
+            self.shellwidget.insert_horizontal_ruler()
+
+        # Inform other plugins that the shell failed to reconnect
+        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
+
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_restarted(self, future):
         """Handle restarts for remote kernels."""
@@ -992,7 +1036,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     "Exceeded maximum attempts to reconnect to remote kernel",
                     exc_info=True,
                 )
-                self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
+                self.remote_kernel_reconnect_failiure(error=err)
                 self.__remote_reconnect_requested = False
                 return
             self._remote_reconnect_attempts -= 1
@@ -1001,13 +1045,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 self._remote_reconnect_attempts,
                 exc_info=True,
             )
-            # self.reconnect_remote_kernel(delay=10)
             self.__remote_reconnect_requested = False
+            self.reconnect_remote_kernel(delay=5)
             return
         else:
             if not kernel_info:
                 logger.error("Remote kernel info not found")
-                self.remote_kernel_restarted_failure_message(shutdown=True)
+                self.remote_kernel_reconnect_failiure()
                 self.__remote_reconnect_requested = False
                 return
 
@@ -1023,11 +1067,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             )
         except Exception as err:
             logger.error("Failed to create KernelHandler for remote kernel", exc_info=True)
-            self.remote_kernel_restarted_failure_message(
-                error=err, shutdown=True
-            )
+            self.remote_kernel_reconnect_failiure(error=err)
         else:
-            self._remote_reconnect_attempts = 5
+            self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
+            self._hide_loading_page()
             self.replace_kernel(
                 kernel_handler, shutdown_kernel=False, clear=False
             )
