@@ -115,7 +115,7 @@ def editor_docstring_inside_def(editor_docstring_start):
 # ---- Tests
 # =============================================================================
 @pytest.mark.parametrize(
-    "text, indent, name_list, type_list, value_list, rtype",
+    ['input_text', 'indent', 'name_list', 'type_list', 'value_list', 'rtype'],
     [
         ('def foo():', '', [], [], [], None),
         (
@@ -130,11 +130,11 @@ def editor_docstring_inside_def(editor_docstring_start):
     ],
 )
 def test_parse_function_definition(
-    text, indent, name_list, type_list, value_list, rtype
+    input_text, indent, name_list, type_list, value_list, rtype
 ):
     """Test the parse_def method of FunctionInfo class."""
     func_info = FunctionInfo()
-    func_info.parse_def(text)
+    func_info.parse_def(input_text)
 
     assert func_info.func_indent == indent
     assert func_info.arg_name_list == name_list
@@ -144,7 +144,7 @@ def test_parse_function_definition(
 
 
 @pytest.mark.parametrize(
-    "text, indent, expected",
+    ['input_text', 'expected'],
     [
         (
             """    def foo():\n
@@ -153,7 +153,6 @@ def test_parse_function_definition(
         else:
             return\n
     class F:""",
-            "    ",
             """\n        if 1:
             raise ValueError
         else:
@@ -162,28 +161,29 @@ def test_parse_function_definition(
         (
             """def foo():
     return""",
-            "",
             """    return""",
         ),
     ],
 )
-def test_get_function_body(editor_docstring_next, text, indent, expected):
+def test_get_function_body(editor_docstring_next, input_text, expected):
     """Test get function body."""
-    __, writer, __ = editor_docstring_next(text)
+    __, writer, __ = editor_docstring_next(input_text)
 
-    result = writer.get_function_body(indent)
+    func_info = FunctionInfo()
+    func_info.parse_def(input_text)
+
+    result = writer.get_function_body(func_info.func_indent)
 
     assert expected == result
 
 
-@pytest.mark.parametrize("use_shortcut", [True, False])
+@pytest.mark.parametrize('use_shortcut', [True, False])
 @pytest.mark.parametrize(
-    "doc_type, text, expected",
+    ['input_text', 'expected', 'doc_type'],
     [
-        (DOC_TYPE_NUMPY, '', ''),
-        (DOC_TYPE_NUMPY, 'if 1:\n    ', 'if 1:\n    '),
+        ('', '', DOC_TYPE_NUMPY),
+        ('if 1:\n    ', 'if 1:\n    ', DOC_TYPE_NUMPY),
         (
-            DOC_TYPE_NUMPY,
             '''async def foo():
     raise
     raise ValueError
@@ -210,9 +210,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     raise ValueError("test")
     raise TypeError("test")
     yield ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''  def foo():
       print('{}' % foo_raise Value)
       foo_yield''',
@@ -226,9 +226,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
       """
       print('{}' % foo_raise Value)
       foo_yield''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -262,9 +262,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
         DESCRIPTION.
     """
     ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''  def foo():
       raise
       foo_raise()
@@ -301,9 +301,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
       \traise TypeError('tt')
       _yield
       ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''  def foo():
       spam = 42
       return spam
@@ -320,9 +320,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
       spam = 42
       return spam
       ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
@@ -365,9 +365,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_NUMPY,
             '''def foo():
     return no, (ano, eo, dken)
     ''',
@@ -382,9 +382,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     """
     return no, (ano, eo, dken)
     ''',
+            DOC_TYPE_NUMPY,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''async def foo():
     raise
     raise ValueError
@@ -406,9 +406,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     raise TypeError("test")
     yield value
     ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''  def foo():
       ''',
             '''  def foo():
@@ -418,9 +418,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
           None.
       """
       ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -443,9 +443,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
         (List[Tuple[str, float]], str, float): DESCRIPTION.
     """
     ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''  def foo():
       raise
       foo_raise()
@@ -477,9 +477,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
       \traise TypeError('tt')
       _yield
       ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
@@ -507,9 +507,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_GOOGLE,
             '''def foo():
     return no, (ano, eo, dken)
     ''',
@@ -521,9 +521,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     """
     return no, (ano, eo, dken)
     ''',
+            DOC_TYPE_GOOGLE,
         ),
         (
-            DOC_TYPE_SPHINX,
             '''async def foo():
     raise
     raise ValueError
@@ -543,9 +543,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     raise TypeError("test")
     yield value
     ''',
+            DOC_TYPE_SPHINX,
         ),
         (
-            DOC_TYPE_SPHINX,
             '''  def foo():
       ''',
             '''  def foo():
@@ -555,9 +555,9 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
       :rtype: TYPE
       """
       ''',
+            DOC_TYPE_SPHINX,
         ),
         (
-            DOC_TYPE_SPHINX,
             '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
@@ -585,14 +585,15 @@ def test_get_function_body(editor_docstring_next, text, indent, expected):
     :rtype: (List[Tuple[str, float]], str, float)
     """
     ''',
+            DOC_TYPE_SPHINX,
         ),
     ],
 )
 def test_editor_docstring_by_shortcut(
-    editor_docstring_start, doc_type, text, expected, use_shortcut
+    editor_docstring_start, input_text, expected, doc_type, use_shortcut
 ):
     """Test auto docstring by shortcut."""
-    editor, writer, __ = editor_docstring_start(text, doc_type)
+    editor, writer, __ = editor_docstring_start(input_text, doc_type)
 
     if use_shortcut:
         writer.write_docstring_for_shortcut()
@@ -606,7 +607,7 @@ def test_editor_docstring_by_shortcut(
 
 
 @pytest.mark.parametrize(
-    'text, expected',
+    ['input_text', 'expected'],
     [
         (
             '''  def foo():
@@ -662,10 +663,10 @@ def test_editor_docstring_by_shortcut(
     ],
 )
 def test_editor_docstring_below_def_by_shortcut(
-    editor_docstring_next_end, text, expected
+    editor_docstring_next_end, input_text, expected
 ):
     """Test auto docstring below function definition by shortcut."""
-    editor, writer, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
+    editor, writer, __ = editor_docstring_next_end(input_text, DOC_TYPE_NUMPY)
 
     writer.write_docstring_for_shortcut()
 
@@ -673,7 +674,7 @@ def test_editor_docstring_below_def_by_shortcut(
 
 
 @pytest.mark.parametrize(
-    'text, expected, key',
+    ['input_text', 'expected', 'key'],
     [
         (
             '''def foo():
@@ -698,10 +699,10 @@ def test_editor_docstring_below_def_by_shortcut(
     ],
 )
 def test_editor_docstring_delayed_popup(
-    qtbot, editor_docstring_next_end, text, expected, key
+    qtbot, editor_docstring_next_end, input_text, expected, key
 ):
     """Test auto docstring using delayed popup."""
-    editor, __, __ = editor_docstring_next_end(text, DOC_TYPE_NUMPY)
+    editor, __, __ = editor_docstring_next_end(input_text, DOC_TYPE_NUMPY)
 
     qtbot.keyPress(editor, Qt.Key_Space)
     qtbot.keyPress(editor, Qt.Key_Space)
@@ -718,7 +719,7 @@ def test_editor_docstring_delayed_popup(
 
 
 @pytest.mark.parametrize(
-    'text, expected',
+    ['input_text', 'expected'],
     [
         (
             '''  def test(v: str = "#"):  # comment, with '#' and "#"
@@ -763,9 +764,11 @@ def test_editor_docstring_delayed_popup(
         ),
     ],
 )
-def test_docstring_comments(editor_docstring_inside_def, text, expected):
+def test_docstring_comments(editor_docstring_inside_def, input_text, expected):
     """Test auto docstring with comments on lines of function definition."""
-    editor, writer, __ = editor_docstring_inside_def(text, DOC_TYPE_NUMPY)
+    editor, writer, __ = editor_docstring_inside_def(
+        input_text, DOC_TYPE_NUMPY
+    )
 
     writer.write_docstring_for_shortcut()
 
