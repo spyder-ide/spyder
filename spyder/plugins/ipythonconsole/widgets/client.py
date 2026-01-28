@@ -168,6 +168,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.blank_page = self._create_blank_page()
         self.kernel_loading_page = self._create_loading_page()
         self.env_loading_page = self._create_loading_page(env=True)
+        self.slow_connection_loading_page = self._create_loading_page(
+            message=_("Waiting for the remote kernel to respond...")
+        )
 
         if self.is_remote():
             # Keep a reference
@@ -179,6 +182,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # Elapsed time
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
+
+        # Remote execution timeout feedback
+        self._execution_loading_timeout_ms = 4000
+        self._execution_loading_timer = QTimer(self)
+        self._execution_loading_timer.setSingleShot(True)
+        self._execution_loading_timer.timeout.connect(
+            self._show_slow_execution_message
+        )
+        self._execution_loading_shown = False
 
         # --- Layout
         self.layout = QVBoxLayout()
@@ -237,16 +249,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def _create_loading_page(self, env=False):
+    def _create_loading_page(self, env=False, message=None):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
-        message = _("Connecting to kernel...")
-
-        if env:
+        if env and message is None:
             message = _("Retrieving environment variables...")
+        if message is None:
+            message = _("Connecting to kernel...")
         page = loading_template.substitute(
             css_path=self.css_path,
             loading_img=loading_img,
@@ -276,6 +288,41 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.info_page = self.blank_page
             self.set_info_page()
         self.shellwidget.show()
+
+    def _start_execution_loading_timer(self, _=None):
+        """Start timeout to show loading UI for slow remote executions."""
+        if not self.is_remote():
+            return
+
+        self._execution_loading_shown = False
+        self._execution_loading_timer.stop()
+        self._execution_loading_timer.start(
+            self._execution_loading_timeout_ms
+        )
+        logger.debug("Remote exec loading timer started (%sms)",
+                     self._execution_loading_timeout_ms)
+
+    def _show_slow_execution_message(self):
+        """Display loading animation when waiting on a remote execution."""
+        if not self.is_remote():
+            return
+
+        if self.infowidget is not None:
+            self._execution_loading_shown = True
+            self._show_loading_page(self.slow_connection_loading_page)
+        else:
+            self.shellwidget.append_html_message(
+                _("Waiting for the remote kernel to respond..."),
+                before_prompt=True,
+                msg_type='warning',
+            )
+
+    def _stop_execution_loading(self, *_args):
+        """Stop the remote execution loading animation."""
+        self._execution_loading_timer.stop()
+        if self._execution_loading_shown:
+            self._execution_loading_shown = False
+            self._hide_loading_page()
 
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
@@ -693,6 +740,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.timer.timeout.disconnect(self.show_time)
         except (RuntimeError, TypeError):
             pass
+
+        self._execution_loading_timer.stop()
 
         # This is a hack to prevent segfaults when closing Spyder and the
         # client was debugging before doing it.
