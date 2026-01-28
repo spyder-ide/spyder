@@ -930,6 +930,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     # ---- For remote clients
     # -------------------------------------------------------------------------
+    def is_client_reconnecting(self):
+        return self.__remote_reconnect_requested
+
     def is_remote(self):
         """Check if this client is connected to a remote server."""
         return self._jupyter_api is not None
