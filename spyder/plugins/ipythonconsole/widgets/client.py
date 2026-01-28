@@ -799,7 +799,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel_handler, shutdown_kernel, clear=True):
+    def replace_kernel(
+        self,
+        kernel_handler,
+        shutdown_kernel,
+        clear=True,
+        reconnect=False,
+    ):
         """
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
@@ -813,7 +819,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=clear)
-        self.shellwidget._kernel_restarted_message(died=False)
+        self.shellwidget._kernel_restarted_message(
+            died=not reconnect,
+            reconnected=reconnect,
+        )
 
     def is_kernel_active(self):
         """Check if the kernel is active."""
@@ -1072,7 +1081,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
             self._hide_loading_page()
             self.replace_kernel(
-                kernel_handler, shutdown_kernel=False, clear=False
+                kernel_handler,
+                shutdown_kernel=False,
+                clear=False,
+                reconnect=True,
             )
         finally:
             self.__remote_reconnect_requested = False

@@ -1464,11 +1464,13 @@ overrided by the Sympy module (e.g. plot)
         if self.is_remote():
             self.ipyclient.handle_remote_kernel_died()
 
-    def _kernel_restarted_message(self, died=True):
-        msg = (
-            _("The kernel died, restarting...") if died
-            else _("Restarting kernel...")
-        )
+    def _kernel_restarted_message(self, died=True, reconnected=False):
+        if died:
+            msg = _("The kernel died, restarting...")
+        elif reconnected:
+            msg = _("Kernel reconnected...")
+        else:
+            msg = _("Restarting kernel...")
 
         if (
             died
