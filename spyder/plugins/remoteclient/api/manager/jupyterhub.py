@@ -225,6 +225,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         """Create a new SSH connection."""
         self.logger.debug("Connecting to jupyterhub at %s", self.hub_url)
 
+        if self._session is not None:
+            await self._session.close()
+
         self._session = aiohttp.ClientSession(
             self.hub_url,
             headers={"Authorization": f"token {self.api_token}"},
