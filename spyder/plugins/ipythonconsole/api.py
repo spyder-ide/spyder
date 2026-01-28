@@ -55,6 +55,7 @@ class IPythonConsoleWidgetActions:
     ConnectToKernel = 'connect to kernel'
     Interrupt = 'interrupt kernel'
     Restart = 'Restart kernel'
+    Reconnect = 'reconnect kernel'
     ResetNamespace = 'reset namespace'
     ShowEnvironmentVariables = 'Show environment variables'
     ShowSystemPath = 'show system path'

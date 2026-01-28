@@ -470,6 +470,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
         )
+        self.reconnect_action = self.create_action(
+            IPythonConsoleWidgetActions.Reconnect,
+            text=_("Reconnect to remote kernel"),
+            icon=self.create_icon('restart'),
+            triggered=self.reconnect_kernel,
+        )
         self.reset_action = self.create_action(
             IPythonConsoleWidgetActions.ResetNamespace,
             text=_("Remove all variables"),
@@ -685,6 +691,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -781,6 +788,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -828,6 +836,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
+            self.reconnect_action.setEnabled(client.is_remote() and not client.is_client_reconnecting())
 
             # Client is loading or showing a kernel error
             if (
@@ -840,6 +849,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
+        else:
+            self.reconnect_action.setEnabled(False)
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
@@ -2556,6 +2567,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client is not None:
             self.sig_switch_to_plugin_requested.emit()
             client.stop_button_click_handler()
+
+    def reconnect_kernel(self):
+        """Reconnect remote kernel of current client."""
+        client = self.get_current_client()
+        if client is None or not client.is_remote():
+            return
+
+        self.sig_switch_to_plugin_requested.emit()
+        client.reconnect_remote_kernel()
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, method='runcell'):
