@@ -2739,7 +2739,6 @@ class EditorMainWidget(PluginMainWidget):
 
     def get_run_configuration(self, metadata_id: str) -> RunConfiguration:
         editorstack = self.get_current_editorstack()
-        self.focus_run_configuration(metadata_id)
         if self.get_conf('save_all_before_run', section="run"):
             editorstack.save_all(save_new_files=False)
         metadata = self.metadata_per_id[metadata_id]
