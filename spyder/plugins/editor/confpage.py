@@ -81,10 +81,13 @@ class EditorConfigPage(PluginConfigPage, SpyderConfigurationObserver):
         scroll_past_end_box = newcb(
             _("Allow scrolling past file end"), 'scroll_past_end'
         )
-
         use_enter_for_completions_box = newcb(
             _("Use Enter to accept code completions"),
             "use_enter_for_completions",
+            tip=_(
+                "If this option is disabled, completions will be accepted "
+                "with the Tab key only."
+            ),
         )
 
         interface_layout = QVBoxLayout()
