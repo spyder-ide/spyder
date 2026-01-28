@@ -14,6 +14,7 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+import asyncio
 import functools
 import logging
 import os
@@ -1039,8 +1040,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return await self._jupyter_api.restart_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
-    async def _get_remote_kernel_info(self):
-        await self.jupyter_api.connect()  # Reensure connection
+    async def _get_remote_kernel_info(self, delay=0):
+        if delay > 0:
+            await asyncio.sleep(delay)
+        # Reensure connection before getting kernel info
+        await self.jupyter_api.close()
+        await self.jupyter_api.connect()
         return await self._jupyter_api.get_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
@@ -1072,10 +1077,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         )
         self.__remote_restart_requested = True
 
-    def handle_remote_kernel_died(self):
+    def reconnect_remote_kernel(self, delay=0):
         if self.__remote_reconnect_requested:
             return
-        self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
+        if self.infowidget is not None:
+            self._show_loading_page(self.reconnecting_loading_page)
+        self._get_remote_kernel_info(delay=delay).connect(
+            self._reconnect_on_kernel_info
+        )
         self.__remote_reconnect_requested = True
 
     def start_remote_kernel(self, kernel_spec=None):
