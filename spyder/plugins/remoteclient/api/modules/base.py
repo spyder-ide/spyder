@@ -135,7 +135,8 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self
 
     async def close(self):
-        await self.session.close()
+        if self._session is not None:
+            await self._session.close()
 
     async def __aexit__(self, exc_type, exc, tb):
         await self.close()
