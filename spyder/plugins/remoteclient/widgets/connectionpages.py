@@ -257,6 +257,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             n_reasons = list(reasons.values()).count(True)
             min_height = self.MIN_HEIGHT
             if self.get_client_type() == ClientType.SSH:
+                extra_description_space = 45 if self.NEW_CONNECTION else 0
                 if (
                     self.auth_method(from_gui=True)
                     == AuthenticationMethod.Password
@@ -265,11 +266,11 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                         min_height = self.MIN_HEIGHT if (WIN or MAC) else 600
                 else:
                     if n_reasons == 1:
-                        min_height = 640 if MAC else (580 if WIN else 620)
+                        min_height = 640 if MAC else (620 if WIN else 620)
                     else:
-                        min_height = 700 if MAC else (620 if WIN else 680)
+                        min_height = 700 if MAC else (660 if WIN else 680)
 
-                self.setMinimumHeight(min_height)
+                self.setMinimumHeight(min_height + extra_description_space)
 
         return False if reasons else True
 
