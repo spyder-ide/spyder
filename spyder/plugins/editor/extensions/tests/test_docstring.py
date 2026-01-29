@@ -32,171 +32,128 @@ DOC_TYPES = {DOC_TYPE_NUMPY, DOC_TYPE_GOOGLE, DOC_TYPE_SPHINX}
 
 
 # =============================================================================
-# ---- Fixtures
+# ---- Test Cases
 # =============================================================================
-@pytest.fixture
-def base_editor_docstring():
-    """Set up Editor with auto docstring activated."""
-    app = qapplication()  # noqa
-    editor = CodeEditor(parent=None)
-    editor.setup_editor(
-        language='Python', close_quotes=True, close_parentheses=True
-    )
-    return editor
 
+TEST_CASES_FUNCTION_PARSE = {
+    'no_params_no_body': ('def foo():', '', [], [], [], None),
+    'long_complex_def_brackets_in_strings': (
+        ''' def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
+         (float, int): ''',
+        ' ',
+        ['arg0', 'arg1', 'arg2'],
+        [None, None, 'str'],
+        [None, "':'", "'-> (float, str):'"],
+        '(float, int)',
+    ),
+}
 
-@pytest.fixture
-def editor_docstring_start(base_editor_docstring):
-    """Editor with cursor at the start of the text."""
-
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        CONF.set('editor', 'docstring_type', doc_type)
-
-        editor = base_editor_docstring
-        writer = editor.writer_docstring
-        cursor = editor.textCursor()
-
-        editor.set_text(text)
-        cursor.setPosition(0, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
-
-        return editor, writer, cursor
-
-    return __editor_docstring
-
-
-@pytest.fixture
-def editor_docstring_next(editor_docstring_start):
-    """Editor with cursor at the end of the second line of text."""
-
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(text, doc_type)
-
-        cursor.movePosition(QTextCursor.NextBlock)
-        editor.setTextCursor(cursor)
-
-        return editor, writer, cursor
-
-    return __editor_docstring
-
-
-@pytest.fixture
-def editor_docstring_next_end(editor_docstring_next):
-    """Editor with cursor at the end of the second line of text."""
-
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_next(text, doc_type)
-
-        cursor.movePosition(QTextCursor.End, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
-
-        return editor, writer, cursor
-
-    return __editor_docstring
-
-
-@pytest.fixture
-def editor_docstring_inside_def(editor_docstring_start):
-    """Editor with cursor at the end of the second line of text."""
-
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(text, doc_type)
-
-        # Position cursor somewhere inside the `def` statement
-        cursor.setPosition(11, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
-
-        return editor, writer, cursor
-
-    return __editor_docstring
-
-
-# =============================================================================
-# ---- Tests
-# =============================================================================
-@pytest.mark.parametrize(
-    ['input_text', 'indent', 'name_list', 'type_list', 'value_list', 'rtype'],
-    [
-        ('def foo():', '', [], [], [], None),
-        (
-            """ def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
-             (float, int): """,
-            ' ',
-            ['arg0', 'arg1', 'arg2'],
-            [None, None, 'str'],
-            [None, "':'", "'-> (float, str):'"],
-            '(float, int)',
-        ),
-    ],
-)
-def test_parse_function_definition(
-    input_text, indent, name_list, type_list, value_list, rtype
-):
-    """Test the parse_def method of FunctionInfo class."""
-    func_info = FunctionInfo()
-    func_info.parse_def(input_text)
-
-    assert func_info.func_indent == indent
-    assert func_info.arg_name_list == name_list
-    assert func_info.arg_type_list == type_list
-    assert func_info.arg_value_list == value_list
-    assert func_info.return_type_annotated == rtype
-
-
-@pytest.mark.parametrize(
-    ['input_text', 'expected'],
-    [
-        (
-            """    def foo():\n
+TEST_CASES_FUNCTION_BODY = {
+    'if_else_block': (
+        '''    def foo():\n
         if 1:
             raise ValueError
         else:
             return\n
-    class F:""",
-            """\n        if 1:
+    class F:''',
+        '''\n        if 1:
             raise ValueError
         else:
-            return\n""",
-        ),
-        (
-            """def foo():
-    return""",
-            """    return""",
-        ),
-    ],
-)
-def test_get_function_body(editor_docstring_next, input_text, expected):
-    """Test get function body."""
-    __, writer, __ = editor_docstring_next(input_text)
+            return\n''',
+    ),
+    'empty_return': (
+        '''def foo():
+    return''',
+        '''    return''',
+    ),
+}
 
-    func_info = FunctionInfo()
-    func_info.parse_def(input_text)
+TEST_CASES_DELAYED_POPUP = {
+    'popup_enter': (
+        '''def foo():\n''',
+        '''def foo():
+    """
+    SUMMARY.
 
-    result = writer.get_function_body(func_info.func_indent)
+    Returns
+    -------
+    None.
+    """''',
+        Qt.Key_Enter,
+    ),
+    'popup_not_enter': (
+        '''def foo():\n''',
+        '''def foo():
+    """a''',
+        Qt.Key_A,
+    ),
+}
 
-    assert expected == result
+TEST_CASES_DOCSTRING = {
+    'empty-numpy': (
+        '',
+        '',
+        DOC_TYPE_NUMPY,
+    ),
+    'notafunc_if_block-numpy': (
+        'if 1:\n    ',
+        'if 1:\n    ',
+        DOC_TYPE_NUMPY,
+    ),
+    'no_params_no_body-numpy': (
+        '''  def foo():
+      ''',
+        '''  def foo():
+      """
+      SUMMARY.
 
+      Returns
+      -------
+      None.
+      """
+      ''',
+        DOC_TYPE_NUMPY,
+    ),
+    'no_params_no_body-google': (
+        '''  def foo():
+      ''',
+        '''  def foo():
+      """SUMMARY.
 
-@pytest.mark.parametrize('use_shortcut', [True, False])
-@pytest.mark.parametrize(
-    ['input_text', 'expected', 'doc_type'],
-    [
-        ('', '', DOC_TYPE_NUMPY),
-        ('if 1:\n    ', 'if 1:\n    ', DOC_TYPE_NUMPY),
-        (
-            '''async def foo():
+      Returns:
+          None.
+      """
+      ''',
+        DOC_TYPE_GOOGLE,
+    ),
+    'no_params_no_body-sphinx': (
+        '''  def foo():
+      ''',
+        '''  def foo():
+      """SUMMARY.
+
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """
+      ''',
+        DOC_TYPE_SPHINX,
+    ),
+    'async_raise_yield-numpy': (
+        '''async def foo():
     raise
     raise ValueError
     raise ValueError("test")
     raise TypeError("test")
-    yield ''',
-            '''async def foo():
+    yield value
+    ''',
+        '''async def foo():
     """
     SUMMARY.
 
     Yields
     ------
-    None.
+    TYPE
+        DESCRIPTION.
 
     Raises
     ------
@@ -209,14 +166,65 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
     raise ValueError
     raise ValueError("test")
     raise TypeError("test")
-    yield ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''  def foo():
+    yield value
+    ''',
+        DOC_TYPE_NUMPY,
+    ),
+    'async_raise_yield-google': (
+        '''async def foo():
+    raise
+    raise ValueError
+    raise ValueError("test")
+    raise TypeError("test")
+    yield value
+    ''',
+        '''async def foo():
+    """SUMMARY.
+
+    Yields:
+        value (TYPE): DESCRIPTION.
+
+    Raises:
+        ValueError: DESCRIPTION.
+        TypeError: DESCRIPTION.
+    """
+    raise
+    raise ValueError
+    raise ValueError("test")
+    raise TypeError("test")
+    yield value
+    ''',
+        DOC_TYPE_GOOGLE,
+    ),
+    'async_raise_yield-sphinx': (
+        '''async def foo():
+    raise
+    raise ValueError
+    raise ValueError("test")
+    raise TypeError("test")
+    yield value
+    ''',
+        '''async def foo():
+    """SUMMARY.
+
+    :raises ValueError: DESCRIPTION
+    :raises TypeError: DESCRIPTION
+    :yield: DESCRIPTION
+    :rtype: TYPE
+    """
+    raise
+    raise ValueError
+    raise ValueError("test")
+    raise TypeError("test")
+    yield value
+    ''',
+        DOC_TYPE_SPHINX,
+    ),
+    'raise_yield_in_varnames-numpy': (
+        '''  def foo():
       print('{}' % foo_raise Value)
       foo_yield''',
-            '''  def foo():
+        '''  def foo():
       """
       SUMMARY.
 
@@ -226,14 +234,14 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
       """
       print('{}' % foo_raise Value)
       foo_yield''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+        DOC_TYPE_NUMPY,
+    ),
+    'long_complex_def_brackets_in_strings-numpy': (
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     ''',
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
     """
@@ -262,10 +270,65 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
         DESCRIPTION.
     """
     ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''  def foo():
+        DOC_TYPE_NUMPY,
+    ),
+    'long_complex_def_brackets_in_strings-google': (
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    ''',
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    """SUMMARY.
+
+    Args:
+        arg (TYPE): DESCRIPTION.
+        arg0 (TYPE): DESCRIPTION.
+        arg1 (int): DESCRIPTION.
+        arg2 (List[Tuple[str, float]]): DESCRIPTION.
+        arg3 (TYPE, optional): DESCRIPTION. Defaults to '-> (float, int):'.
+        arg4 (TYPE, optional): DESCRIPTION. Defaults to ':float, int['.
+        arg5 (str, optional): DESCRIPTION. Defaults to '""'.
+
+    Returns:
+        (List[Tuple[str, float]], str, float): DESCRIPTION.
+    """
+    ''',
+        DOC_TYPE_GOOGLE,
+    ),
+    'long_complex_def_brackets_in_strings-sphinx': (
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    ''',
+        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    """SUMMARY.
+
+    :param arg: DESCRIPTION
+    :type arg: TYPE
+    :param arg0: DESCRIPTION
+    :type arg0: TYPE
+    :param arg1: DESCRIPTION
+    :type arg1: int
+    :param arg2: DESCRIPTION
+    :type arg2: List[Tuple[str, float]]
+    :param arg3: DESCRIPTION, defaults to '-> (float, int):'
+    :type arg3: TYPE, optional
+    :param arg4: DESCRIPTION, defaults to ':float, int['
+    :type arg4: TYPE, optional
+    :param arg5: DESCRIPTION, defaults to '""'
+    :type arg5: str, optional
+    :return: DESCRIPTION
+    :rtype: (List[Tuple[str, float]], str, float)
+    """
+    ''',
+        DOC_TYPE_SPHINX,
+    ),
+    'raise_yield_true_and_false_positives-numpy': (
+        '''  def foo():
       raise
       foo_raise()
       raisefoo()
@@ -276,7 +339,7 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
       \traise TypeError('tt')
       _yield
       ''',
-            '''  def foo():
+        '''  def foo():
       """
       SUMMARY.
 
@@ -301,14 +364,48 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
       \traise TypeError('tt')
       _yield
       ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''  def foo():
+        DOC_TYPE_NUMPY,
+    ),
+    'raise_yield_true_and_false_positives-google': (
+        '''  def foo():
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+        '''  def foo():
+      """SUMMARY.
+
+      Returns:
+          None.
+
+      Raises:
+          ValueError: DESCRIPTION.
+          TypeError: DESCRIPTION.
+      """
+      raise
+      foo_raise()
+      raisefoo()
+      raise ValueError
+      is_yield()
+      raise ValueError('tt')
+      yieldfoo()
+      \traise TypeError('tt')
+      _yield
+      ''',
+        DOC_TYPE_GOOGLE,
+    ),
+    'return_single_named_variable-numpy': (
+        '''  def foo():
       spam = 42
       return spam
       ''',
-            '''  def foo():
+        '''  def foo():
       """
       SUMMARY.
 
@@ -320,15 +417,15 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
       spam = 42
       return spam
       ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''def foo():
+        DOC_TYPE_NUMPY,
+    ),
+    'long_return_tuple_with_return_none-numpy': (
+        '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-            '''def foo():
+        '''def foo():
     """
     SUMMARY.
 
@@ -365,127 +462,15 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''def foo():
-    return no, (ano, eo, dken)
-    ''',
-            '''def foo():
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-    """
-    return no, (ano, eo, dken)
-    ''',
-            DOC_TYPE_NUMPY,
-        ),
-        (
-            '''async def foo():
-    raise
-    raise ValueError
-    raise TypeError("test")
-    yield value
-    ''',
-            '''async def foo():
-    """SUMMARY.
-
-    Yields:
-        value (TYPE): DESCRIPTION.
-
-    Raises:
-        ValueError: DESCRIPTION.
-        TypeError: DESCRIPTION.
-    """
-    raise
-    raise ValueError
-    raise TypeError("test")
-    yield value
-    ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''  def foo():
-      ''',
-            '''  def foo():
-      """SUMMARY.
-
-      Returns:
-          None.
-      """
-      ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    ''',
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    """SUMMARY.
-
-    Args:
-        arg (TYPE): DESCRIPTION.
-        arg0 (TYPE): DESCRIPTION.
-        arg1 (int): DESCRIPTION.
-        arg2 (List[Tuple[str, float]]): DESCRIPTION.
-        arg3 (TYPE, optional): DESCRIPTION. Defaults to '-> (float, int):'.
-        arg4 (TYPE, optional): DESCRIPTION. Defaults to ':float, int['.
-        arg5 (str, optional): DESCRIPTION. Defaults to '""'.
-
-    Returns:
-        (List[Tuple[str, float]], str, float): DESCRIPTION.
-    """
-    ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''  def foo():
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-            '''  def foo():
-      """SUMMARY.
-
-      Returns:
-          None.
-
-      Raises:
-          ValueError: DESCRIPTION.
-          TypeError: DESCRIPTION.
-      """
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''def foo():
+        DOC_TYPE_NUMPY,
+    ),
+    'long_return_tuple_with_return_none-google': (
+        '''def foo():
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-            '''def foo():
+        '''def foo():
     """SUMMARY.
 
     Returns:
@@ -507,13 +492,30 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''def foo():
+        DOC_TYPE_GOOGLE,
+    ),
+    'return_tuple_of_tuple_named_vars-numpy': (
+        '''def foo():
     return no, (ano, eo, dken)
     ''',
-            '''def foo():
+        '''def foo():
+    """
+    SUMMARY.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    """
+    return no, (ano, eo, dken)
+    ''',
+        DOC_TYPE_NUMPY,
+    ),
+    'return_tuple_of_tuple_named_vars-google': (
+        '''def foo():
+    return no, (ano, eo, dken)
+    ''',
+        '''def foo():
     """SUMMARY.
 
     Returns:
@@ -521,113 +523,14 @@ def test_get_function_body(editor_docstring_next, input_text, expected):
     """
     return no, (ano, eo, dken)
     ''',
-            DOC_TYPE_GOOGLE,
-        ),
-        (
-            '''async def foo():
-    raise
-    raise ValueError
-    raise TypeError("test")
-    yield value
-    ''',
-            '''async def foo():
-    """SUMMARY.
-
-    :raises ValueError: DESCRIPTION
-    :raises TypeError: DESCRIPTION
-    :yield: DESCRIPTION
-    :rtype: TYPE
-    """
-    raise
-    raise ValueError
-    raise TypeError("test")
-    yield value
-    ''',
-            DOC_TYPE_SPHINX,
-        ),
-        (
-            '''  def foo():
+        DOC_TYPE_GOOGLE,
+    ),
+    # Test auto docstring with annotated function call
+    # Regression test for issue spyder-ide/spyder#14520
+    'return_type_annotated_obj-numpy': (
+        '''  def test(self) -> Annotated[str, int("2")]:
       ''',
-            '''  def foo():
-      """SUMMARY.
-
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """
-      ''',
-            DOC_TYPE_SPHINX,
-        ),
-        (
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    ''',
-            '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    """SUMMARY.
-
-    :param arg: DESCRIPTION
-    :type arg: TYPE
-    :param arg0: DESCRIPTION
-    :type arg0: TYPE
-    :param arg1: DESCRIPTION
-    :type arg1: int
-    :param arg2: DESCRIPTION
-    :type arg2: List[Tuple[str, float]]
-    :param arg3: DESCRIPTION, defaults to '-> (float, int):'
-    :type arg3: TYPE, optional
-    :param arg4: DESCRIPTION, defaults to ':float, int['
-    :type arg4: TYPE, optional
-    :param arg5: DESCRIPTION, defaults to '""'
-    :type arg5: str, optional
-    :return: DESCRIPTION
-    :rtype: (List[Tuple[str, float]], str, float)
-    """
-    ''',
-            DOC_TYPE_SPHINX,
-        ),
-    ],
-)
-def test_editor_docstring_by_shortcut(
-    editor_docstring_start, input_text, expected, doc_type, use_shortcut
-):
-    """Test auto docstring by shortcut."""
-    editor, writer, __ = editor_docstring_start(input_text, doc_type)
-
-    if use_shortcut:
-        writer.write_docstring_for_shortcut()
-    else:
-        pos = editor.cursorRect().bottomRight()
-        pos = editor.mapToGlobal(pos)
-        writer.line_number_cursor = editor.get_line_number_at(pos)
-        writer.write_docstring_at_first_line_of_function()
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    ['input_text', 'expected'],
-    [
-        (
-            '''  def foo():
-      ''',
-            '''  def foo():
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      None.
-      """
-      ''',
-        ),
-        # Test auto docstring with annotated function call.
-        # Regression test for issue spyder-ide/spyder#14520
-        (
-            '''  def test(self) -> Annotated[str, int("2")]:
-      ''',
-            '''  def test(self) -> Annotated[str, int("2")]:
+        '''  def test(self) -> Annotated[str, int("2")]:
       """
       SUMMARY.
 
@@ -637,14 +540,15 @@ def test_editor_docstring_by_shortcut(
           DESCRIPTION.
       """
       ''',
-        ),
-        # Test auto docstring with function call with line breaks.
-        # Regression test for issue spyder-ide/spyder#14521
-        (
-            '''  def test(v:
+        DOC_TYPE_NUMPY,
+    ),
+    # Test auto docstring with function call with line breaks.
+    # Regression test for issue spyder-ide/spyder#14521
+    'def_linebreak_between_var_and_type-numpy': (
+        '''  def test(v:
            int):
       ''',
-            '''  def test(v:
+        '''  def test(v:
            int):
       """
       SUMMARY.
@@ -659,67 +563,12 @@ def test_editor_docstring_by_shortcut(
       None.
       """
       ''',
-        ),
-    ],
-)
-def test_editor_docstring_below_def_by_shortcut(
-    editor_docstring_next_end, input_text, expected
-):
-    """Test auto docstring below function definition by shortcut."""
-    editor, writer, __ = editor_docstring_next_end(input_text, DOC_TYPE_NUMPY)
-
-    writer.write_docstring_for_shortcut()
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    ['input_text', 'expected', 'key'],
-    [
-        (
-            '''def foo():
-''',
-            '''def foo():
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    None.
-    """''',
-            Qt.Key_Enter,
-        ),
-        (
-            '''def foo():
-''',
-            '''def foo():
-    """a''',
-            Qt.Key_A,
-        ),
-    ],
-)
-def test_editor_docstring_delayed_popup(
-    qtbot, editor_docstring_next_end, input_text, expected, key
-):
-    """Test auto docstring using delayed popup."""
-    editor, __, __ = editor_docstring_next_end(input_text, DOC_TYPE_NUMPY)
-
-    qtbot.keyPress(editor, Qt.Key_Tab)
-    for __ in range(3):
-        qtbot.keyPress(editor, Qt.Key_QuoteDbl)
-    qtbot.wait(1000)
-    qtbot.keyPress(editor.menu_docstring, key)
-
-    assert editor.toPlainText() == expected
-
-
-@pytest.mark.parametrize(
-    ['input_text', 'expected'],
-    [
-        (
-            '''  def test(v: str = "#"):  # comment, with '#' and "#"
+        DOC_TYPE_NUMPY,
+    ),
+    'comment_after_def-numpy': (
+        '''  def test(v: str = "#"):  # comment, with '#' and "#"
       ''',
-            '''  def test(v: str = "#"):  # comment, with '#' and "#"
+        '''  def test(v: str = "#"):  # comment, with '#' and "#"
       """
       SUMMARY.
 
@@ -733,12 +582,13 @@ def test_editor_docstring_delayed_popup(
       None.
       """
       ''',
-        ),
-        (
-            '''  def test(v1: str = "#", # comment, with '#' and "#"
+        DOC_TYPE_NUMPY,
+    ),
+    'comment_middle_of_def-numpy': (
+        '''  def test(v1: str = "#", # comment, with '#' and "#"
          v2: str = '#') -> str:
       ''',
-            '''  def test(v1: str = "#", # comment, with '#' and "#"
+        '''  def test(v1: str = "#", # comment, with '#' and "#"
          v2: str = '#') -> str:
       """
       SUMMARY.
@@ -756,14 +606,192 @@ def test_editor_docstring_delayed_popup(
           DESCRIPTION.
       """
       ''',
-        ),
-    ],
-)
-def test_docstring_comments(editor_docstring_inside_def, input_text, expected):
-    """Test auto docstring with comments on lines of function definition."""
-    editor, writer, __ = editor_docstring_inside_def(
-        input_text, DOC_TYPE_NUMPY
+        DOC_TYPE_NUMPY,
+    ),
+}
+
+
+# =============================================================================
+# ---- Fixtures
+# =============================================================================
+
+@pytest.fixture
+def base_editor_docstring():
+    """Set up Editor with auto docstring activated."""
+    app = qapplication()  # noqa
+    editor = CodeEditor(parent=None)
+    editor.setup_editor(
+        language='Python', close_quotes=True, close_parentheses=True
     )
+    return editor
+
+
+@pytest.fixture
+def editor_docstring_start(base_editor_docstring):
+    """Editor with cursor at the start of the text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        CONF.set('editor', 'docstring_type', doc_type)
+
+        editor = base_editor_docstring
+        writer = editor.writer_docstring
+        cursor = editor.textCursor()
+
+        editor.set_text(text)
+        cursor.setPosition(0, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_after_def(editor_docstring_start):
+    """Editor with cursor on the line after function signature's end."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(text, doc_type)
+
+        cursor.movePosition(QTextCursor.NextBlock)
+        # Hack to get the cursor below the def for two-line func signatures
+        if cursor.block().text().strip().endswith(':'):
+            cursor.movePosition(QTextCursor.NextBlock)
+        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_inside_def(editor_docstring_start):
+    """Editor with cursor at the end of the second line of text."""
+
+    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(text, doc_type)
+
+        # Position cursor somewhere inside the `def` statement
+        cursor.setPosition(11, QTextCursor.MoveAnchor)
+        editor.setTextCursor(cursor)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+# =============================================================================
+# ---- Tests
+# =============================================================================
+
+@pytest.mark.parametrize(
+    ['input_text', 'indent', 'name_list', 'type_list', 'value_list', 'rtype'],
+    TEST_CASES_FUNCTION_PARSE.values(),
+    ids=TEST_CASES_FUNCTION_PARSE.keys(),
+)
+def test_parse_function_def(
+    input_text, indent, name_list, type_list, value_list, rtype
+):
+    """Test the parse_def method of FunctionInfo class."""
+    func_info = FunctionInfo()
+    func_info.parse_def(input_text)
+
+    assert func_info.func_indent == indent
+    assert func_info.arg_name_list == name_list
+    assert func_info.arg_type_list == type_list
+    assert func_info.arg_value_list == value_list
+    assert func_info.return_type_annotated == rtype
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'expected'],
+    TEST_CASES_FUNCTION_BODY.values(),
+    ids=TEST_CASES_FUNCTION_BODY.keys(),
+)
+def test_get_function_body(editor_docstring_after_def, input_text, expected):
+    """Test get function body."""
+    __, writer, __ = editor_docstring_after_def(input_text)
+
+    func_info = FunctionInfo()
+    func_info.parse_def(input_text)
+
+    result = writer.get_function_body(func_info.func_indent)
+
+    assert expected == result
+
+
+@pytest.mark.parametrize(
+    'use_shortcut', [True, False], ids=['shortcut', 'action']
+)
+@pytest.mark.parametrize(
+    ['input_text', 'expected', 'doc_type'],
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
+)
+def test_docstring_by_shortcut(
+    editor_docstring_start, input_text, expected, doc_type, use_shortcut
+):
+    """Test auto docstring by shortcut."""
+    editor, writer, __ = editor_docstring_start(input_text, doc_type)
+
+    if use_shortcut:
+        writer.write_docstring_for_shortcut()
+    else:
+        pos = editor.cursorRect().bottomRight()
+        pos = editor.mapToGlobal(pos)
+        writer.line_number_cursor = editor.get_line_number_at(pos)
+        writer.write_docstring_at_first_line_of_function()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'expected', 'doc_type'],
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
+)
+def test_docstring_below_def(
+    editor_docstring_after_def, input_text, expected, doc_type
+):
+    """Test auto docstring below function definition by shortcut."""
+    editor, writer, __ = editor_docstring_after_def(input_text, doc_type)
+
+    writer.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'expected', 'key'],
+    TEST_CASES_DELAYED_POPUP.values(),
+    ids=TEST_CASES_DELAYED_POPUP.keys(),
+)
+def test_docstring_delayed_popup(
+    qtbot, editor_docstring_after_def, input_text, expected, key
+):
+    """Test auto docstring using delayed popup."""
+    editor, __, __ = editor_docstring_after_def(input_text, DOC_TYPE_NUMPY)
+
+    qtbot.keyPress(editor, Qt.Key_Tab)
+    for __ in range(3):
+        qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    qtbot.wait(1000)
+    qtbot.keyPress(editor.menu_docstring, key)
+
+    assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'expected', 'doc_type'],
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
+)
+def test_docstring_inside_def(
+    editor_docstring_inside_def, input_text, expected, doc_type
+):
+    """Test auto docstring inside the function definition block."""
+    editor, writer, __ = editor_docstring_inside_def(input_text, doc_type)
 
     writer.write_docstring_for_shortcut()
 
