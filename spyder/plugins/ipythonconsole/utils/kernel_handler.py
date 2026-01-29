@@ -680,12 +680,15 @@ class KernelHandler(QObject):
 
     def reopen_comm(self):
         """Reopen comm (following a crash)"""
+        self.kernel_comm.remove()
         self.connection_state = KernelConnectionState.Crashed
-        if self.is_websocket_client:
-            self.kernel_comm.remove(only_closing=True)
-        else:
-            self.kernel_comm.remove()
         self.kernel_comm.open_comm(self.kernel_client)
+
+    def reconnect_kernel(self):
+        """Kernel restarted successfully, so reconnect to it."""
+        self.reopen_comm()
+        self.disconnect_std_pipes()
+        self.connect_std_pipes()
 
     def set_time_to_dead(self, time_to_dead):
         """Set time to detect if the kernel is dead in seconds."""
