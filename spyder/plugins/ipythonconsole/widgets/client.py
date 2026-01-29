@@ -820,7 +820,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=clear)
         self.shellwidget._kernel_restarted_message(
-            died=not reconnect,
+            died=False,
             reconnected=reconnect,
         )
 
