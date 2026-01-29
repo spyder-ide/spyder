@@ -174,20 +174,19 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         await self.close_connection()
 
     def _handle_connection_lost(self, exc: Exception | None = None):
-        if self.connected:
-            self.__connection_task = None
+        self._reset_connection_established()
         self.__starting_event.clear()
-        self._port_forwarder = None
-        if exc:
-            self.logger.error(
-                "Connection to %s was lost",
-                self.server_name,
-                exc_info=exc,
-            )
-            self._emit_connection_status(
-                status=ConnectionStatus.Error,
-                message=_("The connection was lost"),
-            )
+        self.logger.error(
+            "Connection to %s was lost",
+            self.server_name,
+            exc_info=exc,
+        )
+        self._emit_connection_status(
+            status=ConnectionStatus.Error,
+            message=_("The connection was lost"),
+        )
+        if self._plugin:
+            self._plugin.sig_connection_lost.emit(self.config_id)
 
     # ---- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:

@@ -45,7 +45,7 @@ class Tests(unittest.TestCase):
         # Get status messages
         timeout_time = time.time() + timeout
         msg_type = 'status'
-        while msg_type == 'status':
+        while msg_type == 'status' or msg_type == 'iopub_welcome':
             if timeout_time < time.time():
                 raise TimeoutError
             try:

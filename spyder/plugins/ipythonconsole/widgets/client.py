@@ -14,6 +14,7 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+import asyncio
 import functools
 import logging
 import os
@@ -167,6 +168,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.blank_page = self._create_blank_page()
         self.kernel_loading_page = self._create_loading_page()
         self.env_loading_page = self._create_loading_page(env=True)
+        self.slow_connection_loading_page = self._create_loading_page(
+            message=_("Waiting for the remote kernel to respond...")
+        )
+        self.reconnecting_loading_page = self._create_loading_page(
+            message=_("Reconnecting to remote kernel...")
+        )
 
         if self.is_remote():
             # Keep a reference
@@ -178,6 +185,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # Elapsed time
         self.t0 = time.monotonic()
         self.timer = QTimer(self)
+
+        # Remote execution timeout feedback
+        self._execution_loading_timeout_ms = 4000
+        self._execution_loading_timer = QTimer(self)
+        self._execution_loading_timer.setSingleShot(True)
+        self._execution_loading_timer.timeout.connect(
+            self._show_slow_execution_message
+        )
+        self._execution_loading_shown = False
 
         # --- Layout
         self.layout = QVBoxLayout()
@@ -196,6 +212,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         #--- Remote kernels states
         self.__remote_restart_requested = False
         self.__remote_reconnect_requested = False
+        self._remote_reconnect_attempts_max = 10
+        self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
 
     # ---- Private methods
     # -------------------------------------------------------------------------
@@ -235,16 +253,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def _create_loading_page(self, env=False):
+    def _create_loading_page(self, env=False, message=None):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
-        message = _("Connecting to kernel...")
-
-        if env:
+        if env and message is None:
             message = _("Retrieving environment variables...")
+        if message is None:
+            message = _("Connecting to kernel...")
         page = loading_template.substitute(
             css_path=self.css_path,
             loading_img=loading_img,
@@ -274,6 +292,41 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.info_page = self.blank_page
             self.set_info_page()
         self.shellwidget.show()
+
+    def _start_execution_loading_timer(self, _=None):
+        """Start timeout to show loading UI for slow remote executions."""
+        if not self.is_remote():
+            return
+
+        self._execution_loading_shown = False
+        self._execution_loading_timer.stop()
+        self._execution_loading_timer.start(
+            self._execution_loading_timeout_ms
+        )
+        logger.debug("Remote exec loading timer started (%sms)",
+                     self._execution_loading_timeout_ms)
+
+    def _show_slow_execution_message(self):
+        """Display loading animation when waiting on a remote execution."""
+        if not self.is_remote():
+            return
+
+        if self.infowidget is not None:
+            self._execution_loading_shown = True
+            self._show_loading_page(self.slow_connection_loading_page)
+        else:
+            self.shellwidget.append_html_message(
+                _("Waiting for the remote kernel to respond..."),
+                before_prompt=True,
+                msg_type='warning',
+            )
+
+    def _stop_execution_loading(self, *_args):
+        """Stop the remote execution loading animation."""
+        self._execution_loading_timer.stop()
+        if self._execution_loading_shown:
+            self._execution_loading_shown = False
+            self._hide_loading_page()
 
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
@@ -692,6 +745,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except (RuntimeError, TypeError):
             pass
 
+        self._execution_loading_timer.stop()
+
         # This is a hack to prevent segfaults when closing Spyder and the
         # client was debugging before doing it.
         # It's a side effect of spyder-ide/spyder#21788
@@ -744,7 +799,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except RuntimeError:
             pass
 
-    def replace_kernel(self, kernel_handler, shutdown_kernel, clear=True):
+    def replace_kernel(
+        self,
+        kernel_handler,
+        shutdown_kernel,
+        clear=True,
+        reconnect=False,
+    ):
         """
         Replace kernel by disconnecting from the current one and connecting to
         another kernel, which is equivalent to a restart.
@@ -758,7 +819,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         # Reset shellwidget and print restart message
         self.shellwidget.reset(clear=clear)
-        self.shellwidget._kernel_restarted_message(died=False)
+        self.shellwidget._kernel_restarted_message(
+            died=not reconnect,
+            reconnected=reconnect,
+        )
 
     def is_kernel_active(self):
         """Check if the kernel is active."""
@@ -866,6 +930,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     # ---- For remote clients
     # -------------------------------------------------------------------------
+    def is_client_reconnecting(self):
+        return self.__remote_reconnect_requested
+
     def is_remote(self):
         """Check if this client is connected to a remote server."""
         return self._jupyter_api is not None
@@ -910,54 +977,121 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.shellwidget._append_html(error_html, before_prompt=False)
         self.shellwidget.insert_horizontal_ruler()
 
+        # Inform other plugins that the shell failed to start
+        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
+
         if shutdown:
             self.shutdown(is_last_client=False, close_console=False)
+
+    def remote_kernel_reconnect_failiure(self, error=None):
+        """Handle failures while trying to reconnect to a remote kernel."""
+        msg = _("It was not possible to reconnect to the remote kernel")
+
+        if error is None:
+            error_html = f"<br>{msg}<br>"
+        else:
+            if isinstance(error, SpyderKernelError):
+                error = error.args[0]
+            elif isinstance(error, Exception):
+                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
+
+            eol = sourcecode.get_eol_chars(error)
+            if eol:
+                error = error.replace(eol, '<br>')
+            error = error.replace('-', '&#8209')
+
+            kernel_error_template = Template(KERNEL_ERROR)
+            error_html = kernel_error_template.substitute(
+                css_path=self.css_path,
+                message=msg,
+                error=error,
+            )
+
+        # Prefer showing in the info widget to avoid mixing with console I/O
+        if self.infowidget is not None:
+            self.info_page = error_html
+            self.set_info_page()
+            self.shellwidget.hide()
+            self.infowidget.show()
+        else:
+            # Fallback inline if info widget is unavailable
+            self.shellwidget._append_html(error_html, before_prompt=False)
+            self.shellwidget.insert_horizontal_ruler()
+
+        # Inform other plugins that the shell failed to reconnect
+        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_restarted(self, future):
         """Handle restarts for remote kernels."""
-        if future.result():
-            # Reset shellwidget and print restart message
-            self.kernel_handler.reconnect_kernel()
-            self.shellwidget.reset(clear=True)
+        try:
+            restarted = future.result()
+        except Exception as err:
+            self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
         else:
-            self.remote_kernel_restarted_failure_message(shutdown=True)
-            # This will show an error message in the plugins connected to the
-            # IPython console and disable kernel related actions in its Options
-            # menu.
-            sw = self.shellwidget
-            sw.sig_shellwidget_errored.emit(sw)
-        self.__remote_restart_requested = False
+            if restarted:
+                self.kernel_handler.reconnect_kernel()
+                self.shellwidget.reset(clear=True)
+            else:
+                self.remote_kernel_restarted_failure_message(shutdown=True) 
+        finally:
+            self.__remote_restart_requested = False
 
     @AsyncDispatcher.QtSlot
     def _reconnect_on_kernel_info(self, future):
-        if (kernel_info := future.result()):
-            try:
-                kernel_handler = KernelHandler.from_websocket(
-                    (
-                        self.jupyter_api.api_url
-                        / "kernels"
-                        / self.kernel_id
-                        / "channels"
-                    ).with_scheme("ws"),
-                    aiohttp_session=self._jupyter_api.session,
+        try:
+            kernel_info = future.result()
+        except Exception as err:
+            if self._remote_reconnect_attempts <= 0:
+                logger.error(
+                    "Exceeded maximum attempts to reconnect to remote kernel",
+                    exc_info=True,
                 )
-            except Exception as err:
-                self.remote_kernel_restarted_failure_message(
-                    err, shutdown=True
-                )
-            else:
-                self.replace_kernel(
-                    kernel_handler, shutdown_kernel=False, clear=False
-                )
+                self.remote_kernel_reconnect_failiure(error=err)
+                self.__remote_reconnect_requested = False
+                return
+            self._remote_reconnect_attempts -= 1
+            logger.warning(
+                "Reconnecting to remote kernel, attempts left: %d",
+                self._remote_reconnect_attempts,
+                exc_info=True,
+            )
+            self.__remote_reconnect_requested = False
+            self.reconnect_remote_kernel(delay=5)
+            return
         else:
-            self.remote_kernel_restarted_failure_message(shutdown=True)
-            # This will show an error message in the plugins connected to the
-            # IPython console and disable kernel related actions in its Options
-            # menu.
-            sw = self.shellwidget
-            sw.sig_shellwidget_errored.emit(sw)
-        self.__remote_reconnect_requested = False
+            if not kernel_info:
+                logger.error("Remote kernel info not found")
+                self.remote_kernel_reconnect_failiure()
+                self.__remote_reconnect_requested = False
+                return
+
+        try:
+            kernel_handler = KernelHandler.from_websocket(
+                (
+                    self.jupyter_api.api_url
+                    / "kernels"
+                    / self.kernel_id
+                    / "channels"
+                ).with_scheme("ws"),
+                aiohttp_session=self._jupyter_api.session,
+            )
+        except Exception as err:
+            logger.error("Failed to create KernelHandler for remote kernel", exc_info=True)
+            self.remote_kernel_reconnect_failiure(error=err)
+        else:
+            self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
+            self._hide_loading_page()
+            self.replace_kernel(
+                kernel_handler,
+                shutdown_kernel=False,
+                clear=False,
+                reconnect=True,
+            )
+        finally:
+            self.__remote_reconnect_requested = False
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_started(self, future):
@@ -1014,7 +1148,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return await self._jupyter_api.restart_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
-    async def _get_remote_kernel_info(self):
+    async def _get_remote_kernel_info(self, delay=0):
+        if delay > 0:
+            await asyncio.sleep(delay)
+        # Reensure connection before getting kernel info
+        await self.jupyter_api.close()
+        await self.jupyter_api.connect()
         return await self._jupyter_api.get_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole")
@@ -1046,10 +1185,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         )
         self.__remote_restart_requested = True
 
-    def reconnect_remote_kernel(self):
+    def reconnect_remote_kernel(self, delay=0):
         if self.__remote_reconnect_requested:
             return
-        self._get_remote_kernel_info().connect(self._reconnect_on_kernel_info)
+        if self.infowidget is not None:
+            self._show_loading_page(self.reconnecting_loading_page)
+        self._get_remote_kernel_info(delay=delay).connect(
+            self._reconnect_on_kernel_info
+        )
         self.__remote_reconnect_requested = True
 
     def start_remote_kernel(self, kernel_spec=None):

@@ -615,6 +615,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # kernel started while we were running
             if self._executing:
                 self._handle_kernel_restarted(died=True)
+        elif state == 'restarting':
+            # handle kernel unexpected restarts
+            self._handle_kernel_restarted(died=True)
         elif state == 'idle':
             pass
         elif state == 'busy':
