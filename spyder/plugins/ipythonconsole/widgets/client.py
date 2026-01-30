@@ -1033,7 +1033,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
         else:
             if restarted:
-                self.shellwidget.reset(clear=True)
+                self.kernel_handler.reconnect_kernel()
             else:
                 self.remote_kernel_restarted_failure_message(shutdown=True) 
         finally:
