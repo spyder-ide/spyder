@@ -745,7 +745,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except (RuntimeError, TypeError):
             pass
 
-        self._execution_loading_timer.stop()
+        if self.is_remote():
+            self._execution_loading_timer.stop()
 
         # This is a hack to prevent segfaults when closing Spyder and the
         # client was debugging before doing it.
