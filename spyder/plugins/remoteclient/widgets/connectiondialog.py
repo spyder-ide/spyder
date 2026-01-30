@@ -46,7 +46,7 @@ class ConnectionDialog(SidebarDialog):
     TITLE = _("Remote connections")
     FIXED_SIZE = True
     MIN_WIDTH = 895 if MAC else (810 if WIN else 860)
-    MIN_HEIGHT = 855 if MAC else (820 if WIN else 795)
+    MIN_HEIGHT = 855 if MAC else (780 if WIN else 795)
     PAGE_CLASSES = [NewConnectionPage]
 
     sig_start_server_requested = Signal(str)

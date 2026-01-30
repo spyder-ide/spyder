@@ -266,9 +266,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                         min_height = self.MIN_HEIGHT if (WIN or MAC) else 600
                 else:
                     if n_reasons == 1:
-                        min_height = 640 if MAC else (620 if WIN else 620)
+                        min_height = 640 if MAC else (620 if WIN else 635)
                     else:
-                        min_height = 720 if MAC else (660 if WIN else 680)
+                        min_height = 720 if MAC else (680 if WIN else 690)
 
                 self.setMinimumHeight(min_height + extra_description_space)
 
