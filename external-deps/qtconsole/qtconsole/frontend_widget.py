@@ -545,7 +545,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.kernel_manager:
             self.kernel_manager.reset_autorestart_count()
 
-        self.reset()
+        self.reset(clear=not died)
 
     def _handle_inspect_reply(self, rep):
         """Handle replies for call tips."""

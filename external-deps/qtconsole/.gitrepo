@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/hlouzada/qtconsole.git
 	branch = fix-kernel-restart-handling
-	commit = e606e6eddb678e6302ab4f8bba6c070b54eb2b9d
-	parent = 158058809645a231ffb96afdfcacb6bf79b05acb
+	commit = b6521563ca1af3a7a9a49090605c1e7f0136863b
+	parent = 98d1649ef2ae6577a294e0c6a3f8b0051be993bd
 	method = merge
 	cmdver = 0.4.9
