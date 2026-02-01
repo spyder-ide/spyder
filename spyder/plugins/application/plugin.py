@@ -438,12 +438,13 @@ class Application(SpyderPluginV2):
     def _populate_help_menu_about_section(self):
         """Create Spyder base about actions."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for about_action in [
+        for action in [
+            self.get_action(ApplicationActions.ShowChangelogAction),
             self.get_action(ApplicationActions.HelpSpyderAction),
             self.about_action,
         ]:
             mainmenu.add_item_to_application_menu(
-                about_action,
+                action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.About,
             )

@@ -7,11 +7,13 @@
 """Status bar widgets."""
 
 # Standard library imports
-import os.path as osp
 import datetime
+import os.path as osp
+from string import Template
 import webbrowser
 
 # Third-party imports
+from markdown_it import MarkdownIt
 from qtpy import QtModuleNotInstalledError
 from qtpy.QtCore import Qt, QUrl
 from qtpy.QtWidgets import QDialog, QVBoxLayout
@@ -31,10 +33,13 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
 
     CONF_SECTION = "main"
     WIDTH = 530
-    HEIGHT = 620 if WIN else 665
+    HEIGHT = 620 if WIN else 640  # TODO: Check on Win/Mac
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # Leave this import here to make Spyder work without WebEngine.
+        from spyder.widgets.browser import WebView
 
         # Attributes
         self.setWindowFlags(
@@ -45,38 +50,66 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
         self.setWindowTitle(_("Help Spyder"))
         self.setWindowIcon(ima.icon("inapp_appeal"))
 
-        # Path to the appeal page
-        appeal_page_path = osp.join(
+        # Paths to content to be loaded
+        appeal_page_dir = osp.join(
             get_module_source_path("spyder.plugins.application.widgets"),
             "appeal_page",
+        )
+        changelog_path = osp.join(appeal_page_dir, "changelog.md")
+        self._appeal_page_path = osp.join(
+            appeal_page_dir,
             "dark" if is_dark_interface() else "light",
             "index.html",
         )
 
-        from spyder.widgets.browser import WebView
-        # Create webview to render the appeal message
-        webview = WebView(self, handle_links=True)
+        # Render changelog to html
+        with open(changelog_path, "r") as f:
+            changelog_md = f.read()
+
+        self._changelog = (
+            MarkdownIt(options_update={"breaks": True})
+            .render(changelog_md)
+            .strip()
+            .replace("\n", "")
+        )
+
+        # Read html for appeal page
+        with open(self._appeal_page_path, "r") as f:
+            self._appeal_page = f.read()
+
+        # Create webview to render the appeal message and changelog
+        self._webview = WebView(self, handle_links=True)
 
         # Set font used in the view
         app_font = self.get_font(SpyderFontType.Interface)
-        webview.set_font(app_font, size_delta=2)
-
-        # Load page
-        webview.load(QUrl.fromLocalFile(appeal_page_path))
+        self._webview.set_font(app_font, size_delta=2)
 
         # Open links in external browser
-        webview.page().linkClicked.connect(self._handle_link_clicks)
+        self._webview.page().linkClicked.connect(self._handle_link_clicks)
 
         # Layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(webview)
+        layout.addWidget(self._webview)
         self.setLayout(layout)
 
     def _handle_link_clicks(self, url):
         url = str(url.toString())
         if url.startswith('http'):
             start_file(url)
+
+    def set_message(self, appeal: bool):
+        template = Template(self._appeal_page)
+        rendered_page = template.substitute(
+            changelog_html=self._changelog,
+            show_changelog="false" if appeal else "true",
+        )
+
+        # Load page
+        self._webview.setHtml(
+            rendered_page,
+            QUrl.fromLocalFile(self._appeal_page_path)
+        )
 
 
 class InAppAppealStatus(BaseTimerStatus):
@@ -117,18 +150,25 @@ class InAppAppealStatus(BaseTimerStatus):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def show_appeal(self):
+    def show_dialog(self, show_appeal: bool):
         try:
             if self._appeal_dialog is None:
                 self._appeal_dialog = InAppAppealDialog(self)
 
             if not self._appeal_dialog.isVisible():
+                self._appeal_dialog.set_message(show_appeal)
                 self._appeal_dialog.show()
         except QtModuleNotInstalledError:
             # QtWebEngineWidgets is optional, so just open the URL in the
             # default browser.
             # See spyder-ide/spyder#24905 for the details.
-            webbrowser.open("https://www.spyder-ide.org/donate")
+            if show_appeal:
+                webbrowser.open("https://www.spyder-ide.org/donate")
+            else:
+                webbrowser.open(
+                    "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
+                    "Spyder-6.md#version-612-2025-12-17"
+                )
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
