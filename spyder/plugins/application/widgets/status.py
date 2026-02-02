@@ -29,6 +29,18 @@ from spyder.utils.qthelpers import start_file
 from spyder.utils.stylesheet import WIN
 
 
+DONATIONS_URL = "https://www.spyder-ide.org/donate"
+CHANGELOG_URL = (
+    "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
+    "Spyder-6.md#version-612-2025-12-17"
+)
+
+
+class FakeInAppAppealDialog:
+    """Fake class used as the in-app dialog in case it can't be built."""
+    pass
+
+
 class InAppAppealDialog(QDialog, SpyderFontsMixin):
 
     CONF_SECTION = "main"
@@ -141,34 +153,39 @@ class InAppAppealStatus(BaseTimerStatus):
     def _on_click(self):
         """Handle widget clicks."""
         if self._appeal_dialog is None:
-            self._appeal_dialog = InAppAppealDialog(self)
+            self._create_appeal_dialog()
 
-        if self._appeal_dialog.isVisible():
-            self._appeal_dialog.hide()
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            if self._appeal_dialog.isVisible():
+                self._appeal_dialog.hide()
+            else:
+                self._appeal_dialog.show()
         else:
-            self._appeal_dialog.show()
+            webbrowser.open(DONATIONS_URL)
+
+    def _create_appeal_dialog(self):
+        try:
+            self._appeal_dialog = InAppAppealDialog(self)
+        except QtModuleNotInstalledError:
+            # QtWebEngineWidgets is optional.
+            # See spyder-ide/spyder#24905 for the details.
+            self._appeal_dialog = FakeInAppAppealDialog
 
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_dialog(self, show_appeal: bool):
-        try:
-            if self._appeal_dialog is None:
-                self._appeal_dialog = InAppAppealDialog(self)
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
 
+        if self._appeal_dialog is not FakeInAppAppealDialog:
             if not self._appeal_dialog.isVisible():
                 self._appeal_dialog.set_message(show_appeal)
                 self._appeal_dialog.show()
-        except QtModuleNotInstalledError:
-            # QtWebEngineWidgets is optional, so just open the URL in the
-            # default browser.
-            # See spyder-ide/spyder#24905 for the details.
+        else:
             if show_appeal:
-                webbrowser.open("https://www.spyder-ide.org/donate")
+                webbrowser.open(DONATIONS_URL)
             else:
-                webbrowser.open(
-                    "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
-                    "Spyder-6.md#version-612-2025-12-17"
-                )
+                webbrowser.open(CHANGELOG_URL)
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------
