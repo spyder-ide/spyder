@@ -278,18 +278,20 @@ class LSPMixin:
             Capabilities supported by a language server.
         """
         sync_options = capabilities["textDocumentSync"]
+        save_options = sync_options.get("save", {})
         completion_options = capabilities["completionProvider"]
         signature_options = capabilities["signatureHelpProvider"]
         range_formatting_options = capabilities[
             "documentOnTypeFormattingProvider"
         ]
+
         self.open_close_notifications = sync_options.get("openClose", False)
         self.sync_mode = sync_options.get("change", TextDocumentSyncKind.NONE)
         self.will_save_notify = sync_options.get("willSave", False)
         self.will_save_until_notify = sync_options.get(
             "willSaveWaitUntil", False
         )
-        self.save_include_text = sync_options["save"]["includeText"]
+        self.save_include_text = save_options.get("includeText", False)
         self.enable_hover = capabilities["hoverProvider"]
         self.folding_supported = capabilities.get(
             "foldingRangeProvider", False
