@@ -7,6 +7,9 @@
 
 """Tests for docstring generation."""
 
+# Standard library imports
+import dataclasses
+
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt
@@ -23,17 +26,64 @@ from spyder.utils.qthelpers import qapplication
 # ---- Constants
 # =============================================================================
 
-DOC_TYPE_NUMPY = 'Numpydoc'
-DOC_TYPE_GOOGLE = 'Googledoc'
-DOC_TYPE_SPHINX = 'Sphinxdoc'
-
-DOC_TYPE_DEFAULT = DOC_TYPE_NUMPY
-DOC_TYPES = {DOC_TYPE_NUMPY, DOC_TYPE_GOOGLE, DOC_TYPE_SPHINX}
+DOC_TYPE_DEFAULT = 'numpy'
+DOC_TYPES = {
+    'numpy': 'Numpydoc',
+    'google': 'Googledoc',
+    'sphinx': 'Sphinxdoc',
+}
 
 
 # =============================================================================
 # ---- Test Cases
 # =============================================================================
+
+@dataclasses.dataclass
+class Case:
+    """Associated data for one docstring test case."""
+    pre: str = ''
+    sig: str = ''
+    doc: str = ''
+    body: str = ''
+    post: str = ''
+
+    numpy: str = ''
+    google: str = ''
+    sphinx: str = ''
+
+
+    @staticmethod
+    def _normalize_part(part):
+        """Strip an empty first line and add a missing trailing line break."""
+        lines = part.split('\n')
+        part = '\n'.join(lines[1:] if len(lines) and not lines[0] else lines)
+        part = part + '\n' if part.split('\n')[-1].strip() else part
+        return part
+
+    @classmethod
+    def _join_parts(cls, parts):
+        """Join the various parts of a test case input/output together."""
+        return ''.join(cls._normalize_part(part) for part in parts)
+
+    @property
+    def input_text(self):
+        """Generate the input text for the test case."""
+        return self._join_parts(
+            [self.pre, self.sig, self.doc, self.body, self.post]
+        )
+
+    @property
+    def function_body(self):
+        """Get the processed function body."""
+        return self._normalize_part(self.body).removesuffix('\n')
+
+    def get_expected(self, doc_type):
+        """Generate the expected output for a given docstring format."""
+        doc = getattr(self, doc_type)
+        return self._join_parts(
+            [self.pre, self.sig, doc, self.body, self.post]
+        )
+
 
 TEST_CASES_FUNCTION_PARSE = {
     'no_params_no_body': ('def foo():', '', [], [], [], None),
@@ -45,26 +95,6 @@ TEST_CASES_FUNCTION_PARSE = {
         [None, None, 'str'],
         [None, "':'", "'-> (float, str):'"],
         '(float, int)',
-    ),
-}
-
-TEST_CASES_FUNCTION_BODY = {
-    'if_else_block': (
-        '''    def foo():\n
-        if 1:
-            raise ValueError
-        else:
-            return\n
-    class F:''',
-        '''\n        if 1:
-            raise ValueError
-        else:
-            return\n''',
-    ),
-    'empty_return': (
-        '''def foo():
-    return''',
-        '''    return''',
     ),
 }
 
@@ -90,63 +120,106 @@ TEST_CASES_DELAYED_POPUP = {
 }
 
 TEST_CASES_DOCSTRING = {
-    'empty-numpy': (
-        '',
-        '',
-        DOC_TYPE_NUMPY,
+    'empty': Case(),
+    'notafunc_if_block': Case(
+        pre='if 1:',
+        body='    ',
     ),
-    'notafunc_if_block-numpy': (
-        'if 1:\n    ',
-        'if 1:\n    ',
-        DOC_TYPE_NUMPY,
-    ),
-    'no_params_no_body-numpy': (
-        '''  def foo():
-      ''',
-        '''  def foo():
+    'no_params_no_body': Case(
+        sig='  def foo():',
+        numpy='''
       """
       SUMMARY.
 
       Returns
       -------
       None.
-      """
-      ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'no_params_no_body-google': (
-        '''  def foo():
-      ''',
-        '''  def foo():
+      """''',
+        google='''
       """SUMMARY.
 
       Returns:
           None.
-      """
-      ''',
-        DOC_TYPE_GOOGLE,
-    ),
-    'no_params_no_body-sphinx': (
-        '''  def foo():
-      ''',
-        '''  def foo():
+      """''',
+        sphinx='''
       """SUMMARY.
 
       :return: DESCRIPTION
       :rtype: TYPE
-      """
-      ''',
-        DOC_TYPE_SPHINX,
+      """''',
     ),
-    'async_raise_yield-numpy': (
-        '''async def foo():
+    'no_params_bare_return': Case(
+        sig='def foo():',
+        body='    return',
+        numpy='''
+    """
+    SUMMARY.
+
+    Returns
+    -------
+    None.
+    """''',
+        google='''
+    """SUMMARY.
+
+    Returns:
+        None.
+    """''',
+        sphinx='''
+    """SUMMARY.
+
+    :return: DESCRIPTION
+    :rtype: TYPE
+    """''',
+    ),
+    'if_else_block': Case(
+        sig='    def foo():',
+        body='''
+        if 1:
+            raise ValueError
+        else:
+            return''',
+        post='class F:',
+        numpy='''
+        """
+        SUMMARY.
+
+        Returns
+        -------
+        None.
+
+        Raises
+        ------
+        ValueError
+            DESCRIPTION.
+        """''',
+        google='''
+        """SUMMARY.
+
+        Returns:
+            None.
+
+        Raises:
+            ValueError: DESCRIPTION.
+        """''',
+        sphinx='''
+        """SUMMARY.
+
+        :raises ValueError: DESCRIPTION
+        :return: DESCRIPTION
+        :rtype: TYPE
+        """''',
+    ),
+    'async_raise_yield': Case(
+        sig='async def foo():',
+        body='''
     raise
     raise ValueError
     raise ValueError("test")
     raise TypeError("test")
     yield value
     ''',
-        '''async def foo():
+        numpy='''
     """
     SUMMARY.
 
@@ -161,24 +234,8 @@ TEST_CASES_DOCSTRING = {
         DESCRIPTION.
     TypeError
         DESCRIPTION.
-    """
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'async_raise_yield-google': (
-        '''async def foo():
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        '''async def foo():
+    """''',
+        google='''
     """SUMMARY.
 
     Yields:
@@ -187,63 +244,47 @@ TEST_CASES_DOCSTRING = {
     Raises:
         ValueError: DESCRIPTION.
         TypeError: DESCRIPTION.
-    """
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        DOC_TYPE_GOOGLE,
-    ),
-    'async_raise_yield-sphinx': (
-        '''async def foo():
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        '''async def foo():
+    """''',
+        sphinx='''
     """SUMMARY.
 
     :raises ValueError: DESCRIPTION
     :raises TypeError: DESCRIPTION
     :yield: DESCRIPTION
     :rtype: TYPE
-    """
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        DOC_TYPE_SPHINX,
+    """''',
     ),
-    'raise_yield_in_varnames-numpy': (
-        '''  def foo():
+    'raise_yield_in_varnames': Case(
+        sig='  def foo():',
+        body='''
       print('{}' % foo_raise Value)
       foo_yield''',
-        '''  def foo():
+        numpy='''
       """
       SUMMARY.
 
       Returns
       -------
       None.
-      """
-      print('{}' % foo_raise Value)
-      foo_yield''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Returns:
+          None.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """''',
     ),
-    'long_complex_def_brackets_in_strings-numpy': (
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    'long_complex_def_brackets_in_strings': Case(
+        sig='''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    ''',
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
+    (List[Tuple[str, float]], str, float):''',
+        numpy='''
     """
     SUMMARY.
 
@@ -268,18 +309,8 @@ TEST_CASES_DOCSTRING = {
     -------
     (List[Tuple[str, float]], str, float)
         DESCRIPTION.
-    """
-    ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'long_complex_def_brackets_in_strings-google': (
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    ''',
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
+    """''',
+        google='''
     """SUMMARY.
 
     Args:
@@ -293,18 +324,8 @@ TEST_CASES_DOCSTRING = {
 
     Returns:
         (List[Tuple[str, float]], str, float): DESCRIPTION.
-    """
-    ''',
-        DOC_TYPE_GOOGLE,
-    ),
-    'long_complex_def_brackets_in_strings-sphinx': (
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
-    ''',
-        '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-  (List[Tuple[str, float]], str, float):
+    """''',
+        sphinx='''
     """SUMMARY.
 
     :param arg: DESCRIPTION
@@ -323,12 +344,11 @@ TEST_CASES_DOCSTRING = {
     :type arg5: str, optional
     :return: DESCRIPTION
     :rtype: (List[Tuple[str, float]], str, float)
-    """
-    ''',
-        DOC_TYPE_SPHINX,
+    """''',
     ),
-    'raise_yield_true_and_false_positives-numpy': (
-        '''  def foo():
+    'raise_yield_true_and_false_positives': Case(
+        sig='  def foo():',
+        body='''
       raise
       foo_raise()
       raisefoo()
@@ -337,9 +357,8 @@ TEST_CASES_DOCSTRING = {
       raise ValueError('tt')
       yieldfoo()
       \traise TypeError('tt')
-      _yield
-      ''',
-        '''  def foo():
+      _yield''',
+        numpy='''
       """
       SUMMARY.
 
@@ -353,32 +372,8 @@ TEST_CASES_DOCSTRING = {
           DESCRIPTION.
       TypeError
           DESCRIPTION.
-      """
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'raise_yield_true_and_false_positives-google': (
-        '''  def foo():
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-        '''  def foo():
+      """''',
+        google='''
       """SUMMARY.
 
       Returns:
@@ -387,25 +382,22 @@ TEST_CASES_DOCSTRING = {
       Raises:
           ValueError: DESCRIPTION.
           TypeError: DESCRIPTION.
-      """
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield
-      ''',
-        DOC_TYPE_GOOGLE,
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :raises ValueError: DESCRIPTION
+      :raises TypeError: DESCRIPTION
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """''',
     ),
-    'return_single_named_variable-numpy': (
-        '''  def foo():
+    'return_single_named_variable': Case(
+        sig='  def foo():',
+        body='''
       spam = 42
-      return spam
-      ''',
-        '''  def foo():
+      return spam''',
+        numpy='''
       """
       SUMMARY.
 
@@ -413,19 +405,28 @@ TEST_CASES_DOCSTRING = {
       -------
       TYPE
           DESCRIPTION.
-      """
-      spam = 42
-      return spam
-      ''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Returns:
+          spam (TYPE): DESCRIPTION.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """''',
     ),
-    'long_return_tuple_with_return_none-numpy': (
-        '''def foo():
+    'long_return_tuple_with_return_none': Case(
+        sig='def foo():',
+        body='''
     return None
     return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
     return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
     ''',
-        '''def foo():
+        numpy='''
     """
     SUMMARY.
 
@@ -457,20 +458,8 @@ TEST_CASES_DOCSTRING = {
         DESCRIPTION.
     bool
         DESCRIPTION.
-    """
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'long_return_tuple_with_return_none-google': (
-        '''def foo():
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        '''def foo():
+    """''',
+        google='''
     """SUMMARY.
 
     Returns:
@@ -487,18 +476,20 @@ TEST_CASES_DOCSTRING = {
         TYPE: DESCRIPTION.
         TYPE: DESCRIPTION.
         bool: DESCRIPTION.
-    """
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        DOC_TYPE_GOOGLE,
+    """''',
+        sphinx='''
+    """SUMMARY.
+
+    :return: DESCRIPTION
+    :rtype: TYPE
+    """''',
     ),
-    'return_tuple_of_tuple_named_vars-numpy': (
-        '''def foo():
+    'return_tuple_of_tuple_named_vars': Case(
+        sig='def foo():',
+        body='''
     return no, (ano, eo, dken)
     ''',
-        '''def foo():
+        numpy='''
     """
     SUMMARY.
 
@@ -506,31 +497,25 @@ TEST_CASES_DOCSTRING = {
     -------
     TYPE
         DESCRIPTION.
-    """
-    return no, (ano, eo, dken)
-    ''',
-        DOC_TYPE_NUMPY,
-    ),
-    'return_tuple_of_tuple_named_vars-google': (
-        '''def foo():
-    return no, (ano, eo, dken)
-    ''',
-        '''def foo():
+    """''',
+        google='''
     """SUMMARY.
 
     Returns:
         TYPE: DESCRIPTION.
-    """
-    return no, (ano, eo, dken)
-    ''',
-        DOC_TYPE_GOOGLE,
+    """''',
+        sphinx='''
+    """SUMMARY.
+
+    :return: DESCRIPTION
+    :rtype: TYPE
+    """''',
     ),
     # Test auto docstring with annotated function call
     # Regression test for issue spyder-ide/spyder#14520
-    'return_type_annotated_obj-numpy': (
-        '''  def test(self) -> Annotated[str, int("2")]:
-      ''',
-        '''  def test(self) -> Annotated[str, int("2")]:
+    'return_type_annotated_obj': Case(
+        sig='''  def test(self) -> Annotated[str, int("2")]:''',
+        numpy='''
       """
       SUMMARY.
 
@@ -538,18 +523,27 @@ TEST_CASES_DOCSTRING = {
       -------
       Annotated[str, int("2")]
           DESCRIPTION.
-      """
-      ''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Returns:
+          Annotated[str, int("2")]: DESCRIPTION.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :return: DESCRIPTION
+      :rtype: Annotated[str, int("2")]
+      """''',
     ),
     # Test auto docstring with function call with line breaks.
     # Regression test for issue spyder-ide/spyder#14521
-    'def_linebreak_between_var_and_type-numpy': (
-        '''  def test(v:
-           int):
-      ''',
-        '''  def test(v:
-           int):
+    'def_linebreak_between_var_and_type': Case(
+        sig='''
+  def test(v:
+           int):''',
+        numpy='''
       """
       SUMMARY.
 
@@ -561,14 +555,28 @@ TEST_CASES_DOCSTRING = {
       Returns
       -------
       None.
-      """
-      ''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Args:
+          v (int): DESCRIPTION.
+
+      Returns:
+          None.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :param v: DESCRIPTION
+      :type v: int
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """''',
     ),
-    'comment_after_def-numpy': (
-        '''  def test(v: str = "#"):  # comment, with '#' and "#"
-      ''',
-        '''  def test(v: str = "#"):  # comment, with '#' and "#"
+    'comment_after_def': Case(
+        sig='''  def test(v: str = "#"):  # comment, with '#' and "#"''',
+        numpy='''
       """
       SUMMARY.
 
@@ -580,16 +588,30 @@ TEST_CASES_DOCSTRING = {
       Returns
       -------
       None.
-      """
-      ''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Args:
+          v (str, optional): DESCRIPTION. Defaults to "#".
+
+      Returns:
+          None.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :param v: DESCRIPTION, defaults to "#"
+      :type v: str, optional
+      :return: DESCRIPTION
+      :rtype: TYPE
+      """''',
     ),
-    'comment_middle_of_def-numpy': (
-        '''  def test(v1: str = "#", # comment, with '#' and "#"
-         v2: str = '#') -> str:
-      ''',
-        '''  def test(v1: str = "#", # comment, with '#' and "#"
-         v2: str = '#') -> str:
+    'comment_middle_of_def': Case(
+        sig='''
+  def test(v1: str = "#", # comment, with '#' and "#"
+           v2: str = '#') -> str:''',
+        numpy='''
       """
       SUMMARY.
 
@@ -604,9 +626,27 @@ TEST_CASES_DOCSTRING = {
       -------
       str
           DESCRIPTION.
-      """
-      ''',
-        DOC_TYPE_NUMPY,
+      """''',
+        google='''
+      """SUMMARY.
+
+      Args:
+          v1 (str, optional): DESCRIPTION. Defaults to "#".
+          v2 (str, optional): DESCRIPTION. Defaults to '#'.
+
+      Returns:
+          str: DESCRIPTION.
+      """''',
+        sphinx='''
+      """SUMMARY.
+
+      :param v1: DESCRIPTION, defaults to "#"
+      :type v1: str, optional
+      :param v2: DESCRIPTION, defaults to '#'
+      :type v2: str, optional
+      :return: DESCRIPTION
+      :rtype: str
+      """''',
     ),
 }
 
@@ -631,7 +671,7 @@ def editor_docstring_start(base_editor_docstring):
     """Editor with cursor at the start of the text."""
 
     def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        CONF.set('editor', 'docstring_type', doc_type)
+        CONF.set('editor', 'docstring_type', DOC_TYPES[doc_type])
 
         editor = base_editor_docstring
         writer = editor.writer_docstring
@@ -653,9 +693,13 @@ def editor_docstring_after_def(editor_docstring_start):
     def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
         editor, writer, cursor = editor_docstring_start(text, doc_type)
 
+        prev_colon = cursor.block().text().strip().endswith(':')
+        prev_paren = ')' in cursor.block().text()
         cursor.movePosition(QTextCursor.NextBlock)
+        current_colon = cursor.block().text().strip().endswith(':')
+
         # Hack to get the cursor below the def for two-line func signatures
-        if cursor.block().text().strip().endswith(':'):
+        if current_colon and not (prev_colon and prev_paren):
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
         editor.setTextCursor(cursor)
@@ -705,35 +749,36 @@ def test_parse_function_def(
 
 
 @pytest.mark.parametrize(
-    ['input_text', 'expected'],
-    TEST_CASES_FUNCTION_BODY.values(),
-    ids=TEST_CASES_FUNCTION_BODY.keys(),
+    'test_case',
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
 )
-def test_get_function_body(editor_docstring_after_def, input_text, expected):
+def test_get_function_body(editor_docstring_after_def, test_case):
     """Test get function body."""
-    __, writer, __ = editor_docstring_after_def(input_text)
+    __, writer, __ = editor_docstring_after_def(test_case.input_text)
 
     func_info = FunctionInfo()
-    func_info.parse_def(input_text)
+    func_info.parse_def(test_case.input_text)
 
-    result = writer.get_function_body(func_info.func_indent)
+    result = writer.get_function_body(func_info.func_indent).removesuffix('\n')
 
-    assert expected == result
+    assert result == test_case.function_body
 
 
 @pytest.mark.parametrize(
     'use_shortcut', [True, False], ids=['shortcut', 'action']
 )
+@pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
-    ['input_text', 'expected', 'doc_type'],
+    'test_case',
     TEST_CASES_DOCSTRING.values(),
     ids=TEST_CASES_DOCSTRING.keys(),
 )
 def test_docstring_by_shortcut(
-    editor_docstring_start, input_text, expected, doc_type, use_shortcut
+    editor_docstring_start, test_case, doc_type, use_shortcut
 ):
     """Test auto docstring by shortcut."""
-    editor, writer, __ = editor_docstring_start(input_text, doc_type)
+    editor, writer, __ = editor_docstring_start(test_case.input_text, doc_type)
 
     if use_shortcut:
         writer.write_docstring_for_shortcut()
@@ -743,23 +788,24 @@ def test_docstring_by_shortcut(
         writer.line_number_cursor = editor.get_line_number_at(pos)
         writer.write_docstring_at_first_line_of_function()
 
-    assert editor.toPlainText() == expected
+    assert editor.toPlainText() == test_case.get_expected(doc_type)
 
 
+@pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
-    ['input_text', 'expected', 'doc_type'],
+    'test_case',
     TEST_CASES_DOCSTRING.values(),
     ids=TEST_CASES_DOCSTRING.keys(),
 )
-def test_docstring_below_def(
-    editor_docstring_after_def, input_text, expected, doc_type
-):
+def test_docstring_below_def(editor_docstring_after_def, test_case, doc_type):
     """Test auto docstring below function definition by shortcut."""
-    editor, writer, __ = editor_docstring_after_def(input_text, doc_type)
+    editor, writer, __ = editor_docstring_after_def(
+        test_case.input_text, doc_type
+    )
 
     writer.write_docstring_for_shortcut()
 
-    assert editor.toPlainText() == expected
+    assert editor.toPlainText() == test_case.get_expected(doc_type)
 
 
 @pytest.mark.parametrize(
@@ -771,7 +817,7 @@ def test_docstring_delayed_popup(
     qtbot, editor_docstring_after_def, input_text, expected, key
 ):
     """Test auto docstring using delayed popup."""
-    editor, __, __ = editor_docstring_after_def(input_text, DOC_TYPE_NUMPY)
+    editor, __, __ = editor_docstring_after_def(input_text, 'numpy')
 
     qtbot.keyPress(editor, Qt.Key_Tab)
     for __ in range(3):
@@ -782,17 +828,20 @@ def test_docstring_delayed_popup(
     assert editor.toPlainText() == expected
 
 
+@pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
-    ['input_text', 'expected', 'doc_type'],
+    'test_case',
     TEST_CASES_DOCSTRING.values(),
     ids=TEST_CASES_DOCSTRING.keys(),
 )
 def test_docstring_inside_def(
-    editor_docstring_inside_def, input_text, expected, doc_type
+    editor_docstring_inside_def, test_case, doc_type
 ):
     """Test auto docstring inside the function definition block."""
-    editor, writer, __ = editor_docstring_inside_def(input_text, doc_type)
+    editor, writer, __ = editor_docstring_inside_def(
+        test_case.input_text, doc_type
+    )
 
     writer.write_docstring_for_shortcut()
 
-    assert editor.toPlainText() == expected
+    assert editor.toPlainText() == test_case.get_expected(doc_type)
