@@ -805,7 +805,8 @@ def confirm_messagebox(parent, message, title, version=None, critical=False,
     box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
     box.setDefaultButton(QMessageBox.Yes)
     if on_close:
-        box.addButton(_("After closing"), QMessageBox.YesRole)
+        button  = box.addButton(_("After closing"), QMessageBox.YesRole)
+        button.setMinimumWidth(150)
     box.exec()
     return box
 
