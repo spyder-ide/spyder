@@ -53,17 +53,17 @@ class Case:
 
 
     @staticmethod
-    def _normalize_part(part):
+    def normalize_part(part):
         """Strip an empty first line and add a missing trailing line break."""
         lines = part.split('\n')
         part = '\n'.join(lines[1:] if len(lines) and not lines[0] else lines)
-        part = part + '\n' if part.split('\n')[-1].strip() else part
+        part = part + '\n' if lines[-1].strip() else part
         return part
 
     @classmethod
     def _join_parts(cls, parts):
         """Join the various parts of a test case input/output together."""
-        return ''.join(cls._normalize_part(part) for part in parts)
+        return ''.join(cls.normalize_part(part) for part in parts)
 
     @property
     def input_text(self):
@@ -75,7 +75,7 @@ class Case:
     @property
     def function_body(self):
         """Get the processed function body."""
-        return self._normalize_part(self.body).removesuffix('\n')
+        return self.normalize_part(self.body).removesuffix('\n')
 
     def get_expected(self, doc_type):
         """Generate the expected output for a given docstring format."""
@@ -99,9 +99,10 @@ TEST_CASES_FUNCTION_PARSE = {
 }
 
 TEST_CASES_DELAYED_POPUP = {
-    'popup_enter': (
-        '''def foo():\n''',
-        '''def foo():
+    'popup_press_enter': (
+        Case(
+            sig='def foo():',
+            numpy='''
     """
     SUMMARY.
 
@@ -109,13 +110,15 @@ TEST_CASES_DELAYED_POPUP = {
     -------
     None.
     """''',
+        ),
         Qt.Key_Enter,
     ),
-    'popup_not_enter': (
-        '''def foo():\n''',
-        '''def foo():
-    """a''',
-        Qt.Key_A,
+    'popup_press_letter': (
+        Case(
+        sig='def foo():',
+        numpy='    """a''',
+        ),
+    Qt.Key_A,
     ),
 }
 
@@ -123,7 +126,6 @@ TEST_CASES_DOCSTRING = {
     'empty': Case(),
     'notafunc_if_block': Case(
         pre='if 1:',
-        body='    ',
     ),
     'no_params_no_body': Case(
         sig='  def foo():',
@@ -648,6 +650,49 @@ TEST_CASES_DOCSTRING = {
       :rtype: str
       """''',
     ),
+    'multiline_def_double_flush_indent': Case(
+        sig='''def test_fn(
+        arg1,
+        arg2 = True
+        ):''',
+        body='    return True',
+        numpy='''
+    """
+    SUMMARY.
+
+    Parameters
+    ----------
+    arg1 : TYPE
+        DESCRIPTION.
+    arg2 : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    bool
+        DESCRIPTION.
+    """''',
+        google='''
+    """SUMMARY.
+
+    Args:
+        arg1 (TYPE): DESCRIPTION.
+        arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
+
+    Returns:
+        bool: DESCRIPTION.
+    """''',
+        sphinx='''
+    """SUMMARY.
+
+    :param arg1: DESCRIPTION
+    :type arg1: TYPE
+    :param arg2: DESCRIPTION, defaults to True
+    :type arg2: TYPE, optional
+    :return: DESCRIPTION
+    :rtype: TYPE
+    """''',
+    ),
 }
 
 
@@ -670,17 +715,19 @@ def base_editor_docstring():
 def editor_docstring_start(base_editor_docstring):
     """Editor with cursor at the start of the text."""
 
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
+    def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
         CONF.set('editor', 'docstring_type', DOC_TYPES[doc_type])
 
         editor = base_editor_docstring
         writer = editor.writer_docstring
         cursor = editor.textCursor()
+        editor.set_text(test_case.input_text)
 
-        editor.set_text(text)
+        for __ in range(test_case.normalize_part(test_case.pre).count('\n')):
+            cursor.movePosition(QTextCursor.NextBlock)
         cursor.setPosition(0, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
 
+        editor.setTextCursor(cursor)
         return editor, writer, cursor
 
     return __editor_docstring
@@ -690,20 +737,14 @@ def editor_docstring_start(base_editor_docstring):
 def editor_docstring_after_def(editor_docstring_start):
     """Editor with cursor on the line after function signature's end."""
 
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(text, doc_type)
+    def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(test_case, doc_type)
 
-        prev_colon = cursor.block().text().strip().endswith(':')
-        prev_paren = ')' in cursor.block().text()
-        cursor.movePosition(QTextCursor.NextBlock)
-        current_colon = cursor.block().text().strip().endswith(':')
-
-        # Hack to get the cursor below the def for two-line func signatures
-        if current_colon and not (prev_colon and prev_paren):
+        for __ in range(test_case.normalize_part(test_case.sig).count('\n')):
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
 
+        editor.setTextCursor(cursor)
         return editor, writer, cursor
 
     return __editor_docstring
@@ -713,13 +754,13 @@ def editor_docstring_after_def(editor_docstring_start):
 def editor_docstring_inside_def(editor_docstring_start):
     """Editor with cursor at the end of the second line of text."""
 
-    def __editor_docstring(text, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(text, doc_type)
+    def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring_start(test_case, doc_type)
 
         # Position cursor somewhere inside the `def` statement
         cursor.setPosition(11, QTextCursor.MoveAnchor)
-        editor.setTextCursor(cursor)
 
+        editor.setTextCursor(cursor)
         return editor, writer, cursor
 
     return __editor_docstring
@@ -755,7 +796,7 @@ def test_parse_function_def(
 )
 def test_get_function_body(editor_docstring_after_def, test_case):
     """Test get function body."""
-    __, writer, __ = editor_docstring_after_def(test_case.input_text)
+    __, writer, __ = editor_docstring_after_def(test_case)
 
     func_info = FunctionInfo()
     func_info.parse_def(test_case.input_text)
@@ -765,9 +806,26 @@ def test_get_function_body(editor_docstring_after_def, test_case):
     assert result == test_case.function_body
 
 
+@pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
-    'use_shortcut', [True, False], ids=['shortcut', 'action']
+    'test_case',
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
 )
+def test_write_docstring(
+    editor_docstring_start, test_case, doc_type
+):
+    """Test auto docstring by shortcut."""
+    editor, writer, __ = editor_docstring_start(test_case, doc_type)
+
+    pos = editor.cursorRect().bottomRight()
+    pos = editor.mapToGlobal(pos)
+    writer.line_number_cursor = editor.get_line_number_at(pos)
+    writer.write_docstring_at_first_line_of_function()
+
+    assert editor.toPlainText() == test_case.get_expected(doc_type)
+
+
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
     'test_case',
@@ -775,18 +833,12 @@ def test_get_function_body(editor_docstring_after_def, test_case):
     ids=TEST_CASES_DOCSTRING.keys(),
 )
 def test_docstring_by_shortcut(
-    editor_docstring_start, test_case, doc_type, use_shortcut
+    editor_docstring_start, test_case, doc_type
 ):
     """Test auto docstring by shortcut."""
-    editor, writer, __ = editor_docstring_start(test_case.input_text, doc_type)
+    editor, writer, __ = editor_docstring_start(test_case, doc_type)
 
-    if use_shortcut:
-        writer.write_docstring_for_shortcut()
-    else:
-        pos = editor.cursorRect().bottomRight()
-        pos = editor.mapToGlobal(pos)
-        writer.line_number_cursor = editor.get_line_number_at(pos)
-        writer.write_docstring_at_first_line_of_function()
+    writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
 
@@ -799,25 +851,24 @@ def test_docstring_by_shortcut(
 )
 def test_docstring_below_def(editor_docstring_after_def, test_case, doc_type):
     """Test auto docstring below function definition by shortcut."""
-    editor, writer, __ = editor_docstring_after_def(
-        test_case.input_text, doc_type
-    )
+    editor, writer, __ = editor_docstring_after_def(test_case, doc_type)
 
     writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
 
 
+@pytest.mark.parametrize('doc_type', ['numpy'])
 @pytest.mark.parametrize(
-    ['input_text', 'expected', 'key'],
+    ['test_case', 'key'],
     TEST_CASES_DELAYED_POPUP.values(),
     ids=TEST_CASES_DELAYED_POPUP.keys(),
 )
 def test_docstring_delayed_popup(
-    qtbot, editor_docstring_after_def, input_text, expected, key
+    qtbot, editor_docstring_after_def, test_case, key, doc_type
 ):
     """Test auto docstring using delayed popup."""
-    editor, __, __ = editor_docstring_after_def(input_text, 'numpy')
+    editor, __, __ = editor_docstring_after_def(test_case, doc_type)
 
     qtbot.keyPress(editor, Qt.Key_Tab)
     for __ in range(3):
@@ -825,7 +876,7 @@ def test_docstring_delayed_popup(
     qtbot.wait(1000)
     qtbot.keyPress(editor.menu_docstring, key)
 
-    assert editor.toPlainText() == expected
+    assert editor.toPlainText() == test_case.get_expected(doc_type).rstrip()
 
 
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
@@ -838,9 +889,7 @@ def test_docstring_inside_def(
     editor_docstring_inside_def, test_case, doc_type
 ):
     """Test auto docstring inside the function definition block."""
-    editor, writer, __ = editor_docstring_inside_def(
-        test_case.input_text, doc_type
-    )
+    editor, writer, __ = editor_docstring_inside_def(test_case, doc_type)
 
     writer.write_docstring_for_shortcut()
 
