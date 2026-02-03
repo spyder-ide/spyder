@@ -74,7 +74,7 @@ class ToolbarLocation:
 
 # ---- Event filters
 # ----------------------------------------------------------------------------
-class ToolTipFilter(QObject):
+class _ToolTipFilter(QObject):
     """
     Filter tooltip events on toolbar buttons.
     """
@@ -548,7 +548,7 @@ class MainWidgetToolbar(SpyderToolbar):
 
         self.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
 
-        self._filter = ToolTipFilter()
+        self._filter = _ToolTipFilter()
 
     def set_icon_size(self, icon_size: QSize) -> None:
         """

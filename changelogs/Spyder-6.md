@@ -76,6 +76,9 @@
     Additionally, using `SpyderToolbar` directly rather than its
     `ApplicationToolbar` and `MainWidgetToolbar` subclasses is now documented
     as formally discouraged so their respective styling will be applied.
+  * In the `toolbars` module, the `ToolTipFilter` class is now correctly
+    underscored as private, as it is only for internal use handling Qt events
+    by a private attribute of the `SpyderToolbar` class.
 
 ----
 
