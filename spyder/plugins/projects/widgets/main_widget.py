@@ -1124,10 +1124,18 @@ class ProjectExplorerWidget(PluginMainWidget):
         # List of results with absolute path
         if relative_path_list != ['']:
             project_path = self.get_active_project_path()
-            result_list = [
-                osp.normpath(os.path.join(project_path, path))
-                for path in relative_path_list
-            ]
+
+            # If Spyder is closed while a project is loaded at startup,
+            # project_path can become None. So, we need to check for that
+            # possibility.
+            # Fixes spyder-ide/spyder#25636
+            if project_path is not None:
+                result_list = [
+                    osp.normpath(os.path.join(project_path, path))
+                    for path in relative_path_list
+                ]
+            else:
+                result_list = []
         else:
             result_list = []
 
