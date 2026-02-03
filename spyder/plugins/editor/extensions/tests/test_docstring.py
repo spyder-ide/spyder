@@ -9,6 +9,7 @@
 
 # Standard library imports
 import dataclasses
+from pathlib import Path
 
 # Third party imports
 import pytest
@@ -33,9 +34,12 @@ DOC_TYPES = {
     'sphinx': 'Sphinxdoc',
 }
 
+TEST_CASE_DOCSTRING_DIR = Path(__file__).parent / 'docstring_test_cases'
+TEST_CASE_FILE_NAME_PATTERN = '*.py'
+
 
 # =============================================================================
-# ---- Test Cases
+# ---- Helpers
 # =============================================================================
 
 @dataclasses.dataclass
@@ -85,6 +89,42 @@ class Case:
         )
 
 
+def load_docstring_test_case(test_case_path):
+    """Read and process an individual docstring test case from a file."""
+    file_content = Path(test_case_path).read_text(encoding='UTF-8')
+    sections = {}
+
+    file_content = '\n' + file_content.lstrip()
+    file_content = file_content.replace("\n#%% ", "\n# %%")
+    blocks = file_content.split('\n# %% ')[1:]
+    for block in blocks:
+        lines = block.split('\n')
+        block_title = lines[0].strip()
+        block_content = '\n'.join(
+            line.removesuffix('#') if line.strip() == '#' else line
+            for line in lines[1:]
+        )
+        sections[block_title] = block_content
+
+    test_case = Case(**sections)
+    return test_case
+
+
+def load_docstring_test_cases(test_cases_dir=TEST_CASE_DOCSTRING_DIR):
+    """Load docstring test cases from the filesystem."""
+    test_case_paths = test_cases_dir.glob(TEST_CASE_FILE_NAME_PATTERN)
+
+    test_cases = {
+        path.stem: load_docstring_test_case(path) for path in test_case_paths
+    }
+
+    return test_cases
+
+
+# =============================================================================
+# ---- Test Cases
+# =============================================================================
+
 TEST_CASES_FUNCTION_PARSE = {
     'no_params_no_body': ('def foo():', '', [], [], [], None),
     'long_complex_def_brackets_in_strings': (
@@ -122,578 +162,7 @@ TEST_CASES_DELAYED_POPUP = {
     ),
 }
 
-TEST_CASES_DOCSTRING = {
-    'empty': Case(),
-    'notafunc_if_block': Case(
-        pre='if 1:',
-    ),
-    'no_params_no_body': Case(
-        sig='  def foo():',
-        numpy='''
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      None.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Returns:
-          None.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'no_params_bare_return': Case(
-        sig='def foo():',
-        body='    return',
-        numpy='''
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    None.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Returns:
-        None.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :return: DESCRIPTION
-    :rtype: TYPE
-    """''',
-    ),
-    'if_else_block': Case(
-        sig='    def foo():',
-        body='''
-        if 1:
-            raise ValueError
-        else:
-            return''',
-        post='class F:',
-        numpy='''
-        """
-        SUMMARY.
-
-        Returns
-        -------
-        None.
-
-        Raises
-        ------
-        ValueError
-            DESCRIPTION.
-        """''',
-        google='''
-        """SUMMARY.
-
-        Returns:
-            None.
-
-        Raises:
-            ValueError: DESCRIPTION.
-        """''',
-        sphinx='''
-        """SUMMARY.
-
-        :raises ValueError: DESCRIPTION
-        :return: DESCRIPTION
-        :rtype: TYPE
-        """''',
-    ),
-    'async_raise_yield': Case(
-        sig='async def foo():',
-        body='''
-    raise
-    raise ValueError
-    raise ValueError("test")
-    raise TypeError("test")
-    yield value
-    ''',
-        numpy='''
-    """
-    SUMMARY.
-
-    Yields
-    ------
-    TYPE
-        DESCRIPTION.
-
-    Raises
-    ------
-    ValueError
-        DESCRIPTION.
-    TypeError
-        DESCRIPTION.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Yields:
-        value (TYPE): DESCRIPTION.
-
-    Raises:
-        ValueError: DESCRIPTION.
-        TypeError: DESCRIPTION.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :raises ValueError: DESCRIPTION
-    :raises TypeError: DESCRIPTION
-    :yield: DESCRIPTION
-    :rtype: TYPE
-    """''',
-    ),
-    'raise_yield_in_varnames': Case(
-        sig='  def foo():',
-        body='''
-      print('{}' % foo_raise Value)
-      foo_yield''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      None.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Returns:
-          None.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'long_complex_def_brackets_in_strings': Case(
-        sig='''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
-    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
-    (List[Tuple[str, float]], str, float):''',
-        numpy='''
-    """
-    SUMMARY.
-
-    Parameters
-    ----------
-    arg : TYPE
-        DESCRIPTION.
-    arg0 : TYPE
-        DESCRIPTION.
-    arg1 : int
-        DESCRIPTION.
-    arg2 : List[Tuple[str, float]]
-        DESCRIPTION.
-    arg3 : TYPE, optional
-        DESCRIPTION. The default is '-> (float, int):'.
-    arg4 : TYPE, optional
-        DESCRIPTION. The default is ':float, int['.
-    arg5 : str, optional
-        DESCRIPTION. The default is '""'.
-
-    Returns
-    -------
-    (List[Tuple[str, float]], str, float)
-        DESCRIPTION.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Args:
-        arg (TYPE): DESCRIPTION.
-        arg0 (TYPE): DESCRIPTION.
-        arg1 (int): DESCRIPTION.
-        arg2 (List[Tuple[str, float]]): DESCRIPTION.
-        arg3 (TYPE, optional): DESCRIPTION. Defaults to '-> (float, int):'.
-        arg4 (TYPE, optional): DESCRIPTION. Defaults to ':float, int['.
-        arg5 (str, optional): DESCRIPTION. Defaults to '""'.
-
-    Returns:
-        (List[Tuple[str, float]], str, float): DESCRIPTION.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :param arg: DESCRIPTION
-    :type arg: TYPE
-    :param arg0: DESCRIPTION
-    :type arg0: TYPE
-    :param arg1: DESCRIPTION
-    :type arg1: int
-    :param arg2: DESCRIPTION
-    :type arg2: List[Tuple[str, float]]
-    :param arg3: DESCRIPTION, defaults to '-> (float, int):'
-    :type arg3: TYPE, optional
-    :param arg4: DESCRIPTION, defaults to ':float, int['
-    :type arg4: TYPE, optional
-    :param arg5: DESCRIPTION, defaults to '""'
-    :type arg5: str, optional
-    :return: DESCRIPTION
-    :rtype: (List[Tuple[str, float]], str, float)
-    """''',
-    ),
-    'raise_yield_true_and_false_positives': Case(
-        sig='  def foo():',
-        body='''
-      raise
-      foo_raise()
-      raisefoo()
-      raise ValueError
-      is_yield()
-      raise ValueError('tt')
-      yieldfoo()
-      \traise TypeError('tt')
-      _yield''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      None.
-
-      Raises
-      ------
-      ValueError
-          DESCRIPTION.
-      TypeError
-          DESCRIPTION.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Returns:
-          None.
-
-      Raises:
-          ValueError: DESCRIPTION.
-          TypeError: DESCRIPTION.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :raises ValueError: DESCRIPTION
-      :raises TypeError: DESCRIPTION
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'return_single_named_variable': Case(
-        sig='  def foo():',
-        body='''
-      spam = 42
-      return spam''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      TYPE
-          DESCRIPTION.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Returns:
-          spam (TYPE): DESCRIPTION.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'long_return_tuple_with_return_none': Case(
-        sig='def foo():',
-        body='''
-    return None
-    return "f, b", v1, v2, 3.0, .7, (,), {}, [ab], f(a), None, a.b, a+b, True
-    return "f, b", v1, v3, 420, 5., (,), {}, [ab], f(a), None, a.b, a+b, False
-    ''',
-        numpy='''
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    str
-        DESCRIPTION.
-    v1 : TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    numeric
-        DESCRIPTION.
-    float
-        DESCRIPTION.
-    tuple
-        DESCRIPTION.
-    dict
-        DESCRIPTION.
-    list
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
-    bool
-        DESCRIPTION.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Returns:
-        str: DESCRIPTION.
-        v1 (TYPE): DESCRIPTION.
-        TYPE: DESCRIPTION.
-        numeric: DESCRIPTION.
-        float: DESCRIPTION.
-        tuple: DESCRIPTION.
-        dict: DESCRIPTION.
-        list: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        TYPE: DESCRIPTION.
-        bool: DESCRIPTION.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :return: DESCRIPTION
-    :rtype: TYPE
-    """''',
-    ),
-    'return_tuple_of_tuple_named_vars': Case(
-        sig='def foo():',
-        body='''
-    return no, (ano, eo, dken)
-    ''',
-        numpy='''
-    """
-    SUMMARY.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Returns:
-        TYPE: DESCRIPTION.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :return: DESCRIPTION
-    :rtype: TYPE
-    """''',
-    ),
-    # Test auto docstring with annotated function call
-    # Regression test for issue spyder-ide/spyder#14520
-    'return_type_annotated_obj': Case(
-        sig='''  def test(self) -> Annotated[str, int("2")]:''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Returns
-      -------
-      Annotated[str, int("2")]
-          DESCRIPTION.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Returns:
-          Annotated[str, int("2")]: DESCRIPTION.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :return: DESCRIPTION
-      :rtype: Annotated[str, int("2")]
-      """''',
-    ),
-    # Test auto docstring with function call with line breaks.
-    # Regression test for issue spyder-ide/spyder#14521
-    'def_linebreak_between_var_and_type': Case(
-        sig='''
-  def test(v:
-           int):''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Parameters
-      ----------
-      v : int
-          DESCRIPTION.
-
-      Returns
-      -------
-      None.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Args:
-          v (int): DESCRIPTION.
-
-      Returns:
-          None.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :param v: DESCRIPTION
-      :type v: int
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'comment_after_def': Case(
-        sig='''  def test(v: str = "#"):  # comment, with '#' and "#"''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Parameters
-      ----------
-      v : str, optional
-          DESCRIPTION. The default is "#".
-
-      Returns
-      -------
-      None.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Args:
-          v (str, optional): DESCRIPTION. Defaults to "#".
-
-      Returns:
-          None.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :param v: DESCRIPTION, defaults to "#"
-      :type v: str, optional
-      :return: DESCRIPTION
-      :rtype: TYPE
-      """''',
-    ),
-    'comment_middle_of_def': Case(
-        sig='''
-  def test(v1: str = "#", # comment, with '#' and "#"
-           v2: str = '#') -> str:''',
-        numpy='''
-      """
-      SUMMARY.
-
-      Parameters
-      ----------
-      v1 : str, optional
-          DESCRIPTION. The default is "#".
-      v2 : str, optional
-          DESCRIPTION. The default is '#'.
-
-      Returns
-      -------
-      str
-          DESCRIPTION.
-      """''',
-        google='''
-      """SUMMARY.
-
-      Args:
-          v1 (str, optional): DESCRIPTION. Defaults to "#".
-          v2 (str, optional): DESCRIPTION. Defaults to '#'.
-
-      Returns:
-          str: DESCRIPTION.
-      """''',
-        sphinx='''
-      """SUMMARY.
-
-      :param v1: DESCRIPTION, defaults to "#"
-      :type v1: str, optional
-      :param v2: DESCRIPTION, defaults to '#'
-      :type v2: str, optional
-      :return: DESCRIPTION
-      :rtype: str
-      """''',
-    ),
-    'multiline_def_double_flush_indent': Case(
-        sig='''def test_fn(
-        arg1,
-        arg2 = True
-        ):''',
-        body='    return True',
-        numpy='''
-    """
-    SUMMARY.
-
-    Parameters
-    ----------
-    arg1 : TYPE
-        DESCRIPTION.
-    arg2 : TYPE, optional
-        DESCRIPTION. The default is True.
-
-    Returns
-    -------
-    bool
-        DESCRIPTION.
-    """''',
-        google='''
-    """SUMMARY.
-
-    Args:
-        arg1 (TYPE): DESCRIPTION.
-        arg2 (TYPE, optional): DESCRIPTION. Defaults to True.
-
-    Returns:
-        bool: DESCRIPTION.
-    """''',
-        sphinx='''
-    """SUMMARY.
-
-    :param arg1: DESCRIPTION
-    :type arg1: TYPE
-    :param arg2: DESCRIPTION, defaults to True
-    :type arg2: TYPE, optional
-    :return: DESCRIPTION
-    :rtype: TYPE
-    """''',
-    ),
-}
+TEST_CASES_DOCSTRING = load_docstring_test_cases(TEST_CASE_DOCSTRING_DIR)
 
 
 # =============================================================================
