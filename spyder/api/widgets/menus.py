@@ -123,6 +123,8 @@ class SpyderMenuProxyStyle(QProxyStyle):
 class SpyderMenu(QMenu, SpyderFontsMixin):
     """
     A QMenu subclass implementing additional functionality for Spyder.
+
+    All menus in Spyder must inherit from this class.
     """
 
     MENUS: list[tuple[QWidget | None, str | None, SpyderMenu]] = []
@@ -135,9 +137,9 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
 
     APP_MENU: bool = False
     """
-    Whether this is the main Spyder application menu, or a plugin menu.
+    Whether this is a main application menu or a plugin menu.
 
-    Set this to ``True`` if this is the application menu; ``False`` otherwise.
+    Set this to ``True`` if this is an application menu; ``False`` otherwise.
     """
 
     HORIZONTAL_MARGIN_FOR_ITEMS: int = 2 * AppStyle.MarginSize
@@ -218,7 +220,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             self.aboutToShow.connect(self._set_icons)
 
         # Style
-        self.css: qstylizer.style.StyleSheet = self._generate_stylesheet()
+        self.css = self._generate_stylesheet()
         self.setStyleSheet(self.css.toString())
 
         style = SpyderMenuProxyStyle(None)
@@ -243,8 +245,8 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         self._after_sections = {}
 
     def add_action(
-        self: T,
-        action: spyder.utils.qthelpers.SpyderAction | T,
+        self,
+        action: spyder.utils.qthelpers.SpyderAction | SpyderMenu,
         section: str | None = None,
         before: str | None = None,
         before_section: str | None = None,
@@ -269,7 +271,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
             If ``None`` (the default), add the section to the end.
         check_before: bool, optional
             Check if the ``before`` action is already part of the menu
-            before adding this ones, and if so save it to be added later.
+            before adding this one, and if so save it to be added later.
             This is necessary to avoid an infinite recursion when adding
             unintroduced actions with this method again. ``True`` by default.
         omit_id: bool, optional
@@ -601,7 +603,7 @@ class SpyderMenu(QMenu, SpyderFontsMixin):
         """
         return f"SpyderMenu('{self.menu_id}')"
 
-    def _adjust_menu_position(self) -> str:
+    def _adjust_menu_position(self) -> None:
         """Menu position adjustment logic to follow custom style."""
         if not self._is_shown:
             # Reposition submenus vertically due to padding and border

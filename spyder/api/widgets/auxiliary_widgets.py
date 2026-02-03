@@ -68,6 +68,7 @@ class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
         None
         """
         super().__init__()
+
         self.widget: PluginMainWidget = widget
         """The main widget of this window's corresponding dockable plugin."""
 
@@ -101,10 +102,10 @@ class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
 
 class MainCornerWidget(QToolBar):
     """
-    Toolbar widget displayed in the top right hand corner of plugin widgets.
+    Toolbar widget displayed in the top right hand corner of dockable plugins.
 
     It is used to display the options (hamburger) menu, progress spinner
-    and additional toolbar items to the right of the main (left) toolbar.
+    and additional toolbar items to the right of the main toolbar.
     """
 
     def __init__(self, parent: PluginMainWidget, name: str) -> None:
@@ -149,7 +150,7 @@ class MainCornerWidget(QToolBar):
         Add a widget to the corner toolbar.
 
         By default, widgets are added to the left of the last toolbar item.
-        The central widget provides an options menu button and a spinner so any
+        Corner widgets provide an options menu button and a spinner so any
         additional widgets will be placed the left of the spinner, if visible
         (unless ``before`` is set).
 

@@ -105,7 +105,7 @@ class SpyderToolButtonMixin:
             all the time.
         text_beside_icon : bool, optional
             If ``True``, the button text will be displayed beside the icon.
-            If ``False`` (the default), will just show the icon only.
+            If ``False`` (the default), will only show the icon.
         section: str | None, optional
             Name of the configuration section whose ``option`` is going to be
             modified. If ``None`` (the default) and ``option`` is not ``None``,
@@ -125,7 +125,7 @@ class SpyderToolButtonMixin:
         QToolButton
             The toolbar button object that was created.
         """
-        if toggled and not Callable(toggled):
+        if toggled and not callable(toggled):
             toggled = lambda value: None
 
         if toggled is not None:
@@ -165,7 +165,7 @@ class SpyderToolButtonMixin:
         plugin: str | None = None,
     ) -> QToolButton:
         """
-        Retrieve a toolbar button by name, plugin and context.
+        Retrieve a toolbar button by name, context and plugin.
 
         Parameters
         ----------
@@ -274,12 +274,13 @@ class SpyderToolbarMixin:
 
     def create_stretcher(self, id_: str | None = None) -> QWidget:
         """
-        Create a stretcher widget to be used in a Qt toolbar.
+        Create a stretcher widget to be used in a Spyder toolbar.
 
         Parameters
         ----------
         id_ : str | None, optional
-            The ID for the stretcher widget. If ``None`` (the default), no ID.
+            The identifier for the stretcher widget. If ``None`` (the default),
+            no id will be set.
 
         Returns
         -------
@@ -327,7 +328,7 @@ class SpyderToolbarMixin:
         plugin: str | None = None,
     ) -> SpyderToolbar:
         """
-        Return toolbar by name, plugin and context.
+        Return toolbar by name, context and plugin.
 
         Parameters
         ----------
@@ -538,7 +539,7 @@ class SpyderMenuMixin:
         plugin: str | None = None,
     ) -> SpyderMenu:
         """
-        Return a menu by name, plugin and context.
+        Return a menu by name, context and plugin.
 
         Parameters
         ----------
@@ -652,13 +653,12 @@ class SpyderActionMixin:
 
         .. note::
 
-            There is no need to set shortcuts right now. We only create actions
-            with this (and similar methods) and these are then exposed as
-            possible shortcuts on plugin registration in the main window with
-            the ``register_shortcut`` argument.
-
-            If a shortcut is found in the default config then it is assigned,
-            otherwise it's left blank for the user to define one for it.
+            There is no need to set a shortcut when creating an action,
+            unless it's a fixed (non-customizable) one. Otherwise, set the
+            ``register_shortcut`` argument to ``True``. If the shortcut is
+            found in the ``shortcuts`` config section of your plugin,
+            then it'll be assigned; if not, it'll be left blank for the
+            user to define it in Spyder :guilabel:`Preferences`.
 
         Parameters
         ----------
@@ -693,7 +693,7 @@ class SpyderActionMixin:
             Arbitrary user data to be set on the action.
             If ``None``, the default, no custom data is set.
         shortcut: str | None, optional
-            A fixed (not configurable) keyboard shortcut to use for an action,
+            A fixed (not configurable) keyboard shortcut to use for the action,
             in cases where it is not practical for the user to configure the
             shortcut. If ``None`` (the default), no fixed shortcut is set.
             For a normal configurable shortcut, you instead need to set
@@ -702,7 +702,8 @@ class SpyderActionMixin:
             See :mod:`spyder.api.shortcuts` for more details.
         shortcut_context: str | None, optional
             The context name of the fixed ``shortcut``. ``None`` (the default)
-            for no context or no shortcut.
+            for no context or no shortcut. Use ``"_"`` for global shortcuts (
+            i.e. that can be used anywhere in the application).
         context: Qt.ShortcutContext, optional
             Set the context object for the fixed shortcut.
             By default, ``Qt.WidgetWithChildrenShortcut``.
@@ -752,8 +753,9 @@ class SpyderActionMixin:
         ------
         SpyderAPIError
             If both ``triggered`` and ``toggled`` are ``None``, as at least one
-            must be provided; or if both ``initial`` and ``triggered`` are
-            truthy as initial values can only apply to ``toggled`` actions.
+            must be provided; or if both ``initial`` is ``True`` and
+            ``triggered`` is not ``None``, as initial values can only apply to
+            ``toggled`` actions.
         """
         if triggered is None and toggled is None:
             raise SpyderAPIError(
@@ -863,7 +865,7 @@ class SpyderActionMixin:
         Parameters
         ----------
         context: str | None, optional
-            Context identifier under which the actions  were stored.
+            Context identifier under which the actions were stored.
             If ``None``, the default, then the
             :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
         plugin: str | None, optional
@@ -879,22 +881,17 @@ class SpyderActionMixin:
 
         Notes
         -----
-
         * Actions should only be created once. Creating new actions on menu
           popup is *highly* discouraged.
         * Actions can be created directly on a
           :class:`~spyder.api.widgets.main_widget.PluginMainWidget` or
           :class:`~spyder.api.widgets.main_container.PluginMainContainer`
           subclass. Child widgets can also create actions, but they need to
-          subclass :class:`SpyderWidgetMixin`.
+          subclass this class or :class:`SpyderWidgetMixin`.
         * :class:`~spyder.api.widgets.main_widget.PluginMainWidget` or
           :class:`~spyder.api.widgets.main_container.PluginMainContainer`
           will collect any actions defined in subwidgets (if defined)
           and expose them in the ``get_actions`` method at the plugin level.
-        * Any action created this way is now exposed as a possible shortcut
-          automatically without manual shortcut registration.
-          If an option is found in the config system then it is assigned,
-          otherwise it's left with an empty shortcut.
         * There is no need to override this method.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
@@ -951,9 +948,9 @@ class SpyderWidgetMixin(
     toolbars, toolbuttons and menus should be registered in the
     Spyder global registry.
 
-    If actions, toolbars, toolbuttons or menus belong to the global scope of
-    the plugin, then this attribute should have a ``None`` value,
-    which will use the plugin's name as the context scope.
+    If those elements belong to the global scope of the plugin, then this
+    attribute should have a ``None`` value, which will use the plugin's name as
+    the context scope
     """
 
     def __init__(
@@ -962,7 +959,7 @@ class SpyderWidgetMixin(
         parent: QWidget | None = None,
     ) -> None:
         """
-        Create a new Spyder widget.
+        Add methods and attributes for most Spyder widgets.
 
         Parameters
         ----------
@@ -987,7 +984,7 @@ class SpyderWidgetMixin(
     @staticmethod
     def create_icon(name: str) -> QIcon:
         """
-        Retrieve an icon from the theme and icon manager.
+        Retrieve an icon from Spyder's icon manager.
 
         Parameters
         ----------
@@ -1034,7 +1031,7 @@ class SpyderWidgetMixin(
 
 class SpyderMainWindowMixin:
     """
-    Mixin with additional functionality for Spyder's :class:`QMainWindow`.
+    Mixin with additional functionality for Spyder's :class:`QMainWindow`\\s.
     """
 
     def _is_on_visible_screen(self: QMainWindow) -> bool:

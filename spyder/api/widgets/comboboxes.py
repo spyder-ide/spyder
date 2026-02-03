@@ -265,7 +265,8 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
     """
     Default combobox widget for Spyder.
 
-    Used for text input boxes that also have drop-down options.
+    Used for all comboboxes in Spyder so they have a uniform styling
+    across operating systems.
     """
 
     def __init__(

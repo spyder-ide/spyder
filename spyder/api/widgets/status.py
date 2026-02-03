@@ -5,7 +5,7 @@
 # (see LICENSE.txt in the project root directory for details)
 # -----------------------------------------------------------------------------
 
-"""Status bar widget API."""
+"""Status bar widgets API."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     Base class for status bar widgets.
 
     These widgets consist by default of an icon, a label and a spinner,
-    which are organized from left to right on that order.
+    which are organized from left to right in that order.
 
     You can also add any other :class:`QWidget` to this layout by setting the
     :attr:`CUSTOM_WIDGET_CLASS` class attribute. It'll be put between the label
@@ -226,7 +226,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def set_value(self, value: str) -> None:
         """
-        Set formatted text value.
+        Set formatted text value for the widget.
 
         Parameters
         ----------
@@ -273,7 +273,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
     # -------------------------------------------------------------------------
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """
-        Change its background color when the widget is clicked.
+        Change the widget's background color when it's clicked.
 
         Parameters
         ----------
@@ -294,7 +294,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """
-        Change the background color & emit a signal when the widget is clicked.
+        Change the widget's background color & emit a signal when it's clicked.
 
         Parameters
         ----------
@@ -323,7 +323,7 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
 
     def enterEvent(self, event: QEnterEvent) -> None:
         """
-        Change the background color and cursor shape on hover.
+        Change the widget's background color and cursor shape on hover.
 
         Parameters
         ----------
@@ -440,7 +440,7 @@ class BaseTimerStatus(StatusBarWidget):
     # -------------------------------------------------------------------------
     def update_status(self) -> None:
         """
-        Update the status label widget, if widget is visible.
+        Update the status label widget, if the widget is visible.
 
         Returns
         -------
@@ -468,12 +468,12 @@ class BaseTimerStatus(StatusBarWidget):
 
     def get_value(self) -> str:
         """
-        Return the formatted text value of the timer.
+        Return the formatted text value shown in the widget.
 
         Returns
         -------
         str
-            The formatted text value of the timer.
+            The formatted text value.
 
         Raises
         ------

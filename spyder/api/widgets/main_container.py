@@ -6,11 +6,11 @@
 # -----------------------------------------------------------------------------
 
 """
-Main container widget for Spyder plugins.
+Main container widget for non-dockable Spyder plugins.
 
 :class:`~spyder.api.plugins.SpyderPluginV2` plugins must provide a
 :attr:`~spyder.api.plugins.SpyderPluginV2.CONTAINER_CLASS` attribute that is
-a subclass of :class:`PluginMainContainer`, if they provide additional widgets
+a subclass of :class:`PluginMainContainer`, if they have additional widgets
 like status bar items or toolbars.
 """
 
@@ -36,9 +36,9 @@ if TYPE_CHECKING:
 
 class PluginMainContainer(QWidget, SpyderWidgetMixin):
     """
-    Main container widget class for Spyder plugins.
+    Main container widget class for non-dockable Spyder plugins.
 
-    This class is used by non-dockable widget to be able to contain, parent
+    This class is used by non-dockable plugins to be able to contain, parent
     and store references to other widgets, like status bar widgets, toolbars,
     context menus, etc.
 
@@ -57,9 +57,9 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     toolbars, toolbuttons and menus should be registered in the
     Spyder global registry.
 
-    If actions, toolbars, toolbuttons or menus belong to the global scope of
-    the plugin, then this attribute should have a ``None`` value,
-    which will use the plugin's name as the context scope.
+    If those elements belong to the global scope of the plugin, then this
+    attribute should have a ``None`` value, which will use the plugin's name as
+    the context scope.
     """
 
     # ---- Signals
@@ -128,6 +128,8 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     """
     Request the main window unmaximize the currently maximized plugin, if any.
 
+    If emitted without arguments, it'll unmaximize any plugin.
+
     Parameters
     ----------
     plugin_instance: SpyderDockablePlugin
@@ -142,6 +144,10 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     ) -> None:
         """
         Create a new container class for a plugin.
+        
+        This method is not meant to be overridden by container subclasses.
+        Use the :meth:`setup` method instead to instantiate the widgets that
+        this one will contain.
 
         Parameters
         ----------
@@ -211,7 +217,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     # ------------------------------------------------------------------------
     def setup(self) -> None:
         """
-        Create widget actions, add to menu and perform other setup steps.
+        Create widgets, toolbars and menus, and perform other setup steps.
 
         Returns
         -------

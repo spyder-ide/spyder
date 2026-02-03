@@ -154,7 +154,7 @@ class ToolbarStyle(QProxyStyle):
         ------
         SpyderAPIError
             If :attr:`TYPE` is not ``"Application"`` or ``"MainWidget"``,
-            as then this mixin would do nothing.
+            as then this style would do nothing.
         """
         # Important: These values need to be updated in case we change the size
         # of our toolbar buttons in utils/stylesheet.py. That's because Qt only
@@ -252,7 +252,7 @@ class SpyderToolbar(QToolBar):
         omit_id: bool = False,
     ) -> None:
         """
-        Add action or widget item to given toolbar `section`.
+        Add action or widget item to the given toolbar ``section``.
 
         Parameters
         ----------
@@ -390,7 +390,7 @@ class SpyderToolbar(QToolBar):
 
     def render(self) -> None:
         """
-        Create the toolbar taking into account sections and locations.
+        Render the toolbar taking into account sections and locations.
 
         Returns
         -------
@@ -434,7 +434,10 @@ class SpyderToolbar(QToolBar):
 
 class ApplicationToolbar(SpyderToolbar):
     """
-    The Spyder main application Toolbar.
+    A Spyder main application toolbar.
+
+    These toolbars are placed above all Spyder dockable plugins in the
+    interface.
     """
 
     ID: str | None = None
@@ -448,7 +451,7 @@ class ApplicationToolbar(SpyderToolbar):
         self, parent: QMainWindow, toolbar_id: str, title: str
     ) -> None:
         """
-        Create the main Spyder application toolbar.
+        Create a main Spyder application toolbar.
 
         Parameters
         ----------
@@ -500,10 +503,9 @@ class ApplicationToolbar(SpyderToolbar):
 
 class MainWidgetToolbar(SpyderToolbar):
     """
-    Spyder widget toolbar class.
+    A Spyder dockable plugin toolbar.
 
-    A toolbar used in Spyder dockable plugins to add internal toolbars
-    to their interface.
+   This is used by dockable plugins to have their own toolbars.
     """
 
     ID: str | None = None

@@ -29,10 +29,8 @@
     `main` (`set_main()`) instance attributes are now documented as
     pending deprecation, will raise a `DeprecationWarning` in Spyder 6.2,
     and will be removed in Spyder 7.0. Set the attributes directly instead.
-  * `In the `registry.SpyderPluginRegistry` class' `register_plugin()` method,
-    passing arbitrary `*args` and `**kwargs` to the
-    `SpyderPluginRegistry.register_plugin()` method of the
-    `spyder.api.plugin_registration.registry` module is now documented as
+  * In the `registry.SpyderPluginRegistry` class' `register_plugin()` method,
+    passing arbitrary `*args` and `**kwargs` is now documented as
     pending deprecation, will raise a DeprecationWarning in Spyder 6.2
     and will be removed in Spyder 7.0. This was only needed for backward
     compatibility before the Editor plugin was migrated in Spyder 6 to the
@@ -57,7 +55,7 @@
   * In the `mixins` module's `SpyderActionMixin.update_actions()` method,
     remove the spurious leftover `options` parameter that does nothing, and
     is inconsistent and incompatible with all its actual current usage.
-    As this is an abstract method and none of its implementations do not include
+    As this is an abstract method and none of its implementations include
     it, any plugin code that does will already raise an error at runtime.
   * In the `menus` and `toolbars` modules, the `SpyderMenuProxyStyle` and
     `ToolbarStyle` proxy style classes are now documented as pending
@@ -65,14 +63,11 @@
     `_SpyderMenuProxyStyle` and `_ToolbarStyle` classes, respectively,
     with the original names becoming aliases raising a `DeprecationWarning`
     on use, that will be removed in Spyder 7.0. They were never intended to
-    be used directly by plugins, like their currently-private
-    `_SpyderComboBoxProxyStyle` and `_SpyderButtonsProxyStyle` brethren,
-    and their functionality is inherited automatically with the `SpyderMenu`
-    and `ApplicationToolbar`/`MainWidgetToolbar` classes, respectively.
+    be used directly by plugins.
   * In the `toolbars` module, `ToolbarStyle.pixelMetric()` now correctly
     raises a SpyderAPIError` (instead of silently not working as intended
     save for a spurious `print()` call) if the `TYPE` class attribute is not
-    set to one of the two valid values, `"Application"` or `"MainWindow".
+    set to one of the two valid values, `"Application"` or `"MainWindow"`.
     Additionally, using `SpyderToolbar` directly rather than its
     `ApplicationToolbar` and `MainWidgetToolbar` subclasses is now documented
     as formally discouraged so their respective styling will be applied.
