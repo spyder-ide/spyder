@@ -689,7 +689,7 @@ class KernelHandler(QObject):
         # Unecessary closing and opening comms as it's already restarted
         # in `ShellWidget._handle_kernel_restarted` with
         # `self.kernel_handler.reopen_comm`. But this is required for the
-        # `sig_kernel_is_ready` to be emitted on the pytest.
+        # `sig_kernel_is_ready` to be emitted when running our tests.
         # TODO: Check this logic again
         self.kernel_comm.close()
         self.connection_state = KernelConnectionState.Crashed

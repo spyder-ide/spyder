@@ -124,14 +124,15 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         ------
         SpyderRemoteConnectionError
             If the connection to the remote server could not be established.
-
         """
         if not await AsyncDispatcher(
             loop="asyncssh",
             return_awaitable=True,
         )(self.manager.ensure_connection_and_server)():
-            msg = ("Could not connect to spyder "
-                  f"remote server at '{self.server_name}'")
+            msg = (
+                f"Could not connect to spyder "
+                f"remote server at '{self.server_name}'"
+            )
             raise SpyderRemoteConnectionError(msg)
         if not self.closed:
             return

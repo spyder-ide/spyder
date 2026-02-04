@@ -35,7 +35,9 @@ from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import (
     get_home_dir, get_module_source_path, get_conf_path)
-from spyder.plugins.remoteclient.api.modules.base import SpyderRemoteConnectionError
+from spyder.plugins.remoteclient.api.modules.base import (
+    SpyderRemoteConnectionError,
+)
 from spyder.utils.icon_manager import ima
 from spyder.utils import sourcecode
 from spyder.utils.image_path_manager import get_image_path
@@ -304,8 +306,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self._execution_loading_timer.start(
             self._execution_loading_timeout_ms
         )
-        logger.debug("Remote exec loading timer started (%sms)",
-                     self._execution_loading_timeout_ms)
+        logger.debug(
+            "Remote exec loading timer started (%sms)",
+            self._execution_loading_timeout_ms
+        )
 
     def _show_slow_execution_message(self):
         """Display loading animation when waiting on a remote execution."""
@@ -1033,7 +1037,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 "Failed to restart remote kernel",
                 exc_info=True,
             )
-            self.remote_kernel_restarted_failure_message(error=err, shutdown=True)
+            self.remote_kernel_restarted_failure_message(
+                error=err, shutdown=True
+            )
         else:
             if restarted:
                 self.kernel_handler.reconnect_kernel()
@@ -1089,10 +1095,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 aiohttp_session=self._jupyter_api.session,
             )
         except Exception as err:
-            logger.debug("Failed to create KernelHandler for remote kernel", exc_info=True)
             self.remote_kernel_reconnect_failiure(error=err)
+            logger.debug(
+                "Failed to create KernelHandler for remote kernel",
+                exc_info=True,
+            )
         else:
-            self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
+            self._remote_reconnect_attempts = (
+                self._remote_reconnect_attempts_max
+            )
             self._hide_loading_page()
             self.replace_kernel(
                 kernel_handler,
@@ -1144,7 +1155,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 aiohttp_session=self._jupyter_api.session,
             )
         except Exception as err:
-            logger.debug("Failed to create KernelHandler for remote kernel", exc_info=True)
+            logger.debug(
+                "Failed to create KernelHandler for remote kernel",
+                exc_info=True,
+            )
             self.show_kernel_error(error=err)
         else:
             # Connect client to the kernel

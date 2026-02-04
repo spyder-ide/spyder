@@ -133,15 +133,14 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 "JupyterHub logs for more information",
             )
             self._emit_connection_status(
-                ConnectionStatus.Error, _("Error starting the remote server"),
+                ConnectionStatus.Error, _("Error starting the remote server")
             )
             return False
 
         self._hb_task = asyncio.create_task(self._heartbeat())
 
         self._emit_connection_status(
-            ConnectionStatus.Active,
-            _("Spyder remote services are active"),
+            ConnectionStatus.Active, _("Spyder remote services are active")
         )
         return True
 
@@ -293,7 +292,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         while self.connected and self.server_started:
             await asyncio.sleep(30)
             try:
-                async with self._session.get(f"user/{self._user_name}/spyder/", timeout=30) as response:
+                async with self._session.get(
+                    f"user/{self._user_name}/spyder/", timeout=30
+                ) as response:
                     response.raise_for_status()
             except asyncio.CancelledError:
                 raise
