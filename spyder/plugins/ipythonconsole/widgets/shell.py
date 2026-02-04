@@ -577,7 +577,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         input.
         """
         # Start remote wait indicator for network loss
-        if self.ipyclient and self.ipyclient.is_remote():
+        if self.is_remote():
             self.ipyclient._start_execution_loading_timer()
 
         # Needed for cases where there is no kernel initialized but
@@ -1312,7 +1312,7 @@ overrided by the Sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
-        if self.ipyclient and self.ipyclient.is_remote():
+        if self.is_remote():
             self.ipyclient._stop_execution_loading()
 
         # This catches an error when doing the teardown of a test.
