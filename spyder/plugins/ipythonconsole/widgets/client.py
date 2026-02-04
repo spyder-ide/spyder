@@ -936,9 +936,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     # ---- For remote clients
     # -------------------------------------------------------------------------
-    def is_client_reconnecting(self):
-        return self.__remote_reconnect_requested
-
     def is_remote(self):
         """Check if this client is connected to a remote server."""
         return self._jupyter_api is not None
@@ -989,7 +986,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if shutdown:
             self.shutdown(is_last_client=False, close_console=False)
 
-    def remote_kernel_reconnect_failiure(self, error=None):
+    def remote_kernel_reconnect_failure(self, error=None):
         """Handle failures while trying to reconnect to a remote kernel."""
         msg = _("It was not possible to reconnect to the remote kernel")
 
@@ -1058,7 +1055,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     "Exceeded maximum attempts to reconnect to remote kernel",
                     exc_info=True,
                 )
-                self.remote_kernel_reconnect_failiure()
+                self.remote_kernel_reconnect_failure()
                 self.__remote_reconnect_requested = False
                 return
             self._remote_reconnect_attempts -= 1
@@ -1074,13 +1071,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 "Unexpected error while getting remote kernel info",
                 exc_info=True,
             )
-            self.remote_kernel_reconnect_failiure(error=err)
+            self.remote_kernel_reconnect_failure(error=err)
             self.__remote_reconnect_requested = False
             return
         else:
             if not kernel_info:
                 logger.debug("Remote kernel info not found")
-                self.remote_kernel_reconnect_failiure()
+                self.remote_kernel_reconnect_failure()
                 self.__remote_reconnect_requested = False
                 return
 
@@ -1095,11 +1092,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 aiohttp_session=self._jupyter_api.session,
             )
         except Exception as err:
-            self.remote_kernel_reconnect_failiure(error=err)
             logger.debug(
                 "Failed to create KernelHandler for remote kernel",
                 exc_info=True,
             )
+            self.remote_kernel_reconnect_failure(error=err)
         else:
             self._remote_reconnect_attempts = (
                 self._remote_reconnect_attempts_max
