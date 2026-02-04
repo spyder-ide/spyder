@@ -190,7 +190,7 @@ if os.name == 'nt':
 # =============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
            '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
-           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
+           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh', '.md']
 
 
 # =============================================================================
@@ -287,6 +287,7 @@ install_requires += [
     'jellyfish>=0.7',
     'jsonschema>=3.2.0',
     'keyring>=17.0.0',
+    'markdown-it-py>=3.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
     'packaging>=20.0',
