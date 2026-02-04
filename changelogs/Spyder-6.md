@@ -4,6 +4,7 @@
 
 ### API changes
 
+* Add `sig_update_performed` signal to Update manager plugin.
 * All public and most private APIs in `spyder.api` now have comprehensive
   docstrings and type hints with descriptions, parameters, returns and raises,
   and are thoroughly rewritten for correctness, clarity and proper formatting.

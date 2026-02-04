@@ -24,10 +24,11 @@ dependencies:
 - ipython >=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0
 - ipython_pygments_lexers >=1.0
 - jedi >=0.17.2,<0.20.0
-- lxml >=4.9.0
 - jellyfish >=0.7
 - jsonschema >=3.2.0
 - keyring >=17.0.0
+- lxml >=4.9.0
+- markdown-it-py >=3.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
 - packaging >=20.0
