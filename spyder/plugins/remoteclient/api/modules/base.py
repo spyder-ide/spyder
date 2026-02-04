@@ -113,7 +113,15 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self._session.closed
 
     async def connect(self):
-        # Default connect method which ensures a connection via the manager.
+        """
+        Establish connection to the remote Spyder's Jupyter server.
+
+        Raises
+        ------
+        SpyderRemoteConnectionError
+            If the connection to the remote server could not be established.
+
+        """
         if not await AsyncDispatcher(
             loop="asyncssh",
             return_awaitable=True,
