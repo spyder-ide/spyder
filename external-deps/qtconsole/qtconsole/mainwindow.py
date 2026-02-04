@@ -814,8 +814,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_frontend.style_sheet = style_sheet
         self.active_frontend._syntax_style_changed()
         self.active_frontend._style_sheet_changed()
-        self.active_frontend.reset(clear=True)
-
+        self.active_frontend.reset(clear=False)
         if parse_version(ipython_release.version) >= parse_version("9.0"):
             colors = colors.replace('nocolor', 'nocolors')
             traceback_colors_code = f"""
@@ -846,6 +845,10 @@ elif getattr(VerboseTB, '_tb_highlight_style', None) is not None:
 get_ipython().run_line_magic('colors', '{colors}')
             """
         self.active_frontend._execute(traceback_colors_code, True)
+        self.active_frontend._append_plain_text(
+            "\n\nNote: Clearing the console is necessary to fully apply the "
+            "new syntax style you selected."
+        )
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)
