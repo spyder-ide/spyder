@@ -844,7 +844,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
-            self.reconnect_action.setVisible(client.is_remote())
+            is_remote = client.is_remote()
+            self.reconnect_action.setVisible(is_remote)
+            self.reconnect_button.setVisible(is_remote)
 
             # Client is loading or showing a kernel error
             if (
