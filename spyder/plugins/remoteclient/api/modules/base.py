@@ -118,7 +118,9 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
             loop="asyncssh",
             return_awaitable=True,
         )(self.manager.ensure_connection_and_server)():
-            raise RuntimeError("Failed to connect to the server")
+            msg = ("Could not connect to spyder "
+                  f"remote server at '{self.server_name}'")
+            raise SpyderRemoteConnectionError(msg)
         if not self.closed:
             return
         self.session = aiohttp.ClientSession(
