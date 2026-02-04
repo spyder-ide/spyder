@@ -59,7 +59,6 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
         )
         self.setFixedWidth(self.WIDTH)
         self.setFixedHeight(self.HEIGHT)
-        self.setWindowTitle(_("Help Spyder"))
         self.setWindowIcon(ima.icon("inapp_appeal"))
 
         # Paths to content to be loaded
@@ -171,12 +170,7 @@ class InAppAppealStatus(BaseTimerStatus):
             # See spyder-ide/spyder#24905 for the details.
             self._appeal_dialog = FakeInAppAppealDialog
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
-    def show_dialog(self, show_appeal: bool):
-        if self._appeal_dialog is None:
-            self._create_appeal_dialog()
-
+    def _show_dialog(self, show_appeal: bool):
         if self._appeal_dialog is not FakeInAppAppealDialog:
             if not self._appeal_dialog.isVisible():
                 self._appeal_dialog.set_message(show_appeal)
@@ -186,6 +180,26 @@ class InAppAppealStatus(BaseTimerStatus):
                 webbrowser.open(DONATIONS_URL)
             else:
                 webbrowser.open(CHANGELOG_URL)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def show_changelog(self):
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
+
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            self._appeal_dialog.setWindowTitle(_("Changelog"))
+
+        self._show_dialog(show_appeal=False)
+
+    def show_appeal(self):
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
+
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            self._appeal_dialog.setWindowTitle(_("Help Spyder"))
+
+        self._show_dialog(show_appeal=True)
 
     # ---- StatusBarWidget API
     # -------------------------------------------------------------------------

@@ -300,19 +300,13 @@ class ApplicationContainer(PluginMainContainer):
         self.create_action(
             ApplicationActions.ShowChangelogAction,
             _("Show changelog"),
-            triggered=functools.partial(
-                self.inapp_appeal_status.show_dialog,
-                show_appeal=False,
-            ),
+            triggered=self.inapp_appeal_status.show_changelog,
         )
         self.create_action(
             ApplicationActions.HelpSpyderAction,
             _("Help Spyder..."),
             icon=self.create_icon("inapp_appeal"),
-            triggered=functools.partial(
-                self.inapp_appeal_status.show_dialog,
-                show_appeal=True,
-            ),
+            triggered=self.inapp_appeal_status.show_appeal,
         )
 
         # About action

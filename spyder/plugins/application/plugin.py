@@ -646,7 +646,7 @@ class Application(SpyderPluginV2):
 
     def _on_spyder_update(self):
         container = self.get_container()
-        container.inapp_appeal_status.show_dialog(show_appeal=False)
+        container.inapp_appeal_status.show_changelog()
 
     # ---- Public API
     # ------------------------------------------------------------------------
