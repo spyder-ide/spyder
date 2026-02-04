@@ -27,6 +27,7 @@ dependencies:
 - jellyfish >=0.7
 - jsonschema >=3.2.0
 - keyring >=17.0.0
+- markdown-it-py >=3.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
 - packaging >=20.0

@@ -48,6 +48,7 @@ JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
+MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PACKAGING_REQVER = '>=20.0'
@@ -167,6 +168,10 @@ DESCRIPTIONS = [
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
      'required_version': KEYRING_REQVER},
+    {'modname': "markdown_it",
+     'package_name': "markdown-it-py",
+     'features': _("Render markdown content to HTML"),
+     'required_version': MARKDOWN_IT_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
