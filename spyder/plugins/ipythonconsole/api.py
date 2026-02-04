@@ -143,7 +143,7 @@ class IPythonConsoleWidgetCornerWidgets:
     ClearButton = "clear_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
-
+    ReconnectButton = "reconnect_button"
 
 class RemoteConsolesMenus:
     RemoteConsoles = "remote_consoles_menu"

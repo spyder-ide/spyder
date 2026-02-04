@@ -473,7 +473,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.reconnect_action = self.create_action(
             IPythonConsoleWidgetActions.Reconnect,
             text=_("Reconnect to remote kernel"),
-            icon=self.create_icon('restart'),
+            icon=self.create_icon('reconnect_icon'),
             triggered=self.reconnect_kernel,
         )
         self.reset_action = self.create_action(
@@ -764,11 +764,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.time_label.name = (
             IPythonConsoleWidgetCornerWidgets.TimeElapsedLabel
         )
+        self.reconnect_button = self.create_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.ReconnectButton,
+            text=_("Reconnect to remote kernel"),
+            tip=_("Reconnect to remote kernel"),
+            icon=self.create_icon("reconnect_icon"),
+            triggered=self.reconnect_kernel,
+        )
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
         self.add_corner_widget(self.clear_button)
         self.add_corner_widget(self.time_label)
+        self.add_corner_widget(self.reconnect_button)
 
         # --- Tabs context menu
         tabs_context_menu = self.create_menu(
@@ -836,7 +844,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
-            self.reconnect_action.setEnabled(client.is_remote() and not client.is_client_reconnecting())
+            self.reconnect_action.setVisible(client.is_remote())
 
             # Client is loading or showing a kernel error
             if (
@@ -849,8 +857,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 self.env_action.setEnabled(not error_or_loading)
                 self.syspath_action.setEnabled(not error_or_loading)
                 self.show_time_action.setEnabled(not error_or_loading)
-        else:
-            self.reconnect_action.setEnabled(False)
 
     # ---- GUI options
     @on_conf_change(section='help', option='connect/ipython_console')
