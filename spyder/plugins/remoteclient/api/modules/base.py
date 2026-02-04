@@ -49,6 +49,10 @@ class SpyderRemoteSessionClosed(SpyderRemoteAPIError):
     ...
 
 
+class SpyderRemoteConnectionError(SpyderRemoteAPIError):
+    """Exception for errors related to connection establishment."""
+
+
 class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     """
     Base class for Jupyter API plugins.
