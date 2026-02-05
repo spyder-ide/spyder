@@ -473,7 +473,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.reconnect_action = self.create_action(
             IPythonConsoleWidgetActions.Reconnect,
             text=_("Reconnect to remote kernel"),
-            icon=self.create_icon('reconnect_icon'),
+            icon=self.create_icon('reconnect'),
             triggered=self.reconnect_kernel,
         )
         self.reset_action = self.create_action(
@@ -768,15 +768,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             IPythonConsoleWidgetCornerWidgets.ReconnectButton,
             text=_("Reconnect to remote kernel"),
             tip=_("Reconnect to remote kernel"),
-            icon=self.create_icon("reconnect_icon"),
+            icon=self.create_icon("reconnect"),
             triggered=self.reconnect_kernel,
         )
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
         self.add_corner_widget(self.clear_button)
-        self.add_corner_widget(self.time_label)
         self.add_corner_widget(self.reconnect_button)
+        self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
         tabs_context_menu = self.create_menu(
@@ -844,9 +844,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
+
+            # For remote clients
             is_remote = client.is_remote()
             self.reconnect_action.setVisible(is_remote)
-            self.reconnect_button.setVisible(is_remote)
+            self.reconnect_button.setMaximumWidth(
+                self.stop_button.width() if is_remote else 0
+            )
 
             # Client is loading or showing a kernel error
             if (
