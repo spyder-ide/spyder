@@ -14,6 +14,7 @@ This is the widget used on all its tabs.
 """
 
 # Standard library imports.
+from __future__ import annotations
 import asyncio
 import functools
 import logging
@@ -431,6 +432,34 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                     cwd_path, emit_cwd_change=emit_cwd_change
                 )
 
+    def _render_error_page(self, error: str | Exception, message: str):
+        if isinstance(error, Exception):
+            if isinstance(error, SpyderKernelError):
+                error_text = error.args[0]
+            else:
+                error_text = _("The error is:<br><br><tt>{}</tt>").format(
+                    traceback.format_exc()
+                )
+        else:
+            error_text = error
+
+        # Replace end of line chars with <br>
+        eol = sourcecode.get_eol_chars(error_text)
+        if eol:
+            error_text = error_text.replace(eol, '<br>')
+
+        # Don't break lines in hyphens
+        # From https://stackoverflow.com/q/7691569/438386
+        error_text = error_text.replace('-', '&#8209;')
+
+        # Create error page
+        kernel_error_template = Template(KERNEL_ERROR)
+        page =  kernel_error_template.substitute(
+            css_path=self.css_path, message=message, error=error_text
+        )
+
+        return page, error_text
+
     # ---- Public API
     # -------------------------------------------------------------------------
     @property
@@ -565,38 +594,21 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
-        if isinstance(error, Exception):
-            if isinstance(error, SpyderKernelError):
-                error = error.args[0]
-            else:
-                error = _("The error is:<br><br>"
-                          "<tt>{}</tt>").format(traceback.format_exc())
-        self.error_text = error
-
-        if self.is_benign_error(error):
-            return
-
-        if self.is_warning_message(error):
-            return
-
-        InstallerIPythonKernelError(error)
-
-        # Replace end of line chars with <br>
-        eol = sourcecode.get_eol_chars(error)
-        if eol:
-            error = error.replace(eol, '<br>')
-
-        # Don't break lines in hyphens
-        # From https://stackoverflow.com/q/7691569/438386
-        error = error.replace('-', '&#8209;')
-
         # Create error page
         message = _("An error occurred while starting the kernel")
-        kernel_error_template = Template(KERNEL_ERROR)
-        self.info_page = kernel_error_template.substitute(
-            css_path=self.css_path,
-            message=message,
-            error=error)
+        self.info_page, error_text = self._render_error_page(
+            error, message
+        )
+
+        self.error_text = error_text
+
+        if self.is_benign_error(error_text):
+            return
+
+        if self.is_warning_message(error_text):
+            return
+
+        InstallerIPythonKernelError(error_text)
 
         # Show error
         if self.infowidget is not None:
@@ -944,85 +956,38 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     def jupyter_api(self):
         return self._jupyter_api
 
-    def remote_kernel_restarted_failure_message(
-        self, error=None, shutdown=False
-    ):
-        """Show message when the kernel failed to be restarted."""
-
-        msg = _("It was not possible to restart the kernel")
-
-        if error is None:
-            error_html = f"<br>{msg}<br>"
-        else:
-            if isinstance(error, SpyderKernelError):
-                error = error.args[0]
-            elif isinstance(error, Exception):
-                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
-                    traceback.format_exc()
-                )
-
-            # Replace end of line chars with <br>
-            eol = sourcecode.get_eol_chars(error)
-            if eol:
-                error = error.replace(eol, '<br>')
-
-            # Don't break lines in hyphens
-            # From https://stackoverflow.com/q/7691569/438386
-            error = error.replace('-', '&#8209')
-
-            # Create error page
-            kernel_error_template = Template(KERNEL_ERROR)
-            error_html = kernel_error_template.substitute(
-                css_path=self.css_path,
-                message=msg,
-                error=error)
-
-        self.shellwidget._append_html(error_html, before_prompt=False)
-        self.shellwidget.insert_horizontal_ruler()
-
-        # Inform other plugins that the shell failed to start
-        self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
-
-        if shutdown:
-            self.shutdown(is_last_client=False, close_console=False)
-
-    def remote_kernel_reconnect_failure(self, error=None):
-        """Handle failures while trying to reconnect to a remote kernel."""
-        msg = _("It was not possible to reconnect to the remote kernel")
-
-        if error is not None:
-            if isinstance(error, SpyderKernelError):
-                error = error.args[0]
-            elif isinstance(error, Exception):
-                error = _("The error is:<br><br>" "<tt>{}</tt>").format(
-                    traceback.format_exc()
-                )
-
-            eol = sourcecode.get_eol_chars(error)
-            if eol:
-                error = error.replace(eol, '<br>')
-            error = error.replace('-', '&#8209')
-
-        kernel_error_template = Template(KERNEL_ERROR)
-        error_html = kernel_error_template.substitute(
-            css_path=self.css_path,
-            message=msg,
-            error=error,
-        )
+    def _show_remote_kernel_error(self, message, error: str | Exception):
+        self.info_page, error_text = self._render_error_page(error, message)
 
         # Prefer showing in the info widget to avoid mixing with console I/O
         if self.infowidget is not None:
-            self.info_page = error_html
             self.set_info_page()
             self.shellwidget.hide()
             self.infowidget.show()
         else:
             # Fallback inline if info widget is unavailable
-            self.shellwidget._append_html(error_html, before_prompt=False)
+            self.shellwidget._append_html(
+                f"<br>{message}<br>", before_prompt=False
+            )
             self.shellwidget.insert_horizontal_ruler()
 
         # Inform other plugins that the shell failed to reconnect
         self.shellwidget.sig_shellwidget_errored.emit(self.shellwidget)
+
+    def remote_kernel_restarted_failure(
+        self, error: str | Exception, shutdown: bool = False
+    ):
+        """Show message when the kernel failed to be restarted."""
+        msg = _("An error occurred while restarting the remote kernel")
+        self._show_remote_kernel_error(msg, error)
+
+        if shutdown:
+            self.shutdown(is_last_client=False, close_console=False)
+
+    def remote_kernel_reconnect_failure(self, error: str | Exception):
+        """Handle failures while trying to reconnect to a remote kernel."""
+        msg = _("An error occurred while reconnecting to the remote kernel")
+        self._show_remote_kernel_error(msg, error)
 
     @AsyncDispatcher.QtSlot
     def _on_remote_kernel_restarted(self, future):
@@ -1034,14 +999,17 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 "Failed to restart remote kernel",
                 exc_info=True,
             )
-            self.remote_kernel_restarted_failure_message(
-                error=err, shutdown=True
-            )
+            self.remote_kernel_restarted_failure(error=err, shutdown=True)
         else:
             if restarted:
                 self.kernel_handler.reconnect_kernel()
             else:
-                self.remote_kernel_restarted_failure_message(shutdown=True) 
+                self.remote_kernel_restarted_failure(
+                    error=_(
+                        "It was not possible to restart the remote kernel"
+                    ),
+                    shutdown=True,
+                )
         finally:
             self.__remote_restart_requested = False
 
@@ -1052,10 +1020,15 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         except SpyderRemoteConnectionError:
             if self._remote_reconnect_attempts <= 0:
                 logger.debug(
-                    "Exceeded maximum attempts to reconnect to remote kernel",
+                    "Exceeded max attempts to reconnect to remote kernel",
                     exc_info=True,
                 )
-                self.remote_kernel_reconnect_failure()
+                self.remote_kernel_reconnect_failure(
+                    _(
+                        "The maximum number of attempts to reconnect to the "
+                        "kernel was exceeded."
+                    )
+                )
                 self.__remote_reconnect_requested = False
                 return
             self._remote_reconnect_attempts -= 1
@@ -1076,8 +1049,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             return
         else:
             if not kernel_info:
-                logger.debug("Remote kernel info not found")
-                self.remote_kernel_reconnect_failure()
+                self.remote_kernel_reconnect_failure(
+                    _(
+                        "The remote kernel info was not found. Most probably "
+                        "the server was restarted."
+                    )
+                )
                 self.__remote_reconnect_requested = False
                 return
 
