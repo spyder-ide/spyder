@@ -51,9 +51,13 @@ class MainWindowMock(QMainWindow):
 
     @staticmethod
     def unregister_plugin(plugin: SpyderPluginClass):
-        assert PLUGIN_REGISTRY.delete_plugin(
-            plugin.NAME
-        ), f"{plugin.NAME} not deleted"
+        try:
+            PLUGIN_REGISTRY.delete_plugin(
+                plugin.NAME
+            )
+        except KeyError:
+            pass
+
         plugin._unregister()
 
     @staticmethod

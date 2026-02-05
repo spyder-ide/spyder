@@ -15,6 +15,7 @@ import pytest
 import requests
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
+from spyder.plugins.remoteclient.api.protocol import ClientType
 from spyder.plugins.remoteclient.widgets import AuthenticationMethod
 
 
@@ -151,6 +152,7 @@ def ssh_client_id(
     config_id = str(uuid.uuid4())
 
     # Options Required by container widget
+    remote_client.set_conf(f"{config_id}/client_type", ClientType.SSH)
     remote_client.set_conf(
         f"{config_id}/auth_method", AuthenticationMethod.Password
     )
@@ -187,9 +189,7 @@ def jupyterhub_client_id(
     }
     config_id = str(uuid.uuid4())
 
-    remote_client.set_conf(
-        f"{config_id}/client_type", "jupyterhub"
-    )
+    remote_client.set_conf(f"{config_id}/client_type", ClientType.JupyterHub)
     remote_client.set_conf(
         f"{config_id}/{AuthenticationMethod.JupyterHub}/name", "test-server"
     )
