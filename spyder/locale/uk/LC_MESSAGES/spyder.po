@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-06 20:09\n"
+"PO-Revision-Date: 2026-02-06 23:27\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3731,7 +3731,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
 msgid "Searching..."
-msgstr ""
+msgstr "Пошук..."
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -3759,7 +3759,7 @@ msgstr "файл"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
 msgid "files"
-msgstr ""
+msgstr "файли"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:422
 msgid "String not found"
