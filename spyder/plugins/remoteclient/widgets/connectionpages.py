@@ -70,7 +70,7 @@ class ValidationReasons(TypedDict):
     repeated_name: bool | None
     missing_info: bool | None
     invalid_address: bool | None
-    invalid_host: bool | None
+    invalid_config: bool | None
     invalid_url: bool | None
     file_not_found: bool | None
     keyfile_passphrase_is_wrong: bool | None
@@ -90,11 +90,12 @@ class CreateEnvMethods:
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 650
+    MIN_HEIGHT = 600
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
     def __init__(self, parent, host_id=None):
+        self.MIN_HEIGHT += 45 if self.NEW_CONNECTION else 0
         super().__init__(parent)
 
         # host_id is None only for the new connection page
@@ -163,9 +164,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             config_file_widget.textbox._validate(config_file)
 
             if host and not self._validate_config_file(config_file):
-                reasons["invalid_host"] = True
+                reasons["invalid_config"] = True
                 host_widget.status_action.setVisible(True)
-                host_widget.status_action.setToolTip(_("Invalid host"))
+                host_widget.status_action.setToolTip(_("Invalid configuration"))
             else:
                 host_widget.status_action.setVisible(False)
                 config_file_widget.textbox.error_action.setVisible(False)
@@ -251,28 +252,40 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 self._compose_failed_validation_text(reasons)
             )
             validate_label.setVisible(True)
-
-            # Adjust page height according to the authentication method and
-            # number of reasons.
-            n_reasons = list(reasons.values()).count(True)
-            min_height = self.MIN_HEIGHT
-            if self.get_client_type() == ClientType.SSH:
-                extra_description_space = 45 if self.NEW_CONNECTION else 0
-                if (
-                    self.auth_method(from_gui=True)
-                    == AuthenticationMethod.Password
-                ):
-                    if n_reasons > 2:
-                        min_height = self.MIN_HEIGHT if (WIN or MAC) else 600
-                else:
-                    if n_reasons == 1:
-                        min_height = 640 if MAC else (620 if WIN else 635)
-                    else:
-                        min_height = 720 if MAC else (680 if WIN else 690)
-
-                self.setMinimumHeight(min_height + extra_description_space)
+            self.set_height(reasons)
 
         return False if reasons else True
+
+    def set_height(self, reasons=None):
+        # Adjust page height according to the authentication method and
+        # number of invalid reasons if available.
+        min_height = self.MIN_HEIGHT
+
+        if self.get_client_type() == ClientType.SSH and reasons:
+            reason_height = 25
+            n_reasons = list(reasons.values()).count(True)
+
+            if (
+                self.auth_method(from_gui=True) == AuthenticationMethod.KeyFile
+            ):
+                # Only keyfile case (the page with the large amount of fields)
+                # requires dynaminc addition of height depending on number of
+                # invalid reasons detected
+                min_height += reason_height * n_reasons
+                if n_reasons:
+                    # Add some extra height to acknowledge the margins/padding
+                    # of the validation label
+                    min_height += 30
+
+        self.setFixedHeight(min_height)
+
+    def refresh_page(self):
+        auth_method = self.auth_method(from_gui=True)
+        validate_label = self._validation_labels[auth_method]
+        if validate_label.text():
+            self.validate_page()
+        else:
+            self.set_height()
 
     def create_jupyterhub_connection_info_widget(self):
         """
@@ -375,6 +388,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             f"{self.host_id}/auth_method",
             items_elide_mode=Qt.ElideNone,
         )
+        self._auth_methods.combobox.currentIndexChanged.connect(
+            self.refresh_page
+        )
 
         # Subpages
         password_subpage = self._create_password_subpage()
@@ -445,13 +461,16 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         )
 
         address = self.create_lineedit(
-            text=_("Remote address *"),
+            text=_("Remote address or host *"),
             option=f"{self.host_id}/{auth_method}/address",
             tip=_(
-                "This is the IP address or domain name of your remote machine"
+                "This is the IP address, domain name or host identifier "
+                "(when using a configuration file) of your remote machine"
             ),
             validate_callback=self._validate_address,
-            validate_reason=_("The address is not a valid IP or domain name"),
+            validate_reason=_(
+                "The address is not a valid IP, domain name or host identifier"
+            ),
         )
 
         port = self.create_spinbox(
@@ -481,8 +500,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             validate_callback=self._validate_config_file,
             validate_reason=_(
                 "Unable to get OpenSSH client configuration from "
-                "the given file.\nCheck that the provided address corresponds "
-                "to the values available in the file"
+                "the given file.\nCheck that the provided host corresponds "
+                "to the values available in the file and the file exists"
             ),
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
@@ -798,6 +817,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 host,
                 ()
             )
+        else:
+            return False
 
         if config and not config.get_options(False) or not config:
             # If no valid config is available there is no value to set as
@@ -867,10 +888,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 + suffix
             )
 
-        if reasons.get("invalid_host"):
+        if reasons.get("invalid_config"):
             text += (
                 prefix
-                + _("The host you provided is not a valid one.")
+                + _("The configuration file and/or host provided are not valid.")
                 + suffix
             )
 
@@ -1007,6 +1028,9 @@ class NewConnectionPage(BaseConnectionPage):
         self.create_tab("SSH", self.ssh_widget)
         self.create_tab("JupyterHub", self.jupyterhub_widget)
 
+        self.tabs.currentChanged.connect(self.refresh_page)
+        self.set_height()
+
     def get_icon(self):
         return self.create_icon("add_server")
 
@@ -1052,6 +1076,8 @@ class NewConnectionPage(BaseConnectionPage):
             self.jupyterhub_widget.layout().setCurrentWidget(
                 jupyterhub_clean_info_widget
             )
+
+            self.set_height()
         else:
             # Change option names associated to all widgets present in the page
             # to reference the new host_id
