@@ -45,8 +45,6 @@ class SpyderSSHClient(SSHClient):
         :type exc: :class:`Exception`
 
         """
-        if self.client._plugin:
-            self.client._plugin.sig_connection_lost.emit(self.client.config_id)
         self.client._handle_connection_lost(exc)
 
     def debug_msg_received(

@@ -157,8 +157,8 @@ class _Session:
     async def recv(
         self,
         stream: aiohttp.ClientWebSocketResponse,
-        timeout: t.Optional[float] = None,
-    ) -> tuple[str, dict[str, t.Any]]:
+        timeout: float | None = None,
+    ) -> tuple[str, dict[str, t.Any] | dict[int, t.Any]]:
         """
         Receive a message from the websocket stream.
 
@@ -187,12 +187,10 @@ class _Session:
             If the received message is not of type WSMsgType.BINARY.
         """
         msg = await stream.receive(timeout=timeout)
+        if msg.type in {aiohttp.WSMsgType.PING, aiohttp.WSMsgType.PONG}:
+            return "hb", {msg.type: msg.data}
+
         if msg.type in {aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING}:
-            _LOGGER.debug(
-                "WebSocket connection closed with type %s and code %s",
-                msg.type,
-                msg.data,
-            )
             return "closed", {}
 
         if msg.type is not aiohttp.WSMsgType.BINARY:
@@ -412,15 +410,16 @@ class _ChannelQueues:
         self.iopub = asyncio.Queue()
         self.stdin = asyncio.Queue()
         self.control = asyncio.Queue()
+        self.hb = asyncio.Queue()
 
-    def __getitem__(self, channel: str) -> asyncio.Queue[dict[str, t.Any]]:
+    def __getitem__(self, channel: str) -> asyncio.Queue[dict]:
         return getattr(self, channel)
 
 
 class _WebSocketChannel:
     def __init__(
         self,
-        queue: asyncio.Queue[dict[str, t.Any]],
+        queue: asyncio.Queue[dict],
         websocket: aiohttp.ClientWebSocketResponse,
         session: _Session,
         channel_name: str,
@@ -429,7 +428,7 @@ class _WebSocketChannel:
         self._websocket = websocket
         self.session = session
         self.channel_name = channel_name
-        self._running: t.Optional[asyncio.Task[None]] = None
+        self._running: asyncio.Task[t.NoReturn] | None = None
         self._inspect = None
 
     async def _loop(self):
@@ -439,6 +438,7 @@ class _WebSocketChannel:
             self.call_handlers(msg)
             if self._inspect is not None:
                 self._inspect(msg)
+            self._queue.task_done()
 
     def start(self):
         """Start the channel."""
@@ -447,17 +447,12 @@ class _WebSocketChannel:
             self._loop(), name=f"{self.session.session}-{self.channel_name}"
         )
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the channel."""
         if self._running is not None:
+            await self._queue.join()
             self._running.cancel()
             self._running = None
-
-        if not self._queue.empty():
-            _LOGGER.warning(
-                "Channel %s has messages in the queue, but is being stopped.",
-                self.channel_name,
-            )
 
     def is_alive(self) -> bool:
         """Test whether the channel is alive."""
@@ -468,70 +463,27 @@ class _WebSocketChannel:
         """Send a message to the channel."""
         await self.session.send(self._websocket, self.channel_name, msg)
 
-    def call_handlers(self, msg: dict[str, t.Any]):
+    def call_handlers(self, msg: dict):
         pass
 
 
-class _WebSocketHBChannel:
-    time_to_dead: float = 1.0
+class _FakeHBChannel:
+    time_to_dead: float = 0
 
-    def __init__(
-        self,
-        websocket: aiohttp.ClientWebSocketResponse,
-    ):
-        self._websocket = websocket
-        self._websocket._handle_ping_pong_exception = MethodType(
-            self._handle_heartbeat_exc(
-                self._websocket._handle_ping_pong_exception
-            ),
-            self._websocket,
-        )
-        self._running = False
-
-    def start(self):
-        """Start the channel."""
-        self._running = True
-        self._set_heartbeat()
-
-    def stop(self):
-        """Stop the channel."""
-        self._running = False
-        self._unset_heartbeat()
-
-    def is_alive(self) -> bool:
-        """Test whether the channel is alive."""
-        return self._running and not self._websocket.closed
+    def __init__(self, *args, **kwargs):
+        self._beating = True
 
     def pause(self):
         """Pause the heartbeat channel."""
-        self._unset_heartbeat()
+        pass
 
     def unpause(self):
         """Unpause the heartbeat channel."""
-        self._set_heartbeat()
+        pass
 
     def is_beating(self) -> bool:
         """Test whether the channel is beating."""
-        return True
-
-    def _set_heartbeat(self):
-        """Set the heartbeat for the channel."""
-        self._websocket._heartbeat = self.time_to_dead * 2
-        self._websocket._pong_heartbeat = self.time_to_dead
-        self._websocket._reset_heartbeat()
-
-    def _unset_heartbeat(self):
-        """Unset the heartbeat for the channel."""
-        self._websocket._heartbeat = None
-        self._websocket._reset_heartbeat()
-
-    def _handle_heartbeat_exc(self, func):
-        @wraps(func)
-        def wrapper(ws: aiohttp.ClientWebSocketResponse, *args, **kwargs):
-            self.call_handlers(ws._loop.time() - ws._heartbeat_when)
-            return func(*args, **kwargs)
-
-        return wrapper
+        return self._beating
 
     def call_handlers(self, since_last_heartbeat: float):
         pass
@@ -542,7 +494,7 @@ class _WebSocketKernelClient(Configurable):
 
     shell_channel_class = _WebSocketChannel  # type: ignore[assignment]
     iopub_channel_class = _WebSocketChannel  # type: ignore[assignment]
-    hb_channel_class = _WebSocketHBChannel  # type: ignore[assignment]
+    hb_channel_class = _FakeHBChannel  # type: ignore[assignment]
     stdin_channel_class = _WebSocketChannel  # type: ignore[assignment]
     control_channel_class = _WebSocketChannel  # type: ignore[assignment]
 
@@ -569,11 +521,11 @@ class _WebSocketKernelClient(Configurable):
 
         self._queues = _ChannelQueues()
 
-        self._shell_channel: t.Optional[_WebSocketChannel] = None
-        self._iopub_channel: t.Optional[_WebSocketChannel] = None
-        self._stdin_channel: t.Optional[_WebSocketChannel] = None
-        self._control_channel: t.Optional[_WebSocketChannel] = None
-        self._hb_channel: t.Optional[_WebSocketHBChannel] = None
+        self._shell_channel: _WebSocketChannel | None = None
+        self._iopub_channel: _WebSocketChannel | None = None
+        self._stdin_channel: _WebSocketChannel | None = None
+        self._control_channel: _WebSocketChannel | None = None
+        self._hb_channel: _FakeHBChannel | None = None
 
     @property
     def allow_stdin(self) -> bool:
@@ -647,9 +599,7 @@ class _WebSocketKernelClient(Configurable):
             raise RuntimeError(msg)
 
         if self._hb_channel is None:
-            self._hb_channel = self.hb_channel_class(
-                self._ws,
-            )
+            self._hb_channel = self.hb_channel_class()
         return self._hb_channel
 
     @property
@@ -663,7 +613,6 @@ class _WebSocketKernelClient(Configurable):
             (bool(self._shell_channel) and self._shell_channel.is_alive())
             or (bool(self._iopub_channel) and self._iopub_channel.is_alive())
             or (bool(self._stdin_channel) and self._stdin_channel.is_alive())
-            or (bool(self._hb_channel) and self._hb_channel.is_alive())
             or (
                 bool(self._control_channel)
                 and self._control_channel.is_alive()
@@ -708,9 +657,6 @@ class _WebSocketKernelClient(Configurable):
         if stdin:
             self.stdin_channel.start()
             self.stdin_channel._websocket = self._ws
-        if hb:
-            self.hb_channel.start()
-            self.hb_channel._websocket = self._ws
         if control:
             self.control_channel.start()
             self.control_channel._websocket = self._ws
@@ -727,7 +673,8 @@ class _WebSocketKernelClient(Configurable):
             self._shell_channel._inspect = None
 
     async def _connect(self):
-        if self._owns_session:
+        if self._aiohttp_session is None:
+            self._owns_session = True
             self._aiohttp_session = aiohttp.ClientSession()
 
         qs = {"session_id": self.session.session}
@@ -746,33 +693,25 @@ class _WebSocketKernelClient(Configurable):
 
     async def _receiver_loop(self):
         """Receive messages from the websocket stream."""
+        if self._ws is None:
+            msg = "WebSocket connection is not established."
+            raise RuntimeError(msg)
         try:
-            channel = None
-            while channel != "closed":
+            while True:
                 channel, msg = await self.session.recv(self._ws)
-
-                # TODO(@hlouzada): handle restarts on comms
-                if (
-                    channel == "iopub"
-                    and msg["msg_type"] == "status"
-                    and msg["content"].get("execution_state") == "restarting"
-                ):
-                    await asyncio.to_thread(
-                        self.hb_channel.call_handlers,
-                        self._ws._loop.time() - self._ws._heartbeat_when,
-                    )
-
+                if channel == "closed":
+                    break
                 await self._queues[channel].put(msg)
         except asyncio.CancelledError:
             _LOGGER.debug(
                 "Receiver loop cancelled for %s", self.session.session
             )
-        except BaseException as exc:
+        except Exception as exc:
             await self._ws.close(code=aiohttp.WSCloseCode.INTERNAL_ERROR)
             self._handle_receiver_exception(exc)
 
     @staticmethod
-    def _handle_receiver_exception(exc: BaseException):
+    def _handle_receiver_exception(exc: Exception):
         """Handle exceptions in the receiver loop."""
         raise exc
 
@@ -786,15 +725,13 @@ class _WebSocketKernelClient(Configurable):
             self._receiver = None
 
         if self.shell_channel.is_alive():
-            self.shell_channel.stop()
+            await self.shell_channel.stop()
         if self.iopub_channel.is_alive():
-            self.iopub_channel.stop()
+            await self.iopub_channel.stop()
         if self.stdin_channel.is_alive():
-            self.stdin_channel.stop()
-        if self.hb_channel.is_alive():
-            self.hb_channel.stop()
+            await self.stdin_channel.stop()
         if self.control_channel.is_alive():
-            self.control_channel.stop()
+            await self.control_channel.stop()
 
         await self._disconnect()
 
@@ -807,7 +744,7 @@ class _WebSocketKernelClient(Configurable):
         if self._owns_session and self._aiohttp_session is not None:
             await self._aiohttp_session.close()
 
-    def _handle_kernel_info_reply(self, msg: t.Dict[str, t.Any]) -> None:
+    def _handle_kernel_info_reply(self, msg: dict[str, t.Any]) -> None:
         """
         Handle kernel info reply.
 
@@ -827,8 +764,8 @@ class _WebSocketKernelClient(Configurable):
         code: str,
         silent: bool = False,
         store_history: bool = True,
-        user_expressions: t.Optional[t.Dict[str, t.Any]] = None,
-        allow_stdin: t.Optional[bool] = None,
+        user_expressions: dict[str, t.Any] | None = None,
+        allow_stdin: bool | None = None,
         stop_on_error: bool = True,
     ) -> str:
         """
@@ -863,7 +800,7 @@ class _WebSocketKernelClient(Configurable):
 
         Raises
         ------
-        ValueError
+        TypeError
             If the code is not a string.
         """
         if user_expressions is None:
@@ -873,7 +810,8 @@ class _WebSocketKernelClient(Configurable):
 
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, str):
-            raise ValueError("code %r must be a string" % code)
+            msg = f"code {code!r} must be a string"
+            raise TypeError(msg)
         validate_string_dict(user_expressions)
 
         # Create class for content/msg creation. Related to, but possibly
@@ -917,7 +855,7 @@ class _WebSocketKernelClient(Configurable):
     def inspect(
         self,
         code: str,
-        cursor_pos: t.Optional[int] = None,
+        cursor_pos: int | None = None,
         detail_level: int = 0,
     ) -> str:
         """
@@ -956,7 +894,7 @@ class _WebSocketKernelClient(Configurable):
         raw: bool = True,
         output: bool = False,
         hist_access_type: str = "range",
-        **kwargs: t.Any,
+        **kwargs,
     ) -> str:
         """
         Get entries from the kernel's history list.
@@ -1010,7 +948,7 @@ class _WebSocketKernelClient(Configurable):
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
 
-    def comm_info(self, target_name: t.Optional[str] = None) -> str:
+    def comm_info(self, target_name: str | None = None) -> str:
         """
         Request comm info.
 
@@ -1049,6 +987,7 @@ class _WebSocketKernelClient(Configurable):
         content = {"value": string}
         msg = self.session.msg("input_reply", content)
         self.stdin_channel.send(msg)
+        return msg["header"]["msg_id"]
 
     def shutdown(self, restart: bool = False) -> str:
         """
@@ -1073,33 +1012,28 @@ class _WebSocketKernelClient(Configurable):
         return msg["header"]["msg_id"]
 
 
-class QtWSHBChannel(_WebSocketHBChannel, SuperQObject):
+class QtWSHBChannel(_FakeHBChannel, SuperQObject):
     """A heartbeat channel emitting a Qt signal when a message is received."""
 
-    # Emitted when the kernel has died.
+    # Never used, but kept for API compatibility
     kernel_died = Signal(float)
-
-    def call_handlers(self, since_last_heartbeat):
-        """Reimplemented to emit signal."""
-        # Emit the generic signal.
-        self.kernel_died.emit(since_last_heartbeat)
 
 
 class QtWSChannel(_WebSocketChannel, SuperQObject):
     """A channel emitting a Qt signal when a message is received."""
 
-    # Emitted when a message is received.
     message_received = Signal(object)
 
     def call_handlers(self, msg):
         """
+        Emit signal when a message is received.
+
         This method is called in the ioloop thread when a message arrives.
 
         It is important to remember that this method is called in the thread
         so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
-        # Emit the generic signal.
         self.message_received.emit(msg)
 
     def closed(self):
@@ -1142,4 +1076,9 @@ class SpyderWSKernelClient(QtKernelClientMixin, _WebSocketKernelClient):
             )
             self.sig_ws_msg_size_overflow.emit(self._ws._reader._max_msg_size)
         else:
+            _LOGGER.error(
+                "Receiver loop exception for %s: %s",
+                self.session.session,
+                exc,
+            )
             super()._handle_receiver_exception(exc)

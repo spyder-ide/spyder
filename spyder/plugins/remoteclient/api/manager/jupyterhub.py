@@ -13,6 +13,7 @@ Remote Client Plugin API Manager.
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import aiohttp
@@ -45,6 +46,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         self._server_url = None
         self._user_name = None
         self._session: aiohttp.ClientSession = None
+        self._hb_task: asyncio.Task = None
 
     @property
     def api_token(self):
@@ -73,6 +75,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         ) as response:
             if response.status in {201, 400}:
                 if await self.check_server_version():
+                    self._hb_task = asyncio.create_task(self._heartbeat())
                     self._emit_connection_status(
                         ConnectionStatus.Active,
                         _("Spyder remote services are active"),
@@ -124,21 +127,22 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
                 if line.startswith("data:"):
                     ready = json.loads(line.split(":", 1)[1])["ready"]
 
-        if ready and await self.check_server_version():
-            self._emit_connection_status(
-                ConnectionStatus.Active,
-                _("Spyder remote services are active"),
+        if not ready or not await self.check_server_version():
+            self.logger.error(
+                "Spyder remote server was unable to start, please check the "
+                "JupyterHub logs for more information",
             )
-            return True
+            self._emit_connection_status(
+                ConnectionStatus.Error, _("Error starting the remote server")
+            )
+            return False
 
-        self.logger.error(
-            "Spyder remote server was unable to start, please check the "
-            "JupyterHub logs for more information",
-        )
+        self._hb_task = asyncio.create_task(self._heartbeat())
+
         self._emit_connection_status(
-            ConnectionStatus.Error, _("Error starting the remote server"),
+            ConnectionStatus.Active, _("Spyder remote services are active")
         )
-        return False
+        return True
 
     async def ensure_server_installed(self) -> bool:
         """Assume the server is installed."""
@@ -220,6 +224,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
         """Create a new SSH connection."""
         self.logger.debug("Connecting to jupyterhub at %s", self.hub_url)
 
+        if self._session is not None:
+            await self._session.close()
+
         self._session = aiohttp.ClientSession(
             self.hub_url,
             headers={"Authorization": f"token {self.api_token}"},
@@ -273,3 +280,30 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             ConnectionStatus.Inactive,
             _("The connection was closed successfully"),
         )
+
+    async def stop_remote_server(self) -> bool:
+        """Stop remote server."""
+        if self._hb_task:
+            self._hb_task.cancel()
+            self._hb_task = None
+        return await super().stop_remote_server()
+
+    async def _heartbeat(self):
+        while self.connected and self.server_started:
+            await asyncio.sleep(30)
+            try:
+                async with self._session.get(
+                    f"user/{self._user_name}/spyder/", timeout=30
+                ) as response:
+                    response.raise_for_status()
+            except asyncio.CancelledError:
+                raise
+            except asyncio.TimeoutError:
+                self.logger.warning("Heartbeat timed out")
+                self._handle_connection_lost()
+            except aiohttp.ClientConnectorError:
+                self.logger.warning("Heartbeat connection error")
+                self._handle_connection_lost()
+            except Exception:
+                self.logger.warning("Heartbeat failed", exc_info=True)
+                self._handle_connection_lost()
