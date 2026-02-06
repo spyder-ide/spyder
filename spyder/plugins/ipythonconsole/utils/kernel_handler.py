@@ -686,9 +686,14 @@ class KernelHandler(QObject):
 
     def reconnect_kernel(self):
         """Kernel restarted successfully, so reconnect to it."""
-        self.reopen_comm()
-        self.disconnect_std_pipes()
-        self.connect_std_pipes()
+        # Unecessary closing and opening comms as it's already restarted
+        # in `ShellWidget._handle_kernel_restarted` with
+        # `self.kernel_handler.reopen_comm`. But this is required for the
+        # `sig_kernel_is_ready` to be emitted when running our tests.
+        # TODO: Check this logic again
+        self.kernel_comm.close()
+        self.connection_state = KernelConnectionState.Crashed
+        self.kernel_comm.open_comm(self.kernel_client)
 
     def set_time_to_dead(self, time_to_dead):
         """Set time to detect if the kernel is dead in seconds."""

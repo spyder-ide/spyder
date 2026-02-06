@@ -189,6 +189,7 @@ class IconManager():
             'redo':                    [('mdi.redo',), {'color': self.MAIN_FG_COLOR}],
             'refresh':                 [('mdi.refresh',), {'color': self.MAIN_FG_COLOR}],
             'restart':                 [('mdi.reload',), {'color': self.MAIN_FG_COLOR}],
+            'reconnect':               [('mdi6.connection',), {'color': self.MAIN_FG_COLOR, 'scale_factor': 1.1}],
             'editcopy':                [('mdi.content-copy',), {'color': self.MAIN_FG_COLOR}],
             'editcut':                 [('mdi.content-cut',), {'color': self.MAIN_FG_COLOR}],
             'editclear':               [('mdi.delete',), {'color': self.MAIN_FG_COLOR}],

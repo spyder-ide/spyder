@@ -49,6 +49,10 @@ class SpyderRemoteSessionClosed(SpyderRemoteAPIError):
     ...
 
 
+class SpyderRemoteConnectionError(SpyderRemoteAPIError):
+    """Exception for errors related to connection establishment."""
+
+
 class SpyderBaseJupyterAPI(metaclass=ABCMeta):
     """
     Base class for Jupyter API plugins.
@@ -113,12 +117,23 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self._session.closed
 
     async def connect(self):
-        # Default connect method which ensures a connection via the manager.
+        """
+        Establish connection to the remote Spyder's Jupyter server.
+
+        Raises
+        ------
+        SpyderRemoteConnectionError
+            If the connection to the remote server could not be established.
+        """
         if not await AsyncDispatcher(
             loop="asyncssh",
             return_awaitable=True,
         )(self.manager.ensure_connection_and_server)():
-            raise RuntimeError("Failed to connect to the server")
+            msg = (
+                f"Could not connect to spyder "
+                f"remote server at '{self.server_name}'"
+            )
+            raise SpyderRemoteConnectionError(msg)
         if not self.closed:
             return
         self.session = aiohttp.ClientSession(
@@ -135,7 +150,8 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self
 
     async def close(self):
-        await self.session.close()
+        if self._session is not None:
+            await self._session.close()
 
     async def __aexit__(self, exc_type, exc, tb):
         await self.close()
