@@ -723,6 +723,14 @@ class LSPMixin:
             if len(word) > 0:
                 first_letter = word[0]
 
+            # Get providers order for new sort key
+            from collections import OrderedDict
+            providers_order = {key: index for index, key in enumerate(
+                list(OrderedDict.fromkeys(
+                    [completion["provider"] for completion in completions]
+                ))
+            )}
+
             def sort_key(completion):
                 if "textEdit" in completion:
                     text_insertion = completion["textEdit"]["newText"]
@@ -730,12 +738,30 @@ class LSPMixin:
                     text_insertion = completion["insertText"]
 
                 first_insert_letter = text_insertion[0]
-                case_mismatch = (
-                    first_letter.isupper() and first_insert_letter.islower()
-                ) or (first_letter.islower() and first_insert_letter.isupper())
 
-                # False < True, so case matches go first
-                return (case_mismatch, completion["sortText"])
+                # New sort key
+                # 1: provider order
+                # 2: same case > same letter > orders
+                # 3: sortText 
+                if first_letter == first_insert_letter:
+                    return (
+                        providers_order[completion["provider"]],
+                        0,
+                        completion["sortText"]
+                    )
+                
+                if first_letter.lower() == first_insert_letter.lower():
+                    return (
+                        providers_order[completion["provider"]],
+                        1,
+                        completion["sortText"]
+                    )
+                
+                return (
+                        providers_order[completion["provider"]],
+                        2,
+                        completion["sortText"]
+                    )
 
             completion_list = sorted(completions, key=sort_key)
 
