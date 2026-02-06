@@ -470,6 +470,12 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             triggered=lambda checked: self.restart_kernel(),
             register_shortcut=True
         )
+        self.reconnect_action = self.create_action(
+            IPythonConsoleWidgetActions.Reconnect,
+            text=_("Reconnect to remote kernel"),
+            icon=self.create_icon('reconnect'),
+            triggered=self.reconnect_kernel,
+        )
         self.reset_action = self.create_action(
             IPythonConsoleWidgetActions.ResetNamespace,
             text=_("Remove all variables"),
@@ -685,6 +691,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -757,10 +764,18 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.time_label.name = (
             IPythonConsoleWidgetCornerWidgets.TimeElapsedLabel
         )
+        self.reconnect_button = self.create_toolbutton(
+            IPythonConsoleWidgetCornerWidgets.ReconnectButton,
+            text=_("Reconnect to remote kernel"),
+            tip=_("Reconnect to remote kernel"),
+            icon=self.create_icon("reconnect"),
+            triggered=self.reconnect_kernel,
+        )
 
         # --- Add tab corner widgets.
         self.add_corner_widget(self.stop_button)
         self.add_corner_widget(self.clear_button)
+        self.add_corner_widget(self.reconnect_button)
         self.add_corner_widget(self.time_label)
 
         # --- Tabs context menu
@@ -781,6 +796,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         for item in [
                 self.interrupt_action,
                 self.restart_action,
+                self.reconnect_action,
                 self.reset_action,
                 self.rename_tab_action]:
             self.add_item_to_menu(
@@ -828,6 +844,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             executing = client.is_client_executing()
             self.interrupt_action.setEnabled(executing)
             self.stop_button.setEnabled(executing)
+
+            # For remote clients
+            is_remote = client.is_remote()
+            self.reconnect_action.setVisible(is_remote)
+            self.reconnect_button.setMaximumWidth(
+                self.stop_button.width() if is_remote else 0
+            )
 
             # Client is loading or showing a kernel error
             if (
@@ -2287,6 +2310,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client.close_client(is_last_client)
                 open_clients.remove(client)
 
+    def reconnect_remote_clients(self, server_id):
+        """Request reconnection for all clients bound to a remote server."""
+        for client in self.clients:
+            if (
+                client.is_remote()
+                and client.jupyter_api.server_id == server_id
+            ):
+                client.reconnect_remote_kernel()
+
     def get_client_index_from_id(self, client_id):
         """Return client index from id"""
         for index, client in enumerate(self.clients):
@@ -2547,6 +2579,15 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         if client is not None:
             self.sig_switch_to_plugin_requested.emit()
             client.stop_button_click_handler()
+
+    def reconnect_kernel(self):
+        """Reconnect remote kernel of current client."""
+        client = self.get_current_client()
+        if client is None or not client.is_remote():
+            return
+
+        self.sig_switch_to_plugin_requested.emit()
+        client.reconnect_remote_kernel()
 
     # ---- For cells
     def run_cell(self, code, cell_name, filename, method='runcell'):
