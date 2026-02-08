@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-06 20:09\n"
+"PO-Revision-Date: 2026-02-08 15:04\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -371,7 +371,7 @@ msgstr "保存Github凭据以便更安全地报告内部错误"
 
 #: spyder/dependencies.py:173
 msgid "Render markdown content to HTML"
-msgstr ""
+msgstr "将 markdown 内容渲染为 HTML"
 
 #: spyder/dependencies.py:177
 msgid "Manipulate Jupyter notebooks in the Editor"
@@ -789,7 +789,7 @@ msgstr "Spyder Google 群组"
 
 #: spyder/plugins/application/container.py:302
 msgid "Show changelog"
-msgstr ""
+msgstr "显示更新日志"
 
 #: spyder/plugins/application/container.py:307
 msgid "Help Spyder..."
@@ -1041,7 +1041,7 @@ msgstr "复制版本信息"
 
 #: spyder/plugins/application/widgets/status.py:191
 msgid "Changelog"
-msgstr ""
+msgstr "更新日志"
 
 #: spyder/plugins/application/widgets/status.py:200
 msgid "Help Spyder"
@@ -3431,11 +3431,11 @@ msgstr "上传文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:343
 msgid "Unsupported functionality"
-msgstr ""
+msgstr "不受支持的功能"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:344
 msgid "Opening remote files in the Editor is not yet supported. This feature will be added in Spyder 6.2.0"
-msgstr ""
+msgstr "尚不支持在编辑器中打开远程文件。 此功能将在 Spyder 6.2.0 中添加"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:364
 msgid "New Python Package error"
@@ -3747,7 +3747,7 @@ msgstr "排除字段中存在正则表达式错误"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
 msgid "Searching..."
-msgstr ""
+msgstr "正在搜索……"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -3775,7 +3775,7 @@ msgstr "文件"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
 msgid "files"
-msgstr ""
+msgstr "文件"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:422
 msgid "String not found"
@@ -4054,7 +4054,8 @@ msgstr "自动导入 NumPy 和 Matplotlib 模块"
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "This is a convenience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
-msgstr ""
+msgstr "这是在控制台使用 NumPy 和 Matplotlib 的便捷方式\n"
+"不必显式地导入这些模块。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
@@ -4192,7 +4193,7 @@ msgstr "自动调用"
 
 #: spyder/plugins/ipythonconsole/confpage.py:356
 msgid "Implicitly insert parethesis after any callable object, treating anything following it as arguments.<br>For example, typing <tt>print 'Number:', 42</tt> will execute <tt>print('Number:', 42)</tt>."
-msgstr ""
+msgstr "在任何可调用对象后隐式地插入圆括号，并在之后的任何东西当作参数来处理。<br>例如，输入 <tt>print 'Number:', 42</tt> 将执行 <tt>print('Number:', 42)</tt>。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Smart"
@@ -4326,11 +4327,11 @@ msgstr "检测到的 Conda 版本太旧且不再受 Spyder 支持。 受支持�
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
-msgstr ""
+msgstr "正在等待远程内核响应……"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:179
 msgid "Reconnecting to remote kernel..."
-msgstr ""
+msgstr "正在重新连接到远程内核……"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
@@ -4358,7 +4359,7 @@ msgstr "无法连接到与此控制台相关联的内核。 如果你正在尝�
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:981
 msgid "An error occurred while restarting the remote kernel"
-msgstr ""
+msgstr "在重新启动远程内核时发生了错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:989
 msgid "An error occurred while reconnecting to the remote kernel"
@@ -4718,7 +4719,7 @@ msgstr "更低"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:258
 msgid "<b>Notes</b>:"
-msgstr ""
+msgstr "<b>注释</b>："
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:271
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4806,7 +4807,7 @@ msgstr "内核已死亡，正在重启..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1468
 msgid "Kernel reconnected..."
-msgstr ""
+msgstr "内核已重新连接……"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1470
 msgid "Restarting kernel..."
