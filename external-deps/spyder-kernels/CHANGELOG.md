@@ -1,5 +1,15 @@
 # History of changes
 
+## Version 3.1.2 (2025/11/19)
+
+### Pull Requests Merged
+
+* [PR 570](https://github.com/spyder-ide/spyder-kernels/pull/570) - PR: Remove overridden `set_trace` in `SpyderPdb` because it's not needed, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.1.1 (2025/10/17)
 
 ### Pull Requests Merged
