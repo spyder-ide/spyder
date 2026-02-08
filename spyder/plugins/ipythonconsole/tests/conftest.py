@@ -201,8 +201,12 @@ def ipyconsole(qtbot, request, tmpdir):
     def get_plugin(name):
         if name == Plugins.IPythonConsole:
             return console
+        elif name == Plugins.Debugger:
+            return debugger
+
         return None
 
+    console.get_plugin = get_plugin
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
 
