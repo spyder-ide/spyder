@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-08 15:04\n"
+"PO-Revision-Date: 2026-02-08 17:34\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4363,19 +4363,19 @@ msgstr "在重新启动远程内核时发生了错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:989
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr ""
+msgstr "在重新连接远程内核时发生错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1008
 msgid "It was not possible to restart the remote kernel"
-msgstr ""
+msgstr "无法重新启动远程内核"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1027
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "已超出尝试重新连接到内核的最大次数。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1053
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "未找到远程内核信息。 很可能服务器已重新启动。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1105
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
