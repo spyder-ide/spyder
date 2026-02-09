@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-09 19:35\n"
+"PO-Revision-Date: 2026-02-09 21:08\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4451,11 +4451,11 @@ msgstr "Guardar configuración de conexión"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:276
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "El archivo de conexión que ha introducido no existe o no ha podido ser encontrado por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:294
 msgid "The connection file you passed is not valid.<br><br>The following issue was found: {}"
-msgstr ""
+msgstr "El archivo de conexión que ha introducido no es válido.<br><br>Se ha encontrado el siguiente problema: {}"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:333
 msgid "Select kernel connection file"
@@ -4487,7 +4487,7 @@ msgstr "Reiniciar el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
 msgid "Reconnect to remote kernel"
-msgstr ""
+msgstr "Reconectar al núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4499,11 +4499,11 @@ msgstr "Interrumpir el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Connect to existing kernel..."
-msgstr ""
+msgstr "Conectarse al núcleo existente..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Open an IPython console connected to an existing kernel"
-msgstr ""
+msgstr "Abrir una terminal de IPython conectada a un núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
 msgid "Rename tab"
@@ -4511,11 +4511,11 @@ msgstr "Renombrar la pestaña"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:506
 msgid "Switch to next console"
-msgstr ""
+msgstr "Cambiar a la siguiente terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:513
 msgid "Switch to previous console"
-msgstr ""
+msgstr "Cambiar a la anterior terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:532
 msgid "Show environment variables"
@@ -4607,7 +4607,7 @@ msgstr "Ayuda de la terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1276
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1277
 msgid "Unable to connect to <b>%s</b>"
@@ -4639,7 +4639,7 @@ msgstr "No es posible reiniciar un núcleo que no fue iniciado por Spyder\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2536 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1473 spyder/widgets/collectionseditor.py:1320
 msgid "Don't ask again."
-msgstr ""
+msgstr "No preguntar de nuevo."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2539
 msgid "Are you sure you want to restart the kernel?"
@@ -4683,11 +4683,11 @@ msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr ""
+msgstr "El módulo <tt>'{}'</tt> es necesario para abrir esta variable. Desafortunadamente, no es parte de nuestro instalador, lo que significa que su variable no puede ser mostrada por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está instalado junto a Spyder. Para solucionar este problema, por favor instálelo en el mismo entorno que usa para ejecutar Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
@@ -4707,11 +4707,11 @@ msgstr "Hay una discrepancia entre la versión de Python usada por Spyder ({}) y
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:107
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "Si desea ver esto arreglado en el futuro, por favor haga una donación <a href='{}'>aquí</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:115
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "Si el módulo requerido es suyo, necesita crear un proyecto <a href='{}'>Spyder</a> para él o añadir la ruta donde se encuentra al administrador del PYTHONPATH (disponible en el menú <tt>Herramientas</tt>)."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:123 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:277
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
@@ -4727,7 +4727,7 @@ msgstr "inferior"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:258
 msgid "<b>Notes</b>:"
-msgstr ""
+msgstr "<b>Notas</b>:"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:271
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4815,7 +4815,7 @@ msgstr "El núcleo dejó de funcionar, reiniciándolo..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1468
 msgid "Kernel reconnected..."
-msgstr ""
+msgstr "Núcleo reconectado..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1470
 msgid "Restarting kernel..."
@@ -4835,7 +4835,7 @@ msgstr "Haga clic para alternar entre el graficado en línea y el interactivo de
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:277
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Cambiar el entorno por defecto en Preferencias..."
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4855,7 +4855,7 @@ msgstr "Para el modo de pantalla completa utilice la función incorporada de mac
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "El modo de pantalla completa no funciona de forma confiable en WSL"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -4945,15 +4945,15 @@ msgstr "Aún no se ha definido la disposición de componentes #%d."
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "Dar un nombre a su disposición de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "Guardar disposición de paneles como"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
-msgstr ""
+msgstr "Reordenar o eliminar sus disposiciones de paneles guardadas"
 
 #: spyder/plugins/layout/widgets/dialog.py:228
 msgid "Move up"
@@ -4969,27 +4969,27 @@ msgstr "Eliminar disposición"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "Visualización y orden de las disposiciones de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "Eliminar disposición de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr ""
+msgstr "¿Desea eliminar la disposición de paneles '<b>{}</b>'?"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "Seleccione el intérprete predeterminado de Python para nuevas terminales de IPython y para el completado de código en el Editor"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Internal (same used by Spyder)"
-msgstr ""
+msgstr "Interno (el mismo utilizado por Spyder)"
 
 #: spyder/plugins/maininterpreter/confpage.py:82
 msgid "Selected interpreter:"
-msgstr ""
+msgstr "Intérprete seleccionado:"
 
 #: spyder/plugins/maininterpreter/confpage.py:88
 msgid "Executables"
@@ -5001,11 +5001,11 @@ msgstr "Intérpretes personalizados recientes"
 
 #: spyder/plugins/maininterpreter/confpage.py:119
 msgid "Conda executable"
-msgstr ""
+msgstr "Ejecutable de Conda"
 
 #: spyder/plugins/maininterpreter/confpage.py:123
 msgid "Use a custom Conda/Mamba/Micromamba executable"
-msgstr ""
+msgstr "Usar un ejecutable personalizado de Conda/Mamba/Micromamba"
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
