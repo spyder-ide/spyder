@@ -161,8 +161,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 # kernel 3.10-, or the other way around. In that case,
                 # cloudpickle can't deserialize the objects sent from the
                 # kernel and we need to inform users about it.
-                # Fixes spyder-ide/spyder#24125.
-                # Fixes spyder-ide/spyder#24950.
+                # Fixes spyder-ide/spyder#24125 and spyder-ide/spyder#24950.
                 py_spyder_version = ".".join(
                     [str(n) for n in sys.version_info[:3]]
                 )
@@ -232,7 +231,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             if not kernel_call_success:
                 name = e.args[0].error.name
                 reason = reason_missing_package_target.format(name)
-            elif e.name.startswith('numpy._core') and not is_conda_based_app():
+            elif e.name.startswith('numpy._core'):
                 reason = reason_mismatched_numpy
             elif e.name == 'pandas.core.indexes.numeric':
                 reason = reason_mismatched_pandas_2
