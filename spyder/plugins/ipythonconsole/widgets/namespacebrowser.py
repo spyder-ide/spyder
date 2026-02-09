@@ -83,11 +83,18 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             "please upgrade <tt>numpy</tt> in the environment that you use to "
             "run Spyder to version 1.26.1 or higher."
         )
-        reason_mismatched_pandas = _(
+        reason_mismatched_pandas_2 = _(
             "There is a mismatch between the Pandas versions used by Spyder "
             "and the kernel of your current console. To fix this problem, "
             "please upgrade <tt>pandas</tt> in the console environment "
             "to version 2.0 or higher."
+        )
+        reason_mismatched_pandas_3 = _(
+            "There is a mismatch between the Pandas versions used by Spyder "
+            "and the kernel of your current console. To fix this problem, "
+            "please upgrade <tt>pandas</tt> in the environment where Spyder "
+            "is installed to version 3.0 or higher, or downgrade it in the "
+            "console enviroment to version 2.3."
         )
         reason_mismatched_python_installer = _(
             "There is a mismatch between the Python versions used by Spyder "
@@ -210,6 +217,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                     )
 
             raise ValueError(msg % reason_not_picklable)
+        except NotImplementedError as err:
+            if "StringDtype(storage='python'" in str(err):
+                raise ValueError(msg % reason_mismatched_pandas_3)
+            else:
+                raise ValueError(msg % reason_other)
         except RuntimeError:
             raise ValueError(msg % reason_dead)
         except KeyError:
@@ -223,7 +235,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             elif e.name.startswith('numpy._core') and not is_conda_based_app():
                 reason = reason_mismatched_numpy
             elif e.name == 'pandas.core.indexes.numeric':
-                reason = reason_mismatched_pandas
+                reason = reason_mismatched_pandas_2
             else:
                 # We don't show the full message in this case so people don't
                 # report this problem to Github and instead encourage them to
