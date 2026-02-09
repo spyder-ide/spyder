@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-08 17:34\n"
+"PO-Revision-Date: 2026-02-09 00:40\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4379,7 +4379,7 @@ msgstr "未找到远程内核信息。 很可能服务器已重新启动。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1105
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr ""
+msgstr "连接到服务器 <b>{}</b> 时发生错误。<br><br>请使用菜单项 <tt>工具 > 管理远程连接</tt> 检查你的连接是否正常。"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4479,7 +4479,7 @@ msgstr "重启 IPython 内核"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
 msgid "Reconnect to remote kernel"
-msgstr ""
+msgstr "重新连接到远程内核"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4675,11 +4675,11 @@ msgstr "需要 '<tt>{}</tt>' 模块来打开此变量而它没有在控制台环
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr ""
+msgstr "需要有 '<tt>{}</tt>' 模块才能打开此变量。 不幸的是，它不是我们安装包的组成部分，这意味着你的变量无法被 Spyder 显示。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "需要有 '<tt>{}</tt>' 模块才能打开此变量而它没有随 Spyder 一起安装。 要修复此问题，请在你用来运行 Spyder 的同一个环境中安装它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
@@ -4699,11 +4699,11 @@ msgstr "Spyder 使用的 Python 版本 ({}) 与当前控制台的内核版本 ({
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:107
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "如果你希望此问题将来得到修复，请在 <a href='{}'>这里</a> 进行捐助。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:115
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "如果所需的模块是由你管理的，请需要为它创建一个 <a href='{}'>Spyder 项目</a> 或将它所在路径添加到 PYTHONPATH 管理器（可在 <tt>工具</tt> 菜单中访问）。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:123 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:277
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
