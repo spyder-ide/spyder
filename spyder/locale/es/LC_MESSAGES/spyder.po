@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-06 14:37-0500\n"
-"PO-Revision-Date: 2026-02-06 20:08\n"
+"PO-Revision-Date: 2026-02-09 19:35\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3759,7 +3759,7 @@ msgstr "Error de expresión regular en el campo Excluir"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
 msgid "Searching..."
-msgstr ""
+msgstr "Buscando..."
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -3787,7 +3787,7 @@ msgstr "archivo"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
 msgid "files"
-msgstr ""
+msgstr "archivos"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:422
 msgid "String not found"
@@ -4343,7 +4343,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
-msgstr ""
+msgstr "Recuperando variables de entorno..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:269
 msgid "Connecting to kernel..."
@@ -4363,31 +4363,31 @@ msgstr "Ocurrió un error mientras iniciaba el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:627
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "No fue posible conectar con el núcleo asociado a esta terminal. Si estás tratando de conectar con un núcleo existente, compruebe que el archivo de conexión que ha seleccionado realmente corresponde al núcleo al que desea conectarse."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:981
 msgid "An error occurred while restarting the remote kernel"
-msgstr ""
+msgstr "Ocurrió un error mientras se reiniciaba el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:989
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr ""
+msgstr "Ocurrió un error al reconectar con el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1008
 msgid "It was not possible to restart the remote kernel"
-msgstr ""
+msgstr "No fue posible reiniciar el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1027
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "Se excedió el número máximo de intentos de reconexión al núcleo."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1053
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "No se encontró la información del núcleo remoto. Probablemente el servidor fue reiniciado."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1105
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr ""
+msgstr "Hubo un error al conectar con el servidor <b>{}</b>.<br><br>Por favor compruebe que su conexión está funcionando en la entrada del menú <tt>Herramientas > Gestionar conexiones remotas</tt>."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4395,7 +4395,7 @@ msgstr "Las figuras se muestran en el panel de Gráficos por defecto. Para que t
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:71
 msgid "Connect to existing kernel"
-msgstr ""
+msgstr "Conectarse al núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:73
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
