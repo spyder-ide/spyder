@@ -1284,3 +1284,78 @@ p {
   from { transform: translateY(0); }
   to { transform: translateY(100%); }
 }
+
+/* --- Scrollbar -- */
+
+::-webkit-scrollbar {
+  background-color: #19232D;
+  width: 14px;
+  height: 14px;
+  margin: 16px 2px 16px 2px;
+  border: 1px solid #37414F;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #788D9C;
+  border: 1px solid #37414F;
+  min-height: 8px;
+  border-radius: 10px;
+  width: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #346792;
+  border: 1px solid #346792;
+  border-radius: 10px;
+  min-height: 8px;
+  width: 1px;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+  background-repeat: no-repeat;
+  background-image: url(./down_arrow_disabled.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+  background-repeat: no-repeat;
+  background-image: url(./up_arrow_disabled.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:increment:hover {
+  background-repeat: no-repeat;
+  background-image: url(./down_arrow.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+  background-repeat: no-repeat;
+  background-image: url(./up_arrow_horizontal.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+  background-repeat: no-repeat;
+  background-image: url(./down_arrow_disabled_horizontal.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+  background-repeat: no-repeat;
+  background-image: url(./up_arrow_disabled_horizontal.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+  background-repeat: no-repeat;
+  background-image: url(./down_arrow_horizontal.png);
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:decrement:hover {
+  background-repeat: no-repeat;
+  background-image: url(./up_arrow.png);
+  background-position: center center;
+}
