@@ -13,7 +13,7 @@ name = 'qtconsole'
 import sys
 
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 8):
+if v[0] >= 3 and v[:2] < (3, 9):
     error = "ERROR: %s requires Python version 3.9 or above." % name
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -57,7 +57,7 @@ setup_args = dict(
     long_description              = long_description,
     long_description_content_type = 'text/markdown',
     author                        = 'Jupyter Development Team',
-    author_email                  = 'jupyter@googlegroups.com',
+    author_email                  = 'spyder.python@gmail.com',
     maintainer                    = 'Spyder Development Team',
     url                           = 'http://jupyter.org',
     license                       = 'BSD',

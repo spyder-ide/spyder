@@ -29,7 +29,7 @@ jobs:
       INSTALL_TYPE: ${{ matrix.INSTALL_TYPE }}
       QT_API: ${{ matrix.QT_LIB }}
       PYTEST_QT_API: ${{ matrix.QT_LIB }}
-      COVERALLS_REPO_TOKEN: 'XWVhJf2AsO7iouBLuCsh0pPhwHy81Uz1v'
+      COVERALLS_REPO_TOKEN: 'dNLW68EOHK4mbPjKEFpNuhQbxaB50Clhp'
       COVERALLS_SERVICE_NAME: 'github-actions'
     strategy:
       fail-fast: false
