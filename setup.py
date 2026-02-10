@@ -247,19 +247,19 @@ qt_requirements = {
     'pyqt5': [
         'pyqt5>=5.15,<5.16',
         'pyqtwebengine>=5.15,<5.16',
-        'qtconsole>=5.7.0,<5.8.0',
+        'qtconsole>=5.7.1,<5.8.0',
     ],
     'pyqt6': [
         'pyqt6>=6.5,<7',
         'pyqt6-webengine>=6.5,<7',
-        'qtconsole>=5.7.0,<5.8.0',
+        'qtconsole>=5.7.1,<5.8.0',
     ],
     'pyside6': [
         'pyside6>=6.5,<7',
-        'qtconsole>=5.7.0,<5.8.0',
+        'qtconsole>=5.7.1,<5.8.0',
     ],
     'conda-forge': [
-        'qtconsole>=5.7.0,<5.8.0',
+        'qtconsole>=5.7.1,<5.8.0',
     ]
 }
 
@@ -333,7 +333,7 @@ if 'dev' in __version__:
                         if req.split(">")[0] not in reqs_to_loosen]
 
     install_requires.append('python-lsp-server[all]>=1.13.0,<1.15.0')
-    install_requires.append('qtconsole>=5.7.0,<5.9.0')
+    install_requires.append('qtconsole>=5.7.1,<5.9.0')
 
 extras_require = {
     'test': [
