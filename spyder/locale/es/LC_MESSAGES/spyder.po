@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-10 16:15-0500\n"
-"PO-Revision-Date: 2025-12-16 23:47\n"
+"PO-Revision-Date: 2026-02-10 22:47\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
-"Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 104\n"
-"X-Crowdin-Language: es-ES\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: es-ES\n"
+"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 104\n"
+"Language: es_ES\n"
 
 #: spyder/api/plugin_registration/_confpage.py:29
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
@@ -139,27 +138,21 @@ msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start o
 msgstr "No ha sido posible cargar el tema de iconos de Spyder, por lo que Spyder no puede iniciarse en su sistema. Las causas más probables para esto son que está usando una versión de Windows anterior a Windows 10 1803/Windows Server 2019, que ya no está soportado por Spyder o Microsoft, o el administrador del sistema ha desactivado la instalación de fuentes para usuarios que no son administradores.<br><br>Por favor, solicite ayuda al administrador del sistema para actualizar Windows o para instalar para todos los usuarios las siguientes fuentes:<ul>{fonts_list}</ul>que se encuentran en:<br><br><code>{fonts_directory}</code><br><br>Si tiene privilegios de administrador puede ejecutar el siguiente comando para instalar las fuentes necesarias en una instancia de Símbolo del sistema:<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:138
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr ""
-"No fue posible cerrar la instancia anterior de Spyder.\n"
+msgstr "No fue posible cerrar la instancia anterior de Spyder.\n"
 "Reinicialización abortada."
 
 #: spyder/app/restart.py:140
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr ""
-"Spyder no pudo volver a la configuración por defecto.\n"
+msgstr "Spyder no pudo volver a la configuración por defecto.\n"
 "Reinicialización abortada."
 
 #: spyder/app/restart.py:142
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr ""
-"No fue posible reiniciar Spyder.\n"
+msgstr "No fue posible reiniciar Spyder.\n"
 "Operación abortada."
 
 #: spyder/app/restart.py:144
@@ -195,13 +188,9 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr "El contexto del atajo debe coincidir con ’_’ o la sección `CONF_SECTION` del plugin!"
 
 #: spyder/config/manager.py:812
-msgid ""
-"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
-"\n"
+msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
-"Hubo un error al cargar las opciones de configuración de Spyder. Necesita reiniciarlas para que Spyder pueda ejecutarse.\n"
-"\n"
+msgstr "Hubo un error al cargar las opciones de configuración de Spyder. Necesita reiniciarlas para que Spyder pueda ejecutarse.\n\n"
 "¿Quiere continuar?"
 
 #: spyder/config/manager.py:820
@@ -750,8 +739,7 @@ msgstr "Activar el escalado para pantallas de alta resolución"
 
 #: spyder/plugins/application/confpage.py:213
 msgid "Set this for high DPI displays"
-msgstr ""
-"Activar esta opción para escalar la interfaz \n"
+msgstr "Activar esta opción para escalar la interfaz \n"
 "a pantallas de alta resolución"
 
 #: spyder/plugins/application/confpage.py:218
@@ -763,8 +751,7 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr "Activar esta opción en pantallas de alta resolución cuando el auto-escalado de la interfaz no funcione"
 
 #: spyder/plugins/application/confpage.py:229
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 " Float values are supported"
 msgstr "Introduzca los valores para las diferentes pantallas separadas por punto y coma ‘;’. Es posible utilizar tanto números reales como enteros"
 
@@ -801,9 +788,8 @@ msgid "Spyder Google group"
 msgstr "Grupo de Google de Spyder"
 
 #: spyder/plugins/application/container.py:302
-#, fuzzy
 msgid "Show changelog"
-msgstr "Mostrar reloj"
+msgstr ""
 
 #: spyder/plugins/application/container.py:307
 msgid "Help Spyder..."
@@ -815,8 +801,7 @@ msgstr "Acerca de %s"
 
 #: spyder/plugins/application/container.py:322
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
-msgstr ""
-"Mostrar y editar las variables de\n"
+msgstr "Mostrar y editar las variables de\n"
 "entorno del usuario actual en el\n"
 "registro de Windows (es decir,\n"
 "para todas las sesiones)"
@@ -1222,12 +1207,10 @@ msgid "Enable Go to definition"
 msgstr "Habilitar ir a la definición"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
-msgstr ""
-"Si está opción está activada, al hacer click izquierdo \n"
+msgstr "Si está opción está activada, al hacer click izquierdo \n"
 "sobre el nombre de un objeto mientras presiona\n"
 "la tecla {} lo llevará a la definición del mismo \n"
 "(de poder resolverse)."
@@ -1245,12 +1228,10 @@ msgid "Enable hover hints"
 msgstr "Habilitar sugerencias"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr ""
-"Si está habilitado, al colocar el puntero del mouse sobre el nombre\n"
+msgstr "Si está habilitado, al colocar el puntero del mouse sobre el nombre\n"
 "de un objeto se mostrará la firma de ese objeto y / o\n"
 "su docstring (si está presente)."
 
@@ -1535,11 +1516,9 @@ msgid "down"
 msgstr "abajo"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:42
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
-"Completado, análisis de código, \n"
+msgstr "Completado, análisis de código, \n"
 "plegado de código y estado de los símbolos."
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:71
@@ -1743,26 +1722,18 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr "Para utilizar comandos como \"raw_input\" o \"input\", por favor ejecute Spyder con la opción multithread (--multithread) desde una terminal del sistema"
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please do not use it to run your code\n"
-"\n"
-msgstr ""
-"¡Terminal interna de Spyder!\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please do not use it to run your code\n\n"
+msgstr "¡Terminal interna de Spyder!\n\n"
 "Esta terminal se utiliza para reportar errores de la\n"
 "aplicación y para inspeccionar las características\n"
 "internas de Spyder con los siguientes comandos:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Por favor no ejecute su código en esta terminal\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Por favor no ejecute su código en esta terminal\n\n"
 
 #: spyder/plugins/console/widgets/main_widget.py:178 spyder/plugins/ipythonconsole/widgets/main_widget.py:676
 msgid "&Quit"
@@ -1850,8 +1821,7 @@ msgstr "Guardar el historial..."
 
 #: spyder/plugins/console/widgets/shell.py:148
 msgid "Save current history log (i.e. all inputs and outputs) in a text file"
-msgstr ""
-"Guardar el historial actual (es decir\n"
+msgstr "Guardar el historial actual (es decir\n"
 "todas las entradas y salidas) en un\n"
 "archivo de texto"
 
@@ -2120,11 +2090,9 @@ msgid "Show tab bar"
 msgstr "Mostrar barra de pestañas"
 
 #: spyder/plugins/editor/confpage.py:60
-msgid ""
-"If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
+msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
 "can still be used to navigate between open files."
-msgstr ""
-"Si se oculta, el cambiador de archivos, el panel Explorador de código y Ctrl-Tab\n"
+msgstr "Si se oculta, el cambiador de archivos, el panel Explorador de código y Ctrl-Tab\n"
 "todavía pueden utilizarse para navegar entre archivos abiertos."
 
 #: spyder/plugins/editor/confpage.py:66
@@ -2240,12 +2208,10 @@ msgid "Strip trailing spaces on changed lines"
 msgstr "Eliminar espacios en blanco en las líneas modificadas"
 
 #: spyder/plugins/editor/confpage.py:218
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
-"Si está habilitado, se quitarán los espacios en blanco a\n"
+msgstr "Si está habilitado, se quitarán los espacios en blanco a\n"
 "las líneas de código modificadas (excluyendo las cadenas)\n"
 "Si está deshabilitado, solo se eliminarán los espacios en\n"
 "blanco agregados por Spyder."
@@ -2255,8 +2221,7 @@ msgid "Automatically add missing end-of-file newline on save"
 msgstr "Añadir automáticamente una nueva línea de fin de archivo al guardar"
 
 #: spyder/plugins/editor/confpage.py:229
-msgid ""
-"If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
+msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
 msgstr "Si está habilitado, un carácter de nueva línea final (salto de línea) se añadirá automáticamente al final del archivo si el archivo no termina con uno, para cumplir con las convenciones estándar de archivos de texto."
 
@@ -2301,12 +2266,10 @@ msgid "Tab always indents"
 msgstr "Siempre indentar con la tecla Tab"
 
 #: spyder/plugins/editor/confpage.py:294
-msgid ""
-"If enabled, pressing Tab will always add an indent,\n"
+msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
-"Si esta opción está activada, el oprimir Tab\n"
+msgstr "Si esta opción está activada, el oprimir Tab\n"
 "siempre indentará el código aun cuando el\n"
 "cursor no esté al principio de una línea.\n"
 "El completado de código puede aún usarse con\n"
@@ -2321,8 +2284,7 @@ msgid "Fix mixed end-of-lines automatically and show warning dialog"
 msgstr "Corregir automáticamente finales de línea mezclados y mostrar un diálogo de advertencia"
 
 #: spyder/plugins/editor/confpage.py:324
-msgid ""
-"When opening a file containing mixed end-of-line characters\n"
+msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
 msgstr "Cuando se abra un archivo que contenga varios tipos de caracteres de fin de línea (lo cual puede dar lugar a errores en la terminal en Windows), Spyder los convertirá automáticamente si está activado."
@@ -2552,24 +2514,16 @@ msgid "Removal error"
 msgstr "Error de remoción"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2905
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
-msgstr ""
-"No fue posible remover las outputs de este notebook. El error es:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
+msgstr "No fue posible remover las outputs de este notebook. El error es:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2917 spyder/plugins/explorer/widgets/explorer.py:1806
 msgid "Conversion error"
 msgstr "Error de conversión"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2918 spyder/plugins/explorer/widgets/explorer.py:1807
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
-msgstr ""
-"No fue posible convertir este notebook. El error es:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
+msgstr "No fue posible convertir este notebook. El error es:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:3513
 msgid "Uncomment"
@@ -2833,14 +2787,12 @@ msgstr "Mostrar la lista de comentarios (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/
 
 #: spyder/plugins/editor/widgets/main_widget.py:452
 msgid "Show warning/error list"
-msgstr ""
-"Mostrar la lista de errores\n"
+msgstr "Mostrar la lista de errores\n"
 "y advertencias"
 
 #: spyder/plugins/editor/widgets/main_widget.py:454
 msgid "Show code analysis warnings/errors"
-msgstr ""
-"Mostrar errores o advertencias\n"
+msgstr "Mostrar errores o advertencias\n"
 "del análisis del código"
 
 #: spyder/plugins/editor/widgets/main_widget.py:468
@@ -2849,8 +2801,7 @@ msgstr "Anterior advertencia o error"
 
 #: spyder/plugins/editor/widgets/main_widget.py:470
 msgid "Go to previous code analysis warning/error"
-msgstr ""
-"Ir a la línea anterior de\n"
+msgstr "Ir a la línea anterior de\n"
 "advertencia o error"
 
 #: spyder/plugins/editor/widgets/main_widget.py:477
@@ -2859,8 +2810,7 @@ msgstr "Siguiente advertencia o error"
 
 #: spyder/plugins/editor/widgets/main_widget.py:479
 msgid "Go to next code analysis warning/error"
-msgstr ""
-"Ir a la próxima línea de\n"
+msgstr "Ir a la próxima línea de\n"
 "advertencia o error"
 
 #: spyder/plugins/editor/widgets/main_widget.py:488
@@ -2869,8 +2819,7 @@ msgstr "Última posición de edición"
 
 #: spyder/plugins/editor/widgets/main_widget.py:490
 msgid "Go to last edit location"
-msgstr ""
-"Ir a la anterior posición\n"
+msgstr "Ir a la anterior posición\n"
 "de edición"
 
 #: spyder/plugins/editor/widgets/main_widget.py:497
@@ -3010,13 +2959,9 @@ msgid "Recover from autosave"
 msgstr "Recuperar del auto-guardado"
 
 #: spyder/plugins/editor/widgets/recover.py:140
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
-"Se encontraron archivos de auto-guardado. ¿Que le gustaría hacer?\n"
-"\n"
+msgstr "Se encontraron archivos de auto-guardado. ¿Que le gustaría hacer?\n\n"
 "Este cuadro de diálogo se mostrará nuevamente en el próximo inicio si alguno de los archivos de auto-guardado no se restaura, mueve o elimina."
 
 #: spyder/plugins/editor/widgets/recover.py:159
@@ -3228,8 +3173,7 @@ msgid " (Application not found!)"
 msgstr " (Aplicación no encontrada!)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1167
-msgid ""
-"Do you really want to delete <b>%s</b>?\n"
+msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
 msgstr "¿Realmente desea eliminar <b>%s</b>?<br><br><b>Nota</b>: Este archivo o directorio será movido a la papelera."
 
@@ -3306,24 +3250,16 @@ msgid "File/Folder copy error"
 msgstr "Error de copiado de archivo o carpeta"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1502
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
-msgstr ""
-"No se puede copiar este tipo de archivo(s) o carpeta(s). El error fue:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
+msgstr "No se puede copiar este tipo de archivo(s) o carpeta(s). El error fue:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1542
 msgid "Error pasting file"
 msgstr "Error pegando el archivo"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1543 spyder/plugins/explorer/widgets/explorer.py:1571
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
-msgstr ""
-"Operación de copiado no soportada. El error fue:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
+msgstr "Operación de copiado no soportada. El error fue:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1562
 msgid "Recursive copy"
@@ -3822,9 +3758,8 @@ msgid "Regular expression error in Exclude field"
 msgstr "Error de expresión regular en el campo Excluir"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
-#, fuzzy
 msgid "Searching..."
-msgstr "Buscar en:"
+msgstr "Buscando..."
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -3851,9 +3786,8 @@ msgid "file"
 msgstr "archivo"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
-#, fuzzy
 msgid "files"
-msgstr "archivo"
+msgstr "archivos"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:422
 msgid "String not found"
@@ -4060,12 +3994,10 @@ msgid "Display:"
 msgstr "Visualización:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
-msgid ""
-"Graphical shows a list of completion matches in a GUI.\n"
+msgid "Graphical shows a list of completion matches in a GUI.\n"
 "Plain displays matches in the Console output, like Bash.\n"
 "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
-msgstr ""
-"La opción Gráfico muestra una lista de coincidencias de completado en una GUI.\n"
+msgstr "La opción Gráfico muestra una lista de coincidencias de completado en una GUI.\n"
 "La opción Plano muestra coincidencias en la salida de la consola, como Bash.\n"
 "La opción Consola es como la opción Plano más el uso de Tabulación para selección de coincidencias, como Zsh.\n"
 
@@ -4074,12 +4006,10 @@ msgid "Use Jedi completion"
 msgstr "Usar completado con Jedi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
-msgid ""
-"Enable Jedi-based tab-completion in the IPython console.\n"
+msgid "Enable Jedi-based tab-completion in the IPython console.\n"
 "Similar to the greedy completer, but without evaluating the code and allows completion of dictionary keys, nested lists and similar.\n"
 "Warning: Can slow down the Console when working with large dataframes."
-msgstr ""
-"Habilitar completado con tabulación basado en Jedi en la Terminal de IPython.\n"
+msgstr "Habilitar completado con tabulación basado en Jedi en la Terminal de IPython.\n"
 "De manera similar al completado ambicioso, pero sin evaluar el código y permita el completado de llaves de diccionario, listas anidadas y similares.\n"
 "Advertencia: Puede ralentizar la Terminal cuando se esta trabajando con dataframes grandes."
 
@@ -4104,11 +4034,9 @@ msgid " lines"
 msgstr " líneas"
 
 #: spyder/plugins/ipythonconsole/confpage.py:141
-msgid ""
-"The maximum number of output lines retained in each console at a time.\n"
+msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
-"El número máximo de líneas de salida retenidas en cada terminal a la vez.\n"
+msgstr "El número máximo de líneas de salida retenidas en cada terminal a la vez.\n"
 "Advertencia; tamaños de búfer mayores a 10000 líneas pueden ralentizar Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
@@ -4116,12 +4044,10 @@ msgid "Render SymPy symbolic math"
 msgstr "Renderizar matemática simbólica de SymPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
-msgid ""
-"Pretty-print the outputs of SymPy symbolic computations\n"
+msgid "Pretty-print the outputs of SymPy symbolic computations\n"
 "(requires SymPy installed in the console environment).\n"
 "Refer to SymPy's documentation for details on using it."
-msgstr ""
-"Pretty-print las salidas de cálculos simbólicos de SymPy\n"
+msgstr "Pretty-print las salidas de cálculos simbólicos de SymPy\n"
 "(requiere que SymPy esté instalado en el entorno de la terminal).\n"
 "Consulte la documentación de SymPy para obtener más detalles sobre su uso."
 
@@ -4138,8 +4064,7 @@ msgid "Automatically import NumPy and Matplotlib modules"
 msgstr "Importar automáticamente los módulos NumPy y Matplotlib"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
-msgid ""
-"This is a convenience to use NumPy and Matplotlib\n"
+msgid "This is a convenience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
 msgstr ""
 
@@ -4160,8 +4085,7 @@ msgid "Backend:"
 msgstr "Salida:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:207
-msgid ""
-"If unsure, select {inline} to show figures in the Plots pane\n"
+msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
 msgstr "Si no está seguro, seleccione {inline} para mostrar las figuras en el panel de Gráficos o {auto} para interactuar con ellas (zoom y paneos) en una nueva ventana."
 
@@ -4234,11 +4158,9 @@ msgid "of figure height"
 msgstr "de la altura de la figura"
 
 #: spyder/plugins/ipythonconsole/confpage.py:280
-msgid ""
-"The position of the bottom edge of the subplots,\n"
+msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height (default is 0.11)."
-msgstr ""
-"La posición del borde inferior de los subgráficos,\n"
+msgstr "La posición del borde inferior de los subgráficos,\n"
 "como una fracción de la altura de la figura.\n"
 "(el valor predeterminado es 0.11)."
 
@@ -4247,8 +4169,7 @@ msgid "Use a tight layout for inline plots"
 msgstr "Usar una disposición ajustada ('tight') para los gráficos en línea"
 
 #: spyder/plugins/ipythonconsole/confpage.py:287
-msgid ""
-"Sets 'bbox_inches' to 'tight' for inline plots.\n"
+msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
 msgstr "Establece el valor de 'bbox_inches' en 'tight' cuando se generan gráficos en línea. Al estar activado, las figuras mostradas en el panel de Gráficos pueden lucir diferentes de aquellas resultado del uso de 'savefig'."
@@ -4258,11 +4179,9 @@ msgid "Run code"
 msgstr "Ejecutar código"
 
 #: spyder/plugins/ipythonconsole/confpage.py:319
-msgid ""
-"Enter a code snippet to run when a new console is started.\n"
+msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
-msgstr ""
-"Introduzca un fragmento de código a ejecutar cuando se inicie una nueva terminal.\n"
+msgstr "Introduzca un fragmento de código a ejecutar cuando se inicie una nueva terminal.\n"
 "Separe múltiples líneas con punto y coma, por ejemplo:<br><tt>import os; import sys</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:334
@@ -4302,8 +4221,7 @@ msgid "Autocall:  "
 msgstr "Autollamar: "
 
 #: spyder/plugins/ipythonconsole/confpage.py:372
-msgid ""
-"In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
+msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
 msgstr "En modo {smart}, Autollamar no se usa si no hay argumentos después del objeto llamable. En modo {full}, todos los objetos llamables son llamados aun cuando no haya argumentos presentes."
 
@@ -4396,12 +4314,8 @@ msgid "This Python environment doesn't have the right version of <tt>spyder-kern
 msgstr "Este entorno de Python no tiene instalada la versión correcta del módulo <tt>spyder-kernels</tt> (>= {0} y < {1}). Sin este módulo no es posible para Spyder crear una terminal.<br><br>Puede instalarlo activando su entorno (de ser necesario) y luego ejecutando en una consola de comandos del sistema:<pre> <tt>{2}</tt></pre>o<pre> <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:523
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
-msgstr ""
-"Ocurrió un error al tratar de cargar el archivo de conexión del núcleo. El error fue:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
+msgstr "Ocurrió un error al tratar de cargar el archivo de conexión del núcleo. El error fue:\n\n"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:57
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
@@ -4424,13 +4338,12 @@ msgid "Waiting for the remote kernel to respond..."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:179
-#, fuzzy
 msgid "Reconnecting to remote kernel..."
-msgstr "Conectándose al núcleo..."
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
-msgstr ""
+msgstr "Recuperando variables de entorno..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:269
 msgid "Connecting to kernel..."
@@ -4450,35 +4363,31 @@ msgstr "Ocurrió un error mientras iniciaba el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:627
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "No fue posible conectar con el núcleo asociado a esta terminal. Si estás tratando de conectar con un núcleo existente, compruebe que el archivo de conexión que ha seleccionado realmente corresponde al núcleo al que desea conectarse."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:981
-#, fuzzy
 msgid "An error occurred while restarting the remote kernel"
-msgstr "Ocurrió un error mientras iniciaba el núcleo"
+msgstr "Ocurrió un error mientras se reiniciaba el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:989
-#, fuzzy
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr "Ocurrió un error mientras iniciaba el núcleo"
+msgstr "Ocurrió un error al reconectar con el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1008
-#, fuzzy
 msgid "It was not possible to restart the remote kernel"
-msgstr "No fue posible reiniciar el núcleo"
+msgstr "No fue posible reiniciar el núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1027
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "Se excedió el número máximo de intentos de reconexión al núcleo."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1053
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "No se encontró la información del núcleo remoto. Probablemente el servidor fue reiniciado."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1105
-#, fuzzy
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr "Hubo un error al conectarse al servidor <b>{}</b>. Por favor, compruebe que su conexión está funcionando."
+msgstr "Hubo un error al conectar con el servidor <b>{}</b>.<br><br>Por favor compruebe que su conexión está funcionando en la entrada del menú <tt>Herramientas > Gestionar conexiones remotas</tt>."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4486,7 +4395,7 @@ msgstr "Las figuras se muestran en el panel de Gráficos por defecto. Para que t
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:71
 msgid "Connect to existing kernel"
-msgstr ""
+msgstr "Conectarse al núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:73
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
@@ -4542,11 +4451,11 @@ msgstr "Guardar configuración de conexión"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:276
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "El archivo de conexión que ha introducido no existe o no ha podido ser encontrado por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:294
 msgid "The connection file you passed is not valid.<br><br>The following issue was found: {}"
-msgstr ""
+msgstr "El archivo de conexión que ha introducido no es válido.<br><br>Se ha encontrado el siguiente problema: {}"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:333
 msgid "Select kernel connection file"
@@ -4577,9 +4486,8 @@ msgid "Restart kernel"
 msgstr "Reiniciar el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
-#, fuzzy
 msgid "Reconnect to remote kernel"
-msgstr "Conectarse a núcleos remotos a través de SSH"
+msgstr "Reconectar al núcleo remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4591,11 +4499,11 @@ msgstr "Interrumpir el núcleo"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Connect to existing kernel..."
-msgstr ""
+msgstr "Conectarse al núcleo existente..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Open an IPython console connected to an existing kernel"
-msgstr ""
+msgstr "Abrir una terminal de IPython conectada a un núcleo existente"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
 msgid "Rename tab"
@@ -4603,11 +4511,11 @@ msgstr "Renombrar la pestaña"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:506
 msgid "Switch to next console"
-msgstr ""
+msgstr "Cambiar a la siguiente terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:513
 msgid "Switch to previous console"
-msgstr ""
+msgstr "Cambiar a la anterior terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:532
 msgid "Show environment variables"
@@ -4699,7 +4607,7 @@ msgstr "Ayuda de la terminal"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1276
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1277
 msgid "Unable to connect to <b>%s</b>"
@@ -4731,7 +4639,7 @@ msgstr "No es posible reiniciar un núcleo que no fue iniciado por Spyder\n"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2536 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1473 spyder/widgets/collectionseditor.py:1320
 msgid "Don't ask again."
-msgstr ""
+msgstr "No preguntar de nuevo."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2539
 msgid "Are you sure you want to restart the kernel?"
@@ -4774,27 +4682,24 @@ msgid "The '<tt>{}</tt>' module is required to open this variable and it's not i
 msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está instalado en el entorno siendo usado por la terminal. Para solucionar este problema, por favor instálelo en el mismo entorno que usa para ejecutar su código."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
-#, fuzzy
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr "Se requiere el módulo '<tt>{}</tt>' para abrir esta variable. Desafortunadamente, dicho módulo no viene incluido con nuestro instalador, lo que significa que su variable no puede ser mostrada por Spyder.<br><br>Si quiere ver esto solucionado en el futuro, por favor done a este <a href='{}'>proyecto</a>."
+msgstr "El módulo <tt>'{}'</tt> es necesario para abrir esta variable. Desafortunadamente, no es parte de nuestro instalador, lo que significa que su variable no puede ser mostrada por Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
-#, fuzzy
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está instalado en el entorno siendo usado por la terminal. Para solucionar este problema, por favor instálelo en el mismo entorno que usa para ejecutar su código."
+msgstr "El módulo '<tt>{}</tt>' se requiere para abrir esta variable y no está instalado junto a Spyder. Para solucionar este problema, por favor instálelo en el mismo entorno que usa para ejecutar Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
-msgstr "Hay una dicrepancia entre las versiones Numpy utilizadas por Spyder y el núcleo de su terminal. Para solucionar este problema, por favor actualice <tt>numpy</tt> en el entorno que utiliza para ejecutar Spyder a la versión 1.26.1 o superior."
+msgstr "Hay una discrepancia entre las versiones Numpy utilizadas por Spyder y el núcleo de su terminal. Para solucionar este problema, por favor actualice <tt>numpy</tt> en el entorno que utiliza para ejecutar Spyder a la versión 1.26.1 o superior."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:86
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the console environment to version 2.0 or higher."
-msgstr "Hay una dicrepancia entre las versiones de Pandas utilizadas por Spyder y el núcleo de su terminal actual. Para solucionar este problema, por favor actualice <tt>pandas</tt> en el entorno de la consola a la versión 2.0 o superior."
+msgstr "Hay una discrepancia entre las versiones de Pandas utilizadas por Spyder y el núcleo de su terminal actual. Para solucionar este problema, por favor actualice <tt>pandas</tt> en el entorno de la consola a la versión 2,0 o superior."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
-#, fuzzy
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the environment where Spyder is installed to version 3.0 or higher, or downgrade it in the console enviroment to version 2.3."
-msgstr "Hay una dicrepancia entre las versiones de Pandas utilizadas por Spyder y el núcleo de su terminal actual. Para solucionar este problema, por favor actualice <tt>pandas</tt> en el entorno de la consola a la versión 2.0 o superior."
+msgstr "Hay una discrepancia entre las versiones de Pandas utilizadas por Spyder y el núcleo de su terminal actual. Para solucionar este problema, por favor actualice <tt>pandas</tt> en el entorno donde Spyder está instalado a la versión 3.0 o superior, o cambie a la versión 2.3 en el entorno de la consola."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
@@ -4806,11 +4711,11 @@ msgstr "Hay una discrepancia entre la versión de Python usada por Spyder ({}) y
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:114
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "Si desea ver esto arreglado en el futuro, por favor haga una donación <a href='{}'>aquí</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:122
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "Si el módulo requerido es suyo, necesita crear un proyecto <a href='{}'>Spyder</a> para él o añadir la ruta donde se encuentra al administrador del PYTHONPATH (disponible en el menú <tt>Herramientas</tt>)."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
@@ -4825,9 +4730,8 @@ msgid "lower"
 msgstr "inferior"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:269
-#, fuzzy
 msgid "<b>Notes</b>:"
-msgstr "<b>Título</b>: {}"
+msgstr "<b>Notas</b>:"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4914,9 +4818,8 @@ msgid "The kernel died, restarting..."
 msgstr "El núcleo dejó de funcionar, reiniciándolo..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1468
-#, fuzzy
 msgid "Kernel reconnected..."
-msgstr "Ruta del archivo de conexión del núcleo"
+msgstr "Núcleo reconectado..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1470
 msgid "Restarting kernel..."
@@ -4936,7 +4839,7 @@ msgstr "Haga clic para alternar entre el graficado en línea y el interactivo de
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:277
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Cambiar el entorno por defecto en Preferencias..."
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4956,7 +4859,7 @@ msgstr "Para el modo de pantalla completa utilice la función incorporada de mac
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "El modo de pantalla completa no funciona de forma confiable en WSL"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -4991,11 +4894,9 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr "El diseño <b>{0}</b> se sobrescribirá. ¿Desea continuar?"
 
 #: spyder/plugins/layout/container.py:376
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr ""
-"La disposición de componentes será restablecida a los ajustes por defecto. Esto afecta a la posición y tamaño de la ventana y los componentes.\n"
+msgstr "La disposición de componentes será restablecida a los ajustes por defecto. Esto afecta a la posición y tamaño de la ventana y los componentes.\n"
 "¿Desea continuar?"
 
 #: spyder/plugins/layout/layouts.py:72
@@ -5048,15 +4949,15 @@ msgstr "Aún no se ha definido la disposición de componentes #%d."
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "Dar un nombre a su disposición de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "Guardar disposición de paneles como"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
-msgstr ""
+msgstr "Reordenar o eliminar sus disposiciones de paneles guardadas"
 
 #: spyder/plugins/layout/widgets/dialog.py:228
 msgid "Move up"
@@ -5072,27 +4973,27 @@ msgstr "Eliminar disposición"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "Visualización y orden de las disposiciones de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "Eliminar disposición de paneles"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr ""
+msgstr "¿Desea eliminar la disposición de paneles '<b>{}</b>'?"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "Seleccione el intérprete predeterminado de Python para nuevas terminales de IPython y para el completado de código en el Editor"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Internal (same used by Spyder)"
-msgstr ""
+msgstr "Interno (el mismo utilizado por Spyder)"
 
 #: spyder/plugins/maininterpreter/confpage.py:82
 msgid "Selected interpreter:"
-msgstr ""
+msgstr "Intérprete seleccionado:"
 
 #: spyder/plugins/maininterpreter/confpage.py:88
 msgid "Executables"
@@ -5104,11 +5005,11 @@ msgstr "Intérpretes personalizados recientes"
 
 #: spyder/plugins/maininterpreter/confpage.py:119
 msgid "Conda executable"
-msgstr ""
+msgstr "Ejecutable de Conda"
 
 #: spyder/plugins/maininterpreter/confpage.py:123
 msgid "Use a custom Conda/Mamba/Micromamba executable"
-msgstr ""
+msgstr "Usar un ejecutable personalizado de Conda/Mamba/Micromamba"
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
@@ -5155,8 +5056,7 @@ msgid "List of excluded modules (e.g. {})"
 msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:233
-msgid ""
-"The following modules are not installed:\n"
+msgid "The following modules are not installed:\n"
 "{}"
 msgstr ""
 
@@ -7037,11 +6937,9 @@ msgid "Manage application updates."
 msgstr "Gestionar actualizaciones de la aplicación."
 
 #: spyder/plugins/updatemanager/widgets/status.py:72
-msgid ""
-"Downloading the update will continue in the background.\n"
+msgid "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
-msgstr ""
-"La descarga de la actualización continuará en segundo plano.\n"
+msgstr "La descarga de la actualización continuará en segundo plano.\n"
 "Haga clic aquí para mostrar el diálogo de descarga de nuevo."
 
 #: spyder/plugins/updatemanager/widgets/update.py:59
@@ -7357,13 +7255,9 @@ msgid "Refresh array editor?"
 msgstr "¿Actualizar el editor de arreglos?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:739
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
-msgstr ""
-"Abrir e inspeccionar esta variable puede tomar mucho tiempo\n"
-"\n"
+msgstr "Abrir e inspeccionar esta variable puede tomar mucho tiempo\n\n"
 "¿Desea continuar de todas formas?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
@@ -7399,11 +7293,9 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:537
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
-msgstr ""
-"No es posible mostrar este valor porque ocurrió\n"
+msgstr "No es posible mostrar este valor porque ocurrió\n"
 "un error mientras se intentaba hacerlo"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:912 spyder/plugins/variableexplorer/widgets/main_widget.py:188 spyder/widgets/collectionseditor.py:813
@@ -8131,15 +8023,13 @@ msgid "Magic:"
 msgstr "Magia:"
 
 #: spyder/widgets/arraybuilder.py:228
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Type an array using the syntax: <tt>1 2;3 4</tt><br>\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Ayudante de arreglos de Numpy</b><br><br>\n"
 "           * Escriba un arreglo usando la sintaxis: <tt>1 2;3 4</tt><br>\n"
 "           * Use dos espacios o tabulaciones para generar un <b>;</b>.<br>\n"
@@ -8147,8 +8037,7 @@ msgstr ""
 "           "
 
 #: spyder/widgets/arraybuilder.py:236
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Introduce an array in the table.<br>\n"
 "           * Use <b>Tab</b> to move between cells or introduce additional\n"
@@ -8156,8 +8045,7 @@ msgid ""
 "           * Use two tabs at the end of a row to move to the next one.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "          <b>Ayudante de arreglos de Numpy</b><br><br>\n"
 "           * Introduzca un arreglo en la tabla.<br>\n"
 "           * Use <b>Tabulación</b> para moverse entre celdas o introducir\n"
@@ -8676,19 +8564,10 @@ msgstr "El título está completo. Gracias!"
 
 #: spyder/widgets/tabs.py:454
 msgid "Browse tabs"
-msgstr ""
-"Navegar por\n"
+msgstr "Navegar por\n"
 "las pestañas"
 
 #: spyder/widgets/tabs.py:614
 msgid "Close current tab"
 msgstr "Cerrar pestaña actual"
 
-#~ msgid "<b>{}</b><br><br>{}<br>{}"
-#~ msgstr "<b>{}</b><br><br>{}<br>{}"
-
-#~ msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder.<br><br>If you want to see this addressed in the future, please donate to this <a href='{}'>project</a>."
-#~ msgstr "El módulo '<tt>{}</tt>' es necesario para abrir esta variable y no está instalado junto a Spyder. Para solucionar este problema, instálelo en el mismo entorno que utiliza para ejecutar Spyder.<br><br>Si quiere ver esto solucionado en el futuro, por favor done a este <a href='{}'>proyecto</a>."
-
-#~ msgid "Convert to"
-#~ msgstr "Convertir a"
