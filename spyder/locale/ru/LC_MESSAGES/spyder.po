@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
-"POT-Creation-Date: 2026-02-06 14:37-0500\n"
+"POT-Creation-Date: 2026-02-10 16:15-0500\n"
 "PO-Revision-Date: 2025-12-13 00:06\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
@@ -4748,39 +4748,43 @@ msgid "There is a mismatch between the Pandas versions used by Spyder and the ke
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
+msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the environment where Spyder is installed to version 3.0 or higher, or downgrade it in the console enviroment to version 2.3."
+msgstr ""
+
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:98
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:105
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:107
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:114
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:115
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:122
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:123 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:277
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:172 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:186
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:178 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:192
 msgid "greater"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:174 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:184
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:180 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:190
 msgid "lower"
 msgstr ""
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:258
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:269
 #, fuzzy
 msgid "<b>Notes</b>:"
 msgstr "<b>Заголовок</b>: {}"
 
-#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:271
+#: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
 msgstr ""
 
