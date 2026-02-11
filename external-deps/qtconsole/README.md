@@ -1,11 +1,8 @@
 # Jupyter QtConsole
 
-![Windows tests](https://github.com/jupyter/qtconsole/workflows/Windows%20tests/badge.svg)
-![Macos tests](https://github.com/jupyter/qtconsole/workflows/Macos%20tests/badge.svg)
-![Linux tests](https://github.com/jupyter/qtconsole/workflows/Linux%20tests/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/jupyter/qtconsole/badge.svg?branch=master)](https://coveralls.io/github/jupyter/qtconsole?branch=master)
+[![Tests](https://github.com/spyder-ide/qtconsole/actions/workflows/tests.yaml/badge.svg)](https://github.com/spyder-ide/qtconsole/actions/workflows/tests.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/spyder-ide/qtconsole/badge.svg?branch=main)](https://coveralls.io/github/spyder-ide/qtconsole?branch=main)
 [![Documentation Status](https://readthedocs.org/projects/qtconsole/badge/?version=stable)](https://qtconsole.readthedocs.io/en/stable/)
-[![Google Group](https://img.shields.io/badge/-Google%20Group-lightgrey.svg)](https://groups.google.com/forum/#!forum/jupyter)
 
 A rich Qt-based console for working with Jupyter kernels,
 supporting rich media output, session export, and more.
@@ -15,7 +12,9 @@ provides a number of enhancements only possible in a GUI, such as inline
 figures, proper multiline editing with syntax highlighting, graphical calltips,
 and more.
 
-![qtconsole](https://raw.githubusercontent.com/jupyter/qtconsole/master/docs/source/_images/qtconsole.png)
+This project is maintained by the Spyder development team and part of its organization.
+
+![qtconsole](https://raw.githubusercontent.com/spyder-ide/qtconsole/master/docs/source/_images/qtconsole.png)
 
 ## Install Qtconsole
 The Qtconsole requires Python bindings for Qt, such as [PyQt6](https://pypi.org/project/PyQt6/), [PySide6](https://pypi.org/project/PySide6/), [PyQt5](https://pypi.org/project/PyQt5/) or [PySide2](https://pypi.org/project/PySide2/).
@@ -53,11 +52,6 @@ used.
 **Note:** Additional information about using a system package manager may be
 found in the [qtconsole documentation](https://qtconsole.readthedocs.io).
 
-More installation instructions for PyQt can be found in the [PyQt5 documentation](http://pyqt.sourceforge.net/Docs/PyQt5/installation.html) and [PyQt4 documentation](http://pyqt.sourceforge.net/Docs/PyQt4/installation.html)
-
-Source packages for Windows/Linux/MacOS can be found here: [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download5) and [PyQt4](https://riverbankcomputing.com/software/pyqt/download).
-
-
 ## Usage
 To run the Qtconsole:
 
@@ -65,9 +59,6 @@ To run the Qtconsole:
 
 ## Resources
 - [Project Jupyter website](https://jupyter.org)
-- Documentation for the Qtconsole
-  * [latest version](https://qtconsole.readthedocs.io/en/latest/) [[PDF](https://media.readthedocs.org/pdf/qtconsole/latest/qtconsole.pdf)]
-  * [stable version](https://qtconsole.readthedocs.io/en/stable/) [[PDF](https://media.readthedocs.org/pdf/qtconsole/stable/qtconsole.pdf)]
-- [Documentation for Project Jupyter](https://jupyter.readthedocs.io/en/latest/index.html) [[PDF](https://media.readthedocs.org/pdf/jupyter/latest/jupyter.pdf)]
-- [Issues](https://github.com/jupyter/qtconsole/issues)
-- [Technical support - Jupyter Google Group](https://groups.google.com/forum/#!forum/jupyter)
+- [Spyder website](https://www.spyder-ide.org)
+- [Documentation for the Qtconsole](https://qtconsole.readthedocs.io/en/stable/)
+- [Issues](https://github.com/spyder-ide/qtconsole/issues)
