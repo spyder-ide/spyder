@@ -32,7 +32,7 @@ from spyder.utils.stylesheet import WIN
 DONATIONS_URL = "https://www.spyder-ide.org/donate"
 CHANGELOG_URL = (
     "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
-    "Spyder-6.md#version-612-2025-12-17"
+    "Spyder-6.md#version-613-2026-02-12"
 )
 
 
