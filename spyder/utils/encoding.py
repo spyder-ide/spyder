@@ -13,6 +13,7 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 
 # Standard library imports
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+import contextlib
 import tempfile
 import locale
 import re
@@ -25,7 +26,6 @@ import errno
 
 # Third-party imports
 from chardet.universaldetector import UniversalDetector
-from atomicwrites import atomic_write
 
 # Local imports
 from spyder.utils.external.binaryornot.check import is_binary
@@ -243,6 +243,28 @@ def to_unicode(string):
             else:
                 return unic
     return string
+
+
+@contextlib.contextmanager
+def atomic_write(dest, overwrite, dir, mode):
+    """Atomically write a file"""
+    fd, src = tempfile.mkstemp(prefix=os.path.basename(dest), dir=dir)
+    file = os.fdopen(fd, mode=mode)
+
+    try:
+        yield file
+    except Exception:
+        os.unlink(src)
+        raise
+    else:
+        file.flush()
+        file.close()
+
+        if overwrite:
+            os.rename(src, dest)
+        else:
+            os.link(src, dest)
+            os.unlink(src)
 
 
 def write(text, filename, encoding='utf-8', mode='wb'):

@@ -11,7 +11,6 @@ dependencies:
 # to requirements/main.yml, and copy it here.
 - aiohttp >=3.11.2
 - asyncssh >=2.14.0,<3.0.0
-- atomicwrites >=1.2.0
 - bcrypt >=4.3.0
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
