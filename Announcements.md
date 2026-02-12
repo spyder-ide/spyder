@@ -1,41 +1,100 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.2 is released!
+**Subject**: [ANN] Spyder 6.1.3 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.2** has been released and is available for
+I'm pleased to announce that Spyder **6.1.3** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three weeks after version 6.1.1 and it comes with the following interesting new features, fixes and API changes:
+This release comes eight weeks after version 6.1.2 and with the following interesting new features, fixes and API changes:
 
 - New features
-    * Set a maximum number of plots in the Plots pane to prevent a memory leak
-      when generating many of them.
-    * Simplify UX to create directories and files from the files/project explorer.
-    * Add support for Pylint 4.
+    * Allow to reconnect to remote kernels after the connection is lost.
+    * Add ability to explore objects that depend on custom library code to the
+      Variable Explorer.
 
 - Important fixes
-    * Fix update process for installer based installations that require admin
-      permissions on Windows.
-    * Fix Profiler error when the IPython console kernel takes time to start.
-    * General fixes to the API module (`spyder.api`) docstrings and typings.
+    * Fix memory leak on Linux when getting user's environment variables.
+    * Fix several issues with the auto-update process of the standalone installers.
+    * Fix segfault on closing with PyQt6.
+    * Fix errors when creating new remote connections if credentials are wrong.
+    * Finish fixing and improving docstrings for modules under `spyder.api`.
 
 - API changes
-    * Fix API version not being correctly bumped to 2.0.0 for Spyder 6.1,
-      and formally expose and document `VERSION_INFO` tuple.
-    * The `spyder.api.editor` module, containing legacy aliases of
-      `EditorExtension` and `Panel` that can be accessed directly from the
-      Editor plugin in Spyder 6.0+, is now documented as pending deprecation,
-      will issue a `DeprecationWarning` in Spyder 6.2 and be removed in Spyder 7.0.
-      Import them from `spyder.plugins.editor.api` instead.
-    * The `spyder.api.plugins.enum` and `spyder.api.plugins.new_api` modules
-      are now documented to be pending being marked as private, with a
-      `DeprecationWarning` on importing the old names in Spyder 6.2, and their
-      removal in Spyder 7.0. All of their public APIs are availible from
-      and are been canonically imported from `spyder.api.plugins` since Spyder 5.1.
+    * Add `sig_update_performed` signal to Update manager plugin.
+    * All public and most private APIs in `spyder.api` now have comprehensive
+      docstrings and type hints with descriptions, parameters, returns and raises,
+      and are thoroughly rewritten for correctness, clarity and proper formatting.
+      They are also now fully built and richly rendered on the new
+      [Spyder developer docs site](https://spyder-ide.github.io/spyder-api-docs/).
+    * `spyder.api.plugin_registration` modules
+      * The `mixins` module, containing the mixin used internally for
+        handling the `@on_plugin_available` and `@on_plugin_teardown` decorators
+        in the `SpyderPluginV2` class, is now documented as pending deprecation as
+        a public module, will become an alias of a private `_mixins` module
+        and issue a `DeprecationWarning` in Spyder 6.2, and have the public alias
+        be removed in Spyder 7.0. It is a private implementation detail that wasn't
+        designed or intended to be used directly by external code; plugins
+        access its functionality through the `SpyderPluginV2` class instead.
+      * The `registry` module's vestigial `SpyderPluginRegistry.old_plugins`
+        attribute, originally added in Spyder 5 to list legacy Spyder 4 plugins,
+        has been removed. It was mistakenly left over when Spyder 6 fully dropped
+        support for Spyder 4 plugins, which never actually functioned as intended
+        and should be updated to support modern Spyder 5+ plugins instead.
+      * In the `registry` module's `SpyderPluginRegistry` class,
+        setters for the `all_internal_plugins` (`set_all_internal_plugins()`),
+        `all_external_plugins` (`set_all_external_plugins()`) and
+        `main` (`set_main()`) instance attributes are now documented as
+        pending deprecation, will raise a `DeprecationWarning` in Spyder 6.2,
+        and will be removed in Spyder 7.0. Set the attributes directly instead.
+      * In the `registry.SpyderPluginRegistry` class' `register_plugin()` method,
+        passing arbitrary `*args` and `**kwargs` is now documented as
+        pending deprecation, will raise a DeprecationWarning in Spyder 6.2
+        and will be removed in Spyder 7.0. This was only needed for backward
+        compatibility before the Editor plugin was migrated in Spyder 6 to the
+        new plugin API introduced in Spyder 5.
+    * `spyder.api.plugins` modules
+      * Importing from the `enum` and `new_api` modules is now documented as
+        pending deprecation. In Spyder 6.2, they will be renamed to the private
+        `_enum` and `_api` modules, respectively, with the original names becoming
+        aliases raising a `DeprecationWarning` on import, that will be removed
+        in Spyder 7.0. They should be imported from their canonical location,
+        the top-level `spyder.api.plugins` module, instead.
+      * The `SpyderPluginV2`'s `main` instance attribute is now a property,
+        to reduce duplication with the identically-valued `_main` attribute.
+      * `SpyderPluginV2`'s `_added_toolbars` and `_actions` private attributes
+        have been removed, as they are not used at least in Spyder 6 and above.
+      * Obsolete checks/warnings for `SpyderPluginV2`'s removed `register()` and
+        `unregister()` methods have been removed, as they have been unsupported
+        since Spyder 5.1/5.2 and any code still using them is already broken.
+        The respective `on_initialize()` and `on_close()` methods should be used
+        instead.
+    * `spyder.api.widgets` modules
+      * In the `mixins` module's `SpyderActionMixin.update_actions()` method,
+        remove the spurious leftover `options` parameter that does nothing, and
+        is inconsistent and incompatible with all its actual current usage.
+        As this is an abstract method and none of its implementations include
+        it, any plugin code that does will already raise an error at runtime.
+      * In the `menus` and `toolbars` modules, the `SpyderMenuProxyStyle` and
+        `ToolbarStyle` proxy style classes are now documented as pending
+        deprecation. In Spyder 6.2, they will be renamed to the private
+        `_SpyderMenuProxyStyle` and `_ToolbarStyle` classes, respectively,
+        with the original names becoming aliases raising a `DeprecationWarning`
+        on use, that will be removed in Spyder 7.0. They were never intended to
+        be used directly by plugins.
+      * In the `toolbars` module, `ToolbarStyle.pixelMetric()` now correctly
+        raises a `SpyderAPIError` (instead of silently not working as intended
+        save for a spurious `print()` call) if the `TYPE` class attribute is not
+        set to one of the two valid values, `"Application"` or `"MainWindow"`.
+        Additionally, using `SpyderToolbar` directly rather than its
+        `ApplicationToolbar` and `MainWidgetToolbar` subclasses is now documented
+        as formally discouraged so their respective styling will be applied.
+      * In the `toolbars` module, the `ToolTipFilter` class is now correctly
+        underscored as private, as it is only for internal use handling Qt events
+        by a private attribute of the `SpyderToolbar` class.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
