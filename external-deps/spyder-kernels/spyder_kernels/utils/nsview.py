@@ -563,6 +563,8 @@ def get_human_readable_type(item):
             text = get_type_string(item)
             if text == 'polars.dataframe.frame.DataFrame':
                 return 'Polars DataFrame'
+            elif text == 'polars.series.series.Series':
+                return 'Polars Series'
             else:
                 return text[text.find('.') + 1:]
     except Exception:
