@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-10 16:15-0500\n"
-"PO-Revision-Date: 2025-12-13 16:00\n"
+"PO-Revision-Date: 2026-02-10 21:26\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
-"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 104\n"
-"X-Crowdin-Language: zh-CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 104\n"
+"Language: zh_CN\n"
 
 #: spyder/api/plugin_registration/_confpage.py:29
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
@@ -139,27 +138,21 @@ msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start o
 msgstr "无法加载 Spyder 的图标主题，因此 Spyder 无法在你的系统上启动。 造成此问题的最可能原因或者是你在使用的 Windows 版本早于 Windows 10 1803/Windows Server 2019，它们已不被 Spyder 或 Microsoft 所支持，或者是你的系统管理员针对非管理员用户禁用了字体安装。<br><br>请询问你的系统管理员如何升级 Windows 或为所有用户安装下列字体：<ul>{fonts_list}</ul>字体位于：<br><br><code>{fonts_directory}</code><br><br>如果你有管理员权限，你可以在命令提示符下运行以下命令来安装所需的字体：<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:138
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr ""
-"无法关闭上一个 Spyder 实例。\n"
+msgstr "无法关闭上一个 Spyder 实例。\n"
 "重启已中止。"
 
 #: spyder/app/restart.py:140
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr ""
-"Spyder 无法重置为出厂默认设置。\n"
+msgstr "Spyder 无法重置为出厂默认设置。\n"
 "重启已中止。"
 
 #: spyder/app/restart.py:142
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr ""
-"无法重启 Spyder。\n"
+msgstr "无法重启 Spyder。\n"
 "操作已中止。"
 
 #: spyder/app/restart.py:144
@@ -195,13 +188,9 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr "快捷键的context必须匹配 '_' 或者插件的 `CONF_SECTION`!"
 
 #: spyder/config/manager.py:812
-msgid ""
-"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
-"\n"
+msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
-"加载 Spyder 配置选项时出错。 你需要重置它们以使 Spyder 能够启动。\n"
-"\n"
+msgstr "加载 Spyder 配置选项时出错。 你需要重置它们以使 Spyder 能够启动。\n\n"
 "你想要继续吗？"
 
 #: spyder/config/manager.py:820
@@ -382,7 +371,7 @@ msgstr "保存Github凭据以便更安全地报告内部错误"
 
 #: spyder/dependencies.py:173
 msgid "Render markdown content to HTML"
-msgstr ""
+msgstr "将 markdown 内容渲染为 HTML"
 
 #: spyder/dependencies.py:177
 msgid "Manipulate Jupyter notebooks in the Editor"
@@ -761,11 +750,9 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr "当自动缩放不起作用时，为高分辨率显示器设置此项"
 
 #: spyder/plugins/application/confpage.py:229
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 " Float values are supported"
-msgstr ""
-"为不同显示器输入对应的值，以分号 ';' 分隔。\n"
+msgstr "为不同显示器输入对应的值，以分号 ';' 分隔。\n"
 "支持浮点型的值"
 
 #: spyder/plugins/application/confpage.py:277 spyder/plugins/ipythonconsole/widgets/run_conf.py:52
@@ -801,9 +788,8 @@ msgid "Spyder Google group"
 msgstr "Spyder Google 群组"
 
 #: spyder/plugins/application/container.py:302
-#, fuzzy
 msgid "Show changelog"
-msgstr "显示时钟"
+msgstr "显示更新日志"
 
 #: spyder/plugins/application/container.py:307
 msgid "Help Spyder..."
@@ -1055,7 +1041,7 @@ msgstr "复制版本信息"
 
 #: spyder/plugins/application/widgets/status.py:191
 msgid "Changelog"
-msgstr ""
+msgstr "更新日志"
 
 #: spyder/plugins/application/widgets/status.py:200
 msgid "Help Spyder"
@@ -1218,12 +1204,10 @@ msgid "Enable Go to definition"
 msgstr "启用“转到”定义"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
-msgstr ""
-"若启用，则左键单击某个对象并且按下{}键 \n"
+msgstr "若启用，则左键单击某个对象并且按下{}键 \n"
 "将会转到该对象的定义\n"
 "（若能被解析）。"
 
@@ -1240,12 +1224,10 @@ msgid "Enable hover hints"
 msgstr "启用鼠标悬停提示"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr ""
-"若启用，则鼠标悬停在某个对象的名称上时\n"
+msgstr "若启用，则鼠标悬停在某个对象的名称上时\n"
 "将会显示该对象的签名以及文档字符串 (docstring) （若存在）"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:63
@@ -1529,11 +1511,9 @@ msgid "down"
 msgstr "已停止"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:42
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
-"补全、检查、代码\n"
+msgstr "补全、检查、代码\n"
 "折叠和符号状态。"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:71
@@ -1737,25 +1717,17 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr "为了使用像“raw_input”或“input”这样的命令，使用来自系统终端的多线程选项（--multithread）运行Spyder"
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please do not use it to run your code\n"
-"\n"
-msgstr ""
-"Spyder 内部控制台\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please do not use it to run your code\n\n"
+msgstr "Spyder 内部控制台\n\n"
 "该控制台用于报告应用程序的内部错误，\n"
 "并通过下列命令进行 Spyder 的内部检查:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"请不要用它来运行你的代码\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"请不要用它来运行你的代码\n\n"
 
 #: spyder/plugins/console/widgets/main_widget.py:178 spyder/plugins/ipythonconsole/widgets/main_widget.py:676
 msgid "&Quit"
@@ -2110,11 +2082,9 @@ msgid "Show tab bar"
 msgstr "显示标签栏"
 
 #: spyder/plugins/editor/confpage.py:60
-msgid ""
-"If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
+msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab\n"
 "can still be used to navigate between open files."
-msgstr ""
-"如果隐藏，文件切换器、概览面板和 Ctrl-Tab\n"
+msgstr "如果隐藏，文件切换器、概览面板和 Ctrl-Tab\n"
 "仍可用于在打开的文件间进行导航。"
 
 #: spyder/plugins/editor/confpage.py:66
@@ -2230,12 +2200,10 @@ msgid "Strip trailing spaces on changed lines"
 msgstr "在行内容更改时去除末尾空格"
 
 #: spyder/plugins/editor/confpage.py:218
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
-"如果启用，已更改的代码行（字符串除外）\n"
+msgstr "如果启用，已更改的代码行（字符串除外）\n"
 "将会在离开行时去除末尾的空格。\n"
 "如果禁用，则只会去除由 Spyder 添加的空格。"
 
@@ -2244,11 +2212,9 @@ msgid "Automatically add missing end-of-file newline on save"
 msgstr "在保存时自动添加缺失的末尾换行符"
 
 #: spyder/plugins/editor/confpage.py:229
-msgid ""
-"If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
+msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
-"如果启用，则会在文件结束位置自动添加一个末尾换行符（行分隔符）\n"
+msgstr "如果启用，则会在文件结束位置自动添加一个末尾换行符（行分隔符）\n"
 "如果文件不是已经以一个换行符结束的话，以遵循标准文本文件的惯例。"
 
 #: spyder/plugins/editor/confpage.py:237
@@ -2292,12 +2258,10 @@ msgid "Tab always indents"
 msgstr "Tab 键总是执行缩进"
 
 #: spyder/plugins/editor/confpage.py:294
-msgid ""
-"If enabled, pressing Tab will always add an indent,\n"
+msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
-"如果启用，按 Tab 键总是会添加一级缩进，\n"
+msgstr "如果启用，按 Tab 键总是会添加一级缩进，\n"
 "即使光标不位于一行的开头位置。\n"
 "代码补全仍可使用快捷键 Ctrl+Space 来触发。"
 
@@ -2310,12 +2274,10 @@ msgid "Fix mixed end-of-lines automatically and show warning dialog"
 msgstr "自动修复混合的行结束符并显示警告对话框"
 
 #: spyder/plugins/editor/confpage.py:324
-msgid ""
-"When opening a file containing mixed end-of-line characters\n"
+msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
-"当打开包含混合行结束符的文件时\n"
+msgstr "当打开包含混合行结束符的文件时\n"
 "(这在 Windows 上可能引发控制台显示语法错误)，\n"
 "Spyder 将在选项启用时自动转换它们。"
 
@@ -2544,25 +2506,16 @@ msgid "Removal error"
 msgstr "移除错误"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2905
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
-msgstr ""
-"不能移除这个u出。错误：\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
+msgstr "不能移除这个u出。错误：\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2917 spyder/plugins/explorer/widgets/explorer.py:1806
 msgid "Conversion error"
 msgstr "转换错误"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2918 spyder/plugins/explorer/widgets/explorer.py:1807
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
-msgstr ""
-"无法转换notebook，错误：\n"
-"\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
+msgstr "无法转换notebook，错误：\n\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:3513
 msgid "Uncomment"
@@ -2993,13 +2946,9 @@ msgid "Recover from autosave"
 msgstr "从自动保存的内容恢复"
 
 #: spyder/plugins/editor/widgets/recover.py:140
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
-"找到了自动保存文件。您想要做什么？\n"
-"\n"
+msgstr "找到了自动保存文件。您想要做什么？\n\n"
 "若存在尚未恢复、尚未移除或删除的自动保存文件，则这个对话框在下次启动时将再次显示。"
 
 #: spyder/plugins/editor/widgets/recover.py:159
@@ -3211,11 +3160,9 @@ msgid " (Application not found!)"
 msgstr " (程序未找到！)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1167
-msgid ""
-"Do you really want to delete <b>%s</b>?\n"
+msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr ""
-"你真的想要删除 <b>%s</b> 吗？\n"
+msgstr "你真的想要删除 <b>%s</b> 吗？\n"
 "<br><br><b>注意</b>：此文件或目录将被移动到回收站。"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1187
@@ -3291,24 +3238,16 @@ msgid "File/Folder copy error"
 msgstr "文件或文件夹复制错误"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1502
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
-msgstr ""
-"无法复制该种类型的文件或文件夹。错误信息为：\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
+msgstr "无法复制该种类型的文件或文件夹。错误信息为：\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1542
 msgid "Error pasting file"
 msgstr "粘贴文件文件错误"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1543 spyder/plugins/explorer/widgets/explorer.py:1571
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
-msgstr ""
-"不支持的复制操作。错误信息为：\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
+msgstr "不支持的复制操作。错误信息为：\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1562
 msgid "Recursive copy"
@@ -3492,11 +3431,11 @@ msgstr "上传文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:343
 msgid "Unsupported functionality"
-msgstr ""
+msgstr "不受支持的功能"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:344
 msgid "Opening remote files in the Editor is not yet supported. This feature will be added in Spyder 6.2.0"
-msgstr ""
+msgstr "尚不支持在编辑器中打开远程文件。 此功能将在 Spyder 6.2.0 中添加"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:364
 msgid "New Python Package error"
@@ -3807,9 +3746,8 @@ msgid "Regular expression error in Exclude field"
 msgstr "排除字段中存在正则表达式错误"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
-#, fuzzy
 msgid "Searching..."
-msgstr "正在启动……"
+msgstr "正在搜索……"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -3836,7 +3774,6 @@ msgid "file"
 msgstr "文件"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
-#, fuzzy
 msgid "files"
 msgstr "文件"
 
@@ -4045,12 +3982,10 @@ msgid "Display:"
 msgstr "显示："
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
-msgid ""
-"Graphical shows a list of completion matches in a GUI.\n"
+msgid "Graphical shows a list of completion matches in a GUI.\n"
 "Plain displays matches in the Console output, like Bash.\n"
 "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
-msgstr ""
-"在 GUI 中图形化显示一个补全匹配的列表。\n"
+msgstr "在 GUI 中图形化显示一个补全匹配的列表。\n"
 "在控制台中输出纯色显示匹配，类似 Bash。\n"
 "终端为纯色加标准选择匹配，类似 Zsh。\n"
 
@@ -4059,12 +3994,10 @@ msgid "Use Jedi completion"
 msgstr "使用 Jedi 补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
-msgid ""
-"Enable Jedi-based tab-completion in the IPython console.\n"
+msgid "Enable Jedi-based tab-completion in the IPython console.\n"
 "Similar to the greedy completer, but without evaluating the code and allows completion of dictionary keys, nested lists and similar.\n"
 "Warning: Can slow down the Console when working with large dataframes."
-msgstr ""
-"在 IPython 控制台上启用基于 Jedi 的 Tab 键补全。\n"
+msgstr "在 IPython 控制台上启用基于 Jedi 的 Tab 键补全。\n"
 "类似于贪婪补全，但不会对代码求值并允许补全字典键、嵌套列表和类似条目。\n"
 "警告：在使用大型数据框架时可能拖慢控制台的运行。"
 
@@ -4089,11 +4022,9 @@ msgid " lines"
 msgstr " 行"
 
 #: spyder/plugins/ipythonconsole/confpage.py:141
-msgid ""
-"The maximum number of output lines retained in each console at a time.\n"
+msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
-"每个控制台每次保留的最大输出行数。\n"
+msgstr "每个控制台每次保留的最大输出行数。\n"
 "警告；缓冲区大小超过 10000 行将拖慢 Spyder 的速度。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
@@ -4101,12 +4032,10 @@ msgid "Render SymPy symbolic math"
 msgstr "渲染 SymPy 数学符号"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
-msgid ""
-"Pretty-print the outputs of SymPy symbolic computations\n"
+msgid "Pretty-print the outputs of SymPy symbolic computations\n"
 "(requires SymPy installed in the console environment).\n"
 "Refer to SymPy's documentation for details on using it."
-msgstr ""
-"美化打印 SymPy 符号计算的输出\n"
+msgstr "美化打印 SymPy 符号计算的输出\n"
 "(要求控制台环境中已安装 SymPy)。\n"
 "请参阅 SymPy 的文档了解用法细节。"
 
@@ -4123,13 +4052,10 @@ msgid "Automatically import NumPy and Matplotlib modules"
 msgstr "自动导入 NumPy 和 Matplotlib 模块"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
-#, fuzzy
-msgid ""
-"This is a convenience to use NumPy and Matplotlib\n"
+msgid "This is a convenience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
-msgstr ""
-"这是在控制台使用 NumPy 和 Matplotlib 的便捷方式\n"
-"不必显式地导入模块。"
+msgstr "这是在控制台使用 NumPy 和 Matplotlib 的便捷方式\n"
+"不必显式地导入这些模块。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
@@ -4148,11 +4074,9 @@ msgid "Backend:"
 msgstr "后端:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:207
-msgid ""
-"If unsure, select {inline} to show figures in the Plots pane\n"
+msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
-msgstr ""
-"如果不确定，可选择 {inline} 在绘图面板中显示图形或者\n"
+msgstr "如果不确定，可选择 {inline} 在绘图面板中显示图形或者\n"
 "{auto} 在新窗口中与它们交互（缩放和平移）。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:222
@@ -4224,11 +4148,9 @@ msgid "of figure height"
 msgstr "图表高度"
 
 #: spyder/plugins/ipythonconsole/confpage.py:280
-msgid ""
-"The position of the bottom edge of the subplots,\n"
+msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height (default is 0.11)."
-msgstr ""
-"子图底部边缘的位置，\n"
+msgstr "子图底部边缘的位置，\n"
 "表示为图高度的比率 (默认为 0.11)。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:285
@@ -4236,12 +4158,10 @@ msgid "Use a tight layout for inline plots"
 msgstr "为嵌入绘图使用紧凑布局"
 
 #: spyder/plugins/ipythonconsole/confpage.py:287
-msgid ""
-"Sets 'bbox_inches' to 'tight' for inline plots.\n"
+msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
-msgstr ""
-"将 'bbox_inches' 设为 'tight' 对应内联图形。\n"
+msgstr "将 'bbox_inches' 设为 'tight' 对应内联图形。\n"
 "当启用时，显示在图形面板中的图片可能与\n"
 "通过 'savefig' 输出的图片存在差异。"
 
@@ -4250,11 +4170,9 @@ msgid "Run code"
 msgstr "运行代码"
 
 #: spyder/plugins/ipythonconsole/confpage.py:319
-msgid ""
-"Enter a code snippet to run when a new console is started.\n"
+msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
-msgstr ""
-"输入要在新控制台启动时运行的代码片段。\n"
+msgstr "输入要在新控制台启动时运行的代码片段。\n"
 "用分号分隔多行，例如：<br><tt>import os; import sys</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:334
@@ -4274,9 +4192,8 @@ msgid "Autocall"
 msgstr "自动调用"
 
 #: spyder/plugins/ipythonconsole/confpage.py:356
-#, fuzzy
 msgid "Implicitly insert parethesis after any callable object, treating anything following it as arguments.<br>For example, typing <tt>print 'Number:', 42</tt> will execute <tt>print('Number:', 42)</tt>."
-msgstr "在任何可调用对象后隐式地插入圆括号，并将之后的任何东西当作参数。<br>例如，输入 <tt>print 'Number:', 42</tt> 将执行 <tt>print('Number:', 42)</tt>。"
+msgstr "在任何可调用对象后隐式地插入圆括号，并在之后的任何东西当作参数来处理。<br>例如，输入 <tt>print 'Number:', 42</tt> 将执行 <tt>print('Number:', 42)</tt>。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Smart"
@@ -4295,11 +4212,9 @@ msgid "Autocall:  "
 msgstr "自动调用： "
 
 #: spyder/plugins/ipythonconsole/confpage.py:372
-msgid ""
-"In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
+msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
-msgstr ""
-"在 {smart} 模式下，如果可调用对象之后没有参数则 Autocall 不会被应用。\n"
+msgstr "在 {smart} 模式下，如果可调用对象之后没有参数则 Autocall 不会被应用。\n"
 "在 {full} 模式下，即使没有参数可调用对象也会被调用。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:386
@@ -4391,12 +4306,8 @@ msgid "This Python environment doesn't have the right version of <tt>spyder-kern
 msgstr "该 Python 环境没有安装正确版本的 <tt>spyder-kernels</tt> (>= {0} 且 < {1})。 没有此模块则 Spyder 无法为你创建控制台。<br><br>你可以通过在系统终端中激活你的环境 (如有必要) 然后运行命令来安装它：<pre>    <tt>{2}</tt></pre>或<pre>    <tt>{3}</tt></pre>"
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:523
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
-msgstr ""
-"加载内核连接文件时出错。错误信息为：\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
+msgstr "加载内核连接文件时出错。错误信息为：\n\n"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:57
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
@@ -4416,12 +4327,11 @@ msgstr "检测到的 Conda 版本太旧且不再受 Spyder 支持。 受支持�
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
-msgstr ""
+msgstr "正在等待远程内核响应……"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:179
-#, fuzzy
 msgid "Reconnecting to remote kernel..."
-msgstr "正在连接到 IPython 内核..."
+msgstr "正在重新连接到远程内核……"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
@@ -4448,32 +4358,28 @@ msgid "It was not possible to connect to the kernel associated to this console. 
 msgstr "无法连接到与此控制台相关联的内核。 如果你正在尝试连接到现有的内核，请检查你选择的连接文件是否实际对应于你想要连接的内核。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:981
-#, fuzzy
 msgid "An error occurred while restarting the remote kernel"
-msgstr "在启动内核时发生了错误"
+msgstr "在重新启动远程内核时发生了错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:989
-#, fuzzy
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr "在启动内核时发生了错误"
+msgstr "在重新连接远程内核时发生错误"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1008
-#, fuzzy
 msgid "It was not possible to restart the remote kernel"
-msgstr "无法重新启动内核"
+msgstr "无法重新启动远程内核"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1027
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "已超出尝试重新连接到内核的最大次数。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1053
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "未找到远程内核信息。 很可能服务器已重新启动。"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1105
-#, fuzzy
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr "连接到服务器 <b>{}</b> 时出错。 请检查你的连接是否正常。"
+msgstr "连接到服务器 <b>{}</b> 时发生错误。<br><br>请使用菜单项 <tt>工具 > 管理远程连接</tt> 检查你的连接是否正常。"
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4572,9 +4478,8 @@ msgid "Restart kernel"
 msgstr "重启 IPython 内核"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
-#, fuzzy
 msgid "Reconnect to remote kernel"
-msgstr "连接到现有的内核"
+msgstr "重新连接到远程内核"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4769,14 +4674,12 @@ msgid "The '<tt>{}</tt>' module is required to open this variable and it's not i
 msgstr "需要 '<tt>{}</tt>' 模块来打开此变量而它没有在控制台环境中安装。 要修正此问题，请在你用来运行你的代码的环境中安装它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
-#, fuzzy
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr "需要 '<tt>{}</tt>' 模块来打开此变量。 不幸的是，它不是我们的安装程序的组成部分，这意味着你的变量不能被 Spyder 显示。<br><br>如果你希望此问题在将来得到修正，请向 <a href='{}'>此项目</a> 提供捐助。"
+msgstr "需要有 '<tt>{}</tt>' 模块才能打开此变量。 不幸的是，它不是我们安装包的组成部分，这意味着你的变量无法被 Spyder 显示。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
-#, fuzzy
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr "需要 '<tt>{}</tt>' 模块来打开此变量而它没有在控制台环境中安装。 要修正此问题，请在你用来运行你的代码的环境中安装它。"
+msgstr "需要有 '<tt>{}</tt>' 模块才能打开此变量而它没有随 Spyder 一起安装。 要修复此问题，请在你用来运行 Spyder 的同一个环境中安装它。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
@@ -4787,9 +4690,8 @@ msgid "There is a mismatch between the Pandas versions used by Spyder and the ke
 msgstr "Spyder 使用的 Pandas 版本与当前控制的内核之间存在不匹配。 要修正此问题，请将控制台环境中的 <tt>pandas</tt> 升级到 2.0 或更高版本。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
-#, fuzzy
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the environment where Spyder is installed to version 3.0 or higher, or downgrade it in the console enviroment to version 2.3."
-msgstr "Spyder 使用的 Pandas 版本与当前控制的内核之间存在不匹配。 要修正此问题，请将控制台环境中的 <tt>pandas</tt> 升级到 2.0 或更高版本。"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
@@ -4801,11 +4703,11 @@ msgstr "Spyder 使用的 Python 版本 ({}) 与当前控制台的内核版本 ({
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:114
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "如果你希望此问题将来得到修复，请在 <a href='{}'>这里</a> 进行捐助。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:122
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "如果所需的模块是由你管理的，请需要为它创建一个 <a href='{}'>Spyder 项目</a> 或将它所在路径添加到 PYTHONPATH 管理器（可在 <tt>工具</tt> 菜单中访问）。"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
@@ -4820,9 +4722,8 @@ msgid "lower"
 msgstr "更低"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:269
-#, fuzzy
 msgid "<b>Notes</b>:"
-msgstr "<b>标题</b>：{}"
+msgstr "<b>注释</b>："
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4909,9 +4810,8 @@ msgid "The kernel died, restarting..."
 msgstr "内核已死亡，正在重启..."
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1468
-#, fuzzy
 msgid "Kernel reconnected..."
-msgstr "已连接……"
+msgstr "内核已重新连接……"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1470
 msgid "Restarting kernel..."
@@ -4986,11 +4886,9 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr "布局 <b>{0}</b> 将被覆盖。 你想要继续吗?"
 
 #: spyder/plugins/layout/container.py:376
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr ""
-"窗口布局将被重置为默认设置：这会影响窗口的位置、大小和停靠的组件。\n"
+msgstr "窗口布局将被重置为默认设置：这会影响窗口的位置、大小和停靠的组件。\n"
 "您想继续吗？"
 
 #: spyder/plugins/layout/layouts.py:72
@@ -5150,11 +5048,9 @@ msgid "List of excluded modules (e.g. {})"
 msgstr "已排除模块的列表 (例如 {})"
 
 #: spyder/plugins/maininterpreter/confpage.py:233
-msgid ""
-"The following modules are not installed:\n"
+msgid "The following modules are not installed:\n"
 "{}"
-msgstr ""
-"下列模块未安装:\n"
+msgstr "下列模块未安装:\n"
 "{}"
 
 #: spyder/plugins/maininterpreter/confpage.py:241
@@ -7034,11 +6930,9 @@ msgid "Manage application updates."
 msgstr "管理应用程序更新。"
 
 #: spyder/plugins/updatemanager/widgets/status.py:72
-msgid ""
-"Downloading the update will continue in the background.\n"
+msgid "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
-msgstr ""
-"更新下载将在后台继续进行。\n"
+msgstr "更新下载将在后台继续进行。\n"
 "点击此处再次显示下载对话框。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:59
@@ -7354,13 +7248,9 @@ msgid "Refresh array editor?"
 msgstr "要刷新数组编辑器吗？"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:739
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
-msgstr ""
-"打开这个变量可能很慢\n"
-"\n"
+msgstr "打开这个变量可能很慢\n\n"
 "您想要继续吗？"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
@@ -7396,11 +7286,9 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr "Spyder 无法从控制台获取此变量的值。<br><br>问题信息：<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:537
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
-msgstr ""
-"无法显示该值因为\n"
+msgstr "无法显示该值因为\n"
 "在尝试中发生错误"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:912 spyder/plugins/variableexplorer/widgets/main_widget.py:188 spyder/widgets/collectionseditor.py:813
@@ -8128,15 +8016,13 @@ msgid "Magic:"
 msgstr "魔法:"
 
 #: spyder/widgets/arraybuilder.py:228
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Type an array using the syntax: <tt>1 2;3 4</tt><br>\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Numpy 数组助手</b><br><br>\n"
 "           * 使用以下语法输入数组: <tt>1 2;3 4</tt><br>\n"
 "           * 使用两个空格或制表符来生成 <b>;</b>.<br>\n"
@@ -8144,8 +8030,7 @@ msgstr ""
 "           "
 
 #: spyder/widgets/arraybuilder.py:236
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Introduce an array in the table.<br>\n"
 "           * Use <b>Tab</b> to move between cells or introduce additional\n"
@@ -8153,8 +8038,7 @@ msgid ""
 "           * Use two tabs at the end of a row to move to the next one.<br>\n"
 "           * You can press <b>Shift+Enter</b> when you are done.\n"
 "           "
-msgstr ""
-"\n"
+msgstr "\n"
 "           <b>Numpy 数组助手</b><br><br>\n"
 "           * 在表格中引入数组。<br>\n"
 "           * 使用 <b>Tab</b> 在单元格之间移动或引入额外的\n"
@@ -8679,29 +8563,3 @@ msgstr "浏览标签"
 msgid "Close current tab"
 msgstr "关闭当前标签"
 
-#~ msgid "<b>{}</b><br><br>{}<br>{}"
-#~ msgstr "<b>{}</b><br><br>{}<br>{}"
-
-#~ msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder.<br><br>If you want to see this addressed in the future, please donate to this <a href='{}'>project</a>."
-#~ msgstr "需要 '<tt>{}</tt>' 模块来打开这个变量而它没有随 Spyder 一起安装。 要修正此问题，请在你用于运行 Spyder 的同一个环境中安装它。<br><br>如果你希望此问题在未来得到解决，请向 <a href='{}'>此项目</a> 提供捐助。"
-
-#~ msgid "Would you like to download and install the update using Spyder's installer?<br><br>We <a href='{}'>recommend our own installer</a> because it's more stable and makes updating easy. This will leave your existing Spyder installation untouched."
-#~ msgstr "你想要使用 Spyder 的安装程序来下载并安装更新吗？<br><br>我们 <a href='{}'>推荐我们自己的安装程序</a> 因为它更稳定并使更新更为容易。 这将使你现有的 Spyder 安装版保持原样。"
-
-#~ msgid "Convert to"
-#~ msgstr "转换为"
-
-#~ msgid "Bool"
-#~ msgstr "布尔"
-
-#~ msgid "Complex"
-#~ msgstr "复数"
-
-#~ msgid "Int"
-#~ msgstr "整数"
-
-#~ msgid "Float"
-#~ msgstr "浮点数"
-
-#~ msgid "Str"
-#~ msgstr "字符串"
