@@ -1,15 +1,17 @@
 # History of changes
 
-## Version 6.1.2 (2025-12-17)
+## Version 6.1.3 (2026-02-12)
 
 ### New features
 
-* Set a maximum number of plots in the Plots pane to prevent a memory leak when generating many of them.
-* Simplify UX to create directories and files from the files/project explorer.
-* Add support for Pylint 4.
+* Allow to reconnect to remote kernels after the connection is lost.
+* Add ability to explore objects that depend on custom library code to the
+  Variable Explorer.
 
 ### Important fixes
 
-* Fix update process for installer based installations that require admin permissions on Windows.
-* Fix Profiler error when the IPython console kernel takes time to start.
-* General fixes to the API module (`spyder.api`) docstrings and typings.
+* Fix memory leak on Linux when getting user's environment variables.
+* Fix several issues with the auto-update process of the standalone installers.
+* Fix segfault on closing with PyQt6.
+* Fix errors when creating new remote connections if credentials are wrong.
+* Finish fixing and improving docstrings for modules under `spyder.api`.
