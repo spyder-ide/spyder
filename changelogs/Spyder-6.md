@@ -66,7 +66,7 @@
     on use, that will be removed in Spyder 7.0. They were never intended to
     be used directly by plugins.
   * In the `toolbars` module, `ToolbarStyle.pixelMetric()` now correctly
-    raises a SpyderAPIError` (instead of silently not working as intended
+    raises a `SpyderAPIError` (instead of silently not working as intended
     save for a spurious `print()` call) if the `TYPE` class attribute is not
     set to one of the two valid values, `"Application"` or `"MainWindow"`.
     Additionally, using `SpyderToolbar` directly rather than its
