@@ -275,7 +275,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 source_index = index
 
             type_of_value = source_index.model().row_type(source_index.row())
-            if type_of_value == 'Polars DataFrame':
+            if type_of_value in ['Polars DataFrame', 'Polars Series']:
                 readonly = True
 
             # We need to leave this import here for tests to pass.
