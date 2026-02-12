@@ -346,14 +346,19 @@ def test_get_value(kernel):
 
 
 def test_get_value_with_polars(kernel):
-    """Test getting the value of a Polars DataFrame."""
+    """Test getting the value of a Polars DataFrame or Series."""
     import pandas
-    from pandas.testing import assert_frame_equal
+    from pandas.testing import assert_frame_equal, assert_series_equal
 
     command = "import polars; polars_df = polars.DataFrame({'a': [10]})"
     asyncio.run(kernel.do_execute(command, True))
     pandas_df = pandas.DataFrame({'a': [10]})
     assert_frame_equal(kernel.get_value('polars_df'), pandas_df)
+
+    command = "import polars; polars_s = polars.Series('a', [1, 2, 3])"
+    asyncio.run(kernel.do_execute(command, True))
+    pandas_s = pandas.Series([1, 2, 3], name="a")
+    assert_series_equal(kernel.get_value('polars_s'), pandas_s)
 
 
 def test_set_value(kernel):

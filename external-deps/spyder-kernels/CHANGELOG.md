@@ -1,5 +1,16 @@
 # History of changes
 
+## Version 3.1.3 (2026/02/09)
+
+### Pull Requests Merged
+
+* [PR 576](https://github.com/spyder-ide/spyder-kernels/pull/576) - PR: Skip `test_get_interactive_backend` in Python 3.9 and Linux, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 575](https://github.com/spyder-ide/spyder-kernels/pull/575) - PR: Fix debugger stop in breakpoints set on modules if stop on first line option is disabled, by [@rear1019](https://github.com/rear1019)
+
+In this release 2 pull requests were closed.
+
+----
+
 ## Version 3.1.2 (2025/11/19)
 
 ### Pull Requests Merged
