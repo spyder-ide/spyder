@@ -327,9 +327,13 @@ class Editor(SpyderDockablePlugin):
     def on_run_teardown(self):
         widget = self.get_widget()
         run = self.get_plugin(Plugins.Run)
+
+        widget.remove_run_actions_from_codeeditor_context_menu()
+
         run.deregister_run_configuration_provider(
             self.NAME, widget.supported_run_extensions
         )
+
         run.destroy_run_button(RunContext.Cell)
         run.destroy_run_button(
             RunContext.Cell,
@@ -700,6 +704,8 @@ class Editor(SpyderDockablePlugin):
     def on_application_teardown(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
+
+        widget.remove_application_actions_from_codeeditor_context_menu()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_file_action_enabled.disconnect(self._enable_file_action)
         widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
