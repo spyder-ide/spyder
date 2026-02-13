@@ -3154,6 +3154,29 @@ class EditorMainWidget(PluginMainWidget):
                 before_section=CodeEditorContextMenuSections.ZoomSection,
             )
 
+    def remove_application_actions_from_codeeditor_context_menu(self):
+        # -- Main menu
+        menu = self.get_menu(CodeEditorMenus.ContextMenu)
+
+        for action_name in [
+            ApplicationActions.Undo,
+            ApplicationActions.Redo,
+            ApplicationActions.Cut,
+            ApplicationActions.Copy,
+            ApplicationActions.Paste,
+            ApplicationActions.SelectAll,
+        ]:
+            self.remove_item_from_menu(action_name, menu)
+
+        # -- Read-only menu
+        readonly_menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
+
+        for action_name in [
+            ApplicationActions.Copy,
+            ApplicationActions.SelectAll,
+        ]:
+            self.remove_item_from_menu(action_name, readonly_menu)
+
     def add_run_actions_to_codeeditor_context_menu(self):
         main_menu = self.get_menu(CodeEditorMenus.ContextMenu)
         readonly_menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
@@ -3172,6 +3195,19 @@ class EditorMainWidget(PluginMainWidget):
                     section=CodeEditorContextMenuSections.RunSection,
                     before_section=CodeEditorContextMenuSections.InspectSection,
                 )
+
+    def remove_run_actions_from_codeeditor_context_menu(self):
+        main_menu = self.get_menu(CodeEditorMenus.ContextMenu)
+        readonly_menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
+
+        for action_name in [
+            "run cell",
+            "run cell and advance",
+            "re-run cell",
+            "run selection and advance",
+        ]:
+            for menu in [main_menu, readonly_menu]:
+                self.remove_item_from_menu(action_name, menu)
 
     def _setup_codeeditor_context_menu(self):
         """Setup CodeEditor context menu"""
