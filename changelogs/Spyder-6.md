@@ -10,6 +10,9 @@
     * Fix dozens of bugs and limitations with the existing docstring generation.
     * Resolve numerous formatting issues and follow the relevant specifications.
 
+### API changes
+* Add `remove_item_from_menu` method to `SpyderMenuMixin`.
+
 ----
 
 ## Version 6.1.3 (2026-02-12)
