@@ -382,8 +382,20 @@ class SpyderKernel(IPythonKernel):
             value = value.to_pandas()
 
         if encoded:
-            # Encode with cloudpickle
-            value = cloudpickle.dumps(value)
+            # Encode with cloudpickle.
+            # If pickling fails due to deep recursion, temporarily increase
+            # the recursion limit and retry once before giving up.
+            # Fixes spyder-ide/spyder#25699
+            import pickle
+            try:
+                value = cloudpickle.dumps(value)
+            except (pickle.PicklingError, RecursionError):
+                old_limit = sys.getrecursionlimit()
+                try:
+                    sys.setrecursionlimit(old_limit * 10)
+                    value = cloudpickle.dumps(value)
+                finally:
+                    sys.setrecursionlimit(old_limit)
         return value
 
     @comm_handler

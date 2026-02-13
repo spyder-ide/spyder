@@ -275,6 +275,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             else:
                 raise ValueError(msg_without_note % reason)
         except Exception:
+            # Safety net: check if the exception is a dynamically-created
+            # PicklingError from the comm layer that didn't match the
+            # pickle.PicklingError type above.
+            # Fixes spyder-ide/spyder#25699
+            exc_type = sys.exc_info()[0]
+            if exc_type is not None and exc_type.__name__ in (
+                "PicklingError", "UnpicklingError"
+            ):
+                raise ValueError(msg % reason_not_picklable)
             raise ValueError(msg % reason_other)
 
     def set_value(self, name, value):

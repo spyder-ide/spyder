@@ -51,7 +51,9 @@ The messages exchanged are:
            }
         - The buffer contains the return value if it is bytes
 """
+import importlib
 import logging
+import pickle
 import sys
 import uuid
 import traceback
@@ -119,11 +121,40 @@ class CommsErrorWrapper():
         instance.call_name = json_data["call_name"]
         instance.call_id = json_data["call_id"]
         etype = json_data["etype"]
-        instance.etype = getattr(
-            builtins,
-            etype,
-            type(etype, (Exception,), {})
-        )
+
+        # Try to resolve the exception type from well-known modules first,
+        # then fall back to builtins, and finally create a dynamic type.
+        # This ensures that exception types like pickle.PicklingError are
+        # properly reconstructed so they can be caught by their real type
+        # on the receiving side.
+        # Fixes spyder-ide/spyder#25699
+        _KNOWN_EXCEPTION_MODULES = [
+            "pickle",
+            "_pickle",
+        ]
+        resolved_etype = None
+        for mod_name in _KNOWN_EXCEPTION_MODULES:
+            try:
+                mod = importlib.import_module(mod_name)
+                candidate = getattr(mod, etype, None)
+                if (
+                    candidate is not None
+                    and isinstance(candidate, type)
+                    and issubclass(candidate, BaseException)
+                ):
+                    resolved_etype = candidate
+                    break
+            except ImportError:
+                continue
+
+        if resolved_etype is None:
+            resolved_etype = getattr(
+                builtins,
+                etype,
+                type(etype, (Exception,), {})
+            )
+
+        instance.etype = resolved_etype
         instance.error = instance.etype(*json_data["args"])
         if json_data["error_name"]:
             instance.error.name = json_data["error_name"]

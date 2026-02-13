@@ -17,7 +17,7 @@ from qtpy.QtWidgets import QMessageBox
 import pytest
 
 # Local imports
-from spyder.utils.vcs import get_git_remotes
+from spyder.utils.vcs import get_git_remotes, remote_to_url
 
 # Constants
 HERE = os.path.abspath(__file__)
@@ -27,6 +27,14 @@ TEST_FILES = [os.path.join(TEST_FOLDER, f) for f in
               os.listdir(TEST_FOLDER) if f.endswith('.py')]
 TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
+
+# Compute expected GitHub issue URL dynamically from actual git remotes,
+# so the test works on forks (not just on spyder-ide/spyder).
+_git_remotes = get_git_remotes(HERE)
+_git_remote = _git_remotes.get('upstream', _git_remotes.get('origin', ''))
+_expected_gh_issue_url = (
+    remote_to_url(_git_remote) + '/issues/123' if _git_remote else None
+)
 
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
@@ -74,7 +82,7 @@ TEST_FILE_REL = 'conftest.py'
             ('# gh:spyder-ide/spyder#123\n', 'gh:spyder-ide/spyder#123', None,
              'https://github.com/spyder-ide/spyder/issues/123'),
             pytest.param(('# gh-123\n', 'gh-123', HERE,
-                          'https://github.com/spyder-ide/spyder/issues/123'),
+                          _expected_gh_issue_url),
                          marks=pytest.mark.skipif(
                              not(get_git_remotes(HERE)),
                              reason='not in a git repository')),
