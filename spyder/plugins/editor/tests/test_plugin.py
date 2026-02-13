@@ -11,10 +11,12 @@
 # Standard library imports
 import os
 import os.path as osp
+import pathlib
 import shutil
 
 # Third party imports
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QApplication
 import pytest
 
 # Local imports
@@ -479,6 +481,64 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
         text = f.read()
 
     assert get_eol_chars(text) == os.linesep
+
+
+def test_export_with_formatting(editor_plugin, mocker, qtbot, tmpdir_factory):
+    """Check that exporting with formatting works as expected."""
+    tmpdir = tmpdir_factory.mktemp("rich_text_files")
+    editorstack = editor_plugin.get_current_editorstack()
+    
+    fname = "rich_text_test.py"
+    fname_full_path = osp.join(tmpdir, fname)
+    
+    with open(fname_full_path, "w", encoding="utf-8") as f:
+        f.write("# -*- coding: utf-8 -*-\n"
+                "print('string with non ascii: μ Δ ⇇')\n"
+                "x = {'value requiring html escape': '& / \\'}")
+    
+    rtf_fname = str(pathlib.Path(fname_full_path).with_suffix(".rtf"))
+    html_fname = str(pathlib.Path(fname_full_path).with_suffix(".html"))
+    
+    mocker.patch.object(editor_module, 'getsavefilename')
+
+    # Load a test file\
+    editor_plugin.load(fname_full_path)
+    qtbot.wait(500)
+    
+    #export to rtf
+    editor_module.getsavefilename.return_value = (rtf_fname, '')
+    editorstack.export_rtf()
+    qtbot.wait(500)
+    
+    # check generated file
+    assert pathlib.Path(rtf_fname).is_file()
+    with open(rtf_fname, mode='rb') as f:
+        text = f.read()
+    # assert rtf file has some colors used
+    assert b"{\\colortbl;" in text and b"\\cf3 " in text
+    # assert rtf encoding of non ascii
+    assert b"string with non ascii: \\u956? \\u916?" in text
+    
+    #export to html
+    editor_module.getsavefilename.return_value = (html_fname, '')
+    editorstack.export_html()
+    
+    # check generated file
+    assert pathlib.Path(html_fname).is_file()
+    with open(html_fname, mode='r', encoding="utf-8") as f:
+        text = f.read()
+    # assert html file has some colors used
+    assert 'style="color:#' in text and 'style="background-color:#' in text
+    # assert html encoding
+    assert '&#x27;' in text and '&amp;' in text and '⇇' in text
+    
+    # test rich text and plain text are being placed on clipboard
+    codeeditor = editor_plugin.get_current_editor()
+    codeeditor.selectAll()
+    codeeditor.copy()
+    cb = QApplication.clipboard()
+    data = cb.mimeData()
+    assert data.hasHtml() and data.hasText()
 
 
 def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
