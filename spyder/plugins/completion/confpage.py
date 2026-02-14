@@ -48,6 +48,14 @@ class CompletionConfigPage(PluginConfigPage):
             _("Show completions on the fly"),
             'automatic_completions',
             section='editor')
+        use_enter_for_completions_box = newcb(
+            _("Use Enter to accept code completions"),
+            "use_enter_for_completions",
+            tip=_(
+                "If this option is disabled, completions will be accepted "
+                "with the Tab key only."
+            ),
+        )
         completions_after_characters = self.create_spinbox(
             _("Show automatic completions after characters entered:"), None,
             'automatic_completions_after_chars', min_=1, step=1,
@@ -65,11 +73,12 @@ class CompletionConfigPage(PluginConfigPage):
         completions_layout.addWidget(completion_hint_box, 0, 0)
         completions_layout.addWidget(code_snippets_box, 1, 0)
         completions_layout.addWidget(automatic_completion_box, 2, 0)
-        completions_layout.addWidget(completions_after_characters.plabel, 3, 0)
+        completions_layout.addWidget(use_enter_for_completions_box, 3, 0)
+        completions_layout.addWidget(completions_after_characters.plabel, 4, 0)
         completions_layout.addWidget(
-            completions_after_characters.spinbox, 3, 1)
+            completions_after_characters.spinbox, 4, 1)
         completions_layout.addWidget(
-            completions_after_characters.help_label, 3, 2)
+            completions_after_characters.help_label, 4, 2)
         completions_layout.addWidget(completions_hint_after_idle.plabel, 5, 0)
         completions_layout.addWidget(completions_hint_after_idle.spinbox, 5, 1)
         completions_layout.addWidget(

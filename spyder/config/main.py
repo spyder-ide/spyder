@@ -388,7 +388,8 @@ DEFAULTS = [
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
                'provider_configuration': {},
-               'request_priorities': {}
+               'request_priorities': {},
+               'use_enter_for_completions': True
              }),
             ('profiler',
              {
