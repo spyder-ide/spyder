@@ -234,17 +234,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         # Preferences
         self.prefs_dialog_instance = None
 
-        # Actions
-        self.undo_action = None
-        self.redo_action = None
-        self.copy_action = None
-        self.cut_action = None
-        self.paste_action = None
-        self.selectall_action = None
-
-        # TODO: Is this being used somewhere?
-        self.menus = []
-
         if running_under_pytest():
             # Show errors in internal console when testing.
             self.set_conf('show_internal_errors', False)

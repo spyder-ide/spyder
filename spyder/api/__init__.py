@@ -23,7 +23,7 @@ The API version is modified according to the following rules:
   APIs are removed then the major version will be updated.
 """
 
-VERSION_INFO: tuple[int, int, int] = (2, 0, 0)
+VERSION_INFO: tuple[int, int, int] = (2, 1, 0)
 """Tuple form of API version, broken down into ``(major, minor, micro)``."""
 
 __version__: str = str(".".join(map(str, VERSION_INFO)))

@@ -443,6 +443,32 @@ class SpyderMenuMixin:
             before_section=before_section,
         )
 
+    def remove_item_from_menu(self, action_or_menu_id: str, menu: SpyderMenu):
+        """
+        Add the given action or widget to the menu.
+
+        Parameters
+        ----------
+        action_or_menu_id : str
+            Unique string identifier name for the action or submenu to remove.
+        menu : SpyderMenu
+            The menu object to remove ``action_or_menu_id`` from.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        SpyderAPIError
+            If ``menu`` is not an instance of
+            :class:`~spyder.api.widgets.menus.SpyderMenu`.
+        """
+        if not isinstance(menu, SpyderMenu):
+            raise SpyderAPIError("Menu must be an instance of SpyderMenu!")
+
+        menu.remove_action(action_or_menu_id)
+
     def _create_menu(
         self,
         menu_id: str,

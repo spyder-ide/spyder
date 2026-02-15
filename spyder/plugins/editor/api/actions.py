@@ -29,7 +29,7 @@ class EditorWidgetActions:
     LinuxEOL = "linux_eol_action"
     MacEOL = "mac_eol_action"
     RemoveTrailingSpaces = "remove_trailing_spaces_action"
-    FormatCode = "autoformating"
+    FormatCode = "autoformatting"
     FixIndentation = "fix_indentation_action"
 
     # Checkable operations

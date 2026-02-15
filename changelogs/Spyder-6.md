@@ -1,5 +1,13 @@
 # History of changes for Spyder 6
 
+## Version 6.1.4 (unreleased)
+
+### API changes
+
+* Add `remove_item_from_menu` method to `SpyderMenuMixin`.
+
+----
+
 ## Version 6.1.3 (2026-02-12)
 
 ### New features
