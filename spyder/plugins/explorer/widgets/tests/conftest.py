@@ -17,8 +17,14 @@ import sys
 import pytest
 
 # Local imports
+from spyder.api.plugins.tests import *  # noqa
 from spyder.plugins.explorer.widgets.fileassociations import (
-    FileAssociationsWidget)
+    FileAssociationsWidget
+)
+from spyder.plugins.explorer.plugin import Explorer
+from spyder.plugins.remoteclient.plugin import RemoteClient
+from spyder.plugins.remoteclient.tests.conftest import await_future
+from spyder.plugins.remoteclient.tests.fixtures import *  # noqa
 
 
 @pytest.fixture(params=[
@@ -94,3 +100,37 @@ def file_assoc_widget(qtbot, tmp_path):
     widget.show()
     widget.test_data = data
     return qtbot, widget
+
+
+@pytest.fixture(scope="session")
+def plugins_cls():
+    yield [("remote_client", RemoteClient), ("explorer", Explorer)]
+
+
+@pytest.fixture
+def remote_explorer(explorer, remote_client, remote_client_id, qtbot):
+    """Create a remote explorer widget."""
+    # Wait until Spyder remote services is fully up
+    await_future(
+        remote_client.ensure_remote_server(remote_client_id),
+        timeout=100,
+    )
+
+    # Move to remote home
+    widget = explorer.get_widget()
+    widget.chdir("/home/ubuntu", server_id=remote_client_id)
+
+    # Wait until the remote explorer is populated
+    qtbot.waitUntil(lambda: widget.remote_treewidget.model.rowCount() > 0)
+
+    # Make the widget visible. This is useful to run one test at a time
+    # locally, but fails on CIs.
+    # widget.resize(640, 480)
+    # explorer.main.resize(640, 480)
+    # qtbot.addWidget(explorer.main)
+    # explorer.main.show()
+
+    yield widget
+
+    # Close remote file API connection
+    explorer.on_close()

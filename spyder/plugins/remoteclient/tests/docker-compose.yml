@@ -17,7 +17,7 @@ services:
       additional_contexts:
         external-deps: ../../../../external-deps
       args:
-        JUPYTERHUB_USERNAME: test
+        JUPYTERHUB_USERNAME: ubuntu
         JUPYTERHUB_API_TOKEN: test_api_key
       dockerfile: Dockerfile.jupyterhub
     volumes:
