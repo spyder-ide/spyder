@@ -293,9 +293,11 @@ class Explorer(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         if len(self._file_managers):
             for file_manager in self._file_managers.values():
-                AsyncDispatcher(
-                    loop=file_manager.session._loop, early_return=False
-                )(file_manager.close)()
+                if not file_manager.closed:
+                    AsyncDispatcher(
+                        loop=file_manager.session._loop, early_return=False
+                    )(file_manager.close)()
+
             self._file_managers = {}
 
     # ---- Public API

@@ -1140,7 +1140,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def shutdown_remote_kernel(self):
-        return await self._jupyter_api.terminate_kernel(self.kernel_id)
+        if not self._jupyter_api.closed:
+            return await self._jupyter_api.terminate_kernel(self.kernel_id)
 
     @AsyncDispatcher(loop="ipythonconsole", early_return=False)
     async def interrupt_remote_kernel(self):
