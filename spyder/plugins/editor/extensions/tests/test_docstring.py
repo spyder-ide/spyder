@@ -18,7 +18,9 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.plugins.editor.extensions.docstring import FunctionInfo
+from spyder.plugins.editor.extensions.docstring import (
+    FunctionInfo, remove_comments
+)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.qthelpers import qapplication
 
@@ -77,6 +79,16 @@ class Case:
         )
 
     @property
+    def function_def(self):
+        """Get the processed function signature information."""
+        if not self.sig.strip():
+            return None
+
+        def_text = self.normalize_part(self.sig).removesuffix('\n')
+        def_text = remove_comments(def_text)
+        return def_text.replace('\n', ''), def_text.count('\n') + 1
+
+    @property
     def function_body(self):
         """Get the processed function body."""
         parts = [self.normalize_part(part) for part in [self.doc, self.body]]
@@ -126,16 +138,44 @@ def load_docstring_test_cases(test_cases_dir=TEST_CASE_DOCSTRING_DIR):
 # ---- Test Cases
 # =============================================================================
 
-TEST_CASES_FUNCTION_PARSE = {
-    'no_params_no_body': ('def foo():', '', [], [], [], None),
+TEST_CASES_DEF_PARSE = {
+    'empty': ('', False, '', [], [], [], None),
+    'no_params_no_body': ('def foo():', True, '', [], [], [], None),
     'long_complex_def_brackets_in_strings': (
         ''' def foo(arg0, arg1=':', arg2: str='-> (float, str):') -> \
          (float, int): ''',
+        True,
         ' ',
         ['arg0', 'arg1', 'arg2'],
         [None, None, 'str'],
         [None, "':'", "'-> (float, str):'"],
         '(float, int)',
+    ),
+}
+
+TEST_CASES_BODY_PARSE = {
+    'empty': ('', [], None, False),
+    'simple_body': ('return True', ['True'], None, False),
+    'long_complex_body': (
+        '''
+            raise
+            raise ValueError
+            raise ValueError('tt')
+            \traise TypeError('tt')
+
+            yield None
+            yield "f, b", v1, v2, 3.0, .7, (,)
+            yield {}, [ab], f(a), None, a.b, a+b, False
+            return foo, bar
+        ''',
+        [
+            'None',
+            '"f, b", v1, v2, 3.0, .7, (,)',
+            '{}, [ab], f(a), None, a.b, a+b, False',
+            'foo, bar'
+        ],
+        ['ValueError', 'TypeError'],
+        True,
     ),
 }
 
@@ -198,6 +238,8 @@ def editor_docstring_start(base_editor_docstring):
         cursor.setPosition(0, QTextCursor.MoveAnchor)
 
         editor.setTextCursor(cursor)
+        writer.line_number_cursor = cursor.blockNumber() + 1
+
         return editor, writer, cursor
 
     return __editor_docstring
@@ -215,6 +257,8 @@ def editor_docstring_after_def(editor_docstring_start):
         cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
 
         editor.setTextCursor(cursor)
+        writer.line_number_cursor = cursor.blockNumber() + 1
+
         return editor, writer, cursor
 
     return __editor_docstring
@@ -231,6 +275,8 @@ def editor_docstring_inside_def(editor_docstring_start):
         cursor.setPosition(11, QTextCursor.MoveAnchor)
 
         editor.setTextCursor(cursor)
+        writer.line_number_cursor = cursor.blockNumber() + 1
+
         return editor, writer, cursor
 
     return __editor_docstring
@@ -241,22 +287,31 @@ def editor_docstring_inside_def(editor_docstring_start):
 # =============================================================================
 
 @pytest.mark.parametrize(
-    ['input_text', 'indent', 'name_list', 'type_list', 'value_list', 'rtype'],
-    TEST_CASES_FUNCTION_PARSE.values(),
-    ids=TEST_CASES_FUNCTION_PARSE.keys(),
+    'test_case',
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
 )
-def test_parse_function_def(
-    input_text, indent, name_list, type_list, value_list, rtype
-):
-    """Test the parse_def method of FunctionInfo class."""
-    func_info = FunctionInfo()
-    func_info.parse_def(input_text)
+def test_get_function_def_start(editor_docstring_start, test_case):
+    """Test get function definition at the start of the signature."""
+    __, writer, __ = editor_docstring_start(test_case)
 
-    assert func_info.func_indent == indent
-    assert func_info.arg_name_list == name_list
-    assert func_info.arg_type_list == type_list
-    assert func_info.arg_value_list == value_list
-    assert func_info.return_type_annotated == rtype
+    result = writer.get_function_definition_from_first_line()
+
+    assert result == test_case.function_def
+
+
+@pytest.mark.parametrize(
+    'test_case',
+    TEST_CASES_DOCSTRING.values(),
+    ids=TEST_CASES_DOCSTRING.keys(),
+)
+def test_get_function_def_below(editor_docstring_after_def, test_case):
+    """Test get function definition below the signature."""
+    __, writer, __ = editor_docstring_after_def(test_case)
+
+    result = writer.get_function_definition_from_below_last_line()
+
+    assert result == test_case.function_def
 
 
 @pytest.mark.parametrize(
@@ -267,13 +322,57 @@ def test_parse_function_def(
 def test_get_function_body(editor_docstring_after_def, test_case):
     """Test get function body."""
     __, writer, __ = editor_docstring_after_def(test_case)
-
     func_info = FunctionInfo()
     func_info.parse_def(test_case.input_text)
 
-    result = writer.get_function_body(func_info.func_indent).removesuffix('\n')
+    result = writer.get_function_body(func_info.func_indent)
 
-    assert result == test_case.function_body
+    assert result.removesuffix('\n') == test_case.function_body
+
+
+@pytest.mark.parametrize(
+    [
+         'input_text',
+         'has_info',
+         'indent',
+         'name_list',
+         'type_list',
+         'value_list',
+         'return_type',
+     ],
+    TEST_CASES_DEF_PARSE.values(),
+    ids=TEST_CASES_DEF_PARSE.keys(),
+)
+def test_parse_function_def(
+    input_text, has_info, indent, name_list, type_list, value_list, return_type
+):
+    """Test the parse_def method of the FunctionInfo class."""
+    func_info = FunctionInfo()
+    func_info.parse_def(input_text)
+
+    assert func_info.has_info == has_info
+    assert func_info.func_indent == indent
+    assert func_info.arg_name_list == name_list
+    assert func_info.arg_type_list == type_list
+    assert func_info.arg_value_list == value_list
+    assert func_info.return_type_annotated == return_type
+
+
+@pytest.mark.parametrize(
+    ['input_text', 'return_value', 'raise_list', 'has_yield'],
+    TEST_CASES_BODY_PARSE.values(),
+    ids=TEST_CASES_BODY_PARSE.keys(),
+)
+def test_parse_function_body(
+    input_text, return_value, raise_list, has_yield
+):
+    """Test the parse_body method of the FunctionInfo class."""
+    func_info = FunctionInfo()
+    func_info.parse_body(input_text)
+
+    assert func_info.return_value_in_body == return_value
+    assert func_info.raise_list == raise_list
+    assert func_info.has_yield == has_yield
 
 
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
@@ -285,7 +384,7 @@ def test_get_function_body(editor_docstring_after_def, test_case):
 def test_write_docstring(
     editor_docstring_start, test_case, doc_type
 ):
-    """Test auto docstring by shortcut."""
+    """Test auto docstring by calling the function directly."""
     editor, writer, __ = editor_docstring_start(test_case, doc_type)
 
     pos = editor.cursorRect().bottomRight()
