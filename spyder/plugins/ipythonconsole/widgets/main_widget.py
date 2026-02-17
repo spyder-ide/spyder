@@ -36,6 +36,7 @@ from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
+from spyder.app.utils import HAVE_WEBENGINE
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.ipythonconsole.api import (
@@ -310,11 +311,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self._last_time_for_restart_dialog = None
 
         # Disable infowidget if requested by the user
-        self.enable_infowidget = True
-        if plugin:
-            cli_options = plugin.get_command_line_options()
-            if cli_options.no_web_widgets or not WEBENGINE:
-                self.enable_infowidget = False
+        self.enable_infowidget = HAVE_WEBENGINE
 
         # Attrs for testing
         self._testing = bool(os.environ.get('IPYCONSOLE_TESTING'))
