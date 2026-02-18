@@ -875,7 +875,10 @@ class FunctionInfo:
                     quote = character
                     left_pos = idx
             else:
-                if character == quote and text[idx - 1] != '\\':
+                # Find (unescaped) quotes
+                if character == quote and (
+                    text[idx - 1] != "\\" or text[idx - 2] == "\\"
+                ):
                     pos[left_pos] = idx
                     is_found_left_quote = False
 
