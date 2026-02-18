@@ -443,18 +443,24 @@ class DocstringWriterExtension:
 
         cursor = self.code_editor.textCursor()
         prev_pos = cursor.position()
-
         quote = line_to_cursor[-1]
         docstring_type = CONF.get('editor', 'docstring_type')
-        docstring = self._generate_docstring(docstring_type, quote)
+
+        cursor.beginEditBlock()
+        try:
+            docstring = self._generate_docstring(docstring_type, quote)
+        except Exception:
+            cursor.endEditBlock()
+            raise
 
         if not docstring:
+            cursor.endEditBlock()
             return False
 
         self.code_editor.insert_text(docstring)
+        cursor.endEditBlock()
 
         # Set cursor to first line of summary
-        cursor = self.code_editor.textCursor()
         cursor.setPosition(prev_pos, QTextCursor.KeepAnchor)
         cursor.movePosition(QTextCursor.NextBlock)
         cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
@@ -467,6 +473,7 @@ class DocstringWriterExtension:
         """Write docstring to editor at mouse position."""
         func_def_info = self.get_function_definition_from_first_line()
         editor = self.code_editor
+        cursor = editor.textCursor()
 
         if func_def_info:
             func_text, number_of_line_func = func_def_info
@@ -474,7 +481,6 @@ class DocstringWriterExtension:
                 self.line_number_cursor + number_of_line_func - 1
             )
 
-            cursor = editor.textCursor()
             cursor_line_number = cursor.blockNumber() + 1
             offset = func_last_line_number - cursor_line_number
             if offset > 0:
@@ -487,22 +493,31 @@ class DocstringWriterExtension:
             editor.setTextCursor(cursor)
 
             body_indent = get_indent(func_text) + editor.indent_chars
+
+            cursor.beginEditBlock()
             editor.insert_text(f'\n{body_indent}"""')
-            self.write_docstring()
+            try:
+                self.write_docstring()
+            except Exception:
+                cursor.endEditBlock()
+                editor.undo()
+                raise
+            else:
+                cursor.endEditBlock()
 
     def write_docstring_for_shortcut(self):
         """Write docstring to editor by shortcut of code editor."""
-        # cursor placed below function definition
         func_def_info = self.get_function_definition_from_below_last_line()
+        cursor = self.code_editor.textCursor()
+
+        # Cursor placed below function definition
         if func_def_info is not None:
             __, number_of_lines_of_function = func_def_info
-            cursor = self.code_editor.textCursor()
             for __ in range(number_of_lines_of_function):
                 cursor.movePosition(QTextCursor.PreviousBlock)
 
             self.code_editor.setTextCursor(cursor)
 
-        cursor = self.code_editor.textCursor()
         self.line_number_cursor = cursor.blockNumber() + 1
 
         self.write_docstring_at_first_line_of_function()

@@ -772,6 +772,9 @@ def test_write_docstring(
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
 
+    editor.undo()
+    assert editor.toPlainText() == test_case.input_text
+
 
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
@@ -789,6 +792,9 @@ def test_docstring_by_shortcut(
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
 
+    editor.undo()
+    assert editor.toPlainText() == test_case.input_text
+
 
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
 @pytest.mark.parametrize(
@@ -803,6 +809,10 @@ def test_docstring_below_def(editor_docstring_after_def, test_case, doc_type):
     writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
+
+    editor.undo()
+    assert editor.toPlainText() == test_case.input_text
+
 
 
 @pytest.mark.parametrize('doc_type', ['numpy'])
@@ -820,10 +830,15 @@ def test_docstring_delayed_popup(
     qtbot.keyPress(editor, Qt.Key_Tab)
     for __ in range(3):
         qtbot.keyPress(editor, Qt.Key_QuoteDbl)
+    initial_text = editor.toPlainText()
     qtbot.wait(1000)
     qtbot.keyPress(editor.menu_docstring, key)
 
     assert editor.toPlainText() == test_case.get_expected(doc_type).rstrip()
+
+    if key == Qt.Key_Enter:
+        editor.undo()
+        assert editor.toPlainText() == initial_text
 
 
 @pytest.mark.parametrize('doc_type', DOC_TYPES.keys())
@@ -841,3 +856,6 @@ def test_docstring_inside_def(
     writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == test_case.get_expected(doc_type)
+
+    editor.undo()
+    assert editor.toPlainText() == test_case.input_text
