@@ -1,2 +1,1 @@
-This is a sample file with encoded in windows-1252
-€š
+This is a sample file with encoded in windows-1252 and a symbol (á) that chardet can use to recognize it

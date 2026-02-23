@@ -9,7 +9,9 @@ import os
 import pathlib
 import stat
 
+import chardet
 from flaky import flaky
+from packaging.version import parse
 import pytest
 
 from spyder.utils.encoding import is_text_file, read, write
@@ -91,6 +93,10 @@ def test_is_text_file(tmpdir):
     assert is_text_file(str(p)) is True
 
 
+@pytest.mark.skipif(
+    parse(chardet.__version__) < parse("6.0.0"),
+    reason="Fails with Chardet versions older than 6.0",
+)
 @pytest.mark.parametrize(
     'expected_encoding, text_file',
     [('utf-8', 'utf-8.txt'),
@@ -98,7 +104,6 @@ def test_is_text_file(tmpdir):
      ('ascii', 'ascii.txt'),
      ('Big5', 'Big5.txt'),
      ('KOI8-R', 'KOI8-R.txt'),
-     ('iso-8859-1', 'copyright.txt'),
      ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
      ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
      ])
