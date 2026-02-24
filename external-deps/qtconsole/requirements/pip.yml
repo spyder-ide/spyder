@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+dependencies:
+# Main dependencies
+- pip
+- python
+- wheel

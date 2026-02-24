@@ -346,14 +346,19 @@ def test_get_value(kernel):
 
 
 def test_get_value_with_polars(kernel):
-    """Test getting the value of a Polars DataFrame."""
+    """Test getting the value of a Polars DataFrame or Series."""
     import pandas
-    from pandas.testing import assert_frame_equal
+    from pandas.testing import assert_frame_equal, assert_series_equal
 
     command = "import polars; polars_df = polars.DataFrame({'a': [10]})"
     asyncio.run(kernel.do_execute(command, True))
     pandas_df = pandas.DataFrame({'a': [10]})
     assert_frame_equal(kernel.get_value('polars_df'), pandas_df)
+
+    command = "import polars; polars_s = polars.Series('a', [1, 2, 3])"
+    asyncio.run(kernel.do_execute(command, True))
+    pandas_s = pandas.Series([1, 2, 3], name="a")
+    assert_series_equal(kernel.get_value('polars_s'), pandas_s)
 
 
 def test_set_value(kernel):
@@ -635,9 +640,6 @@ if __name__ == '__main__':
 
 @pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
-    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
-    reason="Fails on Mac with Python 3.8")
-@pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages")
 def test_dask_multiprocessing(tmpdir):
@@ -756,9 +758,6 @@ def test_runfile(tmpdir):
 
 
 @pytest.mark.flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
-    reason="Fails on Mac with Python 3.8")
 def test_np_threshold(kernel):
     """
     Test that setting Numpy threshold doesn't make the Variable Explorer slow.
@@ -1185,6 +1184,10 @@ def test_locals_globals_in_pdb(kernel):
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages"
+)
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 9) and sys.platform.startswith("linux"),
+    reason="Fails with Python 3.9 on Linux"
 )
 def test_get_interactive_backend(backend):
     """

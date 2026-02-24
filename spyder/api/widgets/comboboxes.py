@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2023- Spyder Project Contributors
 #
-# Copyright © Spyder Project Contributors
-# Licensed under the terms of the MIT License
-# (see spyder/__init__.py for details)
+# Released under the terms of the MIT License
+# (see LICENSE.txt in the project root directory for details)
+# -----------------------------------------------------------------------------
 
 """
 Spyder combobox widgets.
@@ -10,8 +11,11 @@ Spyder combobox widgets.
 Use these widgets for any combobox you want to add to Spyder.
 """
 
+from __future__ import annotations
+
 # Standard library imports
 import sys
+from typing import TYPE_CHECKING
 
 # Third-party imports
 import qstylizer.style
@@ -33,6 +37,10 @@ from superqt.utils import qdebounced
 # Local imports
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, WIN
+
+if TYPE_CHECKING:
+    from qtpy.QtGui import QShowEvent
+    from qtpy.QtWidgets import QWidget
 
 
 class _SpyderComboBoxProxyStyle(QProxyStyle):
@@ -67,7 +75,7 @@ class _SpyderComboBoxDelegate(QStyledItemDelegate):
                 option.rect.left() + AppStyle.MarginSize,
                 option.rect.center().y(),
                 option.rect.right() - AppStyle.MarginSize,
-                option.rect.center().y()
+                option.rect.center().y(),
             )
             return
 
@@ -104,7 +112,7 @@ class _SpyderComboBoxLineEdit(QLineEdit):
             border="none",
             padding="0px",
             # Make text look centered for short comboboxes
-            paddingRight=f"-{3 if WIN else 2}px"
+            paddingRight=f"-{3 if WIN else 2}px",
         )
 
         self.setStyleSheet(css.toString())
@@ -229,21 +237,19 @@ class _SpyderComboBoxMixin:
         css = qstylizer.style.StyleSheet()
 
         # Make our comboboxes have a uniform height
-        css.QComboBox.setValues(
-            minHeight=f'{AppStyle.ComboBoxMinHeight}em'
-        )
+        css.QComboBox.setValues(minHeight=f"{AppStyle.ComboBoxMinHeight}em")
 
         # Add top and bottom padding to the inner contents of comboboxes
         css["QComboBox QAbstractItemView"].setValues(
             paddingTop=f"{AppStyle.MarginSize + 1}px",
-            paddingBottom=f"{AppStyle.MarginSize + 1}px"
+            paddingBottom=f"{AppStyle.MarginSize + 1}px",
         )
 
         # Add margin and padding to combobox items
         css["QComboBox QAbstractItemView::item"].setValues(
             marginLeft=f"{AppStyle.MarginSize}px",
             marginRight=f"{AppStyle.MarginSize}px",
-            padding=f"{AppStyle.MarginSize}px"
+            padding=f"{AppStyle.MarginSize}px",
         )
 
         # Make color of hovered combobox items match the one used in other
@@ -256,23 +262,39 @@ class _SpyderComboBoxMixin:
 
 
 class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
-    """Default combobox widget for Spyder."""
+    """
+    Default combobox widget for Spyder.
 
-    def __init__(self, parent=None, items_elide_mode=None):
+    Used for all comboboxes in Spyder so they have a uniform styling
+    across operating systems.
+    """
+
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        items_elide_mode: Qt.TextElideMode | None = None,
+    ) -> None:
         """
         Default combobox widget for Spyder.
 
         Parameters
         ----------
-        parent: QWidget, optional
-            The combobox parent.
-        items_elide_mode: Qt.TextElideMode, optional
-            Elide mode for the combobox items.
+        parent: QWidget | None, optional
+            The parent widget of the combobox.
+        items_elide_mode: Qt.TextElideMode | None, optional
+            The elide mode for the combobox items, which controls whether
+            the ellipses (``...``) is placed to the left, center or right
+            for overly long text. If ``None``, the default, will be
+            eliding to the right (e.g. ``Very long name...``).
+
+        Returns
+        -------
+        None
         """
         QComboBox.__init__(self, parent)
         _SpyderComboBoxMixin.__init__(self)
 
-        self.is_editable = None
+        self.is_editable: bool | None = None
         self._is_shown = False
         self._is_popup_shown = False
 
@@ -283,9 +305,19 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
             _SpyderComboBoxDelegate(self, elide_mode=items_elide_mode)
         )
 
-    def showEvent(self, event):
-        """Adjustments when the widget is shown."""
+    def showEvent(self, event: QShowEvent) -> None:
+        """
+        Adjustments when the widget is shown.
 
+        Parameters
+        ----------
+        event : QShowEvent
+            The event object showing the widget.
+
+        Returns
+        -------
+        None
+        """
         if not self._is_shown:
             if not self.isEditable():
                 self.is_editable = False
@@ -307,8 +339,14 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
         super().showEvent(event)
 
-    def showPopup(self):
-        """Adjustments when the popup is shown."""
+    def showPopup(self) -> None:
+        """
+        Adjustments when the popup is shown.
+
+        Returns
+        -------
+        None
+        """
         super().showPopup()
 
         if sys.platform == "darwin":
@@ -331,8 +369,14 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
             self.setStyleSheet(self._css.toString())
 
-    def hidePopup(self):
-        """Adjustments when the popup is hidden."""
+    def hidePopup(self) -> None:
+        """
+        Adjustments when the popup is hidden.
+
+        Returns
+        -------
+        None
+        """
         super().hidePopup()
         self.sig_popup_is_hidden.emit()
 
@@ -348,32 +392,54 @@ class SpyderComboBox(_SpyderComboBoxMixin, QComboBox):
 
 
 class SpyderComboBoxWithIcons(SpyderComboBox):
-    """"Combobox widget for Spyder when its items have icons."""
+    """Combobox widget for Spyder when its items have icons."""
 
-    def __init__(self, parent=None, items_elide_mode=None):
-        """"
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        items_elide_mode: Qt.TextElideMode | None = None,
+    ) -> None:
+        """
         Combobox widget for Spyder when its items have icons.
 
         Parameters
         ----------
-        parent: QWidget, optional
-            The combobox parent.
-        items_elide_mode: Qt.TextElideMode, optional
-            Elide mode for the combobox items.
+        parent: QWidget | None, optional
+            This combobox's parent widget; by default, no parent (``None``).
+        items_elide_mode: Qt.TextElideMode | None, optional
+            The elide mode for the combobox items, which controls whether
+            the ellipses (``...``) is placed to the left, center or right
+            for overly long text. If ``None``, the default, will be
+            eliding to the right (e.g. ``Very long name...``).
+
+        Returns
+        -------
+        None
         """
         super().__init__(parent, items_elide_mode)
 
         # Padding is not necessary because icons give items enough of it.
-        self._css["QComboBox QAbstractItemView::item"].setValues(
-            padding="0px"
-        )
+        self._css["QComboBox QAbstractItemView::item"].setValues(padding="0px")
 
         self.setStyleSheet(self._css.toString())
 
 
 class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
+    """A specialized combobox for showing a list of font choices."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """
+        Create a new combobox for displaying font choices.
+
+        Parameters
+        ----------
+        parent : QWidget | None, optional
+            This combobox's parent widget; by default, no parent (``None``).
+
+        Returns
+        -------
+        None
+        """
         QFontComboBox.__init__(self, parent)
         _SpyderComboBoxMixin.__init__(self)
 
@@ -395,14 +461,27 @@ class SpyderFontComboBox(_SpyderComboBoxMixin, QFontComboBox):
             QComboBox.AdjustToMinimumContentsLengthWithIcon
         )
 
-    def showPopup(self):
-        """Adjustments when the popup is shown."""
+    def showPopup(self) -> None:
+        """
+        Adjustments for when the font combobox popup is shown.
+
+        Returns
+        -------
+        None
+        """
         super().showPopup()
 
         if sys.platform == "darwin":
             popup = self.findChild(QFrame)
             popup.move(popup.x() - 3, popup.y() + 4)
 
-    def hidePopup(self):
+    def hidePopup(self) -> None:
+        """
+        Adjustments for when the font combobox popup is hidden.
+
+        Returns
+        -------
+        None
+        """
         super().hidePopup()
         self.sig_popup_is_hidden.emit()

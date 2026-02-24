@@ -287,6 +287,7 @@ class SpyderPdb(ipyPdb):
         if self.stopframe == self.botframe and self.stoplineno == -1:
             return False
         if self.continue_if_has_breakpoints and self.should_continue(frame):
+            self._wait_for_mainpyfile = False
             self.set_continue()
             return False
         if (

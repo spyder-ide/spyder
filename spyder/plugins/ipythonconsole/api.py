@@ -55,6 +55,7 @@ class IPythonConsoleWidgetActions:
     ConnectToKernel = 'connect to kernel'
     Interrupt = 'interrupt kernel'
     Restart = 'Restart kernel'
+    Reconnect = 'reconnect kernel'
     ResetNamespace = 'reset namespace'
     ShowEnvironmentVariables = 'Show environment variables'
     ShowSystemPath = 'show system path'
@@ -142,7 +143,7 @@ class IPythonConsoleWidgetCornerWidgets:
     ClearButton = "clear_button"
     InterruptButton = "interrupt_button"
     TimeElapsedLabel = "time_elapsed_label"
-
+    ReconnectButton = "reconnect_button"
 
 class RemoteConsolesMenus:
     RemoteConsoles = "remote_consoles_menu"

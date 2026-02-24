@@ -523,12 +523,15 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             version=self.asset_info["version"],
             on_close=True
         )
+
         if box.result() == QMessageBox.Yes:
             self.restart_spyder = True
             self.sig_install_on_close.emit(True)
+            self.set_conf("update_performed", True)
             self.sig_quit_requested.emit()
         elif box.result() == 0:  # 0 is result of 3rd push-button
             self.restart_spyder = False
+            self.set_conf("update_performed", True)
             self.sig_install_on_close.emit(True)
             self.set_status(INSTALL_ON_CLOSE)
 

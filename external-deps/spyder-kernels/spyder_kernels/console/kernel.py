@@ -377,8 +377,11 @@ class SpyderKernel(IPythonKernel):
         ns = self.shell._get_current_namespace()
         value = ns[name]
 
-        if str(type(value)) == "<class 'polars.dataframe.frame.DataFrame'>":
-            # Convert polars dataframes to pandas
+        if str(type(value)) in [
+            "<class 'polars.dataframe.frame.DataFrame'>",
+            "<class 'polars.series.series.Series'>"
+        ]:
+            # Convert polars dataframes and series to pandas
             value = value.to_pandas()
 
         if encoded:

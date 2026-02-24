@@ -1,27 +1,26 @@
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2013-2016 Colin Duquesnoy and others (see pyqode/AUTHORS.rst)
 # Copyright (c) 2016- Spyder Project Contributors (see AUTHORS.txt)
 #
-# Distributed under the terms of the MIT License
+# Released under the terms of the MIT License
 # (see NOTICE.txt in the Spyder root directory for details)
 # -----------------------------------------------------------------------------
 
 """
-Spyder API Mixins.
+Mixin classes for the Spyder widget API.
 """
+
+from __future__ import annotations
 
 # Standard library imports
 from collections import OrderedDict
-from typing import Any, Optional, Dict
+from typing import Any, TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import QPoint, Qt
-from qtpy.QtGui import QIcon, QImage, QPainter, QPixmap
+from qtpy.QtGui import QImage, QPainter, QPixmap
 from qtpy.QtSvg import QSvgRenderer
-from qtpy.QtWidgets import (
-    QApplication, QMainWindow, QSizePolicy, QToolBar, QWidget, QToolButton
-)
+from qtpy.QtWidgets import QApplication, QSizePolicy, QWidget
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -34,22 +33,97 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.qthelpers import create_action, create_toolbutton
 from spyder.utils.registries import (
-    ACTION_REGISTRY, MENU_REGISTRY, TOOLBAR_REGISTRY, TOOLBUTTON_REGISTRY)
+    ACTION_REGISTRY,
+    MENU_REGISTRY,
+    TOOLBAR_REGISTRY,
+    TOOLBUTTON_REGISTRY,
+)
 from spyder.utils.stylesheet import PANES_TOOLBAR_STYLESHEET
 from spyder.utils.svg_colorizer import SVGColorize
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from qtpy.QtCore import QObject
+    from qtpy.QtGui import QIcon
+    from qtpy.QtWidgets import QAction, QMainWindow, QToolButton
+
+    import spyder.utils.qthelpers  # For SpyderAction
+    import spyder.config.types  # For ConfigurationKey
 
 
 class SpyderToolButtonMixin:
     """
-    Provide methods to create, add and get toolbuttons.
+    Provide methods to create, add and get toolbar buttons.
     """
 
-    def create_toolbutton(self, name, text=None, icon=None,
-                          tip=None, toggled=None, triggered=None,
-                          autoraise=True, text_beside_icon=False,
-                          section=None, option=None, register=True):
+    def create_toolbutton(
+        self,
+        name: str,
+        text: str | None = None,
+        icon: QIcon | str | None = None,
+        tip: str | None = None,
+        toggled: Callable[[Any], None] | bool | None = None,
+        triggered: Callable[[], None] | None = None,
+        autoraise: bool = True,
+        text_beside_icon: bool = False,
+        section: str | None = None,
+        option: spyder.config.types.ConfigurationKey | None = None,
+        register: bool = True,
+    ) -> QToolButton:
         """
-        Create a Spyder toolbutton.
+        Create a new Spyder toolbar button.
+
+        Parameters
+        ----------
+        name: str
+            Unique identifier for the toolbutton.
+        text: str | None, optional
+           Localized text for the toolbutton, displayed in the interface.
+           If ``None``, the default, no text is shown.
+        icon: QIcon | str | None, optional
+            Icon name or object to use in the toolbutton.
+            If ``None``, the default, no icon is shown.
+        tip: str | None, optional
+            Tooltip text for the toolbutton.
+            If ``None`` (the default), no tooltip is shown.
+        toggled: Callable[[Any], None] | bool | None, optional
+            If ``None`` (default) then the button doesn't act like a checkbox.
+            If ``True``, then the button modifies the configuration ``option``
+            on the ``section`` specified (or the default
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` if
+            ``section`` is not set). Otherwise, must be a callable,
+            called when toggling this button. One of ``toggled`` and
+            ``triggered`` must not be ``None``.
+        triggered: Callable[[], None] | None, optional
+            If a callable, will be called when triggering this button.
+            Otherwise, if ``None`` (the default), this will not be a
+            triggered button and ``toggled`` must be non-``None`` instead.
+        autoraise : bool, optional
+            If ``True`` (the default), the button will only draw a 3D frame
+            when hovered over. If ``False``, will draw the button frame
+            all the time.
+        text_beside_icon : bool, optional
+            If ``True``, the button text will be displayed beside the icon.
+            If ``False`` (the default), will only show the icon.
+        section: str | None, optional
+            Name of the configuration section whose ``option`` is going to be
+            modified. If ``None`` (the default) and ``option`` is not ``None``,
+            then it defaults to the class'
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` attribute.
+        option: spyder.config.types.ConfigurationKey | None, optional
+            Name of the configuration option whose value is reflected and
+            affected by the button. If ``None`` (the default), no option
+            is associated with this button, e.g. for buttons that are
+            ``triggered`` rather than ``toggled``.
+        register_action: bool, optional
+            If ``True`` (default) the action will be registered and searchable.
+            If ``False``, the action will be created but not registered.
+
+        Returns
+        -------
+        QToolButton
+            The toolbar button object that was created.
         """
         if toggled and not callable(toggled):
             toggled = lambda value: None
@@ -73,7 +147,7 @@ class SpyderToolButtonMixin:
             id_=name,
             plugin=self.PLUGIN_NAME,
             context_name=self.CONTEXT_NAME,
-            register_toolbutton=register
+            register_toolbutton=register,
         )
         toolbutton.name = name
 
@@ -84,57 +158,66 @@ class SpyderToolButtonMixin:
 
         return toolbutton
 
-    def get_toolbutton(self, name: str, context: Optional[str] = None,
-                       plugin: Optional[str] = None) -> QToolButton:
+    def get_toolbutton(
+        self,
+        name: str,
+        context: str | None = None,
+        plugin: str | None = None,
+    ) -> QToolButton:
         """
-        Return toolbutton by name, plugin and context.
+        Retrieve a toolbar button by name, context and plugin.
 
         Parameters
         ----------
         name: str
-            Name of the toolbutton to retrieve.
-        context: Optional[str]
-            Widget or context identifier under which the toolbutton was stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the toolbutton was defined. If None, then
-            `PLUGIN_NAME` is used.
+            Identifier of the toolbutton to retrieve.
+        context: str | None, optional
+            Context identifier under which the toolbutton was stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the toolbutton was defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        toolbutton: QToolButton
-            The corresponding toolbutton stored under the given `name`,
-            `context` and `plugin`.
+        QToolButton
+            The corresponding toolbutton widget stored under the given
+            ``name``, ``context`` and ``plugin``.
 
         Raises
         ------
         KeyError
-            If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbutton registry.
+            If the combination of ``name``, ``context`` and ``plugin`` keys
+            does not exist in the toolbutton registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
         return TOOLBUTTON_REGISTRY.get_reference(name, plugin, context)
 
-    def get_toolbuttons(self, context: Optional[str] = None,
-                        plugin: Optional[str] = None) -> Dict[str, QToolButton]:
+    def get_toolbuttons(
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, QToolButton]:
         """
-        Return all toolbuttons defined by a context on a given plugin.
+        Return all toolbar buttons defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
-            Widget or context identifier under which the toolbuttons were
-            stored. If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the toolbuttons were defined.
-            If None, then `PLUGIN_NAME` is used.
+        context: str | None, optional
+            Context identifier under which the toolbuttons were stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the toolbuttons were defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        toolbuttons: Dict[str, QToolButton]
-            A dictionary that maps string keys to their corresponding
-            toolbuttons.
+        dict[str, QToolButton]
+            A dictionary that maps identifier name keys to their corresponding
+            toolbutton objects.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -146,19 +229,63 @@ class SpyderToolbarMixin:
     Provide methods to create, add and get toolbars.
     """
 
-    def add_item_to_toolbar(self, action_or_widget, toolbar, section=None,
-                            before=None, before_section=None):
+    def add_item_to_toolbar(
+        self,
+        action_or_widget: spyder.utils.qthelpers.SpyderAction | QWidget,
+        toolbar: SpyderToolbar,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
+    ) -> None:
         """
-        If you provide a `before` action, the action will be placed before this
-        one, so the section option will be ignored, since the action will now
-        be placed in the same section as the `before` action.
-        """
-        toolbar.add_item(action_or_widget, section=section, before=before,
-                         before_section=before_section)
+        Add the given action or widget to this toolbar.
 
-    def create_stretcher(self, id_=None):
+        Parameters
+        ----------
+        action_or_widget : spyder.utils.qthelpers.SpyderAction | QWidget
+            The action or widget to add to the toolbar.
+        toolbar : SpyderToolbar
+            The toolbar object to add ``action_or_widget`` to.
+        section: str | None, optional
+            The section id in which to insert the ``action_or_widget``,
+            or ``None`` (default) for no section.
+        before: str | None, optional
+            Make the ``action_or_widget`` appear before the action with the
+            identifier ``before``. If ``None`` (default), add it to the end.
+            If ``before`` is not ``None``, ``before_section`` will be ignored.
+        before_section : str | None, optional
+            Make the ``section`` appear prior to ``before_section``.
+            If ``None`` (the default), add the section to the end.
+            If you provide a ``before`` action, the new action will be placed
+            before this one, so the section option will be ignored, since the
+            action will now be placed in the same section as the ``before``
+            action.
+
+        Returns
+        -------
+        None
         """
-        Create a stretcher widget to be used in a Qt toolbar.
+        toolbar.add_item(
+            action_or_widget,
+            section=section,
+            before=before,
+            before_section=before_section,
+        )
+
+    def create_stretcher(self, id_: str | None = None) -> QWidget:
+        """
+        Create a stretcher widget to be used in a Spyder toolbar.
+
+        Parameters
+        ----------
+        id_ : str | None, optional
+            The identifier for the stretcher widget. If ``None`` (the default),
+            no id will be set.
+
+        Returns
+        -------
+        QWidget
+            The created stretcher widget.
         """
         stretcher = QWidget(self)
         stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -168,9 +295,7 @@ class SpyderToolbarMixin:
         return stretcher
 
     def create_toolbar(
-        self,
-        name: str,
-        register: bool = True
+        self, name: str, register: bool = True
     ) -> SpyderToolbar:
         """
         Create a Spyder toolbar.
@@ -178,9 +303,15 @@ class SpyderToolbarMixin:
         Parameters
         ----------
         name: str
-            Name of the toolbar to create.
-        register: bool
-            Whether to register the toolbar in the global registry.
+            Unique string identifier name of the toolbar to create.
+        register: bool, optional
+            If ``True`` (default), register the toolbar in the global registry.
+            If ``False``, don't register it.
+
+        Returns
+        -------
+        SpyderToolbar
+            The created toolbar object.
         """
         toolbar = SpyderToolbar(self, name)
         toolbar.setStyleSheet(str(PANES_TOOLBAR_STYLESHEET))
@@ -190,56 +321,66 @@ class SpyderToolbarMixin:
             )
         return toolbar
 
-    def get_toolbar(self, name: str, context: Optional[str] = None,
-                    plugin: Optional[str] = None) -> QToolBar:
+    def get_toolbar(
+        self,
+        name: str,
+        context: str | None = None,
+        plugin: str | None = None,
+    ) -> SpyderToolbar:
         """
-        Return toolbar by name, plugin and context.
+        Return toolbar by name, context and plugin.
 
         Parameters
         ----------
         name: str
-            Name of the toolbar to retrieve.
-        context: Optional[str]
-            Widget or context identifier under which the toolbar was stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the toolbar was defined. If None, then
-            `PLUGIN_NAME` is used.
+            Identifier of the toolbar to retrieve.
+        context: str | None, optional
+            Context identifier under which the toolbar was stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the toolbar was defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        toolbar: QToolBar
-            The corresponding toolbar stored under the given `name`, `context`
-            and `plugin`.
+        SpyderToolbar
+            The corresponding toolbar widget stored under the given
+            ``name``, ``context`` and ``plugin``.
 
         Raises
         ------
         KeyError
-            If either of `name`, `context` or `plugin` keys do not exist in the
-            toolbar registry.
+            If the combination of ``name``, ``context`` and ``plugin`` keys
+            does not exist in the toolbar registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
         return TOOLBAR_REGISTRY.get_reference(name, plugin, context)
 
-    def get_toolbars(self, context: Optional[str] = None,
-                     plugin: Optional[str] = None) -> Dict[str, QToolBar]:
+    def get_toolbars(
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, SpyderToolbar]:
         """
         Return all toolbars defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
-            Widget or context identifier under which the toolbars were stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the toolbars were defined. If None, then
-            `PLUGIN_NAME` is used.
+        context: str | None, optional
+            Context identifier under which the toolbars were stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the toolbars were defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        toolbars: Dict[str, QToolBar]
-            A dictionary that maps string keys to their corresponding toolbars.
+        dict[str, SpyderToolbar]
+            A dictionary that maps identifier name keys to their corresponding
+            toolbar objects.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -254,13 +395,46 @@ class SpyderMenuMixin:
     sections in a simple way.
     """
 
-    def add_item_to_menu(self, action_or_menu, menu, section=None,
-                         before=None, before_section=None):
+    def add_item_to_menu(
+        self,
+        action_or_menu: spyder.utils.qthelpers.SpyderAction | SpyderMenu,
+        menu: SpyderMenu,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
+    ) -> None:
         """
-        Add a SpyderAction or a QWidget to the menu.
+        Add the given action or widget to the menu.
+
+        Parameters
+        ----------
+        action_or_menu : spyder.utils.qthelpers.SpyderAction | SpyderMenu
+            The action or submenu to add to the menu.
+        menu : SpyderMenu
+            The menu object to add ``action_or_menu`` to.
+        section: str | None, optional
+            The section id in which to insert the ``action_or_menu``,
+            or ``None`` (default) for no section.
+        before: str | None, optional
+            Make the ``action_or_menu`` appear before the action with the
+            identifier ``before``. If ``None`` (default), add it to the end.
+            If ``before`` is not ``None``, ``before_section`` will be ignored.
+        before_section : str | None, optional
+            Make the ``section`` appear prior to ``before_section``.
+            If ``None`` (the default), add the section to the end.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        SpyderAPIError
+            If ``menu`` is not an instance of
+            :class:`~spyder.api.widgets.menus.SpyderMenu`.
         """
         if not isinstance(menu, SpyderMenu):
-            raise SpyderAPIError('Menu must be an instance of SpyderMenu!')
+            raise SpyderAPIError("Menu must be an instance of SpyderMenu!")
 
         menu.add_action(
             action_or_menu,
@@ -272,13 +446,13 @@ class SpyderMenuMixin:
     def _create_menu(
         self,
         menu_id: str,
-        parent: Optional[QWidget] = None,
-        title: Optional[str] = None,
-        icon: Optional[QIcon] = None,
-        reposition: Optional[bool] = True,
+        parent: QWidget | None = None,
+        title: str | None = None,
+        icon: QIcon | None = None,
+        reposition: bool = True,
         register: bool = True,
-        min_width: Optional[int] = None,
-        MenuClass=SpyderMenu
+        min_width: int | None = None,
+        MenuClass: type[SpyderMenu] = SpyderMenu,
     ) -> SpyderMenu:
         """
         Create a SpyderMenu or a subclass of it.
@@ -290,7 +464,7 @@ class SpyderMenuMixin:
         * Refer to the documentation for `SpyderMenu` to learn about its args.
         """
         if register:
-            menus = getattr(self, '_menus', None)
+            menus = getattr(self, "_menus", None)
             if menus is None:
                 self._menus = OrderedDict()
 
@@ -304,7 +478,7 @@ class SpyderMenuMixin:
             menu_id=menu_id,
             title=title,
             min_width=min_width,
-            reposition=reposition
+            reposition=reposition,
         )
 
         if icon is not None:
@@ -322,10 +496,10 @@ class SpyderMenuMixin:
     def create_menu(
         self,
         menu_id: str,
-        title: Optional[str] = None,
-        icon: Optional[QIcon] = None,
-        reposition: Optional[bool] = True,
-        register: bool = True
+        title: str | None = None,
+        icon: QIcon | None = None,
+        reposition: bool = True,
+        register: bool = True,
     ) -> SpyderMenu:
         """
         Create a menu for Spyder.
@@ -333,83 +507,91 @@ class SpyderMenuMixin:
         Parameters
         ----------
         menu_id: str
-            Unique str identifier for the menu.
-        title: str or None
-            Localized text string for the menu.
-        icon: QIcon or None
-            Icon to use for the menu.
-        reposition: bool, optional (default True)
-            Whether to vertically reposition the menu due to its padding.
-        register: bool
-            Whether to register the menu in the global registry.
+            Unique string identifier name for the menu to create.
+        title: str | None, optional
+            Localized title for the menu.
+        icon: QIcon | None, optional
+            Icon object to use for the menu.
+        reposition: bool, optional
+            If ``True`` (the default), vertically reposition the menu per
+            its padding. If ``False``, don't reposition.
+        register: bool, optional
+            If ``True`` (default), register the menu in the global registry.
+            If ``False``, don't register it.
 
         Returns
         -------
         SpyderMenu
-            The created menu.
+            The created menu object.
         """
         return self._create_menu(
             menu_id=menu_id,
             title=title,
             icon=icon,
             reposition=reposition,
-            register=register
+            register=register,
         )
 
     def get_menu(
         self,
         name: str,
-        context: Optional[str] = None,
-        plugin: Optional[str] = None
+        context: str | None = None,
+        plugin: str | None = None,
     ) -> SpyderMenu:
         """
-        Return a menu by name, plugin and context.
+        Return a menu by name, context and plugin.
 
         Parameters
         ----------
         name: str
-            Name of the menu to retrieve.
-        context: Optional[str]
-            Widget or context identifier under which the menu was stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the menu was defined. If None, then
-            `PLUGIN_NAME` is used.
+            Identifier of the menu to retrieve.
+        context: str | None, optional
+            Context identifier under which the menu was stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the menu was defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        menu: SpyderMenu
-            The corresponding menu stored under the given `name`, `context`
-            and `plugin`.
+        SpyderMenu
+            The corresponding menu widget stored under the given
+            ``name``, ``context`` and ``plugin``.
 
         Raises
         ------
         KeyError
-            If either of `name`, `context` or `plugin` keys do not exist in the
-            menu registry.
+            If the combination of ``name``, ``context`` and ``plugin`` keys
+            does not exist in the menu registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
         return MENU_REGISTRY.get_reference(name, plugin, context)
 
-    def get_menus(self, context: Optional[str] = None,
-                  plugin: Optional[str] = None) -> Dict[str, SpyderMenu]:
+    def get_menus(
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, SpyderMenu]:
         """
         Return all menus defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
-            Widget or context identifier under which the menus were stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the menus were defined. If None, then
-            `PLUGIN_NAME` is used.
+        context: str | None, optional
+            Context identifier under which the menus were stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the menus were defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        menus: Dict[str, SpyderMenu]
-            A dictionary that maps string keys to their corresponding menus.
+        dict[str, SpyderMenu]
+            A dictionary that maps identifier name keys to their corresponding
+            menu objects.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
@@ -423,7 +605,7 @@ class SpyderActionMixin:
     This mixin uses a custom action object.
     """
 
-    def _update_action_state(self, action_name, value):
+    def _update_action_state(self, action_name: str, value: bool) -> None:
         """
         This allows to update the state of a togglable action without emitting
         signals.
@@ -443,82 +625,141 @@ class SpyderActionMixin:
     # On one side it refers to a Qt widget shortcut context and on the
     # other it refers to a section of the configuration (or the widget
     # name where it is applied).
-    def create_action(self, name, text, icon=None, icon_text='', tip=None,
-                      toggled=None, triggered=None, data=None,
-                      shortcut=None, shortcut_context=None,
-                      context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=False, section=None, option=None,
-                      parent=None, register_action=True, overwrite=False,
-                      context_name=None, menurole=None):
+    def create_action(
+        self,
+        name: str,
+        text: str,
+        icon: QIcon | str | None = None,
+        icon_text: str = "",
+        tip: str | None = None,
+        toggled: Callable[[Any], None] | bool | None = None,
+        triggered: Callable[[], None] | None = None,
+        data: Any | None = None,
+        shortcut: str | None = None,
+        shortcut_context: str | None = None,
+        context: Qt.ShortcutContext = Qt.WidgetWithChildrenShortcut,
+        initial: bool | None = None,
+        register_shortcut: bool = False,
+        section: str | None = None,
+        option: spyder.config.types.ConfigurationKey | None = None,
+        parent: QWidget | None = None,
+        register_action: bool = True,
+        overwrite: bool = False,
+        context_name: str | None = None,
+        menurole: QAction.MenuRole | None = None,
+    ) -> spyder.utils.qthelpers.SpyderAction:
         """
+        Create a new Spyder-specialized :class:`QAction`.
+
+        .. note::
+
+            There is no need to set a shortcut when creating an action,
+            unless it's a fixed (non-customizable) one. Otherwise, set the
+            ``register_shortcut`` argument to ``True``. If the shortcut is
+            found in the ``shortcuts`` config section of your plugin,
+            then it'll be assigned; if not, it'll be left blank for the
+            user to define it in Spyder :guilabel:`Preferences`.
+
+        Parameters
+        ----------
         name: str
-            unique identifiable name for the action
+            Unique identifier for the action.
         text: str
-           Localized text for the action
-        icon: QIcon,
-            Icon for the action when applied to menu or toolbutton.
-        icon_text: str
-            Icon for text in toolbars. If True, this will also disable
-            the tooltip on this toolbutton if part of a toolbar.
-        tip: str
-            Tooltip to define for action on menu or toolbar.
-        toggled: Optional[Union[Callable, bool]]
-            If True, then the action modifies the configuration option on the
-            section specified. Otherwise, it should be a callable to use
-            when toggling this action. If None, then the action does not
-            behave like a checkbox.
-        triggered: callable
-            The callable to use when triggering this action.
-        data: Any
-            Data to be set on the action.
-        shortcut_context: str
-            Set the `str` context of the shortcut.
-        context: Qt.ShortcutContext
-            Set the context for the shortcut.
-        initial: object
-            Sets the initial state of a togglable action. This does not emit
-            the toggled signal.
-        section: Optional[str]
-            Name of the configuration section whose option is going to be
-            modified. If None, and `option` is not None, then it defaults to
-            the class `CONF_SECTION` attribute.
-        option: ConfigurationKey
-            Name of the configuration option whose value is reflected and
-            affected by the action.
+           Localized text for the action, displayed in the interface.
+        icon: QIcon | str | None, optional
+            Icon name or object for the action when used in menus/toolbuttons.
+            If ``None``, the default, no icon is shown.
+        icon_text: str, optional
+            Descriptive text for the action's ``icon``. If a non-empty string
+            is passed, this will also disable the tooltip on this toolbutton
+            if part of a toolbar. If the empty string (``""``) (the default),
+            no icon text is set and the tooltip will not be disabled.
+        tip: str | None, optional
+            Tooltip text for the action when used in menus or toolbars.
+            If ``None`` (the default), no tooltip is shown.
+        toggled: Callable[[Any], None] | bool | None, optional
+            If ``None`` (default) then the action doesn't act like a checkbox.
+            If ``True``, then the action modifies the configuration ``option``
+            on the ``section`` specified (or the default
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` if
+            ``section`` is not set). Otherwise, must be a callable,
+            called when toggling this action. One of ``toggled`` and
+            ``triggered`` must not be ``None``.
+        triggered: Callable[[], None] | None, optional
+            If a callable, will be called when triggering this action.
+            Otherwise, if ``None`` (the default), this will not be a
+            triggered action and ``toggled`` must be non-``None`` instead.
+        data: Any | None, optional
+            Arbitrary user data to be set on the action.
+            If ``None``, the default, no custom data is set.
+        shortcut: str | None, optional
+            A fixed (not configurable) keyboard shortcut to use for the action,
+            in cases where it is not practical for the user to configure the
+            shortcut. If ``None`` (the default), no fixed shortcut is set.
+            For a normal configurable shortcut, you instead need to set
+            ``register_shortcut`` to ``True`` and list the shortcut
+            as one of the plugin's configuration options.
+            See :mod:`spyder.api.shortcuts` for more details.
+        shortcut_context: str | None, optional
+            The context name of the fixed ``shortcut``. ``None`` (the default)
+            for no context or no shortcut. Use ``"_"`` for global shortcuts (
+            i.e. that can be used anywhere in the application).
+        context: Qt.ShortcutContext, optional
+            Set the context object for the fixed shortcut.
+            By default, ``Qt.WidgetWithChildrenShortcut``.
+        initial: bool | None, optional
+            Set the initial state of a togglable action. This does not emit
+            the toggled signal. If ``None``, the default, no initial state.
         register_shortcut: bool, optional
-            If True, main window will expose the shortcut in Preferences.
-            The default value is `False`.
-        parent: QWidget (None)
-            Define the parent of the widget. Use `self` if not provided.
+            If ``True``, the main window will expose the shortcut in the
+            Spyder :guilabel:`Preferences`. If ``False``, the default,
+            the shortcut will not be registered.
+        section: str | None, optional
+            Name of the configuration section whose ``option`` is going to be
+            modified. If ``None`` (the default) and ``option`` is not ``None``,
+            then it defaults to the class'
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` attribute.
+        option: spyder.config.types.ConfigurationKey | None, optional
+            Name of the configuration option whose value is reflected and
+            affected by the action. If ``None`` (the default), no option
+            is associated with this action, e.g. for actions that are
+            ``triggered`` rather than ``toggled``.
+        parent: QWidget | None, optional
+            The parent of this widget. If ``None``, the default, uses
+            this instance object itself as the parent.
         register_action: bool, optional
-            If True, the action will be registered and searchable.
-            The default value is `True`.
+            If ``True`` (default) the action will be registered and searchable.
+            If ``False``, the action will be created but not registered.
         overwrite: bool, optional
-            If True, in case of action overwriting no warning will be shown.
-            The default value is `False`
-        context_name: Optional[str]
-            Name of the context that holds the action in case of registration.
-            The combination of `name` and `context_name` is unique so trying
-            to register an action with the same `name` and `context_name` will
-            cause a warning unless `overwrite` is set to `True`.
-        menurole: QAction.MenuRole, optional
-            Menu role for the action (it only has effect on macOS).
+            If ``False`` (the default) and this action overwrites another
+            with the same ``name`` and ``context_name``, raise a warning.
+            Set to ``True`` to disable this warning if intentionally
+            overwriting another action.
+        context_name: str | None, optional
+            Name of the context that holds the action when registered.
+            The combination of ``name`` and ``context_name`` must be unique,
+            and registering an action with the same ``name`` & `context_name``
+            will raise a warning by default unless ``overwrite`` is ``True``.
+        menurole: QAction.MenuRole | None, optional
+            Menu role for the action. Only has an effect on macOS.
 
-        Notes
-        -----
-        There is no need to set shortcuts right now. We only create actions
-        with this (and similar methods) and these are then exposed as possible
-        shortcuts on plugin registration in the main window with the
-        register_shortcut argument.
+        Returns
+        -------
+        spyder.utils.qthelpers.SpyderAction
+            The Spyder action object that was created
+            (a specialized :class:`QAction`).
 
-        If icon_text is True, this will also disable the tooltip.
-
-        If a shortcut is found in the default config then it is assigned,
-        otherwise it's left blank for the user to define one for it.
+        Raises
+        ------
+        SpyderAPIError
+            If both ``triggered`` and ``toggled`` are ``None``, as at least one
+            must be provided; or if both ``initial`` is ``True`` and
+            ``triggered`` is not ``None``, as initial values can only apply to
+            ``toggled`` actions.
         """
         if triggered is None and toggled is None:
             raise SpyderAPIError(
-                'Action must provide the toggled or triggered parameters!'
+                "Action must provide the toggled or triggered parameters!"
             )
 
         if parent is None:
@@ -546,10 +787,11 @@ class SpyderActionMixin:
             id_=name,
             plugin=self.PLUGIN_NAME,
             context_name=(
-                self.CONTEXT_NAME if context_name is None else context_name),
+                self.CONTEXT_NAME if context_name is None else context_name
+            ),
             register_action=register_action,
             overwrite=overwrite,
-            menurole=menurole
+            menurole=menurole,
         )
         action.name = name
         if icon_text:
@@ -565,7 +807,8 @@ class SpyderActionMixin:
                 action.setChecked(initial)
             elif triggered:
                 raise SpyderAPIError(
-                    'Initial values can only apply to togglable actions!')
+                    "Initial values can only apply to togglable actions!"
+                )
         else:
             if toggled:
                 if section is not None and option is not None:
@@ -574,85 +817,104 @@ class SpyderActionMixin:
 
         return action
 
-    def get_action(self, name: str, context: Optional[str] = None,
-                   plugin: Optional[str] = None) -> Any:
+    def get_action(
+        self,
+        name: str,
+        context: str | None = None,
+        plugin: str | None = None,
+    ) -> spyder.utils.qthelpers.SpyderAction:
         """
         Return an action by name, context and plugin.
 
         Parameters
         ----------
         name: str
-            Name of the action to retrieve.
-        context: Optional[str]
-            Widget or context identifier under which the action was stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the action was defined. If None, then
-            `PLUGIN_NAME` is used.
+            Identifier of the action to retrieve.
+        context: str | None, optional
+            Context identifier under which the action was stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the action was defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        action: SpyderAction
-            The corresponding action stored under the given `name`, `context`
-            and `plugin`.
+        spyder.utils.qthelpers.SpyderAction
+            The corresponding action widget stored under the given
+            ``name``, ``context`` and ``plugin``.
 
         Raises
         ------
         KeyError
-            If either of `name`, `context` or `plugin` keys do not exist in the
-            action registry.
+            If the combination of ``name``, ``context`` and ``plugin`` keys
+            does not exist in the action registry.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
 
         return ACTION_REGISTRY.get_reference(name, plugin, context)
 
-    def get_actions(self, context: Optional[str] = None,
-                    plugin: Optional[str] = None) -> dict:
+    def get_actions(
+        self, context: str | None = None, plugin: str | None = None
+    ) -> dict[str, spyder.utils.qthelpers.SpyderAction]:
         """
         Return all actions defined by a context on a given plugin.
 
         Parameters
         ----------
-        context: Optional[str]
-            Widget or context identifier under which the actions were stored.
-            If None, then `CONTEXT_NAME` is used instead
-        plugin: Optional[str]
-            Name of the plugin where the actions were defined. If None, then
-            `PLUGIN_NAME` is used.
+        context: str | None, optional
+            Context identifier under which the actions were stored.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.CONTEXT_NAME` attribute is used instead.
+        plugin: str | None, optional
+            Identifier of the plugin in which the actions were defined.
+            If ``None``, the default, then the
+            :attr:`~SpyderWidgetMixin.PLUGIN_NAME` attribute is used instead.
 
         Returns
         -------
-        actions: Dict[str, SpyderAction]
-            A dictionary that maps string keys to their corresponding actions.
+        dict[str, spyder.utils.qthelpers.SpyderAction]
+            A dictionary that maps identifier name keys to their corresponding
+            action objects.
 
         Notes
         -----
-        1. Actions should be created once. Creating new actions on menu popup
-           is *highly* discouraged.
-        2. Actions can be created directly on a PluginMainWidget or
-           PluginMainContainer subclass. Child widgets can also create
-           actions, but they need to subclass SpyderWidgetMixin.
-        3. PluginMainWidget or PluginMainContainer will collect any actions
-           defined in subwidgets (if defined) and expose them in the
-           get_actions method at the plugin level.
-        4. Any action created this way is now exposed as a possible shortcut
-           automatically without manual shortcut registration.
-           If an option is found in the config system then it is assigned,
-           otherwise it's left with an empty shortcut.
-        5. There is no need to override this method.
+        * Actions should only be created once. Creating new actions on menu
+          popup is *highly* discouraged.
+        * Actions can be created directly on a
+          :class:`~spyder.api.widgets.main_widget.PluginMainWidget` or
+          :class:`~spyder.api.widgets.main_container.PluginMainContainer`
+          subclass. Child widgets can also create actions, but they need to
+          subclass this class or :class:`SpyderWidgetMixin`.
+        * :class:`~spyder.api.widgets.main_widget.PluginMainWidget` or
+          :class:`~spyder.api.widgets.main_container.PluginMainContainer`
+          will collect any actions defined in subwidgets (if defined)
+          and expose them in the ``get_actions`` method at the plugin level.
+        * There is no need to override this method.
         """
         plugin = self.PLUGIN_NAME if plugin is None else plugin
         context = self.CONTEXT_NAME if context is None else context
         return ACTION_REGISTRY.get_references(plugin, context)
 
-    def update_actions(self, options):
+    def update_actions(self) -> None:
         """
         Update the state of exposed actions.
 
-        Exposed actions are actions created by the `create_action` method.
+        Exposed actions are actions created by the :meth:`create_action`
+        method.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        NotImplementedError
+            If this method is not implemented by the plugin, as is required.
         """
-        raise NotImplementedError('')
+        raise NotImplementedError("")
 
 
 class SpyderWidgetMixin(
@@ -669,15 +931,49 @@ class SpyderWidgetMixin(
     for defining the actions a widget provides.
     """
 
-    # Plugin name identifier used to store actions, toolbars, toolbuttons
-    # and menus
-    PLUGIN_NAME = None
+    PLUGIN_NAME: str | None = None
+    """
+    Plugin name in the action, toolbar, toolbutton & menu registries.
 
-    # Context name used to store actions, toolbars, toolbuttons and menus
-    CONTEXT_NAME = None
+    Usually the same as
+    :attr:`SpyderPluginV2.NAME <spyder.api.plugins.SpyderPluginV2.NAME>`,
+    but may be different from :attr:`CONTEXT_NAME`.
+    """
 
-    def __init__(self, class_parent=None, parent=None):
-        for attr in ['CONF_SECTION', 'PLUGIN_NAME']:
+    CONTEXT_NAME: str | None = None
+    """
+    The name under which to store actions, toolbars, toolbuttons and menus.
+
+    This optional attribute defines the context name under which actions,
+    toolbars, toolbuttons and menus should be registered in the
+    Spyder global registry.
+
+    If those elements belong to the global scope of the plugin, then this
+    attribute should have a ``None`` value, which will use the plugin's name as
+    the context scope
+    """
+
+    def __init__(
+        self,
+        class_parent: QObject | None = None,
+        parent: QWidget | None = None,
+    ) -> None:
+        """
+        Add methods and attributes for most Spyder widgets.
+
+        Parameters
+        ----------
+        class_parent : QObject | None, optional
+            The parent object of this object's class, or ``None`` (default).
+            Typically the plugin object.
+        parent : QWidget | None, optional
+            The parent widget of this one, or ``None`` (default).
+
+        Returns
+        -------
+        None
+        """
+        for attr in ["CONF_SECTION", "PLUGIN_NAME"]:
             if getattr(self, attr, None) is None:
                 if hasattr(class_parent, attr):
                     # Inherit class_parent CONF_SECTION/PLUGIN_NAME value
@@ -686,36 +982,59 @@ class SpyderWidgetMixin(
         super().__init__()
 
     @staticmethod
-    def create_icon(name):
+    def create_icon(name: str) -> QIcon:
         """
-        Create an icon by name using the spyder Icon manager.
+        Retrieve an icon from Spyder's icon manager.
+
+        Parameters
+        ----------
+        name: str
+            The name of the icon to retrieve.
+
+        Returns
+        -------
+        QIcon
+            The specified icon, as a :class:`QIcon` instance.
         """
         return ima.icon(name)
 
-    def update_style(self):
+    def update_style(self) -> None:
         """
-        Update stylesheet and style of the widget.
+        Modify the interface styling used by the plugin.
 
-        This method will be called recursively on all widgets on theme change.
+        This must be reimplemented by plugins that need to adjust their style.
+
+        Changing from the dark to the light interface theme might
+        require specific styles or stylesheets to be applied. When
+        the theme is changed by the user through our :guilabel:`Preferences`,
+        this method will be called for all plugins.
+
+        Returns
+        -------
+        None
         """
         pass
 
-    def update_translation(self):
+    def update_translation(self) -> None:
         """
         Update localization of the widget.
 
         This method will be called recursively on all widgets on language
         change.
+
+        Returns
+        -------
+        None
         """
         pass
 
 
 class SpyderMainWindowMixin:
     """
-    Mixin with additional functionality for the QMainWindow's used in Spyder.
+    Mixin with additional functionality for Spyder's :class:`QMainWindow`\\s.
     """
 
-    def _is_on_visible_screen(self: QMainWindow):
+    def _is_on_visible_screen(self: QMainWindow) -> bool:
         """Detect if the window is placed on a visible screen."""
         x, y = self.geometry().x(), self.geometry().y()
         qapp = QApplication.instance()
@@ -726,8 +1045,14 @@ class SpyderMainWindowMixin:
         else:
             return True
 
-    def move_to_primary_screen(self: QMainWindow):
-        """Move the window to the primary screen if necessary."""
+    def move_to_primary_screen(self: QMainWindow) -> None:
+        """
+        Move the window to the primary screen if necessary.
+
+        Returns
+        -------
+        None
+        """
         if self._is_on_visible_screen():
             return
 
@@ -742,38 +1067,55 @@ class SpyderMainWindowMixin:
 
         # With this we want to maximize only the Spyder main window and not the
         # plugin ones, which usually are not maximized.
-        if not hasattr(self, 'is_window_widget'):
+        if not hasattr(self, "is_window_widget"):
             self.showMaximized()
 
 
 class SvgToScaledPixmap(SpyderConfigurationAccessor):
     """
-    Mixin to transform an SVG to a QPixmap that is scaled according to the
-    factor set by users in Preferences.
+    Mixin to transform an SVG to a QPixmap.
+
+    The resulting :class:`QPixmap` is scaled according to the scale factor
+    set by users in Spyder's :guilabel:`Preferences`.
     """
 
-    def svg_to_scaled_pixmap(self, svg_file, rescale=None, in_package=True):
+    def svg_to_scaled_pixmap(
+        self,
+        svg_file: str,
+        rescale: float | None = None,
+        in_package: bool = True,
+    ) -> QPixmap:
         """
-        Transform svg to a QPixmap that is scaled according to the factor set
-        by users in Preferences. Uses the icon manager for proper colorization.
+        Transform an SVG to a QPixmap.
+
+        The resulting :class:`QPixmap` is scaled according to the scale factor
+        set by users in Spyder's :guilabel:`Preferences`. Uses Spyder's
+        icon manager for proper colorization.
 
         Parameters
         ----------
         svg_file: str
-            Name of or path to the svg file.
-        rescale: float, optional
+            Name of or path to the SVG file to convert.
+        rescale: float | None, optional
             Rescale pixmap according to a factor between 0 and 1.
+            If ``None`` (default), will use the default scale factor.
         in_package: bool, optional
-            Get svg from the `images` folder in the Spyder package.
+            If ``True`` (the default), get the SVG from the
+            :file:`images` directory in the installed Spyder package.
+            If ``False``, retrieve it from the specified file on disk.
+
+        Returns
+        -------
+        QPixmap
+            The converted rasterized image.
         """
         if in_package:
             image_path = get_image_path(svg_file)
 
         # Get user's DPI scale factor
-        if self.get_conf('high_dpi_custom_scale_factor', section='main'):
+        if self.get_conf("high_dpi_custom_scale_factor", section="main"):
             scale_factors = self.get_conf(
-                'high_dpi_custom_scale_factors',
-                section='main'
+                "high_dpi_custom_scale_factors", section="main"
             )
             scale_factor = float(scale_factors.split(":")[0])
         else:
@@ -785,17 +1127,17 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
             svg_paths_data = SVGColorize.get_colored_paths(
                 image_path, ima.ICON_COLORS
             )
-            if svg_paths_data and svg_paths_data.get('paths'):
-                # Check if any of the paths have colorization classes 
+            if svg_paths_data and svg_paths_data.get("paths"):
+                # Check if any of the paths have colorization classes
                 # (not just default colors)
-                paths = svg_paths_data.get('paths', [])
+                paths = svg_paths_data.get("paths", [])
                 for path in paths:
-                    # If a path has a color that's not the default color, 
+                    # If a path has a color that's not the default color,
                     # it means it has a colorization class
                     default_color = ima.ICON_COLORS.get(
-                        'ICON_1', '#FF0000' # Get default color from palette
+                        "ICON_1", "#FF0000"  # Get default color from palette
                     )
-                    if path.get('color') != default_color:
+                    if path.get("color") != default_color:
                         should_colorize = True
                         break
         except Exception:
@@ -819,8 +1161,7 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
                 # Get a properly scaled pixmap from the icon
                 # Use the maximum dimension to maintain aspect ratio
                 max_dimension = max(
-                    int(width * scale_factor),
-                    int(height * scale_factor)
+                    int(width * scale_factor), int(height * scale_factor)
                 )
                 return icon.pixmap(max_dimension, max_dimension)
 
@@ -838,8 +1179,9 @@ class SvgToScaledPixmap(SpyderConfigurationAccessor):
 
         # Paint image using svg renderer
         image = QImage(
-            int(width * scale_factor), int(height * scale_factor),
-            QImage.Format_ARGB32_Premultiplied
+            int(width * scale_factor),
+            int(height * scale_factor),
+            QImage.Format_ARGB32_Premultiplied,
         )
         image.fill(0)
         painter = QPainter(image)

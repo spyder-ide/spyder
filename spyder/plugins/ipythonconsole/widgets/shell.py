@@ -576,6 +576,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         Executes source or the input buffer, possibly prompting for more
         input.
         """
+        # Start remote wait indicator for network loss
+        if self.is_remote():
+            self.ipyclient._start_execution_loading_timer()
+
         # Needed for cases where there is no kernel initialized but
         # an execution is triggered like when setting initial configs.
         # See spyder-ide/spyder#16896
@@ -1308,6 +1312,9 @@ overrided by the Sympy module (e.g. plot)
             self.ipyclient.t0 = time.monotonic()
             self._kernel_is_starting = False
 
+        if self.is_remote():
+            self.ipyclient._stop_execution_loading()
+
         # This catches an error when doing the teardown of a test.
         try:
             super()._handle_execute_reply(msg)
@@ -1452,17 +1459,15 @@ overrided by the Sympy module (e.g. plot)
         )
         stop_button.setEnabled(False)
 
-        if self.is_remote():
-            self._kernel_restarted_message(died=True)
-            self.ipyclient.reconnect_remote_kernel()
-        else:
-            super()._handle_kernel_died(since_last_heartbeat)
+        super()._handle_kernel_died(since_last_heartbeat)
 
-    def _kernel_restarted_message(self, died=True):
-        msg = (
-            _("The kernel died, restarting...") if died
-            else _("Restarting kernel...")
-        )
+    def _kernel_restarted_message(self, died=True, reconnected=False):
+        if died:
+            msg = _("The kernel died, restarting...")
+        elif reconnected:
+            msg = _("Kernel reconnected...")
+        else:
+            msg = _("Restarting kernel...")
 
         if (
             died

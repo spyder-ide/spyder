@@ -133,7 +133,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
         conda_path = self.create_browsefile(
             "",
             'conda_path',
-            filters='*.exe',
+            filters=filters,
             validate_callback=validate_conda,
             validate_reason=_(
                 "The selected file is not a valid Conda executable"

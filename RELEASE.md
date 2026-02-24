@@ -277,7 +277,11 @@ Before releasing new minor or major versions, it's necessary to:
 
 * Add sections for `New features`, `Important fixes` and `New API features` in `changelogs/Spyder-X.md`. For this take a look at closed issues and PRs for the current milestone.
 
-* `git add .` and `git commit -m "Update Changelog"`
+* Add changelog for new version to `spyder/plugins/application/widgets/appeal_page/changelog.md` (only `New features` and `Important fixes`).
+
+* Update `CHANGELOG_URL` in `spyder/plugins/application/widgets/status.py` to point to the changelog for the new version.
+
+* `git add .` and `git commit -m "Update Changelog [ci skip]"`
 
 * Update [Announcements.md](Announcements.md) (this goes to our Google group) removing the outdated announcement of the same kind (major, minor, or beta/release candidate)
 

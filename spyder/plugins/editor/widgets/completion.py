@@ -355,6 +355,13 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             # Check that what was selected can be selected,
             # otherwise timing issues
             item = self.currentItem()
+            if not self.get_conf(
+                'use_enter_for_completions', section='completions'
+            ) and not key == Qt.Key_Tab:
+                self.hide()
+                self.textedit.keyPressEvent(event)
+                return
+
             if item is None:
                 item = self.item(0)
 

@@ -117,7 +117,8 @@ class Application(SpyderPluginV2):
         container.set_window(self._window)
         self.sig_focused_plugin_changed.connect(self._update_focused_plugin)
 
-    # --------------------- PLUGIN INITIALIZATION -----------------------------
+    # ---- Plugin initialization
+    # -------------------------------------------------------------------------
     @on_plugin_available(plugin=Plugins.IPythonConsole)
     def on_ipythonconsole_available(self):
         if self.is_plugin_available(Plugins.MainMenu):
@@ -177,7 +178,13 @@ class Application(SpyderPluginV2):
                 before=EditorWidgetActions.NewCell
             )
 
-    # -------------------------- PLUGIN TEARDOWN ------------------------------
+    @on_plugin_available(plugin=Plugins.UpdateManager)
+    def on_update_manager_available(self):
+        update_manager = self.get_plugin(Plugins.UpdateManager)
+        update_manager.sig_update_performed.connect(self._on_spyder_update)
+
+    # ---- Plugin Teardown
+    # -------------------------------------------------------------------------
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -221,6 +228,11 @@ class Application(SpyderPluginV2):
                 action,
                 toolbar_id=ApplicationToolbars.File
             )
+
+    @on_plugin_teardown(plugin=Plugins.UpdateManager)
+    def on_update_manager_teardowm(self):
+        update_manager = self.get_plugin(Plugins.UpdateManager)
+        update_manager.sig_update_performed.disconnect(self._on_spyder_update)
 
     def on_close(self, _unused=True):
         self.get_container().on_close()
@@ -438,12 +450,13 @@ class Application(SpyderPluginV2):
     def _populate_help_menu_about_section(self):
         """Create Spyder base about actions."""
         mainmenu = self.get_plugin(Plugins.MainMenu)
-        for about_action in [
+        for action in [
+            self.get_action(ApplicationActions.ShowChangelogAction),
             self.get_action(ApplicationActions.HelpSpyderAction),
             self.about_action,
         ]:
             mainmenu.add_item_to_application_menu(
-                about_action,
+                action,
                 menu_id=ApplicationMenus.Help,
                 section=HelpMenuSections.About,
             )
@@ -630,6 +643,10 @@ class Application(SpyderPluginV2):
                 key = (plugin.NAME, action_name)
                 state = self.search_action_enabled.get(key, True)
                 action.setEnabled(state)
+
+    def _on_spyder_update(self):
+        container = self.get_container()
+        container.inapp_appeal_status.show_changelog()
 
     # ---- Public API
     # ------------------------------------------------------------------------

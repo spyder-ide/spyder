@@ -77,6 +77,7 @@ class ApplicationActions:
     SpyderTroubleshootingAction = "spyder_troubleshooting_action"
     SpyderDependenciesAction = "spyder_dependencies_action"
     SpyderSupportAction = "spyder_support_action"
+    ShowChangelogAction = "show_changelog_action"
     HelpSpyderAction = "help_spyder_action"
     SpyderAbout = "spyder_about_action"
 
@@ -297,10 +298,15 @@ class ApplicationContainer(PluginMainContainer):
             triggered=lambda: start_file(__forum_url__))
 
         self.create_action(
+            ApplicationActions.ShowChangelogAction,
+            _("Show changelog"),
+            triggered=self.inapp_appeal_status.show_changelog,
+        )
+        self.create_action(
             ApplicationActions.HelpSpyderAction,
             _("Help Spyder..."),
             icon=self.create_icon("inapp_appeal"),
-            triggered=self.inapp_appeal_status.show_appeal
+            triggered=self.inapp_appeal_status.show_appeal,
         )
 
         # About action

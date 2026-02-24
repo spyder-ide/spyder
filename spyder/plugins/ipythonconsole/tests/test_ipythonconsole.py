@@ -36,6 +36,7 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 import sympy
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
 from spyder.plugins.help.tests.test_plugin import check_text
@@ -2600,7 +2601,7 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
 @flaky(max_runs=10)
 @pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
-def test_time_elapsed(ipyconsole, qtbot, tmp_path):
+def test_time_elapsed(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     # Create a new IPython console client
     ipyconsole.create_new_client()
@@ -2688,6 +2689,65 @@ def test_time_elapsed(ipyconsole, qtbot, tmp_path):
 
     # Check that the elapsed time is not shown
     assert '' == main_widget.time_label.text()
+
+
+def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
+    """
+    Test that we stop on breakpoints set on modules when 'Stop debugging on
+    first line of files without breakpoints' is disabled.
+
+    This is a regression test for issue spyder-ide/spyder#22035
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Code to test
+    code_m1 = dedent("""
+    import m2
+
+    def main():
+        print('calling func in 2.py')
+        m2.func()
+    """
+    )
+    code_m2 = dedent("""
+    def func():
+        print(f" in {__file__} running {func}")
+        return
+    """
+    )
+
+    # Write code to files
+    code_dir = tmp_path / "test_no_stop_on_first_line"
+    code_dir.mkdir()
+
+    m1 = code_dir / "m1.py"
+    m1.write_text(code_m1)
+
+    m2 = code_dir / "m2.py"
+    m2.write_text(code_m2)
+
+    # File/dir names in the format used when running magics from the main
+    # toolbar
+    code_dir_name = str(code_dir).replace('\\', '/')
+    m1_name = str(m1).replace('\\', '/')
+
+    # Disable option and set breakpoint
+    debugger = ipyconsole.get_plugin(Plugins.Debugger)
+    debugger.set_conf("pdb_stop_first_line", False)
+    debugger.set_conf("breakpoints", {str(m2): [(2, None)]})
+    debugger.get_widget().sig_breakpoints_saved.emit()
+
+    # Debug code
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%debugfile {m1_name} --wdir {code_dir_name}")
+
+    # Check we entered the debugger and stopped where the breakpoint was set
+    assert "\nIPdb [1]" in control.toPlainText()
+    assert "---> 2 def func():\n" in control.toPlainText()
 
 
 if __name__ == "__main__":

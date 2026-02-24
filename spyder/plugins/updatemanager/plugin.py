@@ -8,6 +8,9 @@
 Update Manager Plugin.
 """
 
+# Third-party imports
+from qtpy.QtCore import Signal
+
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.translations import _
@@ -15,6 +18,7 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available,
     on_plugin_teardown
 )
+from spyder.config.base import is_conda_based_app
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
@@ -30,6 +34,13 @@ class UpdateManager(SpyderPluginV2):
     CONF_SECTION = 'update_manager'
     CONF_FILE = False
     CAN_BE_DISABLED = False
+
+    sig_update_performed: Signal = Signal()
+    """
+    Inform other plugins that a Spyder update was performed.
+
+    For now, this only takes effect for the standalone installers.
+    """
 
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
@@ -105,6 +116,29 @@ class UpdateManager(SpyderPluginV2):
         # Check for updates on startup
         if self.get_conf('check_updates_on_startup'):
             container.start_check_update(startup=True)
+
+        # Tell other plugins that an update was performed successfully.
+        # Note: We only do this for the standalone installers because we can
+        # reliably detect updates and users can't easily go back to previous
+        # versions with them.
+        if is_conda_based_app():
+            # This is a reliable way to detect that this is the first time
+            # Spyder is launched (recent_files is empty in that case).
+            if not self.get_conf("recent_files", section="main"):
+                # In this case we don't need to report an update was performed
+                # because it's not the case.
+                self.set_conf("update_performed", False)
+            else:
+                # If this is the first time we check if an update was
+                # performed, it means it actually took place from a previous
+                # version. That's why the default is True.
+                if self.get_conf("update_performed", default=True):
+                    # Tell other plugins that an upated was performed
+                    self.sig_update_performed.emit()
+
+                    # This option will be set to True when a new update is
+                    # performed (see widgets/update.py in this plugin).
+                    self.set_conf("update_performed", False)
 
     # ---- Private API
     # ------------------------------------------------------------------------
