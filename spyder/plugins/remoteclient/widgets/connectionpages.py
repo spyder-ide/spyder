@@ -90,7 +90,7 @@ class CreateEnvMethods:
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 600 if WIN else 625
+    MIN_HEIGHT = 630 if MAC else (600 if WIN else 625)
     REASON_HEIGHT = 25
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
