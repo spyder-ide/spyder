@@ -90,7 +90,8 @@ class CreateEnvMethods:
 class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
     """Base class to create connection pages."""
 
-    MIN_HEIGHT = 600
+    MIN_HEIGHT = 600 if WIN else 625
+    REASON_HEIGHT = 25
     NEW_CONNECTION = False
     CONF_SECTION = "remoteclient"
 
@@ -262,7 +263,6 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         min_height = self.MIN_HEIGHT
 
         if self.get_client_type() == ClientType.SSH and reasons:
-            reason_height = 25
             n_reasons = list(reasons.values()).count(True)
 
             if (
@@ -271,7 +271,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                 # Only keyfile case (the page with the large amount of fields)
                 # requires dynaminc addition of height depending on number of
                 # invalid reasons detected
-                min_height += reason_height * n_reasons
+                min_height += self.REASON_HEIGHT * n_reasons
                 if n_reasons:
                     # Add some extra height to acknowledge the margins/padding
                     # of the validation label
