@@ -1773,8 +1773,14 @@ class EditorMainWidget(PluginMainWidget):
         # Setting empty to True by default to avoid the additional space
         # created at the end of the templates.
         # See: spyder-ide/spyder#12596
-        finfo = self.editorstacks[0].new(fname, enc, text, default_content,
-                                         empty=True)
+        finfo = self.editorstacks[0].new(
+            fname,
+            enc,
+            text,
+            default_content,
+            empty=True,
+            extensions=self._plugin.extensions,
+        )
 
         # This is necessary to avoid an error in our tests
         try:
@@ -1901,8 +1907,12 @@ class EditorMainWidget(PluginMainWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where,
-                    processevents=processevents)
+                    filename,
+                    set_current=False,
+                    add_where=add_where,
+                    processevents=processevents,
+                    extensions=self._plugin.extensions,
+                )
 
                 # This can happen when it was not possible to load filename
                 # from disk.

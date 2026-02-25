@@ -17,6 +17,7 @@ Editor widget based on QtGui.QPlainTextEdit
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 from unicodedata import category
 import logging
 import os
@@ -36,7 +37,13 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
                         QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
+from qtpy.QtWidgets import (
+    QApplication,
+    QMessageBox,
+    QSplitter,
+    QScrollBar,
+    QWidget,
+)
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
@@ -44,6 +51,7 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
+from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
@@ -248,8 +256,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     # Used to signal that a text deletion was triggered
     sig_delete_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        extensions: list[type[EditorExtension]] | None = None,
+    ):
         super().__init__(parent, class_parent=parent)
+
+        # Editor extensions
+        self._extensions = extensions
+        if self._extensions is None:
+            self._extensions = []
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -499,11 +516,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Hover hints
         self.hover_hints_enabled = None
 
-        # Editor Extensions
+        # Editor extensions
         self.editor_extensions = EditorExtensionsManager(self)
-        self.editor_extensions.add(CloseQuotesExtension())
-        self.editor_extensions.add(SnippetsExtension())
-        self.editor_extensions.add(CloseBracketsExtension())
+        for ExtensionClass in self._extensions + [
+            CloseBracketsExtension,
+            CloseQuotesExtension,
+            SnippetsExtension,
+        ]:
+            self.editor_extensions.add(ExtensionClass())
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
