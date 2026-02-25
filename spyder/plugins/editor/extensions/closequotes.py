@@ -83,8 +83,12 @@ class CloseQuotesExtension(EditorExtension):
             self.editor.insert_text("{0}{1}{0}".format(char, text))
             # keep text selected, for inserting multiple quotes
             cursor.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor, 1)
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
-                                len(text))
+            cursor.movePosition(
+                QTextCursor.Left,
+                QTextCursor.KeepAnchor,
+                # Don't count 2 cursor moves for \r\n. Fixes: #25743
+                len(text.replace(self.editor.get_line_separator(), "\n"))
+            )
             self.editor.setTextCursor(cursor)
         elif self.editor.in_comment():
             self.editor.insert_text(char)
