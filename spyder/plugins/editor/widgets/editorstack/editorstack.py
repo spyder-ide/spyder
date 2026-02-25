@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import functools
 import logging
 import os
@@ -42,6 +43,7 @@ from spyder.config.utils import (
 )
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
+from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -2614,13 +2616,22 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 QMessageBox.Ok
             )
 
-    def create_new_editor(self, fname, enc, txt, set_current, new=False,
-                          cloned_from=None, add_where='end'):
+    def create_new_editor(
+        self,
+        fname: str,
+        enc: str,
+        txt: str,
+        set_current: bool,
+        new: bool = False,
+        cloned_from: bool = None,
+        add_where: str = "end",
+        extensions: list[type[EditorExtension]] | None = None,
+    ):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(self)
+        editor = codeeditor.CodeEditor(self, extensions=extensions)
         editor.go_to_definition.connect(
             lambda fname, line, column: self.sig_go_to_definition.emit(
                 fname, line, column))
@@ -2793,13 +2804,26 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         }
         self.sig_help_requested.emit(doc)
 
-    def new(self, filename, encoding, text, default_content=False,
-            empty=False):
+    def new(
+        self,
+        filename: str,
+        encoding: str,
+        text: str,
+        default_content: bool = False,
+        empty: bool = False,
+        extensions: list[type[EditorExtension]] | None = None,
+    ):
         """
         Create new filename with *encoding* and *text*
         """
-        finfo = self.create_new_editor(filename, encoding, text,
-                                       set_current=False, new=True)
+        finfo = self.create_new_editor(
+            filename,
+            encoding,
+            text,
+            set_current=False,
+            new=True,
+            extensions=extensions,
+        )
         finfo.editor.set_cursor_position('eof')
         if not empty:
             finfo.editor.insert_text(os.linesep)
@@ -2808,8 +2832,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True, add_where='end',
-             processevents=True):
+    def load(
+        self,
+        filename: str,
+        set_current: bool = True,
+        add_where: str = "end",
+        processevents: bool = True,
+        extensions: list[type[EditorExtension]] | None = None,
+    ):
         """
         Load filename, create an editor instance and return it.
 
@@ -2833,8 +2863,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.autosave.file_hashes[filename] = hash(text)
 
         # Create editor
-        finfo = self.create_new_editor(filename, enc, text, set_current,
-                                       add_where=add_where)
+        finfo = self.create_new_editor(
+            filename,
+            enc,
+            text,
+            set_current,
+            add_where=add_where,
+            extensions=extensions,
+        )
         index = self.data.index(finfo)
 
         if processevents:

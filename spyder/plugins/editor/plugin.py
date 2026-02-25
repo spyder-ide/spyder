@@ -11,6 +11,7 @@ import sys
 
 from qtpy.QtCore import Signal
 
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
@@ -20,6 +21,7 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import _
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
+from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
@@ -175,6 +177,10 @@ class Editor(SpyderDockablePlugin):
         return cls.create_icon('edit')
 
     def on_initialize(self):
+        # Attributes
+        self.extensions: list[type[EditorExtension]] = []
+        """List of Editor extensions added by third-party plugins."""
+
         widget = self.get_widget()
 
         # ---- Help related signals
@@ -1183,6 +1189,28 @@ class Editor(SpyderDockablePlugin):
 
     def replace(self) -> None:
         return self.get_widget().replace()
+
+    def add_extension(self, extension: type[EditorExtension]):
+        """
+        Add an editor extension to every CodeEditor.
+
+        Parameters
+        ----------
+        extension: type[EditorExtension]
+            Subclass of EditorExtension to be added to the editor.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of EditorExtension.
+        """
+        if not issubclass(extension, EditorExtension):
+            raise SpyderAPIError(
+                "The extension you provided is not a subclass of "
+                "EditorExtension."
+            )
+
+        self.extensions.append(extension)
 
     # ---- Private API
     # ------------------------------------------------------------------------
