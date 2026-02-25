@@ -508,7 +508,7 @@ TEST_CASES_DOCSTRING = load_docstring_test_cases(TEST_CASE_DOCSTRING_DIR)
 # ---- Fixtures
 # =============================================================================
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def base_editor_docstring():
     """Set up Editor with auto docstring activated."""
     app = qapplication()  # noqa
@@ -516,24 +516,36 @@ def base_editor_docstring():
     editor.setup_editor(
         language='Python', close_quotes=True, close_parentheses=True
     )
-    return editor
+
+    return editor, editor.writer_docstring, editor.textCursor()
 
 
 @pytest.fixture
-def editor_docstring_start(base_editor_docstring):
-    """Editor with cursor at the start of the text."""
+def editor_docstring(base_editor_docstring):
+    """Editor with per-test setup."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
         CONF.set('editor', 'docstring_type', DOC_TYPES[doc_type])
 
-        editor = base_editor_docstring
-        writer = editor.writer_docstring
-        cursor = editor.textCursor()
+        editor, writer, cursor = base_editor_docstring
         editor.set_text(test_case.input_text)
 
-        for __ in range(test_case.normalize_part(test_case.pre).count('\n')):
-            cursor.movePosition(QTextCursor.NextBlock)
-        cursor.setPosition(0, QTextCursor.MoveAnchor)
+        cursor.setPosition(0)
+
+        return editor, writer, cursor
+
+    return __editor_docstring
+
+
+@pytest.fixture
+def editor_docstring_start(editor_docstring):
+    """Editor with cursor at the start of the function."""
+
+    def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
+        editor, writer, cursor = editor_docstring(test_case, doc_type)
+
+        move_count = test_case.normalize_part(test_case.pre).count('\n')
+        cursor.movePosition(QTextCursor.NextBlock, n=move_count)
 
         editor.setTextCursor(cursor)
         writer.line_number_cursor = cursor.blockNumber() + 1
@@ -544,17 +556,19 @@ def editor_docstring_start(base_editor_docstring):
 
 
 @pytest.fixture
-def editor_docstring_end_def(editor_docstring_start):
+def editor_docstring_end_def(editor_docstring):
     """Editor with cursor at the end of the function signature."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(test_case, doc_type)
+        editor, writer, cursor = editor_docstring(test_case, doc_type)
 
-        for __ in range(
-            test_case.normalize_part(test_case.sig).count("\n") - 1
-        ):
-            cursor.movePosition(QTextCursor.NextBlock)
-        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+        move_count = (
+            test_case.normalize_part(test_case.pre).count("\n")
+            + test_case.normalize_part(test_case.sig).count("\n")
+            - 1
+        )
+        cursor.movePosition(QTextCursor.NextBlock, n=move_count)
+        cursor.movePosition(QTextCursor.EndOfBlock)
 
         editor.setTextCursor(cursor)
         writer.line_number_cursor = cursor.blockNumber() + 1
@@ -565,17 +579,21 @@ def editor_docstring_end_def(editor_docstring_start):
 
 
 @pytest.fixture
-def editor_docstring_after_def(editor_docstring_end_def):
+def editor_docstring_after_def(editor_docstring):
     """Editor with cursor on the line after the function signature's end."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_end_def(test_case, doc_type)
+        editor, writer, cursor = editor_docstring(test_case, doc_type)
 
-        cursor.movePosition(QTextCursor.NextBlock)
-        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.MoveAnchor)
+        move_count = (
+            test_case.normalize_part(test_case.pre).count("\n")
+            + test_case.normalize_part(test_case.sig).count("\n")
+        )
+        cursor.movePosition(QTextCursor.NextBlock, n=move_count)
+        cursor.movePosition(QTextCursor.EndOfBlock)
 
         editor.setTextCursor(cursor)
-        writer.line_number_cursor += 1
+        writer.line_number_cursor = cursor.blockNumber() + 1
 
         return editor, writer, cursor
 
@@ -583,14 +601,16 @@ def editor_docstring_after_def(editor_docstring_end_def):
 
 
 @pytest.fixture
-def editor_docstring_inside_def(editor_docstring_start):
+def editor_docstring_inside_def(editor_docstring):
     """Editor with cursor at the end of the second line of text."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
-        editor, writer, cursor = editor_docstring_start(test_case, doc_type)
+        editor, writer, cursor = editor_docstring(test_case, doc_type)
 
         # Position cursor somewhere inside the `def` statement
-        cursor.setPosition(9, QTextCursor.MoveAnchor)
+        move_count = test_case.normalize_part(test_case.pre).count('\n')
+        cursor.movePosition(QTextCursor.NextBlock, n=move_count)
+        cursor.movePosition(QTextCursor.NextCharacter, n=9)
 
         editor.setTextCursor(cursor)
         writer.line_number_cursor = cursor.blockNumber() + 1
@@ -831,7 +851,7 @@ def test_docstring_delayed_popup(
     for __ in range(3):
         qtbot.keyPress(editor, Qt.Key_QuoteDbl)
     initial_text = editor.toPlainText()
-    qtbot.wait(1000)
+    qtbot.wait(600)
     qtbot.keyPress(editor.menu_docstring, key)
 
     assert editor.toPlainText() == test_case.get_expected(doc_type).rstrip()
