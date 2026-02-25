@@ -8,6 +8,7 @@
 
 # Standard library imports
 import os
+import re
 import sys
 import time
 
@@ -46,9 +47,15 @@ def test_get_conda_root_prefix():
 
 
 @pytest.mark.skipif(not running_in_ci(), reason="Only meant for CIs")
-def test_find_conda():
+@pytest.mark.parametrize("mamba", [False, True])
+def test_find_conda(mamba):
+    exe = "mamba" if mamba else "conda"
+    exe_regx = re.compile(f"{exe}(.bat|.exe)?$")
+
     # Standard test
-    assert find_conda()
+    exe_path = find_conda(mamba=mamba)
+    assert exe_path
+    assert exe_regx.search(exe_path)
 
     # Test with test environment
     pyexec = get_conda_test_env()[1]
@@ -57,7 +64,9 @@ def test_find_conda():
     conda_exe = os.environ.pop('CONDA_EXE', None)
     mamba_exe = os.environ.pop('MAMBA_EXE', None)
 
-    assert find_conda(pyexec)
+    exe_path = find_conda(pyexec, mamba=mamba)
+    assert exe_path
+    assert exe_regx.search(exe_path)
 
     # Restore os.environ
     if conda_exe is not None:
