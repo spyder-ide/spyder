@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 from datetime import datetime
 import logging
 import os
@@ -728,7 +729,7 @@ class EditorMainWidget(PluginMainWidget):
 
         self._setup_codeeditor_context_menu()
 
-        # ---- Dockwidget and file dependent actions lists ----
+        # ---- Dockwidget and file dependent actions lists
         self.pythonfile_dependent_actions = [
             self.blockcomment_action,
             self.unblockcomment_action,
@@ -747,7 +748,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.stack_menu_actions = [self.gotoline_action, self.workdir_action]
 
-        # ---- Finish child widgets and actions setup ----
+        # ---- Finish child widgets and actions setup
         layout = QVBoxLayout()
 
         # Tabbed editor widget + Find/Replace widget
@@ -1760,9 +1761,12 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks[1:]:
             editorstack.clone_editor_from(finfo, set_current=False)
 
-    @Slot()
-    @Slot(str)
-    def new(self, fname=None, editorstack=None, text=None):
+    def new(
+        self,
+        fname: str | None = None,
+        editorstack: EditorStack = None,
+        text: str | None = None,
+    ):
         """
         Create a new file.
 
@@ -1856,13 +1860,18 @@ class EditorMainWidget(PluginMainWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
-    @Slot()
-    @Slot(str)
-    @Slot(str, int, str)
-    @Slot(str, int, str, object)
-    def load(self, filenames=None, goto=None, word='',
-             editorwindow=None, processevents=True, start_column=None,
-             end_column=None, set_focus=True, add_where='end'):
+    def load(
+        self,
+        filenames: list[str] | None = None,
+        goto: int | None = None,
+        word: str = "",
+        editorwindow: EditorMainWindow | None = None,
+        processevents: bool = True,
+        start_column: int | None = None,
+        end_column: int | None = None,
+        set_focus: bool = True,
+        add_where: str = "end",
+    ):
         """
         Load a text file.
 
