@@ -10,11 +10,12 @@ import pytest
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.utils.qthelpers import qapplication
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.extensions.closebrackets import (
         CloseBracketsExtension)
+from spyder.plugins.editor.utils.editor import TextHelper
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.utils import sourcecode
+from spyder.utils.qthelpers import qapplication
 
 
 # =============================================================================
@@ -119,32 +120,41 @@ def test_selected_text(qtbot, editor_close_brackets):
     assert editor.toPlainText() == "({[some]}) text"
 
 
-def test_selected_text_multiple_lines(qtbot, editor_close_brackets):
+@pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
+def test_selected_text_multiple_lines(qtbot, editor_close_brackets, os_name):
     """Test insert surronding brackets to multiple lines selected text."""
     editor = editor_close_brackets
     text = ("some text\n"
+            "some text\n"
             "\n"
             "some text")
     editor.set_text(text)
+    editor.set_eol_chars(
+        eol_chars=sourcecode.get_eol_chars_from_os_name(os_name)
+    )
 
     # select until second some
     cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Down)
     cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor, 4)
     cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor, 2)
     editor.setTextCursor(cursor)
 
     qtbot.keyClicks(editor, ")")
-    assert editor.toPlainText() == ("(some text\n"
+    assert editor.toPlainText() == ("some text\n"
+                                    "(some text\n"
                                     "\n"
                                     "some) text")
 
     qtbot.keyClicks(editor, "{")
-    assert editor.toPlainText() == ("({some text\n"
+    assert editor.toPlainText() == ("some text\n"
+                                    "({some text\n"
                                     "\n"
                                     "some}) text")
 
     qtbot.keyClicks(editor, "]")
-    assert editor.toPlainText() == ("({[some text\n"
+    assert editor.toPlainText() == ("some text\n"
+                                    "({[some text\n"
                                     "\n"
                                     "some]}) text")
 

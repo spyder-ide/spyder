@@ -83,8 +83,12 @@ class CloseBracketsExtension(EditorExtension):
             self.editor.insert_text("{0}{1}{2}".format(pair[0], text, pair[1]))
             # Keep text selected, for inserting multiple brackets
             cursor.movePosition(QTextCursor.Left, QTextCursor.MoveAnchor, 1)
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
-                                len(text))
+            cursor.movePosition(
+                QTextCursor.Left,
+                QTextCursor.KeepAnchor,
+                # Don't count 2 cursor moves for \r\n. Fixes: #25743
+                len(text.replace(self.editor.get_line_separator(), "\n"))
+            )
             self.editor.setTextCursor(cursor)
         elif char in self.BRACKETS_LEFT:
             if (not trailing_text or
