@@ -12,6 +12,7 @@ from collections.abc import Iterable
 import logging
 import os.path as osp
 import re
+import textwrap
 from typing import TypedDict
 import uuid
 
@@ -496,16 +497,22 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             status_icon=ima.icon("error"),
         )
 
+        configfile_validate_reason = "\n".join(
+            textwrap.wrap(
+                _(
+                    "Unable to get OpenSSH client configuration from "
+                    "the given file. Check that the provided host corresponds "
+                    "to the values available in the file and the file exists"
+                ),
+                width=60,
+            )
+        )
         configfile = self.create_browsefile(
             text=_("Configuration file"),
             option=f"{self.host_id}/{auth_method}/configfile",
             tip=_("OpenSSH client configuration file to use"),
             validate_callback=self._validate_config_file,
-            validate_reason=_(
-                "Unable to get OpenSSH client configuration from "
-                "the given file.\nCheck that the provided host corresponds "
-                "to the values available in the file and the file exists"
-            ),
+            validate_reason=configfile_validate_reason,
             alignment=Qt.Vertical,
             status_icon=ima.icon("error"),
             word_wrap=False,
