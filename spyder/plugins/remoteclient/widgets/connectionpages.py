@@ -161,13 +161,15 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         if config_file:
             host_widget = self._address_widgets[auth_method]
-            host = host_widget.textbox.text()
             config_file_widget.textbox._validate(config_file)
 
-            if host and not self._validate_config_file(config_file):
+            if not self._validate_config_file(config_file):
                 reasons["invalid_config"] = True
-                host_widget.status_action.setVisible(True)
-                host_widget.status_action.setToolTip(_("Invalid configuration"))
+                if osp.isfile(config_file):
+                    host_widget.status_action.setVisible(True)
+                    host_widget.status_action.setToolTip(
+                        _("Invalid host for configuration file")
+                    )
             else:
                 host_widget.status_action.setVisible(False)
                 config_file_widget.textbox.error_action.setVisible(False)
@@ -178,7 +180,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                     if (
                         config_file
                         and (
-                            widget == self._username_widgets[auth_method]
+                            widget == self._address_widgets[auth_method]
+                            or widget == self._username_widgets[auth_method]
                             or widget == self._keyfile
                         )
                         or not config_file
@@ -245,7 +248,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                         # Key file is malformed or not a recognized format
                         reasons["keyfile_malformed"] = True
                         widget.status_action.setVisible(True)
-            else:
+            elif widget != self._config_file_widgets[auth_method]:
                 widget.status_action.setVisible(False)
 
         if reasons:
@@ -789,7 +792,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         auth_method = self.auth_method(from_gui=from_gui)
 
         host_widget = self._address_widgets[auth_method]
-        host = host_widget.textbox.text()
+        host_textbox = host_widget.textbox
+        host = host_textbox.text()
         username_widget = self._username_widgets[auth_method]
         username_textbox = username_widget.textbox
         # Pass empty tuple to prevent setting a `User` entry in the asyncssh
@@ -806,25 +810,28 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         config = None
         if osp.isfile(config_filepath):
-            config = asyncssh.config.SSHClientConfig.load(
-                None,
-                config_filepath,
-                True,
-                True,
-                False,
-                "local_user",
-                username,
-                host,
-                ()
-            )
+            try:
+                config = asyncssh.config.SSHClientConfig.load(
+                    None,
+                    config_filepath,
+                    True,
+                    True,
+                    False,
+                    "local_user",
+                    username,
+                    host,
+                    ()
+                )
+            except asyncssh.config.ConfigParseError:
+                return False
         else:
             return False
 
         if config and not config.get_options(False) or not config:
             # If no valid config is available there is no value to set as
-            # placeholder for username and keyfile and there is a need to set
-            # it to an empty string in case previously a value was able to be
-            # set.
+            # placeholder for host, username and keyfile so there is a need to
+            # set them to an empty string in case a value setted previously.
+            host_textbox.setPlaceholderText("")
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
                 keyfile_textbox.setPlaceholderText("")
@@ -838,6 +845,9 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             configfile_widget.textbox.error_action.setVisible(True)
 
             return False
+
+        if config.get("Hostname", None):
+            host_textbox.setPlaceholderText(config.get("Hostname"))
 
         if config.get("User", None):
             username_textbox.setPlaceholderText(config.get("User"))
