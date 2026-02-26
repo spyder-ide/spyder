@@ -1,5 +1,22 @@
 # History of changes for Spyder 6
 
+## Version 6.1.4 (Unreleased)
+
+### New features
+
+* Docstring generation has been massively overhauled to:
+    * Parse and incorporate the sections of the function's existing docstring
+    * Support generating return types from the function body for Sphinxdoc
+    * Fix dozens of bugs and limitations with the existing docstring generation
+    * Resolve numerous formatting issues and follow the relevant specifications
+    * Refactor the code to be much more robust and extendable going forward
+    * Massively improve the test suite coverage from 30 tests to >1000,
+      decrease per-test runtime by ~10x and refactor the test code to be
+      much cleaner, more DRY, follow best practices and make it far easier to
+      add new test cases in the future.
+
+----
+
 ## Version 6.1.3 (2026-02-12)
 
 ### New features
