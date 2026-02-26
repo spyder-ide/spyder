@@ -484,7 +484,7 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
             max_=65535,
             tip=_(
                 "Introduce a port to use for this connection. Set <b>0</b> "
-                "to use the port specified in the configuration file if "
+                "to use the port specified in the configuration file, if "
                 "provided"
             ),
         )
@@ -829,8 +829,8 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
 
         if config and not config.get_options(False) or not config:
             # If no valid config is available there is no value to set as
-            # placeholder for host, username and keyfile so there is a need to
-            # set them to an empty string in case a value setted previously.
+            # placeholder for host, username and keyfile, so there is a need to
+            # set them to an empty string in case a value was set previously.
             host_textbox.setPlaceholderText("")
             username_textbox.setPlaceholderText("")
             if keyfile_textbox:
@@ -901,7 +901,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
         if reasons.get("invalid_config"):
             text += (
                 prefix
-                + _("The configuration file and/or host provided are not valid.")
+                + _(
+                    "The configuration file and/or host you provided are not "
+                    "valid."
+                )
                 + suffix
             )
 
