@@ -19,7 +19,7 @@ from qtpy.QtGui import QTextCursor
 # Local imports
 from spyder.config.manager import CONF
 from spyder.plugins.editor.extensions.docstring import (
-    DocstringInfo, FunctionInfo, remove_comments
+    DocstringInfo, FunctionInfo, get_indent, remove_comments
 )
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.qthelpers import qapplication
@@ -660,10 +660,9 @@ def test_get_function_def_below(editor_docstring_after_def, test_case):
 def test_get_function_docstring(editor_docstring_end_def, test_case):
     """Test get function docstring."""
     __, writer, __ = editor_docstring_end_def(test_case)
-    func_info = FunctionInfo()
-    func_info.parse_def(test_case.input_text)
+    indent = get_indent(test_case.sig)
 
-    result = writer.get_function_docstring(func_info.func_indent)
+    result = writer.get_function_docstring(indent)
 
     assert result == test_case.function_docstring
 
@@ -676,10 +675,9 @@ def test_get_function_docstring(editor_docstring_end_def, test_case):
 def test_get_function_body(editor_docstring_after_def, test_case):
     """Test get function body."""
     __, writer, __ = editor_docstring_after_def(test_case)
-    func_info = FunctionInfo()
-    func_info.parse_def(test_case.input_text)
+    indent = get_indent(test_case.sig)
 
-    result = writer.get_function_body(func_info.func_indent)
+    result = writer.get_function_body(indent)
 
     assert result.removesuffix('\n') == test_case.function_body
 

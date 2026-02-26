@@ -162,8 +162,9 @@ def remove_comments(text):
     return re.sub(pattern=r"""(?<!['"])(#.*)""", repl="", string=text)
 
 
-def collapse_line_breaks_annotation(text):
-    """Collapse a type annotation into a single line."""
+def collapse_line_breaks(text):
+    """Collapse line breaks into a single line."""
+    text = text.strip(" \\").rstrip(",").replace(",]", "]").replace(",)", ")")
     lines = re.sub(r"\s{2,}", r"\n", text.strip()).split("\n")
     collapsed_lines = []
     for line in lines:
@@ -186,6 +187,13 @@ def collapse_line_breaks_annotation(text):
             collapsed_lines.append(f" {line}")
 
     return "".join(collapsed_lines)
+
+
+def collapse_line_breaks_annotation(text):
+    """Collapse a type annotation into a single line."""
+    text = text.strip().strip(""" "'()\\""").rstrip(',').replace(",]", "]")
+    collapsed_lines = collapse_line_breaks(text)
+    return collapsed_lines
 
 
 def dedent_docstring(text):
@@ -1207,6 +1215,10 @@ class FunctionInfo:
     def split_arg_to_name_type_value(self, args_list):
         """Split argument text to name, type, value."""
         for arg in args_list:
+            # Skip arg if it is a `*` or `/` separator
+            if arg.strip() in {'*', '/'}:
+                continue
+
             arg_type = None
             arg_value = None
 
@@ -1237,6 +1249,11 @@ class FunctionInfo:
                 arg_value = arg[pos_equal + 1:].strip()
             else:
                 arg_name = arg.strip()
+
+            if arg_type:
+                arg_type = collapse_line_breaks_annotation(arg_type)
+            if arg_value:
+                arg_value = collapse_line_breaks(arg_value)
 
             self.arg_name_list.append(arg_name)
             self.arg_type_list.append(arg_type)
@@ -1312,9 +1329,7 @@ class FunctionInfo:
         if not return_type_match:
             return None, len(text)
 
-        return_type = return_type_match.group(1).strip().strip(
-            """ "'()\\"""
-        ).rstrip(',').replace(',]', ']')
+        return_type = return_type_match.group(1).strip()
         return_type = collapse_line_breaks_annotation(return_type)
         text_end = text.rfind(return_type_match.group(0))
 
