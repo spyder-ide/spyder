@@ -4,8 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+from __future__ import annotations
 import logging
-from typing import Optional
 
 from asyncssh import SSHClientConnection, SSHClient
 from asyncssh.auth import PasswordChangeResponse
@@ -31,7 +31,7 @@ class SpyderSSHClient(SSHClient):
 
         """
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def connection_lost(self, exc: Exception | None) -> None:
         """Called when a connection is lost or closed
 
         This method is called when a connection is closed. If the
@@ -43,9 +43,9 @@ class SpyderSSHClient(SSHClient):
             The exception which caused the connection to close, or
             `None` if the connection closed cleanly
         :type exc: :class:`Exception`
-
         """
-        self.client._handle_connection_lost(exc)
+        if exc is not None:
+            self.client._handle_connection_lost(exc)
 
     def debug_msg_received(
         self, msg: str, lang: str, always_display: bool
@@ -84,7 +84,7 @@ class SpyderSSHClient(SSHClient):
 
         """
 
-    def public_key_auth_requested(self) -> Optional[KeyPairListArg]:
+    def public_key_auth_requested(self) -> KeyPairListArg | None:
         """Public key authentication has been requested
 
         This method should return a private key corresponding to
@@ -110,7 +110,7 @@ class SpyderSSHClient(SSHClient):
 
         return None  # pragma: no cover
 
-    def password_auth_requested(self) -> Optional[str]:
+    def password_auth_requested(self) -> str | None:
         """Password authentication has been requested
 
         This method should return a string containing the password
