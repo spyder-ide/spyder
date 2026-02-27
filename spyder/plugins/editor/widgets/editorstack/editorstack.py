@@ -33,8 +33,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import Plugins
+from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
-from spyder.config.base import _, running_under_pytest
+from spyder.config.base import running_under_pytest
 from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
@@ -53,7 +54,6 @@ from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.plugins.switcher.api import SwitcherActions
-from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
@@ -68,6 +68,7 @@ class EditorStackActions:
     CopyAbsolutePath = "copy_absolute_path_action"
     CopyRelativePath = "copy_relative_path_action"
     CloseAllRight = "close_all_rigth_action"
+    CloseAllLeft = "close_all_left_action"
     CloseAllButThis = "close_all_but_this_action"
     SortTabs = "sort_tabs_action"
     ShowInExternalFileExplorer = "show in external file explorer"
@@ -278,6 +279,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             triggered=self.close_all_right,
             register_action=False
         )
+        self.close_left = self.create_action(
+            EditorStackActions.CloseAllLeft,
+            text=_("Close all to the left"),
+            triggered=self.close_all_left,
+            register_action=False
+        )
         self.close_all_but_this = self.create_action(
             EditorStackActions.CloseAllButThis,
             text=_("Close all but this"),
@@ -450,7 +457,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
             rel_path = osp.relpath(
                 self.get_current_filename(), base_path
-            ).replace(os.sep, "/")
+            )
 
             QApplication.clipboard().setText(rel_path)
 
@@ -651,7 +658,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @Slot()
     def update_fname_label(self):
         """Update file name label."""
-        filename = to_text_string(self.get_current_filename())
+        filename = str(self.get_current_filename())
         if len(filename) > 100:
             metrics = QFontMetrics(
                 self.default_font
@@ -781,6 +788,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    @on_conf_change(
+        option=("provider_configuration", "lsp", "values", "pyflakes"),
+        section='completions',
+    )
+    def on_pyflakes_enabled_change(self, value):
+        if self.data:
+            for finfo in self.data:
+                if finfo.editor.is_python_like():
+                    finfo.editor.pyflakes_linting_enabled = value
+
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
@@ -820,6 +837,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def __update_editor_margins(self, editor):
         editor.linenumberarea.setup_margins(
             linenumbers=self.linenumbers_enabled, markers=self.has_markers())
+        editor.scrollflagarea.set_todo_enabled(self.has_markers())
 
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
@@ -867,7 +885,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
     @on_conf_change(
         option=('provider_configuration', 'lsp', 'values',
-                'pycodestyle/max_line_length'),
+                'flake8/max_line_length'),
         section='completions'
     )
     def set_edgeline_columns(self, columns):
@@ -1210,7 +1228,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\
            and filename == encoding.to_unicode_from_fs(self.tempfile_path):
-            temp_file_str = to_text_string(_("Temporary file"))
+            temp_file_str = str(_("Temporary file"))
             return text % (temp_file_str, self.tempfile_path)
         else:
             return text % (osp.basename(filename), osp.dirname(filename))
@@ -1261,7 +1279,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         new_ext = osp.splitext(new_filename)[1]
         if original_ext != new_ext:
             # Set file language and re-run highlighter
-            txt = to_text_string(finfo.editor.get_text_with_eol())
+            txt = str(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language, new_filename)
             finfo.editor.run_pygments_highlighter()
@@ -1340,6 +1358,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             # close and order section
             close_order_actions = [
                 self.close_right,
+                self.close_left,
                 self.close_all_but_this,
                 self.sort_tabs
             ]
@@ -1735,6 +1754,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         for __ in range(num, n - 1):
             self.close_file(num + 1)
 
+    def close_all_left(self):
+        """Close all files opened to the left."""
+        n = self.get_stack_index()
+        for __ in range(n):
+            self.close_file(0)
+
     def on_close_all_but_this(self):
         """Close all files but the current one"""
         self.close_all_right()
@@ -1874,7 +1899,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         Returns:
             int: computed hash.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = str(fileinfo.editor.get_text_with_eol())
         return hash(txt)
 
     def _write_to_file(self, fileinfo, filename):
@@ -1887,7 +1912,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
-        txt = to_text_string(fileinfo.editor.get_text_with_eol())
+        txt = str(fileinfo.editor.get_text_with_eol())
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False, save_new_files=True):
@@ -2026,7 +2051,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             return
         finfo = self.data[index]
         finfo.newly_created = False
-        finfo.filename = to_text_string(filename)
+        finfo.filename = str(filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
 
     def select_savename(self, original_filename):
@@ -2736,7 +2761,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         editor = self.get_current_editor()
         language = editor.language.lower()
-        signature = to_text_string(signature)
+        signature = str(signature)
         signature = unicodedata.normalize("NFKD", signature)
         parts = signature.split('\n\n')
         definition = parts[0]
@@ -2781,7 +2806,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         This also sets the hash of the loaded file in the autosave component.
         """
-        filename = osp.abspath(to_text_string(filename))
+        filename = osp.abspath(str(filename))
 
         if processevents:
             self.starting_long_process.emit(_("Loading %s...") % filename)
@@ -2888,11 +2913,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo.editor.add_newline_to_file()
 
     def fix_indentation(self, index=None):
-        """Replace tab characters by spaces"""
+        """Replace tab characters with spaces."""
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        logger.debug(f"Fix indentation for file {finfo.filename}")
+        logger.debug(f"Convert tabs to spaces for file {finfo.filename}")
         finfo.editor.fix_indentation()
 
     def format_document_or_selection(self, index=None):

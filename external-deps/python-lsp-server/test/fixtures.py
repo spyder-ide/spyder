@@ -177,3 +177,17 @@ def client_server_pair() -> None:
     ).result(timeout=CALL_TIMEOUT_IN_SECONDS)
     assert shutdown_response is None
     client_server_pair_obj.client._endpoint.notify("exit")
+
+
+@pytest.fixture
+def workspace_with_signature_docstring_disabled(workspace) -> None:
+    workspace._config.update(
+        {
+            "signature": {
+                **workspace._config.settings().get("signature", {}),
+                "include_docstring": False,
+            },
+        }
+    )
+
+    yield workspace

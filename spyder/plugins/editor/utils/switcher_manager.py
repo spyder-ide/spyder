@@ -13,7 +13,7 @@ import os.path as osp
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
-from spyder.config.base import _
+from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
 from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON

@@ -1,5 +1,92 @@
 # History of changes
 
+## Version 3.1.3 (2026/02/09)
+
+### Pull Requests Merged
+
+* [PR 576](https://github.com/spyder-ide/spyder-kernels/pull/576) - PR: Skip `test_get_interactive_backend` in Python 3.9 and Linux, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 575](https://github.com/spyder-ide/spyder-kernels/pull/575) - PR: Fix debugger stop in breakpoints set on modules if stop on first line option is disabled, by [@rear1019](https://github.com/rear1019)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 3.1.2 (2025/11/19)
+
+### Pull Requests Merged
+
+* [PR 570](https://github.com/spyder-ide/spyder-kernels/pull/570) - PR: Remove overridden `set_trace` in `SpyderPdb` because it's not needed, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.1.1 (2025/10/17)
+
+### Pull Requests Merged
+
+* [PR 566](https://github.com/spyder-ide/spyder-kernels/pull/566) - PR: Fix getting Pixi environment info on Posix systems, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 1 pull request was closed.
+
+----
+
+## Version 3.1.0 (2025/10/01)
+
+### New features
+
+* Disable magics and commands to call Python package managers (e.g. `!pip` or `%conda`).
+* Add `%profile`, `%profilefile` and `%profilecell` magics.
+* Add support for IPython 9.
+* Drop support for Python 3.8.
+
+----
+
+## Version 3.1.0b2 (2025/09/26)
+
+### Pull Requests Merged
+
+* [PR 562](https://github.com/spyder-ide/spyder-kernels/pull/562) - PR: Bump minimal supported IPython version to 8.15, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 561](https://github.com/spyder-ide/spyder-kernels/pull/561) - PR: Update release instructions after switching to `pyproject.toml`, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 3.1.0b1 (2025/09/10)
+
+### Issues Closed
+
+* [Issue 555](https://github.com/spyder-ide/spyder-kernels/issues/555) - Replace `setup.py` with `pyproject.toml` ([PR 557](https://github.com/spyder-ide/spyder-kernels/pull/557) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 543](https://github.com/spyder-ide/spyder-kernels/issues/543) - Support IPython 9.x ([PR 559](https://github.com/spyder-ide/spyder-kernels/pull/559) by [@dalthviz](https://github.com/dalthviz))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 559](https://github.com/spyder-ide/spyder-kernels/pull/559) - PR: Add support for IPython 9, by [@dalthviz](https://github.com/dalthviz) ([543](https://github.com/spyder-ide/spyder-kernels/issues/543))
+* [PR 558](https://github.com/spyder-ide/spyder-kernels/pull/558) - PR: Add `profile`, `profilefile` and `profilecell` magics, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 557](https://github.com/spyder-ide/spyder-kernels/pull/557) - PR: Replace `setup.py` with `pyproject.toml`, by [@dalthviz](https://github.com/dalthviz) ([555](https://github.com/spyder-ide/spyder-kernels/issues/555))
+* [PR 556](https://github.com/spyder-ide/spyder-kernels/pull/556) - PR: Replace `@flaky` decorator with pytest marker, by [@mgorny](https://github.com/mgorny)
+
+In this release 4 pull requests were closed.
+
+----
+
+## Version 3.1.0a3 (2025/07/21)
+
+### Pull Requests Merged
+
+* [PR 553](https://github.com/spyder-ide/spyder-kernels/pull/553) - PR: Fix bug when converting JSON to StackSummary, by [@jitseniesen](https://github.com/jitseniesen)
+* [PR 552](https://github.com/spyder-ide/spyder-kernels/pull/552) - PR: Drop support for Python 3.8, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 551](https://github.com/spyder-ide/spyder-kernels/pull/551) - PR: Use our own poller to check if the kernel parent is alive, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 550](https://github.com/spyder-ide/spyder-kernels/pull/550) - PR: Add new security policy, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 549](https://github.com/spyder-ide/spyder-kernels/pull/549) - PR: Support Polars dataframes, by [@jitseniesen](https://github.com/jitseniesen)
+
+In this release 5 pull requests were closed.
+
+----
+
 ## Version 3.1.0a2 (2025/06/05)
 
 ### Pull Requests Merged

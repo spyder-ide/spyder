@@ -1,5 +1,80 @@
 # History of changes
 
+## Version 1.14.0 (2025/12/06)
+
+### New features
+* Add `pylsp.signature.include_docstring` to hide docstring in signatures.
+* Add support for Pylint 4.
+* Fix support for Python 3.14.
+
+### Pull Requests Merged
+
+* [PR 690](https://github.com/python-lsp/python-lsp-server/pull/690) - Fix starting the server for Python 3.14 and run tests with that version, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 689](https://github.com/python-lsp/python-lsp-server/pull/689) - Adjust test based on Jedi version, by [@aeliton](https://github.com/aeliton)
+* [PR 687](https://github.com/python-lsp/python-lsp-server/pull/687) - Bump allowed pylint to less than 4.1, by [@tiltingpenguin](https://github.com/tiltingpenguin)
+* [PR 686](https://github.com/python-lsp/python-lsp-server/pull/686) - Add option to hide docstring in signatures, by [@tomekwojcik](https://github.com/tomekwojcik)
+
+In this release 4 pull requests were closed.
+
+----
+
+## Version 1.13.2 (2025/11/19)
+
+### Pull Requests Merged
+
+* [PR 683](https://github.com/python-lsp/python-lsp-server/pull/683) - Prevent showing cmd on Windows when running flake8, by [@dalthviz](https://github.com/dalthviz)
+* [PR 669](https://github.com/python-lsp/python-lsp-server/pull/669) - Fix license entries in `pyproject.toml` due to pep 639, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 2 pull requests were closed.
+
+----
+
+## Version 1.13.1 (2025/08/26)
+
+### Pull Requests Merged
+
+* [PR 667](https://github.com/python-lsp/python-lsp-server/pull/667) - Use PyQt6 for testing, by [@WhyNotHugo](https://github.com/WhyNotHugo)
+* [PR 666](https://github.com/python-lsp/python-lsp-server/pull/666) - Expose a shutdown hook, by [@dlax](https://github.com/dlax)
+* [PR 663](https://github.com/python-lsp/python-lsp-server/pull/663) - Copy `LAST_JEDI_COMPLETIONS` to cell document so that `completionItem/resolve` will work, by [@hjr265](https://github.com/hjr265)
+
+In this release 3 pull requests were closed.
+
+----
+
+## Version 1.13.0 (2025/07/07)
+
+### New features
+* Format signatures in docstrings.
+* Add support for type definition.
+* Send websocket payload using a queue.
+* Fix getting symbols with inline comments that include the `import` word.
+* Drop support for Python 3.8
+
+### Issues Closed
+
+* [Issue 640](https://github.com/python-lsp/python-lsp-server/issues/640) - Should we add `py.typed` marker? ([PR 641](https://github.com/python-lsp/python-lsp-server/pull/641) by [@krassowski](https://github.com/krassowski))
+* [Issue 630](https://github.com/python-lsp/python-lsp-server/issues/630) - Formatting of signatures in docstrings
+* [Issue 627](https://github.com/python-lsp/python-lsp-server/issues/627) - Do not call str.splitlines() twice in the same function
+* [Issue 97](https://github.com/python-lsp/python-lsp-server/issues/97) - Failed to run lsp-goto-type-definition and lsp-goto-implementation.
+
+In this release 4 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 656](https://github.com/python-lsp/python-lsp-server/pull/656) - Add space between punctuation and next sentence, by [@spenserblack](https://github.com/spenserblack)
+* [PR 650](https://github.com/python-lsp/python-lsp-server/pull/650) - Drop Python 3.8, add Python 3.11 to CI and run `pyupgrade`, by [@krassowski](https://github.com/krassowski)
+* [PR 646](https://github.com/python-lsp/python-lsp-server/pull/646) - Enforce `setuptools` 69 or newer to ensure `py.typed` marker gets included, by [@krassowski](https://github.com/krassowski)
+* [PR 645](https://github.com/python-lsp/python-lsp-server/pull/645) - Add support for type definition, by [@Hoblovski](https://github.com/Hoblovski)
+* [PR 641](https://github.com/python-lsp/python-lsp-server/pull/641) - Add `py.typed` marker to `pylsp` imports to be analysed with `mypy`, by [@krassowski](https://github.com/krassowski) ([640](https://github.com/python-lsp/python-lsp-server/issues/640))
+* [PR 639](https://github.com/python-lsp/python-lsp-server/pull/639) - Fix inline comments that include text with `import`, by [@jsbautista](https://github.com/jsbautista)
+* [PR 633](https://github.com/python-lsp/python-lsp-server/pull/633) - Send websocket payload using a queue, by [@Raekkeri](https://github.com/Raekkeri)
+* [PR 631](https://github.com/python-lsp/python-lsp-server/pull/631) - Allow to format signatures in docstrings, by [@krassowski](https://github.com/krassowski)
+* [PR 628](https://github.com/python-lsp/python-lsp-server/pull/628) - Do not call `str.splitlines()` twice in the same function., by [@fukanchik](https://github.com/fukanchik)
+
+In this release 9 pull requests were closed.
+
+----
+
 ## Version 1.12.2 (2025/02/07)
 
 ### Pull Requests Merged

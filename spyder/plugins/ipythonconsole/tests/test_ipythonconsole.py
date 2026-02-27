@@ -36,9 +36,9 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 import sympy
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.config.gui import get_color_scheme
-from spyder.py3compat import to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
     get_conda_test_env, get_console_background_color, get_console_font_color,
@@ -84,7 +84,7 @@ def test_banners(ipyconsole, qtbot):
     [("np.arange",  # Check we get the signature from the object's docstring
       ["start", "stop"],
       ["Return evenly spaced values within a given interval.<br>",
-       "open interval<br>..."]),
+       "positional arguments:<br>..."]),
      ("np.vectorize",  # Numpy function with a proper signature
       ["pyfunc", "otype", "signature"],
       ["Returns an object that acts like pyfunc, but takes<br>arrays as input."
@@ -113,10 +113,14 @@ def test_banners(ipyconsole, qtbot):
       ["My function"])
      ]
 )
-@pytest.mark.skipif(running_in_ci() and not os.name == 'nt',
-                    reason="Times out on macOS and fails on Linux")
-@pytest.mark.skipif(parse(np.__version__) < parse('1.25.0'),
-                    reason="Documentation for np.vectorize is different")
+@pytest.mark.skipif(
+    running_in_ci() and not os.name == 'nt',
+    reason="Times out on macOS and fails on Linux"
+)
+@pytest.mark.skipif(
+    parse(np.__version__) < parse('2.4.0'),
+    reason="Documentation for np.arange is different"
+)
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -466,7 +470,7 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     shell.set_cwd(tempdir)
 
     # Get current directory.
@@ -488,7 +492,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # spyder-ide/spyder#6451.
     savetemp = shell.get_cwd()
-    tempdir = to_text_string(tmpdir.mkdir("queen's"))
+    tempdir = str(tmpdir.mkdir("queen's"))
     assert shell.get_cwd() != tempdir
 
     # Need to escape \ on Windows.
@@ -539,7 +543,7 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
 
     # Add a new entry to sys.path
     with qtbot.waitSignal(shell.executed):
-        tmp_dir = to_text_string(tmpdir)
+        tmp_dir = str(tmpdir)
         shell.execute("import sys; sys.path.append('%s')" % tmp_dir)
 
     # Ask for sys.path contents
@@ -553,10 +557,6 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
     assert tmp_dir in syspath_contents
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    not sys.platform.startswith("linux"), reason="Fails on Windows and Mac"
-)
 def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
@@ -596,6 +596,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
     # Open new widget
     ipyconsole.create_new_client()
 
@@ -614,6 +618,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
     # Press Up arrow button and assert we get the last
     # introduced command
+    qtbot.waitUntil(lambda: shell.is_waiting_pdb_input())
     qtbot.keyClick(control, Qt.Key_Up)
     assert 'aa = 10' in control.toPlainText()
 
@@ -630,6 +635,10 @@ def test_save_history_dbg(ipyconsole, qtbot):
     shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -965,7 +974,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     client = ipyconsole.get_current_client()
 
     fname = osp.basename(client.connection_file)
-    connection_file = to_text_string(tmpdir.join(fname))
+    connection_file = str(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
     ipyconsole.create_client_for_kernel(connection_file)
@@ -1317,9 +1326,9 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     if show_lib:
-        assert 'iostream.py' in control.toPlainText()
+        assert 'write()' in control.toPlainText()
     else:
-        assert 'iostream.py' not in control.toPlainText()
+        assert 'write()' not in control.toPlainText()
     ipyconsole.set_conf('pdb_ignore_lib', True, section="debugger")
 
 
@@ -1395,7 +1404,10 @@ def test_kernel_kill(ipyconsole, qtbot, external_interpreter):
     shell = ipyconsole.get_current_shellwidget()
 
     # Wait for the restarter to start
-    qtbot.wait(3000)
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
     crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
 
     # Check only one comm is open
@@ -1578,7 +1590,8 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Run a line on startup
     ipyconsole.set_conf(
         'startup/pdb_run_lines',
-        'abba = 12; print("Hello")'
+        'abba = 12; print("Hello")',
+        section='debugger'
     )
 
     shell.execute('%debug print()')
@@ -1588,7 +1601,11 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     assert shell.get_value('abba') == 12
 
     # Reset setting
-    ipyconsole.set_conf('startup/pdb_run_lines', '')
+    ipyconsole.set_conf(
+        'startup/pdb_run_lines',
+        '',
+        section='debugger'
+    )
 
 
 @flaky(max_runs=3)
@@ -1773,8 +1790,8 @@ def test_code_cache(ipyconsole, qtbot):
     # Same for debugging
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'IPdb [' in shell._control.toPlainText())
 
-    assert 'IPdb [' in shell._control.toPlainText()
     # Send two execute requests and make sure the second one is executed
     shell.execute('time.sleep(.5)')
     shell.execute('var = 318')
@@ -1790,6 +1807,10 @@ def test_code_cache(ipyconsole, qtbot):
     qtbot.wait(1000)
     # Make sure the value of var didn't change
     assert shell.get_value('var') == 318
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=3)
@@ -1820,7 +1841,7 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
+def test_breakpoint_builtin(ipyconsole, qtbot, tmp_path):
     """Check that the breakpoint builtin is working."""
     shell = ipyconsole.get_current_shellwidget()
     control = ipyconsole.get_widget().get_focus_widget()
@@ -1832,8 +1853,8 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     """)
 
     # Write code to file on disk
-    file = tmpdir.join('test_breakpoint.py')
-    file.write(code)
+    file = tmp_path / "test_breakpoint.py"
+    file.write_text(code)
 
     # Run file
     with qtbot.waitSignal(shell.executed):
@@ -1843,6 +1864,14 @@ def test_breakpoint_builtin(ipyconsole, qtbot, tmpdir):
     qtbot.wait(5000)
     assert 'foo' in control.toPlainText()
     assert 'IPdb [1]:' in control.toPlainText()
+
+    # Run file twice to check breakpoint call doesn't hang the console.
+    # Test for spyder-ide/spyder#24871
+    for __ in range(2):
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(f"%runfile {repr(str(file))}")
+
+    assert 'IPdb [3]:' in control.toPlainText()
 
 
 def test_pdb_out(ipyconsole, qtbot):
@@ -1979,9 +2008,15 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     }
 
     shell.set_kernel_configuration("namespace_view_settings", settings)
-    namespace = shell.call_kernel(blocking=True).get_namespace_view()
+    namespace = shell.call_kernel(
+        blocking=True, timeout=SHELL_TIMEOUT
+    ).get_namespace_view()
     for key in namespace:
         assert "_spyderpdb" not in key
+
+    # Exit debugging for proper close
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
 
 
 @flaky(max_runs=10)
@@ -2562,6 +2597,157 @@ def test_case_sensitive_wdir(ipyconsole, qtbot, tmp_path):
 
     assert "SensitiveCaseA" in control.toPlainText()
     assert "sensitivecasea" not in control.toPlainText()
+
+
+@flaky(max_runs=10)
+@pytest.mark.skipif(not sys.platform == "darwin", reason="Only works on Mac")
+def test_time_elapsed(ipyconsole, qtbot):
+    """Test that the IPython console elapsed timer is set correctly."""
+    # Create a new IPython console client
+    ipyconsole.create_new_client()
+
+    # Get the main console widget and the current shell
+    main_widget = ipyconsole.get_widget()
+    shell = ipyconsole.get_current_shellwidget()
+
+    # Enable the elapsed time display for the current client
+    main_widget.set_show_elapsed_time_current_client(True)
+
+    # Check that the elapsed time starts at 00:00:00
+    assert '00:00:00' in main_widget.time_label.text()
+
+    # Wait until the kernel is ready and wait 5 seconds to let the timer advance
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+    qtbot.wait(5000)
+
+    # Check that elapsed time has advanced (at least to 00:00:04)
+    assert (
+        '00:00:04' in main_widget.time_label.text()
+        or '00:00:05' in main_widget.time_label.text()
+    )
+
+    # Restart the kernel
+    main_widget.restart_action.trigger()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+    qtbot.wait(1000)
+
+    # Verify the timer is reset to 00:00:00 after kernel restart
+    assert '00:00:00' in main_widget.time_label.text()
+
+    # Disable the elapsed time display for the current client
+    main_widget.set_show_elapsed_time_current_client(False)
+
+    # Verify that the elapsed time label is now hidden (empty text)
+    assert '' == main_widget.time_label.text()
+
+    # The test fails after this point on CIs for Mac but works locally
+    if running_in_ci() and sys.platform == "darwin":
+        return
+
+    # Enable the elapsed time display for all clients
+    ipyconsole.set_conf("show_elapsed_time", True)
+
+    # Create a new client to test that the global config is applied
+    ipyconsole.create_new_client()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Check the timer starts at 00:00:00 for the new client
+    assert '00:00:00' in main_widget.time_label.text()
+
+    # Wait 5 seconds again
+    qtbot.wait(5000)
+
+    # Verify the timer has advanced
+    if os.name == "nt":
+        assert (
+            "00:00:04" in main_widget.time_label.text()
+            or "00:00:05" in main_widget.time_label.text()
+        )
+    else:
+        # This second timer is very flaky on Mac, so we simply test that it's
+        # not stuck at 0
+        '00:00:00' not in main_widget.time_label.text()
+
+    # Disable the global config for elapsed time
+    ipyconsole.set_conf("show_elapsed_time", False)
+
+    # Create another new client to verify elapsed time is disabled
+    ipyconsole.create_new_client()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT
+    )
+
+    # Check that the elapsed time is not shown
+    assert '' == main_widget.time_label.text()
+
+
+def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
+    """
+    Test that we stop on breakpoints set on modules when 'Stop debugging on
+    first line of files without breakpoints' is disabled.
+
+    This is a regression test for issue spyder-ide/spyder#22035
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Code to test
+    code_m1 = dedent("""
+    import m2
+
+    def main():
+        print('calling func in 2.py')
+        m2.func()
+    """
+    )
+    code_m2 = dedent("""
+    def func():
+        print(f" in {__file__} running {func}")
+        return
+    """
+    )
+
+    # Write code to files
+    code_dir = tmp_path / "test_no_stop_on_first_line"
+    code_dir.mkdir()
+
+    m1 = code_dir / "m1.py"
+    m1.write_text(code_m1)
+
+    m2 = code_dir / "m2.py"
+    m2.write_text(code_m2)
+
+    # File/dir names in the format used when running magics from the main
+    # toolbar
+    code_dir_name = str(code_dir).replace('\\', '/')
+    m1_name = str(m1).replace('\\', '/')
+
+    # Disable option and set breakpoint
+    debugger = ipyconsole.get_plugin(Plugins.Debugger)
+    debugger.set_conf("pdb_stop_first_line", False)
+    debugger.set_conf("breakpoints", {str(m2): [(2, None)]})
+    debugger.get_widget().sig_breakpoints_saved.emit()
+
+    # Debug code
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(f"%debugfile {m1_name} --wdir {code_dir_name}")
+
+    # Check we entered the debugger and stopped where the breakpoint was set
+    assert "\nIPdb [1]" in control.toPlainText()
+    assert "---> 2 def func():\n" in control.toPlainText()
 
 
 if __name__ == "__main__":

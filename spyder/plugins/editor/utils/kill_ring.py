@@ -77,7 +77,7 @@ class QtKillRing(QObject):
         """ Create a kill ring attached to the specified Qt text edit.
         """
         assert isinstance(text_edit, (QTextEdit, QPlainTextEdit))
-        super(QtKillRing, self).__init__()
+        super().__init__()
 
         self._ring = KillRing()
         self._prev_yank = None

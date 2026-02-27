@@ -46,7 +46,6 @@ from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.plugins.layout.layouts import DefaultLayouts
-from spyder.py3compat import to_binary_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.palette import SpyderPalette
@@ -64,7 +63,7 @@ class FadingDialog(QDialog):
     sig_key_pressed = Signal()
 
     def __init__(self, parent, opacity, duration, easing_curve):
-        super(FadingDialog, self).__init__(parent)
+        super().__init__(parent)
 
         self.parent = parent
         self.opacity_min = min(opacity)
@@ -107,8 +106,7 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(
-                    self.effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(self.effect, b"opacity")
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -158,8 +156,7 @@ class FadingCanvas(FadingDialog):
     def __init__(self, parent, opacity, duration, easing_curve, color,
                  tour=None):
         """Create a black semi transparent canvas that covers the app."""
-        super(FadingCanvas, self).__init__(parent, opacity, duration,
-                                           easing_curve)
+        super().__init__(parent, opacity, duration, easing_curve)
         self.parent = parent
         self.tour = tour
 
@@ -314,8 +311,7 @@ class FadingTipBox(FadingDialog):
     """Dialog that contains the text for each frame in the tour."""
     def __init__(self, parent, opacity, duration, easing_curve, tour=None,
                  color_top=None, color_back=None, combobox_background=None):
-        super(FadingTipBox, self).__init__(parent, opacity, duration,
-                                           easing_curve)
+        super().__init__(parent, opacity, duration, easing_curve)
         self.holder = self.anim  # needed for qt to work
         self.parent = parent
         self.tour = tour
@@ -1243,7 +1239,7 @@ class TourTestWindow(QMainWindow):
     sig_moved = Signal("QMoveEvent")
 
     def __init__(self):
-        super(TourTestWindow, self).__init__()
+        super().__init__()
         self.setGeometry(300, 100, 400, 600)
         self.setWindowTitle('Exploring QMainWindow')
 
@@ -1267,7 +1263,7 @@ class TourTestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(effect, b"opacity")
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)

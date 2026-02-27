@@ -24,10 +24,9 @@ from qtpy.QtWidgets import (
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
+from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.palette import SpyderPalette
@@ -144,7 +143,7 @@ class EditTabNamePopup(QLineEdit):
 
         if isinstance(self.tab_index, int) and self.tab_index >= 0:
             # We are editing a valid tab, update name
-            tab_text = to_text_string(self.text())
+            tab_text = str(self.text())
             self.main.setTabText(self.tab_index, tab_text)
             self.main.sig_name_changed.emit(tab_text)
 
@@ -309,10 +308,10 @@ class TabBar(QTabBar):
         close_btn_from = self.tabButton(index_from, self.close_btn_side)
         close_btn_to = self.tabButton(index_to, self.close_btn_side)
 
-        close_btn_from.index, close_btn_to.index = index_from, index_to
-
-        close_btn_from.set_not_selected_color()
-        close_btn_to.set_selected_color()
+        if close_btn_from and close_btn_to:
+            close_btn_from.index, close_btn_to.index = index_from, index_to
+            close_btn_from.set_not_selected_color()
+            close_btn_to.set_selected_color()
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -368,7 +367,7 @@ class TabBar(QTabBar):
         if index_to == -1:
             index_to = self.count()
         if int(mimeData.data("tabbar-id")) != id(self):
-            tabwidget_from = to_text_string(mimeData.data("tabwidget-id"))
+            tabwidget_from = str(mimeData.data("tabwidget-id"))
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -384,10 +383,7 @@ class TabBar(QTabBar):
 
     def mouseDoubleClickEvent(self, event):
         """Override Qt method to trigger the tab name editor."""
-        if (
-            self.rename_tabs is True
-            and event.buttons() == Qt.MouseButtons(Qt.LeftButton)
-        ):
+        if self.rename_tabs is True and event.button() == Qt.LeftButton:
             # Tab index
             index = self.tabAt(event.pos())
             if index >= 0:
@@ -473,9 +469,9 @@ class BaseTabs(QTabWidget):
         dirnames = []
         for index in range(self.count()):
             if self.menu_use_tooltips:
-                text = to_text_string(self.tabToolTip(index))
+                text = str(self.tabToolTip(index))
             else:
-                text = to_text_string(self.tabText(index))
+                text = str(self.tabText(index))
             names.append(text)
             if osp.isfile(text):
                 # Testing if tab names are filenames
@@ -676,7 +672,7 @@ class Tabs(BaseTabs, SpyderShortcutsMixin):
         # depend on the platform: long for 64bit, int for 32bit. Replacing
         # by long all the time is not working on some 32bit platforms.
         # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-        self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
+        self.sig_move_tab.emit(tabwidget_from, str(id(self)),
                                index_from, index_to)
 
     def register_shortcuts(self, parent):

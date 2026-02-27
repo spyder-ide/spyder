@@ -46,10 +46,11 @@ class SpyderLayout(BaseGridLayoutType):
                 Plugins.Help,
                 Plugins.VariableExplorer,
                 Plugins.Debugger,
+                Plugins.Profiler,
                 Plugins.Plots,
-                Plugins.OnlineHelp,
                 Plugins.Explorer,
                 Plugins.Find,
+                Plugins.OnlineHelp,
             ],
             row=0,
             column=2,
@@ -83,9 +84,16 @@ class HorizontalSplitLayout(BaseGridLayoutType):
             column=0,
         )
         self.add_area(
-            [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer,
-             Plugins.Debugger, Plugins.Plots, Plugins.History],
+            [
+                Plugins.IPythonConsole,
+                Plugins.Explorer,
+                Plugins.Help,
+                Plugins.VariableExplorer,
+                Plugins.Debugger,
+                Plugins.Profiler,
+                Plugins.Plots,
+                Plugins.History,
+            ],
             row=0,
             column=1,
             default=True,
@@ -110,9 +118,16 @@ class VerticalSplitLayout(BaseGridLayoutType):
             column=0,
         )
         self.add_area(
-            [Plugins.IPythonConsole, Plugins.Explorer, Plugins.Help,
-             Plugins.VariableExplorer,
-             Plugins.Debugger, Plugins.Plots, Plugins.History],
+            [
+                Plugins.IPythonConsole,
+                Plugins.Explorer,
+                Plugins.Help,
+                Plugins.VariableExplorer,
+                Plugins.Debugger,
+                Plugins.Profiler,
+                Plugins.Plots,
+                Plugins.History,
+            ],
             row=1,
             column=0,
             default=True,
@@ -143,9 +158,15 @@ class RLayout(BaseGridLayoutType):
             hidden_plugin_ids=[Plugins.Console]
         )
         self.add_area(
-            [Plugins.VariableExplorer,
-             Plugins.Debugger, Plugins.Plots, Plugins.History,
-             Plugins.OutlineExplorer, Plugins.Find],
+            [
+                Plugins.VariableExplorer,
+                Plugins.Debugger,
+                Plugins.Profiler,
+                Plugins.Plots,
+                Plugins.History,
+                Plugins.OutlineExplorer,
+                Plugins.Find,
+            ],
             row=0,
             column=1,
             default=True,
@@ -192,8 +213,13 @@ class MatlabLayout(BaseGridLayoutType):
             hidden_plugin_ids=[Plugins.Console]
         )
         self.add_area(
-            [Plugins.VariableExplorer,
-             Plugins.Debugger, Plugins.Plots, Plugins.Find],
+            [
+                Plugins.VariableExplorer,
+                Plugins.Debugger,
+                Plugins.Profiler,
+                Plugins.Plots,
+                Plugins.Find,
+            ],
             row=0,
             column=2,
             default=True,

@@ -36,7 +36,8 @@ import re
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.api.translations import _
+from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
 from spyder.utils.programs import is_spyder_process

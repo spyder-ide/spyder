@@ -86,7 +86,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                 min_width=150 if os.name == "nt" else 170
             )
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
-        create_app_menu(ApplicationMenus.View, _("&View"))
+        create_app_menu(ApplicationMenus.Window, _("&Window"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
     def on_mainwindow_visible(self):
@@ -109,12 +109,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                     editorstack = self._main.editor.get_current_editorstack()
                     editorstack.menu.hide()
                 else:
-                    try:
-                        # New API
-                        plugin_instance.options_menu.hide()
-                    except AttributeError:
-                        # Old API
-                        plugin_instance._options_menu.hide()
+                    plugin_instance.options_menu.hide()
 
     # ---- Public API
     # ------------------------------------------------------------------------

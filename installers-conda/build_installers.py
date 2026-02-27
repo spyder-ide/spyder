@@ -90,7 +90,7 @@ def _process_extra_specs(extra_specs, no_local=False):
     return new_extra_specs, specs.get("spyder")[1]
 
 
-def _generate_background_images(install_type):
+def _generate_background_images(install_type, spy_ver):
     """This requires Pillow."""
     if install_type == "sh":
         # shell installers are text-based, no graphics
@@ -124,31 +124,43 @@ def _generate_background_images(install_type):
         output = BUILD / "welcome_img_mac.png"
         background.save(output, format="png")
 
-        welcome_text = RESOURCES / "osx_pkg_welcome.rtf"
-        (BUILD / welcome_text.name).write_text(
-            welcome_text.read_text().replace("__VERSION__", str(spy_ver))
-        )
+        welcome_file = RESOURCES / "osx_pkg_welcome.rtf"
+        welcome_text = welcome_file.read_text()
+        welcome_file = BUILD / welcome_file.name
+        welcome_text = welcome_text.replace(
+            "__VERSION__", str(spy_ver)
+        ).replace("__MAJ_VER__", str(parse(spy_ver).major))
+        welcome_file.write_text(welcome_text)
+
+
+def _uninstall_shortcut(spy_ver):
+    """Modify the uninstall shortcut specification file."""
+    menu_file = RESOURCES / "uninstall-menu.json"
+    menu_text = menu_file.read_text()
+    menu_file = BUILD / "uninstall-menu.json"
+    menu_file.write_text(
+        menu_text.replace("__PKG_MAJOR_VER__", str(parse(spy_ver).major))
+    )
 
 
 def _create_conda_lock(env_type, extra_specs=[], no_local=False):
     env_file = RESOURCES / f"{env_type}_env.yml"
 
-    if env_type == "runtime":
-        if extra_specs or no_local:
-            rt_specs = yaml.load(env_file.read_text())
+    if env_type == "runtime" and (extra_specs or not no_local):
+        rt_specs = yaml.load(env_file.read_text())
 
-            if not no_local and os.getenv("CONDA_BLD_PATH"):
-                # Add local channel
-                rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH"))
+        if not no_local and os.getenv("CONDA_BLD_PATH"):
+            # Add local channel
+            rt_specs["channels"].append(os.getenv("CONDA_BLD_PATH"))
 
-            if extra_specs:
-                # Update runtime environment dependencies
-                rt_specs["dependencies"].extend(extra_specs)
+        if extra_specs:
+            # Update runtime environment dependencies
+            rt_specs["dependencies"].extend(extra_specs)
 
-            # Write to BUILD directory
-            BUILD.mkdir(exist_ok=True)
-            env_file = BUILD / env_file.name
-            yaml.dump(rt_specs, env_file)
+        # Write to BUILD directory
+        BUILD.mkdir(exist_ok=True)
+        env_file = BUILD / env_file.name
+        yaml.dump(rt_specs, env_file)
 
     env = os.environ.copy()
     env["CONDA_CHANNEL_PRIORITY"] = "flexible"
@@ -202,6 +214,7 @@ def _constructor(install_type, spy_ver, debug=False):
             "INSTALL_TYPE": install_type,
             "INSTALL_VER": spy_ver,
             "REPO_PATH": str(SPYREPO),
+            "CONDA_SHORTCUTS": "false", # Don't create shortcuts while building
         }
     )
 
@@ -216,7 +229,7 @@ def _cleanup_build(debug=False):
         # Do not clean the build directory
         return
 
-    exts = (".exe", ".sh", ".pkg", ".yml", ".rtf", ".lock", ".png")
+    exts = (".exe", ".json", ".lock", ".pkg", ".png", ".rtf", ".sh", ".yml")
     for f in BUILD.glob("*"):
         if f.suffix in exts:
             f.unlink()
@@ -228,7 +241,9 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
 
     _cleanup_build()
 
-    _generate_background_images(install_type)
+    _generate_background_images(install_type, spy_ver)
+
+    _uninstall_shortcut(spy_ver)
 
     t0 = time()
     try:
@@ -236,7 +251,7 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
         _create_conda_lock('runtime', extra_specs, no_local)
     finally:
         elapse = timedelta(seconds=int(time() - t0))
-        logger.info(f"Build time: {elapse}")
+        logger.info(f"Build lock files time: {elapse} s")
 
     t0 = time()
     try:
@@ -244,7 +259,7 @@ def main(spy_ver, extra_specs, install_type, no_local, debug):
         logger.info(f"Created {_output_file(args.install_type)}")
     finally:
         elapse = timedelta(seconds=int(time() - t0))
-        logger.info(f"Build time: {elapse}")
+        logger.info(f"Build installer time: {elapse} s")
 
     _cleanup_build(debug)
 

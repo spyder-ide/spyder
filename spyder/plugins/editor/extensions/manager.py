@@ -31,7 +31,7 @@ class EditorExtensionsManager(Manager):
 
     def __init__(self, editor):
         """Initialize and add a reference to the editor."""
-        super(EditorExtensionsManager, self).__init__(editor)
+        super().__init__(editor)
         self._extensions = {}
 
     def add(self, extension):

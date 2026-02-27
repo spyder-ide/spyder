@@ -10,8 +10,9 @@ from qtpy.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QPushButton
 from superqt.utils import qdebounced
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _, load_lang_conf
+from spyder.config.base import load_lang_conf
 from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.stylesheet import MAC, WIN
@@ -52,12 +53,7 @@ class ConfigDialog(SidebarDialog):
             if page is None:
                 continue
 
-            try:
-                # New API
-                section = page.plugin.NAME
-            except AttributeError:
-                section = page.CONF_SECTION
-
+            section = page.plugin.NAME
             if section == name:
                 return idx
         else:

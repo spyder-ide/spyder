@@ -13,6 +13,7 @@ from contextlib import contextmanager
 import logging
 import os
 import os.path as osp
+import re
 import pathlib
 import shutil
 
@@ -38,7 +39,10 @@ from spyder.plugins.explorer.api import DirViewActions
 from spyder.plugins.projects.api import (
     BaseProjectType, EmptyProject, WORKSPACE)
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
-from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
+from spyder.plugins.projects.widgets.projectdialog import (
+    is_writable,
+    ProjectDialog,
+)
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
@@ -365,11 +369,29 @@ class ProjectExplorerWidget(PluginMainWidget):
             path = encoding.to_unicode_from_fs(path)
             if not self.is_valid_project(path):
                 if path:
-                    QMessageBox.critical(
+                    buttons = QMessageBox.Yes | QMessageBox.No
+                    answer = QMessageBox.warning(
                         self,
-                        _('Error'),
-                        _("<b>%s</b> is not a Spyder project!") % path,
+                        _("Warning"),
+                        _("<b>%s</b> is not a Spyder project.<br><br>"
+                          "Do you want to create a project in this "
+                          "location?") % path,
+                        buttons
                     )
+
+                    if answer == QMessageBox.Yes:
+                        valid = self._is_valid_location(path)
+                        if valid[0]:
+                            self.create_project(path)
+                        else:
+                            QMessageBox.critical(
+                                self,
+                                _("Error"),
+                                _(
+                                    "It was not possible to create a project "
+                                    "in <b>{}</b>. The reason is:<br><br>{}"
+                                ).format(path, valid[1])
+                            )
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
@@ -1038,6 +1060,28 @@ class ProjectExplorerWidget(PluginMainWidget):
                 "pdb_prevent_closing", pdb_prevent_closing, section="debugger"
             )
 
+    def _is_valid_location(self, location: str):
+        valid = True
+        reason = ""
+        if not location:
+            reason = _("No directory was selected")
+            valid = False
+        elif not osp.isdir(location):
+            reason = _("The directory doesn't exist")
+            valid = False
+        elif not is_writable(location):
+            reason = _("The directory is not writable")
+            valid = False
+        elif os.name == "nt" and any(
+            [re.search(r":", part) for part in pathlib.Path(location).parts[1:]]
+        ):
+            # Prevent creating a project in directory with colons.
+            # Fixes spyder-ide/spyder#16942
+            reason = _("The project directory can't contain ':'")
+            valid = False
+
+        return (valid, reason)
+
     # ---- Private API for the Switcher
     # -------------------------------------------------------------------------
     def _call_fzf(self, search_text=""):
@@ -1080,10 +1124,18 @@ class ProjectExplorerWidget(PluginMainWidget):
         # List of results with absolute path
         if relative_path_list != ['']:
             project_path = self.get_active_project_path()
-            result_list = [
-                osp.normpath(os.path.join(project_path, path))
-                for path in relative_path_list
-            ]
+
+            # If Spyder is closed while a project is loaded at startup,
+            # project_path can become None. So, we need to check for that
+            # possibility.
+            # Fixes spyder-ide/spyder#25636
+            if project_path is not None:
+                result_list = [
+                    osp.normpath(os.path.join(project_path, path))
+                    for path in relative_path_list
+                ]
+            else:
+                result_list = []
         else:
             result_list = []
 

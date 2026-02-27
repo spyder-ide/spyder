@@ -13,9 +13,15 @@ import logging
 import os
 import os.path as osp
 
+try:
+    from win32api import GetShortPathName
+except Exception:
+    GetShortPathName = None
+
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
+from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import (
     get_conda_env_path,
     get_pixi_manifest_path_and_env_name,
@@ -26,13 +32,17 @@ from spyder_kernels.utils.pythonenv import (
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.config.base import (get_safe_mode, is_conda_based_app,
-                                running_under_pytest)
+from spyder.config.base import (
+    get_safe_mode,
+    is_conda_based_app,
+    running_in_ci,
+    running_under_pytest
+)
 from spyder.plugins.ipythonconsole import (
     SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
     SpyderKernelError)
 from spyder.utils.conda import conda_version, find_conda, find_pixi
-from spyder.utils.environ import clean_env, get_user_environment_variables
+from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
     get_module_version,
@@ -87,15 +97,13 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     CONF_SECTION = 'ipython_console'
 
-    def __init__(self, path_to_custom_interpreter=None,
-                 **kwargs):
-        super(SpyderKernelSpec, self).__init__(**kwargs)
+    def __init__(self, path_to_custom_interpreter=None, **kwargs):
+        super().__init__(**kwargs)
         self.path_to_custom_interpreter = path_to_custom_interpreter
         self.display_name = 'Python 3 (Spyder)'
         self.language = 'python3'
         self.resource_dir = ''
-
-        self.env = get_user_environment_variables()
+        self._env_vars = {}
 
     @property
     def argv(self):
@@ -159,18 +167,26 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             conda_exe = find_conda()
 
             if not conda_exe:
-                # Raise error since we were unable to determine the path to
-                # the conda executable (e.g when Anaconda/Miniconda was
-                # installed in a non-standard location).
-                # See spyder-ide/spyder#23595
-                not_found_exe_message = _(
-                    "Spyder couldn't find conda, mamba or micromamba in your "
-                    "system to activate the kernel's environment. Please add "
-                    "the directory where at least one of their executables "
-                    "is located to your PATH environment variable for it to "
-                    "be detected."
+                conda_exe = (
+                    self.get_conf("conda_path", section="main_interpreter")
+                    if self.get_conf(
+                        "custom_conda", section="main_interpreter"
+                    )
+                    else None
                 )
-                raise SpyderKernelError(not_found_exe_message)
+                if not conda_exe:
+                    # Raise error since we were unable to determine the path to
+                    # the conda executable (e.g when Anaconda/Miniconda was
+                    # installed in a non-standard location).
+                    # See spyder-ide/spyder#23595
+                    not_found_exe_message = _(
+                        "Spyder couldn't find Conda, Mamba or Micromamba on your "
+                        "system to activate the kernel's environment.<br><br>"
+                        "Please set the path for one of their executables in "
+                        "<tt>Preferences > Python interpreter > Conda "
+                        "executable</tt>"
+                    )
+                    raise SpyderKernelError(not_found_exe_message)
 
             # Get conda/mamba/micromamba version to perform some checks
             conda_exe_version = conda_version(conda_executable=conda_exe)
@@ -231,21 +247,42 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
     @property
     def env(self):
-        """Env vars for kernels"""
+        """Environment variables for kernels"""
+        return self._env_vars
+
+    @env.setter
+    def env(self, env_vars):
+        """Setter for environment variables for kernels"""
+        env_vars = dict(env_vars)
+        if os.name == "nt":
+            # Expand variables in case some are unexpanded.
+            # Fixes spyder-ide/spyder#25275
+            env_vars = {k: osp.expandvars(v) for k, v in env_vars.items()}
+
+            # Use case insensitive dictionary
+            env_vars = CaseInsensitiveDict(env_vars)
+
+            # HKCU path must be appended to HKLM path
+            path = os.getenv("path", "").split(";")  # HKLM Path
+            path.extend(env_vars.get("path", "").split(";"))  # HKCU Path
+            path = ";".join([p for p in path if p])  # Stringify
+            env_vars["PATH"] = path
+
+            # Use short path name for temporary directories in case path has
+            # spaces. See spyder-ide/spyder#25403
+            if GetShortPathName is not None:
+                if "tmp" in env_vars:
+                    env_vars["tmp"] = GetShortPathName(env_vars["tmp"])
+                if "temp" in env_vars:
+                    env_vars["temp"] = GetShortPathName(env_vars["temp"])
+
+        # User variables supersede system variables
+        for k, v in os.environ.items():
+            env_vars.setdefault(k, v)
+
         default_interpreter = self.get_conf(
-            'default', section='main_interpreter')
-
-        # Ensure that user environment variables are included, but don't
-        # override existing environ values
-        env_vars = self._env_vars.copy()
-        env_vars.update(os.environ)
-
-        # Avoid IPython adding the virtualenv on which Spyder is running
-        # to the kernel sys.path
-        env_vars.pop('VIRTUAL_ENV', None)
-
-        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
-        env_vars.pop('PYTHONPATH', None)
+            'default', section='main_interpreter'
+        )
 
         # List of modules to exclude from our UMR
         umr_namelist = self.get_conf(
@@ -253,6 +290,8 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Get TMPDIR value, if available
         tmpdir_var = env_vars.get("TMPDIR", "")
+
+        # --- Adding to environment variables
 
         # Environment variables that we need to pass to the kernel
         env_vars.update({
@@ -276,6 +315,12 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             "SPY_TMPDIR": tmpdir_var,
         })
 
+        # This is necessary so that the kernel checks the Spyder pid for
+        # crashes and gets killed automatically when that happens.
+        # Fixes spyder-ide/spyder#22414
+        if not (running_in_ci() and os.name == "nt"):
+            env_vars["SPY_PARENT_PID"] = str(os.getpid())
+
         # App considerations
         # ??? Do we need this?
         if is_conda_based_app() and default_interpreter:
@@ -284,17 +329,21 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             # See spyder-ide/spyder#17552
             env_vars['PYDEVD_DISABLE_FILE_VALIDATION'] = 1
 
+        # --- Removing from envrionment variables
+
+        env_vars.pop('PYTEST_CURRENT_TEST', None)
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
+
+        # Do not pass PYTHONPATH to kernels directly, spyder-ide/spyder#13519
+        env_vars.pop('PYTHONPATH', None)
+
         # Remove this variable because it prevents starting kernels for
         # external interpreters when present.
         # Fixes spyder-ide/spyder#13252
         env_vars.pop('PYTHONEXECUTABLE', None)
 
-        # Making all env_vars strings
-        clean_env_vars = clean_env(env_vars)
-
-        return clean_env_vars
-
-    @env.setter
-    def env(self, env_vars):
-        self._env_vars = dict(env_vars)
-        self._env_vars.pop('PYTEST_CURRENT_TEST', None)
+        # Making all env_vars strings, ensure cast as dict
+        self._env_vars = clean_env(dict(env_vars))

@@ -14,8 +14,10 @@ from qtpy.QtCore import Signal
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.translations import _
 from spyder.config.base import get_conf_path
+from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
@@ -27,12 +29,14 @@ class OnlineHelp(SpyderDockablePlugin):
     """
 
     NAME = 'onlinehelp'
+    REQUIRES = [Plugins.Application]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     CONF_SECTION = NAME
     CONF_FILE = False
     WIDGET_CLASS = PydocBrowser
     LOG_PATH = get_conf_path(NAME)
     REQUIRE_WEB_WIDGETS = True
+    CAN_HANDLE_SEARCH_ACTIONS = True
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -69,8 +73,26 @@ class OnlineHelp(SpyderDockablePlugin):
         widget.load_history(self.load_history())
         widget.sig_load_finished.connect(self.sig_load_finished)
 
+    @on_plugin_available(plugin=Plugins.Application)
+    def on_application_available(self):
+        # Setup Search actions
+        self._enable_search_action(ApplicationActions.FindText, True)
+        self._enable_search_action(ApplicationActions.FindNext, True)
+        self._enable_search_action(ApplicationActions.FindPrevious, True)
+        # Replace action is set disabled since the `FindReplace` widget created
+        # by the main widget has `enable_replace=False`
+        self._enable_search_action(ApplicationActions.ReplaceText, False)
+
     def update_font(self):
         self.get_widget().reload()
+
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _enable_search_action(self, action_name: str, enabled: bool) -> None:
+        """Enable or disable search action for this plugin."""
+        application = self.get_plugin(Plugins.Application, error=False)
+        if application:
+            application.enable_search_action(action_name, enabled, self.NAME)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -95,3 +117,14 @@ class OnlineHelp(SpyderDockablePlugin):
         data = "\n".join(self.get_widget().get_history())
         with open(self.LOG_PATH, 'w') as fh:
             fh.write(data)
+
+    def find(self) -> None:
+        find_widget = self.get_widget().find_widget
+        find_widget.show()
+        find_widget.search_text.setFocus()
+
+    def find_next(self) -> None:
+        self.get_widget().find_widget.find_next()
+
+    def find_previous(self) -> None:
+        self.get_widget().find_widget.find_previous()

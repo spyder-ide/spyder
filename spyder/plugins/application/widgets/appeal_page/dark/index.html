@@ -3,50 +3,137 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Support Spyder! Donate today to keep this independent open source Python IDE thriving. Your contribution directly helps fund further development through NumFOCUS."
+    />
+    <meta
+      name="keywords"
+      content="Spyder, Python IDE, open source, donate, NumFOCUS, programming, development"
+    />
     <title>Donate today!</title>
     <link rel="icon" href="favicon.svg" />
-    <link rel="stylesheet" crossorigin href="./assets/appeal.css">
+    <link rel="stylesheet" crossorigin href="./appeal.css">
   </head>
-  <body class="grid items-center justify-center overflow-hidden">
+  <body
+    class="grid items-center justify-center overflow-hidden hide-until-ready"
+  >
     <div
       class="info p-10 grid items-center justify-center max-w-screen-sm overflow-hidden"
+      id="info"
     >
-      <a
-        href="https://www.spyder-ide.org/"
-        class="flex justify-center"
-      >
-        <img src="spyder-logo.svg" class="logo" alt="Spyder IDE" />
-      </a>
-
       <div class="grid-center -mx-5">
         <img
-          src="header_donations.svg"
+          src="./header_donations.svg"
           class="w-full"
+          width="100%"
+          height="100%"
           alt="Help Keep Spyder Strong!"
         />
         <div class="heart-container">
           <span class="heart heart-beat"></span>
         </div>
       </div>
-
-      <a
-        href="https://www.spyder-ide.org/donate"
-        class="button"
-        id="donate"
-      >
-        <img src="icon_donations.svg" alt="Donate!">
+      <a href="https://www.spyder-ide.org/donate/" class="button" id="donate">
+        <img
+          src="./icon_donations.svg"
+          alt="Donate!"
+          width="100%"
+          height="100%"
+        />
+        <span class="sr-only">Click here to donate</span>
       </a>
-
       <!-- content -->
       <div class="content">
-        <p>Spyder is a fully independent project, unaffiliated with Anaconda or
-          other companies. As it’s developed by and for
-          <em><strong>you</strong></em>, our beloved community, we need
+        <p>
+          Spyder is a fully independent project, unaffiliated with Anaconda or
+          other companies. As it's developed by and for
+          <em><strong>you</strong></em
+          >, our beloved community, we need
           <em><strong>your</strong></em> support to help keep it moving forward!
-          Your donation goes directly to funding Spyder development through <a
-          href="https://numfocus.org/">NumFOCUS</a>, a recognized charitable
-          organization.</p>
+          Your donation goes directly to funding Spyder development through
+          <a href="https://numfocus.org/">NumFOCUS</a>, a recognized charitable
+          organization.
+        </p>
+      </div>
+      <a
+        href="#"
+        class="button small text-center text-white"
+        id="view-changelog"
+        >View Changelog</a
+      >
+    </div>
+    <div class="changelog-wrapper" id="changelog">
+      <div
+        class="flex flex-col items-center justify-center overflow-hidden w-full h-full"
+      >
+        <div
+          class="changelog-content prose prose-invert flex-grow overflow-hidden overflow-y-auto p-20 pt-16"
+          id="changelog-content"
+        >
+          Loading changelog...
+        </div>
+        <a
+          href="#"
+          id="back-to-donate"
+          class="button small text-center text-white mt-10 mb-10"
+        >
+          <img
+            src="./icon_donations_sm.svg"
+            alt="Donate!"
+            width="100%"
+            height="100%"
+          />
+          <span class="sr-only">Back to Donate</span>
+        </a>
       </div>
     </div>
+    <script>
+      const info = document.getElementById("info");
+      const changelog = document.getElementById("changelog");
+      const content = document.getElementById("changelog-content");
+      let changelogLoaded = false;
+      let showChangelog = ${show_changelog};
+
+      // Set initial view before first paint to avoid appeal→changelog flicker
+      if (showChangelog) {
+        info.classList.add("invisible");
+        content.innerHTML = "${changelog_html}";
+        changelog.classList.add("visible");
+        changelogLoaded = true;
+      }
+      document.body.classList.remove("hide-until-ready");
+
+      // load the changelog and animate the panel if desired
+      async function loadChangelog(animate = true) {
+        if (changelogLoaded) return;
+        content.innerHTML = "${changelog_html}";
+        changelog.classList.add("visible");
+
+        if (animate) {
+          changelog.classList.remove("animateDown");
+          changelog.classList.add("animateUp");
+        }
+        changelogLoaded = true;
+      }
+
+      // close the changelog and show the in-app-appeal behind it
+      function closeChangelog(animate = true) {
+        if (animate) {
+          changelog.classList.remove("animateUp");
+          changelog.classList.add("animateDown");
+        }
+        changelog.classList.remove("visible");
+        info.classList.remove("invisible");
+        changelogLoaded = false;
+      }
+
+      document
+        .getElementById("view-changelog")
+        .addEventListener("click", loadChangelog);
+      document
+        .getElementById("back-to-donate")
+        .addEventListener("click", closeChangelog);
+    </script>
   </body>
 </html>

@@ -545,7 +545,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.kernel_manager:
             self.kernel_manager.reset_autorestart_count()
 
-        self.reset()
+        self.reset(clear=not died)
 
     def _handle_inspect_reply(self, rep):
         """Handle replies for call tips."""
@@ -615,6 +615,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # kernel started while we were running
             if self._executing:
                 self._handle_kernel_restarted(died=True)
+        elif state == 'restarting':
+            # handle kernel unexpected restarts
+            self._handle_kernel_restarted(died=True)
         elif state == 'idle':
             pass
         elif state == 'busy':

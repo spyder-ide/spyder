@@ -143,3 +143,17 @@ foo"""
     contents = pylsp_hover(doc._config, doc, cursor_pos)["contents"]
 
     assert "A docstring for foo." in contents["value"]
+
+
+def test_hover_without_docstring(workspace_with_signature_docstring_disabled) -> None:
+    # Over 'main' in def main():
+    hov_position = {"line": 2, "character": 6}
+
+    doc = Document(DOC_URI, workspace_with_signature_docstring_disabled, DOC)
+
+    contents = {
+        "kind": "markdown",
+        "value": "```python\nmain(a: float, b: float)\n```\n",
+    }
+
+    assert {"contents": contents} == pylsp_hover(doc._config, doc, hov_position)

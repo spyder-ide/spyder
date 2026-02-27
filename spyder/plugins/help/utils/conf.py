@@ -59,7 +59,7 @@ mathjax_path = 'MathJax/MathJax.js'
 jsmath_path = 'easy/load.js'
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {".rst": "restructuredtext"}
 
 # The master toctree document.
 master_doc = 'docstring'

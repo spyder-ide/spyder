@@ -87,7 +87,7 @@ class DebuggerPanel(Panel):
 
         Paint breakpoints icons.
         """
-        super(DebuggerPanel, self).paintEvent(event)
+        super().paintEvent(event)
         painter = QPainter(self)
         if self.editor.sideareas_color:
             painter.fillRect(event.rect(), self.editor.sideareas_color)

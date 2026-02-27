@@ -24,7 +24,6 @@ import logging
 # Local imports
 from spyder.plugins.editor.api.manager import Manager
 from spyder.plugins.editor.api.panel import Panel
-from spyder.py3compat import is_text_string
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class PanelsManager(Manager):
     CodeEditor widgets.
     """
     def __init__(self, editor):
-        super(PanelsManager, self).__init__(editor)
+        super().__init__(editor)
         self._cached_cursor_pos = (-1, -1)
         self._margin_sizes = (0, 0, 0, 0)
         self._top = self._left = self._right = self._bottom = -1
@@ -109,7 +108,7 @@ class PanelsManager(Manager):
         :param name_or_klass: Name or class of the panel to retrieve.
         :return: The specified panel instance.
         """
-        if not is_text_string(name_or_class):
+        if not isinstance(name_or_class, str):
             name_or_class = name_or_class.__name__
         for zone in range(5):
             try:
@@ -181,9 +180,9 @@ class PanelsManager(Manager):
             size_hint = panel.sizeHint()
             panel.setGeometry(
                 crect.right() - right - size_hint.width() - w_offset,
-                crect.top() + s_top,
+                crect.top(),
                 size_hint.width(),
-                crect.height() - s_bottom - s_top - h_offset)
+                crect.height() - h_offset)
             right += size_hint.width()
         top = 0
         panels = self.panels_for_zone(Panel.Position.TOP)
@@ -194,7 +193,7 @@ class PanelsManager(Manager):
             size_hint = panel.sizeHint()
             panel.setGeometry(crect.left(),
                               crect.top() + top,
-                              crect.width() - w_offset,
+                              crect.width() - s_right - w_offset,
                               size_hint.height())
             top += size_hint.height()
         bottom = 0
@@ -207,7 +206,7 @@ class PanelsManager(Manager):
             panel.setGeometry(
                 crect.left(),
                 crect.bottom() - bottom - size_hint.height() - h_offset,
-                crect.width() - w_offset,
+                crect.width() - s_right - w_offset,
                 size_hint.height())
             bottom += size_hint.height()
 

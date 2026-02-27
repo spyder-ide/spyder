@@ -30,8 +30,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication, QMessageBox
 
 
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.config.manager import CONF
-from spyder.config.base import _, running_under_pytest
 from spyder.widgets.github.gh_login import DlgGitHubLogin
 
 
@@ -109,7 +110,7 @@ class GithubBackend(BaseBackend):
         :param gh_owner: Name of the owner of the github repository.
         :param gh_repo: Name of the repository on github.
         """
-        super(GithubBackend, self).__init__(
+        super().__init__(
             formatter, "Submit on github",
             "Submit the issue on our issue tracker on github", None,
             parent_widget=parent_widget)

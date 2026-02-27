@@ -8,14 +8,16 @@
 Pythonpath manager utils.
 """
 
+# Standard library imports
 import os
 import os.path as osp
 import re
 
-from spyder.utils.environ import get_user_env
+# Local imports
+from spyder.utils.environ import envdict2listdict
 
 
-def check_path(path):
+def check_path(path: str) -> bool:
     """
     Check that `path` is not a [site|dist]-packages folder or a Conda
     distribution `pkgs` directory.
@@ -41,9 +43,9 @@ def check_path(path):
     return pattern.match(path_norm) is None
 
 
-def get_system_pythonpath():
+def get_system_pythonpath(env: dict) -> tuple:
     """Get paths from PYTHONPATH environment variable."""
-    env = get_user_env()
+    env = envdict2listdict(env)
     pythonpath = env.get('PYTHONPATH', [])
 
     if not isinstance(pythonpath, list):

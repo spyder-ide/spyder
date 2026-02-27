@@ -14,8 +14,8 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QLabel,
                             QVBoxLayout)
 
 # Local imports
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 
 
 logger = logging.getLogger(__name__)

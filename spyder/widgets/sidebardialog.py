@@ -339,7 +339,7 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
 
         # Add plugin entry item to contents widget
         item = QListWidgetItem(self.contents_widget)
-        item.setText(page.get_name())
+        item.setText(str(page.get_name()))
         item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
         # In case the page doesn't have an icon

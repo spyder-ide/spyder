@@ -45,6 +45,7 @@ class SpyderPaletteDark(DarkPalette):
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B30
+    ICON_7 = GroupDark.B90
 
     # Colors for icons and variable explorer in dark mode
     GROUP_1 = GroupDark.B10
@@ -78,7 +79,7 @@ class SpyderPaletteDark(DarkPalette):
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30
     SPYDER_LOGO_WEB = Logos.B40
-    SPYDER_LOGO_SNAKE = Logos.B50
+    SPYDER_LOGO_SNAKE = Logos.B40
 
     # For special tabs
     SPECIAL_TABS_SEPARATOR = Gray.B70
@@ -116,6 +117,7 @@ class SpyderPaletteLight(LightPalette):
     ICON_4 = Red.B70
     ICON_5 = Orange.B70
     ICON_6 = Gray.B140
+    ICON_7 = GroupLight.B90
 
     # Colors for icons and variable explorer in light mode
     GROUP_1 = GroupLight.B10
@@ -148,8 +150,8 @@ class SpyderPaletteLight(LightPalette):
     PYTHON_LOGO_UP = Logos.B10
     PYTHON_LOGO_DOWN = Logos.B20
     SPYDER_LOGO_BACKGROUND = Logos.B30
-    SPYDER_LOGO_WEB = Logos.B40
-    SPYDER_LOGO_SNAKE = Logos.B50
+    SPYDER_LOGO_WEB = Logos.B50
+    SPYDER_LOGO_SNAKE = Logos.B30
 
     # For special tabs
     SPECIAL_TABS_SEPARATOR = Gray.B70

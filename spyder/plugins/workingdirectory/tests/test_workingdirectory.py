@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 # Third-party imports
 import pytest
-from qtpy.QtWidgets import QMainWindow
+from qtpy.QtWidgets import QApplication, QMainWindow
 from qtpy.QtCore import Qt
 
 # Local imports
@@ -142,6 +142,60 @@ def test_file_goto(qtbot, setup_workingdirectory):
     assert signal_res["line"] == 1
     
     os.remove(filename)
+
+
+def test_invalid_path_fallback(qtbot, setup_workingdirectory):
+    """
+    Test that an invalid directory input fallbacks to the last valid directory.
+    """
+    # Get container and set it as active window so focus based logic works
+    container = setup_workingdirectory.get_container()
+    QApplication.setActiveWindow(container)
+
+    # Get initial cwd and check is valid
+    valid_cwd = container.get_workdir()
+    assert osp.isdir(valid_cwd)
+
+    # Get cwd combobox widget, set focus and input invalid path
+    pathedit = container.pathedit
+    pathedit.setFocus()
+    assert pathedit.hasFocus()
+    pathedit.lineEdit().selectAll()
+    qtbot.keyClicks(pathedit, "invalid_path")
+
+    # Clear focus and check that the combobox widget has again the initial
+    # valid cwd value
+    pathedit.clearFocus()
+    assert not pathedit.hasFocus()
+    qtbot.waitUntil(lambda: container.get_workdir() == valid_cwd)
+    assert container.get_workdir() == os.getcwd()
+
+
+def test_partially_invalid_path_fallback(qtbot, setup_workingdirectory):
+    """
+    Test that a partially invalid directory input fallbacks to a valid
+    parent directory.
+    """
+    # Get container and set it as active window so focus based logic works
+    container = setup_workingdirectory.get_container()
+    QApplication.setActiveWindow(container)
+
+    # Get initial cwd and check is valid
+    valid_cwd = container.get_workdir()
+    assert osp.isdir(valid_cwd)
+
+    # Get cwd combobox widget, set focus and input invalid path
+    pathedit = container.pathedit
+    pathedit.setFocus()
+    assert pathedit.hasFocus()
+    qtbot.keyClicks(pathedit, "invalid_path")
+
+    # Clear focus and check that the combobox widget is set to the parent
+    # directory of the initial valid cwd value
+    pathedit.clearFocus()
+    assert not pathedit.hasFocus()
+    qtbot.waitUntil(lambda: container.get_workdir() == osp.dirname(valid_cwd))
+    assert container.get_workdir() == os.getcwd()
 
 
 if __name__ == "__main__":

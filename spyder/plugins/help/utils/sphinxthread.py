@@ -10,8 +10,7 @@
 from qtpy.QtCore import QThread, Signal
 
 # Local Imports
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.api.translations import _
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  sphinxify)
 
@@ -38,7 +37,7 @@ class SphinxThread(QThread):
     html_ready = Signal(str)
 
     def __init__(self, parent, html_text_no_doc='', css_path=CSS_PATH):
-        super(SphinxThread, self).__init__(parent)
+        super().__init__(parent)
         self.doc = None
         self.context = None
         self.html_text_no_doc = html_text_no_doc
@@ -80,12 +79,12 @@ class SphinxThread(QThread):
                             msg = _("No documentation available")
                         html_text += '<div id="doc-warning">%s</div>' % msg
                 except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
+                    self.error_msg.emit(str(error))
                     return
             elif self.context is not None:
                 try:
                     html_text = sphinxify(doc, self.context)
                 except Exception as error:
-                    self.error_msg.emit(to_text_string(error))
+                    self.error_msg.emit(str(error))
                     return
         self.html_ready.emit(html_text)

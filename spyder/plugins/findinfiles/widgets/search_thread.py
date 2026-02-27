@@ -64,7 +64,6 @@ class SearchThread(QThread):
         self.mutex = QMutex()
         self.stopped = None
         self.pathlist = None
-        self.total_matches = None
         self.error_flag = None
         self.rootpath = None
         self.exclude = None
@@ -112,6 +111,8 @@ class SearchThread(QThread):
     def stop(self):
         with QMutexLocker(self.mutex):
             self.stopped = True
+            if not self.total_matches:
+                self.report_no_result()
 
     def find_files_in_path(self, path):
         if self.pathlist is None:
@@ -130,9 +131,15 @@ class SearchThread(QThread):
 
                     dirname = os.path.join(path, d)
 
-                    # Only search in regular directories
-                    st_dir_mode = os.stat(dirname).st_mode
-                    if not stat.S_ISDIR(st_dir_mode):
+                    # Only search in regular directories.
+                    # The try/except is necessary to catch an error when Python
+                    # can't access a directory with junctions on Windows.
+                    # Fixes spyder-ide/spyder#24898
+                    try:
+                        st_dir_mode = os.stat(dirname).st_mode
+                        if not stat.S_ISDIR(st_dir_mode):
+                            dirs.remove(d)
+                    except OSError:
                         dirs.remove(d)
 
                     if (self.exclude and
@@ -188,9 +195,11 @@ class SearchThread(QThread):
             except FileNotFoundError:
                 return False
 
-        # Process any pending results
+        # Process pending results or report that no results were found
         if self.partial_results:
             self.process_results()
+        elif not self.total_matches:
+            self.report_no_result()
 
         return True
 
@@ -278,9 +287,12 @@ class SearchThread(QThread):
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
 
-        # Process any pending results
-        if self.is_file and self.partial_results:
-            self.process_results()
+        # Process pending results or report that no results were found
+        if self.is_file:
+            if self.partial_results:
+                self.process_results()
+            elif not self.total_matches:
+                self.report_no_result()
 
         self.completed = True
 
@@ -315,15 +327,15 @@ class SearchThread(QThread):
         # Process title
         title = "'%s' - " % self.search_text
         nb_files = self.num_files
-        if nb_files == 0:
-            text = _('String not found')
-        else:
-            text_matches = _('matches in')
-            text_files = _('file')
-            if nb_files > 1:
-                text_files += 's'
-            text = "%d %s %d %s" % (num_matches, text_matches,
-                                    nb_files, text_files)
+
+        text_matches = _('matches in')
+        text_files = _('files') if nb_files > 1 else _("file")
+        text = "%d %s %d %s" % (
+            num_matches,
+            text_matches,
+            nb_files,
+            text_files,
+        )
         title = title + text
 
         self.partial_results = []
@@ -405,3 +417,7 @@ class SearchThread(QThread):
 
     def get_results(self):
         return self.results, self.pathlist, self.total_matches, self.error_flag
+
+    def report_no_result(self):
+        title = f"'{self.search_text}' - " + _("String not found")
+        self.sig_line_match.emit([], title)

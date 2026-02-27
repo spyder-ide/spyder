@@ -34,6 +34,13 @@ ERROR_CODES = (
     | {"E999"}
 )
 
+if sys.platform == "win32":
+    from subprocess import CREATE_NO_WINDOW
+else:
+    # CREATE_NO_WINDOW flag only available on Windows.
+    # Set constant as default `Popen` `creationflag` kwarg value (`0`)
+    CREATE_NO_WINDOW = 0
+
 
 @hookimpl
 def pylsp_settings():
@@ -128,7 +135,7 @@ def run_flake8(flake8_executable, args, document, source):
         )
 
     log.debug("Calling %s with args: '%s'", flake8_executable, args)
-    popen_kwargs = {}
+    popen_kwargs = {"creationflags": CREATE_NO_WINDOW}
     if cwd := document._workspace.root_path:
         popen_kwargs["cwd"] = cwd
     try:

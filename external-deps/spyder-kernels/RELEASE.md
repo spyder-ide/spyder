@@ -20,9 +20,11 @@
 
 * git add . && git commit -m 'Release X.X.X'
 
-* python setup.py sdist
+* python -m pip install --upgrade pip
 
-* python setup.py bdist_wheel
+* pip install --upgrade --upgrade-strategy eager build setuptools twine wheel
+
+* python -bb -X dev -W error -m build
 
 * twine check --strict dist/*
 

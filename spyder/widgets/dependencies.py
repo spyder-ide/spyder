@@ -17,8 +17,8 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 
 # Local imports
 from spyder import __version__
+from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.base import _
 from spyder.config.gui import is_dark_interface
 from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima

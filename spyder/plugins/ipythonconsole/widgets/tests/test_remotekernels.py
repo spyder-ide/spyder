@@ -53,13 +53,11 @@ class TestIpythonConsole:
         with qtbot.waitSignal(remote_shell.executed):
             remote_shell.execute("a = 10")
 
-        remote_shell._prompt_html = None
-        ipyconsole.get_widget().restart_action.trigger()
-        qtbot.waitUntil(
-            lambda: remote_shell.spyder_kernel_ready
-            and remote_shell._prompt_html is not None,
-            timeout=4000,
-        )
+        with qtbot.waitSignal(
+            remote_shell.sig_kernel_is_ready,
+            timeout=4000
+        ):
+            ipyconsole.get_widget().restart_action.trigger()
 
         assert not remote_shell.is_defined("a")
 

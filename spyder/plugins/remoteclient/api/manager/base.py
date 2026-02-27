@@ -83,7 +83,7 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
 
         self.__installing_server = False
         self.__starting_server = False
-        self.__creating_connection = False
+        self.__connection_task: asyncio.Task | None = None
 
         # For logging
         self.logger = logging.getLogger(
@@ -93,16 +93,17 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         if not get_debug_level():
             self.logger.setLevel(logging.DEBUG)
 
-        if self._plugin is not None:
+        if self._plugin is not None and not self.logger.hasHandlers():
             self.logger.addHandler(SpyderRemoteAPILoggerHandler(self))
 
     @AsyncDispatcher(loop="asyncssh", early_return=False)
     async def __create_events(self):
         self.__server_installed = asyncio.Event()
         self.__starting_event = asyncio.Event()
-        self.__connection_established = asyncio.Event()
+        self.__abort_requested = asyncio.Event()
+        self.__lock = asyncio.Lock()
 
-    def _emit_connection_status(self, status, message):
+    def _emit_connection_status(self, status: str, message: str):
         if self._plugin is not None:
             self._plugin.sig_connection_status_changed.emit(
                 ConnectionInfo(
@@ -119,11 +120,22 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         return self.__starting_event.is_set() and not self.__starting_server
 
     @property
-    def connected(self):
-        """Check if SSH connection is open."""
+    def connected(self) -> bool:
+        """Check if a connection is currently established."""
         return (
-            self.__connection_established.is_set()
-            and not self.__creating_connection
+            self.__connection_task is not None
+            and self.__connection_task.done()
+            and not self.__connection_task.cancelled()
+            and not self.__connection_task.exception()
+            and self.__connection_task.result() is True
+        )
+
+    @property
+    def is_connecting(self) -> bool:
+        """Check if a connection attempt is ongoing."""
+        return (
+            self.__connection_task is not None
+            and not self.__connection_task.done()
         )
 
     @property
@@ -162,19 +174,19 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         await self.close_connection()
 
     def _handle_connection_lost(self, exc: Exception | None = None):
-        self.__connection_established.clear()
+        self._reset_connection_established()
         self.__starting_event.clear()
-        self._port_forwarder = None
-        if exc:
-            self.logger.error(
-                "Connection to %s was lost",
-                self.server_name,
-                exc_info=exc,
-            )
-            self._emit_connection_status(
-                status=ConnectionStatus.Error,
-                message=_("The connection was lost"),
-            )
+        self.logger.error(
+            "Connection to %s was lost",
+            self.server_name,
+            exc_info=exc,
+        )
+        self._emit_connection_status(
+            status=ConnectionStatus.Error,
+            message=_("The connection was lost"),
+        )
+        if self._plugin:
+            self._plugin.sig_connection_lost.emit(self.config_id)
 
     # ---- Connection and server management
     async def connect_and_install_remote_server(self) -> bool:
@@ -232,9 +244,17 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             return self.server_started
 
         self.__starting_server = True
+        self._emit_connection_status(
+            ConnectionStatus.Starting, _("Starting Spyder remote services")
+        )
         try:
             if await self._start_remote_server():
                 self.__starting_event.set()
+                # emit signal that connection and server are established
+                if self._plugin:
+                    self._plugin.sig_connection_established.emit(
+                        self.config_id
+                    )
                 return True
         finally:
             self.__starting_server = False
@@ -278,20 +298,80 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         raise NotImplementedError(msg)
 
     async def create_new_connection(self) -> bool:
-        if self.__creating_connection:
-            await self.__connection_established.wait()
-            return self.connected
+        """Create a new connection, supporting user abort."""
+        if self.connected:
+            self.logger.debug(
+                "Atempting to create a new connection with an existing for %s",
+                self.server_name,
+            )
+            await self.close_connection()
 
-        self.__creating_connection = True
-        try:
-            if await self._create_new_connection():
-                self.__connection_established.set()
-                return True
-        finally:
-            self.__creating_connection = False
+        async with self.__lock:
+            if self.__connection_task is not None:
+                return self.connected
 
-        self.__connection_established.clear()
-        return False
+            self._emit_connection_status(
+                ConnectionStatus.Connecting,
+                _("We're establishing the connection. Please be patient"),
+            )
+
+            self.__abort_requested.clear()
+            self.__connection_task = asyncio.create_task(
+                self._create_new_connection()
+            )
+            abort_task = asyncio.create_task(self.__abort_requested.wait())
+
+            await asyncio.wait(
+                [self.__connection_task, abort_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            # User aborted
+            if self.__abort_requested.is_set():
+                self.__connection_task.cancel()
+                abort_task.cancel()
+                self.__connection_task = None
+
+                self.logger.debug("Connection attempt aborted by user")
+                self._emit_connection_status(
+                    ConnectionStatus.Inactive,
+                    _("The connection attempt was cancelled"),
+                )
+
+                return False
+
+            try:
+                # Connection completed
+                if await self.__connection_task:
+                    self._emit_connection_status(
+                        ConnectionStatus.Connected,
+                        _("The connection was successfully established"),
+                    )
+                    return True
+            except BaseException as error:
+                # Log any error
+                self.logger.error(
+                    "Error creating a new connection for {}. The error was:"
+                    "<br>{}".format(self.server_name, str(error))
+                )
+
+            # Cancel and reset connection tasks to allow retries after errors
+            self.__connection_task.cancel()
+            self.__connection_task = None
+            abort_task.cancel()
+
+            # Report that the connection failed
+            self._emit_connection_status(
+                ConnectionStatus.Error,
+                _("There was an error establishing the connection"),
+            )
+
+            return False
+
+    async def abort_connection(self):
+        """Abort an ongoing connection attempt."""
+        if self.is_connecting:
+            self.__abort_requested.set()
 
     @abstractmethod
     async def _create_new_connection(self) -> bool:
@@ -321,7 +401,11 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
             async with self.get_jupyter_api() as jupyter:
                 await jupyter.shutdown_server()
         except Exception as err:
-            self.logger.exception("Error stopping remote server", exc_info=err)
+            self.logger.error(
+                "Error stopping remote server. The error was:<br>{}".format(
+                    str(err)
+                )
+            )
 
         self.__starting_event.clear()
         self.logger.info(
@@ -335,9 +419,9 @@ class SpyderRemoteAPIManagerBase(metaclass=ABCMeta):
         msg = "This method should be implemented in the derived class"
         raise NotImplementedError(msg)
 
-    def _reset_connection_stablished(self):
+    def _reset_connection_established(self):
         """Reset the connection status."""
-        self.__connection_established.clear()
+        self.__connection_task = None
 
     @staticmethod
     def get_free_port():

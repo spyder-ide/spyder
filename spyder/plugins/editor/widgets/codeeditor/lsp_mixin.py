@@ -203,6 +203,7 @@ class LSPMixin:
         self.formatting_in_progress = False
         self.symbols_in_sync = False
         self.folding_in_sync = False
+        self.pyflakes_linting_enabled = True
 
     # ---- Helper private methods
     # -------------------------------------------------------------------------
@@ -277,18 +278,20 @@ class LSPMixin:
             Capabilities supported by a language server.
         """
         sync_options = capabilities["textDocumentSync"]
+        save_options = sync_options.get("save", {})
         completion_options = capabilities["completionProvider"]
         signature_options = capabilities["signatureHelpProvider"]
         range_formatting_options = capabilities[
             "documentOnTypeFormattingProvider"
         ]
+
         self.open_close_notifications = sync_options.get("openClose", False)
         self.sync_mode = sync_options.get("change", TextDocumentSyncKind.NONE)
         self.will_save_notify = sync_options.get("willSave", False)
         self.will_save_until_notify = sync_options.get(
             "willSaveWaitUntil", False
         )
-        self.save_include_text = sync_options["save"]["includeText"]
+        self.save_include_text = save_options.get("includeText", False)
         self.enable_hover = capabilities["hoverProvider"]
         self.folding_supported = capabilities.get(
             "foldingRangeProvider", False
@@ -611,11 +614,8 @@ class LSPMixin:
             if "analysis:ignore" in text:
                 continue
 
-            # This only works for Python.
-            pyflakes = ("provider_configuration", "lsp", "values", "pyflakes")
-            if self.language == "Python" and self.get_conf(
-                pyflakes, section="completions"
-            ):
+            # This only works for Python and it's only needed with pyflakes.
+            if self.language == "Python" and self.pyflakes_linting_enabled:
                 if NOQA_INLINE_REGEXP.search(text) is not None:
                     continue
 

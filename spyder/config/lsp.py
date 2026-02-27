@@ -34,11 +34,6 @@ PYTHON_CONFIG = {
             'plugins': {
                 'pycodestyle': {
                     'enabled': False,
-                    'exclude': [],
-                    'filename': [],
-                    'select': [],
-                    'ignore': [],
-                    'hangClosing': False,
                     'maxLineLength': 79
                 },
                 'pyflakes': {
@@ -143,9 +138,12 @@ PYTHON_CONFIG = {
                     'enabled': False,
                 },
                 'ruff': {
-                    # Disable it until we have a graphical option for users to
-                    # enable it.
                     'enabled': False,
+                    'formatedEnabled': False,
+                    'exclude': [],
+                    'extendSelect': [],
+                    'extendIgnore': [],
+                    'lineLength': 79,
                 },
                 'no_linting': {
                     'enabled' : False

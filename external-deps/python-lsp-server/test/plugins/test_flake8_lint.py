@@ -126,7 +126,7 @@ def test_flake8_config_param(workspace) -> None:
     with patch("pylsp.plugins.flake8_lint.Popen") as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [b"", b""]
-        flake8_conf = "/tmp/some.cfg"
+        flake8_conf = "C:\\some.cfg" if os.name == "nt" else "/tmp/some.cfg"
         workspace._config.update({"plugins": {"flake8": {"config": flake8_conf}}})
         _name, doc = temp_document(DOC, workspace)
         flake8_lint.pylsp_lint(workspace, doc)

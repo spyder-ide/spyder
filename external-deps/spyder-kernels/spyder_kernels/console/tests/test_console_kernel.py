@@ -25,7 +25,6 @@ import time
 import uuid
 
 # Test imports
-from flaky import flaky
 from IPython.core import release as ipython_release
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
@@ -346,6 +345,22 @@ def test_get_value(kernel):
     assert kernel.get_value(name) == 124
 
 
+def test_get_value_with_polars(kernel):
+    """Test getting the value of a Polars DataFrame or Series."""
+    import pandas
+    from pandas.testing import assert_frame_equal, assert_series_equal
+
+    command = "import polars; polars_df = polars.DataFrame({'a': [10]})"
+    asyncio.run(kernel.do_execute(command, True))
+    pandas_df = pandas.DataFrame({'a': [10]})
+    assert_frame_equal(kernel.get_value('polars_df'), pandas_df)
+
+    command = "import polars; polars_s = polars.Series('a', [1, 2, 3])"
+    asyncio.run(kernel.do_execute(command, True))
+    pandas_s = pandas.Series([1, 2, 3], name="a")
+    assert_series_equal(kernel.get_value('polars_s'), pandas_s)
+
+
 def test_set_value(kernel):
     """Test setting the value of a variable."""
     name = 'a'
@@ -501,7 +516,7 @@ libc.printf(('Hello from C\\n').encode('utf8'))
     assert captured.out == "Hello from C\n"
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_cwd_in_sys_path():
     """
     Test that cwd stays as the first element in sys.path after the
@@ -539,7 +554,7 @@ def test_prioritize(kernel):
     assert new_syspath == prepend_path + syspath
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_multiprocessing(tmpdir):
     """
     Test that multiprocessing works.
@@ -578,7 +593,7 @@ if __name__ == '__main__':
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_multiprocessing_2(tmpdir):
     """
     Test that multiprocessing works.
@@ -623,10 +638,7 @@ if __name__ == '__main__':
         assert "[11, 12, 13]" in content['data']['text/plain']
 
 
-@flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
-    reason="Fails on Mac with Python 3.8")
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages")
@@ -670,7 +682,7 @@ if __name__=='__main__':
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_runfile(tmpdir):
     """
     Test that runfile uses the proper name space for execution.
@@ -745,10 +757,7 @@ def test_runfile(tmpdir):
         assert not content['found']
 
 
-@flaky(max_runs=3)
-@pytest.mark.skipif(
-    sys.platform == 'darwin' and sys.version_info[:2] == (3, 8),
-    reason="Fails on Mac with Python 3.8")
+@pytest.mark.flaky(max_runs=3)
 def test_np_threshold(kernel):
     """
     Test that setting Numpy threshold doesn't make the Variable Explorer slow.
@@ -816,7 +825,7 @@ f = np.get_printoptions()['formatter']
         )
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.skipif(
     not TURTLE_ACTIVE,
     reason="Doesn't work on non-interactive settings or Python without Tk")
@@ -881,7 +890,7 @@ turtle.bye()
         assert content['found']
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_matplotlib_inline(kernel):
     """Test that the default backend for our kernels is 'inline'."""
     # Command to start the kernel
@@ -1170,11 +1179,15 @@ def test_locals_globals_in_pdb(kernel):
     pdb_obj.curframe_locals = None
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 @pytest.mark.parametrize("backend", [None, 'inline', 'tk', 'qt'])
 @pytest.mark.skipif(
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages"
+)
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 9) and sys.platform.startswith("linux"),
+    reason="Fails with Python 3.9 on Linux"
 )
 def test_get_interactive_backend(backend):
     """
@@ -1260,7 +1273,7 @@ def test_global_message(tmpdir):
         assert found
 
 
-@flaky(max_runs=3)
+@pytest.mark.flaky(max_runs=3)
 def test_debug_namespace(tmpdir):
     """
     Test that the kernel uses the proper namespace while debugging.

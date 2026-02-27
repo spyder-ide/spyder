@@ -22,11 +22,16 @@ outlineexplorer.set_current_editor(oe_proxy, update=True, clear=False)
 
 outlineexplorer.edit_goto.connect(handle_go_to)
 """
+
+# Standard library imports
 import re
 
+# Third party imports
 from qtpy.QtCore import Signal, QObject
 from qtpy.QtGui import QTextBlock
-from spyder.config.base import _
+
+# Local imports
+from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 
 
@@ -129,7 +134,7 @@ class OutlineExplorerProxy(QObject):
     sig_start_outline_spinner = Signal()
 
     def __init__(self):
-        super(OutlineExplorerProxy, self).__init__()
+        super().__init__()
         self.fname = None
 
     def is_python(self):
@@ -189,7 +194,7 @@ class OutlineExplorerData(QObject):
             def_name (str)
             color (PyQt.QtGui.QTextCharFormat)
         """
-        super(OutlineExplorerData, self).__init__()
+        super().__init__()
         self.text = text
         self.fold_level = fold_level
         self.def_type = def_type

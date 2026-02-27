@@ -42,7 +42,7 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
     queue = None
 
     def __init__(self):
-        super(BaseThreadWrapper, self).__init__()
+        super().__init__()
         self._original_run = self.run
         self.run = self.run_wrapper
 

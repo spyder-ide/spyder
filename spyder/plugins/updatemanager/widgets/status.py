@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 class UpdateManagerStatus(StatusBarWidget):
     """Status bar widget for update manager."""
     ID = 'update_manager_status'
+    INTERACT_ON_CLICK = True
 
     sig_check_update = Signal()
     """Signal to request checking for updates."""
@@ -105,7 +106,7 @@ class UpdateManagerStatus(StatusBarWidget):
         return self.tooltip
 
     def get_icon(self):
-        return ima.icon('spyder_about')
+        return ima.icon('update')
 
     def set_download_progress(self, percent_progress):
         """Set download progress in status bar"""

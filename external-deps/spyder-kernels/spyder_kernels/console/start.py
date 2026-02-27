@@ -16,6 +16,11 @@ import os.path as osp
 import sys
 import site
 
+# Third-party imports
+from IPython.core import release as ipython_release
+from packaging.version import parse as parse_version
+
+
 # Remove current directory from sys.path to prevent kernel crashes when people
 # name Python files or modules with the same name as standard library modules.
 # See spyder-ide/spyder#8007
@@ -24,10 +29,8 @@ import site
 while '' in sys.path:
     sys.path.remove('')
 
-# Third-party imports
-from traitlets import DottedObjectName
-
 # Local imports
+from spyder_kernels.console.kernelapp import SpyderKernelApp
 from spyder_kernels.utils.misc import is_module_installed
 
 
@@ -103,6 +106,10 @@ def kernel_config():
     # To handle the banner by ourselves
     spy_cfg.ZMQInteractiveShell.banner1 = ''
 
+    # To disable tips (for the moment) that are only available in IPython 9.0+
+    if parse_version(ipython_release.version) >= parse_version("9.0"):
+        spy_cfg.ZMQInteractiveShell.enable_tip = False
+
     # Greedy completer
     greedy_o = os.environ.get('SPY_GREEDY_O') == 'True'
     spy_cfg.IPCompleter.greedy = greedy_o
@@ -152,37 +159,13 @@ def main():
     # Import our customizations into the kernel
     import_spydercustomize()
 
-    # Main imports
-    from ipykernel.kernelapp import IPKernelApp
-    from spyder_kernels.console.kernel import SpyderKernel
+    # Create a kernelapp instance
+    kernelapp = SpyderKernelApp.instance()
 
-    class SpyderKernelApp(IPKernelApp):
-
-        outstream_class = DottedObjectName(
-            'spyder_kernels.console.outstream.TTYOutStream')
-
-        def init_pdb(self):
-            """
-            This method was added in IPykernel 5.3.1 and it replaces
-            the debugger used by the kernel with a new class
-            introduced in IPython 7.15 during kernel's initialization.
-            Therefore, it doesn't allow us to use our debugger.
-            """
-            pass
-
-        def close(self):
-            """Close the loopback socket."""
-            socket = self.kernel.loopback_socket
-            if socket and not socket.closed:
-                socket.close()
-            return super().close()
-
-    # Fire up the kernel instance.
-    kernel = SpyderKernelApp.instance()
-    kernel.kernel_class = SpyderKernel
+    # Set config
     try:
-        kernel.config = kernel_config()
-    except:
+        kernelapp.config = kernel_config()
+    except Exception:
         pass
 
     # Re-add current working directory path into sys.path after all of the
@@ -190,19 +173,20 @@ def main():
     if '' not in sys.path:
         sys.path.insert(0, '')
 
-    kernel.initialize()
+    # Init app
+    kernelapp.initialize()
 
     # Set our own magics
-    kernel.shell.register_magic_function(varexp)
+    kernelapp.shell.register_magic_function(varexp)
 
     # Set Pdb class to be used by %debug and %pdb.
     # This makes IPython consoles to use the class defined in our
     # sitecustomize instead of their default one.
     import pdb
-    kernel.shell.InteractiveTB.debugger_cls = pdb.Pdb
+    kernelapp.shell.InteractiveTB.debugger_cls = pdb.Pdb
 
     # Start the (infinite) kernel event loop.
-    kernel.start()
+    kernelapp.start()
 
 
 if __name__ == '__main__':

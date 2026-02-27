@@ -451,6 +451,10 @@ def test_sort_float_collectionsmodel():
                                       '0.1', '1.0', '10.0', '1e+16']]
 
 
+@pytest.mark.skipif(
+    parse(pandas.__version__) < parse("3.0.0"),
+    reason="Fails with versions older than Pandas 3.0"
+)
 def test_sort_collectionsmodel():
     var_list1 = [0, 1, 2]
     var_list2 = [3, 4, 5, 6]
@@ -487,8 +491,8 @@ def test_sort_collectionsmodel():
         ['(3, 3)', '(2, 3)', '(3,)', '(4,)', 1, 3, 4],
         ['Column names: 0, 1, 2',
          'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         'Series object of pandas.core.series module',
+         'Series object of pandas module',
+         'Series object of pandas module',
          '1',
          '[0, 1, 2]',
          '[3, 4, 5, 6]']]
@@ -500,8 +504,8 @@ def test_sort_collectionsmodel():
         ['(2, 3)', '(3,)', '(3, 3)', '(4,)', 1, 3, 4],
         ['Column names: 0, 1, 2',
          'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
-         'Series object of pandas.core.series module',
+         'Series object of pandas module',
+         'Series object of pandas module',
          '1',
          '[0, 1, 2]',
          '[3, 4, 5, 6]']] or data_table(cm, 7, 4) == [
@@ -513,9 +517,9 @@ def test_sort_collectionsmodel():
          '[0, 1, 2]',
          '[3, 4, 5, 6]',
          'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
+         'Series object of pandas module',
          'Column names: 0, 1, 2',
-         'Series object of pandas.core.series module',
+         'Series object of pandas module',
          ]]
 
 

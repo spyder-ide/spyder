@@ -25,11 +25,11 @@ from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderPluginV2
-from spyder.api.plugins._old_api import SpyderPlugin
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.plugin_registration.registry import PreferencesAdapter
-from spyder.config.base import _, running_under_pytest
+from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.config.main import CONF_VERSION
 from spyder.config.user import NoDefault
 from spyder.plugins.mainmenu.api import ApplicationMenus, ToolsMenuSections
@@ -66,7 +66,6 @@ class Preferences(SpyderPluginV2):
     CAN_BE_DISABLED = False
 
     NEW_API = 'new'
-    OLD_API = 'old'
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
@@ -76,15 +75,8 @@ class Preferences(SpyderPluginV2):
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def register_plugin_preferences(
-        self,
-        plugin: Union[SpyderPluginV2, SpyderPlugin]
-    ) -> None:
-        if (
-            hasattr(plugin, 'CONF_WIDGET_CLASS')
-            and plugin.CONF_WIDGET_CLASS is not None
-        ):
-            # New API
+    def register_plugin_preferences(self, plugin: SpyderPluginV2) -> None:
+        if plugin.CONF_WIDGET_CLASS is not None:
             Widget = plugin.CONF_WIDGET_CLASS
 
             self.config_pages[plugin.NAME] = (self.NEW_API, Widget, plugin)
@@ -110,23 +102,12 @@ class Preferences(SpyderPluginV2):
                     plugin_tabs = self.config_tabs.get(plugin_name, [])
                     plugin_tabs += tabs_to_add
                     self.config_tabs[plugin_name] = plugin_tabs
-        elif (
-            hasattr(plugin, 'CONFIGWIDGET_CLASS')
-            and plugin.CONFIGWIDGET_CLASS is not None
-        ):
-            # Old API
-            Widget = plugin.CONFIGWIDGET_CLASS
 
-            self.config_pages[plugin.CONF_SECTION] = (
-                self.OLD_API, Widget, plugin)
-
-    def deregister_plugin_preferences(
-        self,
-        plugin: Union[SpyderPluginV2, SpyderPlugin]
-    ) -> None:
+    def deregister_plugin_preferences(self, plugin: SpyderPluginV2) -> None:
         """Remove a plugin preference page and additional configuration tabs."""
-        name = (getattr(plugin, 'NAME', None) or
-                    getattr(plugin, 'CONF_SECTION', None))
+        name = getattr(plugin, "NAME", None) or getattr(
+            plugin, "CONF_SECTION", None
+        )
 
         # Remove configuration page for the plugin
         self.config_pages.pop(name)

@@ -1,0 +1,116 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.RUNNER_OS }} Py${{ matrix.PYTHON_VERSION }} - ${{ matrix.INSTALL_TYPE }} - ${{ matrix.QT_LIB }}
+    runs-on: ${{ matrix.RUNNER_OS }}-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CI: 'True'
+      QTCONSOLE_TESTING: 'True'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: ${{ matrix.RUNNER_OS }}
+      INSTALL_TYPE: ${{ matrix.INSTALL_TYPE }}
+      QT_API: ${{ matrix.QT_LIB }}
+      PYTEST_QT_API: ${{ matrix.QT_LIB }}
+      COVERALLS_REPO_TOKEN: 'dNLW68EOHK4mbPjKEFpNuhQbxaB50Clhp'
+      COVERALLS_SERVICE_NAME: 'github-actions'
+    strategy:
+      fail-fast: false
+      matrix:
+        RUNNER_OS: ['ubuntu', 'windows', 'macos']
+        PYTHON_VERSION: ['3.9', '3.13']
+        INSTALL_TYPE: ['conda', 'pip']
+        QT_LIB: ['pyqt5', 'pyqt6']
+        include:
+            - RUNNER_OS: 'ubuntu'
+              SPECIAL_INVOCATION: 'xvfb-run --auto-servernum '
+            - INSTALL_TYPE: 'conda'
+              REQUIREMENTS_FILE: 'requirements/environment.yml'
+            - INSTALL_TYPE: 'pip'
+              REQUIREMENTS_FILE: 'requirements/pip.yml'
+            - RUNNER_OS: 'ubuntu'
+              PYTHON_VERSION: '3.13'
+              COVERAGE: 'True'
+              COVERAGE_DEPS: 'coveralls pytest-cov'
+              PYTEST_COVERAGE_ARGS: '--cov=qtconsole'
+        exclude:
+            # Disable unsupported configurations
+          - INSTALL_TYPE: 'conda'
+            QT_LIB: 'pyqt6'
+            # Prune the number of matrix jobs
+          - RUNNER_OS: 'windows'
+            INSTALL_TYPE: 'pip'
+          - RUNNER_OS: 'windows'
+            QT_LIB: 'pyqt6'
+          - RUNNER_OS: 'macos'
+            INSTALL_TYPE: 'pip'
+          - RUNNER_OS: 'macos'
+            QT_LIB: 'pyqt6'
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+      - name: Install Linux packages
+        if: matrix.RUNNER_OS == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1
+      - name: Install Conda and dependencies
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+           activate-environment: test
+           auto-update-conda: false
+           auto-activate-base: false
+           miniforge-version: latest
+           mamba-version: '*'
+           channels: conda-forge
+           channel-priority: true
+           conda-remove-defaults: 'true'
+           python-version: ${{ matrix.PYTHON_VERSION }}
+           environment-file: ${{ matrix.REQUIREMENTS_FILE }}  # Need to set up dependencies in the same step due to https://github.com/conda-incubator/setup-miniconda/issues/371
+      - name: Install dependencies with Pip
+        if: matrix.INSTALL_TYPE == 'pip'
+        run: |
+          pip install -e .[test]
+          pip install ${{ matrix.QT_LIB }} ${{ matrix.COVERAGE_DEPS }}
+      - name: Show environment information
+        run: |
+          conda info
+          conda list
+          pip list
+      - name: Run tests
+        run: ${{ matrix.SPECIAL_INVOCATION }}pytest -vv -s --full-trace --color=yes ${{ matrix.PYTEST_COVERAGE_ARGS }} qtconsole
+      - name: Upload coverage to Coveralls
+        if: matrix.COVERAGE == 'True'
+        run: coveralls
+
+  check:
+    name: Check job status
+    if: always()
+
+    needs:
+    - test
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Determine if all required jobs succeeded
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}

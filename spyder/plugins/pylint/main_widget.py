@@ -621,7 +621,7 @@ class PylintWidget(PluginMainWidget):
             The valur to set  the maximum history depth. If no value is
             provided, an input dialog will be launched. Default is None.
         """
-        if value is None:
+        if value is None or isinstance(value, bool):
             dialog = QInputDialog(self)
 
             # Set dialog properties
@@ -856,7 +856,7 @@ class PylintWidget(PluginMainWidget):
 
         If `filename` is provided, the dialog is not used.
         """
-        if filename is None:
+        if filename is None or isinstance(filename, bool):
             self.sig_redirect_stdio_requested.emit(False)
             filename, _selfilter = getopenfilename(
                 self,

@@ -181,7 +181,7 @@ def test_jedi_completion_with_fuzzy_enabled(config, workspace) -> None:
 
     assert items
 
-    expected = "isabs(s)"
+    expected = "commonprefix(m)" if JEDI_VERSION < "0.19.2" else "isabs(s)"
     assert items[0]["label"] == expected
 
     # Test we don't throw with big character
@@ -282,8 +282,8 @@ def test_jedi_method_completion(config, workspace) -> None:
     reason="Test in Python 3 and not on CIs on Linux because wheels don't work on them.",
 )
 def test_pyqt_completion(config, workspace) -> None:
-    # Over 'QA' in 'from PyQt5.QtWidgets import QApplication'
-    doc_pyqt = "from PyQt5.QtWidgets import QA"
+    # Over 'QA' in 'from PyQt6.QtWidgets import QApplication'
+    doc_pyqt = "from PyQt6.QtWidgets import QA"
     com_position = {"line": 0, "character": len(doc_pyqt)}
     doc = Document(DOC_URI, workspace, doc_pyqt)
     completions = pylsp_jedi_completions(config, doc, com_position)

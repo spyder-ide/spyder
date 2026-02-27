@@ -201,8 +201,12 @@ def ipyconsole(qtbot, request, tmpdir):
     def get_plugin(name):
         if name == Plugins.IPythonConsole:
             return console
+        elif name == Plugins.Debugger:
+            return debugger
+
         return None
 
+    console.get_plugin = get_plugin
     debugger.get_plugin = get_plugin
     debugger.on_ipython_console_available()
 
@@ -371,6 +375,8 @@ def ipyconsole(qtbot, request, tmpdir):
         files = [repr(f) for f in proc.open_files()]
         show_diff(init_files, files, "files")
         raise
+
+    window.close()
 
 
 @pytest.fixture

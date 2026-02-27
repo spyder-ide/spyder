@@ -7,17 +7,12 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
-import json
 import logging
-import struct
 import typing
 from abc import abstractmethod
-import uuid
 
 import aiohttp
 import yarl
-import zmq.asyncio
 
 from spyder.api.asyncdispatcher import AsyncDispatcher
 from spyder.api.utils import ABCMeta, abstract_attribute
@@ -36,7 +31,7 @@ SpyderBaseJupyterAPIType = typing.TypeVar(
 
 logger = logging.getLogger(__name__)
 
-REQUEST_TIMEOUT = 5  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 VERIFY_SSL = True
 
 
@@ -52,6 +47,10 @@ class SpyderRemoteSessionClosed(SpyderRemoteAPIError):
     Exception for errors related to a closed session.
     """
     ...
+
+
+class SpyderRemoteConnectionError(SpyderRemoteAPIError):
+    """Exception for errors related to connection establishment."""
 
 
 class SpyderBaseJupyterAPI(metaclass=ABCMeta):
@@ -118,12 +117,23 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self._session.closed
 
     async def connect(self):
-        # Default connect method which ensures a connection via the manager.
+        """
+        Establish connection to the remote Spyder's Jupyter server.
+
+        Raises
+        ------
+        SpyderRemoteConnectionError
+            If the connection to the remote server could not be established.
+        """
         if not await AsyncDispatcher(
             loop="asyncssh",
             return_awaitable=True,
         )(self.manager.ensure_connection_and_server)():
-            raise RuntimeError("Failed to connect to Jupyter server")
+            msg = (
+                f"Could not connect to spyder "
+                f"remote server at '{self.server_name}'"
+            )
+            raise SpyderRemoteConnectionError(msg)
         if not self.closed:
             return
         self.session = aiohttp.ClientSession(
@@ -132,7 +142,7 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
                 ssl=None if self.verify_ssl else False
             ),
             raise_for_status=self._raise_for_status,
-            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            timeout=aiohttp.ClientTimeout(total=self.request_timeout),
         )
 
     async def __aenter__(self):
@@ -140,7 +150,8 @@ class SpyderBaseJupyterAPI(metaclass=ABCMeta):
         return self
 
     async def close(self):
-        await self.session.close()
+        if self._session is not None:
+            await self._session.close()
 
     async def __aexit__(self, exc_type, exc, tb):
         await self.close()
@@ -240,10 +251,12 @@ class JupyterAPI(SpyderBaseJupyterAPI):
         data = {}
         if spyder_kernel:
             data["spyder_kernel"] = True
-        data["name"] = (
+
+        if kernel_spec := (
             kernel_spec
             or self.manager.options.get("default_kernel_spec")
-        )
+        ):
+            data["name"] = kernel_spec
 
         async with self.session.post(
             self.api_url / "kernels", json=data

@@ -21,11 +21,11 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QVBoxLayout,
                             QWidget)
 
-from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
-                                is_conda_based_app, save_lang_conf)
 from spyder.api.plugins import Plugins
 from spyder.api.preferences import PluginConfigPage
-from spyder.py3compat import to_text_string
+from spyder.api.translations import _
+from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
+                                is_conda_based_app, save_lang_conf)
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
 
@@ -79,6 +79,9 @@ class ApplicationConfigPage(PluginConfigPage):
             'check_stable_only',
             section='update_manager'
         )
+        disable_zoom_mouse_cb = newcb(
+            _("Disable zoom with Ctrl/Cmd + mouse wheel"), "disable_zoom_mouse"
+        )
 
         # Decide if it's possible to activate or not single instance mode
         # ??? Should we allow multiple instances for macOS?
@@ -102,6 +105,7 @@ class ApplicationConfigPage(PluginConfigPage):
         advanced_layout.addWidget(popup_console_box)
         advanced_layout.addWidget(check_update_cb)
         advanced_layout.addWidget(stable_only_cb)
+        advanced_layout.addWidget(disable_zoom_mouse_cb)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
@@ -296,7 +300,7 @@ class ApplicationConfigPage(PluginConfigPage):
         for combobox, (sec, opt, _default) in list(self.comboboxes.items()):
             if opt == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
-                value = from_qvariant(data, to_text_string)
+                value = from_qvariant(data, str)
                 break
         try:
             save_lang_conf(value)

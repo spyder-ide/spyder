@@ -81,9 +81,9 @@ def stacksummary_to_json(stack):
     ]
 
 
-def staksummary_from_json(stack):
+def stacksummary_from_json(stack):
     """StackSummary from json."""
-    traceback.StackSummary.from_list([
+    return traceback.StackSummary.from_list([
         (
             frame["filename"],
             frame["lineno"],
@@ -108,6 +108,7 @@ class CommsErrorWrapper():
             "call_id": self.call_id,
             "etype": self.etype.__name__,
             "args": self.error.args,
+            "error_name": getattr(self.error, "name", None),
             "tb": stacksummary_to_json(self.tb)
         }
 
@@ -124,7 +125,9 @@ class CommsErrorWrapper():
             type(etype, (Exception,), {})
         )
         instance.error = instance.etype(*json_data["args"])
-        instance.tb = staksummary_from_json(json_data["tb"])
+        if json_data["error_name"]:
+            instance.error.name = json_data["error_name"]
+        instance.tb = stacksummary_from_json(json_data["tb"])
         return instance
 
     def raise_error(self):

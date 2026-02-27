@@ -43,7 +43,7 @@ class Red:
     B120 = '#FEDDDA'
     B130 = '#FFEEEE'
     B140 = '#FFF5F5'
-    B150 = '##FFFFFF'
+    B150 = '#FFFFFF'
 
 
 class Orange:
@@ -62,7 +62,7 @@ class Orange:
     B120 = '#FFEACA'
     B130 = '#FFF3E2'
     B140 = '#FFFBF5'
-    B150 = '##FFFFFF'
+    B150 = '#FFFFFF'
 
 
 class GroupDark:
@@ -116,4 +116,4 @@ class Logos:
     B20 = '#ffd444'
     B30 = '#414141'
     B40 = '#fafafa'
-    B50 = '#ee0000'
+    B50 = '#8c0000'

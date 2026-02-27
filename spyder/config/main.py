@@ -86,6 +86,7 @@ DEFAULTS = [
               'show_dpi_message': True,
               'show_message_when_panes_are_empty': True,
               'max_recent_files': 20,
+              'disable_zoom_mouse': False,
               }),
             ('update_manager',
              {
@@ -100,6 +101,7 @@ DEFAULTS = [
                   ApplicationToolbars.File,
                   ApplicationToolbars.Run,
                   ApplicationToolbars.Debug,
+                  ApplicationToolbars.Profile,
                   ApplicationToolbars.Main,
                   ApplicationToolbars.WorkingDirectory,
               ],
@@ -144,12 +146,14 @@ DEFAULTS = [
              {
               'default': True,
               'custom': False,
+              'custom_conda': False,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
               'custom_interpreters_list': [],
               'custom_interpreter': '',
-              'last_envs': {}
+              'last_envs': {},
+              'conda_path': '',
               }),
             ('ipython_console',
              {
@@ -158,7 +162,7 @@ DEFAULTS = [
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
-              'buffer_size': 500,
+              'buffer_size': 5000,
               'pylab': True,
               'pylab/autoload': False,
               'pylab/backend': 'inline',
@@ -200,6 +204,8 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
+              'show_remove_message_dataframe': True,
+              'show_remove_message_collections': True,
               'show_special_attributes': False,
               'filter_on': True
              }),
@@ -223,6 +229,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
+              'max_plots': 50,
              }),
             ('editor',
              {
@@ -246,6 +253,7 @@ DEFAULTS = [
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
+              'indent_with_spaces': True,
               'tab_stop_width_spaces': 4,
               'check_eol_chars': True,
               'convert_eol_on_save': False,
@@ -380,11 +388,14 @@ DEFAULTS = [
                'completions_wait_for_ms': 200,
                'enabled_providers': {},
                'provider_configuration': {},
-               'request_priorities': {}
+               'request_priorities': {},
+               'use_enter_for_completions': True
              }),
             ('profiler',
              {
               'enable': True,
+              'switch_to_plugin': True,
+              'n_slow_children': 15,
               }),
             ('pylint',
              {
@@ -435,6 +446,14 @@ DEFAULTS = [
               'main/close file 1': "Ctrl+W",
               'main/close file 2': "Ctrl+F4",
               'main/close all': "Ctrl+Shift+W",
+              # -- Edit menu --
+              # (intended context for these is plugins that support them)
+              'main/undo': 'Ctrl+Z',
+              'main/redo': 'Ctrl+Shift+Z',
+              'main/cut': 'Ctrl+X',
+              'main/copy': 'Ctrl+C',
+              'main/paste': 'Ctrl+V',
+              'main/select all': "Ctrl+A",
               # -- Switch to plugin --
               '_/switch to help': "Ctrl+Shift+H",
               '_/switch to outline_explorer': "Ctrl+Shift+O",
@@ -544,6 +563,9 @@ DEFAULTS = [
               'pylint/run file in pylint': "F8",
               # -- Profiler --
               'profiler/run file in profiler': "F10",
+              'profiler/run cell in profiler': "Alt+F10",
+              'profiler/run selection in profiler': "",
+              'profiler/find_action': "Ctrl+F",
               # -- Switcher --
               '_/file switcher': 'Ctrl+P',
               '_/symbol finder': 'Ctrl+Alt+P',
@@ -556,6 +578,8 @@ DEFAULTS = [
               'ipython_console/clear line': "Shift+Escape",
               'ipython_console/enter array inline': "Ctrl+Alt+M",
               'ipython_console/enter array table': "Ctrl+M",
+              'ipython_console/switch to next console': "Shift+Alt+Right",
+              'ipython_console/switch to previous console': "Shift+Alt+Left",
               # -- Variable explorer --
               'variable_explorer/close': 'Ctrl+W',
               'variable_explorer/copy': 'Ctrl+C',
@@ -702,4 +726,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.3.0'
+CONF_VERSION = '87.5.0'

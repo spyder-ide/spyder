@@ -21,8 +21,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QFormLayout, QLabel, QLineEdit,
                             QPushButton, QSizePolicy, QSpacerItem, QTabWidget,
                             QVBoxLayout, QWidget)
 
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.api.translations import _
 
 
 TOKEN_URL = "https://github.com/settings/tokens/new?scopes=public_repo"
@@ -125,7 +124,7 @@ class DlgGitHubLogin(QDialog):
         return False
 
     def update_btn_state(self):
-        token = to_text_string(self.le_token.text()).strip() != ''
+        token = str(self.le_token.text()).strip() != ''
         self.bt_sign_in.setEnabled(token)
 
     def is_keyring_available(self):
