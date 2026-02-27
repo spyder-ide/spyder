@@ -308,10 +308,10 @@ class TabBar(QTabBar):
         close_btn_from = self.tabButton(index_from, self.close_btn_side)
         close_btn_to = self.tabButton(index_to, self.close_btn_side)
 
-        close_btn_from.index, close_btn_to.index = index_from, index_to
-
-        close_btn_from.set_not_selected_color()
-        close_btn_to.set_selected_color()
+        if close_btn_from and close_btn_to:
+            close_btn_from.index, close_btn_to.index = index_from, index_to
+            close_btn_from.set_not_selected_color()
+            close_btn_to.set_selected_color()
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""

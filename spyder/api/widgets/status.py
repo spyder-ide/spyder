@@ -364,6 +364,8 @@ class StatusBarWidget(QWidget, SpyderWidgetMixin):
             )
             self.setStyleSheet(self._css.toString())
 
+            self.setCursor(Qt.ArrowCursor)
+
         super().leaveEvent(event)
 
 
