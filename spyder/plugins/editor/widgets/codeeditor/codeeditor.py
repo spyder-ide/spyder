@@ -277,8 +277,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.init_multi_cursor()
 
         self.text_helper = TextHelper(self)
-
         self._panels = PanelsManager(self)
+        self.editor_extensions = EditorExtensionsManager(self)
 
         # Mouse moving timer / Hover hints handling
         # See: mouseMoveEvent
@@ -311,18 +311,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._last_hover_pattern_key = None
         self._last_hover_pattern_text = None
 
-        # 79-col edge line
-        self.edge_line = self.panels.register(
-            EdgeLine(),
-            Panel.Position.FLOATING
-        )
-
-        # indent guides
-        self.indent_guides = self.panels.register(
-            IndentationGuide(),
-            Panel.Position.FLOATING
-        )
-
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -333,22 +321,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.scrollpastend_enabled = False
 
         self.background = QColor('white')
-
-        # Folding
-        self.folding_panel = self.panels.register(FoldingPanel())
-
-        # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea())
-
-        # Set order for the left panels
-        self.linenumberarea.order_in_zone = 2
-        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
-
-        # Class and Method/Function Dropdowns
-        self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(),
-            Panel.Position.TOP,
-        )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -395,14 +367,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
-        # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(
-            ScrollFlagArea(),
-            Panel.Position.RIGHT
-        )
+        # Register panels
+        self.register_panels()
 
-        self.panels.refresh()
-
+        # Document id
         self.document_id = id(self)
 
         # Indicate occurrences of the selected word
@@ -516,14 +484,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Hover hints
         self.hover_hints_enabled = None
 
-        # Editor extensions
-        self.editor_extensions = EditorExtensionsManager(self)
-        for ExtensionClass in self._extensions + [
-            CloseBracketsExtension,
-            CloseQuotesExtension,
-            SnippetsExtension,
-        ]:
-            self.editor_extensions.add(ExtensionClass())
+        # Register editor extensions
+        self.register_extensions()
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -742,6 +704,40 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         used to manage the collection of installed panels
         """
         return self._panels
+
+    def register_panels(self):
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            Panel.Position.FLOATING
+        )
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            Panel.Position.FLOATING
+        )
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(),
+            Panel.Position.TOP,
+        )
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            Panel.Position.RIGHT
+        )
+        self.folding_panel = self.panels.register(FoldingPanel())
+        self.linenumberarea = self.panels.register(LineNumberArea())
+
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
+
+        self.panels.refresh()
+
+    def register_extensions(self):
+        for ExtensionClass in self._extensions + [
+            CloseBracketsExtension,
+            CloseQuotesExtension,
+            SnippetsExtension,
+        ]:
+            self.editor_extensions.add(ExtensionClass())
 
     def setup_editor(self,
                      linenumbers=True,
