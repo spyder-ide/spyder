@@ -9,6 +9,7 @@
 
 # Standard library imports
 import os.path as osp
+import uuid
 
 # Third party imports
 import pytest
@@ -46,7 +47,7 @@ def test_setup(remote_explorer, remote_client_id):
 @mark_remote_test
 def test_delete(remote_explorer, remote_client_id, monkeypatch, qtbot):
     treewidget = remote_explorer.remote_treewidget
-    dirname = "test-delete-files"
+    dirname = "test-delete-files-" + str(uuid.uuid4())
 
     # Create a new directory with the UI and move to it
     monkeypatch.setattr(QInputDialog, "getText", lambda *args: (dirname, True))
@@ -99,7 +100,7 @@ def test_delete(remote_explorer, remote_client_id, monkeypatch, qtbot):
 @mark_remote_test
 def test_upload(remote_explorer, remote_client_id, mocker, monkeypatch, qtbot):
     treewidget = remote_explorer.remote_treewidget
-    dirname = "test-upload-files"
+    dirname = "test-upload-files-" + str(uuid.uuid4())
     files_to_upload = [
         __file__,
         osp.join(osp.dirname(__file__), "test_explorer.py"),
@@ -151,7 +152,7 @@ def test_download(
     remote_explorer, remote_client_id, mocker, monkeypatch, qtbot, tmp_path
 ):
     treewidget = remote_explorer.remote_treewidget
-    dirname = "test-download-files"
+    dirname = "test-download-files-" + str(uuid.uuid4())
     files_to_download = ["a.txt", "b.txt"]
 
     # Create a new directory with the UI and move to it
@@ -209,10 +210,13 @@ def test_copy_paste(
     remote_explorer, remote_client_id, mocker, monkeypatch, qtbot
 ):
     treewidget = remote_explorer.remote_treewidget
-    copy_paste_dirs = ["test-copy-files", "test-paste-files"]
+    copy_paste_dirs = [
+        "test-copy-files-" + str(uuid.uuid4()),
+        "test-paste-files-" + str(uuid.uuid4())
+    ]
     copy_paste_files = ["a.txt", "b.txt"]
 
-    # Create directories with the UI and move to it
+    # Create directories with the UI
     for dirname in copy_paste_dirs:
         monkeypatch.setattr(
             QInputDialog, "getText", lambda *args: (dirname, True)
@@ -281,7 +285,7 @@ def test_copy_paths(
     remote_explorer, remote_client_id, monkeypatch, qtbot, tmp_path
 ):
     treewidget = remote_explorer.remote_treewidget
-    dirname = "test-cppy-paths"
+    dirname = "test-copy-paths-" + str(uuid.uuid4())
     files_to_copy_paths = ["a.txt", "b.txt"]
 
     # Create a new directory with the UI and move to it
@@ -293,7 +297,7 @@ def test_copy_paths(
     treewidget.chdir(f"/home/ubuntu/{dirname}", server_id=remote_client_id)
     qtbot.waitUntil(lambda: treewidget.model.rowCount() == 0)
 
-    # Create remote files to copy tjeir paths
+    # Create remote files to copy their paths
     for fname in files_to_copy_paths:
         monkeypatch.setattr(
             QInputDialog, "getText", lambda *args: (fname, True)
@@ -334,7 +338,7 @@ def test_new_files_and_directories(
     remote_explorer, remote_client_id, mocker, monkeypatch, qtbot
 ):
     treewidget = remote_explorer.remote_treewidget
-    dirname = "test-new-files"
+    dirname = "test-new-files-" + str(uuid.uuid4())
     files_to_create = ["a.txt", "b.py"]
     directories_to_create = ["foo", "bar"]
 
