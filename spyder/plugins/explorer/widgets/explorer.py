@@ -242,6 +242,7 @@ class QInputDialogCombobox(QDialog):
         layout.addLayout(grid_layout)
         layout.addWidget(bbox)
         self.setLayout(layout)
+        self.text_edit.setFocus()
 
     @staticmethod
     def get_text_and_item(parent, title, label, items, label_combo):
