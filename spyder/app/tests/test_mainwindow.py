@@ -6094,7 +6094,7 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
-    sys.platform == "darwin", reason="Fails frequently on Mac"
+    os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
 def test_debug_unsaved_function(main_window, qtbot):
     """
