@@ -254,16 +254,19 @@ def atomic_write(dest, overwrite, dir, mode):
     try:
         yield file
     except Exception:
+        file.close()
         os.unlink(src)
         raise
     else:
-        file.flush()
         file.close()
 
         if overwrite:
-            os.rename(src, dest)
+            os.replace(src, dest)
         else:
             os.link(src, dest)
+            os.unlink(src)
+    finally:
+        if os.path.exists(src):
             os.unlink(src)
 
 
