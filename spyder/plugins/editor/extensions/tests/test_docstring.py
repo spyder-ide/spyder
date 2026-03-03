@@ -17,9 +17,11 @@ from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.plugins.editor.extensions.docstring import (
-    DocstringInfo, FunctionInfo, get_indent, remove_comments
+    DocstringInfo,
+    FunctionInfo,
+    get_indent,
+    remove_comments,
 )
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.qthelpers import qapplication
@@ -525,9 +527,8 @@ def editor_docstring(base_editor_docstring):
     """Editor with per-test setup."""
 
     def __editor_docstring(test_case, doc_type=DOC_TYPE_DEFAULT):
-        CONF.set('editor', 'docstring_type', DOC_TYPES[doc_type])
-
         editor, writer, cursor = base_editor_docstring
+        editor.set_conf('docstring_type', DOC_TYPES[doc_type])
         editor.set_text(test_case.input_text)
 
         cursor.setPosition(0)

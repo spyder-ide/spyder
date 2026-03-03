@@ -20,7 +20,6 @@ from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.manager import CONF
 
 
 # Constants
@@ -143,6 +142,7 @@ def is_tuple_strings(text):
     if s in text[p + ls:]:
         text = text[:p] + text[p + ls:][text[p + ls:].index(s) + ls:]
         return is_tuple_strings(text)
+
     return False
 
 
@@ -409,6 +409,7 @@ class DocstringWriterExtension:
                 last_line = True
 
             docstring_list.append(text)
+
             # So the final line is selected if docstring ends at the EOF
             cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
 
@@ -452,7 +453,7 @@ class DocstringWriterExtension:
         cursor = self.code_editor.textCursor()
         prev_pos = cursor.position()
         quote = line_to_cursor[-1]
-        docstring_type = CONF.get('editor', 'docstring_type')
+        docstring_type = self.code_editor.get_conf('docstring_type')
 
         cursor.beginEditBlock()
         try:
@@ -777,9 +778,11 @@ class DocstringWriterExtension:
                 return_type_annotated = f'tuple[{tuple_values}]'
             else:
                 return_type_annotated = return_types[0]
+
             return_section = f'{header}{indent3}{return_type_annotated}'
             if return_type_annotated != 'None':
                 return_section += ': DESCRIPTION.'
+
             return return_section
 
         return_element_type = indent3 + '{return_type}: DESCRIPTION.'
@@ -1022,8 +1025,8 @@ class DocstringWriterExtension:
             and all_eq
             and all("." not in return_val for return_val in return_vals_group)
         ):
-
             return None, return_vals_group[0]
+
         return None, None
 
     def _generate_docstring_return_section(
@@ -1070,6 +1073,7 @@ class DocstringWriterExtension:
                 tuple_vals.append(return_val)
             else:
                 single_vals.append(return_val)
+
         if single_vals and tuple_vals:
             return header + placeholder
 
@@ -1126,6 +1130,7 @@ class DocstringWriterExtension:
             else:
                 element = placeholder
             return_elements.append(element)
+
         return header + '\n'.join(return_elements)
 
 
@@ -1650,6 +1655,7 @@ class DocstringInfo:
             # Skip dummy first and last lines
             if not idx or idx == len(text_lines) - 1:
                 continue
+
             before = text_lines[idx - 1]
             after = text_lines[idx + 1]
 
