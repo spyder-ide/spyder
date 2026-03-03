@@ -320,6 +320,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 triggered=parent.main_widget.create_new_window,
                 register_action=False
             )
+
+        # This action is not available in many tests, so we try to grab it here
+        # and use its reference later.
+        try:
+            self.formatting_action = self.get_action(
+                EditorWidgetActions.FormatCode
+            )
+        except KeyError:
+            self.formatting_action = None
+
         self._given_actions = actions
         self.outlineexplorer = None
         self.tempfile_path = None
@@ -2484,9 +2494,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             finfo = self.data[index]
             editor = finfo.editor
             editor.setFocus()
-            self.get_action(EditorWidgetActions.FormatCode).setEnabled(
-                editor.formatting_enabled and not editor.isReadOnly()
-            )
+
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
 
             index = self.get_stack_index()
             self._refresh_outlineexplorer(index, update=False)
@@ -2927,9 +2939,10 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def refresh_formatting(self):
         editor = self.get_current_editor()
         if editor:
-            self.get_action(EditorWidgetActions.FormatCode).setEnabled(
-                editor.formatting_enabled and not editor.isReadOnly()
-            )
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
 
     # ---- Run
     def _get_lines_cursor(self, direction):
