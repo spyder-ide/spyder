@@ -1,11 +1,11 @@
-# From https://github.com/untitaker/python-atomicwrites/blob/4183999d9b7e81af85dee070d5311299bdf5164c/tests/test_atomicwrites.py
+# Based on tests from https://github.com/untitaker/python-atomicwrites
 
 import errno
 import os
 
-from spyder.utils.encoding import atomic_write
-
 import pytest
+
+from spyder.utils.encoding import atomic_write
 
 
 def test_atomic_write(tmpdir):
@@ -56,9 +56,11 @@ def test_dont_remove_simultaneously_created_file(tmpdir):
     assert len(tmpdir.listdir()) == 1
 
 
-# Verify that nested exceptions during rollback do not overwrite the initial
-# exception that triggered a rollback.
 def test_open_reraise(tmpdir):
+    """
+    Verify that nested exceptions during rollback do not overwrite the initial
+    exception that triggered a rollback.
+    """
     fname = tmpdir.join('ha')
     with pytest.raises(AssertionError):
         aw = atomic_write(str(fname), overwrite=False, dir=tmpdir, mode='w')
