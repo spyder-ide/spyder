@@ -9,6 +9,7 @@ Widget for installing spyder-kernels
 """
 # Standard library imports
 import logging
+import re
 
 # Third-party imports
 from qtpy.QtCore import QByteArray, QProcess
@@ -27,7 +28,11 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.base import _
-from spyder.plugins.ipythonconsole import SPYDER_KERNELS_VERSION
+from spyder.plugins.ipythonconsole import (
+    SPYDER_KERNELS_CONDA,
+    SPYDER_KERNELS_PIP,
+    _d,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +43,10 @@ INSTALL_TEXT = _(
 )
 SHOW_DETAILS = _("Show details")
 HIDE_DETAILS = _("Hide details")
+
+# Use suggested install commands
+SPYDER_KERNELS_CONDA = SPYDER_KERNELS_CONDA.replace(_d, "-").split()
+SPYDER_KERNELS_PIP = SPYDER_KERNELS_PIP.replace(_d, "-").split()
 
 
 class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
@@ -147,34 +156,19 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
         """Install spyder-kernels"""
 
         if is_conda_env(pyexec=pyexec):
-            conda = find_conda()
+            exe = find_conda(mamba=True)
             env_path = get_conda_env_path(pyexec)
-            channel, channel_url = get_conda_channel(pyexec, "python")
-            cmd = [
-                conda,
-                "install",
-                "--quiet",
-                "--yes",
-                "--prefix",
-                env_path,
-                "-c",
-                channel,
-                "-c",
-                "conda-forge/label/spyder_kernels_rc",
-                "-c",
-                "conda-forge/label/spyder_kernels_dev",
-                "--override-channels",
-                f"spyder-kernels{SPYDER_KERNELS_VERSION}",
-            ]
+            # channel, channel_url = get_conda_channel(pyexec, "python")
+            # TODO: Explicitly use python channel?
+            cmd = SPYDER_KERNELS_CONDA.copy()
+            cmd[0] = exe  # Replace with full path to found mamba
+            install_options = ["--yes", "--prefix", env_path]
+            if re.search("conda(.bat|.exe)?$", exe):
+                install_options.insert(0, "--quiet")
+            cmd[2:2] = install_options
         else:
             # Pip environment
-            cmd = [
-                pyexec,
-                "-m",
-                "pip",
-                "install",
-                f"spyder-kernels{SPYDER_KERNELS_VERSION}",
-            ]
+            cmd = [pyexec, "-m"] + SPYDER_KERNELS_PIP
 
         logger.info("Installing spyder-kernels...")
         logger.info(f"Command: {' '.join(cmd)}")
