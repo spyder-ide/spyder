@@ -15,8 +15,11 @@ import re
 from qtpy.QtCore import QByteArray, QProcess
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import (
+    QDialog,
     QDialogButtonBox,
+    QLabel,
     QPlainTextEdit,
+    QProgressBar,
     QVBoxLayout,
     QWidget,
 )
@@ -152,6 +155,9 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
 
     # ---- Public API
     # -------------------------------------------------------------------------
+    def is_running(self):
+        return self._process.state() == QProcess.Running
+
     def install_spyder_kernels(self, pyexec):
         """Install spyder-kernels"""
 
@@ -171,6 +177,159 @@ class SpyderKernelInstallWidget(QWidget, SpyderWidgetMixin, SpyderFontsMixin):
             cmd = [pyexec, "-m"] + SPYDER_KERNELS_PIP
 
         logger.info("Installing spyder-kernels...")
+        logger.info(f"Command: {' '.join(cmd)}")
+
+        self._process.start(cmd[0], cmd[1:])
+
+
+class DryRunDialog(QDialog, SpyderWidgetMixin, SpyderFontsMixin):
+    CONF_SECTION = "ipython_console"
+
+    def __init__(self, parent):
+        super().__init__(parent, class_parent=parent)
+
+        # self.setIcon(QMessageBox.Icon.Question)
+        # self.setWindowTitle("Hello")
+        self.setWindowTitle(parent.container._plugin.get_name())
+        self.bbox = SpyderDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        self.text = QLabel(_("Inspecting environment..."))
+
+        self.accept_button = self.bbox.button(QDialogButtonBox.Ok)
+        self.accept_button.setText(_("Proceed"))
+        self.accept_button.setEnabled(False)
+
+        self.ipyclient = parent
+
+        # Process to run the dry-run script
+        self._process = QProcess(self)
+        self._process.setProcessChannelMode(QProcess.MergedChannels)
+        self._process.readyReadStandardOutput.connect(self._update_details)
+        self._process.readyReadStandardError.connect(
+            lambda: self._update_details(error=True)
+        )
+        self._process.finished.connect(self._handle_process_finished)
+
+        # Progress bar
+        self._progress_bar = QProgressBar(self)
+        self._progress_bar.setFixedHeight(15)
+        self._progress_bar.setRange(0, 0)
+
+        # Area to show stdout/stderr streams of the process that performs the
+        # update
+        self._streams_area = QPlainTextEdit(self)
+        self._streams_area.setReadOnly(True)
+        self._streams_area.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self._streams_area.setFont(self.get_font(SpyderFontType.Monospace))
+        self._streams_area.setMinimumSize(600, 400)
+
+        # import pdb; pdb.set_trace()
+        layout = QVBoxLayout()
+        layout.addWidget(self.text)
+        layout.addWidget(self._progress_bar)
+        layout.addWidget(self._streams_area)
+        layout.addWidget(self.bbox)
+        self.setLayout(layout)
+
+        self.bbox.accepted.connect(self.accepted)
+        self.bbox.rejected.connect(self.rejected)
+
+        # TODO: Set status bar to "Inspecting spyder-kernels..." with spinner
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def accepted(self):
+        # Hide dialog; show dialog on status bar click
+        # self.hide()
+
+        self.ipyclient._install_spyder_kernels()
+        QDialog.accept(self)
+
+    def rejected(self):
+        self._process.terminate()
+        logger.info("Install spyder-kernels dry-run cancelled by user.")
+        # Note: QProcess.finished is still emitted
+        self.ipyclient.container.environment_menu_item_state(
+            self.ipyclient._pyexec, enable=True
+        )
+        QDialog.reject(self)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _add_text_to_streams_area(self, text):
+        self._streams_area.moveCursor(QTextCursor.End)
+        # Note appendPlainText starts new paragraph, so strip \n.
+        self._streams_area.appendPlainText(text.strip("\n"))
+        self._streams_area.moveCursor(QTextCursor.End)
+
+    def _update_details(self, error=False):
+        if error:
+            self._process.setReadChannel(QProcess.StandardError)
+        else:
+            self._process.setReadChannel(QProcess.StandardOutput)
+
+        qba = QByteArray()
+        while self._process.bytesAvailable():
+            if error:
+                qba += self._process.readAllStandardError()
+            else:
+                qba += self._process.readAllStandardOutput()
+
+        text = str(qba.data(), "utf-8")
+        self._add_text_to_streams_area(text)
+
+    def _handle_process_finished(self, exit_code, exit_status):
+        output = self._streams_area.toPlainText()
+        logger.info(
+            "Install spyder-kernels dry-run QProcess finished. "
+            f"Exit code: {exit_code}; exit status: {exit_status}"
+        )
+        logger.debug(
+            "Install spyder-kernels dry-run output:\n"
+            f"{output}"
+        )
+
+        # TODO: Reset status bar
+
+        if exit_code == 0 and exit_status == 0:
+            # Success!
+            self.text.setText(_(
+                "Spyder will make the following changes to "
+                "your environment. Do you want to proceed?"
+            ))
+            self._progress_bar.hide()
+            self.accept_button.setEnabled(True)
+        else:
+            # Error or cancelled by user
+            self.ipyclient.process_kernel_install(exit_code, exit_status, output)
+            self.close()
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def is_running(self):
+        return self._process.state() == QProcess.Running
+
+    def dryrun_spyder_kernels(self, pyexec):
+        """Install spyder-kernels"""
+
+        if is_conda_env(pyexec=pyexec):
+            exe = find_conda(mamba=True)
+            env_path = get_conda_env_path(pyexec)
+            # channel, channel_url = get_conda_channel(pyexec, "python")
+            # TODO: Explicitly use python channal?
+            cmd = SPYDER_KERNELS_CONDA.copy()
+            cmd[0] = exe  # Replace with full path to found mamba
+            install_options = ["--dry-run", "--yes", "--prefix", env_path]
+            if re.search("conda(.bat|.exe)?$", exe):
+                install_options.insert(0, "--quiet")
+            cmd[2:2] = install_options
+        else:
+            # Pip environment
+            cmd = [pyexec, "-m"] + SPYDER_KERNELS_PIP
+            cmd.insert(-1, "--dry-run")
+
+        logger.info("Installing spyder-kernels dry-run...")
         logger.info(f"Command: {' '.join(cmd)}")
 
         self._process.start(cmd[0], cmd[1:])
