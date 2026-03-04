@@ -1173,6 +1173,52 @@ Files covered:
 
 spyder/plugins/ipythonconsole/utils/websocket_client.py
 
+
+-------------------------------------------------------------------------------
+
+
+Tests from atomicwrites 1.4.1
+---------------------------------
+
+
+Copyright (c) 2015-2016 Markus Unterwaditzer
+
+
+Author: Markus Unterwaditzer | https://unterwaditzer.net
+Site: https://python-atomicwrites.readthedocs.io/en/latest/
+Source: https://github.com/untitaker/python-atomicwrites
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to the file bellow where done to test Spyder's own
+implementation of the atomic_write context manager.
+
+
+This project is licensed under the terms of the MIT License.
+
+Atomicwrites is directly inspired by the following libraries (and shares a
+minimal amount of code):
+
+* The Trac project's utility functions (http://www.edgewall.org/docs/tags-trac-0.11.7/epydoc/trac.util-pysrc.html),
+also used in Werkzeug (http://werkzeug.pocoo.org/) and
+mitsuhiko/python-atomicfile (https://github.com/mitsuhiko/python-atomicfile).
+The idea to use ctypes instead of PyWin32 originated there.
+
+* abarnert/fatomic (https://github.com/mahmoud/boltons). Windows support (based
+on PyWin32) was originally taken from there.
+
+See below for the full text of the MIT (Expat) license.
+
+The current atomicwrites license can be viewed at:
+https://github.com/untitaker/python-atomicwrites/blob/master/LICENSE
+
+The current version of the original files can be viewed at:
+https://github.com/untitaker/python-atomicwrites/blob/master/tests/test_atomicwrites.py
+
+
+Files covered:
+
+spyder/utils/tests/test_atomic_write.py
+
 ===============================================================================
 
 
