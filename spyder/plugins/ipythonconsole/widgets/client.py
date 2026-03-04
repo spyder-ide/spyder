@@ -48,7 +48,7 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
 from spyder.plugins.ipythonconsole import (
     SpyderKernelError,
-    SPYDER_KERNELS_VERSION,
+    SPYDER_KERNELS_MIN_VERSION,
 )
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState,
