@@ -56,8 +56,9 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import (
 )
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.plugins.ipythonconsole.widgets.install_spyder_kernels import (
-    SpyderKernelInstallWidget,
     INSTALL_TEXT,
+    SpyderKernelInstallWidget,
+    DryRunDialog,
 )
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -169,6 +170,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
+        self.dryrun_dialog = None
         self.installwidget = SpyderKernelInstallWidget(parent=self)
         self.installwidget.hide()
 
@@ -482,6 +484,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return page, error_text
 
     @Slot()
+    def _dryrun_spyder_kernels(self):
+        if self.dryrun_dialog is not None:
+            self.dryrun_dialog.reject()
+
+        dryrun_dialog = DryRunDialog(self)
+        self.dryrun_dialog = dryrun_dialog
+        dryrun_dialog.show()
+        dryrun_dialog.dryrun_spyder_kernels(self._pyexec)
+
+    @Slot()
     def _install_spyder_kernels(self):
         self.container.environment_menu_item_state(self._pyexec, enable=False)
 
@@ -508,7 +520,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
         )
         install_mbox.accepted.connect(
-            functools.partial(self._install_spyder_kernels)
+            functools.partial(self._dryrun_spyder_kernels)
         )
         install_mbox.show()
 
@@ -805,6 +817,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def close_client(self, is_last_client, close_console=False):
         """Close the client."""
+        if self.dryrun_dialog is not None and self.dryrun_dialog.is_running():
+            self.dryrun_dialog.reject()
         if self.installwidget.is_running():
             self.installwidget.reject()
 
