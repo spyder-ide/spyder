@@ -816,7 +816,9 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
 
     def close_client(self, is_last_client, close_console=False):
         """Close the client."""
-        self.install_mbox.reject()
+        if self.installwidget.is_running():
+            self.installwidget.reject()
+
         self.__on_close = lambda: None
         debugging = False
 
