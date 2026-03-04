@@ -653,7 +653,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.sig_connect_after_kernel_install.emit()
         elif exit_code == 15 and exit_status == 1:
             # Cancelled by user, just display previous kernel error page
-            self._show_loading_page(self.installwidget.info_page)
+            if self.installwidget.info_page is not None:
+                # Error info_page was replaced with install info_page; need
+                # to restore error info_page
+                self._show_loading_page(self.installwidget.info_page)
+            else:
+                # Error info_page was not replaced; just show it again
+                self._show_loading_page(self.info_page)
         elif exit_code != 0 and exit_status == 0:
             # An error occurred during install
             self.show_kernel_error(f"<tt>{output}</tt>", install=True)
