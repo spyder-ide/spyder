@@ -238,15 +238,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self._remote_reconnect_attempts_max = 10
         self._remote_reconnect_attempts = self._remote_reconnect_attempts_max
 
-        # --- Install spyder-kernels message box
-        self.install_mbox = QMessageBox(self)
-        self.install_mbox.setIcon(QMessageBox.Icon.Question)
-        self.install_mbox.setWindowTitle(self.container._plugin.get_name())
-        self.install_mbox.setStandardButtons(
-            QMessageBox.Yes | QMessageBox.Cancel
-        )
-        self.install_mbox.button(QMessageBox.Yes).setText(_("Install"))
-
     # ---- Private methods
     # -------------------------------------------------------------------------
     def _when_kernel_is_ready(self):
@@ -507,18 +498,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_install_mbox(self, pyexec):
-        self.install_mbox.setText(
-            INSTALL_TEXT.format(
-                SPYDER_KERNELS_VERSION.replace(">", "&gt;").replace(
-                    "<", "&lt;"
-                ),
-                pyexec,
-            ),
+        install_mbox = QMessageBox(self)
+        install_mbox.setIcon(QMessageBox.Icon.Question)
+        install_mbox.setWindowTitle(self.container._plugin.get_name())
+        install_mbox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        install_mbox.button(QMessageBox.Yes).setText(_("Install"))
+        install_mbox.setText(
+            INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
         )
-        self.install_mbox.accepted.connect(
+        install_mbox.accepted.connect(
             functools.partial(self._install_spyder_kernels, pyexec)
         )
-        self.install_mbox.show()
+        install_mbox.show()
 
     @property
     def connection_file(self):
