@@ -482,9 +482,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return page, error_text
 
     @Slot()
-    def _install_spyder_kernels(self, pyexec):
-        self._pyexec = pyexec
-        self.container.environment_menu_item_state(pyexec, enable=False)
+    def _install_spyder_kernels(self):
+        self.container.environment_menu_item_state(self._pyexec, enable=False)
 
         # Store existing error page for reuse later, if necessary
         self.installwidget.info_page = self.info_page
@@ -493,11 +492,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.installwidget.show()
 
         # Install spyder kernels...
-        self.installwidget.install_spyder_kernels(pyexec)
+        self.installwidget.install_spyder_kernels(self._pyexec)
 
     # ---- Public API
     # -------------------------------------------------------------------------
     def show_install_mbox(self, pyexec):
+        self._pyexec = pyexec
+
         install_mbox = QMessageBox(self)
         install_mbox.setIcon(QMessageBox.Icon.Question)
         install_mbox.setWindowTitle(self.container._plugin.get_name())
@@ -507,7 +508,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
         )
         install_mbox.accepted.connect(
-            functools.partial(self._install_spyder_kernels, pyexec)
+            functools.partial(self._install_spyder_kernels)
         )
         install_mbox.show()
 
@@ -642,10 +643,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.shellwidget.pdb_execute_command('exit')
 
     def process_kernel_install(self, exit_code, exit_status, output=None):
-        if self._pyexec:
-            self.container.environment_menu_item_state(
-                self._pyexec, enable=True
-            )
+        self.container.environment_menu_item_state(self._pyexec, enable=True)
 
         if exit_code == 0 and exit_status == 0:
             # Success!
