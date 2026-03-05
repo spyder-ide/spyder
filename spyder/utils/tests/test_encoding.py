@@ -94,15 +94,16 @@ def test_is_text_file(tmpdir):
 
 
 @pytest.mark.skipif(
-    parse(chardet.__version__) < parse("6.0.0"),
-    reason="Fails with Chardet versions older than 6.0",
+    parse(chardet.__version__) < parse("7.0.0"),
+    reason="Fails with Chardet versions older than 7.0",
 )
 @pytest.mark.parametrize(
     'expected_encoding, text_file',
     [('utf-8', 'utf-8.txt'),
      ('windows-1252', 'windows-1252.txt'),
-     ('ascii', 'ascii.txt'),
-     ('Big5', 'Big5.txt'),
+     # ascii is reported as windows-1252 since Chardet 7.0
+     ('windows-1252', 'ascii.txt'),
+     ('big5hkscs', 'Big5.txt'),
      ('KOI8-R', 'KOI8-R.txt'),
      ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
      ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
