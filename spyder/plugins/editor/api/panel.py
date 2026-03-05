@@ -17,6 +17,7 @@ Original file:
 """
 
 # Standard library imports
+from enum import Enum
 from math import ceil
 import logging
 
@@ -32,6 +33,24 @@ from spyder.plugins.outlineexplorer.api import is_cell_header
 logger = logging.getLogger(__name__)
 
 
+class PanelPosition(Enum):
+    """Enumerates the possible panel positions"""
+    TOP = 0
+    """Top margin"""
+
+    LEFT = 1
+    """Left margin"""
+
+    RIGHT = 2
+    """Right margin"""
+
+    BOTTOM = 3
+    """Bottom margin"""
+
+    FLOATING = 4
+    """Floating panel"""
+
+
 class Panel(QWidget, EditorExtension):
     """
     Base class for editor panels.
@@ -41,24 +60,6 @@ class Panel(QWidget, EditorExtension):
     .. note:: Use enabled to disable panel actions and setVisible to change the
         visibility of the panel.
     """
-    class Position(object):
-        """Enumerates the possible panel positions"""
-        # Top margin
-        TOP = 0
-        # Left margin
-        LEFT = 1
-        # Right margin
-        RIGHT = 2
-        # Bottom margin
-        BOTTOM = 3
-        # Floating panel
-        FLOATING = 4
-
-        @classmethod
-        def iterable(cls):
-            """ Returns possible positions as an iterable (list) """
-            return [cls.TOP, cls.LEFT, cls.RIGHT, cls.BOTTOM]
-
     @property
     def scrollable(self):
         """
@@ -78,10 +79,12 @@ class Panel(QWidget, EditorExtension):
     def __init__(self, dynamic=False):
         EditorExtension.__init__(self)
         QWidget.__init__(self)
+
         # Specifies whether the panel is dynamic. A dynamic panel is a panel
         # that will be shown/hidden depending on the context.
         # Dynamic panel should not appear in any GUI menu
         self.dynamic = dynamic
+
         # Panel order into the zone it is installed to. This value is
         # automatically set when installing the panel but it can be changed
         # later (negative values can also be used).
@@ -90,8 +93,9 @@ class Panel(QWidget, EditorExtension):
         self._background_brush = None
         self.linecell_color = QColor(Qt.darkGray)
         self._foreground_pen = None
+
         # Position in the editor (top, left, right, bottom)
-        self.position = -1
+        self.position = None
 
     def on_install(self, editor):
         """
@@ -114,7 +118,7 @@ class Panel(QWidget, EditorExtension):
         self._foreground_pen = QPen(QColor(
             self.palette().windowText().color()))
 
-        if self.position == self.Position.FLOATING:
+        if self.position == PanelPosition.FLOATING:
             self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
@@ -126,7 +130,7 @@ class Panel(QWidget, EditorExtension):
         Please remember to extend this method in the child class to
         paint the panel's desired information.
         """
-        if self.isVisible() and self.position != self.Position.FLOATING:
+        if self.isVisible() and self.position != PanelPosition.FLOATING:
             # fill background
             self._background_brush = QBrush(QColor(
                 self.editor.sideareas_color))
@@ -140,10 +144,10 @@ class Panel(QWidget, EditorExtension):
     def paint_cell(self, painter):
         """Paint cell dividers in the visible region if needed."""
         for top_position, line_number, block in self.editor.visible_blocks:
-            if (
-                is_cell_header(block)
-                and (self.position in [self.Position.LEFT, self.Position.RIGHT])
-            ):
+            if is_cell_header(block) and self.position in [
+                PanelPosition.LEFT,
+                PanelPosition.RIGHT,
+            ]:
                 pen = painter.pen()
                 pen.setStyle(Qt.SolidLine)
                 pen.setBrush(self.linecell_color)
@@ -168,7 +172,7 @@ class Panel(QWidget, EditorExtension):
         * If your panel is in a floating position, please use the
           IndentationGuide one as reference.
         """
-        if self.position != self.Position.FLOATING:
+        if self.position != PanelPosition.FLOATING:
             raise NotImplementedError(
                 f'sizeHint method must be implemented in {self}')
 
@@ -209,11 +213,13 @@ class Panel(QWidget, EditorExtension):
 
         # Calculate editor coordinates with their offsets
         offset = self.editor.contentOffset()
-        x = self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock())\
-            .translated(offset.x(), offset.y()).left() \
-            + self.editor.document().documentMargin() \
-            + self.editor.panels.margin_size(Panel.Position.LEFT)
-        y = crect.top() + self.editor.panels.margin_size(Panel.Position.TOP)
+        x = (
+            self.editor.blockBoundingGeometry(self.editor.firstVisibleBlock())
+            .translated(offset.x(), offset.y()).left()
+            + self.editor.document().documentMargin()
+            + self.editor.panels.margin_size(PanelPosition.LEFT)
+        )
+        y = crect.top() + self.editor.panels.margin_size(PanelPosition.TOP)
 
         self.setGeometry(QRect(ceil(x+x0), ceil(y+y0),
                                ceil(width), ceil(height)))

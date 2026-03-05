@@ -44,7 +44,7 @@ from spyder.config.utils import (
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.editorextension import EditorExtension
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.panel import PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.widgets import codeeditor
@@ -3166,7 +3166,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         event.acceptProposedAction()
 
     def register_panel(self, panel_class, *args,
-                       position=Panel.Position.LEFT, **kwargs):
+                       position=PanelPosition.LEFT, **kwargs):
         """Register a panel in all codeeditors."""
         if (panel_class, args, kwargs, position) not in self.external_panels:
             self.external_panels.append((panel_class, args, kwargs, position))
