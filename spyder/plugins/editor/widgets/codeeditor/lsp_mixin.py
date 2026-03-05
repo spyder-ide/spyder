@@ -29,6 +29,7 @@ from three_merge import merge
 
 # Local imports
 from spyder.config.base import running_under_pytest
+from spyder.config.manager import CONF
 from spyder.plugins.completion.api import (
     CompletionRequestTypes,
     TextDocumentSyncKind,
@@ -985,7 +986,13 @@ class LSPMixin:
     # -------------------------------------------------------------------------
     def format_document_or_range(self):
         """Format current document or selected text."""
-        if self.has_selected_text() and self.range_formatting_enabled:
+        formatter = CONF.get(
+            "completions",
+            ("provider_configuration", "lsp", "values", "formatting"),
+            default="",
+        )
+        is_ruff = formatter == "ruff"
+        if self.has_selected_text() and self.range_formatting_enabled and not is_ruff:
             self.format_document_range()
         else:
             self.format_document()
