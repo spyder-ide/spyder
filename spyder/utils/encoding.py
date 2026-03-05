@@ -24,7 +24,7 @@ import time
 import errno
 
 # Third-party imports
-from chardet.universaldetector import UniversalDetector
+import chardet
 from atomicwrites import atomic_write
 
 # Local imports
@@ -148,14 +148,9 @@ def get_coding(text, force_chardet=False, default_codec=None):
 
     # Fallback using chardet
     if isinstance(text, bytes) and (force_chardet or default_codec is None):
-        detector = UniversalDetector()
-        for line in text.splitlines()[:2]:
-            detector.feed(line)
-            if detector.done:
-                break
-
-        detector.close()
-        return detector.result['encoding']
+        # Use detect because it's thread-safe since Chardet 7.0
+        result = chardet.detect(text)
+        return result['encoding']
 
     return default_codec
 
