@@ -545,7 +545,7 @@ DEFAULTS = [
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
-              'editor/docstring': "Ctrl+Alt+D",
+              'editor/docstring': "Ctrl+Alt+Shift+D",
               'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
               'editor/enter array inline': "Ctrl+Alt+M",
@@ -726,4 +726,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '87.5.0'
+CONF_VERSION = '87.6.0'

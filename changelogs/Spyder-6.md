@@ -9,6 +9,8 @@
     * Support generating return types from the function body for Sphinxdoc.
     * Fix dozens of bugs and limitations with the existing docstring generation.
     * Resolve numerous formatting issues and follow the relevant specifications.
+* Default shortcut for docstring generation was changed to `Ctrl/Cmd+Alt+Shift+D`
+  to avoid a conflict on macOS.
 
 ### API changes
 * Add `remove_item_from_menu` method to `SpyderMenuMixin`.
