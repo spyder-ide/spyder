@@ -170,8 +170,12 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
-        self.dryrun_dialog = None
+        self.dryrun_dialog = DryRunDialog(parent=self)
+        self.dryrun_dialog.accepted.connect(self._install_spyder_kernels)
+        self.dryrun_dialog.rejected.connect(self._env_menu_item_state)
+
         self.installwidget = SpyderKernelInstallWidget(parent=self)
+        self.installwidget.bbox.rejected.connect(self._env_menu_item_state)
         self.installwidget.hide()
 
         self.shellwidget = self.SHELL_WIDGET_CLASS(
@@ -484,13 +488,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         return page, error_text
 
     @Slot()
+    def _env_menu_item_state(self, enable=True):
+        if self._pyexec is None:
+            return
+        self.container.environment_menu_item_state(self._pyexec, enable=enable)
+
+    @Slot()
     def _dryrun_spyder_kernels(self):
-        self.container.environment_menu_item_state(self._pyexec, enable=False)
-
-        if self.dryrun_dialog is not None:
-            self.dryrun_dialog.reject()
-
-        self.dryrun_dialog = DryRunDialog(self)
+        self._env_menu_item_state(enable=False)
         self.dryrun_dialog.show()
         self.dryrun_dialog.install(self._pyexec)
 
@@ -774,7 +779,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def close_client(self, is_last_client, close_console=False):
         """Close the client."""
-        if self.dryrun_dialog is not None and self.dryrun_dialog.is_running():
+        if self.dryrun_dialog.is_running():
             self.dryrun_dialog.reject()
         if self.installwidget.is_running():
             self.installwidget.reject()
@@ -1007,8 +1012,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         )
         install_mbox.show()
 
-    def process_kernel_install(self, exit_code, exit_status, output=None):
-        self.container.environment_menu_item_state(self._pyexec, enable=True)
+    def process_kernel_install(self, exit_code, exit_status):
+        self._env_menu_item_state()
+        output = self.installwidget.output()
 
         if exit_code == 0 and exit_status == 0:
             # Success!
@@ -1028,9 +1034,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.show_kernel_error(f"<tt>{output}</tt>", install=True)
         else:
             # Unknown error
-            logger.info(
+            logger.error(
                 "Unknown installer error. "
-                f"Exit code: {exit_code}; exit status: {exit_status}"
+                f"Exit code: {exit_code}; exit status: {exit_status}; "
+                "output:\n{output}"
             )
 
     # ---- For remote clients
