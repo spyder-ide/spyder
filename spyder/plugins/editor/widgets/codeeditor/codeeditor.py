@@ -29,12 +29,11 @@ import textwrap
 from IPython.core.inputtransformer2 import TransformerManager
 from packaging.version import parse
 from qtpy import QT_VERSION
-from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
-                        QTextDocument, QTextFormat, QTextOption,
+                        QTextDocument, QTextOption,
                         QTextCharFormat, QTextLayout)
 from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
 from spyder_kernels.utils.dochelpers import getobj

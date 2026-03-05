@@ -352,6 +352,12 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # ---- File menu ----
+        # Export
+        mainmenu.add_item_to_application_menu(
+            widget.export_action,
+            menu_id=ApplicationMenus.File,
+            section=FileMenuSections.Save
+        )
         # Print
         print_actions = [
             widget.print_preview_action,
@@ -467,6 +473,11 @@ class Editor(SpyderDockablePlugin):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
         # ---- File menu ----
+        # Export
+        mainmenu.remove_item_from_application_menu(
+            widget.export_action,
+            menu_id=ApplicationMenus.File
+        )
         # Print
         print_actions = [
             widget.print_preview_action,
