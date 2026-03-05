@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-02-10 16:15-0500\n"
-"PO-Revision-Date: 2026-02-10 21:26\n"
+"PO-Revision-Date: 2026-02-12 21:58\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -790,7 +790,7 @@ msgstr "Spyder Google-Gruppe"
 
 #: spyder/plugins/application/container.py:302
 msgid "Show changelog"
-msgstr ""
+msgstr "Änderungsprotokoll anzeigen"
 
 #: spyder/plugins/application/container.py:307
 msgid "Help Spyder..."
@@ -1042,7 +1042,7 @@ msgstr "Versionsinfo kopieren"
 
 #: spyder/plugins/application/widgets/status.py:191
 msgid "Changelog"
-msgstr ""
+msgstr "Änderungsprotokoll"
 
 #: spyder/plugins/application/widgets/status.py:200
 msgid "Help Spyder"
@@ -2231,7 +2231,7 @@ msgstr "Einrückung"
 
 #: spyder/plugins/editor/confpage.py:264
 msgid "Tab width:"
-msgstr ""
+msgstr "Tabulatorbreite:"
 
 #: spyder/plugins/editor/confpage.py:265
 msgid "spaces"
@@ -3223,11 +3223,11 @@ msgstr "Ordnername:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1392
 msgid "Extension:"
-msgstr ""
+msgstr "Erweiterung:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1417
 msgid "File name:"
-msgstr ""
+msgstr "Dateiname:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1501
 msgid "File/Folder copy error"
@@ -3771,7 +3771,7 @@ msgstr "Datei"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:332
 msgid "files"
-msgstr ""
+msgstr "Dateien"
 
 #: spyder/plugins/findinfiles/widgets/search_thread.py:422
 msgid "String not found"
@@ -4250,7 +4250,7 @@ msgstr "Vom Unterprozessmodul generiertes Befehlszeilenausgabefenster ausblenden
 
 #: spyder/plugins/ipythonconsole/confpage.py:462
 msgid "Plotting"
-msgstr ""
+msgstr "Plotten"
 
 #: spyder/plugins/ipythonconsole/confpage.py:467 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
@@ -6254,7 +6254,7 @@ msgstr "Wird verbunden ..."
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:44
 msgid "Connected..."
-msgstr ""
+msgstr "Verbunden..."
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:45
 msgid "Starting..."
