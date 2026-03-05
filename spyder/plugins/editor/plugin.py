@@ -22,6 +22,7 @@ from spyder.api.translations import _
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
@@ -180,6 +181,9 @@ class Editor(SpyderDockablePlugin):
         # Attributes
         self.extensions: list[type[EditorExtension]] = []
         """List of Editor extensions added by third-party plugins."""
+
+        self.panels: list[type[Panel]] = []
+        """List of panels added by third-party plugins."""
 
         widget = self.get_widget()
 
@@ -1213,6 +1217,31 @@ class Editor(SpyderDockablePlugin):
             )
 
         self.extensions.append(extension)
+
+    def add_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    ):
+        """
+        Add an editor extension to every CodeEditor.
+
+        Parameters
+        ----------
+        panel: type[Panel]
+            Subclass of Panel to be added to the editor.
+        position: PanelPosition
+            Position where to add the panel
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of Panel.
+        """
+        if not issubclass(panel, Panel):
+            raise SpyderAPIError(
+                "The panel you provided is not a subclass of Panel."
+            )
+
+        self.panels.append((panel, position))
 
     # ---- Private API
     # ------------------------------------------------------------------------
