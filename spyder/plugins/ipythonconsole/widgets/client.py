@@ -481,6 +481,8 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
 
     @Slot()
     def _dryrun_spyder_kernels(self):
+        self.container.environment_menu_item_state(self._pyexec, enable=False)
+
         if self.dryrun_dialog is not None:
             self.dryrun_dialog.reject()
 
@@ -491,8 +493,6 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
 
     @Slot()
     def _install_spyder_kernels(self):
-        self.container.environment_menu_item_state(self._pyexec, enable=False)
-
         # Store existing error page for reuse later, if necessary
         self.installwidget.info_page = self.info_page
 
