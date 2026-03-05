@@ -41,6 +41,12 @@ try:
 except Exception:
     QQuickWindow = QSGRendererInterface = None
 
+try:
+    import qtpy.QtWebEngineWidgets
+except ImportError:
+    HAVE_WEBENGINE = False
+else:
+    HAVE_WEBENGINE = True
 
 root_logger = logging.getLogger()
 FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')

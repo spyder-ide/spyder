@@ -40,6 +40,9 @@ import traceback
 from spyder import requirements
 requirements.check_qt()
 
+# Local imports
+from spyder.app.utils import HAVE_WEBENGINE
+
 #==============================================================================
 # Third-party imports
 #==============================================================================
@@ -748,7 +751,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     # https://github.com/spyder-ide/spyder/pull/
                     # 22196#issuecomment-2189377043
                     if PluginClass.REQUIRE_WEB_WIDGETS and (
-                        not WEBENGINE or
+                        not HAVE_WEBENGINE or
                         self._cli_options.no_web_widgets
                     ):
                         continue
