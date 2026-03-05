@@ -490,10 +490,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.dryrun_dialog is not None:
             self.dryrun_dialog.reject()
 
-        dryrun_dialog = DryRunDialog(self)
-        self.dryrun_dialog = dryrun_dialog
-        dryrun_dialog.show()
-        dryrun_dialog.dryrun_spyder_kernels(self._pyexec)
+        self.dryrun_dialog = DryRunDialog(self)
+        self.dryrun_dialog.show()
+        self.dryrun_dialog.install(self._pyexec)
 
     @Slot()
     def _install_spyder_kernels(self):
