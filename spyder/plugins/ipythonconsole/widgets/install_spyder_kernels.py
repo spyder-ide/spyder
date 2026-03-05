@@ -129,14 +129,15 @@ class SpyderKernelInstallBaseWidget(
             exe = find_conda(mamba=True)
             env_path = get_conda_env_path(pyexec)
 
-            # channel, channel_url = get_conda_channel(pyexec, "python")
-            # TODO: Explicitly use python channal?
+            channel, channel_url = get_conda_channel(pyexec, "python")
 
             install_options = ["--yes", "--prefix", env_path]
             if re.search("conda(.bat|.exe)?$", exe):
-                install_options.insert(0, "--quiet")
+                install_options.append("--quiet")
             if dryrun:
-                install_options.insert(0, "--dry-run")
+                install_options.append("--dry-run")
+            if channel is not None:
+                install_options.extend(["-c", channel])
 
             cmd = SPYDER_KERNELS_CONDA.copy()
             cmd[0] = exe  # Replace with full path to found mamba
