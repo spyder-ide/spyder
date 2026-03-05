@@ -508,22 +508,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def show_install_mbox(self, pyexec):
-        self._pyexec = pyexec
-
-        install_mbox = QMessageBox(self)
-        install_mbox.setIcon(QMessageBox.Icon.Question)
-        install_mbox.setWindowTitle(self.container._plugin.get_name())
-        install_mbox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-        install_mbox.button(QMessageBox.Yes).setText(_("Install"))
-        install_mbox.setText(
-            INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
-        )
-        install_mbox.accepted.connect(
-            functools.partial(self._dryrun_spyder_kernels)
-        )
-        install_mbox.show()
-
     @property
     def connection_file(self):
         if self.kernel_handler is None:
@@ -653,32 +637,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.interrupt_kernel()
         else:
             self.shellwidget.pdb_execute_command('exit')
-
-    def process_kernel_install(self, exit_code, exit_status, output=None):
-        self.container.environment_menu_item_state(self._pyexec, enable=True)
-
-        if exit_code == 0 and exit_status == 0:
-            # Success!
-            self._show_loading_page(self.env_loading_page)
-            self.sig_connect_after_kernel_install.emit()
-        elif exit_code == 15 and exit_status == 1:
-            # Cancelled by user, just display previous kernel error page
-            if self.installwidget.info_page is not None:
-                # Error info_page was replaced with install info_page; need
-                # to restore error info_page
-                self._show_loading_page(self.installwidget.info_page)
-            else:
-                # Error info_page was not replaced; just show it again
-                self._show_loading_page(self.info_page)
-        elif exit_code != 0 and exit_status == 0:
-            # An error occurred during install
-            self.show_kernel_error(f"<tt>{output}</tt>", install=True)
-        else:
-            # Unknown error
-            logger.info(
-                "Unknown installer error. "
-                f"Exit code: {exit_code}; exit status: {exit_status}"
-            )
 
     def show_kernel_error(self, error, install=False):
         """Show kernel initialization errors in infowidget."""
@@ -1033,6 +991,48 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 QUrl.fromLocalFile(self.css_path)
             )
             self.sig_execution_state_changed.emit()
+
+    def show_install_mbox(self, pyexec):
+        self._pyexec = pyexec
+
+        install_mbox = QMessageBox(self)
+        install_mbox.setIcon(QMessageBox.Icon.Question)
+        install_mbox.setWindowTitle(self.container._plugin.get_name())
+        install_mbox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        install_mbox.button(QMessageBox.Yes).setText(_("Install"))
+        install_mbox.setText(
+            INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
+        )
+        install_mbox.accepted.connect(
+            functools.partial(self._dryrun_spyder_kernels)
+        )
+        install_mbox.show()
+
+    def process_kernel_install(self, exit_code, exit_status, output=None):
+        self.container.environment_menu_item_state(self._pyexec, enable=True)
+
+        if exit_code == 0 and exit_status == 0:
+            # Success!
+            self._show_loading_page(self.env_loading_page)
+            self.sig_connect_after_kernel_install.emit()
+        elif exit_code == 15 and exit_status == 1:
+            # Cancelled by user, just display previous kernel error page
+            if self.installwidget.info_page is not None:
+                # Error info_page was replaced with install info_page; need
+                # to restore error info_page
+                self._show_loading_page(self.installwidget.info_page)
+            else:
+                # Error info_page was not replaced; just show it again
+                self._show_loading_page(self.info_page)
+        elif exit_code != 0 and exit_status == 0:
+            # An error occurred during install
+            self.show_kernel_error(f"<tt>{output}</tt>", install=True)
+        else:
+            # Unknown error
+            logger.info(
+                "Unknown installer error. "
+                f"Exit code: {exit_code}; exit status: {exit_status}"
+            )
 
     # ---- For remote clients
     # -------------------------------------------------------------------------
