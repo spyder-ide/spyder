@@ -40,11 +40,13 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SvgToScaledPixmap
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.plugins.editor.api.panel import PanelPosition
 from spyder.plugins.layout.layouts import DefaultLayouts
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import get_image_path
@@ -746,19 +748,23 @@ class AnimatedTour(QWidget):
 
         for name in names:
             try:
-                base = name.split('.')[0]
-                try:
-                    temp = getattr(spy_window, name)
-                except AttributeError:
-                    temp = None
-                    # Check if it is the current editor
-                    if 'get_current_editor()' in name:
-                        temp = temp.get_current_editor()
-                        temp = getattr(temp, name.split('.')[-1])
-                    if temp is None:
-                        raise
+                temp = getattr(spy_window, name)
             except AttributeError:
-                temp = eval(f"spy_window.{name}")
+                temp = None
+                if 'get_current_editor()' in name:
+                    # In this case we need to run code to get a reference to
+                    # the objects we need.
+                    temp = eval(
+                        name,
+                        {},
+                        {
+                            "editor": spy_window.get_plugin(Plugins.Editor),
+                            "PanelPosition": PanelPosition,
+                        },
+                    )
+
+                if temp is None:
+                    raise
 
             widgets.append(temp)
 

@@ -52,7 +52,7 @@ from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.editorextension import EditorExtension
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
@@ -708,19 +708,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     def register_panels(self):
         self.edge_line = self.panels.register(
             EdgeLine(),
-            Panel.Position.FLOATING
+            PanelPosition.FLOATING
         )
         self.indent_guides = self.panels.register(
             IndentationGuide(),
-            Panel.Position.FLOATING
+            PanelPosition.FLOATING
         )
         self.classfuncdropdown = self.panels.register(
             ClassFunctionDropdown(),
-            Panel.Position.TOP,
+            PanelPosition.TOP,
         )
         self.scrollflagarea = self.panels.register(
             ScrollFlagArea(),
-            Panel.Position.RIGHT
+            PanelPosition.RIGHT
         )
         self.folding_panel = self.panels.register(FoldingPanel())
         self.linenumberarea = self.panels.register(LineNumberArea())
@@ -1684,14 +1684,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def calculate_real_position_from_global(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() - self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):

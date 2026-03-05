@@ -13,7 +13,7 @@ from qtpy.QtGui import QPainter, QColor, QFontMetrics
 import pytest
 
 # Local imports
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 
 
 # --- External Example Panel
@@ -66,9 +66,16 @@ class EmojiPanel(Panel):
 
 # --- Tests
 # -----------------------------------------------------------------------------
-@pytest.mark.parametrize('position', [
-    Panel.Position.LEFT, Panel.Position.RIGHT, Panel.Position.TOP,
-    Panel.Position.BOTTOM, Panel.Position.FLOATING])
+@pytest.mark.parametrize(
+    "position",
+    [
+        PanelPosition.LEFT,
+        PanelPosition.RIGHT,
+        PanelPosition.TOP,
+        PanelPosition.BOTTOM,
+        PanelPosition.FLOATING,
+    ],
+)
 def test_register_panel(setup_editor, position):
     """Test registering an example external panel in the editor."""
     editor_stack, editor = setup_editor
@@ -94,6 +101,15 @@ def test_register_panel(setup_editor, position):
     editor_stack.external_panels = []
     editor.panels.remove(EmojiPanel)
     editor2.panels.remove(EmojiPanel)
+
+
+def test_clear_panels(setup_editor):
+    """Test clearing all panels in an editor."""
+    editor_stack, editor = setup_editor
+
+    # Clear panels
+    editor.panels.clear()
+    assert len(editor.panels) == 0
 
 
 if __name__ == '__main__':

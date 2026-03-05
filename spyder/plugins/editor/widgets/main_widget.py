@@ -36,7 +36,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_conf_path
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.panel import PanelPosition
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
@@ -3083,7 +3083,7 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks:
             editorstack.set_current_project_path(root_path)
 
-    def register_panel(self, panel_class, *args, position=Panel.Position.LEFT,
+    def register_panel(self, panel_class, *args, position=PanelPosition.LEFT,
                        **kwargs):
         """Register a panel in all the editorstacks in the given position."""
         for editorstack in self.editorstacks:
