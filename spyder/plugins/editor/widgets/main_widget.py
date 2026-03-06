@@ -3298,7 +3298,7 @@ class EditorMainWidget(PluginMainWidget):
     def _current_editor_inspect_current_object(self):
         editor = self.get_current_editor()
         if editor:
-            editor.sig_show_object_info.emit()
+            editor.show_object_info()
 
     def _current_editor_zoom_in(self):
         editor = self.get_current_editor()
