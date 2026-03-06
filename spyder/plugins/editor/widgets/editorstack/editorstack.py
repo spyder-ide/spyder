@@ -41,6 +41,7 @@ from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
 from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -108,7 +109,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
     sig_refresh_eol_chars = Signal(str)
-    sig_refresh_formatting = Signal(bool)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -320,6 +320,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 triggered=parent.main_widget.create_new_window,
                 register_action=False
             )
+
+        # This action is not available in many tests, so we try to grab it here
+        # and use its reference later.
+        try:
+            self.formatting_action = self.get_action(
+                EditorWidgetActions.FormatCode
+            )
+        except KeyError:
+            self.formatting_action = None
+
         self._given_actions = actions
         self.outlineexplorer = None
         self.tempfile_path = None
@@ -1658,14 +1668,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
-            # TODO: Check move of this logic to be part of SpyderMenu itself/be
-            # able to call a method to do this unregistration
-            editor.menu.MENUS.remove((editor, None, editor.menu))
-            editor.menu.setParent(None)
-            editor.readonly_menu.MENUS.remove(
-                (editor, None, editor.readonly_menu)
-            )
-            editor.readonly_menu.setParent(None)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2489,15 +2491,22 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Set current editor
         if self.get_stack_count():
-            index = self.get_stack_index()
             finfo = self.data[index]
             editor = finfo.editor
             editor.setFocus()
+
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
+
+            index = self.get_stack_index()
             self._refresh_outlineexplorer(index, update=False)
-            self.sig_update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+
+            self.sig_update_code_analysis_actions.emit()
             self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
@@ -2629,7 +2638,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
-        editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
+        editor.sig_refresh_formatting.connect(self.refresh_formatting)
         editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)
         editor.setup_editor(
@@ -2926,6 +2935,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo = self.data[index]
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
+
+    def refresh_formatting(self):
+        editor = self.get_current_editor()
+        if editor:
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
 
     # ---- Run
     def _get_lines_cursor(self, direction):
