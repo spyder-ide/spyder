@@ -8,6 +8,7 @@
 import os
 import pathlib
 import stat
+import sys
 
 import chardet
 from flaky import flaky
@@ -114,6 +115,10 @@ def test_files_encodings(expected_encoding, text_file):
     assert encoding.lower() == expected_encoding.lower()
 
 
+@pytest.mark.skipif(
+    os.name == "nt" or sys.platform == "darwin",
+    reason="Only on Linux"
+)
 def test_file_gid(tmpdir):
     gid_file = tmpdir.mkdir("sub").join("random_log.log")
     gid_file.write("Some random text")
