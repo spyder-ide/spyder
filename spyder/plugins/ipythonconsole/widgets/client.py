@@ -57,8 +57,7 @@ from spyder.plugins.ipythonconsole.utils.kernel_handler import (
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.plugins.ipythonconsole.widgets.install_spyder_kernels import (
     INSTALL_TEXT,
-    SpyderKernelInstallWidget,
-    DryRunDialog,
+    InstallSpyderKernelsDialog,
 )
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
@@ -170,13 +169,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
-        self.dryrun_dialog = DryRunDialog(parent=self)
-        self.dryrun_dialog.accepted.connect(self._install_spyder_kernels)
-        self.dryrun_dialog.rejected.connect(self._env_menu_item_state)
-
-        self.installwidget = SpyderKernelInstallWidget(parent=self)
-        self.installwidget.bbox.rejected.connect(self._env_menu_item_state)
-        self.installwidget.hide()
+        self.installdialog = InstallSpyderKernelsDialog(parent=self)
+        self.installdialog.rejected.connect(self._env_menu_item_state)
+        self._pyexec = None
 
         self.shellwidget = self.SHELL_WIDGET_CLASS(
             config=config_options,
@@ -198,10 +193,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.env_loading_page = self._create_loading_page(
             message=_("Retrieving environment variables...")
         )
-        self.spyk_installing_page = self._create_loading_page(
-            message=_("Installing spyder-kernels...")
-        )
-        self._pyexec = None
 
         if self.is_remote():
             # Keep a reference
@@ -229,7 +220,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.layout.addWidget(self.shellwidget)
         if self.infowidget is not None:
             self.layout.addWidget(self.infowidget)
-        self.layout.addWidget(self.installwidget)
         self.setLayout(self.layout)
 
         # --- Exit function
@@ -310,7 +300,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
-            self.installwidget.hide()
             self.info_page = page if page else self.kernel_loading_page
             self.set_info_page()
             self.infowidget.show()
@@ -321,7 +310,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.infowidget.hide()
             self.info_page = self.blank_page
             self.set_info_page()
-        self.installwidget.hide()
         self.shellwidget.show()
 
     def _start_execution_loading_timer(self, _=None):
@@ -494,21 +482,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.container.environment_menu_item_state(self._pyexec, enable=enable)
 
     @Slot()
-    def _dryrun_spyder_kernels(self):
-        self._env_menu_item_state(enable=False)
-        self.dryrun_dialog.show()
-        self.dryrun_dialog.install(self._pyexec)
-
-    @Slot()
     def _install_spyder_kernels(self):
-        # Store existing error page for reuse later, if necessary
-        self.installwidget.info_page = self.info_page
-
-        self._show_loading_page(self.spyk_installing_page)
-        self.installwidget.show()
-
-        # Install spyder kernels...
-        self.installwidget.install_spyder_kernels(self._pyexec)
+        self._env_menu_item_state(enable=False)
+        self.installdialog.show()
+        self.installdialog.install(dryrun=True)
 
     # ---- Public API
     # -------------------------------------------------------------------------
@@ -667,7 +644,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.infowidget is not None:
             self.set_info_page()
             self.shellwidget.hide()
-            self.installwidget.hide()
             self.infowidget.show()
 
         # Inform other plugins that the shell failed to start
@@ -779,10 +755,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def close_client(self, is_last_client, close_console=False):
         """Close the client."""
-        if self.dryrun_dialog.is_running():
-            self.dryrun_dialog.reject()
-        if self.installwidget.is_running():
-            self.installwidget.reject()
+        if self.installdialog.is_running():
+            self.installdialog.reject()
 
         self.__on_close = lambda: None
         debugging = False
@@ -1008,27 +982,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
         )
         install_mbox.accepted.connect(
-            functools.partial(self._dryrun_spyder_kernels)
+            functools.partial(self._install_spyder_kernels)
         )
         install_mbox.show()
 
     def process_kernel_install(self, exit_code, exit_status):
         self._env_menu_item_state()
-        output = self.installwidget.output()
+        output = self.installdialog.output()
 
         if exit_code == 0 and exit_status == 0:
             # Success!
             self._show_loading_page(self.env_loading_page)
             self.sig_connect_after_kernel_install.emit()
-        elif exit_code == 15 and exit_status == 1:
-            # Cancelled by user, just display previous kernel error page
-            if self.installwidget.info_page is not None:
-                # Error info_page was replaced with install info_page; need
-                # to restore error info_page
-                self._show_loading_page(self.installwidget.info_page)
-            else:
-                # Error info_page was not replaced; just show it again
-                self._show_loading_page(self.info_page)
         elif exit_code != 0 and exit_status == 0:
             # An error occurred during install
             self.show_kernel_error(f"<tt>{output}</tt>", install=True)

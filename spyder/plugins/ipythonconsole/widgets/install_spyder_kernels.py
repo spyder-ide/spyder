@@ -44,16 +44,14 @@ INSTALL_TEXT = _(
     "<tt>{}</tt><br>environment in order to work with Spyder.<br><br>"
     "Do you want Spyder to install it for you?"
 )
-SHOW_DETAILS = _("Show details")
-HIDE_DETAILS = _("Hide details")
 
 # Use suggested install commands
 SPYDER_KERNELS_CONDA = SPYDER_KERNELS_CONDA.replace(_d, "-").split()
 SPYDER_KERNELS_PIP = SPYDER_KERNELS_PIP.replace(_d, "-").split()
 
 
-class SpyderKernelInstallBaseWidget(
-    QWidget,
+class InstallSpyderKernelsDialog(
+    QDialog,
     SpyderWidgetMixin,
     SpyderFontsMixin
 ):
@@ -64,8 +62,11 @@ class SpyderKernelInstallBaseWidget(
         SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.ipyclient = parent
+        self._dryrun = True
 
-        self.text = QLabel()
+        if hasattr(parent, "container"):
+            self.setWindowTitle(parent.container._plugin.get_name())
+        self.text = QLabel(_("Inspecting environment..."))
 
         # Progress bar
         self._progress_bar = QProgressBar(self)
@@ -78,10 +79,16 @@ class SpyderKernelInstallBaseWidget(
         self._streams_area.setReadOnly(True)
         self._streams_area.setLineWrapMode(QPlainTextEdit.NoWrap)
         self._streams_area.setFont(self.get_font(SpyderFontType.Monospace))
+        self._streams_area.setMinimumSize(600, 400)
 
         self.bbox = SpyderDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.rejected.connect(self.reject)
+        self.accept_button = self.bbox.button(QDialogButtonBox.Ok)
+        self.accept_button.setText(_("Proceed"))
+        self.accept_button.setEnabled(False)
 
         layout = QVBoxLayout()
         layout.addWidget(self.text)
@@ -97,6 +104,24 @@ class SpyderKernelInstallBaseWidget(
         self._process.readyReadStandardError.connect(
             lambda: self._update_details(error=True)
         )
+        self._process.finished.connect(self._handle_process_finished)
+
+    # ---- Qt methods
+    # -------------------------------------------------------------------------
+    def accept(self):
+        self.accept_button.setEnabled(False)
+        self._streams_area.clear()
+        self._progress_bar.show()
+        self.install(dryrun=False)
+
+    def reject(self):
+        logger.info(
+            "Install spyder-kernels {}cancelled by user.",
+            "dry-run " if self._dryrun else "",
+        )
+        super().reject()
+        self._process.terminate()
+        # Note: QProcess.finished is still emitted
 
     # ---- Private API
     # -------------------------------------------------------------------------
@@ -122,8 +147,44 @@ class SpyderKernelInstallBaseWidget(
         text = str(qba.data(), "utf-8")
         self._add_text_to_streams_area(text)
 
-    def _install(self, pyexec, dryrun=False):
+    def _handle_process_finished(self, exit_code, exit_status):
+        logger.info(
+            "Install spyder-kernels {}QProcess finished. "
+            "Exit code: {}; exit status: {}",
+            "dry-run " if self._dryrun else "",
+            exit_code,
+            exit_status,
+        )
+        logger.debug(
+            "Install spyder-kernels {}output:\n{}",
+            "dry-run " if self._dryrun else "",
+            self.output()
+        )
+
+        if exit_status == QProcess.CrashExit:
+            # Cancelled by user
+            return
+
+        if self._dryrun and exit_code == 0:
+            # Success! Ask to proceed
+            self.text.setText(_(
+                "Spyder will make the following changes to "
+                "your environment. Do you want to proceed?"
+            ))
+            self._progress_bar.hide()
+            self.accept_button.setEnabled(True)
+            self.raise_()
+        else:
+            # Error or successful install, pass up to client
+            super().reject()
+            self.ipyclient.process_kernel_install(exit_code, exit_status)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def install(self, dryrun=False):
         """Install spyder-kernels"""
+        self._dryrun = dryrun
+        pyexec = self.ipyclient._pyexec
 
         if is_conda_env(pyexec=pyexec):
             exe = find_conda(mamba=True)
@@ -149,145 +210,16 @@ class SpyderKernelInstallBaseWidget(
             if dryrun:
                 cmd.insert(-1, "--dry-run")
 
-        logger.info(f"Installing spyder-kernels: {' '.join(cmd)} ...")
+        logger.info(
+            "Installing spyder-kernels{}: {} ...",
+            " dry-run" if dryrun else "",
+            " ".join(cmd),
+        )
 
         self._process.start(cmd[0], cmd[1:])
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
     def is_running(self):
         return self._process.state() == QProcess.Running
 
     def output(self):
         return self._streams_area.toPlainText()
-
-
-class SpyderKernelInstallWidget(SpyderKernelInstallBaseWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(self, parent)
-
-        self.info_page = None
-
-        self.text.hide()
-        self._progress_bar.hide()
-        self._streams_area.hide()
-        self.bbox.button(QDialogButtonBox.Ok).setText(SHOW_DETAILS)
-
-        self._process.finished.connect(self._handle_process_finished)
-
-        self.bbox.accepted.connect(self.accept)
-        self.bbox.rejected.connect(self.reject)
-
-        self.setResult(QDialog.Rejected)
-
-    # ---- Qt methods
-    # -------------------------------------------------------------------------
-    def accept(self):
-        if self._streams_area.isVisible():
-            self._hide_details()
-        else:
-            self._show_details()
-
-    def reject(self):
-        logger.info("Install spyder-kernels cancelled by user.")
-        self._process.terminate()
-        # Note: QProcess.finished is still emitted
-
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _show_details(self):
-        self.ipyclient.infowidget.hide()
-        self._streams_area.show()
-        self.bbox.button(QDialogButtonBox.Ok).setText(HIDE_DETAILS)
-
-    def _hide_details(self):
-        self._streams_area.hide()
-        self.ipyclient.infowidget.show()
-        self.bbox.button(QDialogButtonBox.Ok).setText(SHOW_DETAILS)
-
-    def _handle_process_finished(self, exit_code, exit_status):
-        output = self.output()
-        logger.info(
-            "Install spyder-kernels QProcess finished. "
-            f"Exit code: {exit_code}; exit status: {exit_status}"
-        )
-        logger.debug(
-            "Install spyder-kernels output:\n"
-            f"{output}"
-        )
-
-        self.ipyclient.process_kernel_install(exit_code, exit_status)
-
-    # ---- Public API
-    # -------------------------------------------------------------------------
-    def install(self, pyexec):
-        self._install(pyexec, dryrun=False)
-
-
-class DryRunDialog(QDialog, SpyderKernelInstallBaseWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        if hasattr(parent, "container"):
-            self.setWindowTitle(parent.container._plugin.get_name())
-        self.text = QLabel(_("Inspecting environment..."))
-
-        self.accept_button = self.bbox.button(QDialogButtonBox.Ok)
-        self.accept_button.setText(_("Proceed"))
-        self.accept_button.setEnabled(False)
-
-        self._process.finished.connect(self._handle_process_finished)
-
-        self._streams_area.setMinimumSize(600, 400)
-
-        self.bbox.rejected.connect(self.reject)
-
-        # TODO: Set status bar to "Inspecting spyder-kernels..." with spinner
-
-    # ---- Qt methods
-    # -------------------------------------------------------------------------
-    def reject(self):
-        logger.info("Install spyder-kernels dry-run cancelled by user.")
-        QDialog.reject(self)
-        self._process.terminate()
-        # Note: QProcess.finished is still emitted
-
-    # ---- Private API
-    # -------------------------------------------------------------------------
-    def _handle_process_finished(self, exit_code, exit_status):
-        output = self.output()
-        logger.info(
-            "Install spyder-kernels dry-run QProcess finished. "
-            f"Exit code: {exit_code}; exit status: {exit_status}"
-        )
-        logger.debug(
-            "Install spyder-kernels dry-run output:\n"
-            f"{output}"
-        )
-
-        # TODO: Reset status bar
-
-        if exit_status == QProcess.CrashExit:
-            # Cancelled by user
-            return
-
-        if exit_code == 0:
-            # Success!
-            self.text.setText(_(
-                "Spyder will make the following changes to "
-                "your environment. Do you want to proceed?"
-            ))
-            self._progress_bar.hide()
-            self.accept_button.setEnabled(True)
-        else:
-            self.ipyclient.show_kernel_error(
-                f"<tt>{output}</tt>",
-                install=True
-            )
-
-    # ---- Public API
-    # -------------------------------------------------------------------------
-    def install(self, pyexec):
-        self._install(pyexec, dryrun=True)
