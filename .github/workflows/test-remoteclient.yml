@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.9', '3.12']
+        PYTHON_VERSION: ['3.9', '3.12.12']
         exclude:
           - INSTALL_TYPE: 'conda'  # `python-lsp-ruff` conda-forge package `python_min` is 3.10
             PYTHON_VERSION: '3.9'
