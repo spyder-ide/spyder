@@ -1683,10 +1683,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if client.installwidget.isVisible():
-                # Keep install widget visible
-                pass
-            elif (
+            if (
                 client.info_page != client.blank_page
                 and self.enable_infowidget
             ):
