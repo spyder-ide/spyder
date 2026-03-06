@@ -44,6 +44,10 @@ INSTALL_TEXT = _(
     "<tt>{}</tt><br>environment in order to work with Spyder.<br><br>"
     "Do you want Spyder to install it for you?"
 )
+PROMPTS = (
+    "Confirm changes: [Y/n] ",
+    "Proceed ([y]/n)? ",
+)
 
 # Use suggested install commands
 SPYDER_KERNELS_CONDA = SPYDER_KERNELS_CONDA.replace(_d, "-").split()
@@ -62,7 +66,6 @@ class InstallSpyderKernelsDialog(
         SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.ipyclient = parent
-        self._dryrun = True
 
         if hasattr(parent, "container"):
             self.setWindowTitle(parent.container._plugin.get_name())
@@ -110,15 +113,11 @@ class InstallSpyderKernelsDialog(
     # -------------------------------------------------------------------------
     def accept(self):
         self.accept_button.setEnabled(False)
-        self._streams_area.clear()
+        self._process.write(b"\n")
         self._progress_bar.show()
-        self.install(dryrun=False)
 
     def reject(self):
-        logger.info(
-            "Install spyder-kernels {}cancelled by user.",
-            "dry-run " if self._dryrun else "",
-        )
+        logger.info("Install spyder-kernels cancelled by user.")
         super().reject()
         self._process.terminate()
         # Note: QProcess.finished is still emitted
@@ -130,6 +129,15 @@ class InstallSpyderKernelsDialog(
         # Note appendPlainText starts new paragraph, so strip \n.
         self._streams_area.appendPlainText(text.strip("\n"))
         self._streams_area.moveCursor(QTextCursor.End)
+
+        if text.endswith(PROMPTS):
+            self._progress_bar.hide()
+            self.accept_button.setEnabled(True)
+            self.text.setText(_(
+                "Spyder will make the following changes to "
+                "your environment. Do you want to proceed?"
+            ))
+            self.raise_()
 
     def _update_details(self, error=False):
         if error:
@@ -149,31 +157,16 @@ class InstallSpyderKernelsDialog(
 
     def _handle_process_finished(self, exit_code, exit_status):
         logger.info(
-            "Install spyder-kernels {}QProcess finished. "
+            "Install spyder-kernels QProcess finished. "
             "Exit code: {}; exit status: {}",
-            "dry-run " if self._dryrun else "",
             exit_code,
             exit_status,
         )
-        logger.debug(
-            "Install spyder-kernels {}output:\n{}",
-            "dry-run " if self._dryrun else "",
-            self.output()
-        )
+        logger.debug(f"Install spyder-kernels output:\n{self.output()}")
 
         if exit_status == QProcess.CrashExit:
             # Cancelled by user
             return
-
-        if self._dryrun and exit_code == 0:
-            # Success! Ask to proceed
-            self.text.setText(_(
-                "Spyder will make the following changes to "
-                "your environment. Do you want to proceed?"
-            ))
-            self._progress_bar.hide()
-            self.accept_button.setEnabled(True)
-            self.raise_()
         else:
             # Error or successful install, pass up to client
             super().reject()
@@ -181,9 +174,8 @@ class InstallSpyderKernelsDialog(
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def install(self, dryrun=False):
+    def install(self):
         """Install spyder-kernels"""
-        self._dryrun = dryrun
         pyexec = self.ipyclient._pyexec
 
         if is_conda_env(pyexec=pyexec):
@@ -192,11 +184,9 @@ class InstallSpyderKernelsDialog(
 
             channel, channel_url = get_conda_channel(pyexec, "python")
 
-            install_options = ["--yes", "--prefix", env_path]
+            install_options = ["--prefix", env_path]
             if re.search("conda(.bat|.exe)?$", exe):
                 install_options.append("--quiet")
-            if dryrun:
-                install_options.append("--dry-run")
             if channel is not None:
                 install_options.extend(["-c", channel])
 
@@ -207,14 +197,8 @@ class InstallSpyderKernelsDialog(
         else:
             # Pip environment
             cmd = [pyexec, "-m"] + SPYDER_KERNELS_PIP
-            if dryrun:
-                cmd.insert(-1, "--dry-run")
 
-        logger.info(
-            "Installing spyder-kernels{}: {} ...",
-            " dry-run" if dryrun else "",
-            " ".join(cmd),
-        )
+        logger.info("Installing spyder-kernels: {' '.join(cmd)} ...")
 
         self._process.start(cmd[0], cmd[1:])
 

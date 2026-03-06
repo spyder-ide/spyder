@@ -485,7 +485,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     def _install_spyder_kernels(self):
         self._env_menu_item_state(enable=False)
         self.installdialog.show()
-        self.installdialog.install(dryrun=True)
+        self.installdialog.install()
 
     # ---- Public API
     # -------------------------------------------------------------------------
