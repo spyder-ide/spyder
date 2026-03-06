@@ -25,6 +25,7 @@ import codecs
 import os
 import os.path as osp
 import pathlib
+import re
 import shutil
 import sys
 from tempfile import mkdtemp
@@ -224,6 +225,11 @@ def sphinxify(docstring, context, buildername='html'):
     for char in ['=', ',', '(', ')', '*', '**']:
         argspec = argspec.replace(char,
                          '<span class="argspec-highlight">' + char + '</span>')
+
+    argspec = argspec.replace(
+        '-&gt;',
+        '<span class="argspec-highlight">-&gt;</span>'
+    )
     context['argspec'] = argspec
 
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
