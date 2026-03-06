@@ -17,6 +17,7 @@ Editor widget based on QtGui.QPlainTextEdit
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 from unicodedata import category
 import logging
 import os
@@ -36,7 +37,13 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
                         QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
                         QTextDocument, QTextFormat, QTextOption,
                         QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
+from qtpy.QtWidgets import (
+    QApplication,
+    QMessageBox,
+    QSplitter,
+    QScrollBar,
+    QWidget,
+)
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
@@ -44,7 +51,8 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
@@ -248,8 +256,17 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     # Used to signal that a text deletion was triggered
     sig_delete_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        extensions: list[type[EditorExtension]] | None = None,
+    ):
         super().__init__(parent, class_parent=parent)
+
+        # Editor extensions
+        self._extensions = extensions
+        if self._extensions is None:
+            self._extensions = []
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -260,8 +277,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.init_multi_cursor()
 
         self.text_helper = TextHelper(self)
-
         self._panels = PanelsManager(self)
+        self.editor_extensions = EditorExtensionsManager(self)
 
         # Mouse moving timer / Hover hints handling
         # See: mouseMoveEvent
@@ -294,18 +311,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._last_hover_pattern_key = None
         self._last_hover_pattern_text = None
 
-        # 79-col edge line
-        self.edge_line = self.panels.register(
-            EdgeLine(),
-            Panel.Position.FLOATING
-        )
-
-        # indent guides
-        self.indent_guides = self.panels.register(
-            IndentationGuide(),
-            Panel.Position.FLOATING
-        )
-
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -316,22 +321,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.scrollpastend_enabled = False
 
         self.background = QColor('white')
-
-        # Folding
-        self.folding_panel = self.panels.register(FoldingPanel())
-
-        # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea())
-
-        # Set order for the left panels
-        self.linenumberarea.order_in_zone = 2
-        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
-
-        # Class and Method/Function Dropdowns
-        self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(),
-            Panel.Position.TOP,
-        )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -378,14 +367,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
-        # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(
-            ScrollFlagArea(),
-            Panel.Position.RIGHT
-        )
+        # Register panels
+        self.register_panels()
 
-        self.panels.refresh()
-
+        # Document id
         self.document_id = id(self)
 
         # Indicate occurrences of the selected word
@@ -499,11 +484,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Hover hints
         self.hover_hints_enabled = None
 
-        # Editor Extensions
-        self.editor_extensions = EditorExtensionsManager(self)
-        self.editor_extensions.add(CloseQuotesExtension())
-        self.editor_extensions.add(SnippetsExtension())
-        self.editor_extensions.add(CloseBracketsExtension())
+        # Register editor extensions
+        self.register_extensions()
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -722,6 +704,40 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         used to manage the collection of installed panels
         """
         return self._panels
+
+    def register_panels(self):
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            PanelPosition.FLOATING
+        )
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            PanelPosition.FLOATING
+        )
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(),
+            PanelPosition.TOP,
+        )
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            PanelPosition.RIGHT
+        )
+        self.folding_panel = self.panels.register(FoldingPanel())
+        self.linenumberarea = self.panels.register(LineNumberArea())
+
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
+
+        self.panels.refresh()
+
+    def register_extensions(self):
+        for ExtensionClass in self._extensions + [
+            CloseBracketsExtension,
+            CloseQuotesExtension,
+            SnippetsExtension,
+        ]:
+            self.editor_extensions.add(ExtensionClass())
 
     def setup_editor(self,
                      linenumbers=True,
@@ -1668,14 +1684,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def calculate_real_position_from_global(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() - self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):

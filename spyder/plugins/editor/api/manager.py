@@ -32,7 +32,7 @@ class Manager(object):
         editor = CodeEditor()
 
         # use the panels controller to install a panel
-        editor.panels.install(MyPanel(), MyPanel.Position.Right)
+        editor.panels.install(MyPanel(), PanelPosition.Right)
         my_panel = editor.panels.get(MyPanel)
 
         # and so on
