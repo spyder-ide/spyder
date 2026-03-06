@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip']  # conda has no PyQt6 package
-        PYTHON_VERSION: ['3.10']
+        PYTHON_VERSION: ['3.10.19']
         TEST_TYPE: ['fast', 'slow']
         SPYDER_QT_BINDING: ['pyqt6'] # TODO add 'pyside6' once Spyder supports it
     timeout-minutes: 90
