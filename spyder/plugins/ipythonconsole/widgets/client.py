@@ -28,7 +28,7 @@ import typing
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
-from qtpy.QtWidgets import QApplication, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QApplication, QMessageBox, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.asyncdispatcher import AsyncDispatcher
@@ -46,12 +46,19 @@ from spyder.utils.installers import InstallerIPythonKernelError
 from spyder.utils.environ import RemoteEnvDialog
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import DialogManager
-from spyder.plugins.ipythonconsole import SpyderKernelError
+from spyder.plugins.ipythonconsole import (
+    SpyderKernelError,
+    SPYDER_KERNELS_MIN_VERSION,
+)
 from spyder.plugins.ipythonconsole.utils.kernel_handler import (
     KernelConnectionState,
     KernelHandler
 )
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.plugins.ipythonconsole.widgets.install_spyder_kernels import (
+    INSTALL_TEXT,
+    InstallSpyderKernelsDialog,
+)
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.mixins import SaveHistoryMixin
 
@@ -95,6 +102,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
     sig_append_to_history_requested = Signal(str, str)
     sig_execution_state_changed = Signal()
     sig_time_label = Signal(str)
+
+    sig_connect_after_kernel_install = Signal()
 
     # Signals for remote kernels
     sig_restart_kernel_requested = Signal()
@@ -160,6 +169,10 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             self.css_path = css_path
 
         # --- Widgets
+        self.installdialog = InstallSpyderKernelsDialog(parent=self)
+        self.installdialog.rejected.connect(self._env_menu_item_state)
+        self._pyexec = None
+
         self.shellwidget = self.SHELL_WIDGET_CLASS(
             config=config_options,
             ipyclient=self,
@@ -171,12 +184,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.infowidget = self.container.infowidget
         self.blank_page = self._create_blank_page()
         self.kernel_loading_page = self._create_loading_page()
-        self.env_loading_page = self._create_loading_page(env=True)
         self.slow_connection_loading_page = self._create_loading_page(
             message=_("Waiting for the remote kernel to respond...")
         )
         self.reconnecting_loading_page = self._create_loading_page(
             message=_("Reconnecting to remote kernel...")
+        )
+        self.env_loading_page = self._create_loading_page(
+            message=_("Retrieving environment variables...")
         )
 
         if self.is_remote():
@@ -213,7 +228,7 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         # --- Dialog manager
         self.dialog_manager = DialogManager()
 
-        #--- Remote kernels states
+        # --- Remote kernels states
         self.__remote_restart_requested = False
         self.__remote_reconnect_requested = False
         self._remote_reconnect_attempts_max = 10
@@ -257,16 +272,16 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         if self.give_focus:
             self.shellwidget._control.setFocus()
 
-    def _create_loading_page(self, env=False, message=None):
+    def _create_loading_page(self, message=None):
         """Create html page to show while the kernel is starting"""
         loading_template = Template(LOADING)
         loading_img = get_image_path('loading_sprites')
         if os.name == 'nt':
             loading_img = loading_img.replace('\\', '/')
-        if env and message is None:
-            message = _("Retrieving environment variables...")
+
         if message is None:
             message = _("Connecting to kernel...")
+
         page = loading_template.substitute(
             css_path=self.css_path,
             loading_img=loading_img,
@@ -285,9 +300,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         """Show animation while loading."""
         if self.infowidget is not None:
             self.shellwidget.hide()
-            self.infowidget.show()
             self.info_page = page if page else self.kernel_loading_page
             self.set_info_page()
+            self.infowidget.show()
 
     def _hide_loading_page(self):
         """Hide animation shown while loading."""
@@ -460,6 +475,18 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
         return page, error_text
 
+    @Slot()
+    def _env_menu_item_state(self, enable=True):
+        if self._pyexec is None:
+            return
+        self.container.environment_menu_item_state(self._pyexec, enable=enable)
+
+    @Slot()
+    def _install_spyder_kernels(self):
+        self._env_menu_item_state(enable=False)
+        self.installdialog.show()
+        self.installdialog.install()
+
     # ---- Public API
     # -------------------------------------------------------------------------
     @property
@@ -592,10 +619,13 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         else:
             self.shellwidget.pdb_execute_command('exit')
 
-    def show_kernel_error(self, error):
+    def show_kernel_error(self, error, install=False):
         """Show kernel initialization errors in infowidget."""
         # Create error page
-        message = _("An error occurred while starting the kernel")
+        if install:
+            message = _("An error occurred while installing spyder-kernels")
+        else:
+	        message = _("An error occurred while starting the kernel")
         self.info_page, error_text = self._render_error_page(
             error, message
         )
@@ -725,6 +755,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
 
     def close_client(self, is_last_client, close_console=False):
         """Close the client."""
+        if self.installdialog.is_running():
+            self.installdialog.reject()
+
         self.__on_close = lambda: None
         debugging = False
 
@@ -936,6 +969,41 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
                 QUrl.fromLocalFile(self.css_path)
             )
             self.sig_execution_state_changed.emit()
+
+    def show_install_mbox(self, pyexec):
+        self._pyexec = pyexec
+
+        install_mbox = QMessageBox(self)
+        install_mbox.setIcon(QMessageBox.Icon.Question)
+        install_mbox.setWindowTitle(self.container._plugin.get_name())
+        install_mbox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        install_mbox.button(QMessageBox.Yes).setText(_("Install"))
+        install_mbox.setText(
+            INSTALL_TEXT.format(SPYDER_KERNELS_MIN_VERSION, pyexec)
+        )
+        install_mbox.accepted.connect(
+            functools.partial(self._install_spyder_kernels)
+        )
+        install_mbox.show()
+
+    def process_kernel_install(self, exit_code, exit_status):
+        self._env_menu_item_state()
+        output = self.installdialog.output()
+
+        if exit_code == 0 and exit_status == 0:
+            # Success!
+            self._show_loading_page(self.env_loading_page)
+            self.sig_connect_after_kernel_install.emit()
+        elif exit_code != 0 and exit_status == 0:
+            # An error occurred during install
+            self.show_kernel_error(f"<tt>{output}</tt>", install=True)
+        else:
+            # Unknown error
+            logger.error(
+                "Unknown installer error. "
+                f"Exit code: {exit_code}; exit status: {exit_status}; "
+                "output:\n{output}"
+            )
 
     # ---- For remote clients
     # -------------------------------------------------------------------------

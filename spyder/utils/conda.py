@@ -13,6 +13,7 @@ import json
 import os
 import os.path as osp
 import sys
+from typing import Union, Optional
 
 # Third-party imports
 from packaging.version import parse
@@ -73,34 +74,51 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def find_conda(pyexec=None):
+def find_conda(pyexec=None, mamba=False):
     """
-    Find conda executable.
+    Find a conda or mamba executable.
 
-    `pyexec` is a python executable, the relative location from which to
-    attempt to locate a conda executable.
+    Parameters
+    ----------
+    pyexec: str | None
+        Path to a python executable, the relative location from which to
+        attempt to locate a conda or mamba executable.
+
+        If an executable is not found from CONDA_EXE, then this executable and
+        sys.executable are used to find a conda or mamba executable.
+    mamba: bool (False)
+        Whether to find a conda (False) or mamba (True) executable.
+
+    Returns
+    -------
+    exe: str | None
+        Path to found executable. None if not found.
+
     """
-    conda = None
+    exe = "mamba" if mamba else "conda"
+    exec_path = None
 
     # First try Spyder's conda executable
     if is_conda_based_app():
         root = osp.dirname(os.environ['CONDA_EXE'])
-        conda = osp.join(root, 'conda.exe' if WINDOWS else 'conda')
+        exec_path = osp.join(root, exe + '.exe' if WINDOWS else exe)
 
     # Next try the environment variables
-    if conda is None:
-        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+    if exec_path is None:
+        exec_path = os.environ.get('CONDA_EXE')
+        if mamba:
+            # Get mamba, but fall back to conda
+            exec_path = os.environ.get('MAMBA_EXE', exec_path)
 
     # Next try searching for the executable
-    if conda is None:
-        conda_exec = 'conda.bat' if WINDOWS else 'conda'
+    if exec_path is None:
         extra_paths = [
             osp.join(get_conda_root_prefix(_pyexec), 'condabin')
             for _pyexec in [sys.executable, pyexec]
         ]
-        conda = find_program(conda_exec, extra_paths)
+        exec_path = find_program(exe + ".bat" if WINDOWS else exe, extra_paths)
 
-    return conda
+    return exec_path
 
 
 def find_pixi(pyexec=None):
@@ -209,15 +227,33 @@ def is_anaconda_pkg(prefix=sys.prefix):
     return False
 
 
-def get_spyder_conda_channel():
-    """Get the conda channel from which Spyder was installed."""
+def get_conda_channel(
+    pyexec: str, pkg: str
+) -> Union[Optional[str], Optional[str]]:
+    """
+    Get the channel from which the given package is installed.
+
+    Parameters
+    ----------
+    pyexec : str
+        Path to the Python executable in the relevant environment.
+    pkg : str
+        Name of the package for which to get the installation channel.
+
+    Returns
+    -------
+    channel : str | None
+        Conda channel from which pkg is installed.
+    channel_url : str | None
+        URL for the channel from which pkg is installed.
+    """
     conda = find_conda()
 
     if conda is None:
         return None, None
 
-    env = get_conda_env_path(sys.executable)
-    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+    env = get_conda_env_path(pyexec, quote=True)
+    cmdstr = ' '.join([conda, 'list', pkg, '--json', '--prefix', env])
 
     try:
         out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
@@ -236,7 +272,7 @@ def get_spyder_conda_channel():
     channel, channel_url = None, None
 
     for package_info in out:
-        if package_info["name"] == 'spyder':
+        if package_info["name"] == pkg:
             channel = package_info["channel"]
             channel_url = package_info["base_url"]
 
@@ -244,6 +280,11 @@ def get_spyder_conda_channel():
         channel_url = None
 
     return channel, channel_url
+
+
+def get_spyder_conda_channel() -> Union[Optional[str], Optional[str]]:
+    """Get the conda channel from which Spyder was installed."""
+    return get_conda_channel(sys.executable, "spyder")
 
 
 @lru_cache(maxsize=10)
