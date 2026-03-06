@@ -171,10 +171,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
-    sig_show_object_info = Signal(bool)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
     sig_refresh_formatting = Signal()
+
+    sig_show_object_info = Signal(bool)
+    """
+    Request showing an object's docstring in the Help plugin.
+
+    Parameters
+    ----------
+    clicked: bool
+        Whether the request is done when clicking the object's hover hint.
+    """
 
     #: Signal emitted when the editor loses focus
     sig_focus_changed = Signal()
