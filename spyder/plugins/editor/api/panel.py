@@ -56,46 +56,30 @@ class Panel(QWidget, EditorExtension):
     Base class for editor panels.
 
     A panel is a editor extension and a QWidget.
-
-    .. note:: Use enabled to disable panel actions and setVisible to change the
-        visibility of the panel.
     """
-    @property
-    def scrollable(self):
+
+    def __init__(self):
+        EditorExtension.__init__(self)
+        QWidget.__init__(self)
+
+        self.position: PanelPosition | None = None
+        """Position in the editor (top, left, right, bottom)."""
+
+        self.order_in_zone: int = -1
+        """Panel order into the zone it is installed into."""
+
+        self.scrollable: bool = False
         """
         A scrollable panel will follow the editor's scroll-bars.
 
         Left and right panels follow the vertical scrollbar. Top and bottom
         panels follow the horizontal scrollbar.
-
-        :type: bool
         """
-        return self._scrollable
 
-    @scrollable.setter
-    def scrollable(self, value):
-        self._scrollable = value
-
-    def __init__(self, dynamic=False):
-        EditorExtension.__init__(self)
-        QWidget.__init__(self)
-
-        # Specifies whether the panel is dynamic. A dynamic panel is a panel
-        # that will be shown/hidden depending on the context.
-        # Dynamic panel should not appear in any GUI menu
-        self.dynamic = dynamic
-
-        # Panel order into the zone it is installed to. This value is
-        # automatically set when installing the panel but it can be changed
-        # later (negative values can also be used).
-        self.order_in_zone = -1
-        self._scrollable = False
+        # Private attributes
         self._background_brush = None
-        self.linecell_color = QColor(Qt.darkGray)
+        self._linecell_color = QColor(Qt.darkGray)  # TODO: Use theme color
         self._foreground_pen = None
-
-        # Position in the editor (top, left, right, bottom)
-        self.position = None
 
     def on_install(self, editor):
         """
@@ -150,11 +134,11 @@ class Panel(QWidget, EditorExtension):
             ]:
                 pen = painter.pen()
                 pen.setStyle(Qt.SolidLine)
-                pen.setBrush(self.linecell_color)
+                pen.setBrush(self._linecell_color)
                 painter.setPen(pen)
-                painter.drawLine(0, top_position, self.width(),
-                                 top_position)
-
+                painter.drawLine(
+                    0, top_position, self.width(), top_position
+                )
 
     def sizeHint(self):
         """
