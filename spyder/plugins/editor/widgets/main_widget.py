@@ -3360,10 +3360,3 @@ class EditorMainWidget(PluginMainWidget):
         """
         for editorstack in self.editorstacks:
             editorstack.set_current_project_path(root_path)
-
-    def register_panel(self, panel_class, *args, position=PanelPosition.LEFT,
-                       **kwargs):
-        """Register a panel in all the editorstacks in the given position."""
-        for editorstack in self.editorstacks:
-            editorstack.register_panel(
-                panel_class, *args, position=position, **kwargs)
