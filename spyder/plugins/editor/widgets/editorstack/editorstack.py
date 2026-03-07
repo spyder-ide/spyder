@@ -44,7 +44,7 @@ from spyder.config.utils import (
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.editor.api.editorextension import EditorExtension
-from spyder.plugins.editor.api.panel import PanelPosition
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
 from spyder.plugins.editor.widgets import codeeditor
@@ -2626,12 +2626,15 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         cloned_from: bool = None,
         add_where: str = "end",
         extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
     ):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(self, extensions=extensions)
+        editor = codeeditor.CodeEditor(
+            self, extensions=extensions, panels=panels
+        )
         editor.go_to_definition.connect(
             lambda fname, line, column: self.sig_go_to_definition.emit(
                 fname, line, column))
@@ -2812,6 +2815,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         default_content: bool = False,
         empty: bool = False,
         extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
     ):
         """
         Create new filename with *encoding* and *text*
@@ -2823,6 +2827,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             set_current=False,
             new=True,
             extensions=extensions,
+            panels=panels,
         )
         finfo.editor.set_cursor_position('eof')
         if not empty:
@@ -2839,6 +2844,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         add_where: str = "end",
         processevents: bool = True,
         extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
     ):
         """
         Load filename, create an editor instance and return it.
@@ -2870,6 +2876,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             set_current,
             add_where=add_where,
             extensions=extensions,
+            panels=panels,
         )
         index = self.data.index(finfo)
 

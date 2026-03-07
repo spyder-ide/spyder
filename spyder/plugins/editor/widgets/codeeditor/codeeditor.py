@@ -274,13 +274,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self,
         parent: QWidget | None = None,
         extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
     ):
         super().__init__(parent, class_parent=parent)
 
         # Editor extensions
-        self._extensions = extensions
-        if self._extensions is None:
-            self._extensions = []
+        self._external_extensions = extensions
+        if self._external_extensions is None:
+            self._external_extensions = []
+
+        # Panels
+        self._external_panels = panels
+        if self._external_panels is None:
+            self._external_panels = []
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -740,10 +746,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.linenumberarea.order_in_zone = 2
         self.folding_panel.order_in_zone = 0  # Debugger panel is 1
 
+        # Register third-party panels
+        for PanelClass, position in self._external_panels:
+            self.panels.register(PanelClass(), position)
+
         self.panels.refresh()
 
     def register_extensions(self):
-        for ExtensionClass in self._extensions + [
+        for ExtensionClass in self._external_extensions + [
             CloseBracketsExtension,
             CloseQuotesExtension,
             SnippetsExtension,

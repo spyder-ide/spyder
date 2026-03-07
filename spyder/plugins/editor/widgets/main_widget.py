@@ -1843,6 +1843,7 @@ class EditorMainWidget(PluginMainWidget):
             default_content,
             empty=True,
             extensions=self._plugin.extensions,
+            panels=self._plugin.panels,
         )
 
         # This is necessary to avoid an error in our tests
@@ -1975,6 +1976,7 @@ class EditorMainWidget(PluginMainWidget):
                     add_where=add_where,
                     processevents=processevents,
                     extensions=self._plugin.extensions,
+                    panels=self._plugin.panels,
                 )
 
                 # This can happen when it was not possible to load filename
