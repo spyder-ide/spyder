@@ -119,8 +119,9 @@ def test_files_encodings(expected_encoding, text_file):
 def test_file_gid(tmpdir):
     gid_file = tmpdir.mkdir("sub").join("random_log.log")
     gid_file.write("Some random text")
-    # adm gid for Linux and staff gid for macOS
-    original_gid = 4 if sys.platform.startswith("linux") else 20
+    # `adm` gid for Linux and `everyone` gid for macOS
+    original_gid = 4 if sys.platform.startswith("linux") else 12
+    assert original_gid != os.stat(gid_file).st_gid
     os.chown(str(gid_file), -1, original_gid)
 
     write("Some random log text and more", gid_file)
