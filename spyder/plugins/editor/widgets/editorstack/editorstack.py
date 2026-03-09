@@ -1281,7 +1281,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Set new filename
         finfo.filename = new_filename
-        finfo.editor.filename = new_filename
 
         # File type has changed!
         original_ext = osp.splitext(original_filename)[1]
@@ -1313,7 +1312,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
-        finfo.editor.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:

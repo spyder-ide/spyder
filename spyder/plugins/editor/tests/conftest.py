@@ -25,6 +25,7 @@ from qtpy.QtWidgets import QMainWindow
 import pytest
 
 from spyder.config.manager import CONF
+from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.editor.plugin import Editor
 
 
@@ -48,27 +49,47 @@ def editor_plugin(qtbot, monkeypatch):
             else:
                 return Mock()
 
-        def get_plugin(self, plugin_name, error=True):
-            if plugin_name in [
-                    Plugins.IPythonConsole,
-                    Plugins.Projects,
-                    Plugins.Debugger]:
-                return None
-            else:
-                return Mock()
-
+    # Setup main window
     window = MainMock()
     configuration = CONF
+
+    # Setup editor
     editor = Editor(window, configuration)
     editor.on_initialize()
+    #editor.add_panel(DebuggerPanel)
     editor.update_font()  # Set initial font
+
+    # Setup debugger
+    debugger = Debugger(window, configuration)
+    debugger.on_initialize()
+
+    # Set get_plugin for main window
+    def get_plugin(plugin_name, error=True):
+        if plugin_name in [
+            Plugins.IPythonConsole,
+            Plugins.Projects,
+        ]:
+            return None
+        elif plugin_name == Plugins.Editor:
+            return editor
+        elif plugin_name == Plugins.Debugger:
+            return debugger
+        else:
+            return Mock()
+
+    window.get_plugin = get_plugin
+    debugger.on_editor_available()
+
+    # Show window
     window.setCentralWidget(editor.get_widget())
     window.resize(640, 480)
+
     qtbot.addWidget(window)
     window.show()
 
     yield editor
 
+    # Teardown
     editor.on_close()
     CONF.remove_option('editor', 'autosave_mapping')
 

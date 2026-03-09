@@ -20,6 +20,7 @@ import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.widgets.editorstack import (
@@ -640,6 +641,33 @@ def test_add_panel(editor_plugin, position, qtbot):
     # Remove created file to prevent issues with other tests
     editor_plugin.get_widget().close_file()
     os.remove(osp.join(getcwd_or_home(), "foo.py"))
+
+
+def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
+    """Test debugger panel is shown/hidden after file renames."""
+    # Create empty file
+    editor_plugin.new()
+    editor = editor_plugin.get_current_editor()
+
+    # Check panel is visible because all new files are Python ones
+    debugger_panel = editor.panels.get(DebuggerPanel)
+    assert debugger_panel.isVisible()
+
+    # Rename to a non-Python file and check the panel is hidden
+    editorstack = editor_plugin.get_current_editorstack()
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=str(tmp_path / 'foo.txt')
+    )
+    assert editorstack.save_as() is True
+    assert not debugger_panel.isVisible()
+
+    # Rename to a Python file and check the panel is shown again
+    py_fname = tmp_path / 'foo.py'
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=str(py_fname)
+    )
+    assert editorstack.save_as() is True
+    assert debugger_panel.isVisible()
 
 
 if __name__ == "__main__":
