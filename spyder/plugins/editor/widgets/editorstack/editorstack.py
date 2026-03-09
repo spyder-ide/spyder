@@ -720,9 +720,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         fname = other_finfo.filename
         enc = other_finfo.encoding
         new = other_finfo.newly_created
-        finfo = self.create_new_editor(fname, enc, "",
-                                       set_current=set_current, new=new,
-                                       cloned_from=other_finfo.editor)
+        finfo = self.create_new_editor(
+            fname,
+            enc,
+            "",
+            set_current=set_current,
+            new=new,
+            cloned_from=other_finfo.editor,
+            extensions=other_finfo.editor.external_extensions,
+            panels=other_finfo.editor.external_panels,
+        )
         finfo.set_todo_results(other_finfo.todo_results)
         return finfo.editor
 
