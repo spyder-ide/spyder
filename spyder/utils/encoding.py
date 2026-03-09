@@ -322,7 +322,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
                     textfile.write(text)
         try:
             os.chmod(absolute_filename, original_mode)
-            if sys.platform.startswith("linux") and original_gid is not None:
+            if os.name != "nt" and original_gid is not None:
                 os.chown(absolute_filename, -1, original_gid)
             file_stat = os.stat(absolute_filename)
             # Preserve creation timestamps
