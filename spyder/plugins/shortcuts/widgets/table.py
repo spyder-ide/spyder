@@ -337,7 +337,7 @@ class ShortcutEditor(QDialog):
         new_qsequence = self.new_qsequence
         no_match = QKeySequence.SequenceMatch.NoMatch
 
-        contexts = ['_', 'find_replace']
+        global_contexts = ['_', 'find_replace']
 
         for shortcut in self.shortcuts:
             shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
@@ -347,8 +347,8 @@ class ShortcutEditor(QDialog):
                 continue
             if (
                 shortcut.context == self.context
-                or shortcut.context in contexts
-                or self.context in contexts
+                or shortcut.context in global_contexts
+                or self.context in global_contexts
             ):
                 if (shortcut_qsequence.matches(new_qsequence) != no_match or
                         new_qsequence.matches(shortcut_qsequence) != no_match):
