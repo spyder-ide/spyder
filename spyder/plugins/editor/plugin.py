@@ -321,13 +321,19 @@ class Editor(SpyderDockablePlugin):
             context_modificator=SelectionContextModificator.FromLine
         )
 
+        self.get_widget().add_run_actions_to_codeeditor_context_menu()
+
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         widget = self.get_widget()
         run = self.get_plugin(Plugins.Run)
+
+        widget.remove_run_actions_from_codeeditor_context_menu()
+
         run.deregister_run_configuration_provider(
             self.NAME, widget.supported_run_extensions
         )
+
         run.destroy_run_button(RunContext.Cell)
         run.destroy_run_button(
             RunContext.Cell,
@@ -381,7 +387,7 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        edit_menu.aboutToShow.connect(widget.update_edit_menu)
+        edit_menu.aboutToShow.connect(widget.update_edit_actions)
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -419,12 +425,6 @@ class Editor(SpyderDockablePlugin):
                 section=SearchMenuSections.Cursor,
                 before_section=SearchMenuSections.FindInFiles,
             )
-
-        # ---- Source menu ----
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source
-        )
-        source_menu.aboutToShow.connect(widget.refresh_formatter_name)
 
         # Options section
         option_actions = widget.checkable_actions.values()
@@ -492,7 +492,7 @@ class Editor(SpyderDockablePlugin):
 
         # ---- Edit menu ----
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
-        edit_menu.aboutToShow.disconnect(widget.update_edit_menu)
+        edit_menu.aboutToShow.disconnect(widget.update_edit_actions)
 
         # Editor section
         for edit_item in widget.edit_menu_actions:
@@ -535,12 +535,6 @@ class Editor(SpyderDockablePlugin):
                 cursor_item,
                 menu_id=ApplicationMenus.Search
             )
-
-        # ---- Source menu ----
-        source_menu = mainmenu.get_application_menu(
-            ApplicationMenus.Source
-        )
-        source_menu.aboutToShow.disconnect(widget.refresh_formatter_name)
 
         # Options section
         option_actions = widget.checkable_actions.values()
@@ -704,10 +698,14 @@ class Editor(SpyderDockablePlugin):
         self._enable_search_action(ApplicationActions.FindPrevious, True)
         self._enable_search_action(ApplicationActions.ReplaceText, True)
 
+        self.get_widget().add_application_actions_to_codeeditor_context_menu()
+
     @on_plugin_teardown(plugin=Plugins.Application)
     def on_application_teardown(self):
         application = self.get_plugin(Plugins.Application)
         widget = self.get_widget()
+
+        widget.remove_application_actions_from_codeeditor_context_menu()
         widget.sig_new_recent_file.disconnect(application.add_recent_file)
         widget.sig_file_action_enabled.disconnect(self._enable_file_action)
         widget.sig_edit_action_enabled.disconnect(self._enable_edit_action)
