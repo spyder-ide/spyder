@@ -1780,6 +1780,12 @@ class EditorMainWidget(PluginMainWidget):
 
         current_es.set_current_filename(finfo.filename)
 
+        # Prevent KeyError when closing all files and not giving focus to
+        # the untitled one that is created before running it.
+        # Fixes spyder-ide/spyder#23299
+        if self.editorstacks[0].get_stack_count() == 1:
+            self.update_run_focus_file()
+
         if not created_from_here:
             self.save(force=True)
 
@@ -2161,10 +2167,11 @@ class EditorMainWidget(PluginMainWidget):
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
         dirname = osp.abspath(str(source))
+        dirname_with_sep = dirname + osp.sep
         tofile = str(dest)
         for fname in self.get_filenames():
-            if osp.abspath(fname).startswith(dirname):
-                source_re = "^" + re.escape(source)
+            if osp.abspath(fname).startswith(dirname_with_sep):
+                source_re = "^" + re.escape(dirname)
                 dest_quoted = dest.replace("\\", r"\\")
                 new_filename = re.sub(source_re, dest_quoted, fname)
                 self.renamed(source=fname, dest=new_filename)

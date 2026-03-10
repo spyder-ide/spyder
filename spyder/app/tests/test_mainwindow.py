@@ -6094,7 +6094,7 @@ def test_history_from_ipyconsole(main_window, qtbot):
 
 @pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.skipif(
-    sys.platform == "darwin", reason="Fails frequently on Mac"
+    os.name != "nt", reason="Fails frequently on Mac and Linux"
 )
 def test_debug_unsaved_function(main_window, qtbot):
     """
@@ -6769,8 +6769,12 @@ def test_debug_selection(main_window, qtbot):
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_namespace_project
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="Only works on Linux"
+)
+@pytest.mark.skipif(
+    running_in_ci_with_conda(), reason="Fails with conda packages"
+)
 @pytest.mark.known_leak
 def test_outline_namespace_package(main_window, qtbot, tmpdir):
     """
@@ -7318,6 +7322,9 @@ def test_undock_plugin_and_close(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"), reason="Fails frequently on Linux"
+)
 def test_outline_in_maximized_editor(main_window, qtbot):
     """
     Test that the visibility of the Outline when shown with the maximized

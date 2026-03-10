@@ -1989,8 +1989,11 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Add client to widget
         self.add_tab(
-            client, name=client.get_name(), filename=filename,
-            give_focus=give_focus)
+            client,
+            name=client.get_name(),
+            filename=filename,
+            give_focus=give_focus,
+        )
 
         return client
 
@@ -2304,11 +2307,25 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 client.is_remote()
                 and client.jupyter_api.server_id == server_id
             ):
+                # Since the server is being stopped, we can safely close the
+                # client's remote APIs (e.g. Jupyter and files). That will
+                # prevent sending additional requests to the server (e.g. to
+                # shutdown the kernel), which at some point it won't be able to
+                # process.
+                client.close_remote_apis()
+
                 is_last_client = (
                     len(self.get_related_clients(client, open_clients)) == 0
                 )
                 client.close_client(is_last_client)
                 open_clients.remove(client)
+
+        # Set clients list with those that are left open
+        self.clients = open_clients
+
+        # Create a new client if the console is about to become empty
+        if not self.tabwidget.count() and self.create_new_client_if_empty:
+            self.create_new_client()
 
     def reconnect_remote_clients(self, server_id):
         """Request reconnection for all clients bound to a remote server."""

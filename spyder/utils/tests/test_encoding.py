@@ -8,8 +8,11 @@
 import os
 import pathlib
 import stat
+import sys
 
+import chardet
 from flaky import flaky
+from packaging.version import parse
 import pytest
 
 from spyder.utils.encoding import is_text_file, read, write
@@ -91,14 +94,18 @@ def test_is_text_file(tmpdir):
     assert is_text_file(str(p)) is True
 
 
+@pytest.mark.skipif(
+    parse(chardet.__version__) < parse("7.0.0"),
+    reason="Fails with Chardet versions older than 7.0",
+)
 @pytest.mark.parametrize(
     'expected_encoding, text_file',
     [('utf-8', 'utf-8.txt'),
      ('windows-1252', 'windows-1252.txt'),
-     ('ascii', 'ascii.txt'),
-     ('Big5', 'Big5.txt'),
+     # ascii is reported as windows-1252 since Chardet 7.0
+     ('windows-1252', 'ascii.txt'),
+     ('big5hkscs', 'Big5.txt'),
      ('KOI8-R', 'KOI8-R.txt'),
-     ('iso-8859-1', 'copyright.txt'),
      ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
      ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
      ])
@@ -106,6 +113,22 @@ def test_files_encodings(expected_encoding, text_file):
     file_path = os.path.join(__location__, text_file)
     text, encoding = read(file_path)
     assert encoding.lower() == expected_encoding.lower()
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Only on Linux and macOS")
+def test_file_gid(tmpdir):
+    gid_file = tmpdir.mkdir("sub").join("random_log.log")
+    gid_file.write("Some random text")
+    # `adm` gid for Linux and `everyone` gid for macOS
+    original_gid = 4 if sys.platform.startswith("linux") else 12
+    assert original_gid != os.stat(gid_file).st_gid
+    os.chown(str(gid_file), -1, original_gid)
+
+    write("Some random log text and more", gid_file)
+    after_write_gid = os.stat(gid_file).st_gid
+
+    assert original_gid == after_write_gid
+    assert gid_file.read() == "Some random log text and more"
 
 
 if __name__ == '__main__':

@@ -932,7 +932,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
     def get_configuration(
         self
-    ) -> Tuple[str, str, ExtendedRunExecutionParameters, bool]:
+    ) -> Tuple[str, str, ExtendedRunExecutionParameters]:
 
         return self.saved_conf
 
