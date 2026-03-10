@@ -294,6 +294,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         try:
             file_stat = os.stat(absolute_filename)
             original_mode = file_stat.st_mode
+            original_gid = file_stat.st_gid
             creation = file_stat.st_atime
         except FileNotFoundError:
             # Creating a new file, emulate what os.open() does
@@ -302,6 +303,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             # Set base permission of a file to standard permissions.
             # See #spyder-ide/spyder#14112.
             original_mode = 0o666 & ~umask
+            original_gid = None
             creation = time.time()
         try:
             # fixes issues with scripts in Dropbox leaving
@@ -320,6 +322,8 @@ def write(text, filename, encoding='utf-8', mode='wb'):
                     textfile.write(text)
         try:
             os.chmod(absolute_filename, original_mode)
+            if os.name != "nt" and original_gid is not None:
+                os.chown(absolute_filename, -1, original_gid)
             file_stat = os.stat(absolute_filename)
             # Preserve creation timestamps
             os.utime(absolute_filename, (creation, file_stat.st_mtime))
