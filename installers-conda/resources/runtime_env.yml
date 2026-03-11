@@ -12,6 +12,7 @@ dependencies:
   - numpy
   - openpyxl
   - pandas
+  - pyarrow
   - scipy
   - sympy
 platforms:
