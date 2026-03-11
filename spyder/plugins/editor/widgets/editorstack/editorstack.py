@@ -13,6 +13,7 @@
 
 # Standard library imports
 from __future__ import annotations
+from collections.abc import Callable
 import functools
 import logging
 import os
@@ -47,7 +48,7 @@ from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.widgets import codeeditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
 from spyder.plugins.editor.widgets.tabswitcher import TabSwitcherWidget
@@ -729,6 +730,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             cloned_from=other_finfo.editor,
             extensions=other_finfo.editor.external_extensions,
             panels=other_finfo.editor.external_panels,
+            shortcuts=other_finfo.editor.external_shortcuts,
         )
         finfo.set_todo_results(other_finfo.todo_results)
         return finfo.editor
@@ -2629,13 +2631,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         add_where: str = "end",
         extensions: list[type[EditorExtension]] | None = None,
         panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
     ):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(
-            self, extensions=extensions, panels=panels
+        editor = CodeEditor(
+            self, extensions=extensions, panels=panels, shortcuts=shortcuts
         )
         editor.go_to_definition.connect(
             lambda fname, line, column: self.sig_go_to_definition.emit(
@@ -2813,6 +2818,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         empty: bool = False,
         extensions: list[type[EditorExtension]] | None = None,
         panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
     ):
         """
         Create new filename with *encoding* and *text*
@@ -2825,6 +2833,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             new=True,
             extensions=extensions,
             panels=panels,
+            shortcuts=shortcuts,
         )
         finfo.editor.set_cursor_position('eof')
         if not empty:
@@ -2842,6 +2851,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         processevents: bool = True,
         extensions: list[type[EditorExtension]] | None = None,
         panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
     ):
         """
         Load filename, create an editor instance and return it.
@@ -2874,6 +2886,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             add_where=add_where,
             extensions=extensions,
             panels=panels,
+            shortcuts=shortcuts,
         )
         index = self.data.index(finfo)
 

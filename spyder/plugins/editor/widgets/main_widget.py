@@ -37,7 +37,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_conf_path
-from spyder.plugins.editor.api.panel import PanelPosition
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
@@ -1844,6 +1843,7 @@ class EditorMainWidget(PluginMainWidget):
             empty=True,
             extensions=self._plugin.extensions,
             panels=self._plugin.panels,
+            shortcuts=self._plugin.shortcuts,
         )
 
         # This is necessary to avoid an error in our tests
@@ -1977,6 +1977,7 @@ class EditorMainWidget(PluginMainWidget):
                     processevents=processevents,
                     extensions=self._plugin.extensions,
                     panels=self._plugin.panels,
+                    shortcuts=self._plugin.shortcuts,
                 )
 
                 # This can happen when it was not possible to load filename

@@ -18,7 +18,8 @@ Editor widget based on QtGui.QPlainTextEdit
 
 # Standard library imports
 from __future__ import annotations
-from unicodedata import category
+from collections.abc import Callable
+import functools
 import logging
 import os
 import os.path as osp
@@ -26,6 +27,7 @@ import re
 import sys
 from typing import TypedDict
 import textwrap
+from unicodedata import category
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
@@ -275,6 +277,9 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         parent: QWidget | None = None,
         extensions: list[type[EditorExtension]] | None = None,
         panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
     ):
         super().__init__(parent, class_parent=parent)
 
@@ -287,6 +292,11 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.external_panels = panels
         if self.external_panels is None:
             self.external_panels = []
+
+        # Shortcuts
+        self.external_shortcuts = shortcuts
+        if self.external_shortcuts is None:
+            self.external_shortcuts = []
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -678,6 +688,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
+
+        for name, callback, plugin_name in self.external_shortcuts:
+            self.register_shortcut_for_widget(
+                name=name,
+                triggered=functools.partial(callback, self),
+                plugin_name=plugin_name,
+            )
 
     def closeEvent(self, event):
         if isinstance(self.highlighter, sh.PygmentsSH):
