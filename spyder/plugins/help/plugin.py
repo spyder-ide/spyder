@@ -50,7 +50,7 @@ class Help(SpyderDockablePlugin):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    REQUIRE_WEB_WIDGETS = True
+    REQUIRE_WEB_WIDGETS = False
     CAN_HANDLE_SEARCH_ACTIONS = True
 
     # Signals
