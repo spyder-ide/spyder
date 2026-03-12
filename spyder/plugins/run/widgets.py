@@ -583,13 +583,34 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     def setup(self):
         # --- Header
         header_label = QLabel(_("Configure settings to run a specific file"))
-        header_label.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
 
         font = self.get_font(SpyderFontType.Interface)
         font.setPointSize(font.pointSize() + 1)
         header_label.setFont(font)
+
+        header_tip_text = _(
+            "This dialog lets you choose how each file is executed in "
+            "different runners. It does not allow you to select the runner "
+            "itself for code execution, as was possible in Spyder 5. Now you "
+            "need to select the desired action from the Run or other menus. "
+            "For instance, to run your code in an external terminal, use the "
+            "'Run > Run in external terminal' entry."
+        )
+        header_tip = TipWidget(
+            tip_text=header_tip_text,
+            icon=ima.icon('info_tip'),
+            hover_icon=ima.icon('info_tip_hover'),
+            size=AppStyle.ConfigPageIconSize + 2,
+            wrap_text=True,
+        )
+
+        # Layout
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(0)
+        header_layout.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(header_label)
+        header_layout.addWidget(header_tip)
 
         # --- Filename
         file_label = QLabel(_("File:"))
@@ -728,7 +749,7 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
 
         # --- Final layout
         layout = self.add_widgets(
-            header_label,
+            header_layout,
             4 * AppStyle.MarginSize,
             self.configuration_combo,  # Hidden for simplicity
             executor_layout,
