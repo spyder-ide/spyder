@@ -55,19 +55,27 @@ class FormattingConfigTab(SpyderPreferencesTab):
         black_url = (
             "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
         )
+        ruff_url = (
+            "<a href='https://docs.astral.sh/ruff/formatter/'>Ruff</a>"
+        )
+        formatter_urls = "".join(
+            f"<li>{url}</li>" for url in (autopep8_url, black_url, ruff_url)
+        )
         code_fmt_label = QLabel(
-            _("Spyder can use {0} or {1} to format your code for "
-              "conformance to the {2} convention.").format(
-                  autopep8_url, black_url, pep_url))
+            _(
+                "Spyder can use one of the following formatters to format your "
+                " code for conformance to the {0} convention:<ul>{1}</ul>"
+            ).format(pep_url, formatter_urls)
+        )
         code_fmt_label.setOpenExternalLinks(True)
         code_fmt_label.setWordWrap(True)
 
         # Code formatting providers
         code_fmt_provider = self.create_combobox(
             _("Choose the code formatting provider: "),
-            (("autopep8", 'autopep8'),
-             ("black", 'black')),
-            'formatting')
+            (("autopep8", "autopep8"), ("black", "black"), ("ruff", "ruff")),
+            "formatting",
+        )
 
         # Autoformat on save
         format_on_save_box = newcb(
