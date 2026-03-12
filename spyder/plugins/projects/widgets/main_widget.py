@@ -24,6 +24,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout, QInputDialog, QLabel, QMessageBox, QVBoxLayout, QWidget)
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import _
@@ -43,6 +44,7 @@ from spyder.plugins.projects.widgets.projectdialog import (
     is_writable,
     ProjectDialog,
 )
+from spyder.plugins.projects.widgets.configdialog import ConfigDialog
 from spyder.plugins.projects.widgets.projectexplorer import (
     ProjectExplorerTreeWidget)
 from spyder.plugins.switcher.utils import get_file_icon, shorten_paths
@@ -69,6 +71,7 @@ class ProjectsActions:
     DeleteProject = 'delete_project_action'
     ClearRecentProjects = 'clear_recent_projects_action'
     MaxRecent = 'max_recent_action'
+    ProjectSettings = 'project_settings_action'
 
 
 class ProjectsMenuSubmenus:
@@ -267,6 +270,12 @@ class ProjectExplorerWidget(PluginMainWidget):
             icon=self.create_icon("transparent"),
             triggered=self.change_max_recent_projects)
 
+        self.project_settings_action = self.create_action(
+            ProjectsActions.ProjectSettings,
+            text=_("Project Settings ..."),
+            icon=self.create_icon("project_preferences"),
+            triggered=self.change_settings)
+
         self.recent_project_menu = self.create_menu(
             ProjectsMenuSubmenus.RecentProjects,
             _("Recent Projects"),
@@ -452,6 +461,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         if not open_successfully:
             QMessageBox.warning(self, "Project open", message)
 
+
     def close_project(self):
         """
         Close current project and return to a window without an active
@@ -553,6 +563,25 @@ class ProjectExplorerWidget(PluginMainWidget):
             if max_projects < len(self.recent_projects):
                 self.recent_projects = self._get_valid_recent_projects(
                     self.recent_projects)[:max_projects]
+
+    def change_settings(self):
+        logger.debug("Change settings ...")
+
+        if self.current_active_project is None:
+            # TODO: Show error dialog
+            return
+
+        self._unmaximize()
+        dlg = ConfigDialog(self, self.current_active_project)
+        result = dlg.exec_()
+        if result:
+            dlg.save_configuration()
+            maininterpreter = self.get_plugin().get_plugin(Plugins.MainInterpreter)
+            if maininterpreter is not None:
+                maininterpreter.set_custom_interpreter(self.current_active_project.config.get('workspace', 'interpreter'))
+
+
+
 
     def reopen_last_project(self, working_directory, restart_console):
         """
