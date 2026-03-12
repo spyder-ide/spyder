@@ -271,7 +271,7 @@ install_requires += [
     'applaunchservices>=0.3.0;platform_system=="Darwin"',
     'asyncssh>=2.14.0,<3.0.0',
     'bcrypt>=4.3.0',
-    'chardet>=2.0.0,<8.0.0',
+    'chardet>=5.2.0,<8.0.0',
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
