@@ -17,8 +17,11 @@ import pytest
 
 from spyder.utils.encoding import is_text_file, read, write
 
-__location__ = os.path.realpath(os.path.join(os.getcwd(),
-                                             os.path.dirname(__file__)))
+
+CD_VERSION = parse(chardet.__version__)
+LOCATION = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__))
+)
 
 
 @pytest.mark.order(1)
@@ -95,22 +98,26 @@ def test_is_text_file(tmpdir):
 
 
 @pytest.mark.skipif(
-    parse(chardet.__version__) < parse("7.0.0"),
-    reason="Fails with Chardet versions older than 7.0",
+    parse("7.0.0") < CD_VERSION < parse("7.1.0"),
+    reason="Fails with Chardet versions between 7.0 and 7.1",
 )
 @pytest.mark.parametrize(
-    'expected_encoding, text_file',
-    [('utf-8', 'utf-8.txt'),
-     ('windows-1252', 'windows-1252.txt'),
-     # ascii is reported as windows-1252 since Chardet 7.0
-     ('windows-1252', 'ascii.txt'),
-     ('big5hkscs', 'Big5.txt'),
-     ('KOI8-R', 'KOI8-R.txt'),
-     ('utf-8', 'copyright.py'),  # Python files are UTF-8 by default
-     ('iso8859-9', 'iso8859-9.py')  # Encoding declared in file
-     ])
+    "expected_encoding, text_file",
+    [
+        ("utf-8", "utf-8.txt"),
+        (
+            "iso-8859-1" if CD_VERSION < parse("6.0.0") else "windows-1252",
+            "windows-1252.txt",
+        ),
+        ("ascii", "ascii.txt"),
+        ("big5", "Big5.txt"),
+        ("KOI8-R", "KOI8-R.txt"),
+        ("utf-8", "copyright.py"),  # Python files are UTF-8 by default
+        ("iso8859-9", "iso8859-9.py"),  # Encoding declared in file
+    ],
+)
 def test_files_encodings(expected_encoding, text_file):
-    file_path = os.path.join(__location__, text_file)
+    file_path = os.path.join(LOCATION, text_file)
     text, encoding = read(file_path)
     assert encoding.lower() == expected_encoding.lower()
 
