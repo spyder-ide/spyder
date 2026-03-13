@@ -202,6 +202,9 @@ class Explorer(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_dir_opened.connect(self.chdir)
+        editor.sig_file_opened_closed_or_updated.connect(
+            self._update_current_editor_file
+        )
         self.sig_file_created.connect(lambda t: editor.new(text=t))
         self.sig_file_removed.connect(editor.removed)
         self.sig_file_renamed.connect(editor.renamed)
@@ -252,6 +255,9 @@ class Explorer(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
 
         editor.sig_dir_opened.disconnect(self.chdir)
+        editor.sig_file_opened_closed_or_updated.disconnect(
+            self._update_current_editor_file
+        )
         self.sig_file_created.disconnect()
         self.sig_file_removed.disconnect(editor.removed)
         self.sig_file_renamed.disconnect(editor.renamed)
@@ -340,6 +346,19 @@ class Explorer(SpyderDockablePlugin):
 
     # ---- Private API
     # -------------------------------------------------------------------------
+    def _update_current_editor_file(self, filename, _language):
+        """
+        Update the current editor file tracked by the explorer.
+
+        Parameters
+        ----------
+        filename: str
+            Path of the currently active file in the editor.
+        _language: str
+            Programming language of the file (unused).
+        """
+        self.get_widget().set_current_editor_file(filename)
+
     @qdebounced(timeout=100)
     def _chdir_from_working_directory(
         self, directory, sender_plugin, server_id=None
