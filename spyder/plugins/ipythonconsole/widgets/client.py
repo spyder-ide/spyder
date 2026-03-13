@@ -669,6 +669,9 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
             " UNC ",
             # Matplotlib spurious message, see spyder-ide/spyder#24153
             "Matplotlib is building the font cache",
+            # Numexpr unknown error, see spyder-ide/spyder#25815
+            'nthreads cannot be larger than environment variable '
+            '"NUMEXPR_MAX_THREADS"',
         ]
 
         return any([err in error for err in benign_errors])
