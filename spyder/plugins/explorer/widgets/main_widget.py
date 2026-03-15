@@ -266,7 +266,7 @@ class ExplorerWidget(PluginMainWidget):
         )
         self.go_to_current_file_action = self.create_action(
             ExplorerWidgetActions.GoToCurrentFile,
-            text=_("Go to current file"),
+            text=_("Go to the directory of the current file in the Editor"),
             icon=self.create_icon('fromcursor'),
             triggered=self.go_to_current_file,
         )
