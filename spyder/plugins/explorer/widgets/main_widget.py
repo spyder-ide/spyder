@@ -270,7 +270,7 @@ class ExplorerWidget(PluginMainWidget):
             icon=self.create_icon('fromcursor'),
             triggered=self.go_to_current_file,
         )
-        self.go_to_current_file_action.setEnabled(False)
+        self.go_to_dir_of_file_in_editor_action.setEnabled(False)
         self.refresh_action = self.create_action(
             ExplorerWidgetActions.Refresh,
             text=_("Refresh"),
