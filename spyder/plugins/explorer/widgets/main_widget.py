@@ -522,7 +522,7 @@ class ExplorerWidget(PluginMainWidget):
             Path of the currently active file in the editor.
         """
         self._current_editor_file = filename
-        self.go_to_current_file_action.setEnabled(
+        self.go_to_dir_of_file_in_editor_action.setEnabled(
             filename is not None
             and osp.isdir(osp.dirname(filename))
         )
