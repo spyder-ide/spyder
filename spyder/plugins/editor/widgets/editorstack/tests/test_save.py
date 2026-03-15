@@ -23,16 +23,14 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci
-from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    path_as_uri,
+)
 from spyder.plugins.editor.widgets.editorstack import editorstack as editor
 from spyder.plugins.editor.widgets.editorstack import EditorStack
 from spyder.plugins.editor.widgets.splitter import EditorSplitter
 from spyder.plugins.editor.widgets.window import EditorMainWidgetExample
-
-from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri)
 from spyder.plugins.outlineexplorer.main_widget import OutlineExplorerWidget
-from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 
 # ---- Helpers
@@ -458,7 +456,6 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     editorstack.tabs.setCurrentIndex(1)
     assert editorstack.get_current_filename() == 'secondtab.py'
     editor = editorstack.get_current_editor()
-    editor.breakpoints_manager = BreakpointsManager(editor)
     mocker.patch.object(editor, 'notify_close')
     editorstack.sig_open_file = Mock()
 
@@ -481,10 +478,6 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     # Assert we sent notify_close and emitted sig_open_file
     assert editor.notify_close.call_count == 1
     assert editorstack.sig_open_file.emit.called == 1
-
-    # Test the debugger panel is hidden
-    debugger_panel = editor.panels.get(DebuggerPanel)
-    assert not debugger_panel.isVisible()
 
 
 @pytest.mark.order(1)

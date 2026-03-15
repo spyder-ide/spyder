@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 from datetime import datetime
 import logging
 import os
@@ -36,7 +37,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_conf_path
-from spyder.plugins.editor.api.panel import Panel
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils.qthelpers import create_action, qbytearray_to_str
 from spyder.utils.misc import getcwd_or_home
@@ -728,7 +728,7 @@ class EditorMainWidget(PluginMainWidget):
 
         self._setup_codeeditor_context_menu()
 
-        # ---- Dockwidget and file dependent actions lists ----
+        # ---- Dockwidget and file dependent actions lists
         self.pythonfile_dependent_actions = [
             self.blockcomment_action,
             self.unblockcomment_action,
@@ -747,7 +747,7 @@ class EditorMainWidget(PluginMainWidget):
         )
         self.stack_menu_actions = [self.gotoline_action, self.workdir_action]
 
-        # ---- Finish child widgets and actions setup ----
+        # ---- Finish child widgets and actions setup
         layout = QVBoxLayout()
 
         # Tabbed editor widget + Find/Replace widget
@@ -1760,9 +1760,12 @@ class EditorMainWidget(PluginMainWidget):
         for editorstack in self.editorstacks[1:]:
             editorstack.clone_editor_from(finfo, set_current=False)
 
-    @Slot()
-    @Slot(str)
-    def new(self, fname=None, editorstack=None, text=None):
+    def new(
+        self,
+        fname: str | None = None,
+        editorstack: EditorStack = None,
+        text: str | None = None,
+    ):
         """
         Create a new file.
 
@@ -1832,8 +1835,16 @@ class EditorMainWidget(PluginMainWidget):
         # Setting empty to True by default to avoid the additional space
         # created at the end of the templates.
         # See: spyder-ide/spyder#12596
-        finfo = self.editorstacks[0].new(fname, enc, text, default_content,
-                                         empty=True)
+        finfo = self.editorstacks[0].new(
+            fname,
+            enc,
+            text,
+            default_content,
+            empty=True,
+            extensions=self._plugin.extensions,
+            panels=self._plugin.panels,
+            shortcuts=self._plugin.shortcuts,
+        )
 
         # This is necessary to avoid an error in our tests
         try:
@@ -1856,13 +1867,18 @@ class EditorMainWidget(PluginMainWidget):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
 
-    @Slot()
-    @Slot(str)
-    @Slot(str, int, str)
-    @Slot(str, int, str, object)
-    def load(self, filenames=None, goto=None, word='',
-             editorwindow=None, processevents=True, start_column=None,
-             end_column=None, set_focus=True, add_where='end'):
+    def load(
+        self,
+        filenames: list[str] | None = None,
+        goto: int | None = None,
+        word: str = "",
+        editorwindow: EditorMainWindow | None = None,
+        processevents: bool = True,
+        start_column: int | None = None,
+        end_column: int | None = None,
+        set_focus: bool = True,
+        add_where: str = "end",
+    ):
         """
         Load a text file.
 
@@ -1955,8 +1971,14 @@ class EditorMainWidget(PluginMainWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where,
-                    processevents=processevents)
+                    filename,
+                    set_current=False,
+                    add_where=add_where,
+                    processevents=processevents,
+                    extensions=self._plugin.extensions,
+                    panels=self._plugin.panels,
+                    shortcuts=self._plugin.shortcuts,
+                )
 
                 # This can happen when it was not possible to load filename
                 # from disk.
@@ -3339,10 +3361,3 @@ class EditorMainWidget(PluginMainWidget):
         """
         for editorstack in self.editorstacks:
             editorstack.set_current_project_path(root_path)
-
-    def register_panel(self, panel_class, *args, position=Panel.Position.LEFT,
-                       **kwargs):
-        """Register a panel in all the editorstacks in the given position."""
-        for editorstack in self.editorstacks:
-            editorstack.register_panel(
-                panel_class, *args, position=position, **kwargs)
