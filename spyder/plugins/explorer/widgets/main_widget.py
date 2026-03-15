@@ -344,7 +344,7 @@ class ExplorerWidget(PluginMainWidget):
             self.previous_action,
             self.next_action,
             self.parent_action,
-            self.go_to_current_file_action,
+            self.go_to_dir_of_file_in_editor_action,
         ]:
             self.add_item_to_toolbar(
                 item,
