@@ -58,7 +58,7 @@ class ExplorerWidgetActions:
     ToggleFilter = 'toggle_filter_files_action'
 
     # Triggers
-    GoToCurrentFile = 'go_to_current_file_action'
+    GoToDirOfFileinEditor = 'go_to_dir_of_file_in_editor_action'
     Next = 'next_action'
     Parent = 'parent_action'
     Previous = 'previous_action'
