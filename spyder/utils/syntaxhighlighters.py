@@ -207,7 +207,8 @@ class BaseSH(QSyntaxHighlighter):
         self.matched_p_color = None
         self.unmatched_p_color = None
 
-        self.formats = None
+        self.formats = {}
+        self.inline_formats = {}
         self.setup_formats(font)
 
         self.cell_separators = None
@@ -255,12 +256,16 @@ class BaseSH(QSyntaxHighlighter):
 
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
+        inline_format = QTextCharFormat()
+
         if font is not None:
             self.font = font
+
         if self.font is not None:
             base_format.setFont(self.font)
+            inline_format.setFont(self.font)
             self.sig_font_changed.emit()
-        self.formats = {}
+
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
         self.currentline_color = colors.pop("currentline")
@@ -270,13 +275,24 @@ class BaseSH(QSyntaxHighlighter):
         self.sideareas_color = colors.pop("sideareas")
         self.matched_p_color = colors.pop("matched_p")
         self.unmatched_p_color = colors.pop("unmatched_p")
+
         for name, (color, bold, italic) in list(colors.items()):
-            format = QTextCharFormat(base_format)
-            format.setForeground(QColor(color))
-            if bold:
-                format.setFontWeight(QFont.Bold)
-            format.setFontItalic(italic)
-            self.formats[name] = format
+            for i, fmt in enumerate(
+                [QTextCharFormat(base_format), QTextCharFormat(inline_format)]
+            ):
+                color = QColor(color)
+                if i != 0:
+                    color.setAlphaF(0.75)
+                fmt.setForeground(color)
+
+                if bold:
+                    fmt.setFontWeight(QFont.Bold)
+                fmt.setFontItalic(italic)
+
+                if i == 0:
+                    self.formats[name] = fmt
+                else:
+                    self.inline_formats[name] = fmt
 
     def set_color_scheme(self, color_scheme):
         if isinstance(color_scheme, str):
