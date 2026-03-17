@@ -368,6 +368,9 @@ class ExplorerWidget(PluginMainWidget):
         self.remote_treewidget.upload_file_action.setVisible(
             visible_remote_actions
         )
+        self.go_to_dir_of_file_in_editor_action.setVisible(
+            not visible_remote_actions
+        )
 
     # ---- Public API
     # ------------------------------------------------------------------------
