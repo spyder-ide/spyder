@@ -22,6 +22,7 @@ from spyder.api.translations import _
 from spyder.plugins.debugger.confpage import DebuggerConfigPage
 from spyder.plugins.debugger.utils.breakpointsmanager import (
     BreakpointsManager, clear_all_breakpoints, clear_breakpoint)
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.debugger.widgets.main_widget import (
     DebuggerBreakpointActions, DebuggerWidget, DebuggerWidgetActions)
 from spyder.plugins.editor.utils.editor import get_file_language
@@ -295,6 +296,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
             # TODO: This should be handled differently?
             editor.get_widget().pythonfile_dependent_actions += [action]
 
+        editor.add_panel(DebuggerPanel)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -434,12 +437,15 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         """Connect a code editor."""
         codeeditor.breakpoints_manager = BreakpointsManager(codeeditor)
         codeeditor.breakpoints_manager.sig_breakpoints_saved.connect(
-            self.get_widget().sig_breakpoints_saved)
+            self.get_widget().sig_breakpoints_saved
+        )
 
     def _disconnect_codeeditor(self, codeeditor):
-        """Connect a code editor."""
+        """Disconnect a code editor."""
         codeeditor.breakpoints_manager.sig_breakpoints_saved.disconnect(
-            self.get_widget().sig_breakpoints_saved)
+            self.get_widget().sig_breakpoints_saved
+        )
+        codeeditor.breakpoints_manager.debugger_panel.setVisible(False)
         codeeditor.breakpoints_manager = None
 
     @Slot(str)

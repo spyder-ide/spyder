@@ -7,11 +7,13 @@ channels:
 dependencies:
   - python =3.12.11
   - spyder
+  - chardet <7.0.0  # Constrain for licensing reasons
   - cython
   - matplotlib-base
   - numpy
   - openpyxl
   - pandas
+  - pyarrow
   - scipy
   - sympy
 platforms:
