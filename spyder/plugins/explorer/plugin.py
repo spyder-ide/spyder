@@ -349,7 +349,9 @@ class Explorer(SpyderDockablePlugin):
     def _update_current_editor_file(self):
         """Update the current editor file tracked by the explorer."""
         editor = self.get_plugin(Plugins.Editor)
-        self.get_widget().set_current_editor_file(editor.get_current_filename())
+        self.get_widget().set_current_editor_file(
+            editor.get_current_filename()
+        )
 
     @qdebounced(timeout=100)
     def _chdir_from_working_directory(
