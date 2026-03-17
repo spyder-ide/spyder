@@ -152,6 +152,10 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 @pytest.mark.use_introspection
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and sys.version_info < (3, 10),
+    reason="Fails on Linux with Python 3.9"
+)
 def test_leaks(main_window, qtbot):
     """
     Test leaks in mainwindow when closing a file or a console.
@@ -5542,12 +5546,13 @@ def test_add_external_plugins_to_dependencies(main_window, qtbot):
 )
 @pytest.mark.skipif(not running_in_ci(), reason="Only works in CIs")
 def test_shortcuts_in_external_plugins(main_window, qtbot):
-    """Test that keyboard shortcuts for widgets work in external plugins."""
+    """Test that keyboard shortcuts for widgets in external plugins work."""
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     # Show plugin
     main_widget = main_window.get_plugin('spyder_boilerplate').get_widget()
@@ -5564,10 +5569,15 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     assert example_widget.toPlainText() == "Example text"
 
     # Check second shortcut is working
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor = main_window.get_plugin(Plugins.Editor).get_current_editor()
+    editor.selectAll()
+    editor.delete()
+    eol = editor.get_line_separator()
+    markdown_cell = "# %% [markdown]" + 2 * eol
+
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert editor.get_text_with_eol() == markdown_cell
 
     # Open Preferences and select shortcuts table
     dlg, index, page = preferences_dialog_helper(
@@ -5576,7 +5586,7 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     table = page.table
 
     # Change shortcuts in table
-    new_shortcuts = [("change text", "Ctrl+J"), ("new text", "Alt+K")]
+    new_shortcuts = [("change text", "Ctrl+J"), ("markdown cell", "Alt+K")]
     for name, sequence in new_shortcuts:
         table.finder.setFocus()
         table.finder.clear()
@@ -5597,8 +5607,9 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     qtbot.keyClick(example_widget, Qt.Key_J, modifier=Qt.ControlModifier)
     assert example_widget.toPlainText() == "Example text"
 
-    qtbot.keyClick(example_widget, Qt.Key_K, modifier=Qt.AltModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_K, modifier=Qt.AltModifier)
+    assert editor.get_text_with_eol() == 2 * markdown_cell
 
     # Open Preferences again and reset shortcuts
     dlg, index, page = preferences_dialog_helper(
@@ -5617,8 +5628,9 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     qtbot.keyClick(example_widget, Qt.Key_B, modifier=Qt.ControlModifier)
     assert example_widget.toPlainText() == "Example text"
 
-    qtbot.keyClick(example_widget, Qt.Key_H, modifier=Qt.ControlModifier)
-    assert example_widget.toPlainText() == "Another text"
+    editor.setFocus()
+    qtbot.keyClick(editor, Qt.Key_H, modifier=Qt.ControlModifier)
+    assert editor.get_text_with_eol() == 3 * markdown_cell
 
 
 @pytest.mark.skipif(

@@ -17,34 +17,56 @@ Editor widget based on QtGui.QPlainTextEdit
 # pylint: disable=R0201
 
 # Standard library imports
-from unicodedata import category
+from __future__ import annotations
+from collections.abc import Callable
+import functools
 import logging
 import os
 import os.path as osp
 import re
 import sys
+from typing import TypedDict
 import textwrap
+from unicodedata import category
 
 # Third party imports
 from IPython.core.inputtransformer2 import TransformerManager
+import nbformat as nbformat
+from nbconvert import PythonExporter as nbexporter
 from packaging.version import parse
 from qtpy import QT_VERSION
-from qtpy.compat import to_qvariant
 from qtpy.QtCore import (
     QEvent, QRegularExpression, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import (QColor, QCursor, QFont, QPaintEvent, QPainter,
-                        QMouseEvent, QTextCursor, QDesktopServices, QKeyEvent,
-                        QTextDocument, QTextFormat, QTextOption,
-                        QTextCharFormat, QTextLayout)
-from qtpy.QtWidgets import QApplication, QMessageBox, QSplitter, QScrollBar
+from qtpy.QtGui import (
+    QColor,
+    QCursor,
+    QFont,
+    QPaintEvent,
+    QPainter,
+    QMouseEvent,
+    QTextCursor,
+    QDesktopServices,
+    QKeyEvent,
+    QTextDocument,
+    QTextOption,
+    QTextCharFormat,
+    QTextLayout,
+)
+from qtpy.QtWidgets import (
+    QApplication,
+    QMessageBox,
+    QSplitter,
+    QScrollBar,
+    QWidget,
+)
 from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
-from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
@@ -77,23 +99,10 @@ from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.mixins import HINT_MAX_WIDTH
 
 
-try:
-    import nbformat as nbformat
-    from nbconvert import PythonExporter as nbexporter
-except Exception:
-    nbformat = None  # analysis:ignore
-
 logger = logging.getLogger(__name__)
 
 
 class CodeEditorActions:
-    Undo = 'undo'
-    Redo = 'redo'
-    Cut = 'cut'
-    Copy = 'copy'
-    Paste = 'paste'
-    SelectAll = 'select all'
-    ToggleComment = 'toggle comment'
     ClearAllOutput = 'clear_all_output_action'
     ConvertToPython = 'convert_to_python_action'
     GoToDefinition = 'go to definition'
@@ -102,7 +111,6 @@ class CodeEditorActions:
     ZoomOut = 'zoom out'
     ZoomReset = 'zoom reset'
     Docstring = 'docstring'
-    Autoformat = 'autoformatting'
 
 
 class CodeEditorMenus:
@@ -115,11 +123,18 @@ class CodeEditorContextMenuSections:
     InspectSection = "inspect_section"
     UndoRedoSection = "undo_redo_section"
     EditSection = "edit_section"
-    NbformatSections = "nbformat_section"
+    NbformatSection = "nbformat_section"
     ZoomSection = "zoom_section"
     RefactorCodeSection = "refactor_code_section"
     CopySection = "copy_section"
-    OthersSection = "others_section"
+
+
+class DocstringContext(TypedDict):
+
+    at_cursor_position: bool
+    """
+    Whether a docstring should be generated at the current cursor position.
+    """
 
 
 class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
@@ -166,10 +181,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     sig_filename_changed = Signal(str)
     sig_bookmarks_changed = Signal()
     go_to_definition = Signal(str, int, int)
-    sig_show_object_info = Signal(bool)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
-    sig_refresh_formatting = Signal(bool)
+    sig_refresh_formatting = Signal()
+
+    sig_show_object_info = Signal(bool)
+    """
+    Request showing an object's docstring in the Help plugin.
+
+    Parameters
+    ----------
+    clicked: bool
+        Whether the request is done when clicking the object's hover hint.
+    """
 
     #: Signal emitted when the editor loses focus
     sig_focus_changed = Signal()
@@ -248,8 +272,31 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
     # Used to signal that a text deletion was triggered
     sig_delete_requested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
+    ):
         super().__init__(parent, class_parent=parent)
+
+        # Editor extensions
+        self.external_extensions = extensions
+        if self.external_extensions is None:
+            self.external_extensions = []
+
+        # Panels
+        self.external_panels = panels
+        if self.external_panels is None:
+            self.external_panels = []
+
+        # Shortcuts
+        self.external_shortcuts = shortcuts
+        if self.external_shortcuts is None:
+            self.external_shortcuts = []
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -260,8 +307,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.init_multi_cursor()
 
         self.text_helper = TextHelper(self)
-
         self._panels = PanelsManager(self)
+        self.editor_extensions = EditorExtensionsManager(self)
 
         # Mouse moving timer / Hover hints handling
         # See: mouseMoveEvent
@@ -294,18 +341,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._last_hover_pattern_key = None
         self._last_hover_pattern_text = None
 
-        # 79-col edge line
-        self.edge_line = self.panels.register(
-            EdgeLine(),
-            Panel.Position.FLOATING
-        )
-
-        # indent guides
-        self.indent_guides = self.panels.register(
-            IndentationGuide(),
-            Panel.Position.FLOATING
-        )
-
         # Blanks enabled
         self.blanks_enabled = False
 
@@ -316,22 +351,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.scrollpastend_enabled = False
 
         self.background = QColor('white')
-
-        # Folding
-        self.folding_panel = self.panels.register(FoldingPanel())
-
-        # Line number area management
-        self.linenumberarea = self.panels.register(LineNumberArea())
-
-        # Set order for the left panels
-        self.linenumberarea.order_in_zone = 2
-        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
-
-        # Class and Method/Function Dropdowns
-        self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(),
-            Panel.Position.TOP,
-        )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -378,14 +397,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self.occurrence_color = QColor(SpyderPalette.GROUP_2).lighter(160)
         self.found_results_color = QColor(SpyderPalette.COLOR_OCCURRENCE_4)
 
-        # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(
-            ScrollFlagArea(),
-            Panel.Position.RIGHT
-        )
+        # Register panels
+        self.register_panels()
 
-        self.panels.refresh()
-
+        # Document id
         self.document_id = id(self)
 
         # Indicate occurrences of the selected word
@@ -444,10 +459,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)
-
-        # Context menu
-        self.gotodef_action = None
-        self.setup_context_menu()
+        self.menu_docstring= None
 
         # Tab key behavior
         self.tab_indents = None
@@ -499,11 +511,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # Hover hints
         self.hover_hints_enabled = None
 
-        # Editor Extensions
-        self.editor_extensions = EditorExtensionsManager(self)
-        self.editor_extensions.add(CloseQuotesExtension())
-        self.editor_extensions.add(SnippetsExtension())
-        self.editor_extensions.add(CloseBracketsExtension())
+        # Register editor extensions
+        self.register_extensions()
 
         # Some events should not be triggered during undo/redo
         # such as line stripping
@@ -680,6 +689,13 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         for name, callback in shortcuts:
             self.register_shortcut_for_widget(name=name, triggered=callback)
 
+        for name, callback, plugin_name in self.external_shortcuts:
+            self.register_shortcut_for_widget(
+                name=name,
+                triggered=functools.partial(callback, self),
+                plugin_name=plugin_name,
+            )
+
     def closeEvent(self, event):
         if isinstance(self.highlighter, sh.PygmentsSH):
             self.highlighter.stop()
@@ -722,6 +738,44 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         used to manage the collection of installed panels
         """
         return self._panels
+
+    def register_panels(self):
+        self.edge_line = self.panels.register(
+            EdgeLine(),
+            PanelPosition.FLOATING
+        )
+        self.indent_guides = self.panels.register(
+            IndentationGuide(),
+            PanelPosition.FLOATING
+        )
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(),
+            PanelPosition.TOP,
+        )
+        self.scrollflagarea = self.panels.register(
+            ScrollFlagArea(),
+            PanelPosition.RIGHT
+        )
+        self.folding_panel = self.panels.register(FoldingPanel())
+        self.linenumberarea = self.panels.register(LineNumberArea())
+
+        # Set order for the left panels
+        self.linenumberarea.order_in_zone = 2
+        self.folding_panel.order_in_zone = 0  # Debugger panel is 1
+
+        # Register third-party panels
+        for PanelClass, position in self.external_panels:
+            self.panels.register(PanelClass(), position)
+
+        self.panels.refresh()
+
+    def register_extensions(self):
+        for ExtensionClass in self.external_extensions + [
+            CloseBracketsExtension,
+            CloseQuotesExtension,
+            SnippetsExtension,
+        ]:
+            self.editor_extensions.add(ExtensionClass())
 
     def setup_editor(self,
                      linenumbers=True,
@@ -1668,14 +1722,14 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def calculate_real_position(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() + self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() + self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def calculate_real_position_from_global(self, point):
         """Add offset to a point, to take into account the panels."""
-        point.setX(point.x() - self.panels.margin_size(Panel.Position.LEFT))
-        point.setY(point.y() + self.panels.margin_size(Panel.Position.TOP))
+        point.setX(point.x() - self.panels.margin_size(PanelPosition.LEFT))
+        point.setY(point.y() + self.panels.margin_size(PanelPosition.TOP))
         return point
 
     def get_linenumber_from_mouse_event(self, event):
@@ -2883,7 +2937,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             return True
         return False
 
-    @Slot()
     def clear_all_output(self):
         """Removes all output in the ipynb format (Json only)"""
         try:
@@ -2907,7 +2960,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                              str(e))
             return
 
-    @Slot()
     def convert_notebook(self):
         """Convert an IPython notebook to a Python script in editor"""
         try:
@@ -3457,272 +3509,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     # ---- Qt Event handlers
     # -------------------------------------------------------------------------
-    def setup_context_menu(self):
-        """Setup context menu"""
-        # -- Actions
-        self.undo_action = self.create_action(
-            CodeEditorActions.Undo,
-            text=_('Undo'),
-            icon=self.create_icon('undo'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.undo,  # TODO multi-cursor position history
-        )
-        self.redo_action = self.create_action(
-            CodeEditorActions.Redo,
-            text=_("Redo"),
-            icon=self.create_icon('redo'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.redo  # TODO multi-cursor position history
-        )
-        self.cut_action = self.create_action(
-            CodeEditorActions.Cut,
-            text=_("Cut"),
-            icon=self.create_icon('editcut'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.cut
-        )
-        self.copy_action = self.create_action(
-            CodeEditorActions.Copy,
-            text=_("Copy"),
-            icon=self.create_icon('editcopy'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.copy
-        )
-        self.paste_action = self.create_action(
-            CodeEditorActions.Paste,
-            text=_("Paste"),
-            icon=self.create_icon('editpaste'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.paste
-        )
-        selectall_action = self.create_action(
-            CodeEditorActions.SelectAll,
-            text=_("Select All"),
-            icon=self.create_icon('selectall'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.selectAll)
-        )
-        toggle_comment_action = self.create_action(
-            CodeEditorActions.ToggleComment,
-            text=_('Comment')+'/'+_('Uncomment'),
-            icon=self.create_icon('comment'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.toggle_comment
-        )
-        self.clear_all_output_action = self.create_action(
-            CodeEditorActions.ClearAllOutput,
-            text=_('Clear all ouput'),
-            icon=self.create_icon('ipython_console'),
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.clear_all_output)
-        )
-        self.ipynb_convert_action = self.create_action(
-            CodeEditorActions.ConvertToPython,
-            text=_('Convert to Python file'),
-            icon=self.create_icon('python'),
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.convert_notebook)
-        )
-        self.gotodef_action = self.create_action(
-            CodeEditorActions.GoToDefinition,
-            text=_('Go to definition'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.go_to_definition_from_cursor
-        )
-        self.inspect_current_object_action = self.create_action(
-            CodeEditorActions.InspectCurrentObject,
-            text=_('Inspect current object'),
-            icon=self.create_icon('MessageBoxInformation'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.sig_show_object_info
-        )
-
-        # Run actions
-        try:
-            run_cell_action = self.get_action("run cell", plugin=Plugins.Run)
-            run_cell_and_advance_action = self.get_action(
-                "run cell and advance", plugin=Plugins.Run
-            )
-            rerun_cell_action = self.get_action(
-                "re-run cell", plugin=Plugins.Run
-            )
-            run_selection_action = self.get_action(
-                "run selection and advance", plugin=Plugins.Run
-            )
-        except KeyError:
-            # This is necessary for our tests because some of them need to run
-            # independently of other plugins.
-            run_cell_action = None
-
-        # Zoom actions
-        zoom_in_action = self.create_action(
-            CodeEditorActions.ZoomIn,
-            text=_('Zoom in'),
-            icon=self.create_icon('zoom_in'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.zoom_in
-        )
-        zoom_out_action = self.create_action(
-            CodeEditorActions.ZoomOut,
-            text=_('Zoom out'),
-            icon=self.create_icon('zoom_out'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.zoom_out
-        )
-        zoom_reset_action = self.create_action(
-            CodeEditorActions.ZoomReset,
-            text=_('Zoom reset'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.zoom_reset
-        )
-
-        # Docstring
-        writer = self.writer_docstring
-        self.docstring_action = self.create_action(
-            CodeEditorActions.Docstring,
-            text=_('Generate docstring'),
-            register_shortcut=True,
-            register_action=False,
-            triggered=writer.write_docstring_at_first_line_of_function
-        )
-
-        # Document formatting
-        formatter = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'formatting'),
-            default='',
-            section='completions',
-        )
-        self.format_action = self.create_action(
-            CodeEditorActions.Autoformat,
-            text=_('Format file or selection with {0}').format(
-                    formatter.capitalize()),
-            icon=self.create_icon("transparent"),
-            register_shortcut=True,
-            register_action=False,
-            triggered=self.clears_extra_cursors(self.format_document_or_range)
-        )
-        self.format_action.setEnabled(False)
-
-        # -- Build menu
-        self.menu = self.create_menu(
-            CodeEditorMenus.ContextMenu, register=False
-        )
-
-        # Run section
-        if run_cell_action is not None:
-            for menu_action in [
-                run_cell_action,
-                run_cell_and_advance_action,
-                rerun_cell_action,
-                run_selection_action,
-            ]:
-                self.add_item_to_menu(
-                    menu_action,
-                    self.menu,
-                    section=CodeEditorContextMenuSections.RunSection
-                )
-
-        # Inspect section
-        inspect_actions = [
-            self.gotodef_action, self.inspect_current_object_action
-        ]
-        for menu_action in inspect_actions:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.InspectSection
-            )
-
-        # Undo/redo section
-        undo_redo_actions = [self.undo_action, self.redo_action]
-        for menu_action in undo_redo_actions:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.UndoRedoSection
-            )
-
-        # Edit section
-        edit_actions = [
-            self.cut_action,
-            self.copy_action,
-            self.paste_action,
-            selectall_action
-        ]
-        for menu_action in edit_actions:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.EditSection
-            )
-
-        # Nbformat section
-        if nbformat is not None:
-            nb_actions = [
-                self.clear_all_output_action, self.ipynb_convert_action
-            ]
-            for menu_action in nb_actions:
-                self.add_item_to_menu(
-                    menu_action,
-                    self.menu,
-                    section=CodeEditorContextMenuSections.NbformatSections
-                )
-
-        # Zoom section
-        zoom_actions = [
-            zoom_in_action, zoom_out_action, zoom_reset_action
-        ]
-        for menu_action in zoom_actions:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.ZoomSection
-            )
-
-        # Refactor/code section
-        refactor_code_actions = [
-            toggle_comment_action, self.docstring_action, self.format_action
-        ]
-        for menu_action in refactor_code_actions:
-            self.add_item_to_menu(
-                menu_action,
-                self.menu,
-                section=CodeEditorContextMenuSections.RefactorCodeSection
-            )
-
-        # -- Read-only context-menu
-        self.readonly_menu = self.create_menu(
-            CodeEditorMenus.ReadOnlyMenu, register=False
-        )
-
-        # Copy section
-        self.add_item_to_menu(
-            self.copy_action,
-            self.readonly_menu,
-            section=CodeEditorContextMenuSections.CopySection
-        )
-
-        # Others section
-        other_actions = [selectall_action, self.gotodef_action]
-        for menu_action in other_actions:
-            self.add_item_to_menu(
-                self.copy_action,
-                self.readonly_menu,
-                section=CodeEditorContextMenuSections.OthersSection
-            )
-
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         self.sig_key_released.emit(event)
@@ -4560,11 +4346,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._restore_editor_cursor_and_selections()
         super().focusOutEvent(event)
 
-    def focusInEvent(self, event):
-        formatting_enabled = getattr(self, 'formatting_enabled', False)
-        self.sig_refresh_formatting.emit(formatting_enabled)
-        super().focusInEvent(event)
-
     def leaveEvent(self, event):
         """Extend Qt method"""
         self.sig_leave_out.emit()
@@ -4629,47 +4410,38 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        nonempty_selection = self.has_selected_text()
-        self.copy_action.setEnabled(nonempty_selection)
-        self.cut_action.setEnabled(nonempty_selection)
-        self.clear_all_output_action.setVisible(self.is_json() and
-                                                nbformat is not None)
-        self.ipynb_convert_action.setVisible(self.is_json() and
-                                             nbformat is not None)
-        self.gotodef_action.setVisible(self.go_to_definition_enabled)
-        self.inspect_current_object_action.setVisible(self.enable_hover)
+        for action_name in [
+            CodeEditorActions.ClearAllOutput,
+            CodeEditorActions.ConvertToPython,
+        ]:
+            action = self.get_action(action_name)
+            action.setVisible(self.is_json())
 
-        formatter = self.get_conf(
-            ('provider_configuration', 'lsp', 'values', 'formatting'),
-            default='',
-            section='completions'
+        self.get_action(CodeEditorActions.GoToDefinition).setVisible(
+            self.go_to_definition_enabled
         )
-        self.format_action.setText(_(
-            'Format file or selection with {0}').format(
-                formatter.capitalize()))
+        self.get_action(CodeEditorActions.InspectCurrentObject).setVisible(
+            self.enable_hover
+        )
 
         # Check if a docstring is writable
         writer = self.writer_docstring
         writer.line_number_cursor = self.get_line_number_at(event.pos())
         result = writer.get_function_definition_from_first_line()
 
+        docstring_action = self.get_action(CodeEditorActions.Docstring)
+        docstring_action.setData(DocstringContext(at_cursor_position=True))
+
         if result:
-            self.docstring_action.setEnabled(True)
+            docstring_action.setEnabled(True)
         else:
-            self.docstring_action.setEnabled(False)
+            docstring_action.setEnabled(False)
 
-        # Code duplication go_to_definition_from_cursor and mouse_move_event
-        cursor = self.textCursor()
-        text = str(cursor.selectedText())
-        if len(text) == 0:
-            cursor.select(QTextCursor.WordUnderCursor)
-            text = str(cursor.selectedText())
-
-        self.undo_action.setEnabled(self.document().isUndoAvailable())
-        self.redo_action.setEnabled(self.document().isRedoAvailable())
-        menu = self.menu
         if self.isReadOnly():
-            menu = self.readonly_menu
+            menu = self.get_menu(CodeEditorMenus.ReadOnlyMenu)
+        else:
+            menu = self.get_menu(CodeEditorMenus.ContextMenu)
+
         menu.popup(event.globalPos())
         event.accept()
 
@@ -4810,16 +4582,15 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             point = self.calculate_real_position(point)
             point = self.mapToGlobal(point)
 
-            self.menu_docstring = QMenuOnlyForEnter(self)
-            self.docstring_action = self.create_action(
-                CodeEditorActions.Docstring,
-                text=_("Generate docstring"),
-                icon=self.create_icon('TextFileIcon'),
-                register_action=False,
-                triggered=self.for_each_cursor(writer.write_docstring)
+            docstring_action = self.get_action(CodeEditorActions.Docstring)
+            docstring_action.setData(
+                DocstringContext(at_cursor_position=False)
             )
-            self.menu_docstring.addAction(self.docstring_action)
-            self.menu_docstring.setActiveAction(self.docstring_action)
+            if self.menu_docstring is None:
+                self.menu_docstring = QMenuOnlyForEnter(self)
+                self.menu_docstring.addAction(docstring_action)
+
+            self.menu_docstring.setActiveAction(docstring_action)
             self.menu_docstring.popup(point)
 
     def delayed_popup_docstring(self):

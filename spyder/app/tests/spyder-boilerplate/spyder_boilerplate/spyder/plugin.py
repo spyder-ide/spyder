@@ -8,17 +8,27 @@
 Spyder Boilerplate Plugin.
 """
 
+# Standard library plugins
+from typing import TYPE_CHECKING
+
 # Third party imports
 import qtawesome as qta
+from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QHBoxLayout, QTextEdit
 
 # Spyder imports
+from spyder.api.plugins import Plugins
+from spyder.api.plugin_registration.decorators import on_plugin_available
 from spyder.api.config.decorators import on_conf_change
 from spyder.api.plugins import SpyderDockablePlugin
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.plugins.layout.layouts import VerticalSplitLayout2
 from spyder.utils.palette import SpyderPalette
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 class SpyderBoilerplateConfigPage(PluginConfigPage):
@@ -99,13 +109,6 @@ class SpyderBoilerplateWidget(PluginMainWidget):
             self.change_text,
         )
 
-        self.register_shortcut_for_widget(
-            "new text",
-            self.new_text,
-            context="editor",
-            plugin_name=self._plugin.NAME,
-        )
-
     def update_actions(self):
         pass
 
@@ -121,10 +124,6 @@ class SpyderBoilerplateWidget(PluginMainWidget):
         else:
             self._example_widget.setText("")
 
-    def new_text(self):
-        if self._example_widget.toPlainText() != "Another text":
-            self._example_widget.setText("Another text")
-
 
 class SpyderBoilerplate(SpyderDockablePlugin):
     """
@@ -133,7 +132,7 @@ class SpyderBoilerplate(SpyderDockablePlugin):
 
     NAME = "spyder_boilerplate"
     REQUIRES = []
-    OPTIONAL = []
+    OPTIONAL = [Plugins.Editor]
     WIDGET_CLASS = SpyderBoilerplateWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = SpyderBoilerplateConfigPage
@@ -144,11 +143,12 @@ class SpyderBoilerplate(SpyderDockablePlugin):
             "shortcuts",
             # Note: These shortcut names are capitalized to check we can
             # set/get/reset them correctly.
-            {f"{NAME}/Change text": "Ctrl+B", "editor/New text": "Ctrl+H"},
+            {
+                f"{NAME}/Change text": "Ctrl+B",
+                "editor/Markdown cell": "Ctrl+H",
+            },
         ),
     ]
-
-    # --- Signals
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -167,13 +167,21 @@ class SpyderBoilerplate(SpyderDockablePlugin):
     def on_initialize(self):
         pass
 
-    def check_compatibility(self):
-        valid = True
-        message = ""  # Note: Remember to use _("") to localize the string
-        return valid, message
+    @on_plugin_available(plugin=Plugins.Editor)
+    def on_editor_available(self):
+        editor = self.get_plugin(Plugins.Editor)
+
+        # Add shortcut to editor
+        editor.add_shortcut(
+            "markdown cell", self._add_markdown_cell, self.NAME
+        )
 
     def on_close(self, cancellable=True):
         return True
 
-    # --- Public API
+    # --- API
     # ------------------------------------------------------------------------
+    def _add_markdown_cell(self, editor: "CodeEditor"):
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.insertText("# %% [markdown]" + 2 * editor.get_line_separator())

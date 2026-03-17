@@ -8,43 +8,43 @@
 # -----------------------------------------------------------------------------
 
 """
-This module contains the Manager API.
-
-Adapted from pyqode/core/api/manager.py of the
-`PyQode project <https://github.com/pyQode/pyQode>`_.
-Original file:
-<https://github.com/pyQode/pyqode.core/blob/master/pyqode/core/api/manager.py>
+Editor manager API.
 """
 
 # Standard library imports
+from typing import TYPE_CHECKING
 import weakref
 
 
-class Manager(object):
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
+
+class Manager:
     """
-    A manager manages a specific aspect of a CodeEditor instance:
-        - panels management and drawing
+    Object that manages a specific aspect of a CodeEditor instance.
 
-    Managers are typically created internally when you create a CodeEditor.
-    You interact with them later.
+    Managers are typically created internally when you create a CodeEditor (
+    e.g. the panels and extensions manager).
 
-    ::
-        editor = CodeEditor()
-
-        # use the panels controller to install a panel
-        editor.panels.install(MyPanel(), MyPanel.Position.Right)
-        my_panel = editor.panels.get(MyPanel)
-
-        # and so on
-
+    See the BreakpointsManager in the Debugger plugin for an example of a
+    manager created by an external plugin.
     """
+
+    def __init__(self, editor: "CodeEditor"):
+        """
+        Initialize manager.
+
+        Parameters
+        ----------
+        editor: CodeEditor
+            Editor instance to manage.
+        """
+        super().__init__()
+
+        self._editor = weakref.ref(editor)
 
     @property
-    def editor(self):
+    def editor(self) -> "CodeEditor":
         """Return a reference to the parent CodeEditor widget."""
         return self._editor()
-
-    def __init__(self, editor):
-        """:param editor: CodeEditor instance to control."""
-        super().__init__()
-        self._editor = weakref.ref(editor)

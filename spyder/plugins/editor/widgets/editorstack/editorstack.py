@@ -12,6 +12,8 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
+from collections.abc import Callable
 import functools
 import logging
 import os
@@ -41,10 +43,12 @@ from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
 from spyder.plugins.application.api import ApplicationActions
-from spyder.plugins.editor.api.panel import Panel
+from spyder.plugins.editor.api.actions import EditorWidgetActions
+from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.editor import get_file_language
-from spyder.plugins.editor.widgets import codeeditor
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editorstack.helpers import (
     ThreadManager, FileInfo, StackHistory)
 from spyder.plugins.editor.widgets.tabswitcher import TabSwitcherWidget
@@ -108,7 +112,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
     sig_refresh_eol_chars = Signal(str)
-    sig_refresh_formatting = Signal(bool)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -245,9 +248,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         self.stack_history = StackHistory(self)
 
-        # External panels
-        self.external_panels = []
-
         self.setup_editorstack(parent, layout)
 
         self.find_widget = None
@@ -320,6 +320,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 triggered=parent.main_widget.create_new_window,
                 register_action=False
             )
+
+        # This action is not available in many tests, so we try to grab it here
+        # and use its reference later.
+        try:
+            self.formatting_action = self.get_action(
+                EditorWidgetActions.FormatCode
+            )
+        except KeyError:
+            self.formatting_action = None
+
         self._given_actions = actions
         self.outlineexplorer = None
         self.tempfile_path = None
@@ -711,9 +721,17 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         fname = other_finfo.filename
         enc = other_finfo.encoding
         new = other_finfo.newly_created
-        finfo = self.create_new_editor(fname, enc, "",
-                                       set_current=set_current, new=new,
-                                       cloned_from=other_finfo.editor)
+        finfo = self.create_new_editor(
+            fname,
+            enc,
+            "",
+            set_current=set_current,
+            new=new,
+            cloned_from=other_finfo.editor,
+            extensions=other_finfo.editor.external_extensions,
+            panels=other_finfo.editor.external_panels,
+            shortcuts=other_finfo.editor.external_shortcuts,
+        )
         finfo.set_todo_results(other_finfo.todo_results)
         return finfo.editor
 
@@ -1272,7 +1290,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Set new filename
         finfo.filename = new_filename
-        finfo.editor.filename = new_filename
 
         # File type has changed!
         original_ext = osp.splitext(original_filename)[1]
@@ -1304,7 +1321,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
-        finfo.editor.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1658,14 +1674,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
-            # TODO: Check move of this logic to be part of SpyderMenu itself/be
-            # able to call a method to do this unregistration
-            editor.menu.MENUS.remove((editor, None, editor.menu))
-            editor.menu.setParent(None)
-            editor.readonly_menu.MENUS.remove(
-                (editor, None, editor.readonly_menu)
-            )
-            editor.readonly_menu.setParent(None)
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2489,15 +2497,22 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Set current editor
         if self.get_stack_count():
-            index = self.get_stack_index()
             finfo = self.data[index]
             editor = finfo.editor
             editor.setFocus()
+
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
+
+            index = self.get_stack_index()
             self._refresh_outlineexplorer(index, update=False)
-            self.sig_update_code_analysis_actions.emit()
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+
+            self.sig_update_code_analysis_actions.emit()
             self.__modify_stack_title()
             self.update_plugin_title.emit()
         else:
@@ -2605,13 +2620,28 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 QMessageBox.Ok
             )
 
-    def create_new_editor(self, fname, enc, txt, set_current, new=False,
-                          cloned_from=None, add_where='end'):
+    def create_new_editor(
+        self,
+        fname: str,
+        enc: str,
+        txt: str,
+        set_current: bool,
+        new: bool = False,
+        cloned_from: bool = None,
+        add_where: str = "end",
+        extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
+    ):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        editor = codeeditor.CodeEditor(self)
+        editor = CodeEditor(
+            self, extensions=extensions, panels=panels, shortcuts=shortcuts
+        )
         editor.go_to_definition.connect(
             lambda fname, line, column: self.sig_go_to_definition.emit(
                 fname, line, column))
@@ -2629,7 +2659,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         editor.sig_new_file.connect(self.sig_new_file)
         editor.sig_process_code_analysis.connect(
             self.sig_update_code_analysis_actions)
-        editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
+        editor.sig_refresh_formatting.connect(self.refresh_formatting)
         editor.sig_save_requested.connect(self.save)
         language = get_file_language(fname, txt)
         editor.setup_editor(
@@ -2685,11 +2715,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         editor.sig_cursor_position_changed.connect(
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
-
-        # Register external panels
-        for panel_class, args, kwargs, position in self.external_panels:
-            self.register_panel(
-                panel_class, *args, position=position, **kwargs)
 
         def perform_completion_request(lang, method, params):
             self.sig_perform_completion_request.emit(lang, method, params)
@@ -2784,13 +2809,32 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         }
         self.sig_help_requested.emit(doc)
 
-    def new(self, filename, encoding, text, default_content=False,
-            empty=False):
+    def new(
+        self,
+        filename: str,
+        encoding: str,
+        text: str,
+        default_content: bool = False,
+        empty: bool = False,
+        extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
+    ):
         """
         Create new filename with *encoding* and *text*
         """
-        finfo = self.create_new_editor(filename, encoding, text,
-                                       set_current=False, new=True)
+        finfo = self.create_new_editor(
+            filename,
+            encoding,
+            text,
+            set_current=False,
+            new=True,
+            extensions=extensions,
+            panels=panels,
+            shortcuts=shortcuts,
+        )
         finfo.editor.set_cursor_position('eof')
         if not empty:
             finfo.editor.insert_text(os.linesep)
@@ -2799,8 +2843,18 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True, add_where='end',
-             processevents=True):
+    def load(
+        self,
+        filename: str,
+        set_current: bool = True,
+        add_where: str = "end",
+        processevents: bool = True,
+        extensions: list[type[EditorExtension]] | None = None,
+        panels: list[tuple[type[Panel], PanelPosition]] | None = None,
+        shortcuts: (
+            list[tuple[str, Callable[[CodeEditor], None], str]] | None
+        ) = None,
+    ):
         """
         Load filename, create an editor instance and return it.
 
@@ -2824,8 +2878,16 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         self.autosave.file_hashes[filename] = hash(text)
 
         # Create editor
-        finfo = self.create_new_editor(filename, enc, text, set_current,
-                                       add_where=add_where)
+        finfo = self.create_new_editor(
+            filename,
+            enc,
+            text,
+            set_current,
+            add_where=add_where,
+            extensions=extensions,
+            panels=panels,
+            shortcuts=shortcuts,
+        )
         index = self.data.index(finfo)
 
         if processevents:
@@ -2926,6 +2988,14 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo = self.data[index]
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
+
+    def refresh_formatting(self):
+        editor = self.get_current_editor()
+        if editor:
+            if self.formatting_action is not None:
+                self.formatting_action.setEnabled(
+                    editor.formatting_enabled and not editor.isReadOnly()
+                )
 
     # ---- Run
     def _get_lines_cursor(self, direction):
@@ -3111,14 +3181,3 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         else:
             event.ignore()
         event.acceptProposedAction()
-
-    def register_panel(self, panel_class, *args,
-                       position=Panel.Position.LEFT, **kwargs):
-        """Register a panel in all codeeditors."""
-        if (panel_class, args, kwargs, position) not in self.external_panels:
-            self.external_panels.append((panel_class, args, kwargs, position))
-        for finfo in self.data:
-            cur_panel = finfo.editor.panels.register(
-                panel_class(*args, **kwargs), position=position)
-            if not cur_panel.isVisible():
-                cur_panel.setVisible(True)
