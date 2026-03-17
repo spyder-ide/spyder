@@ -582,19 +582,19 @@ class RunDialog(BaseRunConfigDialog, SpyderFontsMixin):
     # -------------------------------------------------------------------------
     def setup(self):
         # --- Header
-        header_label = QLabel(_("Configure settings to run a specific file"))
+        header_label = QLabel(
+            _("Configure runner settings for a specific file")
+        )
 
         font = self.get_font(SpyderFontType.Interface)
         font.setPointSize(font.pointSize() + 1)
         header_label.setFont(font)
 
         header_tip_text = _(
-            "This dialog lets you choose how each file is executed in "
-            "different runners. It does not allow you to select the runner "
-            "itself for code execution, as was possible in Spyder 5. Now you "
-            "need to select the desired action from the Run or other menus. "
-            "For instance, to run your code in an external terminal, use the "
-            "'Run > Run in external terminal' entry."
+            "Configure file-specific options here for each available runner, "
+            "such as the IPython Console, Debugger or External Terminal. "
+            "To execute your code in a specific runner, use its action in the "
+            "Run menu or elsewhere, such as 'Run > Run in external terminal'."
         )
         header_tip = TipWidget(
             tip_text=header_tip_text,
