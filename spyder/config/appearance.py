@@ -96,6 +96,7 @@ APPEARANCE = {
     'idle/string':      ('#00aa00', False, False),
     'idle/number':      ('#924900', False, False),
     'idle/instance':    ('#777777', True, True),
+    'idle/symbols':  ("#ff0000", False, False),
     # ---- Monokai ----
     'monokai/name':         "Monokai",
     #      Name              Color     Bold  Italic
@@ -116,6 +117,7 @@ APPEARANCE = {
     'monokai/string':      ("#e6db74", False, False),
     'monokai/number':      ("#ae81ff", False, False),
     'monokai/instance':    ("#ddddda", False, True),
+    'monokai/symbols':  ("#ff0000", False, False),
     # ---- Pydev ----
     'pydev/name':        "Pydev",
     #      Name            Color     Bold  Italic
@@ -136,6 +138,7 @@ APPEARANCE = {
     'pydev/string':     ('#00aa00', False, True),
     'pydev/number':     ('#800000', False, False),
     'pydev/instance':   ('#000000', False, True),
+    'pydev/symbols':  ("#ff0000", False, False),
     # ---- Scintilla ----
     'scintilla/name':        "Scintilla",
     #         Name             Color     Bold  Italic
@@ -156,6 +159,7 @@ APPEARANCE = {
     'scintilla/string':     ('#7f007f', False, False),
     'scintilla/number':     ('#007f7f', False, False),
     'scintilla/instance':   ('#000000', False, True),
+    'scintilla/symbols':  ("#ff0000", False, False),
     # ---- Spyder ----
     'spyder/name':        "Spyder",
     #       Name            Color     Bold  Italic
