@@ -157,6 +157,7 @@ class FileInfo(QObject):
     def filename(self, value):
         """Filename setter."""
         self._filename = value
+        self.editor.filename = value
         self.sig_filename_changed.emit(value)
 
     def text_changed(self):

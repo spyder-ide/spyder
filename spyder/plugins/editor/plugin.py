@@ -6,11 +6,16 @@
 
 """Editor Plugin"""
 
+from __future__ import annotations
+from collections.abc import Callable
+import configparser
 import logging
 import sys
+from typing import TYPE_CHECKING
 
 from qtpy.QtCore import Signal
 
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import SpyderDockablePlugin, Plugins
 from spyder.api.plugin_registration.decorators import (
@@ -20,6 +25,8 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import _
 from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
+from spyder.plugins.editor.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.api.run import (
     SelectionContextModificator,
     ExtraAction
@@ -35,6 +42,10 @@ from spyder.plugins.mainmenu.api import (
 )
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.run.api import RunContext
+
+
+if TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 logger = logging.getLogger(__name__)
@@ -175,6 +186,18 @@ class Editor(SpyderDockablePlugin):
         return cls.create_icon('edit')
 
     def on_initialize(self):
+        # Attributes
+        self.extensions: list[type[EditorExtension]] = []
+        """List of Editor extensions added by third-party plugins."""
+
+        self.panels: list[tuple[type[Panel], PanelPosition]] = []
+        """List of panels added by third-party plugins."""
+
+        self.shortcuts: list[
+            tuple[str, Callable[["CodeEditor"], None], str]
+        ] = []
+        """List of shortcuts added by third-party plugins."""
+
         widget = self.get_widget()
 
         # ---- Help related signals
@@ -1183,6 +1206,101 @@ class Editor(SpyderDockablePlugin):
 
     def replace(self) -> None:
         return self.get_widget().replace()
+
+    # ---- To extend the editor
+    def add_extension(self, extension: type[EditorExtension]) -> None:
+        """
+        Add an editor extension to every CodeEditor.
+
+        Parameters
+        ----------
+        extension: type[EditorExtension]
+            Subclass of EditorExtension to be added to the editor.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of EditorExtension.
+        """
+        if not issubclass(extension, EditorExtension):
+            raise SpyderAPIError(
+                "The extension you provided is not a subclass of "
+                "EditorExtension."
+            )
+
+        self.extensions.append(extension)
+
+    def add_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    ) -> None:
+        """
+        Add a panel to every CodeEditor.
+
+        Parameters
+        ----------
+        panel: type[Panel]
+            Subclass of Panel to be added to the editor.
+        position: PanelPosition, optional
+            Position to add the panel to. Default is to the left.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of Panel.
+        """
+        if not issubclass(panel, Panel):
+            raise SpyderAPIError(
+                "The panel you provided is not a subclass of Panel."
+            )
+
+        self.panels.append((panel, position))
+
+    def add_shortcut(
+        self,
+        name: str,
+        triggered: Callable[["CodeEditor"], None],
+        plugin_name: str,
+    ) -> None:
+        """
+        Add a keyboard shorcut to every CodeEditor.
+
+        Parameters
+        ----------
+        name: str
+            The shortcut name (e.g. ``"add text"``).
+        triggered: Callable[["CodeEditor"], None]
+            Callable (i.e. function or method) to be triggered by the shortcut.
+            It must have a single parameter that receives an instance of
+            CodeEditor to work with and it doesn't need to return anything
+            because it's expected result is to have a side effect on the
+            editor (e.g. adding some text to it).
+        plugin_name: str
+            Name of the plugin that attempts to register the shortcut. This
+            allows Spyder to get the shortcut from its configuration options.
+
+        Raises
+        ------
+        SpyderAPIError
+            If ``triggered`` is not a callable, the shortcut context is not
+            'editor', or the shortcut is not part of the external plugin's
+            configuration options.
+        """
+        if not callable(triggered):
+            raise SpyderAPIError(
+                "The 'triggered' argument you provided is not a callable."
+            )
+
+        try:
+            self.get_widget().get_shortcut(
+                name=name, context="editor", plugin_name=plugin_name
+            )
+        except configparser.NoOptionError:
+            raise SpyderAPIError(
+                f"The shortcut context is not 'editor' or the shortcut is not "
+                f"part of the config options of the plugin {plugin_name}"
+            )
+
+        self.shortcuts.append((name, triggered, plugin_name))
 
     # ---- Private API
     # ------------------------------------------------------------------------
