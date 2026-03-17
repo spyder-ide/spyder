@@ -90,7 +90,7 @@ def test_python_string_prefix():
                (7 + offset, 1, 'symbols'), 
                (8 + offset, 1, 'normal'),            # |, |
                (9 + offset, 10 + offset, 'string'),  # |{prefix}'''test'''|
-               (19 + 2*offset, 1, 'normal')]         # | |
+               (19 + 2*offset, 1, 'symbols')]         # | |
 
         compare_formats(doc.firstBlock().layout().formats(), res, sh)
 
