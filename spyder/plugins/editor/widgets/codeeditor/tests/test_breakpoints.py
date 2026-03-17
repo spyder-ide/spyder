@@ -12,13 +12,13 @@ from unittest.mock import Mock
 
 # Third party imports
 import pytest
-from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder import version_info
-import spyder.plugins.editor.widgets.codeeditor as codeeditor
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.debugger.utils import breakpointsmanager
-from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
+from spyder.plugins.editor.api.panel import PanelPosition
+import spyder.plugins.editor.widgets.codeeditor as codeeditor
 
 
 # --- Helper methods
@@ -58,7 +58,9 @@ def editor_assert_helper(editor, block=None, bp=False, bpc=None, emits=True):
 @pytest.fixture
 def code_editor_bot(qtbot):
     """Create code editor with default Python code."""
-    editor = codeeditor.CodeEditor(parent=None)
+    editor = codeeditor.CodeEditor(
+        parent=None, panels=[(DebuggerPanel, PanelPosition.LEFT)]
+    )
     indent_chars = ' ' * 4
     tab_stop_width_spaces = 4
     editor.setup_editor(language='Python', indent_chars=indent_chars,
@@ -83,7 +85,7 @@ def code_editor_bot(qtbot):
             )
     editor.set_text(text)
     editor.filename = "file.py"
-    editor.breakpoints_manager = BreakpointsManager(editor)
+    editor.breakpoints_manager = breakpointsmanager.BreakpointsManager(editor)
     editor.breakpoints_manager.sig_repaint_breakpoints.connect(mark_called)
     return editor, qtbot
 

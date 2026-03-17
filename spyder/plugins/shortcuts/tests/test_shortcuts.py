@@ -152,8 +152,8 @@ def test_press_new_sequence(create_shortcut_editor, qtbot):
     """
     shortcut_editor = create_shortcut_editor('editor', 'delete line')
     modifiers = Qt.ControlModifier | Qt.ShiftModifier | Qt.AltModifier
-    qtbot.keyClick(shortcut_editor, Qt.Key_D, modifier=modifiers)
-    assert shortcut_editor.new_sequence == 'Ctrl+Alt+Shift+D'
+    qtbot.keyClick(shortcut_editor, Qt.Key_W, modifier=modifiers)
+    assert shortcut_editor.new_sequence == 'Ctrl+Alt+Shift+W'
     assert shortcut_editor.warning == NO_WARNING
     assert shortcut_editor.button_ok.isEnabled()
 

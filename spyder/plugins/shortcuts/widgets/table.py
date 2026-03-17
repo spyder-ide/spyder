@@ -336,13 +336,20 @@ class ShortcutEditor(QDialog):
 
         new_qsequence = self.new_qsequence
         no_match = QKeySequence.SequenceMatch.NoMatch
+
+        global_contexts = ['_', 'find_replace']
+
         for shortcut in self.shortcuts:
             shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
             if shortcut_qsequence.isEmpty():
                 continue
             if (shortcut.context, shortcut.name) == (self.context, self.name):
                 continue
-            if shortcut.context in [self.context, '_'] or self.context == '_':
+            if (
+                shortcut.context == self.context
+                or shortcut.context in global_contexts
+                or self.context in global_contexts
+            ):
                 if (shortcut_qsequence.matches(new_qsequence) != no_match or
                         new_qsequence.matches(shortcut_qsequence) != no_match):
                     conflicts.append(shortcut)

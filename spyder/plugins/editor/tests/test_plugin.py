@@ -14,16 +14,76 @@ import os.path as osp
 import shutil
 
 # Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtGui import QColor, QFontMetrics, QPainter
 import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
+from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
-from spyder.plugins.editor.widgets.editorstack import editorstack as editor_module
+from spyder.plugins.editor.widgets.editorstack import (
+    editorstack as editor_module,
+)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.run.api import RunContext
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.sourcecode import get_eol_chars, get_eol_chars_from_os_name
+
+
+# =============================================================================
+# ---- External panel example
+# =============================================================================
+class EmojiPanel(Panel):
+    """Example external panel."""
+
+    def __init__(self):
+        """Initialize panel."""
+        Panel.__init__(self)
+        self.setMouseTracking(True)
+        self.scrollable = True
+
+    def sizeHint(self):
+        """Override Qt method.
+        Returns the widget size hint (based on the editor font size).
+        """
+        fm = QFontMetrics(self.editor.font())
+        size_hint = QSize(fm.height(), fm.height())
+        if size_hint.width() > 16:
+            size_hint.setWidth(16)
+        return size_hint
+
+    def _draw_red(self, top, painter):
+        """Draw emojis.
+
+        Arguments
+        ---------
+        top: int
+            top of the line to draw the emoji
+        painter: QPainter
+            QPainter instance
+        """
+        painter.setPen(QColor("white"))
+        font_height = self.editor.fontMetrics().height()
+        painter.drawText(
+            0,
+            top,
+            self.sizeHint().width(),
+            font_height,
+            int(Qt.AlignRight | Qt.AlignBottom),
+            "👀",
+        )
+
+    def paintEvent(self, event):
+        """Override Qt method.
+        Paint emojis.
+        """
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.fillRect(event.rect(), self.editor.sideareas_color)
+        for top, __, __ in self.editor.visible_blocks:
+            self._draw_red(top, painter)
 
 
 # =============================================================================
@@ -546,6 +606,68 @@ def test_register_run_metadata(editor_plugin):
     filename = editorstack.get_filenames()[0]
     assert filename not in widget.file_per_id.values()
     assert widget.file_per_id == {}
+
+
+@pytest.mark.parametrize(
+    "position",
+    [
+        PanelPosition.LEFT,
+        PanelPosition.RIGHT,
+        PanelPosition.TOP,
+        PanelPosition.BOTTOM,
+        PanelPosition.FLOATING,
+    ],
+)
+def test_add_panel(editor_plugin, position, qtbot):
+    """Test adding an external panel to the editor."""
+    # Add panel
+    editor_plugin.add_panel(EmojiPanel, position=position)
+
+    # Create empty file
+    editor_plugin.new()
+    editor = editor_plugin.get_current_editor()
+
+    # Verify the panel was added
+    new_panel = editor.panels.get(EmojiPanel)
+    assert new_panel is not None
+
+    # Verify that the panel is shown in other files
+    editor_plugin.new(fname="foo.py", text="hola = 3\n")
+    editor2 = editor_plugin.get_current_editor()
+
+    new_panel = editor2.panels.get(EmojiPanel)
+    assert new_panel is not None
+
+    # Remove created file to prevent issues with other tests
+    editor_plugin.get_widget().close_file()
+    os.remove(osp.join(getcwd_or_home(), "foo.py"))
+
+
+def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
+    """Test debugger panel is shown/hidden after file renames."""
+    # Create empty file
+    editor_plugin.new()
+    editor = editor_plugin.get_current_editor()
+
+    # Check panel is visible because all new files are Python ones
+    debugger_panel = editor.panels.get(DebuggerPanel)
+    assert debugger_panel.isVisible()
+
+    # Rename to a non-Python file and check the panel is hidden
+    editorstack = editor_plugin.get_current_editorstack()
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=str(tmp_path / 'foo.txt')
+    )
+    assert editorstack.save_as() is True
+    assert not debugger_panel.isVisible()
+
+    # Rename to a Python file and check the panel is shown again
+    py_fname = tmp_path / 'foo.py'
+    mocker.patch.object(
+        editorstack, "select_savename", return_value=str(py_fname)
+    )
+    assert editorstack.save_as() is True
+    assert debugger_panel.isVisible()
 
 
 if __name__ == "__main__":

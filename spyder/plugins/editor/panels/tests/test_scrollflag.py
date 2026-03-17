@@ -14,8 +14,10 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
 
 # Local imports
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
+from spyder.plugins.editor.api.panel import PanelPosition
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -23,14 +25,16 @@ from spyder.plugins.debugger.utils.breakpointsmanager import BreakpointsManager
 
 @pytest.fixture
 def editor_bot(qtbot):
-    widget = CodeEditor(None)
-    widget.setup_editor(linenumbers=True,
-                        markers=True,
-                        show_blanks=True,
-                        scrollflagarea=True,
-                        font=QFont("Courier New", 10),
-                        color_scheme='Zenburn',
-                        language='Python')
+    widget = CodeEditor(None, panels=[(DebuggerPanel, PanelPosition.LEFT)])
+    widget.setup_editor(
+        linenumbers=True,
+        markers=True,
+        show_blanks=True,
+        scrollflagarea=True,
+        font=QFont("Courier New", 10),
+        color_scheme="Zenburn",
+        language="Python",
+    )
     qtbot.addWidget(widget)
     return widget
 

@@ -23,7 +23,11 @@ from spyder.plugins.editor.extensions.docstring import (
     get_indent,
     remove_comments,
 )
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.editor.widgets.codeeditor import (
+    CodeEditor,
+    CodeEditorActions,
+    DocstringContext,
+)
 from spyder.utils.qthelpers import qapplication
 
 
@@ -515,6 +519,24 @@ def base_editor_docstring():
     """Set up Editor with auto docstring activated."""
     app = qapplication()  # noqa
     editor = CodeEditor(parent=None)
+
+    def write_docstring():
+        action = editor.get_action(CodeEditorActions.Docstring)
+        if action.data()["at_cursor_position"]:
+            editor.writer_docstring.write_docstring_at_first_line_of_function()
+        else:
+            editor.for_each_cursor(editor.writer_docstring.write_docstring)()
+
+    # This action is available at the main widget level, so we need to recreate
+    # it here
+    editor.create_action(
+        CodeEditorActions.Docstring,
+        text="Generate docstring",
+        register_shortcut=True,
+        data=DocstringContext(at_cursor_position=False),
+        triggered=write_docstring,
+    )
+
     editor.setup_editor(
         language='Python', close_quotes=True, close_parentheses=True
     )
