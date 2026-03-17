@@ -85,7 +85,7 @@ def test_python_string_prefix():
         sh.rehighlightBlock(doc.firstBlock())
 
         offset = len(prefix)
-        res = [(0, 1, 'normal'),                     # |[|
+        res = [(0, 1, 'symbols'),                     # |[|
                (1, 6 + offset, 'string'),            # |{prefix}'test'|
                (7 + offset, 1, 'symbols'), 
                (8 + offset, 1, 'normal'),            # |, |
