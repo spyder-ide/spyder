@@ -57,10 +57,10 @@ class ToolTipWidget(QLabel):
         """
         Shows tooltips that can be styled with the different themes.
         """
-        # Don't set parent on Windows to prevent bringing the mainwindow to the
-        # front even when the trigger comes from another top-level window
+        # Don't set parent on Windows to prevent bringing the main window to
+        # the front even when the trigger comes from another top-level window.
         # (i.e undocked pane).
-        # See spyder-ide/spyder#25605
+        # Fixes spyder-ide/spyder#25605
         super().__init__(None if os.name == "nt" else parent, Qt.ToolTip)
 
         # Variables
