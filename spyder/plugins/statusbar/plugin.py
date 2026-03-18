@@ -61,7 +61,7 @@ class StatusBar(SpyderPluginV2):
     # ---- SpyderPluginV2 API
     @staticmethod
     def get_name():
-        return _('Status bar')
+        return _('Status Bar')
 
     @classmethod
     def get_icon(cls):
