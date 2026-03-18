@@ -81,7 +81,7 @@ class Console(SpyderDockablePlugin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Internal console')
+        return _('Internal Console')
 
     @classmethod
     def get_icon(cls):

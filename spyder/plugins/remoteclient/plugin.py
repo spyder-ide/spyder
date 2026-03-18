@@ -130,7 +130,7 @@ class RemoteClient(SpyderPluginV2):
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("Remote client")
+        return _("Remote Client")
 
     @staticmethod
     def get_description():
