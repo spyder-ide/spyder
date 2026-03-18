@@ -47,7 +47,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
     # ------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _('Variable explorer')
+        return _('Variable Explorer')
 
     @staticmethod
     def get_description():
