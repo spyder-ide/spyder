@@ -17,14 +17,15 @@ Original file:
 """
 
 # Standard library imports
-import weakref
+from __future__ import annotations
 import os
 import os.path as osp
 import re
 import time
+import weakref
 
 # Third party imports
-from qtpy.QtCore import QTimer, Qt
+from qtpy.QtCore import QTimer
 from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
                         QTextDocument)
 
@@ -72,9 +73,12 @@ def is_block_safe(block):
 
 
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, color=None, selection_start=None,
-                 selection_end=None):
+
+    def __init__(
+        self, editor, color=None, selection_start=None, selection_end=None
+    ):
         QTextBlockUserData.__init__(self)
+
         self.editor = editor
         self.breakpoint = False
         self.breakpoint_condition = None
@@ -86,6 +90,9 @@ class BlockUserData(QTextBlockUserData):
         self.import_statement = None
         self.selection_start = selection_start
         self.selection_end = selection_end
+
+        # To tell where an inline completion text starts in the block
+        self.inline_completion_start: int | None = None
 
     def _selection(self):
         """
