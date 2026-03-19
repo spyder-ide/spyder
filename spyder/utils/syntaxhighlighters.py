@@ -10,6 +10,7 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 """
 
 # Standard library imports
+from __future__ import annotations
 import builtins
 import keyword
 import os
@@ -547,33 +548,56 @@ class PythonSH(BaseSH):
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)
 
-    def highlight_match(self, text, match, key, value, offset,
-                        state, import_stmt, oedata):
+    def select_formats(self, start: int, inline_completion_start: int | None):
+        """Decide if we need to use inline formats for highlighting."""
+        formats = self.formats
+        if (
+            inline_completion_start is not None
+            and start >= inline_completion_start
+        ):
+            formats = self.inline_formats
+
+        return formats
+
+    def highlight_match(
+        self,
+        text,
+        match,
+        key,
+        value,
+        offset,
+        state,
+        import_stmt,
+        oedata,
+        inline_completion_start: int | None,
+    ):
         """Highlight a single match."""
         start, end = get_span(match, key)
         start = max([0, start + offset])
         end = max([0, end + offset])
         length = end - start
 
+        formats = self.select_formats(start, inline_completion_start)
+
         if key == "uf_sq3string":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_SQ3STRING
         elif key == "uf_dq3string":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_DQ3STRING
         elif key == "uf_sqstring":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_SQSTRING
         elif key == "uf_dqstring":
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_DQSTRING
         elif key in ["ufe_sqstring", "ufe_dqstring"]:
-            self.setFormat(start, length, self.formats["string"])
+            self.setFormat(start, length, formats["string"])
             state = self.INSIDE_NON_MULTILINE_STRING
         elif key in ["match_kw", "case_kw"]:
-            self.setFormat(start, length, self.formats["keyword"])
+            self.setFormat(start, length, formats["keyword"])
         else:
-            self.setFormat(start, length, self.formats[key])
+            self.setFormat(start, length, formats[key])
             if key == "comment":
                 if text.lstrip().startswith(self.cell_separators):
                     oedata = OutlineExplorerData(self.currentBlock())
@@ -602,15 +626,23 @@ class PythonSH(BaseSH):
                     match1 = self.IDPROG.match(text, end)
                     if match1:
                         start1, end1 = get_span(match1, 1)
-                        self.setFormat(start1, end1-start1,
-                                       self.formats["definition"])
+
+                        def_formats = self.select_formats(
+                            start1, inline_completion_start
+                        )
+                        self.setFormat(
+                            start1, end1 - start1, def_formats["definition"]
+                        )
+
                         oedata = OutlineExplorerData(self.currentBlock())
                         oedata.text = str(text)
-                        oedata.fold_level = (qstring_length(text)
-                                             - qstring_length(text.lstrip()))
+                        oedata.fold_level = (
+                            qstring_length(text)
+                            - qstring_length(text.lstrip())
+                        )
                         oedata.def_type = self.DEF_TYPES[str(value)]
                         oedata.def_name = text[start1:end1]
-                        oedata.color = self.formats["definition"]
+                        oedata.color = formats["definition"]
                 elif value in ("elif", "else", "except", "finally",
                                "for", "if", "try", "while",
                                "with"):
@@ -629,19 +661,28 @@ class PythonSH(BaseSH):
                         endpos = qstring_length(text[:text.index('#')])
                     else:
                         endpos = qstring_length(text)
+
                     while True:
                         match1 = self.ASPROG.match(text, end, endpos)
                         if not match1:
                             break
-                        start, end = get_span(match1, 1)
-                        self.setFormat(start, length, self.formats["keyword"])
+
+                        start2, end2 = get_span(match1, 1)
+
+                        kw_formats = self.select_formats(
+                            start2, inline_completion_start
+                        )
+                        self.setFormat(start, length, kw_formats["keyword"])
 
         return state, import_stmt, oedata
 
     def highlight_block(self, text):
         """Implement specific highlight for Python."""
         text = str(text)
-        prev_state = tbh.get_state(self.currentBlock().previous())
+        block = self.currentBlock()
+        data = block.userData()
+
+        prev_state = tbh.get_state(block.previous())
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
             text = r'""" '+text
@@ -658,20 +699,51 @@ class PythonSH(BaseSH):
             offset = 0
             prev_state = self.NORMAL
 
+        # Get start column for inline completions
+        inline_completion_start = (
+            data.inline_completion_start if data else None
+        )
+
+        # Set normal format for all text
+        if inline_completion_start is None:
+            self.setFormat(0, qstring_length(text), self.formats["normal"])
+        else:
+            if inline_completion_start == 0:
+                self.setFormat(
+                    0, qstring_length(text), self.inline_formats["normal"]
+                )
+            else:
+                self.setFormat(
+                    0,
+                    qstring_length(text[:inline_completion_start]),
+                    self.formats["normal"]
+                )
+                self.setFormat(
+                    inline_completion_start,
+                    qstring_length(text),
+                    self.inline_formats["normal"]
+                )
+
+        # Set format for matches
+        state = self.NORMAL
         oedata = None
         import_stmt = None
-
-        self.setFormat(0, qstring_length(text), self.formats["normal"])
-
-        state = self.NORMAL
         for match in self.PROG.finditer(text):
             for key, value in list(match.groupdict().items()):
                 if value:
                     state, import_stmt, oedata = self.highlight_match(
-                        text, match, key, value, offset,
-                        state, import_stmt, oedata)
+                        text,
+                        match,
+                        key,
+                        value,
+                        offset,
+                        state,
+                        import_stmt,
+                        oedata,
+                        inline_completion_start,
+                    )
 
-        tbh.set_state(self.currentBlock(), state)
+        tbh.set_state(block, state)
 
         # Use normal format for indentation and trailing spaces
         # Unless we are in a string
@@ -688,11 +760,7 @@ class PythonSH(BaseSH):
             self.formats['trailing'] = self.formats['string']
         self.highlight_extras(text, offset)
 
-        block = self.currentBlock()
-        data = block.userData()
-
         need_data = (oedata or import_stmt)
-
         if need_data and not data:
             data = BlockUserData(self.editor)
 
