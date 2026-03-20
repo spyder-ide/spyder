@@ -200,8 +200,8 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         close_all_editors_action = self.create_action(
             VariableExplorerWidgetActions.CloseAllEditors,
-            _("Close all editors"),
-            icon=self.create_icon('close_pane'),
+            _("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
             triggered=self.close_all_editors
         )
 
@@ -330,8 +330,13 @@ class VariableExplorerWidget(ShellConnectMainWidget):
 
         # Main toolbar
         main_toolbar = self.get_main_toolbar()
-        for item in [import_data_action, save_action, save_as_action,
-                     reset_namespace_action, close_all_editors_action]:
+        for item in [
+            import_data_action,
+            save_action,
+            save_as_action,
+            reset_namespace_action,
+            close_all_editors_action,
+        ]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=main_toolbar,
