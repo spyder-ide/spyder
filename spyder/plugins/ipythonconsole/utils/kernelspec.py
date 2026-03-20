@@ -39,8 +39,12 @@ from spyder.config.base import (
     running_under_pytest
 )
 from spyder.plugins.ipythonconsole import (
-    SPYDER_KERNELS_CONDA, SPYDER_KERNELS_PIP, SPYDER_KERNELS_VERSION,
-    SpyderKernelError)
+    SPYDER_KERNELS_CONDA,
+    SPYDER_KERNELS_PIP,
+    SPYDER_KERNELS_VERSION,
+    SpyderKernelError,
+    SpyderKernelVersionError
+)
 from spyder.utils.conda import conda_version, find_conda, find_pixi
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
@@ -48,11 +52,11 @@ from spyder.utils.programs import (
     get_module_version,
     get_temp_dir,
     is_python_interpreter,
-    is_module_installed,
+    check_version_range,
 )
 
 # Constants
-HERE = os.path.abspath(os.path.dirname(__file__))
+HERE = osp.dirname(osp.realpath(__file__))
 logger = logging.getLogger(__name__)
 ERROR_SPYDER_KERNEL_INSTALLED = _(
     "The Python environment or installation whose interpreter is located at"
@@ -75,21 +79,19 @@ ERROR_SPYDER_KERNEL_INSTALLED = _(
 
 def has_spyder_kernels(pyexec):
     """Check if env has spyder kernels."""
-    if is_module_installed(
-        'spyder_kernels',
-        version=SPYDER_KERNELS_VERSION,
-        interpreter=pyexec
-    ):
-        return True
-
-    # Dev versions of Spyder-kernels are acceptable
     try:
-        return "dev0" in get_module_version('spyder_kernels', pyexec)
+        version = get_module_version('spyder_kernels', interpreter=pyexec)
+        assert check_version_range(version, SPYDER_KERNELS_VERSION)
     except Exception:
-        return False
-
-
-HERE = osp.dirname(os.path.realpath(__file__))
+        raise SpyderKernelVersionError(
+            pyexec,
+            ERROR_SPYDER_KERNEL_INSTALLED.format(
+                pyexec,
+                SPYDER_KERNELS_VERSION,
+                SPYDER_KERNELS_CONDA,
+                SPYDER_KERNELS_PIP
+            )
+        )
 
 
 class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
@@ -118,21 +120,14 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             pyexec = self.get_conf('executable', section='main_interpreter')
             if self.path_to_custom_interpreter:
                 pyexec = self.path_to_custom_interpreter
-            if not has_spyder_kernels(pyexec):
-                raise SpyderKernelError(
-                    ERROR_SPYDER_KERNEL_INSTALLED.format(
-                        pyexec,
-                        SPYDER_KERNELS_VERSION,
-                        SPYDER_KERNELS_CONDA,
-                        SPYDER_KERNELS_PIP
-                    )
-                )
-                return
+
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
                 self.set_conf('executable', '', section='main_interpreter')
                 self.set_conf('default', True, section='main_interpreter')
                 self.set_conf('custom', False, section='main_interpreter')
+
+            has_spyder_kernels(pyexec)
 
         # Command used to start kernels
         kernel_cmd = []

@@ -38,6 +38,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import get_home_dir, running_under_pytest
 from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.ipythonconsole import SpyderKernelVersionError
 from spyder.plugins.ipythonconsole.api import (
     ClientContextMenuActions,
     IPythonConsoleWidgetActions,
@@ -303,6 +304,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.interrupt_action = None
         self.registered_spyder_kernel_handlers = {}
         self.envs = {}
+        self._envs_disabled = set()
 
         # Attributes needed for the restart dialog
         self._restart_dialog = ConsoleRestartDialog(self)
@@ -1336,6 +1338,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 tip=text,
             )
 
+            # Disable action for environments while installing spyder-kernels
+            action.setEnabled(path_to_interpreter not in self._envs_disabled)
+
             # Add default env as the first entry in the menu
             if text.startswith(_("Default")):
                 self.add_item_to_menu(
@@ -1463,6 +1468,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             )
             kernel_spec.env = future.result()
             kernel_handler = self.get_cached_kernel(kernel_spec, cache=cache)
+        except SpyderKernelVersionError as e:
+            client.show_kernel_error(e)
+            client.show_install_mbox(e.pyexec)
+            return
         except Exception as e:
             client.show_kernel_error(e)
             return
@@ -1596,6 +1605,19 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         except AttributeError:
             return None
 
+    def environment_menu_item_state(self, pyexec, enable=False):
+        if enable and pyexec in self._envs_disabled:
+            self._envs_disabled.remove(pyexec)
+        elif not enable:
+            self._envs_disabled.add(pyexec)
+
+        default_interpreter = self.get_conf(
+            "executable", section="main_interpreter"
+        )
+        self.create_client_action.setEnabled(
+            default_interpreter not in self._envs_disabled
+        )
+
     # ---- General
     # -------------------------------------------------------------------------
     def update_edit_menu(self) -> None:
@@ -1661,12 +1683,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             client = self.tabwidget.currentWidget()
 
             # Decide what to show for each client
-            if (client.info_page != client.blank_page and
-                    self.enable_infowidget):
+            if (
+                client.info_page != client.blank_page
+                and self.enable_infowidget
+            ):
                 # Show info_page if it has content
                 client.set_info_page()
                 client.shellwidget.hide()
-                client.layout.addWidget(self.infowidget)
                 if self.infowidget is not None:
                     self.infowidget.show()
             else:
@@ -1975,17 +1998,26 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             special_kernel=special
         )
 
-        future = get_user_environment_variables()
-        future.connect(
-            AsyncDispatcher.QtSlot(
-                functools.partial(
-                    self._connect_new_client_to_kernel,
-                    cache,
-                    path_to_custom_interpreter,
-                    client,
+        def connect_client_to_kernel():
+            future = get_user_environment_variables()
+            future.connect(
+                AsyncDispatcher.QtSlot(
+                    functools.partial(
+                        self._connect_new_client_to_kernel,
+                        cache,
+                        path_to_custom_interpreter,
+                        client,
+                    )
                 )
             )
+
+        # Connect client to kernel after installing spyder-kernels
+        client.sig_connect_after_kernel_install.connect(
+            connect_client_to_kernel
         )
+
+        # Connect client to kernel now
+        connect_client_to_kernel()
 
         # Add client to widget
         self.add_tab(
