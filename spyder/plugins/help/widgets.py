@@ -1059,6 +1059,8 @@ class HelpWidget(PluginMainWidget):
         is_code = False
 
         if self.get_conf('rich_mode'):
+            if self.docstring:
+                doc = source_text if source_text else doc
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:
