@@ -835,3 +835,9 @@ class FoldingPanel(Panel):
             else:
                 self._clear_scope_decos()
         self._block_nbr = block_nbr
+    
+    def toggle_fold_around_cursor(self):
+        cursor = self.editor.textCursor()
+        pos = cursor.position()
+        block = self.editor.document().findBlock(pos)
+        self.toggle_fold_trigger(block)

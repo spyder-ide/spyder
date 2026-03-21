@@ -555,6 +555,9 @@ DEFAULTS = [
               'editor/add cursor up': 'Alt+Shift+Up',
               'editor/add cursor down': 'Alt+Shift+Down',
               'editor/clear extra cursors': 'Esc',
+              'editor/folding or unfolding current block': 'Ctrl+H',
+              'editor/folding all block': 'Ctrl+J',
+              'editor/unfolding all block': 'Ctrl+K',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",
