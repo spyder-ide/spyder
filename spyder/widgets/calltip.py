@@ -17,8 +17,9 @@ Now located at qtconsole/call_tip_widget.py as part of the
 """
 
 # Standard library imports
-from unicodedata import category
+import os
 import sys
+from unicodedata import category
 
 # Third party imports
 import qstylizer.style
@@ -56,7 +57,11 @@ class ToolTipWidget(QLabel):
         """
         Shows tooltips that can be styled with the different themes.
         """
-        super().__init__(parent, Qt.ToolTip)
+        # Don't set parent on Windows to prevent bringing the main window to
+        # the front even when the trigger comes from another top-level window.
+        # (i.e undocked pane).
+        # Fixes spyder-ide/spyder#25605
+        super().__init__(None if os.name == "nt" else parent, Qt.ToolTip)
 
         # Variables
         self.completion_doc = None

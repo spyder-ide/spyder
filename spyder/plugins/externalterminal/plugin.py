@@ -49,7 +49,7 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("External terminal")
+        return _("External Terminal")
 
     @staticmethod
     def get_description():

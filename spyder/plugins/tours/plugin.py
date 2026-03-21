@@ -37,7 +37,7 @@ class Tours(SpyderPluginV2):
     # -------------------------------------------------------------------------
     @staticmethod
     def get_name():
-        return _("Interactive tours")
+        return _("Interactive Tours")
 
     @staticmethod
     def get_description():
