@@ -75,6 +75,7 @@ APPEARANCE = {
     'emacs/string':     ('#00aa00', False, True),
     'emacs/number':     ('#800000', False, False),
     'emacs/instance':   ('#ffffff', False, True),
+    'emacs/symbols':  ("#ff0000", False, False),
     # ---- IDLE ----
     'idle/name':         "IDLE",
     #      Name            Color     Bold  Italic
@@ -95,6 +96,7 @@ APPEARANCE = {
     'idle/string':      ('#00aa00', False, False),
     'idle/number':      ('#924900', False, False),
     'idle/instance':    ('#777777', True, True),
+    'idle/symbols':  ("#ff0000", False, False),
     # ---- Monokai ----
     'monokai/name':         "Monokai",
     #      Name              Color     Bold  Italic
@@ -115,6 +117,7 @@ APPEARANCE = {
     'monokai/string':      ("#e6db74", False, False),
     'monokai/number':      ("#ae81ff", False, False),
     'monokai/instance':    ("#ddddda", False, True),
+    'monokai/symbols':  ("#ff0000", False, False),
     # ---- Pydev ----
     'pydev/name':        "Pydev",
     #      Name            Color     Bold  Italic
@@ -135,6 +138,7 @@ APPEARANCE = {
     'pydev/string':     ('#00aa00', False, True),
     'pydev/number':     ('#800000', False, False),
     'pydev/instance':   ('#000000', False, True),
+    'pydev/symbols':  ("#ff0000", False, False),
     # ---- Scintilla ----
     'scintilla/name':        "Scintilla",
     #         Name             Color     Bold  Italic
@@ -155,6 +159,7 @@ APPEARANCE = {
     'scintilla/string':     ('#7f007f', False, False),
     'scintilla/number':     ('#007f7f', False, False),
     'scintilla/instance':   ('#000000', False, True),
+    'scintilla/symbols':  ("#ff0000", False, False),
     # ---- Spyder ----
     'spyder/name':        "Spyder",
     #       Name            Color     Bold  Italic
@@ -175,6 +180,7 @@ APPEARANCE = {
     'spyder/string':     ('#00aa00', False, False),
     'spyder/number':     ('#800000', False, False),
     'spyder/instance':   ('#924900', False, True),
+    'spyder/symbols':  ("#ff0000", False, False),
     # ---- Spyder/Dark ----
     'spyder/dark/name':        "Spyder Dark",
     #           Name             Color     Bold  Italic
@@ -195,6 +201,7 @@ APPEARANCE = {
     'spyder/dark/string':     ('#b0e686', False, True),
     'spyder/dark/number':     ('#faed5c', False, False),
     'spyder/dark/instance':   ('#ee6772', False, True),
+    'spyder/dark/symbols':  ("#ff0000", False, False),
     # ---- Zenburn ----
     'zenburn/name':        "Zenburn",
     #        Name            Color     Bold  Italic
@@ -215,6 +222,7 @@ APPEARANCE = {
     'zenburn/string':     ('#cc9393', False, False),
     'zenburn/number':     ('#8cd0d3', False, False),
     'zenburn/instance':   ('#dcdccc', False, True),
+    'zenburn/symbols':  ("#ff0000", False, False),
     # ---- Solarized Light ----
     'solarized/light/name':        "Solarized Light",
     #        Name            Color     Bold  Italic
@@ -234,7 +242,8 @@ APPEARANCE = {
     'solarized/light/comment':    ('#93a1a1', False, True),
     'solarized/light/string':     ('#2aa198', False, False),
     'solarized/light/number':     ('#d33682', False, False),
-    'solarized/light/instance':   ('#b58900', False, True),
+    'solarized/light/instance':   ('#b58900', False, True),    
+    'solarized/light/symbols':  ("#ff0000", False, False),
     # ---- Solarized Dark ----
     'solarized/dark/name':        "Solarized Dark",
     #        Name            Color     Bold  Italic
@@ -255,6 +264,7 @@ APPEARANCE = {
     'solarized/dark/string':     ('#2aa198', False, False),
     'solarized/dark/number':     ('#d33682', False, False),
     'solarized/dark/instance':   ('#b58900', False, True),
+    'solarized/dark/symbols':  ("#ff0000", False, False),
     # ---- Inkpot (Eclipse color theme) ----
     'inkpot/name':        "Inkpot",
     #      Name             Color     Bold  Italic
@@ -275,6 +285,7 @@ APPEARANCE = {
     'inkpot/string':     ('#ffcd8b', False, False),
     'inkpot/number':     ('#ffcd8b', False, False),
     'inkpot/instance':   ('#cfbfad', False, False),
+    'inkpot/symbols':  ("#ff0000", False, False),
     # ---- minimal (Eclipse color theme) ----
     'minimal/name':        "Minimal",
     #      Name              Color     Bold  Italic
@@ -294,7 +305,8 @@ APPEARANCE = {
     'minimal/comment':    ('#334466', False, False),
     'minimal/string':     ('#333333', False, False),
     'minimal/number':     ('#333333', False, False),
-    'minimal/instance':   ('#566874', False, False),
+    'minimal/instance':   ('#566874', False, False),    
+    'minimal/symbols':  ("#ff0000", False, False),
     # ---- NightLion Aptana Theme (Eclipse color theme) ----
     'nightlion/name':        "NightLion Aptana Theme",
     #      Name                             Color     Bold  Italic
@@ -315,6 +327,7 @@ APPEARANCE = {
     'nightlion/string':     ('#cc9393', False, False),
     'nightlion/number':     ('#eab882', False, False),
     'nightlion/instance':   ('#b3b784', False, False),
+    'nightlion/symbols':  ("#ff0000", False, False),
     # ---- Notepad++ (Eclipse color theme) ----
     'notepad++/name':        "Notepad++",
     #      Name                     Color     Bold  Italic
@@ -335,6 +348,7 @@ APPEARANCE = {
     'notepad++/string':     ('#808080', False, False),
     'notepad++/number':     ('#ff8000', False, False),
     'notepad++/instance':   ('#800080', False, False),
+    'notepad++/symbols':  ("#ff0000", False, False),
     # ---- Oblivion (Eclipse color theme) ----
     'oblivion/name':        "Oblivion",
     #      Name               Color     Bold  Italic
@@ -355,6 +369,7 @@ APPEARANCE = {
     'oblivion/string':     ('#ffc600', False, False),
     'oblivion/number':     ('#7fb347', False, False),
     'oblivion/instance':   ('#bed6ff', False, False),
+    'oblivion/symbols':  ("#ff0000", False, False),
     # ---- Obsidian (Eclipse color theme) ----
     'obsidian/name':        "Obsidian",
     #      Name               Color     Bold  Italic
@@ -375,6 +390,7 @@ APPEARANCE = {
     'obsidian/string':     ('#ec7600', False, False),
     'obsidian/number':     ('#ffcd22', False, False),
     'obsidian/instance':   ('#678cb1', False, False),
+    'obsidian/symbols':  ("#ff0000", False, False),
     # ---- Pastel (Eclipse color theme) ----
     'pastel/name':        "Pastel",
     #      Name             Color     Bold  Italic
@@ -395,6 +411,7 @@ APPEARANCE = {
     'pastel/string':     ('#c78d9b', False, False),
     'pastel/number':     ('#c78d9b', False, False),
     'pastel/instance':   ('#678cb1', False, False),
+    'pastel/symbols':  ("#ff0000", False, False),
     # ---- Retta (Eclipse color theme) ----
     'retta/name':        "Retta",
     #      Name            Color     Bold  Italic
@@ -415,6 +432,7 @@ APPEARANCE = {
     'retta/string':     ('#d6c248', False, False),
     'retta/number':     ('#d6c248', False, False),
     'retta/instance':   ('#de6546', False, False),
+    'retta/symbols':  ("#ff0000", False, False),
     # ---- Roboticket (Eclipse color theme) ----
     'roboticket/name':        "Roboticket",
     #      Name                 Color     Bold  Italic
@@ -435,6 +453,7 @@ APPEARANCE = {
     'roboticket/string':     ('#317ecc', False, False),
     'roboticket/number':     ('#af0f91', False, False),
     'roboticket/instance':   ('#566874', False, False),
+    'roboticket/symbols':  ("#ff0000", False, False),
     # ---- Sublime Text Monokai Extended (Eclipse color theme) ----
     'sublime-monokai/extended/name':        "Sublime Text Monokai Extended",
     #      Name                       Color     Bold  Italic
@@ -454,7 +473,8 @@ APPEARANCE = {
     'sublime-monokai/extended/comment':    ('#ffffff', False, False),
     'sublime-monokai/extended/string':     ('#ece47e', False, False),
     'sublime-monokai/extended/number':     ('#c48cff', False, False),
-    'sublime-monokai/extended/instance':   ('#cfbfad', False, False),
+    'sublime-monokai/extended/instance':   ('#cfbfad', False, False),    
+    'sublime-monokai/extended/symbols':  ("#ff0000", False, False),
     # ---- Vibrant Ink (Eclipse color theme) ----
     'vibrant-ink/name':        "Vibrant Ink",
     #      Name                  Color     Bold  Italic
@@ -474,5 +494,6 @@ APPEARANCE = {
     'vibrant-ink/comment':    ('#8146a2', False, False),
     'vibrant-ink/string':     ('#477488', False, False),
     'vibrant-ink/number':     ('#477488', False, False),
-    'vibrant-ink/instance':   ('#357a8f', False, False)
+    'vibrant-ink/instance':   ('#357a8f', False, False),
+    'vibrant-ink/symbols':  ("#ff0000", False, False)
 }
