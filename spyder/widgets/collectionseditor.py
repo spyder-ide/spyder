@@ -2240,6 +2240,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             QMessageBox.critical(self, _("Error"), "TypeError: %s" % str(e))
         self.namespacebrowser.refresh_namespacebrowser()
 
+    def close_all_editors(self):
+        """Close all editors opened from this table view."""
+        self.delegate.close_all_editors()
+
     def remove_values(self, names):
         """Remove values from data"""
         for name in names:
