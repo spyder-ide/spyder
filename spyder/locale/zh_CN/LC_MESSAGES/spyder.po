@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-03-22 00:10\n"
+"PO-Revision-Date: 2026-03-22 06:46\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3491,11 +3491,11 @@ msgstr "在尝试下载文件 <b>{}</b> (服务器 <b>{}</b>) 时发生错误:<b
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:592
 msgid "It seems you don't have permissions to read the directory <b>{}</b> in server <b>{}</b>."
-msgstr ""
+msgstr "看来你没有权限读取目录 <b>{}</b> (服务器 <b>{}</b>)。"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:597
 msgid "An error occurred while trying to download the directory <b>{}</b> as a zip file from server <b>{}</b>:<br><br>{}"
-msgstr ""
+msgstr "在尝试将目录 <b>{}</b> 作为 zip 文件下载时发生错误 (服务器 <b>{}</b>):<br><br>{}"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:608
 msgid "Download error"
@@ -3523,11 +3523,11 @@ msgstr "在尝试上传文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:799
 msgid "The file <b>{}</b> that you're trying to paste on the server <b>{}</b> already exists in the current location."
-msgstr ""
+msgstr "你尝试将文件 <b>{}</b> 粘贴到服务器 <b>{}</b> 但其已存在于当前位置。"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:807
 msgid "The file <b>{}</b> that you're trying to upload to the server <b>{}</b> already exists in the current location."
-msgstr ""
+msgstr "你尝试将文件 <b>{}</b> 上传到服务器 <b>{}</b> 但其已存在于当前位置。"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:818
 msgid "The file <b>{}</b> that you're trying to create on the server <b>{}</b> already exists in the current location."
