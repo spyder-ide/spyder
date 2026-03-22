@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-03-18 22:48\n"
+"PO-Revision-Date: 2026-03-22 00:10\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1073,11 +1073,11 @@ msgstr "实时显示代码补全"
 
 #: spyder/plugins/completion/confpage.py:52
 msgid "Use Enter to accept code completions"
-msgstr ""
+msgstr "使用 Enter 来接受代码补全"
 
 #: spyder/plugins/completion/confpage.py:54
 msgid "If this option is disabled, completions will be accepted with the Tab key only."
-msgstr ""
+msgstr "如果此选项被禁用，补全将只能通过 Tab 键来接受。"
 
 #: spyder/plugins/completion/confpage.py:60
 msgid "Show automatic completions after characters entered:"
@@ -1662,7 +1662,7 @@ msgstr "描述"
 
 #: spyder/plugins/console/plugin.py:84
 msgid "Internal Console"
-msgstr ""
+msgstr "内部控制台"
 
 #: spyder/plugins/console/plugin.py:92
 msgid "An internal Python console running Spyder itself."
@@ -3407,7 +3407,7 @@ msgstr "父级"
 
 #: spyder/plugins/explorer/widgets/main_widget.py:269
 msgid "Go to the directory of the current file in the Editor"
-msgstr ""
+msgstr "转到编辑器中当前文件的目录"
 
 #: spyder/plugins/explorer/widgets/main_widget.py:276 spyder/plugins/variableexplorer/widgets/arrayeditor.py:788 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1846 spyder/widgets/browser.py:192 spyder/widgets/collectionseditor.py:1843
 msgid "Refresh"
@@ -3427,7 +3427,7 @@ msgstr "下载..."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:227 spyder/plugins/explorer/widgets/remote_explorer.py:1639
 msgid "Upload files"
-msgstr ""
+msgstr "上传文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:395
 msgid "Unsupported functionality"
@@ -3463,11 +3463,11 @@ msgstr "在尝试创建文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:500
 msgid "Paste error"
-msgstr ""
+msgstr "粘贴错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:501
 msgid "An error occured while trying to paste a file or directory"
-msgstr ""
+msgstr "在尝试粘贴文件或目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:523
 msgid "Rename error"
@@ -3487,7 +3487,7 @@ msgstr "在尝试删除文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:580
 msgid "An error occurred while trying to download the file <b>{}</b> from server <b>{}</b>:<br><br>{}"
-msgstr ""
+msgstr "在尝试下载文件 <b>{}</b> (服务器 <b>{}</b>) 时发生错误:<br><br>{}"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:592
 msgid "It seems you don't have permissions to read the directory <b>{}</b> in server <b>{}</b>."
@@ -3511,15 +3511,15 @@ msgstr "在尝试上传文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:700
 msgid "List contents error"
-msgstr ""
+msgstr "列表内容错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:701
 msgid "An error occured while trying to view a directory"
-msgstr ""
+msgstr "在尝试查看目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:777
 msgid "An error occured while trying to upload files"
-msgstr ""
+msgstr "在尝试上传文件时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:799
 msgid "The file <b>{}</b> that you're trying to paste on the server <b>{}</b> already exists in the current location."
@@ -3535,15 +3535,15 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:828
 msgid "An error occurred while trying to create a file/directory"
-msgstr ""
+msgstr "在尝试创建文件/目录时发生错误"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:845
 msgid "Do you want to overwrite it?"
-msgstr ""
+msgstr "你想要覆盖它吗？"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:849 spyder/plugins/explorer/widgets/remote_explorer.py:1590
 msgid "Overwrite file"
-msgstr ""
+msgstr "覆盖文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1160 spyder/plugins/explorer/widgets/remote_explorer.py:1213
 msgid "Show more files"
@@ -3575,7 +3575,7 @@ msgstr "新建文件"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1374 spyder/plugins/explorer/widgets/remote_explorer.py:1657
 msgid "Existence check"
-msgstr ""
+msgstr "检查是否存在"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1375
 msgid "You are about to paste more than 50 files in server <b>{}</b>.<br><br>Do you prefer to skip checking whether they exist in the server to paste them more quickly?"
@@ -3583,7 +3583,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1433
 msgid "New name for <b>{}</b>:"
-msgstr ""
+msgstr "<b>{}</b> 的新名称："
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1503
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note</b>: The file/directory will be removed permanently from the remote filesystem."
@@ -3591,7 +3591,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1543
 msgid "Download directory"
-msgstr ""
+msgstr "下载目录"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1591
 msgid "The file <b>{}</b> that you're trying to download from server <b>{}</b> already exists in the location you selected.<br><br>Do you want to overwrite it?"
@@ -3603,7 +3603,7 @@ msgstr ""
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External Terminal"
-msgstr ""
+msgstr "外部终端"
 
 #: spyder/plugins/externalterminal/plugin.py:56
 msgid "Run scripts in an external system terminal."
@@ -5163,7 +5163,7 @@ msgstr "帮助(&H)"
 
 #: spyder/plugins/onlinehelp/plugin.py:52
 msgid "Online Help"
-msgstr ""
+msgstr "在线帮助"
 
 #: spyder/plugins/onlinehelp/plugin.py:56
 msgid "Browse and search documentation for installed Python modules interactively."
@@ -6087,7 +6087,7 @@ msgstr "服务器端口未设置"
 
 #: spyder/plugins/remoteclient/plugin.py:133
 msgid "Remote Client"
-msgstr ""
+msgstr "远程客户端"
 
 #: spyder/plugins/remoteclient/plugin.py:137
 msgid "Connect to remote machines to run code on them."
@@ -6123,7 +6123,7 @@ msgstr "您想要移除名为 <b>{}</b> 的连接吗？"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:172
 msgid "Invalid host for configuration file"
-msgstr ""
+msgstr "配置文件的主机无效"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:199
 msgid "This field is empty"
@@ -6167,7 +6167,7 @@ msgstr "此连接名称已被占用"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:468
 msgid "Remote address or host *"
-msgstr ""
+msgstr "远程地址或主机 *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:470
 msgid "This is the IP address, domain name or host identifier (when using a configuration file) of your remote machine"
@@ -6195,11 +6195,11 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:511
 msgid "Configuration file"
-msgstr ""
+msgstr "配置文件"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:513
 msgid "OpenSSH client configuration file to use"
-msgstr ""
+msgstr "要使用的 OpenSSH 客户端配置文件"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:574
 msgid "Password *"
@@ -6263,7 +6263,7 @@ msgstr "你提供的地址不是一个有效的 IP 或域名。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:911
 msgid "The configuration file and/or host you provided are not valid."
-msgstr ""
+msgstr "你提供的配置文件和/或主机不可用。"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:920
 msgid "The URL you provided is not valid."
@@ -6547,7 +6547,7 @@ msgstr "用于以下目标的新运行配置: {}"
 
 #: spyder/plugins/run/widgets.py:586
 msgid "Configure runner settings for a specific file"
-msgstr ""
+msgstr "配置指定文件的运行器设置"
 
 #: spyder/plugins/run/widgets.py:593
 msgid "Configure file-specific options here for each available runner, such as the IPython Console, Debugger or External Terminal. To execute your code in a specific runner, use its action in the Run menu or elsewhere, such as 'Run > Run in external terminal'."
@@ -6555,7 +6555,7 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:616
 msgid "File:"
-msgstr ""
+msgstr "文件："
 
 #: spyder/plugins/run/widgets.py:629
 msgid "Configure the selected runner for this file"
@@ -6591,7 +6591,7 @@ msgstr "自定义配置"
 
 #: spyder/plugins/run/widgets.py:799
 msgid "Run configuration"
-msgstr ""
+msgstr "运行配置"
 
 #: spyder/plugins/run/widgets.py:940
 msgid "Do you want to delete the current configuration?"
@@ -6731,7 +6731,7 @@ msgstr "显示时钟"
 
 #: spyder/plugins/statusbar/plugin.py:64
 msgid "Status Bar"
-msgstr ""
+msgstr "状态栏"
 
 #: spyder/plugins/statusbar/plugin.py:72
 msgid "Display the main window status bar."
@@ -6887,7 +6887,7 @@ msgstr "交互式导览"
 
 #: spyder/plugins/tours/plugin.py:40
 msgid "Interactive Tours"
-msgstr ""
+msgstr "交互式导览"
 
 #: spyder/plugins/tours/plugin.py:44
 msgid "Provide interactive tours of the Spyder interface."
