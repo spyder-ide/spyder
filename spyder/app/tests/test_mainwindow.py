@@ -522,7 +522,7 @@ def test_get_help_ipython_console_special_characters(
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
-                    timeout=10000)
+                    timeout=6000)
 
 
 @flaky(max_runs=3)
