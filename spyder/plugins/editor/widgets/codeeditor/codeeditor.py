@@ -684,9 +684,12 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             ('add cursor up', self.add_cursor_up),
             ('add cursor down', self.add_cursor_down),
             ('clear extra cursors', self.clear_extra_cursors),
-            ('folding or unfolding current block', self.folding_panel.toggle_fold_around_cursor),
-            ('folding all block', self.folding_panel.collapse_all),
-            ('unfolding all block', self.folding_panel.expand_all)
+            (
+                'fold or unfold current region',
+                self.folding_panel.toggle_fold_around_cursor,
+            ),
+            ('fold all regions', self.folding_panel.collapse_all),
+            ('unfold all regions', self.folding_panel.expand_all)
         )
 
         for name, callback in shortcuts:
