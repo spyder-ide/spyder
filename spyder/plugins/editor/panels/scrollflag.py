@@ -37,6 +37,7 @@ MAX_FLAGS = 1000
 
 _cfbundleid = os.getenv("__CFBundleIdentifier", "")
 
+
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
 
@@ -49,7 +50,9 @@ class ScrollFlagArea(Panel):
         # an application bundle so that it is not hidden by the scroll bars.
         # Expects "AppleShowScrollBars Always" to be written to defaults for
         # the application bundle ID. spyder-ide/spyder#13118
-        WIDTH =24
+        # the application bundle ID.
+        # See spyder-ide/spyder#13118
+        WIDTH = 24
     FLAGS_DX = 4
     FLAGS_DY = 2
 
