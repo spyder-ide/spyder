@@ -12,6 +12,7 @@ import os
 import re
 import socket
 import sys
+import unicodedata
 
 # Third party imports
 from qtpy import PYSIDE2
@@ -1059,8 +1060,26 @@ class HelpWidget(PluginMainWidget):
         is_code = False
 
         if self.get_conf('rich_mode'):
-            if self.docstring:
-                doc = source_text if source_text else doc
+            note = doc.get('note', '')
+            is_function = any(k in note for k in ['Function', 'Method'])
+            if is_function and source_text:
+                signature = unicodedata.normalize("NFKD", source_text)
+                parts = signature.split('\n\n')
+                documentation = '\n\n'.join(parts[1:])
+                match = re.search(r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', signature, re.S)
+                args = ''
+                if match:
+                    definition = match.group(0)
+                    start = definition.find('(')
+                    args = definition[start:-1]
+                else:
+                    documentation = signature
+                doc = {
+                    'name': obj_text,
+                    'argspec': args,
+                    'note': '',
+                    'docstring': documentation
+                    }
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:
