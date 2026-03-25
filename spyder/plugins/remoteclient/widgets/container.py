@@ -10,8 +10,10 @@
 # Standard library imports
 from __future__ import annotations
 from collections import deque
+import sys
 
 # Third-party imports
+import keyring
 from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
@@ -104,6 +106,8 @@ class RemoteClientContainer(PluginMainContainer):
         # Attributes
         self.client_logs: dict[str, deque] = {}
         self._connection_dialog = None
+        self._keyring_checked = False
+        self._keyring_fails = False
 
         # Widgets
         self.create_action(
@@ -152,6 +156,34 @@ class RemoteClientContainer(PluginMainContainer):
     # ---- Private API
     # -------------------------------------------------------------------------
     def _show_connection_dialog(self):
+        # Check if it's possible to save credentials securely before showing
+        # the dialog.
+        # Fixes spyder-ide/spyder#25635
+        if sys.platform.startswith("linux"):
+            # This only happens on Linux because users cannot have installed
+            # the packages needed by keyring.
+            if not self._keyring_checked:
+                # We only need to do this check once per session
+                kr = keyring.get_keyring()
+                if isinstance(kr, keyring.backends.fail.Keyring):
+                    self._keyring_fails = True
+
+                self._keyring_checked = True
+
+            if self._keyring_fails:
+                QMessageBox.critical(
+                    self,
+                    _("Remote connections error"),
+                    _(
+                        "This functionality is not available in your system "
+                        "because it's not possible to save your server "
+                        "credentials securely.<br><br>"
+                        "Please install <tt>kwallet</tt> or "
+                        "<tt>libsecret</tt> and restart Spyder to enable it."
+                    ),
+                    QMessageBox.Ok,
+                )
+                return
 
         def _dialog_finished(result_code):
             """Restore dialog instance variable."""
