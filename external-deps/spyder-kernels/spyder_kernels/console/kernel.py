@@ -646,7 +646,7 @@ class SpyderKernel(IPythonKernel):
         """Set kernel configuration"""
         ret = {}
         for key, value in conf.items():
-            if key == "cwd":
+            if key == "cwd" and os.path.isdir(value):
                 self._cwd_initialised = True
                 os.chdir(value)
                 self.publish_state()
