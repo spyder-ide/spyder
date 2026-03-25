@@ -224,7 +224,28 @@ class TestAnsiCodeProcessor(unittest.TestCase):
             else:
                 self.fail('Too many substrings.')
         self.assertEqual(i, 3, 'Too few substrings.')
+    
+    def test_cursor_visibility(self):
+        """Test for the ANSI commands for cursor visibility (?25h / ?25l)
+        """
+        # This line hides the cursor, then shows it again.
+        string = '\x1b[?25l\x1b[?25h'
+        i = -1
 
+        for i, substring in enumerate(self.processor.split_string(string)):
+            self.assertEqual(len(self.processor.actions), 1)
+
+            action = self.processor.actions[0]
+            self.assertEqual(action.action, 'cursor-visibility')
+
+            if i == 0:
+                self.assertFalse(action.visible)
+            elif i == 1:
+                self.assertTrue(action.visible)
+            else:
+                self.fail('Too many substrings.')
+
+        self.assertEqual(i, 1, 'Too few substrings.')
 
 if __name__ == '__main__':
     unittest.main()
