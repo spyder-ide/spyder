@@ -196,7 +196,7 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             self._emit_version_mismatch(version)
             self._emit_connection_status(
                 status=ConnectionStatus.Error,
-                message=_("Error staring the remote server"),
+                message=_("Error starting the remote server"),
             )
             return False
 
