@@ -94,7 +94,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
                 'output_formats': [],
                 'configuration_widget': None,
                 'requires_cwd': False,
-                'priority': 40
+                'priority': 4
             },
         ]
 
