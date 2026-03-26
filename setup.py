@@ -96,8 +96,6 @@ def get_data_files():
                       ('share/icons', ['img_src/spyder.png']),
                       ('share/metainfo',
                        ['scripts/org.spyder_ide.spyder.appdata.xml'])]
-    elif os.name == 'nt':
-        data_files = [('scripts', ['img_src/spyder.ico'])]
     else:
         data_files = []
 
