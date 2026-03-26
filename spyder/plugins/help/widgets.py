@@ -1061,8 +1061,13 @@ class HelpWidget(PluginMainWidget):
 
         if self.get_conf('rich_mode'):
             note = doc.get('note', '')
-            is_function = any(k in note for k in ['Function', 'Method'])
+            is_function = '__main__' in note
             if is_function and source_text:
+                print("=============================================================")
+                print("Entro acaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                print("doc:", doc)
+                print("source_text:", source_text)
+                print("==============================================================")
                 signature = unicodedata.normalize("NFKD", source_text)
                 parts = signature.split('\n\n')
                 documentation = '\n\n'.join(parts[1:])
