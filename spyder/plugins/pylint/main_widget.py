@@ -18,6 +18,7 @@ import sys
 from dataclasses import dataclass
 
 # Third party imports
+from qtpy import PYSIDE6
 from qtpy.QtCore import (
     QObject,
     QProcess,
@@ -329,7 +330,10 @@ class PylintWidget(PluginMainWidget):
     def _kill_all(self) -> None:
         while self.processes:
             _, linter_process = self.processes.popitem()
-            QObject.disconnect(linter_process.process, None, None, None)
+            if PYSIDE6:
+                QObject.disconnect(linter_process.process, None, None, None)
+            else:
+                linter_process.process.disconnect()
             linter_process.process.close()
             linter_process.process.waitForFinished(1000)
             linter_process.process.deleteLater()
