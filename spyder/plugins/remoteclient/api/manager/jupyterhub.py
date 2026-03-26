@@ -188,8 +188,8 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self.logger.error(
-                "Server version mismatch: %s is greater than the maximum "
-                "supported version %s",
+                "Server version mismatch: <b>%s</b> is greater than the maximum "
+                "supported version <b>%s</b>, so Spyder can't connect to it",
                 version,
                 SPYDER_REMOTE_MAX_VERSION,
             )
@@ -202,9 +202,9 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
             self.logger.error(
-                "Server version mismatch: %s is lower than the minimum "
-                "supported version %s. Please request your server "
-                "administrator to update spyder-remote-services",
+                "Server version mismatch: <b>%s</b> is lower than the minimum "
+                "supported version <b>%s</b>. Please request your server "
+                "administrator to update <b>spyder-remote-services</b>",
                 version,
                 SPYDER_REMOTE_MIN_VERSION,
             )
