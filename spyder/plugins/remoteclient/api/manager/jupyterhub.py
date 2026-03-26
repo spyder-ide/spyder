@@ -201,14 +201,18 @@ class SpyderRemoteJupyterHubAPIManager(SpyderRemoteAPIManagerBase):
             return False
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
-            self.logger.warning(
+            self.logger.error(
                 "Server version mismatch: %s is lower than the minimum "
-                "supported version %s. A more recent version will be "
-                "installed.",
+                "supported version %s. Please request your server "
+                "administrator to update spyder-remote-services",
                 version,
                 SPYDER_REMOTE_MIN_VERSION,
             )
-            return await self.install_remote_server()
+            self._emit_connection_status(
+                 ConnectionStatus.Error,
+                 _("Error starting the remote server"),
+            )
+            return False
 
         self.logger.info("Supported Server version: %s", version)
 
