@@ -262,8 +262,10 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) >= Version(SPYDER_REMOTE_MAX_VERSION):
             self.logger.error(
-                f"Server version mismatch: {version} is greater than "
-                f"the maximum supported version {SPYDER_REMOTE_MAX_VERSION}"
+                f"Server version mismatch: <b>{version}</b> is greater than "
+                f"the maximum supported version "
+                f"<b>{SPYDER_REMOTE_MAX_VERSION}</b>, so Spyder can't connect "
+                f"to it"
             )
             self._emit_version_mismatch(version)
             self._emit_connection_status(
@@ -274,9 +276,10 @@ class SpyderRemoteSSHAPIManager(SpyderRemoteAPIManagerBase):
 
         if Version(version) < Version(SPYDER_REMOTE_MIN_VERSION):
             self.logger.warning(
-                f"Server version mismatch: {version} is lower than "
-                f"the minimum supported version {SPYDER_REMOTE_MIN_VERSION}. "
-                f"A more recent version will be installed."
+                f"Server version mismatch: <b>{version}</b> is lower than "
+                f"the minimum supported version "
+                f"<b>{SPYDER_REMOTE_MIN_VERSION}</b>. A more recent version "
+                f"will be installed."
             )
             return await self.install_remote_server()
 
