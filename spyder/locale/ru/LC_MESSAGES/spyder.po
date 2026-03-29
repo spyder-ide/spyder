@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-03-18 22:48\n"
+"PO-Revision-Date: 2026-03-29 20:11\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -367,7 +367,7 @@ msgstr "Сохраните учетные данные Github, чтобы без
 
 #: spyder/dependencies.py:168
 msgid "Render markdown content to HTML"
-msgstr ""
+msgstr "Преобразовать контент в формате Markdown в HTML"
 
 #: spyder/dependencies.py:172
 msgid "Manipulate Jupyter notebooks in the Editor"
