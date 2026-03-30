@@ -285,6 +285,12 @@ class MultiCursorMixin:
             self.overwrite_mode = not self.overwrite_mode
             return
 
+        # ---- Handle Esc
+        if key == Qt.Key_Escape:
+            self.clear_extra_cursors()
+            self.sig_key_pressed.emit(event)
+            return
+
         self.textCursor().beginEditBlock()
         self.multi_cursor_ignore_history = True
 
