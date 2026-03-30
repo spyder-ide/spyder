@@ -8,6 +8,13 @@ Changes in Jupyter Qt console
 5.7
 ~~~
 
+5.7.2
+-----
+
+`5.7.2 on GitHub <https://github.com/jupyter/qtconsole/milestones/5.7.2>`__
+
+* Handle ANSI codes to show/hide cursor.
+
 5.7.1
 -----
 

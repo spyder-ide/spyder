@@ -249,7 +249,10 @@ class BaseConnectionPage(SpyderConfigPage, SpyderFontsMixin):
                         # Key file is malformed or not a recognized format
                         reasons["keyfile_malformed"] = True
                         widget.status_action.setVisible(True)
-            elif widget != self._config_file_widgets[auth_method]:
+            elif (
+                auth_method != AuthenticationMethod.JupyterHub
+                and widget != self._config_file_widgets[auth_method]
+            ):
                 widget.status_action.setVisible(False)
 
         if reasons:
