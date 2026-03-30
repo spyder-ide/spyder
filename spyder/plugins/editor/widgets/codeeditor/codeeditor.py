@@ -683,7 +683,6 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.enter_array_table)),
             ('add cursor up', self.add_cursor_up),
             ('add cursor down', self.add_cursor_down),
-            ('clear extra cursors', self.clear_extra_cursors)
         )
 
         for name, callback in shortcuts:
@@ -3589,6 +3588,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         # of multiple overwrite cursors. Must unset overwrite before return.
         self.setOverwriteMode(self.overwrite_mode)
         self.start_cursor_blink()  # reset cursor blink by reseting timer
+
+        # Handle key press events when using extra cursors
         if self.extra_cursors:
             self.handle_multi_cursor_keypress(event)
             self.setOverwriteMode(False)
@@ -3644,6 +3645,7 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         if text not in self.auto_completion_characters:
             if text in operators or text in delimiters:
                 self.completion_widget.hide()
+
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if (
