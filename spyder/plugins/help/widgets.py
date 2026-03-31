@@ -1060,8 +1060,10 @@ class HelpWidget(PluginMainWidget):
         is_code = False
 
         if self.get_conf('rich_mode'):
-            note = doc.get('note', '')
-            is_function = '__main__' in note
+            is_function=False
+            if doc:
+                note = doc.get('note', '')
+                is_function = '__main__' in note
             if is_function and source_text:
                 signature = unicodedata.normalize("NFKD", source_text)
                 parts = signature.split('\n\n')
