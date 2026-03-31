@@ -207,7 +207,8 @@ DEFAULTS = [
               'show_remove_message_dataframe': True,
               'show_remove_message_collections': True,
               'show_special_attributes': False,
-              'filter_on': True
+              'filter_on': True,
+              'ask_close_all_editors': True
              }),
             ('debugger',
              {
