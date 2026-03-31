@@ -252,7 +252,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         self.find_widget = None
 
-        self.data = []
+        self.data: list[FileInfo] = []
 
         # Actions
         self.switcher_action = None
