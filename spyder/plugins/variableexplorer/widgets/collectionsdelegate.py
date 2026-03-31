@@ -43,6 +43,7 @@ from qtpy.QtWidgets import (
     QTableView,
 )
 from spyder.config.base import running_under_pytest
+from spyder.config.manager import CONF
 from spyder_kernels.comms.commbase import CommsErrorWrapper
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
@@ -496,11 +497,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
     def close_all_editors(self):
         """Close all opened non-modal editor dialogs."""
-        ask_close_all_editors = (
-            ask_close_all_editors and self.get_conf('ask_close_all_editors'))
+        ask_close_all_editors = CONF.get('variable_explorer', 'ask_close_all_editors')
         close_all = True
         if ask_close_all_editors and not running_under_pytest():
-            message = MessageCheckBox(icon=QMessageBox.Question, parent=self)
+            message = MessageCheckBox(icon=QMessageBox.Question, parent=self.parent())
             message.set_checkbox_text(_("Don't ask again."))
             message.set_checked(False)
             message.set_check_visible(True)
@@ -509,7 +509,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             result = message.exec_()
             check = message.is_checked()
             if check:
-                self.set_conf('ask_close_all_editors', not check)
+                CONF.set('variable_explorer', 'ask_close_all_editors', not check)
             close_all = result == QMessageBox.Yes
 
         if not close_all:
