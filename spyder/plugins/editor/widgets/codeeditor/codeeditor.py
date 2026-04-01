@@ -40,17 +40,17 @@ from qtpy.QtCore import (
 from qtpy.QtGui import (
     QColor,
     QCursor,
+    QDesktopServices,
     QFont,
+    QKeyEvent,
+    QMouseEvent,
     QPaintEvent,
     QPainter,
-    QMouseEvent,
+    QTextCharFormat,
     QTextCursor,
-    QDesktopServices,
-    QKeyEvent,
+    QTextLayout,
     QTextDocument,
     QTextOption,
-    QTextCharFormat,
-    QTextLayout,
 )
 from qtpy.QtWidgets import (
     QApplication,
@@ -409,7 +409,7 @@ class CodeEditor(
         self.document_id = id(self)
 
         # Indicate occurrences of the selected word
-        self.cursorPositionChanged.connect(self.__cursor_position_changed)
+        self.cursorPositionChanged.connect(self._cursor_position_changed)
         self.__find_first_pos = None
         self.__find_args = {}
 
@@ -1539,8 +1539,13 @@ class CodeEditor(
         if cursor.position() != self.__find_first_pos:
             return cursor
 
-    def __cursor_position_changed(self):
+    def _cursor_position_changed(self):
         """Cursor position has changed"""
+        # Reject inline completions if there's any cursor change.
+        # Note: This emulates the VSCode behavior.
+        if self._inline_blocks:
+            self.reject_inline_completions()
+
         line, column = self.get_cursor_line_column()
         self.sig_cursor_position_changed.emit(line, column)
 
@@ -2148,10 +2153,22 @@ class CodeEditor(
         TextEditBaseWidget.copy(self)
         self._save_clipboard_indentation()
 
-    @Slot()
-    def undo(self):
-        """Reimplement undo to decrease text version number."""
+    def undo(self, delete_inline_completions: bool = False):
+        """
+        Reimplementation of undo with additional functionality.
+
+        For instance, this decreases the ``text_version`` number and emits some
+        required signals.
+
+        Parameters
+        ----------
+        delete_inline_completion: bool, optional
+            Whether this is called to delete an inline completion.
+        """
         if self.document().isUndoAvailable():
+            if not delete_inline_completions:
+                self.reject_inline_completions()
+
             self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
@@ -3611,6 +3628,9 @@ class CodeEditor(
         shift = event.modifiers() & Qt.ShiftModifier
 
         if text:
+            # Tab introduces "\t" as text
+            if key != Qt.Key_Tab:
+                self.reject_inline_completions()
             self.clear_occurrences()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
@@ -3727,6 +3747,9 @@ class CodeEditor(
                     cursor.removeSelectedText()
                 else:
                     self._handle_keypress_event(event)
+        elif key == Qt.Key_Escape:
+            self.reject_inline_completions()
+            self._handle_keypress_event(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3793,7 +3816,9 @@ class CodeEditor(
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
-            if not has_selection and not self.tab_mode:
+            if self._inline_blocks:
+                self.accept_inline_completions()
+            elif not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
                 # indent the selected text
