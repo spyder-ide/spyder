@@ -769,9 +769,15 @@ def test_shortcut_for_widget_is_updated(
 
 
 @pytest.mark.parametrize('os_name', ['nt', 'mac', 'posix'])
-def test_inline_completions(codeeditor, os_name, qtbot):
+def test_inline_completions_highlighting(codeeditor, os_name):
+    """
+    Test that the syntax highlighting of inline completions works as expected.
+    """
     editor = codeeditor
     hl = editor.highlighter
+
+    # Patch this method to avoid rejecting completions while moving the cursor
+    editor.reject_inline_completions = lambda: None
 
     # Colors to check
     regular_normal_color = hl.formats["normal"].foreground().color()
@@ -941,6 +947,162 @@ def test_inline_completions(codeeditor, os_name, qtbot):
         inline_normal_color.name(),
         inline_normal_color.alphaF(),
     ]
+
+
+@pytest.mark.parametrize(
+    "completion",
+    [
+        "math.cos(0)",
+        "def cos(x):\n    return math.cos(x)",
+        "sin(math.pi)",
+        "MyClass:\n    x = 1",
+    ],
+)
+def test_reject_inline_completions(codeeditor, qtbot, completion):
+    """Test that rejecting inline completions works as expected."""
+    editor = codeeditor
+
+    extra_code = ""
+    if completion == "sin(math.pi)":
+        extra_code = "math."
+    elif completion == "MyClass:\n    x = 1":
+        extra_code = "class "
+
+    # Auxiliary functions
+    def insert_completion(position: int):
+        editor.set_cursor_position(position)
+        if extra_code:
+            qtbot.keyClicks(editor, extra_code)
+        editor.do_inline_completions(completion)
+
+    def remove_extra_code():
+        if extra_code:
+            assert extra_code in editor.get_text_with_eol()
+            editor.undo()
+
+    # Introduce some initial text
+    editor.set_text(
+        dedent(
+            """
+            import math
+
+
+
+            def foobar(y):
+                return y + 1
+
+
+
+            """
+        )
+    )
+
+    for pos in [14, 50]:
+        # PageUp
+        insert_completion(pos)
+        qtbot.keyClick(editor, Qt.Key_PageUp)
+        assert completion not in editor.get_text_with_eol()
+        assert editor.textCursor().position() == 0
+
+        remove_extra_code()
+
+        # PageDown
+        insert_completion(pos)
+        qtbot.keyClick(editor, Qt.Key_PageDown)
+        assert completion not in editor.get_text_with_eol()
+        assert editor.textCursor().position() == 51 + len(extra_code)
+        remove_extra_code()
+
+        # Right key
+        insert_completion(pos)
+        qtbot.keyClick(editor, Qt.Key_Right)
+        assert completion not in editor.get_text_with_eol()
+        assert editor.textCursor().position() == pos + len(extra_code)
+        remove_extra_code()
+
+        # End key
+        insert_completion(pos)
+        qtbot.keyClick(editor, Qt.Key_End)
+        assert completion not in editor.get_text_with_eol()
+        assert editor.textCursor().position() == pos + len(extra_code)
+        remove_extra_code()
+
+        # Write text
+        insert_completion(pos)
+        qtbot.keyClicks(editor, "a")
+        assert completion not in editor.get_text_with_eol()
+        assert editor.textCursor().position() == pos + len(extra_code) + 1
+        editor.undo()
+        remove_extra_code()
+
+        # Undo action. This should remove the completion text plus the extra
+        # code written before
+        if extra_code:
+            insert_completion(pos)
+            editor.undo()
+            assert extra_code not in editor.get_text_with_eol()
+            assert completion not in editor.get_text_with_eol()
+            assert (extra_code + completion) not in editor.get_text_with_eol()
+
+
+def test_accept_inline_completions(codeeditor, qtbot):
+    """Test that accepting inline completions works as expected."""
+    editor = codeeditor
+
+    editor.set_text(
+        dedent(
+            """
+            import math
+
+
+
+            def foobar(y):
+                return y + 1
+            """
+        )
+    )
+
+    # Introduce start of line completion
+    code = dedent(
+        """
+        def cos(x):
+            return math.cos(x)
+        """
+    )
+
+    completion_position = 14
+    editor.set_cursor_position(completion_position)
+    editor.do_inline_completions(code)
+
+    # Accept completion
+    qtbot.keyClick(editor, Qt.Key_Tab)
+
+    # Check new blocks don't have completion metadata
+    for i in [3, 4]:
+        data = editor.document().findBlockByNumber(i).userData()
+        assert data.inline_completion_start is None
+
+    # Revert completion
+    editor.undo()
+    assert "cos" not in editor.get_text_with_eol()
+
+    # Introduce middle of line completion
+    qtbot.keyClicks(editor, "class ")
+    editor.do_inline_completions("Test:\n   x = 1")
+
+    # Accept completion
+    qtbot.keyClick(editor, Qt.Key_Tab)
+
+    # Check blocks don't have completion metadata
+    for i in [3, 4]:
+        data = editor.document().findBlockByNumber(i).userData()
+        assert data.inline_completion_start is None
+
+    # Revert completion
+    editor.undo()
+    assert "Test" not in editor.get_text_with_eol()
+    assert "x = 1" not in editor.get_text_with_eol()
+    assert "class" in editor.get_text_with_eol()
 
 
 if __name__ == '__main__':
