@@ -27,6 +27,7 @@ import re
 import sys
 from typing import TypedDict
 import textwrap
+import ast
 from unicodedata import category
 
 # Third party imports
@@ -630,6 +631,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                 self.transform_to_uppercase)),
             ('transform to lowercase', self.for_each_cursor(
                 self.transform_to_lowercase)),
+            ('multiline split', self.multiline_split),
+            ('multiline merge', self.multiline_merge),
             ('indent', self.for_each_cursor(lambda: self.indent(force=True))),
             ('unindent', self.for_each_cursor(
                 lambda: self.unindent(force=True), False)),
@@ -3106,35 +3109,146 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                                     79 - len(self.comment_string))
         return blockcomment_bar
 
+    def auto_select_text(self, word=False, line=False):
+        """Auto-select word or line under cursor, get its previous position."""
+        cursor = self.textCursor()
+        if cursor.hasSelection():
+            return None
+        prev_pos = cursor.position()
+        if word:
+            cursor.select(QTextCursor.WordUnderCursor)
+        elif line:
+            cursor.select(QTextCursor.LineUnderCursor)
+        self.setTextCursor(cursor)
+        return prev_pos
+    
+    def replace_selected_text(self, text):
+        """Replace the selected text, preserving selection."""
+        cursor = self.textCursor()
+        if not text or not cursor.hasSelection():
+            return
+        # Pre-handle selection zone
+        sel_is_forward = cursor.position() > cursor.anchor()
+        start = cursor.selectionStart()
+        end = start + len(text)
+        new_anchor, new_pos = (start, end) if sel_is_forward else (end, start)
+        # Replace text
+        cursor.insertText(text)
+        # Restore selection
+        cursor.setPosition(new_anchor, QTextCursor.MoveAnchor)
+        cursor.setPosition(new_pos, QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+
     def transform_to_uppercase(self):
         """Change to uppercase current line or selection."""
-        cursor = self.textCursor()
-        prev_pos = cursor.position()
-        selected_text = str(cursor.selectedText())
-
-        if len(selected_text) == 0:
-            prev_pos = cursor.position()
-            cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = str(cursor.selectedText())
-
-        s = selected_text.upper()
-        cursor.insertText(s)
-        self.set_cursor_position(prev_pos)
+        prev_pos = self.auto_select_text(word=True)
+        self.replace_selected_text(self.get_selected_text().upper())
+        if prev_pos:
+            self.set_cursor_position(prev_pos)
 
     def transform_to_lowercase(self):
         """Change to lowercase current line or selection."""
-        cursor = self.textCursor()
-        prev_pos = cursor.position()
-        selected_text = str(cursor.selectedText())
+        prev_pos = self.auto_select_text(word=True)
+        self.replace_selected_text(self.get_selected_text().lower())
+        if prev_pos:
+            self.set_cursor_position(prev_pos)
+    
+    def multiline_split(self):
+        prev_pos = self.auto_select_text(line=True)
+        text = self.get_selected_text()
+        if not text : return
+        # Pre-handle indentation
+        selstartcolidx = self.get_selection_start_end()[0][1]
+        initial_indent = self.get_line_indentation(text)
+        indent = selstartcolidx + initial_indent
+        # Transform
+        new_text = self.transform_multiline(text, split=True)
+        if not new_text: return
+        # Adjust indentation
+        line_sep = self.get_line_separator()
+        lines = new_text.split(line_sep)
+        lines = [self.adjust_indentation(lines[0], initial_indent)]  \
+            + [self.adjust_indentation(line, indent) for line in lines[1:]]
+        new_text = line_sep.join(lines)
+        # Insert in editor
+        self.replace_selected_text(new_text)
+        if prev_pos:
+            self.set_cursor_position(prev_pos)
+    
+    def multiline_merge(self):
+        text = self.get_selected_text()
+        if not text : return
+        lines = text.split(self.get_line_separator())
+        indentation = min([self.get_line_indentation(line) for line in lines])
+        new_text = self.transform_multiline(text, split=False)
+        if not new_text : return
+        new_text = self.adjust_indentation(new_text, indentation)
+        self.replace_selected_text(new_text)
 
-        if len(selected_text) == 0:
-            prev_pos = cursor.position()
-            cursor.select(QTextCursor.WordUnderCursor)
-            selected_text = str(cursor.selectedText())
-
-        s = selected_text.lower()
-        cursor.insertText(s)
-        self.set_cursor_position(prev_pos)
+    def transform_multiline(self, text, split=True):
+        """Transform sequence or assignments (multiline split or merge)."""
+        # Sanitize input and pre-handle suffix
+        line_sep = self.get_line_separator()
+        text = line_sep.join([line.strip() for line in text.split(line_sep)])
+        if not text: return None
+        suf = next(
+            (s for s in [',' + line_sep, ',', line_sep] if text.endswith(s)),
+            '') # suffix to preserve trailing newline and/or comma
+        # Unparsing functions
+        def get_items(node):  # unparses sequence to list of items
+            if isinstance(node, (ast.Tuple, ast.List)):
+                items = [ast.unparse(elt)
+                         for elt in node.elts if elt is not None]
+            elif isinstance(node, ast.Call):
+                items = [ast.unparse(elt)
+                         for elt in node.args + node.keywords
+                         if elt is not None]
+            elif isinstance(node, ast.Dict):
+                items = [f'{ast.unparse(k)}: {ast.unparse(v)}'
+                         for k, v in zip(node.keys, node.values) if k]
+            return items
+        def get_item_singleton(node):  # unparse item to list of size one
+            return [ast.unparse(node)] if node is not None else []
+        # Try to extract all LHS and RHS items from assignments
+        try:
+            node = ast.parse(text, mode='exec')
+            if node.body and all(isinstance(stmt, ast.Assign)
+                                 for stmt in node.body):
+                lhs_all, rhs_all = [], []
+                for stmt in node.body:
+                    if stmt.targets and stmt.value:  # Infer assignment kind :
+                        if len(stmt.targets) != 1:  # :chained
+                            return None
+                        elif isinstance(stmt.targets[0], ast.Tuple):  # :multi
+                            lhs = get_items(stmt.targets[0])
+                            rhs = get_items(stmt.value)
+                        elif isinstance(stmt.targets[0], ast.Name):  # :single
+                            lhs = get_item_singleton(stmt.targets[0])
+                            rhs = get_item_singleton(stmt.value)
+                        if len(lhs) != len(rhs):
+                            return None
+                        lhs_all.extend(lhs)
+                        rhs_all.extend(rhs)
+                if split:  #-> splitted assignments
+                    return line_sep.join(
+                        f'{ll} = {rr}' for ll, rr in zip(lhs_all, rhs_all)
+                        ) + suf
+                else:  #-> merged assignment
+                    return f'{", ".join(lhs_all)} = {", ".join(rhs_all)}' + suf
+        except SyntaxError:
+            pass
+        # Try to extract sequence items. First as a tuple, then by wrapping it 
+        # to assess syntax validity as call args or then as dict pairs.
+        items_sep = ',' + line_sep if split else ', '
+        for wrapper in ['', 'f({})', '{{{}}}']:
+            try:
+                src = wrapper.format(text) if wrapper else text
+                node = ast.parse(src, mode='eval').body
+                items = get_items(node)
+                return items_sep.join(items) + suf
+            except SyntaxError:
+                pass
+        return None
 
     def blockcomment(self):
         """Block comment current line or selection."""
