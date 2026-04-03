@@ -29,8 +29,8 @@ from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
 
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.Application, Plugins.MainMenu, Plugins.StatusBar]
+    REQUIRES = [Plugins.Application, Plugins.MainMenu, Plugins.Preferences]
+    OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
     CONF_FILE = False

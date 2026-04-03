@@ -60,7 +60,7 @@ class Preferences(SpyderPluginV2):
 
     NAME = 'preferences'
     CONF_SECTION = 'preferences'
-    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
+    REQUIRES = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
     CAN_BE_DISABLED = False

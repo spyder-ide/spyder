@@ -41,8 +41,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
-    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences, Plugins.Run]
-    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar]
+    REQUIRES = [
+        Plugins.IPythonConsole,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Run,
+        Plugins.Toolbar,
+    ]
+    OPTIONAL = [Plugins.Editor]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME

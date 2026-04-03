@@ -76,10 +76,13 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [
+    REQUIRES = [
+        Plugins.Editor,
         Plugins.MainInterpreter,
         Plugins.MainMenu,
+        Plugins.Preferences
+    ]
+    OPTIONAL = [
         Plugins.IPythonConsole,
         Plugins.PythonpathManager,
         Plugins.StatusBar,
