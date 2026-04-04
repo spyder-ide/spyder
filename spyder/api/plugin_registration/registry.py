@@ -238,28 +238,37 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         for plugin_name in internal_plugins:
             if plugin_name in enabled_plugins:
                 PluginClass = internal_plugins[plugin_name]
-                if issubclass(PluginClass, SpyderPluginV2):
-                    # Disable plugins that use web widgets (currently Help and
-                    # Online Help) if the user asks for it.
-                    # See spyder-ide/spyder#16518
-                    # The plugins that require QtWebengine must declare
-                    # themselves as needing that dependency
-                    # https://github.com/spyder-ide/spyder/pull/
-                    # 22196#issuecomment-2189377043
-                    if PluginClass.REQUIRE_WEB_WIDGETS and (
-                        not self.main.is_webengine_available
-                        or self.main._cli_options.no_web_widgets
-                    ):
-                        continue
 
-                    self.register_plugin(
-                        self.main, PluginClass, external=False
-                    )
+                # Disable plugins that use web widgets if WebEngine is not
+                # available or the user asks for it.
+                # See spyder-ide/spyder#16518
+                # The plugins that require QtWebengine must declare themselves
+                # as needing that dependency.
+                # https://github.com/spyder-ide/spyder/pull/
+                # 22196#issuecomment-2189377043
+                if (
+                    PluginClass.REQUIRE_WEB_WIDGETS
+                    and not self._are_web_widgets_available()
+                ):
+                    continue
+
+                self.register_plugin(
+                    self.main, PluginClass, external=False
+                )
 
         # Instantiate external plugins
         for plugin_name in external_plugins:
             if plugin_name in enabled_plugins:
                 PluginClass = external_plugins[plugin_name]
+
+                # Disable plugins that require web widgets if they are not
+                # available.
+                if (
+                    PluginClass.REQUIRE_WEB_WIDGETS
+                    and not self._are_web_widgets_available()
+                ):
+                    continue
+
                 try:
                     self.register_plugin(
                         self.main, PluginClass, external=True
@@ -412,6 +421,15 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                 if self.plugin_availability.get(plugin, False):
                     logger.debug(f"Disconnecting {plugin_name} from {plugin}")
                     plugin_instance._on_plugin_teardown(plugin)
+
+    def _are_web_widgets_available(self):
+        if (
+            self.main.is_webengine_available
+            and not self.main._cli_options.no_web_widgets
+        ):
+            return True
+        else:
+            return False
 
     # ---- Public API
     # -------------------------------------------------------------------------
