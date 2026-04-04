@@ -236,9 +236,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         # Instantiate internal plugins
         for plugin_name in internal_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = internal_plugins[plugin_name]
+            PluginClass = internal_plugins[plugin_name]
 
+            # Update plugin dependency information
+            self._update_plugin_info(PluginClass)
+
+            if plugin_name in enabled_plugins:
                 # Disable plugins that use web widgets if WebEngine is not
                 # available or the user asks for it.
                 # See spyder-ide/spyder#16518
@@ -258,9 +261,12 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         # Instantiate external plugins
         for plugin_name in external_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = external_plugins[plugin_name]
+            PluginClass = external_plugins[plugin_name]
 
+            # Update plugin dependency information
+            self._update_plugin_info(PluginClass)
+
+            if plugin_name in enabled_plugins:
                 # Disable plugins that require web widgets if they are not
                 # available.
                 if (
@@ -329,9 +335,6 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
 
         if PluginClass.CONF_FILE:
             CONF.register_plugin(PluginClass)
-
-        # Update plugin dependency information
-        self._update_plugin_info(PluginClass)
 
         # Create and store plugin instance
         plugin_instance = PluginClass(main_window, configuration=CONF)
