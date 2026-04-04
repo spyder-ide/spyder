@@ -295,13 +295,20 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_dependencies[key] = plugin_strict_dependencies
         self.plugin_dependencies[plugin] = plugin_dependencies
 
-    def _update_plugin_info(
-        self,
-        plugin_name: str,
-        required_plugins: list[str],
-        optional_plugins: list[str],
-    ):
+    def _update_plugin_info(self, PluginClass: type[SpyderPluginClass]):
         """Update the dependencies and dependents of `plugin_name`."""
+        plugin_name = PluginClass.NAME
+        required_plugins = list(set(PluginClass.REQUIRES))
+        optional_plugins = list(set(PluginClass.OPTIONAL))
+
+        for plugin in list(required_plugins):
+            if plugin == Plugins.All:
+                required_plugins = list(set(required_plugins + ALL_PLUGINS))
+
+        for plugin in list(optional_plugins):
+            if plugin == Plugins.All:
+                optional_plugins = list(set(optional_plugins + ALL_PLUGINS))
+
         for plugin in required_plugins:
             self._update_dependencies(plugin_name, plugin, "requires")
             self._update_dependents(plugin, plugin_name, "requires")
@@ -317,27 +324,14 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         external: bool,
     ) -> SpyderPluginClass:
         """Instantiate and register a Spyder plugin."""
-        required_plugins = list(set(PluginClass.REQUIRES))
-        optional_plugins = list(set(PluginClass.OPTIONAL))
         plugin_name = PluginClass.NAME
-
         logger.debug(f"Registering plugin {plugin_name} - {PluginClass}")
 
         if PluginClass.CONF_FILE:
             CONF.register_plugin(PluginClass)
 
-        for plugin in list(required_plugins):
-            if plugin == Plugins.All:
-                required_plugins = list(set(required_plugins + ALL_PLUGINS))
-
-        for plugin in list(optional_plugins):
-            if plugin == Plugins.All:
-                optional_plugins = list(set(optional_plugins + ALL_PLUGINS))
-
         # Update plugin dependency information
-        self._update_plugin_info(
-            plugin_name, required_plugins, optional_plugins
-        )
+        self._update_plugin_info(PluginClass)
 
         # Create and store plugin instance
         plugin_instance = PluginClass(main_window, configuration=CONF)
