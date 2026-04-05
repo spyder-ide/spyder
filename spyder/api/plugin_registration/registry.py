@@ -65,7 +65,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # ---- Auxiliary classes
 # =============================================================================
-class PreferencesAdapter(SpyderConfigurationAccessor):
+class _PluginRegistryPreferencesAdapter(SpyderConfigurationAccessor):
     """Class with constants for the plugin manager preferences page."""
 
     # Fake class constants used to register the configuration page
@@ -96,7 +96,7 @@ class _DummyPlugin:
 # =============================================================================
 # ---- Registry
 # =============================================================================
-class SpyderPluginRegistry(QObject, PreferencesAdapter):
+class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
     """
     Global Spyder plugin registry.
 
@@ -139,7 +139,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         None
         """
         super().__init__()
-        PreferencesAdapter.__init__(self)
+        _PluginRegistryPreferencesAdapter.__init__(self)
 
         self.main: spyder.app.mainwindow.MainWindow | None = None
         """Reference to the Spyder main window."""
