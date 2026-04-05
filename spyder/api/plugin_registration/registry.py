@@ -46,6 +46,9 @@ if TYPE_CHECKING:
     import spyder.app.mainwindow
 
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 SpyderPluginClass: TypeAlias = Union[SpyderPluginV2, SpyderDockablePlugin]
 """Type alias for the set of supported classes for Spyder plugin objects."""
 
@@ -59,6 +62,9 @@ ALL_PLUGINS: list[str] = [
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# ---- Auxiliary classes
+# =============================================================================
 class PreferencesAdapter(SpyderConfigurationAccessor):
     """Class with constants for the plugin manager preferences page."""
 
@@ -79,6 +85,17 @@ class PreferencesAdapter(SpyderConfigurationAccessor):
         pass
 
 
+class _DummyPlugin:
+    """Dummy plugin class to use when a plugin hasn't been registered."""
+
+    # This is True because every plugin that we want to access but is
+    # not part of the registry can be disabled
+    CAN_BE_DISABLED = True
+
+
+# =============================================================================
+# ---- Registry
+# =============================================================================
 class SpyderPluginRegistry(QObject, PreferencesAdapter):
     """
     Global Spyder plugin registry.
@@ -979,6 +996,98 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
     def get_name(self) -> str:
         """Name of the plugin registry, translated to the locale language."""
         return _("Plugins")
+
+    def get_plugin_required_dependencies(
+        self, plugin_name: str, include_all: bool = False
+    ) -> set[str]:
+        """
+        Get required dependencies (including transitive ones) of a given plugin.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to get its disabled dependencies.
+        include_all: bool
+            Whether to include all dependencies or only those that can be
+            disabled.
+
+        Returns
+        -------
+        dependencies: set[str]
+            Set of dependency plugins.
+        """
+        # Get direct dependencies
+        direct_dependencies = set(
+            self.plugin_dependencies.get(plugin_name, {}).get("requires", [])
+        )
+
+        # Filter plugins that can be disabled
+        if not include_all:
+            direct_dependencies = {
+                plugin
+                for plugin in direct_dependencies
+                if self.plugin_registry.get(
+                    plugin, _DummyPlugin
+                ).CAN_BE_DISABLED
+            }
+
+        if not direct_dependencies:
+            return set()
+
+        # Find transitive dependents
+        transitive_dependencies = set()
+        for plugin in direct_dependencies:
+            transitive_dependencies |= self.get_plugin_required_dependencies(
+                plugin
+            )
+
+        return direct_dependencies | transitive_dependencies
+
+    def get_plugin_required_dependents(
+        self, plugin_name: str, include_all: bool = False
+    ) -> set[str]:
+        """
+        Get required dependents (including transitive ones) of a given plugin.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to get its required dependents.
+        include_all: bool
+            Whether to include all dependents or only those that can be
+            disabled.
+
+        Returns
+        -------
+        dependents: set[str]
+            Set of dependent plugins.
+        """
+        # Get direct dependents
+        direct_dependents = set(
+            self.plugin_dependents.get(plugin_name, {}).get("requires", [])
+        )
+
+        # Filter plugins that can be disabled
+        if not include_all:
+            direct_dependents = {
+                plugin
+                for plugin in direct_dependents
+                if self.plugin_registry.get(
+                    plugin, _DummyPlugin
+                ).CAN_BE_DISABLED
+            }
+
+        if not direct_dependents:
+            return set()
+
+        # Find transitive dependents
+        transitive_dependents = set()
+        for plugin in direct_dependents:
+            transitive_dependents |= self.get_plugin_required_dependents(
+                plugin
+            )
+
+        return direct_dependents | transitive_dependents
 
     # ---- Python API
     # -------------------------------------------------------------------------
