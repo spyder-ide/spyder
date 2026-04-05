@@ -1062,24 +1062,21 @@ class HelpWidget(PluginMainWidget):
         if self.get_conf('rich_mode'):
             is_function=False
             if doc:
+                documentation = doc.get('docstring', '')
                 note = doc.get('note', '')
                 is_function = '__main__' in note
             if is_function and source_text:
                 signature = unicodedata.normalize("NFKD", source_text)
-                parts = signature.split('\n\n')
-                documentation = '\n\n'.join(parts[1:])
                 match = re.search(r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', signature, re.S)
                 args = ''
                 if match:
                     definition = match.group(0)
                     start = definition.find('(')
                     args = definition[start:-1]
-                else:
-                    documentation = signature
                 doc = {
                     'name': obj_text,
                     'argspec': args,
-                    'note': '',
+                    'note': note,
                     'docstring': documentation
                     }
             self.render_sphinx_doc(doc, css_path=self.css_path)
