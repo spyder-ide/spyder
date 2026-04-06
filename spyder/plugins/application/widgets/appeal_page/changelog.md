@@ -24,10 +24,11 @@
 * Allow macOS standalone app to access the microphone and camera.
 * Include `pyarrow` in the standalone installers to allow viewing dataframes
   created with Pandas 3.0+.
-* Removal and replacement of deprecated `atomicwrites` dependency.
-* `chardet` version constraint updated and latest versions compatibility fixes.
-* Several fixes for the Remote Client plugin:
-  * Error handling when stopping SSH connections.
-  * Fix some misspelling in error messages.
-  * Handle keyring backend load failures.
-  * Fix connections to JupyterHub servers.
+* Remove the deprecated `atomicwrites` package as a dependency.
+* Constraint `chardet` version for licensing reasons in the standalone installers
+  and fix compatibility with its latest versions.
+* Several fixes for remote connections:
+    * Fix errors when stopping SSH connections.
+    * Fix some misspelling in error messages.
+    * Handle keyring backend load failures on Linux.
+    * Fix connections to JupyterHub servers.
