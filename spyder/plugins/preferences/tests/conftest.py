@@ -46,6 +46,10 @@ class MainWindowMock(QMainWindow):
         sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
         self._cli_options = get_options(sys_argv)[0]
 
+        # For plugin registration
+        self._INTERNAL_PLUGINS_MAPPING = {}
+        self.is_webengine_available = False
+
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
         PLUGIN_REGISTRY.register_plugin(self, Preferences)
