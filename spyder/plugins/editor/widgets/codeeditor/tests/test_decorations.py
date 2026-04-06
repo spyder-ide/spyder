@@ -144,7 +144,7 @@ def test_update_decorations_when_scrolling(qtbot):
             scrollbar.setValue(i * 70)
             qtbot.wait(100)
 
-        # A new call is done here due to __cursor_position_changed being
+        # A new call is done here due to _cursor_position_changed being
         # called, which in turn calls highlight_current_cell and
         # highlight_current_line
         assert _update.call_count == 1

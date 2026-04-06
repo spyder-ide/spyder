@@ -2,6 +2,16 @@
 
 ## Version 6.1.4 (Unreleased)
 
+### New features
+
+* Add option to disable `Enter` for accepting code completions in the Editor.
+  The option is available in `Preferences > Completion and linting > General`.
+* Support SSH config files to create connections in
+  `Tools > Manage remote connections`.
+* Add support to delete, upload and download multiple files when working with
+  remote filesystems in Files.
+* Add button to Files to go to the directory of the current file in the Editor.
+
 ### Important fixes
 
 * Docstring generation has been massively overhauled to:
@@ -11,8 +21,12 @@
     * Resolve numerous formatting issues and follow the relevant specifications.
 * Default shortcut for docstring generation was changed to `Ctrl/Cmd+Alt+Shift+D`
   to avoid a conflict on macOS.
+* Allow macOS standalone app to access the microphone and camera.
+* Include `pyarrow` in the standalone installers to allow viewing dataframes
+  created with Pandas 3.0+.
 
 ### API changes
+
 * Add `remove_item_from_menu` method to `SpyderMenuMixin`.
 
 ----
