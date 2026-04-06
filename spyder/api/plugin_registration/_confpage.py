@@ -7,9 +7,15 @@
 
 """Plugin registry configuration page."""
 
+# Standard library imports
+from __future__ import annotations
+from contextlib import contextmanager
+import functools
+
 # Third party imports
 from pyuca import Collator
-from qtpy.QtWidgets import QVBoxLayout, QLabel
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QCheckBox, QLabel, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
@@ -22,8 +28,8 @@ from spyder.widgets.helperwidgets import FinderWidget
 class PluginsConfigPage(PluginConfigPage):
 
     def setup_page(self):
-        newcb = self.create_checkbox
-        self.plugins_checkboxes = {}
+        self.plugin_ui_names: dict[str, str] = {}
+        self.plugins_checkboxes: dict[str, tuple[QCheckBox, bool]] = {}
 
         header_label = QLabel(
             _(
@@ -51,12 +57,17 @@ class PluginsConfigPage(PluginConfigPage):
             plugin_state = self.get_option(
                 "enable", section=conf_section_name, default=True
             )
-            cb = newcb(
+            cb = self.create_checkbox(
                 "",
                 "enable",
                 default=True,
                 section=conf_section_name,
                 restart=True,
+            )
+            cb.checkbox.stateChanged.connect(
+                functools.partial(
+                    self._on_plugin_state_changed, plugin_name=plugin_name
+                )
             )
 
             internal_elements.append(
@@ -70,6 +81,7 @@ class PluginsConfigPage(PluginConfigPage):
                 )
             )
 
+            self.plugin_ui_names[plugin_name] = PluginClass.get_name()
             self.plugins_checkboxes[plugin_name] = (cb.checkbox, plugin_state)
 
         # ------------------ External plugins ---------------------------------
@@ -87,12 +99,17 @@ class PluginsConfigPage(PluginConfigPage):
                 section=self.plugin._external_plugins_conf_section,
                 default=True,
             )
-            cb = newcb(
+            cb = self.create_checkbox(
                 "",
                 f"{conf_section_name}/enable",
                 default=True,
                 section=self.plugin._external_plugins_conf_section,
                 restart=True,
+            )
+            cb.checkbox.stateChanged.connect(
+                functools.partial(
+                    self._on_plugin_state_changed, plugin_name=plugin_name
+                )
             )
 
             external_elements.append(
@@ -104,6 +121,7 @@ class PluginsConfigPage(PluginConfigPage):
                 )
             )
 
+            self.plugin_ui_names[plugin_name] = PluginClass.get_name()
             self.plugins_checkboxes[plugin_name] = (cb.checkbox, plugin_state)
 
         # Sort elements by title for easy searching
@@ -165,7 +183,108 @@ class PluginsConfigPage(PluginConfigPage):
                 # autorestart feature provided by the plugin registry:
                 # self.plugin.delete_plugin(plugin_name)
                 pass
+
         return set({})
 
     def _do_find(self, text):
         self._plugins_table.do_find(text)
+
+    def _on_plugin_state_changed(self, state: Qt.CheckState, plugin_name: str):
+        # Prevent to call this before options are loaded into the page
+        if not self.is_loaded:
+            return
+
+        # Use a bool for the checked state because it's simpler
+        checked = True if state == Qt.Checked else False
+
+        # When a plugin is going to be enabled, we check if we also need to
+        # enable some of its dependencies. But if it's disabled, we check if
+        # it's necessary to disable its dependents.
+        if checked:
+            plugins = self.plugin.get_plugin_required_dependencies(plugin_name)
+        else:
+            plugins = self.plugin.get_plugin_required_dependents(plugin_name)
+
+        if not plugins:
+            return
+
+        # Filter those plugins whose current state we also needs to change
+        plugins = {
+            plugin
+            for plugin in plugins
+            if self.plugins_checkboxes[plugin][0].isChecked() != checked
+        }
+
+        if not plugins:
+            return
+
+        # Build list of dependents to show
+        plugin_names = []
+        for plugin in plugins:
+            plugin_names.append(f"<b>{self.plugin_ui_names[plugin]}</b>")
+
+        if len(plugin_names) > 1:
+            plugins_list = (
+                ", ".join(plugin_names[:-1])
+                + " "
+                + _("and")
+                + " "
+                + plugin_names[-1]
+                + "."
+            )
+        else:
+            plugins_list = plugin_names[0] + "."
+
+        # Show message about enabling/disabling dependents
+        plugin_ui_name = self.plugin_ui_names[plugin_name]
+        if state:
+            message = _(
+                "Would you like to also enable the following plugins because "
+                "they are required by <b>{}</b> to work?<br><br>"
+                "{}<br><br>"
+            ).format(plugin_ui_name, plugins_list)
+        else:
+            message = _(
+                "Besides <b>{}</b>, the following plugins will also be "
+                "disabled because they require it to work:<br><br>"
+                "{}<br><br>"
+                "Do you want to proceed?"
+            ).format(plugin_ui_name, plugins_list)
+
+        answer = QMessageBox.warning(
+            self,
+            _("Warning"),
+            message,
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        # Enable/disable dependents
+        if answer == QMessageBox.Yes:
+            for plugin in plugins:
+                cb = self.plugins_checkboxes[plugin][0]
+                with self._disable_stateChanged(cb, plugin):
+                    # Use click instead of setChecked because it also changes
+                    # the associated checkbox option when clicking on Apply or
+                    # Ok
+                    cb.click()
+        else:
+            # Revert to previous state
+            cb = self.plugins_checkboxes[plugin_name][0]
+            with self._disable_stateChanged(cb, plugin_name):
+                cb.click()
+
+    @contextmanager
+    def _disable_stateChanged(self, checkbox: QCheckBox, plugin_name: str):
+        # Temporarily disconnect this signal to not call it when changing the
+        # checkbox state programmatically.
+        checkbox.stateChanged.disconnect()
+
+        try:
+            yield
+        finally:
+            # Reconnect slot again
+            checkbox.stateChanged.connect(
+                functools.partial(
+                    self._on_plugin_state_changed, plugin_name=plugin_name
+                )
+            )
