@@ -151,6 +151,7 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
         )
 
         idx = 0
+        init_row = 0
         total_symbols = len(oe_symbols)
         oe_symbols = sorted(
             oe_symbols, key=lambda x: x['location']['range']['start']['line']
@@ -195,11 +196,14 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
                 data=data,
                 last_item=last_item
             )
+            
+            init_row = idx if symbol_start <= self._current_line else init_row
 
             idx += 1
 
         # Needed to update fold spaces for item titles
         self._switcher.setup()
+        self._switcher.init_current_row(init_row)
 
     def handle_switcher_selection(self, item, mode, search_text):
         """Handle item selection of the switcher."""

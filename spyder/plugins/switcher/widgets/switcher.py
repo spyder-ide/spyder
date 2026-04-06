@@ -336,12 +336,6 @@ class Switcher(QDialog, SpyderFontsMixin):
 
         # Graphical setup
         self.setup_sections()
-
-        if self.count():
-            self.set_current_row(0)
-        else:
-            self.set_current_row(-1)
-
         self.set_height()
 
     def setup_sections(self):
@@ -542,7 +536,18 @@ class Switcher(QDialog, SpyderFontsMixin):
         )
 
         # Ensure that the selected item is visible
-        self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
+        self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+    
+    def init_current_row(self, row):
+        """Set the current row, center view, skip editor cursor jump."""
+        proxy_index = self.proxy.index(row, 0)
+        selection_model = self.list.selectionModel()
+        
+        self.blockSignals(True)
+        selection_model.setCurrentIndex(proxy_index,
+                                        QItemSelectionModel.ClearAndSelect)
+        self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+        self.blockSignals(False)
 
     def previous_row(self):
         """Select previous row in list widget."""
