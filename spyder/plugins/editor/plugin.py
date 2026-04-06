@@ -74,6 +74,8 @@ class Editor(SpyderDockablePlugin):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = EditorConfigPage
     CONF_FILE = False
+    CONF_DEFAULTS = [(CONF_SECTION, {'todo_list': True,
+                                     'custom_annotations': 'NOTE, note'})]
 
     # ---- Signals
     # ------------------------------------------------------------------------
