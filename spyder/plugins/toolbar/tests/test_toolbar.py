@@ -30,10 +30,18 @@ def toolbar(qtbot):
     toolbar = Toolbar(main_window, configuration=CONF)
     toolbar.on_initialize()
 
-    # Add working directory toolbar
+    # Add toolbars from other plugins
     cwd = WorkingDirectory(main_window, None)
     cwd.on_initialize()
     toolbar.add_application_toolbar(cwd.get_container().toolbar)
+
+    toolbar.create_application_toolbar(ApplicationToolbars.Run, "Run toolbar")
+    toolbar.create_application_toolbar(
+        ApplicationToolbars.Debug, "Debug toolbar"
+    )
+    toolbar.create_application_toolbar(
+        ApplicationToolbars.Profile, "Profile toolbar"
+    )
 
     # Add buttons to the other toolbars
     actions = [
@@ -69,6 +77,7 @@ def test_default_order(toolbar):
         ApplicationToolbars.File,
         ApplicationToolbars.Run,
         ApplicationToolbars.Debug,
+        ApplicationToolbars.Profile,
         ApplicationToolbars.Main,
         ApplicationToolbars.WorkingDirectory,
     ]
@@ -91,6 +100,7 @@ def test_restore_toolbars_order(toolbar, qtbot):
         ApplicationToolbars.Debug,
         ApplicationToolbars.File,
         ApplicationToolbars.Run,
+        ApplicationToolbars.Profile,
         ApplicationToolbars.Main,
     ]
 
