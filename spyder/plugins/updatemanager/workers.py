@@ -247,6 +247,19 @@ def _check_asset_available(
     return asset_info
 
 
+def _read_updater_log(log_path: str) -> tuple[str, str | None]:
+    """Read a Spyder-updater log file and report OS errors separately."""
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read(), None
+    except OSError as err:
+        logger.warning(
+            "Unable to read Spyder-updater log file %s", log_path,
+            exc_info=err
+        )
+        return "", f"Unable to read {log_path}: {err}"
+
+
 def validate_download(file: str, checksum: str) -> bool:
     """
     Compute the sha256 checksum of the provided file and compare against
@@ -628,10 +641,17 @@ class WorkerUpdateUpdater(BaseWorker):
             # Check for errors there by reading the logs
             updater_stdout = osp.join(installer_dir, "updater_stdout.log")
             updater_stderr = osp.join(installer_dir, "updater_stderr.log")
-            with open(updater_stderr, "r") as f:
-                stderr = f.read()
-            with open(updater_stdout, "r") as f:
-                stdout = f.read()
+            stdout, __ = _read_updater_log(updater_stdout)
+            stderr, stderr_error = _read_updater_log(updater_stderr)
+
+            if stderr_error is not None:
+                raise subprocess.CalledProcessError(
+                    1,
+                    " ".join(cmd),
+                    output=stdout,
+                    stderr=stderr_error,
+                )
+
             if stderr:
                 raise subprocess.CalledProcessError(
                     1, " ".join(cmd), output=stdout, stderr=stderr
