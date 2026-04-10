@@ -7,186 +7,385 @@
 """
 Spyder Language Server Protocol Client implementation.
 
-This client implements the calls and procedures required to
-communicate with a v3.0 Language Server Protocol server.
+Uses pygls JsonRPCClient (_SpyderPyglsClient) with a dedicated asyncio
+thread for all LSP communication.  All parameters and responses are typed
+lsprotocol objects; requests and notifications are dispatched directly via
+protocol.send_request_async / protocol.notify.
 """
 
 # Standard library imports
+from __future__ import annotations
+
+import asyncio
 import logging
 import os
 import os.path as osp
 import pathlib
-import signal
 import sys
-import time
+import typing
 
 # Third-party imports
-from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
-import zmq
-import psutil
+from lsprotocol import types as lsp
+from pygls.client import JsonRPCClient
+from pygls.protocol import LanguageServerProtocol, default_converter
+from qtpy.QtCore import QObject, QProcess, Signal, Slot
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
+from spyder.api.asyncdispatcher import AsyncDispatcher, DispatcherFuture
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_under_pytest
 )
 from spyder.plugins.completion.api import (
-    CLIENT_CAPABILITES, SERVER_CAPABILITES,
-    TEXT_DOCUMENT_SYNC_OPTIONS, CompletionRequestTypes,
-    ClientConstants)
+    SERVER_CAPABILITES, TEXT_DOCUMENT_SYNC_OPTIONS,
+    CompletionRequestTypes,
+)
 from spyder.plugins.completion.providers.languageserver.decorators import (
-    send_request, send_notification, class_register, handles)
-from spyder.plugins.completion.providers.languageserver.transport import (
-    MessageKind)
+    class_register, handles
+)
 from spyder.plugins.completion.providers.languageserver.providers import (
-    LSPMethodProviderMixIn)
+    LSPMethodProviderMixIn
+)
 from spyder.utils.misc import getcwd_or_home, select_port
 
-# Main constants
-LOCATION = osp.realpath(osp.join(os.getcwd(),
-                                 osp.dirname(__file__)))
-PENDING = 'pending'
-SERVER_READY = 'server_ready'
-LOCALHOST = '127.0.0.1'
-
-# Language server communication verbosity at server logs.
-TRACE = 'messages'
+# Verbosity level sent to the server in the initialize request.
+TRACE = lsp.TraceValue.Messages
 if DEV:
-    TRACE = 'verbose'
+    TRACE = lsp.TraceValue.Verbose
 
 logger = logging.getLogger(__name__)
+
+# Global loop name for AsyncDispatcher in LSP client.
+_LSP_LOOP = 'lsp'
+
+
+def _spyder_converter():
+    """
+    Build the cattrs converter used by _SpyderPyglsClient.
+
+    Extends pygls's default_converter() with a structure hook for
+    ``Optional[Union[str, NotebookDocumentFilter*]]``.  That type is used by
+    ``NotebookDocumentFilterWithCells.notebook`` in lsprotocol 2025.0.0, but
+    its hooks only cover the non-Optional variant, causing a
+    ``StructureHandlerNotFoundError`` when pylsp returns
+    ``notebookDocumentSync`` capabilities.
+    """
+    converter = default_converter()
+
+    # Build the exact Optional Union type that lsprotocol 2025.0.0 exposes on
+    # NotebookDocumentFilterWithCells.notebook so the hook key matches.
+    _opt_notebook_filter = typing.Optional[
+        typing.Union[
+            str,
+            lsp.NotebookDocumentFilterNotebookType,
+            lsp.NotebookDocumentFilterScheme,
+            lsp.NotebookDocumentFilterPattern,
+        ]
+    ]
+
+    def _structure_opt_notebook_filter(obj, _):
+        if obj is None:
+            return None
+        if isinstance(obj, str):
+            return obj
+        if "notebookType" in obj:
+            return converter.structure(obj, lsp.NotebookDocumentFilterNotebookType)
+        if "scheme" in obj:
+            return converter.structure(obj, lsp.NotebookDocumentFilterScheme)
+        return converter.structure(obj, lsp.NotebookDocumentFilterPattern)
+
+    converter.register_structure_hook(_opt_notebook_filter, _structure_opt_notebook_filter)
+    return converter
+
+
+def _build_client_capabilities() -> lsp.ClientCapabilities:
+    """Build the ClientCapabilities object advertised to the LSP server."""
+    return lsp.ClientCapabilities(
+        workspace=lsp.WorkspaceClientCapabilities(
+            apply_edit=True,
+            workspace_edit=lsp.WorkspaceEditClientCapabilities(
+                document_changes=True,
+                resource_operations=[
+                    lsp.ResourceOperationKind.Create,
+                    lsp.ResourceOperationKind.Rename,
+                    lsp.ResourceOperationKind.Delete,
+                ],
+                failure_handling=lsp.FailureHandlingKind.Transactional,
+            ),
+            did_change_configuration=lsp.DidChangeConfigurationClientCapabilities(
+                dynamic_registration=True,
+            ),
+            did_change_watched_files=lsp.DidChangeWatchedFilesClientCapabilities(
+                dynamic_registration=True,
+            ),
+            symbol=lsp.WorkspaceSymbolClientCapabilities(
+                dynamic_registration=True,
+            ),
+            execute_command=lsp.ExecuteCommandClientCapabilities(
+                dynamic_registration=True,
+            ),
+            workspace_folders=True,
+            configuration=True,
+        ),
+        text_document=lsp.TextDocumentClientCapabilities(
+            synchronization=lsp.TextDocumentSyncClientCapabilities(
+                dynamic_registration=True,
+                will_save=True,
+                will_save_wait_until=True,
+                did_save=True,
+            ),
+            completion=lsp.CompletionClientCapabilities(
+                dynamic_registration=True,
+                completion_item=(
+                    lsp.ClientCompletionItemOptions(
+                        snippet_support=True,
+                        documentation_format=[lsp.MarkupKind.PlainText],
+                    )
+                ),
+            ),
+            hover=lsp.HoverClientCapabilities(
+                dynamic_registration=True,
+                content_format=[lsp.MarkupKind.PlainText],
+            ),
+            signature_help=lsp.SignatureHelpClientCapabilities(
+                dynamic_registration=True,
+                signature_information=(
+                    lsp.ClientSignatureInformationOptions(
+                        documentation_format=[lsp.MarkupKind.PlainText],
+                    )
+                ),
+            ),
+            references=lsp.ReferenceClientCapabilities(
+                dynamic_registration=True,
+            ),
+            document_highlight=lsp.DocumentHighlightClientCapabilities(
+                dynamic_registration=True,
+            ),
+            document_symbol=lsp.DocumentSymbolClientCapabilities(
+                dynamic_registration=True,
+            ),
+            formatting=lsp.DocumentFormattingClientCapabilities(
+                dynamic_registration=True,
+            ),
+            range_formatting=lsp.DocumentRangeFormattingClientCapabilities(
+                dynamic_registration=True,
+            ),
+            on_type_formatting=lsp.DocumentOnTypeFormattingClientCapabilities(
+                dynamic_registration=True,
+            ),
+            definition=lsp.DefinitionClientCapabilities(
+                dynamic_registration=True,
+            ),
+            code_action=lsp.CodeActionClientCapabilities(
+                dynamic_registration=True,
+            ),
+            code_lens=lsp.CodeLensClientCapabilities(
+                dynamic_registration=True,
+            ),
+            document_link=lsp.DocumentLinkClientCapabilities(
+                dynamic_registration=True,
+            ),
+            rename=lsp.RenameClientCapabilities(
+                dynamic_registration=True,
+            ),
+        ),
+    )
+
+
+class _SpyderPyglsClient(JsonRPCClient):
+    """
+    pygls JsonRPCClient subclass that routes server-initiated notifications
+    and requests back to the Qt-thread LSPClient via AsyncDispatcher.
+    """
+
+    def __init__(self, qt_client: 'LSPClient', name: str, version: str) -> None:
+        self.name = name
+        self.version = version
+        super().__init__(
+            protocol_cls=LanguageServerProtocol,
+            converter_factory=_spyder_converter,
+        )
+        self._qt_client = qt_client
+        self._register_server_handlers()
+
+    def _register_server_handlers(self) -> None:
+        """Register handlers for server-to-client messages."""
+        qt = self._qt_client
+
+        # --- Notifications (server -> client, no response required) ---
+
+        @self.feature(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
+        def on_diagnostics(params: lsp.PublishDiagnosticsParams) -> None:
+            qt._post_notification(
+                CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS, params
+            )
+
+        @self.feature(lsp.WINDOW_SHOW_MESSAGE)
+        def on_show_message(params: lsp.ShowMessageParams) -> None:
+            qt._post_notification(
+                CompletionRequestTypes.WINDOW_SHOW_MESSAGE, params
+            )
+
+        @self.feature(lsp.WINDOW_LOG_MESSAGE)
+        def on_log_message(params: lsp.LogMessageParams) -> None:
+            qt._post_notification(
+                CompletionRequestTypes.WINDOW_LOG_MESSAGE, params
+            )
+
+        # --- Requests from server (require a response) ---
+
+        @self.feature(lsp.WORKSPACE_WORKSPACE_FOLDERS)
+        def on_workspace_folders(params: None) -> list:
+            """Return the currently open workspace folders."""
+            folders = []
+            for folder_name, folder_data in qt.watched_folders.items():
+                folders.append(
+                    lsp.WorkspaceFolder(
+                        uri=folder_data['uri'],
+                        name=folder_name,
+                    )
+                )
+            return folders
+
+        @self.feature(lsp.WORKSPACE_CONFIGURATION)
+        def on_workspace_configuration(
+            params: lsp.ConfigurationParams,
+        ) -> list:
+            """Return workspace configuration items requested by the server."""
+            return [qt.configurations] * len(params.items)
+
+        @self.feature(lsp.WORKSPACE_APPLY_EDIT)
+        def on_apply_edit(
+            params: lsp.ApplyWorkspaceEditParams,
+        ) -> lsp.ApplyWorkspaceEditResult:
+            """Route edit application to the Qt thread; acknowledge immediately."""
+            qt._post_notification(
+                CompletionRequestTypes.WORKSPACE_APPLY_EDIT, params
+            )
+            return lsp.ApplyWorkspaceEditResult(applied=True)
+
+        @self.feature(lsp.CLIENT_REGISTER_CAPABILITY)
+        def on_register_capability(params: lsp.RegistrationParams) -> None:
+            qt._post_notification(
+                CompletionRequestTypes.CLIENT_REGISTER_CAPABILITY, params
+            )
 
 
 @class_register
 class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
-    """Language Server Protocol v3.0 client implementation."""
-    #: Signal to inform the editor plugin that the client has
-    #  started properly and it's ready to be used.
+    """
+    Language Server Protocol v3.0 client.
+
+    Wraps a pygls BaseLanguageClient running in a dedicated asyncio thread.
+    All public signals and methods retain the same interface as before so
+    that LanguageServerProvider and the rest of Spyder require no changes.
+    """
+
+    # --- Public Qt signals ---
+
+    #: Emitted when the server has initialised and is ready for requests.
     sig_initialize = Signal(dict, str)
 
-    #: Signal to report internal server errors through Spyder's
-    #  facilities.
+    #: Emitted when the server reports a recoverable error (debug/dev modes).
     sig_server_error = Signal(str)
 
-    #: Signal to warn the user when either the transport layer or the
-    #  server went down
+    #: Emitted when the LSP server process has gone down.
     sig_went_down = Signal(str)
 
-    def __init__(self, parent,
-                 server_settings={},
-                 folder=getcwd_or_home(),
-                 language='python'):
+    def __init__(
+        self,
+        parent,
+        server_settings: dict = {},
+        folder: str = getcwd_or_home(),
+        language: str = 'python',
+    ) -> None:
         QObject.__init__(self)
         self.manager = parent
-        self.zmq_in_socket = None
-        self.zmq_out_socket = None
-        self.zmq_in_port = None
-        self.zmq_out_port = None
-        self.transport = None
-        self.server = None
-        self.stdio_pid = None
-        self.notifier = None
         self.language = language
+        self.folder = folder
 
         self.initialized = False
         self.ready_to_close = False
-        self.request_seq = 1
-        self.req_status = {}
-        self.watched_files = {}
-        self.watched_folders = {}
-        self.req_reply = {}
         self.server_unresponsive = False
-        self.transport_unresponsive = False
+        self.req_reply: dict = {}       # req_id -> callback
+        self.watched_files: dict = {}   # uri -> [editor, ...]
+        self.watched_folders: dict = {} # folder_path -> {uri, instance}
 
-        # Select a free port to start the server.
-        # NOTE: Don't use the new value to set server_setttings['port']!!
-        # That's not required because this doesn't really correspond to a
-        # change in the config settings of the server. Else a server
-        # restart would be generated when doing a
-        # workspace/didChangeConfiguration request.
-        if not server_settings['external']:
-            self.server_port = select_port(
-                default_port=server_settings['port'])
-        else:
-            self.server_port = server_settings['port']
-        self.server_host = server_settings['host']
+        # Request sequence counter (thread access: increment only from Qt thread)
+        self._request_seq = 1
+        self._requests = []  # kept only for testing
 
+        # Server connection settings
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
 
-        # Setting stdio on implies that external_server is off
         if self.stdio and self.external_server:
-            error = ('If server is set to use stdio communication, '
-                     'then it cannot be an external server')
-            logger.error(error)
-            raise AssertionError(error)
+            raise AssertionError(
+                'A server cannot use stdio and be external at the same time.'
+            )
 
-        self.folder = folder
+        self.server_host = server_settings['host']
         self.configurations = server_settings.get('configurations', {})
-        self.client_capabilites = CLIENT_CAPABILITES
-        self.server_capabilites = SERVER_CAPABILITES
-        self.context = zmq.Context()
 
-        # To set server args
+        if not server_settings['external']:
+            self.server_port = select_port(
+                default_port=server_settings['port']
+            )
+        else:
+            self.server_port = server_settings['port']
+
         self._server_args = server_settings.get('args', '')
         self._server_cmd = server_settings['cmd']
 
-        # Save requests name and id. This is only necessary for testing.
-        self._requests = []
+        # LSP capabilities
+        self.client_capabilites = _build_client_capabilities()
+        self.server_capabilites = dict(SERVER_CAPABILITES)
 
-    def _get_log_filename(self, kind):
-        """
-        Get filename to redirect server or transport logs to in
-        debugging mode.
+        # QProcess for TCP-mode server management (not used in stdio mode)
+        self.server: QProcess | None = None
 
-        Parameters
-        ----------
-        kind: str
-            It can be "server" or "transport".
-        """
+        # pygls client
+        self._pygls_client = _SpyderPyglsClient(self, f"spyder-{self.language}", "0.1.0")
+
+    # ------------------------------------------------------------------
+    # Properties / helpers
+    # ------------------------------------------------------------------
+
+    def _next_req_id(self) -> int:
+        req_id = self._request_seq
+        self._request_seq += 1
+        return req_id
+
+    @property
+    def _log_dir(self) -> str:
+        return get_conf_path(osp.join('lsp_logs'))
+
+    def _get_log_filename(self, kind: str) -> str | None:
         if get_debug_level() == 0:
             return None
-
         fname = '{0}_{1}_{2}.log'.format(kind, self.language, os.getpid())
-        location = get_conf_path(osp.join('lsp_logs', fname))
-
-        # Create directory that contains the file, in case it doesn't
-        # exist
-        if not osp.exists(osp.dirname(location)):
-            os.makedirs(osp.dirname(location))
-
+        location = osp.join(self._log_dir, fname)
+        os.makedirs(osp.dirname(location), exist_ok=True)
         return location
 
     @property
-    def server_log_file(self):
-        """
-        Filename to redirect the server process stdout/stderr output.
-        """
+    def server_log_file(self) -> str | None:
         return self._get_log_filename('server')
 
     @property
-    def transport_log_file(self):
-        """
-        Filename to redirect the transport process stdout/stderr
-        output.
-        """
-        return self._get_log_filename('transport')
-
-    @property
-    def server_args(self):
-        """Arguments for the server process."""
+    def server_args(self) -> list:
+        """Command and arguments to start the LSP server process."""
         args = []
         if self.language == 'python':
             args += [sys.executable, '-m']
         args += [self._server_cmd]
 
-        # Replace host and port placeholders
         host_and_port = self._server_args.format(
-            host=self.server_host,
-            port=self.server_port)
-        if len(host_and_port) > 0:
-            args += host_and_port.split(' ')
+            host=self.server_host, port=self.server_port
+        )
+        if host_and_port:
+            args += host_and_port.split()
 
         if self.language == 'python' and get_debug_level() > 0:
             args += ['--log-file', self.server_log_file]
@@ -198,74 +397,42 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         return args
 
     @property
-    def transport_args(self):
-        """Arguments for the transport process."""
-        args = [
-            sys.executable,
-            '-u',
-            osp.join(LOCATION, 'transport', 'main.py'),
-            '--folder', self.folder,
-            '--transport-debug', str(get_debug_level())
-        ]
+    def stdio_pid(self) -> int | None:
+        """Return the PID of the stdio server process, or None if not in stdio mode."""
+        if not self.stdio:
+            return None
+        server = getattr(self._pygls_client, '_server', None)
+        return getattr(server, 'pid', None) if server is not None else None
 
-        # Replace host and port placeholders
-        host_and_port = '--server-host {host} --server-port {port} '.format(
-            host=self.server_host,
-            port=self.server_port)
-        args += host_and_port.split(' ')
+    def is_stdio_alive(self) -> bool:
+        """Return True if the stdio server process is still running."""
+        server = getattr(self._pygls_client, '_server', None)
+        if server is None:
+            return False
+        # asyncio.subprocess.Process.returncode is None while the process runs
+        return getattr(server, 'returncode', 1) is None
 
-        # Add socket ports
-        args += ['--zmq-in-port', str(self.zmq_out_port),
-                 '--zmq-out-port', str(self.zmq_in_port)]
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
 
-        # Adjustments for stdio/tcp
-        if self.stdio:
-            args += ['--stdio-server']
-            if get_debug_level() > 0:
-                args += ['--server-log-file', self.server_log_file]
-            args += self.server_args
-        else:
-            args += ['--external-server']
-
-        return args
-
-    def create_transport_sockets(self):
-        """Create PyZMQ sockets for transport."""
-        self.zmq_out_socket = self.context.socket(zmq.PAIR)
-        self.zmq_out_port = self.zmq_out_socket.bind_to_random_port(
-            'tcp://{}'.format(LOCALHOST))
-        self.zmq_in_socket = self.context.socket(zmq.PAIR)
-        self.zmq_in_socket.set_hwm(0)
-        self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
-            'tcp://{}'.format(LOCALHOST))
-
-    @Slot(QProcess.ProcessError)
-    def handle_process_errors(self, error):
-        """Handle errors with the transport layer or server processes."""
-        self.sig_went_down.emit(self.language)
-
-    def start_server(self):
-        """Start server."""
-        # This is not necessary if we're trying to connect to an
-        # external server
+    def start_server(self) -> None:
+        """Start the LSP server as a QProcess (TCP non-external mode only)."""
         if self.external_server or self.stdio:
             return
 
-        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
+        logger.info('Starting server: %s', ' '.join(self.server_args))
 
-        # Create server process
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
-        # Adjustments for the Python language server.
         if self.language == 'python':
             # Set the PyLS current working to an empty dir inside
             # our config one. This avoids the server to pick up user
             # files such as random.py or string.py instead of the
             # standard library modules named the same.
             cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
-            if not osp.exists(cwd):
-                os.makedirs(cwd)
+            os.makedirs(cwd, exist_ok=True)
 
             if os.name == "nt":
                 # On Windows, some modules (notably Matplotlib)
@@ -291,354 +458,366 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 env.insert(var, os.environ[var])
             logger.info('Server process env variables: {0}'.format(env.keys()))
 
-        # Setup server
         self.server.setProcessEnvironment(env)
-        self.server.errorOccurred.connect(self.handle_process_errors)
-        self.server.setWorkingDirectory(cwd)
+        self.server.errorOccurred.connect(self._handle_process_error)
+        if cwd:
+            self.server.setWorkingDirectory(cwd)
         self.server.setProcessChannelMode(QProcess.MergedChannels)
-        if self.server_log_file is not None:
+        if self.server_log_file:
             self.server.setStandardOutputFile(self.server_log_file)
 
         # Start server
         self.server.start(self.server_args[0], self.server_args[1:])
 
-    def start_transport(self):
-        """Start transport layer."""
-        logger.info('Starting transport for {1}: {0}'
-                    .format(' '.join(self.transport_args), self.language))
-
-        # Create transport process
-        self.transport = QProcess(self)
-        env = self.transport.processEnvironment()
-
-        # Most LSP servers spawn other processes other than Python, which may
-        # require some environment variables
-        if self.language != 'python' and self.stdio:
-            for var in os.environ:
-                env.insert(var, os.environ[var])
-            logger.info('Transport process env variables: {0}'.format(
-                env.keys()))
-
-        self.transport.setProcessEnvironment(env)
-
-        # Set up transport
-        self.transport.errorOccurred.connect(self.handle_process_errors)
-        if self.stdio:
-            self.transport.setProcessChannelMode(QProcess.SeparateChannels)
-            if self.transport_log_file is not None:
-                self.transport.setStandardErrorFile(self.transport_log_file)
-        else:
-            self.transport.setProcessChannelMode(QProcess.MergedChannels)
-            if self.transport_log_file is not None:
-                self.transport.setStandardOutputFile(self.transport_log_file)
-
-        # Start transport
-        self.transport.start(self.transport_args[0], self.transport_args[1:])
-
-    def start(self):
-        """Start client."""
-        # NOTE: DO NOT change the order in which these methods are called.
-        self.create_transport_sockets()
+    def start(self) -> None:
+        """Start the server process (if needed) and connect via asyncio."""
         self.start_server()
-        self.start_transport()
+        self._connect()
+        logger.debug('LSP %s client started.', self.language)
 
-        # Create notifier
-        fid = self.zmq_in_socket.getsockopt(zmq.FD)
-        self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
-        self.notifier.activated.connect(self.on_msg_received)
+    def stop(self) -> None:
+        """Send LSP shutdown/exit and kill the server process."""
+        logger.info('Stopping %s client…', self.language)
 
-        # This is necessary for tests to pass locally!
-        logger.debug('LSP {} client started!'.format(self.language))
+        if self.initialized and not self._pygls_client.stopped:
+            try:
+                self._graceful_stop().result(timeout=3)
+            except Exception:
+                pass
 
-    def stop(self):
-        """Stop transport and server."""
-        logger.info('Stopping {} client...'.format(self.language))
-        if self.notifier is not None:
-            self.notifier.activated.disconnect(self.on_msg_received)
-            self.notifier.setEnabled(False)
-            self.notifier = None
-
-        # waitForFinished(): Wait some time for process to exit. This fixes an
-        # error message by Qt (“QProcess: Destroyed while process (…) is still
-        # running.”). No further error handling because we are out of luck
-        # anyway if the process doesn’t finish.
-        if self.transport is not None:
-            self.transport.close()
-            self.transport.waitForFinished(1000)
-        self.context.destroy()
         if self.server is not None:
             self.server.close()
             self.server.waitForFinished(1000)
 
-    def is_transport_alive(self):
-        """Detect if transport layer is alive."""
-        state = self.transport.state()
-        return state != QProcess.NotRunning
+    @Slot(QProcess.ProcessError)
+    def _handle_process_error(self, _error) -> None:
+        self.sig_went_down.emit(self.language)
 
-    def is_stdio_alive(self):
-        """Check if an stdio server is alive."""
-        alive = True
-        if not psutil.pid_exists(self.stdio_pid):
-            alive = False
-        else:
+    # ------------------------------------------------------------------
+    # Asyncio connection and request dispatch
+    # ------------------------------------------------------------------
+
+    @AsyncDispatcher(loop=_LSP_LOOP)
+    async def _graceful_stop(self) -> None:
+        """Send shutdown and exit to the server (LSP graceful teardown)."""
+        try:
+            await self._pygls_client.protocol.send_request_async(
+                lsp.SHUTDOWN, None
+            )
+            self._pygls_client.protocol.notify(lsp.EXIT, None)
+        except Exception:
+            pass
+
+    @AsyncDispatcher(loop=_LSP_LOOP)
+    async def _connect(self) -> None:
+        """Establish the connection to the LSP server and send initialize."""
+        try:
+            if self.stdio:
+                # pygls spawns and manages the server subprocess directly.
+                await self._pygls_client.start_io(*self.server_args)
+            else:
+                # For TCP mode, wait briefly for the server to start, then
+                # connect.  Retry on connection refused to handle slow starts.
+                await self._connect_tcp()
+
+            await self._initialize_server()
+        except Exception:
+            logger.exception('LSP %s: connection failed.', self.language)
+            self.sig_went_down.emit(self.language)
+
+    async def _connect_tcp(self, retries: int = 10, delay: float = 0.5) -> None:
+        """Connect pygls client to the TCP LSP server with retries."""
+        for attempt in range(retries):
             try:
-                pid_status = psutil.Process(self.stdio_pid).status()
-            except psutil.NoSuchProcess:
-                pid_status = ''
-            if pid_status == psutil.STATUS_ZOMBIE:
-                alive = False
-        return alive
-
-    def is_server_alive(self):
-        """Detect if a tcp server is alive."""
-        state = self.server.state()
-        return state != QProcess.NotRunning
-
-    def is_down(self):
-        """
-        Detect if the transport layer or server are down to inform our
-        users about it.
-        """
-        is_down = False
-        if self.transport and not self.is_transport_alive():
-            logger.debug(
-                "Transport layer for {} is down!!".format(self.language))
-            if not self.transport_unresponsive:
-                self.transport_unresponsive = True
-                self.sig_went_down.emit(self.language)
-            is_down = True
-
-        if self.server and not self.is_server_alive():
-            logger.debug("LSP server for {} is down!!".format(self.language))
-            if not self.server_unresponsive:
-                self.server_unresponsive = True
-                self.sig_went_down.emit(self.language)
-            is_down = True
-
-        if self.stdio_pid and not self.is_stdio_alive():
-            logger.debug("LSP server for {} is down!!".format(self.language))
-            if not self.server_unresponsive:
-                self.server_unresponsive = True
-                self.sig_went_down.emit(self.language)
-            is_down = True
-
-        return is_down
-
-    def send(self, method, params, kind):
-        """Send message to transport."""
-        if self.is_down():
-            return
-
-        # Don't send requests to the server before it's been initialized.
-        if not self.initialized and method != 'initialize':
-            return
-
-        if ClientConstants.CANCEL in params:
-            return
-        _id = self.request_seq
-        if kind == MessageKind.REQUEST:
-            msg = {
-                'id': self.request_seq,
-                'method': method,
-                'params': params
-            }
-            self.req_status[self.request_seq] = method
-        elif kind == MessageKind.RESPONSE:
-            msg = {
-                'id': self.request_seq,
-                'result': params
-            }
-        elif kind == MessageKind.NOTIFICATION:
-            msg = {
-                'method': method,
-                'params': params
-            }
-
-        logger.debug('Perform request {0} with id {1}'.format(method, _id))
-
-        # Save requests to check their ordering.
-        if running_under_pytest():
-            self._requests.append((_id, method))
-
-        # Try sending a message. If the send queue is full, keep trying for a
-        # a second before giving up.
-        timeout = 1
-        start_time = time.time()
-        timeout_time = start_time + timeout
-        while True:
-            try:
-                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
-                self.request_seq += 1
-                return int(_id)
-            except zmq.error.Again:
-                if time.time() > timeout_time:
-                    self.sig_went_down.emit(self.language)
-                    return
-                # The send queue is full! wait 0.1 seconds before retrying.
-                if self.initialized:
-                    logger.warning("The send queue is full! Retrying...")
-                time.sleep(.1)
-
-    @Slot()
-    def on_msg_received(self):
-        """Process received messages."""
-        self.notifier.setEnabled(False)
-        while True:
-            try:
-                # events = self.zmq_in_socket.poll(1500)
-                resp = self.zmq_in_socket.recv_pyobj(flags=zmq.NOBLOCK)
-
-                try:
-                    method = resp['method']
-                    logger.debug(
-                        '{} response: {}'.format(self.language, method))
-                except KeyError:
-                    pass
-
-                if 'error' in resp:
-                    logger.debug('{} Response error: {}'
-                                 .format(self.language, repr(resp['error'])))
-                    if self.language == 'python':
-                        # Show PyLS errors in our error report dialog only in
-                        # debug or development modes
-                        if get_debug_level() > 0 or DEV:
-                            message = resp['error'].get('message', '')
-                            traceback = (resp['error'].get('data', {}).
-                                         get('traceback'))
-                            if traceback is not None:
-                                traceback = ''.join(traceback)
-                                traceback = traceback + '\n' + message
-                                self.sig_server_error.emit(traceback)
-                        req_id = resp['id']
-                        if req_id in self.req_reply:
-                            self.req_reply[req_id](None, {'params': []})
-                elif 'method' in resp:
-                    if resp['method'][0] != '$':
-                        if 'id' in resp:
-                            self.request_seq = int(resp['id'])
-                        if resp['method'] in self.handler_registry:
-                            handler_name = (
-                                self.handler_registry[resp['method']])
-                            handler = getattr(self, handler_name)
-                            handler(resp['params'])
-                elif 'result' in resp:
-                    if resp['result'] is not None:
-                        req_id = resp['id']
-                        if req_id in self.req_status:
-                            req_type = self.req_status[req_id]
-                            if req_type in self.handler_registry:
-                                handler_name = self.handler_registry[req_type]
-                                handler = getattr(self, handler_name)
-                                handler(resp['result'], req_id)
-                                self.req_status.pop(req_id)
-                                if req_id in self.req_reply:
-                                    self.req_reply.pop(req_id)
-            except RuntimeError:
-                # This is triggered when a codeeditor instance has been
-                # removed before the response can be processed.
-                pass
-            except zmq.ZMQError:
-                self.notifier.setEnabled(True)
+                await self._pygls_client.start_tcp(
+                    self.server_host, self.server_port
+                )
                 return
+            except ConnectionRefusedError:
+                if attempt == retries - 1:
+                    raise
+                await asyncio.sleep(delay)
 
-    def perform_request(self, method, params):
-        if method in self.sender_registry:
-            handler_name = self.sender_registry[method]
-            handler = getattr(self, handler_name)
-            _id = handler(params)
-            if 'response_callback' in params:
-                if params['requires_response']:
-                    self.req_reply[_id] = params['response_callback']
-            return _id
+    async def _initialize_server(self) -> None:
+        """Send initialize, then initialized, then emit sig_initialize."""
+        pid = os.getpid() if self.stdio else None
+        result: lsp.InitializeResult = (
+            await self._pygls_client.protocol.send_request_async(
+                lsp.INITIALIZE,
+                lsp.InitializeParams(
+                    process_id=pid,
+                    root_uri=pathlib.Path(
+                        osp.abspath(self.folder)
+                    ).as_uri(),
+                    capabilities=self.client_capabilites,
+                    trace=TRACE,
+                ),
+            )
+        )
+        self._process_server_capabilities(result)
 
-    # ------ LSP initialization methods --------------------------------
-    @handles(SERVER_READY)
-    @send_request(method=CompletionRequestTypes.INITIALIZE)
-    def initialize(self, params, *args, **kwargs):
-        self.stdio_pid = params['pid']
-        pid = self.transport.processId() if not self.external_server else None
-        params = {
-            'processId': pid,
-            'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
-            'capabilities': self.client_capabilites,
-            'trace': TRACE
-        }
-        return params
-
-    @send_request(method=CompletionRequestTypes.SHUTDOWN)
-    def shutdown(self):
-        params = {}
-        return params
-
-    @handles(CompletionRequestTypes.SHUTDOWN)
-    def handle_shutdown(self, response, *args):
-        self.ready_to_close = True
-
-    @send_notification(method=CompletionRequestTypes.EXIT)
-    def exit(self):
-        params = {}
-        return params
-
-    @handles(CompletionRequestTypes.INITIALIZE)
-    def process_server_capabilities(self, server_capabilites, *args):
+    def _process_server_capabilities(
+        self, result: lsp.InitializeResult
+    ) -> None:
         """
-        Register server capabilities and inform other plugins that it's
-        available.
+        Parse the initialize response, update server_capabilites, send
+        the 'initialized' notification, and emit sig_initialize on the Qt
+        thread.
         """
-        # Update server capabilities with the info sent by the server.
-        server_capabilites = server_capabilites['capabilities']
+        caps = result.capabilities
 
-        if isinstance(server_capabilites['textDocumentSync'], int):
-            kind = server_capabilites['textDocumentSync']
-            server_capabilites['textDocumentSync'] = TEXT_DOCUMENT_SYNC_OPTIONS
-            server_capabilites['textDocumentSync']['change'] = kind
-        if server_capabilites['textDocumentSync'] is None:
-            server_capabilites.pop('textDocumentSync')
+        # Normalise textDocumentSync to a dict understood by the rest of Spyder
+        tds = caps.text_document_sync
+        if tds is None:
+            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
+        elif isinstance(tds, int):
+            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
+            sync_opts['change'] = tds
+        elif isinstance(tds, lsp.TextDocumentSyncOptions):
+            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
+            if tds.change is not None:
+                sync_opts['change'] = int(tds.change)
+            if tds.open_close is not None:
+                sync_opts['openClose'] = tds.open_close
+            if tds.will_save is not None:
+                sync_opts['willSave'] = tds.will_save
+            if tds.will_save_wait_until is not None:
+                sync_opts['willSaveWaitUntil'] = tds.will_save_wait_until
+            if tds.save is not None:
+                if isinstance(tds.save, bool):
+                    sync_opts['save'] = tds.save
+                else:
+                    sync_opts['save'] = {'includeText': tds.save.include_text}
+        else:
+            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
 
-        self.server_capabilites.update(server_capabilites)
+        self.server_capabilites['textDocumentSync'] = sync_opts
 
-        # The initialized notification needs to be the first request sent by
-        # the client according to the protocol.
+        # Merge remaining capabilities as simple flags / dicts
+        cp = caps.completion_provider
+        if cp is not None:
+            self.server_capabilites['completionProvider'] = {
+                'resolveProvider': cp.resolve_provider or False,
+                'triggerCharacters': list(cp.trigger_characters or []),
+            }
+
+        self.server_capabilites['hoverProvider'] = bool(caps.hover_provider)
+        self.server_capabilites['definitionProvider'] = bool(
+            caps.definition_provider
+        )
+        self.server_capabilites['documentSymbolProvider'] = bool(
+            caps.document_symbol_provider
+        )
+        self.server_capabilites['documentFormattingProvider'] = bool(
+            caps.document_formatting_provider
+        )
+        self.server_capabilites['documentRangeFormattingProvider'] = bool(
+            caps.document_range_formatting_provider
+        )
+        self.server_capabilites['workspaceSymbolProvider'] = bool(
+            caps.workspace_symbol_provider
+        )
+
+        ws = caps.workspace
+        if ws and ws.workspace_folders:
+            self.server_capabilites['workspace'] = {
+                'workspaceFolders': {
+                    'supported': ws.workspace_folders.supported or False,
+                    'changeNotifications': (
+                        ws.workspace_folders.change_notifications or False
+                    ),
+                }
+            }
+
+        # The initialized notification must be the first message after the
+        # initialize response, per LSP spec.
+        self._pygls_client.protocol.notify(
+            lsp.INITIALIZED, lsp.InitializedParams()
+        )
+
         self.initialized = True
-        self.initialized_call()
 
-        # This sends a DidChangeConfiguration request to pass to the server
-        # the configurations set by the user in our config system.
-        self.send_configurations(self.configurations)
+        # Forward the configurations set in Spyder Preferences.
+        # send_configurations is now a marker method that returns lsprotocol
+        # params; we send the notification directly here since we are already
+        # in the asyncio thread.
+        self.configurations = self.configurations  # ensure attr exists
+        self._pygls_client.protocol.notify(
+            CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+            lsp.DidChangeConfigurationParams(settings=self.configurations),
+        )
 
-        # Inform other plugins that the server is up.
+        # Inform the rest of Spyder that the server is ready.
         self.sig_initialize.emit(self.server_capabilites, self.language)
 
-    @send_notification(method=CompletionRequestTypes.INITIALIZED)
-    def initialized_call(self):
-        params = {}
-        return params
+    # ------------------------------------------------------------------
+    # Public request dispatch (same interface as previous LSPClient)
+    # ------------------------------------------------------------------
 
-    # ------ Settings queries --------------------------------
+    def perform_request(self, method: str, params: dict) -> int | None:
+        """
+        Dispatch *params* as an LSP request or notification for *method*.
+
+        Returns the integer request-id for requests, None for notifications.
+        """
+        if not self.initialized and method != CompletionRequestTypes.INITIALIZE:
+            return None
+
+        if method not in self.sender_registry:
+            return None
+
+        builder_name = self.sender_registry[method]
+        builder = getattr(self, builder_name)
+        lsp_params = builder(params)
+
+        # None return from a builder means the operation was cancelled.
+        if lsp_params is None:
+            return None
+
+        kind = getattr(builder, '_kind', 'request')
+
+        if kind == 'notification':
+            self._async_notification(method, lsp_params)
+            return None
+
+        # Request: allocate an id, register an optional callback, dispatch.
+        req_id = self._next_req_id()
+        if running_under_pytest():
+            self._requests.append((req_id, method))
+
+        if params.get('requires_response') and 'response_callback' in params:
+            self.req_reply[req_id] = params['response_callback']
+
+        # Capture method/req_id in a closure so the QtSlot can report errors.
+        @AsyncDispatcher.QtSlot
+        def _on_done(future):
+            try:
+                result = future.result()
+                self._dispatch_response(method, req_id, result)
+            except Exception:
+                logger.exception(
+                    'LSP request %s (id=%d) failed', method, req_id
+                )
+                if req_id in self.req_reply:
+                    self.req_reply.pop(req_id)(None, {'params': []})
+
+        self._async_request(method, lsp_params).connect(_on_done)
+        return req_id
+
+    @AsyncDispatcher(loop=_LSP_LOOP)
+    async def _async_request(self, method: str, lsp_params):
+        """Await a pygls request and return the result."""
+        return await self._pygls_client.protocol.send_request_async(
+            method, lsp_params
+        )
+
+    @AsyncDispatcher(loop=_LSP_LOOP)
+    async def _async_notification(self, method: str, lsp_params) -> None:
+        """Send an LSP notification (no response expected)."""
+        try:
+            self._pygls_client.protocol.notify(method, lsp_params)
+        except Exception:
+            logger.exception('LSP notification %s failed', method)
+
+    def _post_notification(self, method: str, params) -> None:
+        """Deliver a server notification to the Qt main thread.
+
+        Called from the asyncio thread (inside pygls feature handlers).
+        A pre-resolved DispatcherFuture carries the payload; connect() with
+        the @AsyncDispatcher.QtSlot handler posts the callback to the Qt
+        event loop via QCoreApplication.postEvent.
+        """
+        future = DispatcherFuture()
+        future.set_result((method, params))
+        future.connect(self._on_notification)
+
+    @AsyncDispatcher.QtSlot
+    def _on_notification(self, future) -> None:
+        """Receive a server notification on the Qt main thread."""
+        try:
+            method, params = future.result()
+            self._dispatch_notification(method, params)
+        except Exception:
+            logger.exception('LSP: error delivering server notification')
+
+    def _dispatch_notification(self, method: str, params) -> None:
+        """Route a server notification to the appropriate handler method."""
+        try:
+            if method in self.handler_registry:
+                handler = getattr(self, self.handler_registry[method])
+                handler(params)
+        except RuntimeError:
+            # CodeEditor may have been destroyed before the notification arrives.
+            pass
+        except Exception:
+            logger.exception('Error handling notification %s', method)
+
+    def _dispatch_response(self, method: str, req_id: int, result) -> None:
+        """Route an LSP response to the appropriate handler method."""
+        try:
+            if method in self.handler_registry:
+                handler = getattr(self, self.handler_registry[method])
+                handler(result, req_id)
+        except RuntimeError:
+            pass
+        except Exception:
+            logger.exception('Error handling response %s (id=%d)', method, req_id)
+
+    # ------------------------------------------------------------------
+    # Shutdown helpers
+    # ------------------------------------------------------------------
+
+    def is_down(self) -> bool:
+        """Return True when the LSP client or managed server has stopped."""
+        if self._pygls_client.stopped:
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_went_down.emit(self.language)
+            return True
+
+        if self.server is not None:
+            if self.server.state() == QProcess.NotRunning:
+                if not self.server_unresponsive:
+                    self.server_unresponsive = True
+                    self.sig_went_down.emit(self.language)
+                return True
+
+        return False
+
+    # ------------------------------------------------------------------
+    # Built-in initialization handlers
+    # ------------------------------------------------------------------
+
+    @handles(CompletionRequestTypes.SHUTDOWN)
+    def handle_shutdown(self, response, *args) -> None:
+        self.ready_to_close = True
+
+    # ------------------------------------------------------------------
+    # Settings queries (unchanged interface)
+    # ------------------------------------------------------------------
+
     @property
-    def support_multiple_workspaces(self):
-        workspace_settings = self.server_capabilites['workspace']
-        return workspace_settings['workspaceFolders']['supported']
+    def support_multiple_workspaces(self) -> bool:
+        ws = self.server_capabilites.get('workspace', {})
+        return ws.get('workspaceFolders', {}).get('supported', False)
 
     @property
-    def support_workspace_update(self):
-        workspace_settings = self.server_capabilites['workspace']
-        return workspace_settings['workspaceFolders']['changeNotifications']
+    def support_workspace_update(self) -> bool:
+        ws = self.server_capabilites.get('workspace', {})
+        return ws.get('workspaceFolders', {}).get('changeNotifications', False)
 
+    def send_configurations(self, configurations) -> None:
+        """
+        Send a workspace/didChangeConfiguration notification to the server.
 
-def test():
-    """Test LSP client."""
-    from spyder.utils.qthelpers import qapplication
-    app = qapplication(test_time=8)
-    server_args_fmt = '--host %(host)s --port %(port)s --tcp'
-    server_settings = {'host': '127.0.0.1', 'port': 2087, 'cmd': 'pyls'}
-    lsp = LSPClient(app, server_args_fmt, server_settings)
-    lsp.start()
-
-    app.aboutToQuit.connect(lsp.stop)
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    test()
+        Called directly by LanguageServerProvider when Preferences change.
+        If the server is not yet initialised the new value is stored and will
+        be forwarded automatically inside _process_server_capabilities.
+        """
+        self.configurations = configurations
+        if not self.initialized:
+            return
+        self._async_notification(
+            CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+            lsp.DidChangeConfigurationParams(settings=configurations),
+        )
