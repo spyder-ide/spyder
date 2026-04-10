@@ -219,6 +219,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'show_pdb_output': self.show_pdb_output,
             'pdb_input': self.pdb_input,
             'update_state': self.update_state,
+            'rename_tab': self.rename_tab,
         })
         self.kernel_comm_handlers = handlers
 
@@ -729,6 +730,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
           switching consoles to update the Working Directory toolbar.
         """
         return self._kernel_configuration.get("cwd", '')
+
+    def rename_tab(self, new_name):  
+        """Rename the current tab from kernel request."""
+        tabwidget = self.ipyclient.container.tabwidget
+        index = tabwidget.indexOf(self.ipyclient)
+        tabwidget.setTabText(index, new_name)
+        self.ipyclient.given_name = new_name
 
     def update_state(self, state):
         """
