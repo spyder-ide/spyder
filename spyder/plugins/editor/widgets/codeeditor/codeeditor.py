@@ -529,6 +529,7 @@ class CodeEditor(
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
+        self.current_shell = self.window().ipyconsole.get_current_shellwidget()
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
     def _should_display_hover(self, point):
@@ -575,6 +576,21 @@ class CodeEditor(
                 return
 
             text = self.get_word_at(pos)
+            value = None
+            shell_active = (
+                            self.current_shell.kernel_client is not None and
+                            self.current_shell.kernel_client.is_alive()
+                            )
+            if text:
+                try:
+                    if not shell_active:
+                        self.current_shell = self.window().ipyconsole.get_current_shellwidget()
+                    value = self.current_shell.get_value(text)
+                    if value is not None:
+                        self.show_tooltip(text=str(value), at_point=pos)
+                        return
+                except Exception:
+                    pass
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
