@@ -8,17 +8,23 @@
 
 import logging
 
+from lsprotocol import types as lsp
+
 from spyder.plugins.completion.api import CompletionRequestTypes
-from spyder.plugins.completion.providers.languageserver.decorators import (
-    handles, send_response)
+from spyder.plugins.completion.providers.languageserver.decorators import handles
 
 logger = logging.getLogger(__name__)
 
 
 class ClientProvider:
     @handles(CompletionRequestTypes.CLIENT_REGISTER_CAPABILITY)
-    @send_response
-    def handle_register_capability(self, params):
+    def handle_register_capability(
+        self, params: lsp.RegistrationParams, *args
+    ) -> None:
         """TODO: Handle the glob patterns of the files to watch."""
-        logger.debug('Register Capability: {0}'.format(params))
-        return {}
+        for reg in params.registrations:
+            logger.debug(
+                'Register capability: id=%s method=%s',
+                reg.id,
+                reg.method,
+            )
