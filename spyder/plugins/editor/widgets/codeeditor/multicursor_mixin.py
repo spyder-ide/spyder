@@ -180,10 +180,12 @@ class MultiCursorMixin:
         if self.multi_cursor_enabled:
             if not self.extra_cursors:
                 self.last_append_direction = 0
+
             if self.last_append_direction > 0:  # was appending down
                 del self.extra_cursors[-1]  # undo last
             else:
                 self.extra_cursors.append(self.textCursor())
+
             self.moveCursor(QTextCursor.MoveOperation.Up)
             self.merge_extra_cursors(True)
             self.last_append_direction -= 1
@@ -192,10 +194,12 @@ class MultiCursorMixin:
         if self.multi_cursor_enabled:
             if not self.extra_cursors:
                 self.last_append_direction = 0
+
             if self.last_append_direction < 0:  # was appending up
                 del self.extra_cursors[-1]  # undo last
             else:
                 self.extra_cursors.append(self.textCursor())
+
             self.moveCursor(QTextCursor.MoveOperation.Down)
             self.merge_extra_cursors(True)
             self.last_append_direction += 1
