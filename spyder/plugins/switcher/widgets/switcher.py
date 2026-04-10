@@ -543,25 +543,29 @@ class Switcher(QDialog, SpyderFontsMixin):
         proxy_index = self.proxy.index(row, 0)
         selection_model = self.list.selectionModel()
         self.initial_flag = True
+
         # Select current item without moving the editor view
-        self.blockSignals(True)
-        selection_model.setCurrentIndex(proxy_index,
-                                        QItemSelectionModel.ClearAndSelect)
-        self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
-        self.blockSignals(False)
+        with signals_blocked(self):
+            selection_model.setCurrentIndex(
+                proxy_index,
+                QItemSelectionModel.ClearAndSelect
+            )
+            self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
 
     def previous_row(self):
         """Select previous row in list widget."""
         if self.initial_flag:
-            # move to the beginning of the current symbol
+            # Move to the beginning of the current symbol
             current_row = self.current_row()
             self.list.selectionModel().clear()
             self.set_current_row(current_row)
-            self.initial_state = False
+            self.initial_flag = False
             return
+
         # Normal march
         steps = 1
         prev_row = self.current_row() - steps
+
         if prev_row == -1:
             self.set_current_row(self.count() - 1)
         else:
@@ -583,6 +587,7 @@ class Switcher(QDialog, SpyderFontsMixin):
         list_index = self.proxy.index(next_row, 0)
         model_index = self.proxy.mapToSource(list_index)
         item = self.model.item(model_index.row(), 0)
+
         # Normal march
         if next_row >= self.count():
             self.set_current_row(0)

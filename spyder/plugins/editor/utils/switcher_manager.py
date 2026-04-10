@@ -198,11 +198,13 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
             )
             
             init_row = idx if symbol_start <= self._current_line else init_row
-
             idx += 1
 
         # Needed to update fold spaces for item titles
         self._switcher.setup()
+
+        # Set the current row and center view.
+        # Fixes spyder-ide/spyder#23138
         self._switcher.init_current_row(init_row)
 
     def handle_switcher_selection(self, item, mode, search_text):
