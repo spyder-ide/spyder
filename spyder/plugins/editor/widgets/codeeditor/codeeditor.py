@@ -63,6 +63,8 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.plugins import Plugins
+from spyder.app.mainwindow import MainWindow
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.editorextension import EditorExtension
@@ -529,7 +531,7 @@ class CodeEditor(
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
-        self.current_shell = self.window().ipyconsole.get_current_shellwidget()
+        self.current_shell = self.get_ipyconsole_instance()
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
     def _should_display_hover(self, point):
@@ -584,7 +586,7 @@ class CodeEditor(
             if text:
                 try:
                     if not shell_active:
-                        self.current_shell = self.window().ipyconsole.get_current_shellwidget()
+                        self.current_shell = self.get_ipyconsole_instance()
                     value = self.current_shell.get_value(text)
                     if value is not None:
                         self.show_tooltip(text=str(value), at_point=pos)
@@ -604,6 +606,13 @@ class CodeEditor(
                     self.hide_tooltip()
         elif not self.is_completion_widget_visible():
             self.hide_tooltip()
+    
+    def get_ipyconsole_instance(self):
+        """Get ipyconsole instance."""
+        parent = self.parent()
+        while not isinstance(parent, MainWindow):
+            parent = parent.parent()
+        return parent.get_plugin(Plugins.IPythonConsole).get_current_shellwidget()
 
     def blockuserdata_list(self):
         """Get the list of all user data in document."""
