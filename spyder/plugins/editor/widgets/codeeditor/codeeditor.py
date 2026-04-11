@@ -587,7 +587,8 @@ class CodeEditor(
                 try:
                     if not shell_active:
                         self.current_shell = self.get_ipyconsole_instance()
-                    value = self.current_shell.get_value(text)
+                    if self.current_shell is not None:                        
+                        value = self.current_shell.get_value(text)
                     if value is not None:
                         self.show_tooltip(text=str(value), at_point=pos)
                         return
@@ -610,8 +611,10 @@ class CodeEditor(
     def get_ipyconsole_instance(self):
         """Get ipyconsole instance."""
         parent = self.parent()
-        while not isinstance(parent, MainWindow):
+        while parent is not None and not isinstance(parent, MainWindow):
             parent = parent.parent()
+        if parent is None or not isinstance(parent, MainWindow):
+            return None
         return parent.get_plugin(Plugins.IPythonConsole).get_current_shellwidget()
 
     def blockuserdata_list(self):
