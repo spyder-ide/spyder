@@ -57,6 +57,7 @@ PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGITHUB_REQVER = '>=2.3.0'
+PYGLS_REQVER = '>=2.0.0'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=3.1,<5'
 PYLINT_VENV_REQVER = '>=3.0.2'
@@ -205,6 +206,10 @@ DESCRIPTIONS = [
      'package_name': "pygithub",
      'features': _("Python API for Github REST API"),
      'required_version': PYGITHUB_REQVER},
+    {'modname': "pygls",
+     'package_name': "pygls",
+     'features': _("Python implementation of the Language Server Protocol"),
+     'required_version': PYGLS_REQVER},
     {'modname': "pygments",
      'package_name': "pygments",
      'features': _("Syntax highlighting for a lot of file types in the Editor"),
