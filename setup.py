@@ -296,6 +296,7 @@ install_requires += [
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygithub>=2.3.0',
+    'pygls>=2.0.0',
     'pygments>=2.0',
     'pylint>=3.1,<5',
     'pylint-venv>=3.0.2',
