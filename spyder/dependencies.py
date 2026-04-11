@@ -53,7 +53,6 @@ NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
-PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGITHUB_REQVER = '>=2.3.0'
@@ -190,10 +189,6 @@ DESCRIPTIONS = [
      'features': _("Python parser that supports error recovery and "
                    "round-trip parsing"),
      'required_version': PARSO_REQVER},
-    {'modname': "pexpect",
-     'package_name': "pexpect",
-     'features': _("Stdio support for our language server client"),
-     'required_version': PEXPECT_REQVER},
     {'modname': "pickleshare",
      'package_name': "pickleshare",
      'features': _("Cache the list of installed Python modules"),
