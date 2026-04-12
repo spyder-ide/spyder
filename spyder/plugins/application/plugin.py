@@ -260,7 +260,7 @@ class Application(SpyderPluginV2):
         # Show appeal the fifth and 25th time Spyder starts
         spyder_runs = self.get_conf("spyder_runs_for_appeal", default=1)
         if spyder_runs in [5, 25]:
-            container.inapp_appeal_status.show_appeal()
+            QTimer.singleShot(1500, container.show_appeal)
 
             # Increase counting in one to not get stuck at this point.
             # Fixes spyder-ide/spyder#22457
@@ -648,7 +648,7 @@ class Application(SpyderPluginV2):
         container = self.get_container()
 
         # Delay showing the changelog a little bit for better UX
-        QTimer.singleShot(2500, container.inapp_appeal_status.show_changelog)
+        QTimer.singleShot(2500, container.show_changelog)
 
     # ---- Public API
     # ------------------------------------------------------------------------
