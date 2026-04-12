@@ -52,6 +52,7 @@ class MultiCursorMixin:
         self.painted.connect(self.paint_cursors)
         self.multi_cursor_ignore_history = False
         self._drag_cursor = None
+        self.last_append_direction = 0
 
     def toggle_multi_cursor(self, enabled):
         """Enable/disable multi-cursor editing."""
@@ -71,8 +72,7 @@ class MultiCursorMixin:
 
         self.multi_cursor_ignore_history = True
 
-        # Ctrl-Shift-Alt click adds colum of cursors towards primary
-        # cursor
+        # Ctrl-Shift-Alt click adds colum of cursors towards primary cursor
         cursor_for_pos = self.cursorForPosition(event.pos())
         first_cursor = self.textCursor()
         anchor_block = first_cursor.block()
@@ -126,6 +126,7 @@ class MultiCursorMixin:
         self.merge_extra_cursors(True)
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
+        self.last_append_direction = 0
 
     def add_remove_cursor(self, event):
         """Add or remove extra cursor on mouse click event"""
@@ -173,18 +174,35 @@ class MultiCursorMixin:
 
         self.multi_cursor_ignore_history = False
         self.cursorPositionChanged.emit()
+        self.last_append_direction = 0
 
     def add_cursor_up(self):
         if self.multi_cursor_enabled:
-            self.extra_cursors.append(self.textCursor())
+            if not self.extra_cursors:
+                self.last_append_direction = 0
+
+            if self.last_append_direction > 0:  # was appending down
+                del self.extra_cursors[-1]  # undo last
+            else:
+                self.extra_cursors.append(self.textCursor())
+
             self.moveCursor(QTextCursor.MoveOperation.Up)
             self.merge_extra_cursors(True)
+            self.last_append_direction -= 1
 
     def add_cursor_down(self):
         if self.multi_cursor_enabled:
-            self.extra_cursors.append(self.textCursor())
+            if not self.extra_cursors:
+                self.last_append_direction = 0
+
+            if self.last_append_direction < 0:  # was appending up
+                del self.extra_cursors[-1]  # undo last
+            else:
+                self.extra_cursors.append(self.textCursor())
+
             self.moveCursor(QTextCursor.MoveOperation.Down)
             self.merge_extra_cursors(True)
+            self.last_append_direction += 1
 
     def set_extra_cursor_selections(self):
         selections = []
