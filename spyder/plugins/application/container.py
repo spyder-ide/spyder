@@ -1024,6 +1024,11 @@ class ApplicationContainer(PluginMainContainer):
         self._show_dialog(show_appeal=True)
 
     def _create_appeal_dialog(self):
+        cli_options = self._plugin.get_command_line_options()
+        if cli_options.no_web_widgets:
+            self._appeal_dialog = FakeInAppAppealDialog
+            return
+
         try:
             self._appeal_dialog = InAppAppealDialog(self)
         except QtModuleNotInstalledError:
