@@ -269,10 +269,7 @@ class ApplicationContainer(PluginMainContainer):
         self.dependencies_dialog = DependenciesDialog(self)
 
         # For the in-app appeal message
-        self.inapp_appeal_status = InAppAppealStatus(self)
-        self.inapp_appeal_status.sig_clicked.connect(
-            self._on_inapp_appeal_status_clicked
-        )
+        self.inapp_appeal_status: InAppAppealStatus | None = None
         self._appeal_dialog: (
             InAppAppealDialog | FakeInAppAppealDialog | None
         ) = None
@@ -992,7 +989,7 @@ class ApplicationContainer(PluginMainContainer):
 
     # ---- In-app appeal
     # -------------------------------------------------------------------------
-    def _on_inapp_appeal_status_clicked(self):
+    def on_inapp_appeal_status_clicked(self):
         """Handle widget clicks."""
         if self._appeal_dialog is None:
             self._create_appeal_dialog()

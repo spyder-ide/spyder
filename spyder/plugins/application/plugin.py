@@ -9,11 +9,11 @@ Application Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 import os
 import os.path as osp
 import subprocess
 import sys
-from typing import Dict, Optional, Tuple
 
 # Third party imports
 from qtpy.QtCore import QTimer, Slot
@@ -30,7 +30,11 @@ from spyder.config.base import (get_module_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.application.confpage import ApplicationConfigPage
 from spyder.plugins.application.container import (
-    ApplicationActions, ApplicationContainer, ApplicationPluginMenus)
+    ApplicationActions,
+    ApplicationContainer,
+    ApplicationPluginMenus,
+)
+from spyder.plugins.application.widgets import InAppAppealStatus
 from spyder.plugins.console.api import ConsoleActions
 from spyder.plugins.editor.api.actions import EditorWidgetActions
 from spyder.plugins.mainmenu.api import (
@@ -67,10 +71,10 @@ class Application(SpyderPluginV2):
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
-        self.focused_plugin: Optional[SpyderDockablePlugin] = None
-        self.file_action_enabled: Dict[Tuple[str, str], bool] = {}
-        self.edit_action_enabled: Dict[Tuple[str, str], bool] = {}
-        self.search_action_enabled: Dict[Tuple[str, str], bool] = {}
+        self.focused_plugin: SpyderDockablePlugin | None = None
+        self.file_action_enabled: dict[tuple[str, str], bool] = {}
+        self.edit_action_enabled: dict[tuple[str, str], bool] = {}
+        self.search_action_enabled: dict[tuple[str, str], bool] = {}
 
     @staticmethod
     def get_name():
@@ -159,8 +163,13 @@ class Application(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
         statusbar = self.get_plugin(Plugins.StatusBar)
-        inapp_appeal_status = self.get_container().inapp_appeal_status
-        statusbar.add_status_widget(inapp_appeal_status)
+        container = self.get_container()
+
+        container.inapp_appeal_status = InAppAppealStatus(container)
+        container.inapp_appeal_status.sig_clicked.connect(
+            container.on_inapp_appeal_status_clicked
+        )
+        statusbar.add_status_widget(container.inapp_appeal_status)
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
@@ -212,8 +221,7 @@ class Application(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         statusbar = self.get_plugin(Plugins.StatusBar)
-        inapp_appeal_status = self.get_container().inapp_appeal_status
-        statusbar.remove_status_widget(inapp_appeal_status.ID)
+        statusbar.remove_status_widget(InAppAppealStatus.ID)
 
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
@@ -559,7 +567,7 @@ class Application(SpyderPluginV2):
                 menu_id=ApplicationMenus.Tools)
 
     def _update_focused_plugin(
-        self, plugin: Optional[SpyderDockablePlugin]
+        self, plugin: SpyderDockablePlugin | None
     ) -> None:
         """
         Update which plugin has currently focus.
