@@ -93,7 +93,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             tip=_(
                 "Graphical shows a list of completion matches in a GUI. "
                 "Plain displays matches in the Console output, like Bash. "
-                "Terminal is Plain plus Tab selecting matches, like Zsh. "
+                "Terminal is Plain plus Tab selecting matches, like Zsh."
             ),
         )
         jedi_box = newcb(
@@ -168,7 +168,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Automatically import NumPy and Matplotlib modules"),
             'pylab/autoload',
             tip=_(
-                "This is a convinience to use NumPy and Matplotlib "
+                "This is a convenience to use NumPy and Matplotlib "
                 "in the console without explicitly importing the modules."
             )
         )
@@ -205,8 +205,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             'pylab/backend',
             default='inline',
             tip=_(
-                "If unsure, select {inline} to show figures in the Plots pane"
-                " or {auto} to interact with them (zoom and pan) "
+                "If unsure, select {inline} to show figures in the Plots pane "
+                "or {auto} to interact with them (zoom and pan) "
                 "in a new window."
             ).format(inline=inline, auto=automatic),
         )
