@@ -29,6 +29,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+import spyder.plugins.ipythonconsole.widgets.main_widget
 from spyder.utils.conda import get_list_conda_envs
 
 
@@ -90,19 +91,14 @@ def get_conda_test_env():
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def ipyconsole(qtbot, request, tmpdir):
+def ipyconsole(qtbot, request, tmpdir, monkeypatch):
     """IPython console fixture."""
     configuration = CONF
-    no_web_widgets = request.node.get_closest_marker('no_web_widgets')
 
     class MainWindowMock(QMainWindow):
 
         def __init__(self):
             # This avoids using the cli options passed to pytest
-            sys_argv = [sys.argv[0]]
-            self._cli_options = get_options(sys_argv)[0]
-            if no_web_widgets:
-                self._cli_options.no_web_widgets = True
             super().__init__()
 
         def __getattr__(self, attr):
@@ -189,6 +185,14 @@ def ipyconsole(qtbot, request, tmpdir):
 
     # Conf css_path in the Appeareance plugin
     configuration.set('appearance', 'css_path', CSS_PATH)
+
+    no_web_widgets = request.node.get_closest_marker("no_web_widgets")
+    monkeypatch.setattr(
+        spyder.plugins.ipythonconsole.widgets.main_widget,
+        "HAVE_WEBENGINE",
+        not no_web_widgets,
+        raising=True,
+    )
 
     # Create the console and a new client and set environment
     os.environ['IPYCONSOLE_TESTING'] = 'True'

@@ -27,6 +27,7 @@ from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderWidgetMixin
+from spyder.app.utils import HAVE_WEBENGINE
 from spyder.config.base import get_module_source_path
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
                                                  loading, usage, warning)
@@ -308,16 +309,18 @@ class HelpWidget(PluginMainWidget):
         self.docstring = True  # TODO: What is this used for?
 
         # Widgets
-        self._sphinx_thread = SphinxThread(
-            None,
-            html_text_no_doc=warning(self.no_docs, css_path=self.css_path),
-            css_path=self.css_path,
-        )
         self.shell = None
         self.internal_console = None
         self.internal_shell = None
         self.plain_text = PlainText(self)
-        self.rich_text = RichText(self)
+
+        if HAVE_WEBENGINE:
+            self._sphinx_thread = SphinxThread(
+                None,
+                html_text_no_doc=warning(self.no_docs, css_path=self.css_path),
+                css_path=self.css_path,
+            )
+            self.rich_text = RichText(self)
 
         self.source_label = QLabel(_("Source"))
         self.source_label.ID = HelpWidgetToolbarItems.SourceLabel
@@ -347,7 +350,8 @@ class HelpWidget(PluginMainWidget):
 
         # Layout
         self.stacked_widget = QStackedWidget()
-        self.stacked_widget.addWidget(self.rich_text)
+        if HAVE_WEBENGINE:
+            self.stacked_widget.addWidget(self.rich_text)
         self.stacked_widget.addWidget(self.plain_text)
 
         layout = QVBoxLayout()
@@ -355,12 +359,13 @@ class HelpWidget(PluginMainWidget):
         self.setLayout(layout)
 
         # Signals
-        self._sphinx_thread.html_ready.connect(
-            self._on_sphinx_thread_html_ready)
-        self._sphinx_thread.error_msg.connect(
-            self._on_sphinx_thread_error_msg)
         self.object_combo.valid.connect(self.force_refresh)
-        self.rich_text.sig_link_clicked.connect(self.handle_link_clicks)
+        if HAVE_WEBENGINE:
+            self._sphinx_thread.html_ready.connect(
+                self._on_sphinx_thread_html_ready)
+            self._sphinx_thread.error_msg.connect(
+                self._on_sphinx_thread_error_msg)
+            self.rich_text.sig_link_clicked.connect(self.handle_link_clicks)
         self.source_combo.currentIndexChanged.connect(
             lambda x: self.source_changed())
         self.sig_render_started.connect(self.start_spinner)
@@ -404,18 +409,21 @@ class HelpWidget(PluginMainWidget):
             toggled=True,
             option='show_source'
         )
+
         self.rich_text_action = self.create_action(
             name=HelpWidgetActions.ToggleRichMode,
             text=_("Rich Text"),
             toggled=True,
-            initial=self.get_conf('rich_mode'),
+            initial=self.get_conf('rich_mode') and HAVE_WEBENGINE,
             option='rich_mode'
         )
+        self.rich_text_action.setEnabled(HAVE_WEBENGINE)
+
         self.plain_text_action = self.create_action(
             name=HelpWidgetActions.TogglePlainMode,
             text=_("Plain Text"),
             toggled=True,
-            initial=self.get_conf('plain_mode'),
+            initial=self.get_conf('plain_mode') or not HAVE_WEBENGINE,
             option='plain_mode'
         )
         self.locked_action = self.create_action(
@@ -486,7 +494,10 @@ class HelpWidget(PluginMainWidget):
             )
 
         self.source_changed()
-        self.switch_to_rich_text()
+        if self.get_conf("rich_mode") and HAVE_WEBENGINE:
+            self.switch_to_rich_text()
+        else:
+            self.switch_to_plain_text()
         self.show_intro_message()
 
         # Signals
@@ -526,16 +537,18 @@ class HelpWidget(PluginMainWidget):
 
     @on_conf_change(option='rich_mode')
     def on_rich_mode_update(self, value):
-        if value:
+        if value and HAVE_WEBENGINE:
             # Plain Text OFF / Rich text ON
             self.docstring = not value
             self.stacked_widget.setCurrentWidget(self.rich_text)
             self.get_action(HelpWidgetActions.ToggleShowSource).setChecked(
                 False)
+            self.get_action(HelpWidgetActions.ToggleRichMode).setChecked(True)
         else:
             # Plain Text ON / Rich text OFF
             self.docstring = value
             self.stacked_widget.setCurrentWidget(self.plain_text)
+            self.get_action(HelpWidgetActions.TogglePlainMode).setChecked(True)
 
         if self._should_display_welcome_page():
             self.show_intro_message()
@@ -666,7 +679,7 @@ class HelpWidget(PluginMainWidget):
             cb = self._last_editor_cb
 
         if cb is None:
-            if self.get_conf('plain_mode'):
+            if self.get_conf('plain_mode') or not HAVE_WEBENGINE:
                 self.switch_to_plain_text()
             else:
                 self.switch_to_rich_text()
@@ -674,7 +687,7 @@ class HelpWidget(PluginMainWidget):
             func = cb[0]
             args = cb[1:]
             func(*args)
-            if func.__self__ is self.rich_text:
+            if HAVE_WEBENGINE and func.__self__ is self.rich_text:
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
@@ -682,7 +695,7 @@ class HelpWidget(PluginMainWidget):
     @property
     def find_widget(self):
         """Show find widget."""
-        if self.get_conf('plain_mode'):
+        if self.get_conf('plain_mode') or not HAVE_WEBENGINE:
             return self.plain_text.find_widget
         else:
             return self.rich_text.find_widget
@@ -792,7 +805,7 @@ class HelpWidget(PluginMainWidget):
             shortcut_editor = shortcut_editor.replace('Ctrl', 'Cmd')
             shortcut_console = shortcut_console.replace('Ctrl', 'Cmd')
 
-        if self.get_conf('rich_mode'):
+        if self.get_conf('rich_mode') and HAVE_WEBENGINE:
             title = _("Usage")
             tutorial_message = _("New to Spyder? Read our")
             tutorial = _("tutorial")
@@ -811,9 +824,10 @@ class HelpWidget(PluginMainWidget):
                                           css_path=self.css_path),
                                     QUrl.fromLocalFile(self.css_path))
         else:
-            install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
-                                          "to get documentation rendered in "
-                                          "rich text.")
+            # TOOD plain text fallback
+            install_sphinx = "\n\n%s" % _("Please consider installing "
+                                          "Qt WebEngine to get documentation "
+                                          "rendered in rich text.")
             if shortcut_editor == shortcut_console:
                 intro_message = (intro_message_eq + intro_message_common) % (
                     shortcut_editor, "\n\n", prefs)
@@ -838,10 +852,13 @@ class HelpWidget(PluginMainWidget):
             Path to folder with additional images needed to correctly
             display the rich text help. Default is ''.
         """
-        self.switch_to_rich_text()
-        context = generate_context(collapse=collapse, img_path=img_path,
-                                   css_path=self.css_path)
-        self.render_sphinx_doc(text, context)
+        if HAVE_WEBENGINE:
+            self.switch_to_rich_text()
+            context = generate_context(collapse=collapse, img_path=img_path,
+                                       css_path=self.css_path)
+            self.render_sphinx_doc(text, context)
+        else:
+            self.show_plain_text(text)
 
     def show_plain_text(self, text):
         """
@@ -971,7 +988,7 @@ class HelpWidget(PluginMainWidget):
         self._last_editor_doc = help_data
         self.object_edit.setText(help_data['obj_text'])
 
-        if self.get_conf('rich_mode'):
+        if self.get_conf('rich_mode') and HAVE_WEBENGINE:
             self.render_sphinx_doc(help_data)
         else:
             self.set_plain_text(help_data, is_code=False)
@@ -1058,7 +1075,7 @@ class HelpWidget(PluginMainWidget):
 
         is_code = False
 
-        if self.get_conf('rich_mode'):
+        if self.get_conf('rich_mode') and HAVE_WEBENGINE:
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:
@@ -1090,7 +1107,8 @@ class HelpWidget(PluginMainWidget):
         fixed_font: QFont
             The current rich text font to use.
         """
-        self.rich_text.set_font(font, fixed_font=fixed_font)
+        if HAVE_WEBENGINE:
+            self.rich_text.set_font(font, fixed_font=fixed_font)
 
     def set_plain_text_font(self, font, color_scheme=None):
         """
