@@ -799,6 +799,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if self.splash is not None:
             self.splash.hide()
 
+        # Hide status bar if its plugin is disabled
+        if not self.is_plugin_enabled(Plugins.StatusBar):
+            self.statusBar().hide()
+
         # Register custom layouts
         if self.layouts is not None:
             self.layouts.register_custom_layouts()

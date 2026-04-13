@@ -112,38 +112,32 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         self.find_widget.hide()
 
         # ---- Status bar
-        # Check if widgets are available in main_widget to also create them
-        # here (they couldn't be if the StatusBar plugin is disabled).
         statusbar = parent.statusBar()
 
-        if self.main_widget.vcs_status is not None:
+        # Check if the StatusBar plugin is enabled to create status widgets
+        if self.get_conf("enable", section="statusbar", default=True):
+            # *DON'T* change the order in which these widgets are added. It's
+            # the same one used in the main window.
+            self.readwrite_status = ReadWriteStatus(self)
+            statusbar.insertPermanentWidget(0, self.readwrite_status)
+
+            self.eol_status = EOLStatus(self)
+            statusbar.insertPermanentWidget(0, self.eol_status)
+
+            self.encoding_status = EncodingStatus(self)
+            statusbar.insertPermanentWidget(0, self.encoding_status)
+
+            self.cursorpos_status = CursorPositionStatus(self)
+            statusbar.insertPermanentWidget(0, self.cursorpos_status)
+
             self.vcs_status = VCSStatus(self)
             statusbar.insertPermanentWidget(0, self.vcs_status)
         else:
+            statusbar.hide()
             self.vcs_status = None
-
-        if self.main_widget.cursorpos_status is not None:
-            self.cursorpos_status = CursorPositionStatus(self)
-            statusbar.insertPermanentWidget(0, self.cursorpos_status)
-        else:
             self.cursorpos_status = None
-
-        if self.main_widget.encoding_status is not None:
-            self.encoding_status = EncodingStatus(self)
-            statusbar.insertPermanentWidget(0, self.encoding_status)
-        else:
             self.encoding_status = None
-
-        if self.main_widget.eol_status is not None:
-            self.eol_status = EOLStatus(self)
-            statusbar.insertPermanentWidget(0, self.eol_status)
-        else:
             self.eol_status = None
-
-        if self.main_widget.readwrite_status is not None:
-            self.readwrite_status = ReadWriteStatus(self)
-            statusbar.insertPermanentWidget(0, self.readwrite_status)
-        else:
             self.readwrite_status = None
 
         # ---- Outline.
