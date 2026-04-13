@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install build
-        run: python -m pip install build twine hatch
+        run: python -m pip install "twine>=6.1.0" build
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -29,4 +29,4 @@ jobs:
       - name: Check build
         run: twine check dist/*
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.11
+        uses: pypa/gh-action-pypi-publish@v1.13.0

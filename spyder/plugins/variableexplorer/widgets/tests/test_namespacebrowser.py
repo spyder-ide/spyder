@@ -108,7 +108,8 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     Test that keys are sorted and sorting works as expected when
     there's a large number of rows.
 
-    This is a regression test for issue spyder-ide/spyder#10702
+    This is a regression test for issues spyder-ide/spyder#10702
+    and spyder-ide/spyder#25439
     """
     browser = namespacebrowser
 
@@ -120,10 +121,7 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     )
 
     for i in range(100):
-        if i < 10:
-            var = 'd_0' + str(i)
-        else:
-            var = 'd_' + str(i)
+        var = f"d_{i}"
         variables[var] = (
             {'type': 'int', 'size': 1, 'view': '1', 'python_type': 'int',
              'numpy_type': 'Unknown'}
@@ -139,6 +137,9 @@ def test_keys_sorted_and_sort_with_large_rows(namespacebrowser, qtbot):
     assert model.canFetchMore(QModelIndex())
 
     # Assert keys are sorted
+    # The namespace browser uses natural sorting, so the rows are sorted
+    # d_0, d_1, d_2, d_3, ..., d_9, d_10, d_11, ..., d_99, i even though
+    # strings compare as "d_10" < "d_2" in Python
     assert data(model, 49, 0) == 'd_49'
 
     # Sort

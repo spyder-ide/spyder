@@ -35,10 +35,13 @@ from spyder.api.translations import _
 from spyder.api.shellconnect.mixins import ShellConnectWidgetForStackMixin
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.utils import IMPORT_EXT
-from spyder.widgets.collectionseditor import RemoteCollectionsEditorTableView
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.utils import encoding
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
+from spyder.widgets.collectionseditor import (
+    natsort,
+    RemoteCollectionsEditorTableView
+)
 from spyder.widgets.helperwidgets import FinderWidget
 
 
@@ -248,7 +251,7 @@ class NamespaceBrowser(
 
     def set_data(self, data):
         """Set data."""
-        data = dict(sorted(data.items()))
+        data = dict(sorted(data.items(), key=lambda x: natsort(x[0])))
         if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
