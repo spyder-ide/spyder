@@ -1065,10 +1065,14 @@ class HelpWidget(PluginMainWidget):
                 documentation = doc.get('docstring', '')
                 note = doc.get('note', '')
                 is_function = '__main__' in note
+
             if is_function and source_text:
                 signature = unicodedata.normalize("NFKD", source_text)
-                match = re.search(r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', signature, re.S)
+                match = re.search(
+                    r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', signature, re.S
+                )
                 args = ''
+
                 if match:
                     definition = match.group(0)
                     start = definition.find('(')
@@ -1078,7 +1082,8 @@ class HelpWidget(PluginMainWidget):
                     'argspec': args,
                     'note': note,
                     'docstring': documentation
-                    }
+                }
+
             self.render_sphinx_doc(doc, css_path=self.css_path)
             return doc is not None
         elif self.docstring:
