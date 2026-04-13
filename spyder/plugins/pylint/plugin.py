@@ -9,7 +9,7 @@ Pylint Code Analysis Plugin.
 """
 
 # Standard library imports
-from typing import List
+from typing import Any, List
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -172,8 +172,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    @Slot()
-    def _set_filename(self):
+    def _set_filename(self) -> None:
         """
         Set filename without code analysis.
         """
@@ -185,34 +184,16 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             # Editor was deleted
             pass
 
-    def _set_project_dir(self, value):
+    def _set_project_dir(self, value: str) -> None:
         widget = self.get_widget()
-        widget.set_conf("project_dir", value)
+        widget.project_dir = value
 
-    def _unset_project_dir(self, _unused):
+    def _unset_project_dir(self, _unused: Any) -> None:
         widget = self.get_widget()
-        widget.set_conf("project_dir", None)
+        widget.project_dir = None
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def change_history_depth(self, value=None):
-        """
-        Change history maximum number of entries.
-
-        Parameters
-        ----------
-        value: int or None, optional
-            The valur to set  the maximum history depth. If no value is
-            provided, an input dialog will be launched. Default is None.
-        """
-        self.get_widget().change_history_depth(value=value)
-
-    def get_filename(self):
-        """
-        Get current filename in combobox.
-        """
-        return self.get_widget().get_filename()
-
     @run_execute(context=RunContext.File)
     def run_file(
         self,
@@ -225,12 +206,11 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         filename = run_input['path']
         self.start_code_analysis(filename)
 
-    @Slot()
-    def start_code_analysis(self, filename=None):
+    def start_code_analysis(self, filename: str | None | bool = None) -> None:
         """
         Perform code analysis for given `filename`.
 
-        If `filename` is None default to current filename in combobox.
+        If `filename` is None default to current filename.
 
         If this method is called while still running it will stop the code
         analysis.
@@ -240,13 +220,13 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             if self.get_conf("save_before", True) and not editor.save():
                 return
 
-        if filename is None or isinstance(filename, bool):
-            filename = self.get_widget().get_filename()
+        if isinstance(filename, str):
+            self.get_widget().set_filename(filename)
 
         self.switch_to_plugin(force_focus=True)
-        self.get_widget().start_code_analysis(filename)
+        self.get_widget().start_code_analysis()
 
-    def stop_code_analysis(self):
+    def stop_code_analysis(self) -> None:
         """
         Stop the code analysis process.
         """
