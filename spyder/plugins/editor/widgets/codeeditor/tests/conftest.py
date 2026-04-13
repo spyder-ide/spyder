@@ -74,6 +74,7 @@ black = pytest.param(
     )
 )
 
+ruff = pytest.param("ruff")
 
 def get_formatter_values(formatter, newline, range_fmt=False, max_line=False):
     if range_fmt:

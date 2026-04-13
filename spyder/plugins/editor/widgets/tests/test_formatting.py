@@ -21,13 +21,14 @@ from spyder.config.manager import CONF
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     autopep8,
     black,
-    get_formatter_values
+    get_formatter_values,
+    ruff,
 )
 
 
 # ---- Tests
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, black])
+@pytest.mark.parametrize('formatter', [autopep8, black, ruff])
 def test_closing_document_formatting(
         formatter, completions_editor, qtbot, monkeypatch):
     """Check that auto-formatting works when closing an usaved file."""
@@ -71,7 +72,7 @@ def test_closing_document_formatting(
 
 @flaky(max_runs=20)
 @pytest.mark.order(1)
-@pytest.mark.parametrize('formatter', [autopep8, black])
+@pytest.mark.parametrize('formatter', [autopep8, black, ruff])
 def test_formatting_on_save(completions_editor, formatter, qtbot):
     """
     Check that auto-formatting on save works as expected and that we restore
