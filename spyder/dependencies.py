@@ -47,6 +47,7 @@ JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
 JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
+LSPROTOCOL_REQVER = '>=2025.0.0,<2026.0.0'
 LXML_REQVER = ">=4.9.0"
 MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
@@ -164,6 +165,10 @@ DESCRIPTIONS = [
      'features': _("Save Github credentials to report internal "
                    "errors securely"),
      'required_version': KEYRING_REQVER},
+    {'modname': "lsprotocol",
+     'package_name': "lsprotocol",
+     'features': _("Python types for the Language Server Protocol Specification"),
+     'required_version': LSPROTOCOL_REQVER},
     {'modname': "lxml",
      'package_name': "lxml",
      'features': _("Colorize SVG icons according to the interface theme"),

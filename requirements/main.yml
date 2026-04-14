@@ -24,6 +24,7 @@ dependencies:
   - jellyfish >=0.7
   - jsonschema >=3.2.0
   - keyring >=17.0.0
+  - lsprotocol >=2025.0.0,<2026.0.0
   - lxml >=4.9.0
   - markdown-it-py >=3.0.0
   - nbconvert >=4.0
