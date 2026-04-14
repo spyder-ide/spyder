@@ -505,8 +505,8 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'some')
-    assert "some" in [x['label'] for x in sig.args[0]]
-    assert "something" in [x['label'] for x in sig.args[0]]
+    assert "some" in [x.label for x in sig.args[0]]
+    assert "something" in [x.label for x in sig.args[0]]
 
     # Check that pressing Ctrl+S emits the signal for saving the file
     with qtbot.waitSignal(

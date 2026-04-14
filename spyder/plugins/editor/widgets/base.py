@@ -27,8 +27,9 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
+from lsprotocol import types as lsp
+
 from spyder.plugins.editor.widgets.completion import CompletionWidget
-from spyder.plugins.completion.api import CompletionItemKind
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
 from spyder.utils.palette import SpyderPalette
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
@@ -947,25 +948,21 @@ class TextEditBaseWidget(
         has_selected_text = self.has_selected_text()
         selection_start, selection_end = self.get_selection_start_end()
 
-        if isinstance(completion, dict) and 'textEdit' in completion:
-            completion_range = completion['textEdit']['range']
-            start = completion_range['start']
-            end = completion_range['end']
-            if isinstance(completion_range['start'], dict):
-                start_line, start_col = start['line'], start['character']
-                start = self.get_position_line_number(start_line, start_col)
-            if isinstance(completion_range['start'], dict):
-                end_line, end_col = end['line'], end['character']
-                end = self.get_position_line_number(end_line, end_col)
+        if isinstance(completion, lsp.CompletionItem) and completion.text_edit is not None:
+            te = completion.text_edit
+            r = te.insert if isinstance(te, lsp.InsertReplaceEdit) else te.range
+            start = self.get_position_line_number(r.start.line, r.start.character)
+            end = self.get_position_line_number(r.end.line, r.end.character)
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.KeepAnchor)
-            text = str(completion['textEdit']['newText'])
+            text = str(te.new_text)
         else:
-            text = completion
             kind = None
-            if isinstance(completion, dict):
-                text = completion['insertText']
-                kind = completion['kind']
+            if isinstance(completion, lsp.CompletionItem):
+                text = completion.insert_text or completion.label
+                kind = completion.kind
+            else:
+                text = completion
             text = str(text)
 
             # Get word to the left of the cursor.
@@ -983,13 +980,13 @@ class TextEditBaseWidget(
                         is_auto_completion_character = True
                 else:
                     if (
-                        kind != CompletionItemKind.FILE and
+                        kind != lsp.CompletionItemKind.File and
                         current_text in self.auto_completion_characters
                     ):
                         is_auto_completion_character = True
 
                 # Adjustments for file completions
-                if kind == CompletionItemKind.FILE:
+                if kind == lsp.CompletionItemKind.File:
                     special_chars = ['"', "'", '/', '\\']
 
                     if any(

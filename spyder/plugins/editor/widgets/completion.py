@@ -18,7 +18,8 @@ from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
-from spyder.plugins.completion.api import CompletionItemKind
+from lsprotocol import types as lsp
+
 from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
@@ -32,24 +33,24 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     """Completion list widget."""
 
     ITEM_TYPE_MAP = {
-        CompletionItemKind.TEXT: 'text',
-        CompletionItemKind.METHOD: 'method',
-        CompletionItemKind.FUNCTION: 'function',
-        CompletionItemKind.CONSTRUCTOR: 'constructor',
-        CompletionItemKind.FIELD: 'field',
-        CompletionItemKind.VARIABLE: 'variable',
-        CompletionItemKind.CLASS: 'class',
-        CompletionItemKind.INTERFACE: 'interface',
-        CompletionItemKind.MODULE: 'module',
-        CompletionItemKind.PROPERTY: 'property',
-        CompletionItemKind.UNIT: 'unit',
-        CompletionItemKind.VALUE: 'value',
-        CompletionItemKind.ENUM: 'enum',
-        CompletionItemKind.KEYWORD: 'keyword',
-        CompletionItemKind.SNIPPET: 'snippet',
-        CompletionItemKind.COLOR: 'color',
-        CompletionItemKind.FILE: 'file',
-        CompletionItemKind.REFERENCE: 'reference',
+        lsp.CompletionItemKind.Text: 'text',
+        lsp.CompletionItemKind.Method: 'method',
+        lsp.CompletionItemKind.Function: 'function',
+        lsp.CompletionItemKind.Constructor: 'constructor',
+        lsp.CompletionItemKind.Field: 'field',
+        lsp.CompletionItemKind.Variable: 'variable',
+        lsp.CompletionItemKind.Class: 'class',
+        lsp.CompletionItemKind.Interface: 'interface',
+        lsp.CompletionItemKind.Module: 'module',
+        lsp.CompletionItemKind.Property: 'property',
+        lsp.CompletionItemKind.Unit: 'unit',
+        lsp.CompletionItemKind.Value: 'value',
+        lsp.CompletionItemKind.Enum: 'enum',
+        lsp.CompletionItemKind.Keyword: 'keyword',
+        lsp.CompletionItemKind.Snippet: 'snippet',
+        lsp.CompletionItemKind.Color: 'color',
+        lsp.CompletionItemKind.File: 'file',
+        lsp.CompletionItemKind.Reference: 'reference',
     }
 
     ICON_MAP = {}
@@ -71,12 +72,13 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
         self.is_internal_console = False
-        self.completion_list = None
+        self.completion_list: list[lsp.CompletionItem] = []
         self.completion_position = None
         self.automatic = False
         self.current_selected_item_label = None
         self.current_selected_item_point = None
         self.display_index = []
+        self._item_points = {}
 
         # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
@@ -122,7 +124,7 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         # Completions are handled differently for the Internal
         # console.
-        if not isinstance(completion_list[0], dict):
+        if not isinstance(completion_list[0], lsp.CompletionItem):
             self.is_internal_console = True
         self.completion_list = completion_list
 
@@ -159,9 +161,11 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             tooltip_point = self.rect().topRight()
             tooltip_point = self.mapToGlobal(tooltip_point)
 
+            # Store tooltip points separately (can't mutate lsp.CompletionItem)
+            self._item_points = {}
             if self.completion_list is not None:
                 for completion in self.completion_list:
-                    completion['point'] = tooltip_point
+                    self._item_points[completion.label] = tooltip_point
 
         # Show hint for first completion element
         self.setCurrentRow(0)
@@ -208,9 +212,11 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
-                if not new and 'textEdit' in completion:
+                if not new and completion.text_edit is not None:
                     continue
-                completion_label = completion['filterText']
+                completion_label = (
+                    completion.filter_text or completion.label
+                )
             else:
                 completion_label = completion[0]
 
@@ -241,14 +247,15 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
 
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
-        item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
-        item_label = item_info['label']
+        item_type = self.ITEM_TYPE_MAP.get(item_info.kind, 'no_match')
+        item_label = item_info.label
         icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
                          "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
         img_height = height - 2
         img_width = img_height * 0.8
 
-        icon_provider, icon_scale = item_info.get('icon', (None, 1))
+        data = item_info.data or {}
+        icon_provider, icon_scale = data.get('icon', (None, 1))
         if icon_provider is not None:
             icon_height = img_height
             icon_width = icon_scale * icon_height
@@ -317,7 +324,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     def hide(self, focus_to_parent=True):
         """Override Qt method."""
         self.completion_position = None
-        self.completion_list = None
+        self.completion_list = []
+        self._item_points = {}
         self.clear()
 
         # Used to control when to give focus to its parent.
@@ -435,8 +443,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             item = self.currentItem()
         current_word = self.textedit.get_current_word(completion=True)
         completion = item.data(Qt.UserRole)
-        if isinstance(completion, dict):
-            filter_text = completion['filterText']
+        if isinstance(completion, lsp.CompletionItem):
+            filter_text = completion.filter_text or completion.label
         else:
             filter_text = completion
         return self.check_can_complete(filter_text, current_word)
@@ -528,18 +536,15 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         self.hide()
 
     def _get_insert_text(self, item):
-        if 'textEdit' in item:
-            insert_text = item['textEdit']['newText']
-        else:
-            insert_text = item['insertText']
-
-            # Split by starting $ or language specific chars
-            chars = ['$']
-            if self._language == 'python':
-                chars.append('(')
-
-            for ch in chars:
-                insert_text = insert_text.split(ch)[0]
+        if item.text_edit is not None:
+            return item.text_edit.new_text
+        insert_text = item.insert_text or item.label
+        # Split by starting $ or language specific chars
+        chars = ['$']
+        if self._language == 'python':
+            chars.append('(')
+        for ch in chars:
+            insert_text = insert_text.split(ch)[0]
         return insert_text
 
     def request_completion_hint(self, row=None):
@@ -551,38 +556,41 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
             return
         if row is None:
             row = self.currentRow()
-        if row < 0 or len(self.completion_list) <= row:
+        if row < 0 or row >= len(self.display_index):
             return
 
-        item = self.completion_list[row]
-        if 'point' not in item:
+        item = self.completion_list[self.display_index[row]]
+        if not isinstance(item, lsp.CompletionItem):
             return
 
-        self.current_selected_item_label = item['label']
-        self.current_selected_item_point = item['point']
+        label = item.label
+        if label not in self._item_points:
+            return
+
+        self.current_selected_item_label = label
+        self.current_selected_item_point = self._item_points[label]
 
         # Ask LSP for completion hint
         if hasattr(self.textedit, 'resolve_completion_item'):
-            if item.get('resolve', False):
-                to_resolve = item.copy()
-                to_resolve.pop('point')
-                to_resolve.pop('resolve')
-                self.textedit.resolve_completion_item(to_resolve)
+            if (item.data or {}).get('resolve', False):
+                self.textedit.resolve_completion_item(item)
             else:
                 self.textedit.hide_tooltip()
 
     def augment_completion_info(self, item):
         """Augment completion info with hints that come from the server."""
-        if self.current_selected_item_label == item['label']:
-            insert_text = self._get_insert_text(item)
-
-            if isinstance(item['documentation'], dict):
-                item['documentation'] = item['documentation']['value']
-
-            self.sig_completion_hint.emit(
-                insert_text,
-                item['documentation'],
-                self.current_selected_item_point)
+        if self.current_selected_item_label != item.label:
+            return
+        insert_text = self._get_insert_text(item)
+        doc = item.documentation
+        if isinstance(doc, lsp.MarkupContent):
+            doc = doc.value
+        elif doc is None:
+            doc = ''
+        self.sig_completion_hint.emit(
+            insert_text,
+            doc,
+            self.current_selected_item_point)
 
     @Slot(int)
     def row_changed(self, row):

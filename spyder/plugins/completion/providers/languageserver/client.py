@@ -37,10 +37,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_under_pytest
 )
-from spyder.plugins.completion.api import (
-    SERVER_CAPABILITES, TEXT_DOCUMENT_SYNC_OPTIONS,
-    CompletionRequestTypes,
-)
 from spyder.plugins.completion.providers.languageserver.decorators import (
     class_register, handles
 )
@@ -218,19 +214,19 @@ class _SpyderPyglsClient(JsonRPCClient):
         @self.feature(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
         def on_diagnostics(params: lsp.PublishDiagnosticsParams) -> None:
             qt._post_notification(
-                CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS, params
+                lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS, params
             )
 
         @self.feature(lsp.WINDOW_SHOW_MESSAGE)
         def on_show_message(params: lsp.ShowMessageParams) -> None:
             qt._post_notification(
-                CompletionRequestTypes.WINDOW_SHOW_MESSAGE, params
+                lsp.WINDOW_SHOW_MESSAGE, params
             )
 
         @self.feature(lsp.WINDOW_LOG_MESSAGE)
         def on_log_message(params: lsp.LogMessageParams) -> None:
             qt._post_notification(
-                CompletionRequestTypes.WINDOW_LOG_MESSAGE, params
+                lsp.WINDOW_LOG_MESSAGE, params
             )
 
         # --- Requests from server (require a response) ---
@@ -261,14 +257,14 @@ class _SpyderPyglsClient(JsonRPCClient):
         ) -> lsp.ApplyWorkspaceEditResult:
             """Route edit application to the Qt thread; acknowledge immediately."""
             qt._post_notification(
-                CompletionRequestTypes.WORKSPACE_APPLY_EDIT, params
+                lsp.WORKSPACE_APPLY_EDIT, params
             )
             return lsp.ApplyWorkspaceEditResult(applied=True)
 
         @self.feature(lsp.CLIENT_REGISTER_CAPABILITY)
         def on_register_capability(params: lsp.RegistrationParams) -> None:
             qt._post_notification(
-                CompletionRequestTypes.CLIENT_REGISTER_CAPABILITY, params
+                lsp.CLIENT_REGISTER_CAPABILITY, params
             )
 
 
@@ -285,7 +281,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     # --- Public Qt signals ---
 
     #: Emitted when the server has initialised and is ready for requests.
-    sig_initialize = Signal(dict, str)
+    sig_initialize = Signal(object, str)
 
     #: Emitted when the server reports a recoverable error (debug/dev modes).
     sig_server_error = Signal(str)
@@ -340,7 +336,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         # LSP capabilities
         self.client_capabilites = _build_client_capabilities()
-        self.server_capabilites = dict(SERVER_CAPABILITES)
+        self.server_capabilites: lsp.ServerCapabilities | None = None
 
         # QProcess for TCP-mode server management (not used in stdio mode)
         self.server: QProcess | None = None
@@ -560,74 +556,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self, result: lsp.InitializeResult
     ) -> None:
         """
-        Parse the initialize response, update server_capabilites, send
-        the 'initialized' notification, and emit sig_initialize on the Qt
-        thread.
+        Store the server capabilities, send 'initialized', and emit
+        sig_initialize on the Qt thread.
         """
-        caps = result.capabilities
-
-        # Normalise textDocumentSync to a dict understood by the rest of Spyder
-        tds = caps.text_document_sync
-        if tds is None:
-            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
-        elif isinstance(tds, int):
-            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
-            sync_opts['change'] = tds
-        elif isinstance(tds, lsp.TextDocumentSyncOptions):
-            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
-            if tds.change is not None:
-                sync_opts['change'] = int(tds.change)
-            if tds.open_close is not None:
-                sync_opts['openClose'] = tds.open_close
-            if tds.will_save is not None:
-                sync_opts['willSave'] = tds.will_save
-            if tds.will_save_wait_until is not None:
-                sync_opts['willSaveWaitUntil'] = tds.will_save_wait_until
-            if tds.save is not None:
-                if isinstance(tds.save, bool):
-                    sync_opts['save'] = tds.save
-                else:
-                    sync_opts['save'] = {'includeText': tds.save.include_text}
-        else:
-            sync_opts = dict(TEXT_DOCUMENT_SYNC_OPTIONS)
-
-        self.server_capabilites['textDocumentSync'] = sync_opts
-
-        # Merge remaining capabilities as simple flags / dicts
-        cp = caps.completion_provider
-        if cp is not None:
-            self.server_capabilites['completionProvider'] = {
-                'resolveProvider': cp.resolve_provider or False,
-                'triggerCharacters': list(cp.trigger_characters or []),
-            }
-
-        self.server_capabilites['hoverProvider'] = bool(caps.hover_provider)
-        self.server_capabilites['definitionProvider'] = bool(
-            caps.definition_provider
-        )
-        self.server_capabilites['documentSymbolProvider'] = bool(
-            caps.document_symbol_provider
-        )
-        self.server_capabilites['documentFormattingProvider'] = bool(
-            caps.document_formatting_provider
-        )
-        self.server_capabilites['documentRangeFormattingProvider'] = bool(
-            caps.document_range_formatting_provider
-        )
-        self.server_capabilites['workspaceSymbolProvider'] = bool(
-            caps.workspace_symbol_provider
-        )
-
-        ws = caps.workspace
-        if ws and ws.workspace_folders:
-            self.server_capabilites['workspace'] = {
-                'workspaceFolders': {
-                    'supported': ws.workspace_folders.supported or False,
-                    'changeNotifications': (
-                        ws.workspace_folders.change_notifications or False
-                    ),
-                }
-            }
+        self.server_capabilites = result.capabilities
 
         # The initialized notification must be the first message after the
         # initialize response, per LSP spec.
@@ -638,12 +570,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.initialized = True
 
         # Forward the configurations set in Spyder Preferences.
-        # send_configurations is now a marker method that returns lsprotocol
-        # params; we send the notification directly here since we are already
-        # in the asyncio thread.
         self.configurations = self.configurations  # ensure attr exists
         self._pygls_client.protocol.notify(
-            CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+            lsp.WORKSPACE_DID_CHANGE_CONFIGURATION,
             lsp.DidChangeConfigurationParams(settings=self.configurations),
         )
 
@@ -660,7 +589,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         Returns the integer request-id for requests, None for notifications.
         """
-        if not self.initialized and method != CompletionRequestTypes.INITIALIZE:
+        if not self.initialized and method != lsp.INITIALIZE:
             return None
 
         if method not in self.sender_registry:
@@ -699,7 +628,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                     'LSP request %s (id=%d) failed', method, req_id
                 )
                 if req_id in self.req_reply:
-                    self.req_reply.pop(req_id)(None, {'params': []})
+                    self.req_reply.pop(req_id)(None, None)
 
         self._async_request(method, lsp_params).connect(_on_done)
         return req_id
@@ -788,7 +717,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     # Built-in initialization handlers
     # ------------------------------------------------------------------
 
-    @handles(CompletionRequestTypes.SHUTDOWN)
+    @handles(lsp.SHUTDOWN)
     def handle_shutdown(self, response, *args) -> None:
         self.ready_to_close = True
 
@@ -798,13 +727,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
     @property
     def support_multiple_workspaces(self) -> bool:
-        ws = self.server_capabilites.get('workspace', {})
-        return ws.get('workspaceFolders', {}).get('supported', False)
+        if self.server_capabilites is None:
+            return False
+        ws = self.server_capabilites.workspace
+        wf = ws.workspace_folders if ws else None
+        return bool(wf and wf.supported)
 
     @property
     def support_workspace_update(self) -> bool:
-        ws = self.server_capabilites.get('workspace', {})
-        return ws.get('workspaceFolders', {}).get('changeNotifications', False)
+        if self.server_capabilites is None:
+            return False
+        ws = self.server_capabilites.workspace
+        wf = ws.workspace_folders if ws else None
+        return bool(wf and wf.change_notifications)
 
     def send_configurations(self, configurations) -> None:
         """
@@ -818,6 +753,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         if not self.initialized:
             return
         self._async_notification(
-            CompletionRequestTypes.WORKSPACE_CONFIGURATION_CHANGE,
+            lsp.WORKSPACE_DID_CHANGE_CONFIGURATION,
             lsp.DidChangeConfigurationParams(settings=configurations),
         )

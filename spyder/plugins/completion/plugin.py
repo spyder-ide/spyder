@@ -20,6 +20,7 @@ from typing import List, Union
 import weakref
 
 # Third-party imports
+from lsprotocol import types as lsp
 from packaging.version import parse
 from qtpy.QtCore import QRecursiveMutex, QMutexLocker, QTimer, Slot, Signal
 
@@ -29,9 +30,11 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.config.user import NoDefault
-from spyder.plugins.completion.api import (CompletionRequestTypes,
-                                           SpyderCompletionProvider,
-                                           COMPLETION_ENTRYPOINT)
+from spyder.plugins.completion.api import (
+    DOCUMENT_CURSOR_EVENT,
+    SpyderCompletionProvider,
+    COMPLETION_ENTRYPOINT,
+)
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
 
@@ -46,9 +49,54 @@ else:  # pragma: no cover
 logger = logging.getLogger(__name__)
 
 # List of completion requests
-# e.g., textDocument/didOpen, workspace/configurationDidChange, etc.
-COMPLETION_REQUESTS = [getattr(CompletionRequestTypes, c)
-                       for c in dir(CompletionRequestTypes) if c.isupper()]
+# e.g., textDocument/didOpen, workspace/didChangeConfiguration, etc.
+COMPLETION_REQUESTS = [
+    lsp.INITIALIZE,
+    lsp.INITIALIZED,
+    lsp.SHUTDOWN,
+    lsp.EXIT,
+    lsp.CANCEL_REQUEST,
+    lsp.WINDOW_SHOW_MESSAGE,
+    lsp.WINDOW_SHOW_MESSAGE_REQUEST,
+    lsp.WINDOW_LOG_MESSAGE,
+    lsp.TELEMETRY_EVENT,
+    lsp.CLIENT_REGISTER_CAPABILITY,
+    lsp.CLIENT_UNREGISTER_CAPABILITY,
+    lsp.WORKSPACE_WORKSPACE_FOLDERS,
+    lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+    lsp.WORKSPACE_CONFIGURATION,
+    lsp.WORKSPACE_DID_CHANGE_CONFIGURATION,
+    lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
+    lsp.WORKSPACE_SYMBOL,
+    lsp.WORKSPACE_EXECUTE_COMMAND,
+    lsp.WORKSPACE_APPLY_EDIT,
+    lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS,
+    lsp.TEXT_DOCUMENT_DID_OPEN,
+    lsp.TEXT_DOCUMENT_DID_CHANGE,
+    lsp.TEXT_DOCUMENT_WILL_SAVE,
+    lsp.TEXT_DOCUMENT_WILL_SAVE_WAIT_UNTIL,
+    lsp.TEXT_DOCUMENT_DID_SAVE,
+    lsp.TEXT_DOCUMENT_DID_CLOSE,
+    lsp.TEXT_DOCUMENT_COMPLETION,
+    lsp.COMPLETION_ITEM_RESOLVE,
+    lsp.TEXT_DOCUMENT_HOVER,
+    lsp.TEXT_DOCUMENT_SIGNATURE_HELP,
+    lsp.TEXT_DOCUMENT_REFERENCES,
+    lsp.TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT,
+    lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+    lsp.TEXT_DOCUMENT_FORMATTING,
+    lsp.TEXT_DOCUMENT_FOLDING_RANGE,
+    lsp.TEXT_DOCUMENT_RANGE_FORMATTING,
+    lsp.TEXT_DOCUMENT_ON_TYPE_FORMATTING,
+    lsp.TEXT_DOCUMENT_DEFINITION,
+    lsp.TEXT_DOCUMENT_CODE_ACTION,
+    lsp.TEXT_DOCUMENT_CODE_LENS,
+    lsp.CODE_LENS_RESOLVE,
+    lsp.TEXT_DOCUMENT_DOCUMENT_LINK,
+    lsp.DOCUMENT_LINK_RESOLVE,
+    lsp.TEXT_DOCUMENT_RENAME,
+    DOCUMENT_CURSOR_EVENT,
+]
 
 
 def partialclass(cls, *args, **kwds):
@@ -102,7 +150,7 @@ class CompletionPlugin(SpyderPluginV2):
     CONTAINER_CLASS = CompletionContainer
 
     # ------------------------------- Signals ---------------------------------
-    sig_response_ready = Signal(str, int, dict)
+    sig_response_ready = Signal(str, int, object)
     """
     This signal is used to receive a response from a completion provider.
 
@@ -112,8 +160,8 @@ class CompletionPlugin(SpyderPluginV2):
         Name of the completion client that produced this response.
     request_seq: int
         Sequence number for the request.
-    response: dict
-        Actual request corpus response.
+    response: object
+        Actual request corpus response (lsprotocol object or list thereof).
     """
 
     sig_provider_ready = Signal(str)
@@ -151,16 +199,15 @@ class CompletionPlugin(SpyderPluginV2):
         Path to the new interpreter.
     """
 
-    sig_language_completions_available = Signal(dict, str)
+    sig_language_completions_available = Signal(object, str)
     """
     This signal is used to indicate that completion services are available
     for a given programming language.
 
     Parameters
     ----------
-    completion_capabilites: dict
-        Available configurations supported by the providers, it should conform
-        to `spyder.plugins.completion.api.SERVER_CAPABILITES`.
+    completion_capabilites: lsp.ServerCapabilities
+        Server capabilities reported during LSP initialization.
     language: str
         Name of the programming language whose completion capabilites are
         available.
@@ -193,11 +240,11 @@ class CompletionPlugin(SpyderPluginV2):
     STOPPED = 'stopped'
 
     SKIP_INTERMEDIATE_REQUESTS = {
-        CompletionRequestTypes.DOCUMENT_COMPLETION
+        lsp.TEXT_DOCUMENT_COMPLETION
     }
 
     AGGREGATE_RESPONSES = {
-        CompletionRequestTypes.DOCUMENT_COMPLETION
+        lsp.TEXT_DOCUMENT_COMPLETION
     }
 
     def __init__(self, parent, configuration=None):
@@ -1010,7 +1057,7 @@ class CompletionPlugin(SpyderPluginV2):
             request.
         req_type: str
             Type of request, one of
-            :class:`spyder.plugins.completion.api.CompletionRequestTypes`
+            ``lsprotocol.types`` LSP method name constants
         req: dict
             Request body
             {
@@ -1060,7 +1107,7 @@ class CompletionPlugin(SpyderPluginV2):
             request.
         notification_type: str
             Type of request, one of
-            :class:`spyder.plugins.completion.api.CompletionRequestTypes`
+            ``lsprotocol.types`` LSP method name constants
         notification: dict
             Request body
             {
@@ -1084,7 +1131,7 @@ class CompletionPlugin(SpyderPluginV2):
         ----------
         req_type: str
             Type of request, one of
-            :class:`spyder.plugins.completion.api.CompletionRequestTypes`.
+            ``lsprotocol.types`` LSP method name constants.
         req: dict
             Request body:
             {
@@ -1165,9 +1212,9 @@ class CompletionPlugin(SpyderPluginV2):
                 )
 
     # ----------------- Completion result processing methods ------------------
-    @Slot(str, int, dict)
+    @Slot(str, int, object)
     def receive_response(
-            self, completion_source: str, req_id: int, resp: dict):
+            self, completion_source: str, req_id: int, resp: object):
         """Process request response from a completion provider."""
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
@@ -1273,7 +1320,7 @@ class CompletionPlugin(SpyderPluginV2):
         response_instance = request_responses['response_instance']()
         logger.debug('Gather responses for {0}'.format(req_type))
 
-        if req_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
+        if req_type == lsp.TEXT_DOCUMENT_COMPLETION:
             responses = self.gather_completions(req_id_responses)
         else:
             responses = self.gather_responses(req_type, req_id_responses)
@@ -1289,7 +1336,7 @@ class CompletionPlugin(SpyderPluginV2):
     def gather_completions(self, req_id_responses: dict):
         """Gather completion responses from providers."""
         priorities = self.source_priority[
-            CompletionRequestTypes.DOCUMENT_COMPLETION]
+            lsp.TEXT_DOCUMENT_COMPLETION]
         priorities = sorted(list(priorities.keys()),
                             key=lambda p: priorities[p])
 
@@ -1299,18 +1346,18 @@ class CompletionPlugin(SpyderPluginV2):
         for priority, source in enumerate(priorities):
             if source not in req_id_responses:
                 continue
-            for response in req_id_responses[source].get('params', []):
-                dedupe_key = response['label'].strip()
+            for item in (req_id_responses[source] or []):
+                dedupe_key = item.label.strip()
                 if dedupe_key in dedupe_set:
                     continue
                 dedupe_set.add(dedupe_key)
 
-                response['sortText'] = (priority, response['sortText'])
-                responses.append(response)
+                original = item.sort_text or item.label
+                item.sort_text = f'{priority:03d}_{original}'
+                responses.append(item)
                 merge_stats[source] += 1
 
         logger.debug('Responses statistics: {0}'.format(merge_stats))
-        responses = {'params': responses}
         return responses
 
     def gather_responses(self, req_type: int, responses: dict):
@@ -1318,7 +1365,8 @@ class CompletionPlugin(SpyderPluginV2):
         response = None
         for source in self.source_priority[req_type]:
             if source in responses:
-                response = responses[source].get('params', None)
-                if response:
+                candidate = responses[source]
+                if candidate is not None:
+                    response = candidate
                     break
-        return {'params': response}
+        return response
