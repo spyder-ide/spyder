@@ -131,3 +131,6 @@ cython_debug/
 
 # Ignore VSCode settings
 .vscode/
+
+# Hatch VCS generated version metadata
+spyder_remote_services/_version.py
