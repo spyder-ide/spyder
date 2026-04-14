@@ -10,14 +10,13 @@ import logging
 
 from lsprotocol import types as lsp
 
-from spyder.plugins.completion.api import CompletionRequestTypes
 from spyder.plugins.completion.providers.languageserver.decorators import handles
 
 logger = logging.getLogger(__name__)
 
 
 class ClientProvider:
-    @handles(CompletionRequestTypes.CLIENT_REGISTER_CAPABILITY)
+    @handles(lsp.CLIENT_REGISTER_CAPABILITY)
     def handle_register_capability(
         self, params: lsp.RegistrationParams, *args
     ) -> None:

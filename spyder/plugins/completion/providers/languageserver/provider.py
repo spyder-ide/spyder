@@ -697,7 +697,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 client.perform_request(request, params)
                 return
         self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
-                                     req_id, {})
+                                     req_id, None)
 
     def send_notification(self, language, request, params):
         if language in self.clients:

@@ -8,17 +8,17 @@ import os
 from textwrap import dedent
 
 import pytest
+from lsprotocol import types as lsp
 from qtpy.QtCore import QObject, Signal, Slot
 
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes, WorkspaceUpdateKind)
+from spyder.plugins.completion.api import WorkspaceUpdateKind
 
 
 class CompletionManager(QObject):
     """Dummy completion plugin that can handle LSP responses."""
-    sig_response = Signal(str, dict)
+    sig_response = Signal(str, object)
 
-    @Slot(str, dict)
+    @Slot(str, object)
     def handle_response(self, method, params):
         self.sig_response.emit(method, params)
 
@@ -50,7 +50,7 @@ def test_didOpen(lsp_client_and_completion, qtbot):
 
     # Wait for the client to be started
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_OPEN,
+        client.perform_request(lsp.TEXT_DOCUMENT_DID_OPEN,
                                params)
     response, _ = blocker.args
 
@@ -74,7 +74,7 @@ def test_get_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE,
+        client.perform_request(lsp.TEXT_DOCUMENT_DID_CHANGE,
                                params)
 
     # Parameters to perform a textDocument/signatureHelp request
@@ -88,12 +88,12 @@ def test_get_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_SIGNATURE,
+        client.perform_request(lsp.TEXT_DOCUMENT_SIGNATURE_HELP,
                                signature_params)
     _, response = blocker.args
 
     # Assert the response has what we expect
-    assert response['params']['signatures']['label'].startswith('walk')
+    assert response['label'].startswith('walk')
 
 
 @pytest.mark.order(3)
@@ -112,7 +112,7 @@ def test_get_completions(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE,
+        client.perform_request(lsp.TEXT_DOCUMENT_DID_CHANGE,
                                params)
 
     # Parameters to perform a textDocument/completion request
@@ -126,13 +126,13 @@ def test_get_completions(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_COMPLETION,
+        client.perform_request(lsp.TEXT_DOCUMENT_COMPLETION,
                                completion_params)
     _, response = blocker.args
 
     # Assert the response has what we expect
-    completions = response['params']
-    assert 'os' in [x['label'] for x in completions]
+    completions = response
+    assert 'os' in [x.label for x in completions]
 
 
 @pytest.mark.order(3)
@@ -151,7 +151,7 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000):
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE,
+        client.perform_request(lsp.TEXT_DOCUMENT_DID_CHANGE,
                                params)
 
     # Parameters to perform a textDocument/definition request
@@ -165,13 +165,13 @@ def test_go_to_definition(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DEFINITION,
+        client.perform_request(lsp.TEXT_DOCUMENT_DEFINITION,
                                go_to_definition_params)
     _, response = blocker.args
 
     # Assert the response has what we expect
-    definition = response['params']
-    assert 'os.py' in definition['file']
+    assert response is not None
+    assert 'os.py' in response.uri
 
 
 @pytest.mark.order(3)
@@ -195,7 +195,7 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_DID_CHANGE,
+        client.perform_request(lsp.TEXT_DOCUMENT_DID_CHANGE,
                                params)
 
     # Parameters to perform a textDocument/hover request
@@ -209,13 +209,13 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
     # Perform the request
     with qtbot.waitSignal(completion.sig_response, timeout=30000) as blocker:
-        client.perform_request(CompletionRequestTypes.DOCUMENT_HOVER,
+        client.perform_request(lsp.TEXT_DOCUMENT_HOVER,
                                signature_params)
     _, response = blocker.args
 
     # Assert the response has what we expect
-    definition = response['params']
-    assert 'Test docstring' in definition
+    assert response is not None
+    assert 'Test docstring' in response
 
 
 @pytest.mark.order(3)

@@ -11,12 +11,22 @@ Editor Switcher manager.
 # Standard library imports
 import os.path as osp
 
+# Third-party imports
+from lsprotocol import types as lsp
+
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
-from spyder.plugins.completion.api import SymbolKind, SYMBOL_KIND_ICON
+from spyder.plugins.completion.api import SYMBOL_KIND_ICON
+
+
+def _symbol_range(symbol):
+    """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
+    if isinstance(symbol, lsp.SymbolInformation):
+        return symbol.location.range
+    return symbol.range
 
 
 class EditorSwitcherManager(SpyderConfigurationAccessor):
@@ -153,30 +163,29 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
         idx = 0
         total_symbols = len(oe_symbols)
         oe_symbols = sorted(
-            oe_symbols, key=lambda x: x['location']['range']['start']['line']
+            oe_symbols, key=lambda x: _symbol_range(x).start.line
         )
 
         for symbol in oe_symbols:
-            symbol_name = symbol['name']
-            symbol_kind = symbol['kind']
+            symbol_name = symbol.name
+            symbol_kind = symbol.kind
             if language.lower() == 'python':
-                if symbol_kind == SymbolKind.MODULE:
+                if symbol_kind == lsp.SymbolKind.Module:
                     total_symbols -= 1
                     continue
 
                 if (
-                    symbol_kind == SymbolKind.VARIABLE and
+                    symbol_kind == lsp.SymbolKind.Variable and
                     not display_variables
                 ):
                     total_symbols -= 1
                     continue
 
-                if symbol_kind == SymbolKind.FIELD and not display_variables:
+                if symbol_kind == lsp.SymbolKind.Field and not display_variables:
                     total_symbols -= 1
                     continue
 
-            symbol_range = symbol['location']['range']
-            symbol_start = symbol_range['start']['line']
+            symbol_start = _symbol_range(symbol).start.line
             fold_level = editor.leading_whitespaces[symbol_start]
             space = ' ' * fold_level
             formated_title = f'{space}{symbol_name}'

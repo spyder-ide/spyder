@@ -33,8 +33,8 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'some', delay=delay)
-    assert "some" in [x['label'] for x in sig.args[0]]
-    assert "something" in [x['label'] for x in sig.args[0]]
+    assert "some" in [x.label for x in sig.args[0]]
+    assert "something" in [x.label for x in sig.args[0]]
 
     # No completion for 'something' as already complete
     qtbot.keyClicks(code_editor, 'thing', delay=delay)

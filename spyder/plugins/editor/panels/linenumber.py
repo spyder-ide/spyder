@@ -19,9 +19,10 @@ from qtpy.QtGui import (
 )
 
 # Local imports
+from lsprotocol import types as lsp
+
 from spyder.utils.icon_manager import ima
 from spyder.plugins.editor.api.panel import Panel
-from spyder.plugins.completion.api import DiagnosticSeverity
 
 
 class LineNumberArea(Panel):
@@ -111,10 +112,10 @@ class LineNumberArea(Panel):
                     infos = 0
                     hints = 0
                     for _, _, sev, _ in data.code_analysis:
-                        errors += sev == DiagnosticSeverity.ERROR
-                        warnings += sev == DiagnosticSeverity.WARNING
-                        infos += sev == DiagnosticSeverity.INFORMATION
-                        hints += sev == DiagnosticSeverity.HINT
+                        errors += sev == lsp.DiagnosticSeverity.Error
+                        warnings += sev == lsp.DiagnosticSeverity.Warning
+                        infos += sev == lsp.DiagnosticSeverity.Information
+                        hints += sev == lsp.DiagnosticSeverity.Hint
 
                     if errors:
                         draw_pixmap(1, top, self.error_icon.pixmap(icon_size))

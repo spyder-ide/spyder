@@ -10,7 +10,6 @@ import logging
 
 from lsprotocol import types as lsp
 
-from spyder.plugins.completion.api import CompletionRequestTypes
 from spyder.plugins.completion.providers.languageserver.decorators import (
     handles)
 
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class WindowProvider:
 
-    @handles(CompletionRequestTypes.WINDOW_SHOW_MESSAGE)
+    @handles(lsp.WINDOW_SHOW_MESSAGE)
     def process_show_message(
         self, params: lsp.ShowMessageParams, *args
     ) -> None:
@@ -31,7 +30,7 @@ class WindowProvider:
             params.message,
         )
 
-    @handles(CompletionRequestTypes.WINDOW_LOG_MESSAGE)
+    @handles(lsp.WINDOW_LOG_MESSAGE)
     def process_log_message(
         self, params: lsp.LogMessageParams, *args
     ) -> None:
