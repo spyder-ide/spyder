@@ -1358,3 +1358,15 @@ class LSPMixin:
                 'codeeditor': self
             }
             return params
+
+    def collapse_all(self):
+        """Collapse all foldable regions."""
+        self.folding_panel.collapse_all()
+
+    def expand_all(self):
+        """Expand all foldable regions."""
+        self.folding_panel.expand_all()
+    
+    def collapse_expand_current_region(self):
+        """Collapse or expand the foldable region around the cursor."""
+        self.folding_panel.toggle_fold_around_cursor()

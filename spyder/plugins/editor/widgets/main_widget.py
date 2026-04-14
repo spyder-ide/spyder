@@ -615,6 +615,30 @@ class EditorMainWidget(PluginMainWidget):
             register_shortcut=True
         )
 
+        # Folding actions
+        
+        self.collapse_all_action = self.create_action(
+            EditorWidgetActions.CollapseAll,
+            text=_('Collapse all sections'),
+            context=Qt.WidgetShortcut,
+            triggered=self.collapse_all,
+            register_shortcut=True
+        )
+        self.expand_all_action = self.create_action(
+            EditorWidgetActions.ExpandAll,
+            text=_('Expand all sections'),
+            context=Qt.WidgetShortcut,
+            triggered=self.expand_all,
+            register_shortcut=True
+        )
+        self.collapse_expand_action = self.create_action(
+            EditorWidgetActions.CollapseExpand,
+            text=_('Collapse/expand current section'),
+            context=Qt.WidgetShortcut,
+            triggered=self.collapse_expand_current_region,
+            register_shortcut=True
+        )
+
         # ---------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
@@ -2388,6 +2412,24 @@ class EditorMainWidget(PluginMainWidget):
         self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
+    
+    @Slot()
+    def collapse_all(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.collapse_all()
+
+    @Slot()
+    def expand_all(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.expand_all()
+    
+    @Slot()
+    def collapse_expand_current_region(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.collapse_expand_current()
 
     # ---- Cursor position history management
     # -------------------------------------------------------------------------

@@ -485,6 +485,19 @@ class Editor(SpyderDockablePlugin):
                 section=SourceMenuSections.Autofix,
             )
 
+        # Folding section
+        folding_actions = [
+            widget.expand_all_action,
+            widget.collapse_all_action,
+            widget.collapse_expand_action,
+        ]
+        for folding_item in folding_actions:
+            mainmenu.add_item_to_application_menu(
+                folding_item,
+                menu_id=ApplicationMenus.Source,
+                section=SourceMenuSections.Folding,
+            )
+
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_mainmenu_teardown(self):
         widget = self.get_widget()
