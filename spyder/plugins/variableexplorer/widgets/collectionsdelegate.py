@@ -244,6 +244,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 parent=parent,
                 data_function=self.make_data_function(index)
             )
+            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 self.sig_editor_shown.emit()
                 return

@@ -21,7 +21,7 @@ from typing import Callable, Optional, TYPE_CHECKING
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
-                         QItemSelectionRange, QModelIndex, Qt, Slot)
+                         QItemSelectionRange, QModelIndex, Qt, Slot, Signal)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
@@ -58,6 +58,7 @@ class ArrayEditorActions:
     Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     Resize = 'resize_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class ArrayEditorMenus:
@@ -703,6 +704,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
+    sig_close_all_editors_requested = Signal()
+
     def __init__(
         self,
         parent: Optional[QWidget] = None,
@@ -800,6 +803,12 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
+        self.close_all_editors_action = self.create_action(
+            name=ArrayEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
+        )
 
         # ---- Toolbar and options menu
 
@@ -824,8 +833,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             register=False
         )
         stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
-        for item in [stretcher, self.resize_action, self.refresh_action,
-                     options_button]:
+        for item in [self.close_all_editors_action,stretcher,
+                     self.resize_action, self.refresh_action, options_button]:
             self.add_item_to_toolbar(item, toolbar)
 
         toolbar.render()

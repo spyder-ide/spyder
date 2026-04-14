@@ -121,6 +121,7 @@ class DataframeEditorActions:
     RemoveRow = 'remove_row_action'
     ResizeColumns = 'resize_columns_action'
     ResizeRows = 'resize_rows_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class DataframeEditorMenus:
@@ -1000,6 +1001,12 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             icon=ima.icon('hist'),
             triggered=self.plot_hist,
             register_action=False
+        )
+        self.close_all_editors_action = self.create_action(
+            name=DataframeEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
         )
 
         # ---- Create context menu and fill it
