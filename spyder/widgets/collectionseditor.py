@@ -1825,10 +1825,18 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
+    sig_close_window_requested = Signal()
 
-    def __init__(self, parent, data, namespacebrowser=None,
-                 data_function: Optional[Callable[[], Any]] = None,
-                 readonly=False, title="", remote=False):
+    def __init__(
+        self,
+        parent,
+        data,
+        namespacebrowser=None,
+        data_function: Optional[Callable[[], Any]] = None,
+        readonly=False,
+        title="",
+        remote=False,
+    ):
         QWidget.__init__(self, parent)
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
@@ -1938,7 +1946,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
 
     def close_window(self):
         if self.parent():
-            self.parent().reject()
+            self.sig_close_window_requested.emit()
 
 
 class CollectionsEditor(BaseDialog):
@@ -2002,12 +2010,19 @@ class CollectionsEditor(BaseDialog):
             readonly = True
 
         self.widget = CollectionsEditorWidget(
-            self, self.data_copy, self.namespacebrowser, self.data_function,
-            title=title, readonly=readonly, remote=remote
+            self,
+            self.data_copy,
+            self.namespacebrowser,
+            self.data_function,
+            title=title,
+            readonly=readonly,
+            remote=remote,
         )
         self.widget.sig_refresh_requested.connect(self.refresh_editor)
+        self.widget.sig_close_window_requested.connect(self.reject)
         self.widget.editor.source_model.sig_setting_data.connect(
-            self.save_and_close_enable)
+            self.save_and_close_enable
+        )
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
@@ -2239,6 +2254,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         except TypeError as e:
             QMessageBox.critical(self, _("Error"), "TypeError: %s" % str(e))
         self.namespacebrowser.refresh_namespacebrowser()
+
+    def close_all_editors(self):
+        """Close all editors opened from this table view."""
+        self.delegate.close_all_editors()
 
     def remove_values(self, names):
         """Remove values from data"""

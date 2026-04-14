@@ -16,7 +16,7 @@ import sys
 from typing import Dict, Optional, Tuple
 
 # Third party imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import QTimer, Slot
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
@@ -646,7 +646,9 @@ class Application(SpyderPluginV2):
 
     def _on_spyder_update(self):
         container = self.get_container()
-        container.inapp_appeal_status.show_changelog()
+
+        # Delay showing the changelog a little bit for better UX
+        QTimer.singleShot(2500, container.inapp_appeal_status.show_changelog)
 
     # ---- Public API
     # ------------------------------------------------------------------------

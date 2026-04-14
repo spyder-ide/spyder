@@ -491,6 +491,21 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
         except RuntimeError:
             pass
 
+    def close_all_editors(self):
+        """Close all opened non-modal editor dialogs."""
+        for editor_id, data in list(self._editors.items()):
+            editor = data.get('editor')
+            if editor is None:
+                self._editors.pop(editor_id, None)
+                continue
+
+            try:
+                editor.reject()
+            except RuntimeError:
+                pass
+            finally:
+                self._editors.pop(editor_id, None)
+
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
         editor = self.sender()

@@ -195,6 +195,10 @@ class Switcher(SpyderPluginV2):
         """Set the current selected row in the switcher."""
         self._switcher.set_current_row(row)
 
+    def init_current_row(self, row):
+        """Initialize the current selected row in the switcher."""
+        self._switcher.init_current_row(row)
+
     def add_separator(self):
         """Add a separator item."""
         self._switcher.add_separator()

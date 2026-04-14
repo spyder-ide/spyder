@@ -588,6 +588,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         keep_input : bool, optional (default True)
             If set, restores the old input buffer if a new prompt is written.
         """
+        self._set_cursor_visible(True)
         if self._executing:
             self._control.clear()
         else:
@@ -2257,6 +2258,8 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
                                 QtGui.QTextCursor.MoveAnchor,
                             )
                             cursor.insertText("\n")
+                    elif act.action == 'cursor-visibility':
+                        self._set_cursor_visible(act.visible)
 
                 # simulate replacement mode
                 if substring is not None:
@@ -2658,3 +2661,6 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, superQ
         """
         menu = self._context_menu_make(pos)
         menu.exec_(self._control.mapToGlobal(pos))
+
+    def _set_cursor_visible(self, visible):
+        self._control.setCursorWidth(1 if visible else 0)
