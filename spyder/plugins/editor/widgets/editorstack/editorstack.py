@@ -2996,34 +2996,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
 
-    def collapse_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Collapse all regions in file {finfo.filename}")
-        finfo.editor.collapse_all()
-    
-    def expand_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Expand all regions in file {finfo.filename}")
-        finfo.editor.expand_all()
-
-    def collapse_expand_current(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Collapse/expand current region in file {finfo.filename}")
-        finfo.editor.collapse_expand_current_region()
-
-    def expand_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Expand all regions in file {finfo.filename}")
-        finfo.editor.expand_all()
-
     def refresh_formatting(self):
         editor = self.get_current_editor()
         if editor:

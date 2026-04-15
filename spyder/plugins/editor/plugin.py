@@ -474,6 +474,20 @@ class Editor(SpyderDockablePlugin):
                 before_section=SourceMenuSections.Autofix,
             )
 
+        # Folding section
+        folding_actions = [
+            widget.collapse_expand_action,
+            widget.expand_all_action,
+            widget.collapse_all_action,
+        ]
+        for folding_item in folding_actions:
+            mainmenu.add_item_to_application_menu(
+                folding_item,
+                menu_id=ApplicationMenus.Source,
+                section=SourceMenuSections.Folding,
+                before_section=SourceMenuSections.Autofix,
+            )
+
         # Autofix section
         autofix_actions = [
             widget.formatting_action,
@@ -483,19 +497,6 @@ class Editor(SpyderDockablePlugin):
                 autofix_item,
                 menu_id=ApplicationMenus.Source,
                 section=SourceMenuSections.Autofix,
-            )
-
-        # Folding section
-        folding_actions = [
-            widget.expand_all_action,
-            widget.collapse_all_action,
-            widget.collapse_expand_action,
-        ]
-        for folding_item in folding_actions:
-            mainmenu.add_item_to_application_menu(
-                folding_item,
-                menu_id=ApplicationMenus.Source,
-                section=SourceMenuSections.Folding,
             )
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
