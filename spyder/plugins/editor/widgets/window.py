@@ -232,6 +232,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
+        editorstack.new_window = True
 
         # Adjust style.
         # This is necessary to give some space between the tabwidget pane and
