@@ -20,8 +20,13 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import QByteArray, QEvent, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -108,17 +113,32 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
 
         # ---- Status bar
         statusbar = parent.statusBar()
-        self.vcs_status = VCSStatus(self)
-        self.cursorpos_status = CursorPositionStatus(self)
-        self.encoding_status = EncodingStatus(self)
-        self.eol_status = EOLStatus(self)
-        self.readwrite_status = ReadWriteStatus(self)
 
-        statusbar.insertPermanentWidget(0, self.readwrite_status)
-        statusbar.insertPermanentWidget(0, self.eol_status)
-        statusbar.insertPermanentWidget(0, self.encoding_status)
-        statusbar.insertPermanentWidget(0, self.cursorpos_status)
-        statusbar.insertPermanentWidget(0, self.vcs_status)
+        # Check if the StatusBar plugin is enabled to create status widgets
+        if self.get_conf("enable", section="statusbar", default=True):
+            # *DON'T* change the order in which these widgets are added. It's
+            # the same one used in the main window.
+            self.readwrite_status = ReadWriteStatus(self)
+            statusbar.insertPermanentWidget(0, self.readwrite_status)
+
+            self.eol_status = EOLStatus(self)
+            statusbar.insertPermanentWidget(0, self.eol_status)
+
+            self.encoding_status = EncodingStatus(self)
+            statusbar.insertPermanentWidget(0, self.encoding_status)
+
+            self.cursorpos_status = CursorPositionStatus(self)
+            statusbar.insertPermanentWidget(0, self.cursorpos_status)
+
+            self.vcs_status = VCSStatus(self)
+            statusbar.insertPermanentWidget(0, self.vcs_status)
+        else:
+            statusbar.hide()
+            self.vcs_status = None
+            self.cursorpos_status = None
+            self.encoding_status = None
+            self.eol_status = None
+            self.readwrite_status = None
 
         # ---- Outline.
         self.outlineexplorer = None
@@ -225,16 +245,34 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.tabs.setStyleSheet(css.toString())
 
         # Signals
-        editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-        editorstack.reset_statusbar.connect(self.encoding_status.hide)
-        editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-        editorstack.readonly_changed.connect(
-            self.readwrite_status.update_readonly)
-        editorstack.encoding_changed.connect(
-            self.encoding_status.update_encoding)
-        editorstack.sig_editor_cursor_position_changed.connect(
-            self.cursorpos_status.update_cursor_position)
-        editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
+        if self.readwrite_status is not None:
+            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+            editorstack.readonly_changed.connect(
+                self.readwrite_status.update_readonly
+            )
+
+        if self.encoding_status is not None:
+            editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.encoding_changed.connect(
+                self.encoding_status.update_encoding
+            )
+
+        if self.cursorpos_status is not None:
+            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                self.cursorpos_status.update_cursor_position
+            )
+
+        if self.eol_status is not None:
+            editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol
+            )
+
+        if self.vcs_status is not None:
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs
+            )
+            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
 
         # Register stack
         self.main_widget.register_editorstack(editorstack)

@@ -33,14 +33,26 @@ from spyder.plugins.ipythonconsole.api import (
 )
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
+from spyder.plugins.ipythonconsole.widgets import (
+    MatplotlibStatus,
+    PythonEnvironmentStatus,
+)
 from spyder.plugins.ipythonconsole.widgets.main_widget import (
     IPythonConsoleWidget
 )
 from spyder.plugins.mainmenu.api import (
-    ApplicationMenus, ConsolesMenuSections, HelpMenuSections)
+    ApplicationMenus,
+    ConsolesMenuSections,
+    HelpMenuSections,
+)
 from spyder.plugins.run.api import (
-    RunContext, RunExecutor, RunConfiguration,
-    ExtendedRunExecutionParameters, RunResult, run_execute)
+    ExtendedRunExecutionParameters,
+    RunContext,
+    RunConfiguration,
+    RunExecutor,
+    RunResult,
+    run_execute,
+)
 from spyder.plugins.editor.api.run import CellRun, FileRun, SelectionRun
 
 
@@ -423,12 +435,19 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_statusbar_available(self):
         # Add status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+        widget = self.get_widget()
 
-        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status = PythonEnvironmentStatus(widget)
         statusbar.add_status_widget(pythonenv_status)
         pythonenv_status.register_ipythonconsole(self)
+        pythonenv_status.sig_interpreter_changed.connect(
+            widget.sig_interpreter_changed
+        )
+        pythonenv_status.sig_open_preferences_requested.connect(
+            widget.sig_open_preferences_requested
+        )
 
-        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status = MatplotlibStatus(widget)
         statusbar.add_status_widget(matplotlib_status)
         matplotlib_status.register_ipythonconsole(self)
 
@@ -436,14 +455,23 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_statusbar_teardown(self):
         # Remove status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
+        widget = self.get_widget()
 
-        pythonenv_status = self.get_widget().pythonenv_status
+        pythonenv_status = statusbar.get_status_widget(
+            PythonEnvironmentStatus.ID
+        )
+        pythonenv_status.sig_interpreter_changed.disconnect(
+            widget.sig_interpreter_changed
+        )
+        pythonenv_status.sig_open_preferences_requested.disconnect(
+            widget.sig_open_preferences_requested
+        )
         pythonenv_status.unregister_ipythonconsole(self)
-        statusbar.remove_status_widget(pythonenv_status.ID)
+        statusbar.remove_status_widget(PythonEnvironmentStatus.ID)
 
-        matplotlib_status = self.get_widget().matplotlib_status
+        matplotlib_status = statusbar.get_status_widget(MatplotlibStatus.ID)
         matplotlib_status.unregister_ipythonconsole(self)
-        statusbar.remove_status_widget(matplotlib_status.ID)
+        statusbar.remove_status_widget(MatplotlibStatus.ID)
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
