@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 from datetime import datetime
 import logging
 import os
