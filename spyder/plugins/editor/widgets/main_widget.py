@@ -283,11 +283,13 @@ class EditorMainWidget(PluginMainWidget):
         # Configuration dialog size
         self.dialog_size = None
 
-        self.vcs_status = VCSStatus(self)
-        self.cursorpos_status = CursorPositionStatus(self)
-        self.encoding_status = EncodingStatus(self)
-        self.eol_status = EOLStatus(self)
-        self.readwrite_status = ReadWriteStatus(self)
+        # These attrs are set by the plugin if the StatusBar plugin is
+        # available
+        self.readwrite_status: ReadWriteStatus | None = None
+        self.eol_status: EOLStatus | None = None
+        self.encoding_status: EncodingStatus | None = None
+        self.cursorpos_status: CursorPositionStatus| None = None
+        self.vcs_status: VCSStatus | None = None
 
         self.last_edit_cursor_pos = None
         self.cursor_undo_history = []
@@ -1242,6 +1244,39 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Handling editorstacks
     # -------------------------------------------------------------------------
+    def register_status_widgets(self, editorstack: EditorStack | None = None):
+        if editorstack is None:
+            editorstack = self.get_current_editorstack()
+
+        if self.readwrite_status is not None:
+            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+            editorstack.readonly_changed.connect(
+                self.readwrite_status.update_readonly
+            )
+
+        if self.encoding_status is not None:
+            editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.encoding_changed.connect(
+                self.encoding_status.update_encoding
+            )
+
+        if self.cursorpos_status is not None:
+            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                self.cursorpos_status.update_cursor_position
+            )
+
+        if self.eol_status is not None:
+            editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol
+            )
+
+        if self.vcs_status is not None:
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs
+            )
+            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
+
     def register_editorstack(self, editorstack):
         logger.debug("Registering new EditorStack")
         self.editorstacks.append(editorstack)
@@ -1250,26 +1285,16 @@ class EditorMainWidget(PluginMainWidget):
             # editorstack is a child of the Editor plugin
             self.set_last_focused_editorstack(self, editorstack)
             editorstack.set_closable(len(self.editorstacks) > 1)
+
             if self.outlineexplorer is not None:
                 editorstack.set_outlineexplorer(self.outlineexplorer)
+
             editorstack.set_find_widget(self.find_widget)
-            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-            editorstack.reset_statusbar.connect(self.encoding_status.hide)
-            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-            editorstack.readonly_changed.connect(
-                                        self.readwrite_status.update_readonly)
-            editorstack.encoding_changed.connect(
-                                         self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
-                                 self.cursorpos_status.update_cursor_position)
-            editorstack.sig_editor_cursor_position_changed.connect(
-                self.current_editor_cursor_changed)
-            editorstack.sig_refresh_eol_chars.connect(
-                self.eol_status.update_eol)
-            editorstack.current_file_changed.connect(
-                self.vcs_status.update_vcs)
-            editorstack.file_saved.connect(
-                self.vcs_status.update_vcs_state)
+                self.current_editor_cursor_changed
+            )
+
+            self.register_status_widgets(editorstack)
 
         editorstack.update_switcher_actions(self.switcher_manager is not None)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
