@@ -108,7 +108,12 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         self._splitter_css = self._generate_splitter_stylesheet()
 
         # ---- Find widget
-        self.find_widget = FindReplace(self, enable_replace=True)
+        self.find_widget = FindReplace(
+            self,
+            enable_replace=True,
+            margin_top=0,
+            margin_bottom=AppStyle.MarginSize,
+        )
         self.find_widget.hide()
 
         # ---- Status bar
@@ -186,6 +191,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
+
         self.editorsplitter = EditorSplitter(
             self,
             main_widget,
