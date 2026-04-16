@@ -45,10 +45,11 @@ class ConnectionComboBox(SpyderComboBox, SpyderConfigurationAccessor):
     @staticmethod
     def create_combobox(
         label: str = _("Server:"),
+        parent: QWidget | None = None,
         items_elide_mode: Qt.TextElideMode | None = None,
         item_template: str = "{server_name}",
         default_item: tuple = (_("Local"), None),
-    ):
+    ) -> QWidget:
         """
         Create a connection combobox instance inside a layout with a label.
 
@@ -57,20 +58,22 @@ class ConnectionComboBox(SpyderComboBox, SpyderConfigurationAccessor):
         label : str, optional
             Text to use for label in the left side of the combobox.
             The default is _("Server:").
+        parent : QWidget, optional
+            Parent widget to set. The default is None.
         items_elide_mode : Qt.TextElideMode, optional
             Elide mode items should use. The default is None.
-        item_template : TYPE, optional
+        item_template : str, optional
             Template to use when creating an item label. The default is "{server_name}".
-        default_item : TYPE, optional
+        default_item : tuple, optional
             Default item to add to the combobox. The default is (_("Local"), None).
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        QWidget
+            Wrapper widget containing label and actual combobox widgets.
         """
         layout = QHBoxLayout()
-        widget = QWidget(self)
+        widget = QWidget(parent)
         widget.label = QLabel(label)
         widget.combobox = ConnectionComboBox(
             parent=widget,
@@ -85,7 +88,7 @@ class ConnectionComboBox(SpyderComboBox, SpyderConfigurationAccessor):
 
         return widget
 
-    def get_current_server_id(self):
+    def get_current_server_id(self) -> str:
         return self.currentData()
 
     # ---- Private API
@@ -109,7 +112,7 @@ class ConnectionComboBox(SpyderComboBox, SpyderConfigurationAccessor):
             self.addItem(item_text, server_id)
 
 
-def test():
+def test() -> None:
     import sys
 
     from spyder.utils.qthelpers import qapplication
