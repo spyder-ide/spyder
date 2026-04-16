@@ -14,12 +14,12 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
-from spyder.widgets.config import ConfigAccessMixin
 
 
-class ConnectionComboBox(SpyderComboBox, ConfigAccessMixin):
+class ConnectionComboBox(SpyderComboBox, SpyderConfigurationAccessor):
     """
     Widget to display remote connections available.
     """
@@ -43,7 +43,7 @@ class ConnectionComboBox(SpyderComboBox, ConfigAccessMixin):
     # ---- Public API
     # -------------------------------------------------------------------------
     @staticmethod
-    def create_connectioncombox(
+    def create_combobox(
         label: str = _("Server:"),
         items_elide_mode: Qt.TextElideMode | None = None,
         item_template: str = "{server_name}",
@@ -70,7 +70,7 @@ class ConnectionComboBox(SpyderComboBox, ConfigAccessMixin):
             DESCRIPTION.
         """
         layout = QHBoxLayout()
-        widget = QWidget()
+        widget = QWidget(self)
         widget.label = QLabel(label)
         widget.combobox = ConnectionComboBox(
             parent=widget,
@@ -98,11 +98,11 @@ class ConnectionComboBox(SpyderComboBox, ConfigAccessMixin):
             self.setCurrentText(self._default_item[0])
 
         # Add item per remote machine/connection available
-        servers = self.get_option("servers", default={})
+        servers = self.get_conf("servers", default={})
 
         for server_id in servers.keys():
-            server_auth = self.get_option(f"{server_id}/auth_method")
-            server_name = self.get_option(f"{server_id}/{server_auth}/name")
+            server_auth = self.get_conf(f"{server_id}/auth_method")
+            server_name = self.get_conf(f"{server_id}/{server_auth}/name")
             item_text = server_name
             if self._item_template:
                 item_text = self._item_template.format(server_name=server_name)
@@ -118,7 +118,7 @@ def test():
     app = qapplication()  # noqa
     app.setStyleSheet(str(APP_STYLESHEET))
 
-    combobox_widget = ConnectionComboBox.create_connectioncombox()
+    combobox_widget = ConnectionComboBox.create_combobox()
     combobox = combobox_widget.combobox
     combobox.currentTextChanged.connect(
         lambda: print(combobox.get_current_server_id())
