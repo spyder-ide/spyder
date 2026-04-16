@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-16 12:18\n"
+"PO-Revision-Date: 2026-04-16 13:53\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -769,23 +769,23 @@ msgstr "Tutoriels vidéo"
 
 #: spyder/plugins/application/container.py:283
 msgid "Troubleshooting guide"
-msgstr ""
+msgstr "Guide de dépannage"
 
 #: spyder/plugins/application/container.py:287
 msgid "Report issue..."
-msgstr "Signaler une problème..."
+msgstr "Signaler un problème..."
 
 #: spyder/plugins/application/container.py:292
 msgid "Dependency status"
-msgstr ""
+msgstr "Statut des dépendances"
 
 #: spyder/plugins/application/container.py:297
 msgid "Spyder Google group"
-msgstr ""
+msgstr "Groupe Google Spyder"
 
 #: spyder/plugins/application/container.py:302
 msgid "Show changelog"
-msgstr ""
+msgstr "Afficher les notes de version"
 
 #: spyder/plugins/application/container.py:307
 msgid "Help Spyder..."
@@ -1939,7 +1939,7 @@ msgstr "Déboguer la cellule"
 
 #: spyder/plugins/debugger/plugin.py:233 spyder/plugins/debugger/plugin.py:234
 msgid "Debug the current line or selection"
-msgstr "Déboguer la ligne ou sélection"
+msgstr "Déboguer la sélection ou la ligne en cours d'édition"
 
 #: spyder/plugins/debugger/utils/breakpointsmanager.py:153
 msgid "Breakpoint"
@@ -1951,7 +1951,7 @@ msgstr "Condition :"
 
 #: spyder/plugins/debugger/widgets/breakpoint_table_view.py:39
 msgid "Condition"
-msgstr ""
+msgstr "Condition"
 
 #: spyder/plugins/debugger/widgets/breakpoint_table_view.py:39 spyder/plugins/outlineexplorer/widgets.py:38
 msgid "File"
@@ -2031,7 +2031,7 @@ msgstr "Interrompre l'exécution et démarrer le débogueur"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:269
 msgid "Debug current line"
-msgstr "Déboguer la ligne"
+msgstr "Déboguer la ligne en cours d'édition"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:279
 msgid "Execute until next breakpoint"
@@ -2067,7 +2067,7 @@ msgstr "Ajouter/modifier un point d'arrêt conditionnel"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:340
 msgid "Set a conditional breakpoint, or edit an existing one"
-msgstr ""
+msgstr "Définir un point d'arrêt conditionnel ou modifier un point d'arrêt existant"
 
 #: spyder/plugins/debugger/widgets/main_widget.py:355
 msgid "List breakpoints"
@@ -2136,7 +2136,7 @@ msgstr "Afficher les numéros de ligne"
 
 #: spyder/plugins/editor/confpage.py:102
 msgid "Show debugger breakpoints"
-msgstr ""
+msgstr "Afficher les points d'arrêt du débogueur"
 
 #: spyder/plugins/editor/confpage.py:107
 msgid "Show code annotations"
@@ -2160,7 +2160,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:139
 msgid " milliseconds"
-msgstr ""
+msgstr " millisecondes"
 
 #: spyder/plugins/editor/confpage.py:176
 msgid "Automatic changes"
@@ -2687,7 +2687,7 @@ msgstr "Aperçu avant impression"
 
 #: spyder/plugins/editor/widgets/main_widget.py:337
 msgid "Show a print preview for the current file"
-msgstr ""
+msgstr "Afficher un aperçu d'impression pour le fichier courant"
 
 #: spyder/plugins/editor/widgets/main_widget.py:342
 msgid "&Print..."
@@ -2819,7 +2819,7 @@ msgstr "décommenter"
 
 #: spyder/plugins/editor/widgets/main_widget.py:596
 msgid "Toggle commenting the current line or selection"
-msgstr ""
+msgstr "Commenter/décommenter la sélection ou la ligne en cours d'édition"
 
 #: spyder/plugins/editor/widgets/main_widget.py:603
 msgid "Add &block comment"
@@ -2859,7 +2859,7 @@ msgstr "Convertir en majuscule"
 
 #: spyder/plugins/editor/widgets/main_widget.py:646
 msgid "Change current line or selection to UPPERCASE text"
-msgstr ""
+msgstr "Convertir la sélection ou la ligne en cours d'édition en texte majuscule"
 
 #: spyder/plugins/editor/widgets/main_widget.py:653
 msgid "Toggle lowercase"
@@ -2867,7 +2867,7 @@ msgstr "Convertir en minuscule"
 
 #: spyder/plugins/editor/widgets/main_widget.py:655
 msgid "Change current line or selection to lowercase text"
-msgstr ""
+msgstr "Convertir la sélection ou la ligne en cours d'édition en texte minuscule"
 
 #: spyder/plugins/editor/widgets/main_widget.py:674
 msgid "Clear all ouput"
@@ -3677,7 +3677,7 @@ msgstr "Rechercher des motifs de texte dans les fichiers."
 
 #: spyder/plugins/findinfiles/plugin.py:67
 msgid "Search text in files..."
-msgstr ""
+msgstr "Rechercher dans les fichiers..."
 
 #: spyder/plugins/findinfiles/plugin.py:68
 msgid "Search text in multiple files with the Find pane"
@@ -3861,7 +3861,7 @@ msgstr "Obtenir de la documentation pour les objets dans l'éditeur et la consol
 
 #: spyder/plugins/help/plugin.py:94
 msgid "Built-in tutorial"
-msgstr ""
+msgstr "Tutoriel intégré"
 
 #: spyder/plugins/help/utils/sphinxify.py:243 spyder/plugins/help/utils/sphinxify.py:253
 msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
@@ -4519,7 +4519,7 @@ msgstr "Interrompre le noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Connect to existing kernel..."
-msgstr ""
+msgstr "Se connecter à un noyau existant..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Open an IPython console connected to an existing kernel"
@@ -4563,7 +4563,7 @@ msgstr "Entrer le tableau en ligne"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:619
 msgid "Save as html..."
-msgstr ""
+msgstr "Enregistrer en HTML..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:626
 msgid "Print..."
@@ -4583,7 +4583,7 @@ msgstr "Copier l'image"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:655
 msgid "Save image as..."
-msgstr ""
+msgstr "Enregistrer l'image sous..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:661
 msgid "Copy SVG"
@@ -4591,7 +4591,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:667
 msgid "Save SVG as..."
-msgstr ""
+msgstr "Enregistrer le SVG sous..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:689
 msgid "New special console"
@@ -4973,7 +4973,7 @@ msgstr ""
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
-msgstr ""
+msgstr "Enregistrer la disposition sous"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
@@ -6294,7 +6294,7 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1262
 msgid "You can set up an environment later by going to the menu entry <i>Tools > Environment manager</i>."
-msgstr ""
+msgstr "Vous pouvez configurer un environnement plus tard en allant dans le menu <i>Outils > Gestionnaire d'environnement</i>."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1313
 msgid "Select packages for your remote environment"
@@ -6846,7 +6846,7 @@ msgstr "Barre d'outils de débogage"
 
 #: spyder/plugins/toolbar/plugin.py:60
 msgid "Profile toolbar"
-msgstr ""
+msgstr "Barre d'outils de profilage"
 
 #: spyder/plugins/toolbar/plugin.py:61
 msgid "Main toolbar"
@@ -6854,7 +6854,7 @@ msgstr "Barre d'outils principale"
 
 #: spyder/plugins/tours/container.py:52
 msgid "Interactive tour"
-msgstr ""
+msgstr "Visite interactive"
 
 #: spyder/plugins/tours/container.py:61
 msgid "Interactive tours"
@@ -6982,11 +6982,11 @@ msgstr "Commencer la visite "
 
 #: spyder/plugins/updatemanager/container.py:52 spyder/plugins/updatemanager/container.py:122
 msgid "Check for updates"
-msgstr ""
+msgstr "Vérifier les mises à jour"
 
 #: spyder/plugins/updatemanager/container.py:120
 msgid "Checking for updates..."
-msgstr ""
+msgstr "Recherche des mises à jour en cours..."
 
 #: spyder/plugins/updatemanager/plugin.py:49
 msgid "Update Manager"
