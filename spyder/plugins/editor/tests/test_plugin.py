@@ -12,14 +12,17 @@
 import os
 import os.path as osp
 import shutil
+import sys
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QColor, QFontMetrics, QPainter
+from qtpy.QtWidgets import QApplication
 import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
@@ -541,10 +544,15 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     assert get_eol_chars(text) == os.linesep
 
 
-def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Segfaults on Linux and CIs"
+)
+def test_editorstacks_and_windows(editor_plugin, qtbot):
     """
     Check that editor stacks and windows are removed from the list maintained
-    for them in the editor when closing editor windows and split editors.
+    for them in the editor when closing editor windows and split editors. Also
+    check that splits work as expected in editor windows.
 
     This is a regression test for spyder-ide/spyder#20144.
     """
@@ -554,6 +562,22 @@ def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
     # Create editor window
     editor_window = editor_plugin.get_widget().create_new_window()
     qtbot.wait(500)  # To check visually that the window was created
+
+    # Check split in window is performed without errors and has the right attrs
+    editor_window.editorwidget.editorstacks[0].versplit_action.trigger()
+    assert len(editor_window.editorwidget.editorstacks) == 2
+    assert len(editor_plugin.get_widget().editorstacks) == 3
+    assert editor_window.editorwidget.editorstacks[1].new_window
+
+    # Close split in window and check focus is given to the current editor
+    # in the main stack of the window
+    editor_window.editorwidget.editorstacks[1].close_split_action.trigger()
+    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1)
+    assert len(editor_plugin.get_widget().editorstacks) == 2
+    assert (
+        editor_window.editorwidget.editorstacks[0].get_current_editor()
+        is QApplication.focusWidget()
+    )
 
     # This is not done automatically by Qt when running our tests (don't know
     # why), but it's done in normal usage. So we need to do it manually

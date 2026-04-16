@@ -308,6 +308,14 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         logger.debug("Unregistering editorstack")
         self.main_widget.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
+
+        # Give focus to current editor of the main stack so the find widget is
+        # bound to it after a split stack is closed (otherwise a RuntimeError
+        # is raised because we're trying to do that for the current editor of
+        # closed stack).
+        if self.editorstacks:
+            self.editorstacks[0].get_current_editor().setFocus()
+
         self.__print_editorstacks()
 
     def unregister_all_editorstacks(self):
