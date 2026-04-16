@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-03-24 22:34\n"
+"PO-Revision-Date: 2026-04-16 10:04\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -135,12 +135,12 @@ msgstr "Initialisation en cours..."
 
 #: spyder/app/mainwindow.py:1399
 msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start on your system. The most probable causes for this are either that you are using a Windows version earlier than Windows 10 1803/Windows Server 2019, which is no longer supported by Spyder or Microsoft, or your system administrator has disabled font installation for non-admin users.<br><br>Please ask your system administrator for help to upgrade Windows or to install for all users the following fonts:<ul>{fonts_list}</ul>which are located at:<br><br><code>{fonts_directory}</code><br><br>If you have administrator privileges, you can run the following command in a Command Prompt to install the required fonts:<br><br><code>qta-install-fonts-all-users</code>"
-msgstr ""
+msgstr "Le démarrage de Spyder a échoué car le thème d'icône de Spyder n'a pas pu être chargé. Les causes les plus probables sont soit que vous utilisez une version de Windows antérieure à Windows 10 1803/Windows Server 2019, qui n'est plus pris en charge par Spyder ou Microsoft, soit que votre administrateur système a désactivé l'installation de polices pour les utilisateurs non administrateurs.<br><br>Veuillez contacter votre administrateur système pour mettre à niveau Windows ou pour installer les polices suivantes pour tous les utilisateurs :<ul>{fonts_list}</ul>qui se trouvent dans :<br><br><code>{fonts_directory}</code><br><br>Si vous avez les privilèges d'administrateur, vous pouvez exécuter la commande suivante dans une invite de commande pour installer les polices requises :<br><br><code>qta-install-fonts-all-users</code>"
 
 #: spyder/app/restart.py:138
 msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr "Il n'a pas été possible de fermer l'instance précédente de Spyder.\n"
+msgstr "La fermeture de l'instance précédente de Spyder a échoué.\n"
 "Redémarrage interrompu."
 
 #: spyder/app/restart.py:140
@@ -315,7 +315,7 @@ msgstr "Connexion à des noyaux distants via SSH"
 
 #: spyder/dependencies.py:115
 msgid "Decrypt passphrase of SSH key files"
-msgstr ""
+msgstr "Déchiffrement de la phrase de passe des clés SSH"
 
 #: spyder/dependencies.py:119
 msgid "Character encoding auto-detection for the Editor"
@@ -347,7 +347,7 @@ msgstr "Environnement python interactif IPython"
 
 #: spyder/dependencies.py:147
 msgid "IPython lexers for syntax highlighting"
-msgstr ""
+msgstr "Lexers IPython pour coloration syntaxique"
 
 #: spyder/dependencies.py:151
 msgid "Main backend for the Python Language Server"
@@ -367,7 +367,7 @@ msgstr "Permet la sauvegarde des informations d'identification de Github en tout
 
 #: spyder/dependencies.py:168
 msgid "Render markdown content to HTML"
-msgstr ""
+msgstr "Afficher le contenu markdown en HTML"
 
 #: spyder/dependencies.py:172
 msgid "Manipulate Jupyter notebooks in the Editor"
