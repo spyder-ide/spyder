@@ -23,9 +23,10 @@ from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 
+# Third-party imports
+from lsprotocol import types as lsp
+
 # Local imports
-from spyder.plugins.completion.api import CompletionItemKind
-from spyder.plugins.completion.api import CompletionRequestTypes
 from spyder.plugins.completion.providers.fallback.utils import (
     get_keywords, get_words, is_prefix_valid)
 
@@ -38,7 +39,7 @@ logger = logging.getLogger(__name__)
 class FallbackActor(QObject):
     #: Signal emitted when the Thread is ready
     sig_fallback_ready = Signal()
-    sig_set_tokens = Signal(int, dict)
+    sig_set_tokens = Signal(int, object)
     sig_mailbox = Signal(dict)
 
     def __init__(self, parent):
@@ -70,34 +71,40 @@ class FallbackActor(QObject):
         except Exception:
             keywords = []
         keyword_set = set(keywords)
-        keywords = [{'kind': CompletionItemKind.KEYWORD,
-                     'insertText': keyword,
-                     'label': keyword,
-                     'sortText': keyword,
-                     'filterText': keyword,
-                     'documentation': '',
-                     'provider': FALLBACK_COMPLETION}
-                    for keyword in keywords]
+        keywords = [
+            lsp.CompletionItem(
+                label=keyword,
+                kind=lsp.CompletionItemKind.Keyword,
+                insert_text=keyword,
+                sort_text=keyword,
+                filter_text=keyword,
+                data={'provider': FALLBACK_COMPLETION},
+            )
+            for keyword in keywords
+        ]
 
         # Get file tokens
         tokens = get_words(text, offset, language)
-        tokens = [{'kind': CompletionItemKind.TEXT,
-                   'insertText': token,
-                   'label': token,
-                   'sortText': token,
-                   'filterText': token,
-                   'documentation': '',
-                   'provider': FALLBACK_COMPLETION}
-                  for token in tokens]
+        tokens = [
+            lsp.CompletionItem(
+                label=token,
+                kind=lsp.CompletionItemKind.Text,
+                insert_text=token,
+                sort_text=token,
+                filter_text=token,
+                data={'provider': FALLBACK_COMPLETION},
+            )
+            for token in tokens
+        ]
         for token in tokens:
-            if token['insertText'] not in keyword_set:
+            if token.label not in keyword_set:
                 keywords.append(token)
 
         # Filter matching results
         if current_word is not None:
             current_word = current_word.lower()
             keywords = [k for k in keywords
-                        if current_word in k['insertText'].lower()]
+                        if current_word in (k.insert_text or k.label).lower()]
 
         return keywords
 
@@ -123,13 +130,13 @@ class FallbackActor(QObject):
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
         logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
-        if msg_type == CompletionRequestTypes.DOCUMENT_DID_OPEN:
+        if msg_type == lsp.TEXT_DOCUMENT_DID_OPEN:
             self.file_tokens[file] = {
                 'text': msg['text'],
                 'offset': msg['offset'],
                 'language': msg['language'],
             }
-        elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CHANGE:
+        elif msg_type == lsp.TEXT_DOCUMENT_DID_CHANGE:
             if file not in self.file_tokens:
                 self.file_tokens[file] = {
                     'text': '',
@@ -142,9 +149,9 @@ class FallbackActor(QObject):
             text, _ = self.diff_patch.patch_apply(
                 diff, text['text'])
             self.file_tokens[file]['text'] = text
-        elif msg_type == CompletionRequestTypes.DOCUMENT_DID_CLOSE:
+        elif msg_type == lsp.TEXT_DOCUMENT_DID_CLOSE:
             self.file_tokens.pop(file, {})
-        elif msg_type == CompletionRequestTypes.DOCUMENT_COMPLETION:
+        elif msg_type == lsp.TEXT_DOCUMENT_COMPLETION:
             tokens = []
             if file in self.file_tokens:
                 text_info = self.file_tokens[file]
@@ -153,5 +160,4 @@ class FallbackActor(QObject):
                     text_info['offset'],
                     text_info['language'],
                     msg['current_word'])
-            tokens = {'params': tokens}
             self.sig_set_tokens.emit(_id, tokens)

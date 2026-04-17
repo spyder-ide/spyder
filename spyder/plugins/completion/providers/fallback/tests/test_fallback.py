@@ -9,7 +9,7 @@ import os.path as osp
 
 import pytest
 from diff_match_patch import diff_match_patch
-from spyder.plugins.completion.api import CompletionRequestTypes
+from lsprotocol import types as lsp
 from spyder.plugins.completion.providers.fallback.utils import get_words
 
 
@@ -71,7 +71,7 @@ def test_file_open_close(qtbot_module, fallback_fixture):
         'offset': -1,
     }
     fallback.send_request(
-        'python', CompletionRequestTypes.DOCUMENT_DID_OPEN, open_request)
+        'python', lsp.TEXT_DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
     assert 'test.py' in fallback.fallback_actor.file_tokens
 
@@ -79,7 +79,7 @@ def test_file_open_close(qtbot_module, fallback_fixture):
         'file': 'test.py',
     }
     fallback.send_request(
-        'python', CompletionRequestTypes.DOCUMENT_DID_CLOSE, close_request)
+        'python', lsp.TEXT_DOCUMENT_DID_CLOSE, close_request)
     qtbot_module.wait(1000)
     assert 'test.py' not in fallback.fallback_actor.file_tokens
 
@@ -103,7 +103,7 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
         'offset': len(contents),
     }
     fallback.send_request(
-        language, CompletionRequestTypes.DOCUMENT_DID_OPEN, open_request)
+        language, lsp.TEXT_DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
@@ -114,11 +114,11 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
                                  timeout=3000) as blocker:
         fallback.send_request(
             language,
-            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            lsp.TEXT_DOCUMENT_COMPLETION,
             tokens_request
         )
     tokens = blocker.args
-    tokens = {token['insertText'] for token in tokens[0]}
+    tokens = {token.insert_text for token in tokens[0]}
     assert len(expected_tokens - tokens) == 0
 
 
@@ -132,7 +132,7 @@ def test_token_update(qtbot_module, fallback_fixture):
         'offset': len(TEST_FILE),
     }
     fallback.send_request(
-        'python', CompletionRequestTypes.DOCUMENT_DID_OPEN, open_request)
+        'python', lsp.TEXT_DOCUMENT_DID_OPEN, open_request)
     qtbot_module.wait(1000)
 
     tokens_request = {
@@ -143,11 +143,11 @@ def test_token_update(qtbot_module, fallback_fixture):
                                  timeout=3000) as blocker:
         fallback.send_request(
             'python',
-            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            lsp.TEXT_DOCUMENT_COMPLETION,
             tokens_request
         )
     initial_tokens = blocker.args[0]
-    initial_tokens = {token['insertText'] for token in initial_tokens}
+    initial_tokens = {token.insert_text for token in initial_tokens}
     assert 'args' not in initial_tokens
 
     diff = diff_match.patch_make(TEST_FILE, TEST_FILE_UPDATE)
@@ -157,15 +157,15 @@ def test_token_update(qtbot_module, fallback_fixture):
         'offset': len(diff),
     }
     fallback.send_request(
-        'python', CompletionRequestTypes.DOCUMENT_DID_CHANGE, update_request)
+        'python', lsp.TEXT_DOCUMENT_DID_CHANGE, update_request)
     qtbot_module.wait(1000)
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
         fallback.send_request(
             'python',
-            CompletionRequestTypes.DOCUMENT_COMPLETION,
+            lsp.TEXT_DOCUMENT_COMPLETION,
             tokens_request
         )
     updated_tokens = blocker.args[0]
-    updated_tokens = {token['insertText'] for token in updated_tokens}
+    updated_tokens = {token.insert_text for token in updated_tokens}
     assert 'args' in updated_tokens

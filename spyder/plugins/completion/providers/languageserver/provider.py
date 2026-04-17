@@ -433,8 +433,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
     @Slot(str)
     def report_lsp_down(self, language):
         """
-        Report that either the transport layer or the LSP server are
-        down.
+        Report that the LSP server is down.
         """
         self.update_status(language, ClientStatus.DOWN)
 
@@ -698,7 +697,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
                 client.perform_request(request, params)
                 return
         self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
-                                     req_id, {})
+                                     req_id, None)
 
     def send_notification(self, language, request, params):
         if language in self.clients:

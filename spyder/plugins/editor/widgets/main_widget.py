@@ -994,15 +994,15 @@ class EditorMainWidget(PluginMainWidget):
                 logger.debug('Setting {0} completions off'.format(filename))
                 codeeditor.completions_available = False
 
-    @Slot(dict, str)
+    @Slot(object, str)
     def register_completion_capabilities(self, capabilities, language):
         """
         Register completion server capabilities in all editorstacks.
 
         Parameters
         ----------
-        capabilities: dict
-            Capabilities supported by a language server.
+        capabilities: lsp.ServerCapabilities
+            Server capabilities reported during LSP initialization.
         language: str
             Programming language for the language server (it has to be
             in small caps).
@@ -1018,7 +1018,7 @@ class EditorMainWidget(PluginMainWidget):
         # TODO: main_widget calling logic for the projects plugin
         self._plugin._start_project_workspace_services()
 
-        self.completion_capabilities[language] = dict(capabilities)
+        self.completion_capabilities[language] = capabilities
         for editorstack in self.editorstacks:
             editorstack.register_completion_capabilities(
                 capabilities, language)

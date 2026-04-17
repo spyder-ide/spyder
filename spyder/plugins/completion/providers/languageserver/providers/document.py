@@ -9,10 +9,10 @@
 # Standard library imports
 import logging
 
+# Third-party imports
+from lsprotocol import types as lsp
+
 # Local imports
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes, InsertTextFormat, CompletionItemKind,
-    ClientConstants)
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri, process_uri, snake_to_camel)
 from spyder.plugins.completion.providers.languageserver.decorators import (
@@ -31,329 +31,384 @@ class DocumentProvider:
             self.watched_files[filename] = []
         self.watched_files[filename].append(codeeditor)
 
-    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
-    def process_document_diagnostics(self, response, *args):
-        uri = response['uri']
-        diagnostics = response['diagnostics']
+    # ------------------------------------------------------------------
+    # Diagnostics (server -> client notification)
+    # ------------------------------------------------------------------
+
+    @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def process_document_diagnostics(
+        self, params: lsp.PublishDiagnosticsParams, *args
+    ) -> None:
+        uri = params.uri
+        diagnostics = params.diagnostics or []
+
         if uri in self.watched_files:
-            callbacks = self.watched_files[uri]
-            for callback in callbacks:
+            for callback in self.watched_files[uri]:
                 callback.handle_response(
-                    CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS,
-                    {'params': diagnostics})
+                    lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS,
+                    diagnostics,
+                )
         else:
-            logger.debug("Received diagnostics for file not open: " + uri)
+            logger.debug('Received diagnostics for file not open: %s', uri)
 
-    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_CHANGE)
+    # ------------------------------------------------------------------
+    # textDocument/didChange
+    # ------------------------------------------------------------------
+
+    @send_notification(method=lsp.TEXT_DOCUMENT_DID_CHANGE)
     def document_changed(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file']),
-                'version': params['version']
-            },
-            'contentChanges': [{
-                'text': params['text']
-            }]
-        }
-        return params
+        return lsp.DidChangeTextDocumentParams(
+            text_document=lsp.VersionedTextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+                version=params['version'],
+            ),
+            content_changes=[
+                lsp.TextDocumentContentChangeWholeDocument(
+                    text=params['text'],
+                )
+            ],
+        )
 
-    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_OPEN)
+    # ------------------------------------------------------------------
+    # textDocument/didOpen
+    # ------------------------------------------------------------------
+
+    @send_notification(method=lsp.TEXT_DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
-            self.register_file(
-                editor_params['file'], editor_params['codeeditor'])
-        params = {
-            'textDocument': {
-                'uri': uri,
-                'languageId': editor_params['language'],
-                'version': editor_params['version'],
-                'text': editor_params['text']
-            }
-        }
+            self.register_file(editor_params['file'], editor_params['codeeditor'])
+        return lsp.DidOpenTextDocumentParams(
+            text_document=lsp.TextDocumentItem(
+                uri=uri,
+                language_id=editor_params['language'],
+                version=editor_params['version'],
+                text=editor_params['text'],
+            ),
+        )
 
-        return params
+    # ------------------------------------------------------------------
+    # textDocument/completion
+    # ------------------------------------------------------------------
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
+    @send_request(method=lsp.TEXT_DOCUMENT_COMPLETION)
     def document_completion_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'position': {
-                'line': params['line'],
-                'character': params['column']
-            }
-        }
+        return lsp.CompletionParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            position=lsp.Position(
+                line=params['line'],
+                character=params['column'],
+            ),
+        )
 
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
+    @handles(lsp.TEXT_DOCUMENT_COMPLETION)
     def process_document_completion(self, response, req_id):
-        if isinstance(response, dict):
-            response = response['items']
+        if isinstance(response, lsp.CompletionList):
+            items = response.items or []
+        elif isinstance(response, list):
+            items = response
+        else:
+            items = []
 
-        must_resolve = self.server_capabilites['completionProvider'].get(
-            'resolveProvider', False)
-        if response is not None:
-            for item in response:
-                item['kind'] = item.get('kind', CompletionItemKind.TEXT)
-                item['detail'] = item.get('detail', '')
-                item['documentation'] = item.get('documentation', '')
-                item['sortText'] = item.get('sortText', item['label'])
-                item['filterText'] = item.get('filterText', item['label'])
-                item['insertTextFormat'] = item.get(
-                    'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
-                item['insertText'] = item.get('insertText', item['label'])
-                item['provider'] = LSP_COMPLETION
-                item['resolve'] = must_resolve
+        cp = self.server_capabilites.completion_provider if self.server_capabilites else None
+        must_resolve = bool(cp and cp.resolve_provider)
+
+        # Annotate each item with provider metadata in .data
+        result = []
+        for item in items:
+            # Preserve existing .data (server may have put something there)
+            existing = item.data or {}
+            item.data = dict(existing) if isinstance(existing, dict) else {}
+            item.data['provider'] = LSP_COMPLETION
+            item.data['resolve'] = must_resolve
+            result.append(item)
 
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_COMPLETION,
-                {'params': response}
+                lsp.TEXT_DOCUMENT_COMPLETION,
+                result,
             )
 
-    @send_request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
+    # ------------------------------------------------------------------
+    # completionItem/resolve
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.COMPLETION_ITEM_RESOLVE)
     def completion_resolve_request(self, params):
         return params['completion_item']
 
-    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
-    def handle_completion_resolve(self, response, req_id):
-        response['kind'] = response.get('kind', CompletionItemKind.TEXT)
-        response['detail'] = response.get('detail', '')
-        response['documentation'] = response.get('documentation', '')
-        response['sortText'] = response.get('sortText', response['label'])
-        response['filterText'] = response.get('filterText', response['label'])
-        response['insertTextFormat'] = response.get(
-            'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
-        response['insertText'] = response.get('insertText', response['label'])
-        response['provider'] = LSP_COMPLETION
-
+    @handles(lsp.COMPLETION_ITEM_RESOLVE)
+    def handle_completion_resolve(self, response: lsp.CompletionItem, req_id):
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.COMPLETION_RESOLVE,
-                {'params': response}
+                lsp.COMPLETION_ITEM_RESOLVE,
+                response,
             )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
+    # ------------------------------------------------------------------
+    # textDocument/signatureHelp
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
     def signature_help_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'position': {
-                'line': params['line'],
-                'character': params['column']
-            }
-        }
+        return lsp.SignatureHelpParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            position=lsp.Position(
+                line=params['line'],
+                character=params['column'],
+            ),
+        )
 
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
-    def process_signature_completion(self, response, req_id):
-        if response and len(response['signatures']) > 0:
-            response['signatures'] = response['signatures'][
-                response['activeSignature']]
-            response['provider'] = LSP_COMPLETION
-        else:
-            response = None
+    @handles(lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
+    def process_signature_completion(
+        self, response: lsp.SignatureHelp, req_id
+    ):
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_SIGNATURE,
-                {'params': response})
+                lsp.TEXT_DOCUMENT_SIGNATURE_HELP,
+                response,
+            )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_HOVER)
+    # ------------------------------------------------------------------
+    # textDocument/hover
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_HOVER)
     def hover_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'position': {
-                'line': params['line'],
-                'character': params['column']
-            }
-        }
+        return lsp.HoverParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            position=lsp.Position(
+                line=params['line'],
+                character=params['column'],
+            ),
+        )
 
-        return params
+    @handles(lsp.TEXT_DOCUMENT_HOVER)
+    def process_hover_result(self, result: lsp.Hover, req_id):
+        contents = None
+        if result is not None:
+            raw = result.contents
+            if isinstance(raw, lsp.MarkupContent):
+                contents = raw.value
+            elif isinstance(raw, lsp.MarkedStringWithLanguage):
+                contents = raw.value
+            elif isinstance(raw, str):
+                contents = raw
+            elif isinstance(raw, (list, tuple)):
+                parts = []
+                for entry in raw:
+                    if isinstance(entry, lsp.MarkupContent):
+                        parts.append(entry.value)
+                    elif isinstance(entry, lsp.MarkedStringWithLanguage):
+                        parts.append(entry.value)
+                    elif isinstance(entry, str):
+                        parts.append(entry)
+                    else:
+                        parts.append(str(entry))
+                contents = '\n\n'.join(parts)
 
-    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
-    def process_hover_result(self, result, req_id):
-        contents = result['contents']
-        if isinstance(contents, dict):
-            if 'value' in contents:
-                contents = contents['value']
-        elif isinstance(contents, list):
-            text = []
-            for entry in contents:
-                if isinstance(entry, dict):
-                    text.append(entry['value'])
-                else:
-                    text.append(entry)
-            contents = '\n\n'.join(text)
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_HOVER,
-                {'params': contents})
+                lsp.TEXT_DOCUMENT_HOVER,
+                contents,
+            )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
+    # ------------------------------------------------------------------
+    # textDocument/documentSymbol
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def document_symbol_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-        }
-        return params
+        return lsp.DocumentSymbolParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+        )
 
-    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
+    @handles(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def process_document_symbol_request(self, result, req_id):
+        # result is list[DocumentSymbol] | list[SymbolInformation] | None
+        symbols = result or []
         if req_id in self.req_reply:
-            self.req_reply[req_id](CompletionRequestTypes.DOCUMENT_SYMBOL,
-                                   {'params': result})
+            self.req_reply[req_id](
+                lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+                symbols,
+            )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
+    # ------------------------------------------------------------------
+    # textDocument/definition
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'position': {
-                'line': params['line'],
-                'character': params['column']
-            }
-        }
+        return lsp.DefinitionParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            position=lsp.Position(
+                line=params['line'],
+                character=params['column'],
+            ),
+        )
 
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
+    @handles(lsp.TEXT_DOCUMENT_DEFINITION)
     def process_go_to_definition(self, result, req_id):
-        if isinstance(result, list):
-            if len(result) > 0:
-                result = result[0]
-                result['file'] = process_uri(result['uri'])
-            else:
-                result = None
-        elif isinstance(result, dict):
-            result['file'] = process_uri(result['uri'])
+        # Normalise to a single location (first item if list)
+        location = None
+        if isinstance(result, list) and result:
+            location = result[0]
+        elif isinstance(result, (lsp.Location, lsp.LocationLink)):
+            location = result
+
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_DEFINITION,
-                {'params': result})
+                lsp.TEXT_DOCUMENT_DEFINITION,
+                location,
+            )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
+    # ------------------------------------------------------------------
+    # textDocument/foldingRange
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def folding_range_request(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            }
-        }
-        return params
+        return lsp.FoldingRangeParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+        )
 
-    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @handles(lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def process_folding_range(self, result, req_id):
+        ranges = result or []
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_FOLDING_RANGE,
-                {'params': result})
+                lsp.TEXT_DOCUMENT_FOLDING_RANGE,
+                ranges,
+            )
 
-    @send_notification(method=CompletionRequestTypes.DOCUMENT_WILL_SAVE)
+    # ------------------------------------------------------------------
+    # textDocument/willSave
+    # ------------------------------------------------------------------
+
+    @send_notification(method=lsp.TEXT_DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'reason': params['reason']
-        }
-        return params
+        return lsp.WillSaveTextDocumentParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            reason=lsp.TextDocumentSaveReason(params['reason']),
+        )
 
-    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_SAVE)
+    # ------------------------------------------------------------------
+    # textDocument/didSave
+    # ------------------------------------------------------------------
+
+    @send_notification(method=lsp.TEXT_DOCUMENT_DID_SAVE)
     def document_did_save_notification(self, params):
-        """
-        Handle the textDocument/didSave message received from an LSP server.
-        """
-        text = None
-        if 'text' in params:
-            text = params['text']
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            }
-        }
-        if text is not None:
-            params['text'] = text
-        return params
+        return lsp.DidSaveTextDocumentParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            text=params.get('text'),
+        )
 
-    @send_notification(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE)
+    # ------------------------------------------------------------------
+    # textDocument/didClose
+    # ------------------------------------------------------------------
+
+    @send_notification(method=lsp.TEXT_DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
         filename = path_as_uri(params['file'])
-        params = {
-            'textDocument': {
-                'uri': filename
-            }
-        }
 
         if filename not in self.watched_files:
-            params[ClientConstants.CANCEL] = True
-        else:
-            editors = self.watched_files[filename]
-            if len(editors) > 1:
-                params[ClientConstants.CANCEL] = True
-            idx = -1
+            return None  # Nothing to close, cancel.
+
+        editors = self.watched_files[filename]
+        if len(editors) > 1:
+            # Other editors still have the file open; just deregister this one.
             for i, editor in enumerate(editors):
                 if id(codeeditor) == id(editor):
-                    idx = i
+                    editors.pop(i)
                     break
-            if idx >= 0:
-                editors.pop(idx)
+            return None  # Don't send didClose to server yet.
 
-            if len(editors) == 0:
-                self.watched_files.pop(filename)
+        # Last editor, deregister and send didClose.
+        for i, editor in enumerate(editors):
+            if id(codeeditor) == id(editor):
+                editors.pop(i)
+                break
+        if not editors:
+            self.watched_files.pop(filename, None)
 
-        return params
+        return lsp.DidCloseTextDocumentParams(
+            text_document=lsp.TextDocumentIdentifier(uri=filename),
+        )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
+    # ------------------------------------------------------------------
+    # textDocument/formatting
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_FORMATTING)
     def document_formatting_request(self, params):
-        options = params['options']
         options = {
-            snake_to_camel(opt): options[opt]
-            for opt in options
+            snake_to_camel(k): v for k, v in params['options'].items()
         }
+        return lsp.DocumentFormattingParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            options=lsp.FormattingOptions(**options),
+        )
 
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'options': options
-        }
-        return params
-
-    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
+    @handles(lsp.TEXT_DOCUMENT_FORMATTING)
     def process_document_formatting(self, result, req_id):
+        edits = result or []
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_FORMATTING,
-                {'params': result})
+                lsp.TEXT_DOCUMENT_FORMATTING,
+                edits,
+            )
 
-    @send_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    # ------------------------------------------------------------------
+    # textDocument/rangeFormatting
+    # ------------------------------------------------------------------
+
+    @send_request(method=lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def document_range_formatting_request(self, params):
-        options = params['options']
         options = {
-            snake_to_camel(opt): options[opt]
-            for opt in options
+            snake_to_camel(k): v for k, v in params['options'].items()
         }
-        params = {
-            'textDocument': {
-                'uri': path_as_uri(params['file'])
-            },
-            'options': options,
-            'range': params['range']
-        }
-        return params
+        rng = params['range']
+        return lsp.DocumentRangeFormattingParams(
+            text_document=lsp.TextDocumentIdentifier(
+                uri=path_as_uri(params['file']),
+            ),
+            options=lsp.FormattingOptions(**options),
+            range=lsp.Range(
+                start=lsp.Position(
+                    line=rng['start']['line'],
+                    character=rng['start']['character'],
+                ),
+                end=lsp.Position(
+                    line=rng['end']['line'],
+                    character=rng['end']['character'],
+                ),
+            ),
+        )
 
-    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @handles(lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def process_document_range_formatting(self, result, req_id):
+        edits = result or []
         if req_id in self.req_reply:
             self.req_reply[req_id](
-                CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING,
-                {'params': result})
+                lsp.TEXT_DOCUMENT_RANGE_FORMATTING,
+                edits,
+            )

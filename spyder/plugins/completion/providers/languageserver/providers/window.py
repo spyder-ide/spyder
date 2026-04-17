@@ -8,7 +8,8 @@
 
 import logging
 
-from spyder.plugins.completion.api import CompletionRequestTypes
+from lsprotocol import types as lsp
+
 from spyder.plugins.completion.providers.languageserver.decorators import (
     handles)
 
@@ -16,12 +17,27 @@ logger = logging.getLogger(__name__)
 
 
 class WindowProvider:
-    @handles(CompletionRequestTypes.WINDOW_SHOW_MESSAGE)
-    def process_show_message(self, response, *args):
-        """Handle window/showMessage notifications from LSP server."""
-        logger.debug("Received showMessage: %r" % response)
 
-    @handles(CompletionRequestTypes.WINDOW_LOG_MESSAGE)
-    def process_log_message(self, response, *args):
-        """Handle window/logMessage notifications from LSP server."""
-        logger.debug("Received logMessage: %r" % response)
+    @handles(lsp.WINDOW_SHOW_MESSAGE)
+    def process_show_message(
+        self, params: lsp.ShowMessageParams, *args
+    ) -> None:
+        """Handle window/showMessage notifications from the LSP server."""
+        msg_type = params.type
+        logger.debug(
+            'showMessage [%s]: %s',
+            msg_type.name if msg_type else '?',
+            params.message,
+        )
+
+    @handles(lsp.WINDOW_LOG_MESSAGE)
+    def process_log_message(
+        self, params: lsp.LogMessageParams, *args
+    ) -> None:
+        """Handle window/logMessage notifications from the LSP server."""
+        msg_type = params.type
+        logger.debug(
+            'logMessage [%s]: %s',
+            msg_type.name if msg_type else '?',
+            params.message,
+        )

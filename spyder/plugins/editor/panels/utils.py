@@ -143,8 +143,8 @@ def merge_folding(ranges, file_lines, eol, current_tree, root):
 
     folding_ranges = []
     for folding_range in ranges:
-        start_line = folding_range['startLine']
-        end_line = folding_range['endLine']
+        start_line = folding_range.start_line
+        end_line = folding_range.end_line
 
         if end_line > start_line:
             # Get text region that corresponds to the folding range between
