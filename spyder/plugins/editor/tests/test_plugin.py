@@ -144,6 +144,9 @@ def test_restore_open_files(qtbot, editor_plugin_open_files):
         filename = expected_filenames.pop()
         editor.close_file_from_name(filename)
 
+    # Create editor window to check its restored
+    editor.get_widget().create_new_window()
+
     # Close editor and check that opened files are saved
     editor.on_close()
     filenames = [osp.normcase(f) for f in editor.get_conf("filenames")]
@@ -154,6 +157,9 @@ def test_restore_open_files(qtbot, editor_plugin_open_files):
     filenames = editor.get_current_editorstack().get_filenames()
     filenames = [osp.normcase(f) for f in filenames]
     assert filenames == expected_filenames
+
+    # Check editor windows are restored too
+    assert len(editor.get_widget().editorwindows) == 1
 
 
 def test_setup_open_files_cleanprefs(editor_plugin_open_files):
