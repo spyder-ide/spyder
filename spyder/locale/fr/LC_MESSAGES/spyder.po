@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-17 20:31\n"
+"PO-Revision-Date: 2026-04-17 21:31\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -841,7 +841,7 @@ msgstr "Ouvrir un fichier"
 
 #: spyder/plugins/application/container.py:375
 msgid "O&pen last closed"
-msgstr "O&uvrir le dernier fermé"
+msgstr "O&uvrir le dernier fichier fermé"
 
 #: spyder/plugins/application/container.py:376
 msgid "Open last closed"
@@ -877,7 +877,7 @@ msgstr "Enregistrer &tout"
 
 #: spyder/plugins/application/container.py:412
 msgid "Save all files"
-msgstr "Enregistrer tous les fichiers"
+msgstr "Enregistrer tous les fichiers ouverts"
 
 #: spyder/plugins/application/container.py:419
 msgid "Save &as"
@@ -2395,11 +2395,11 @@ msgstr "Exécuter la cellule et avancer"
 
 #: spyder/plugins/editor/plugin.py:285
 msgid "Re-run last cell"
-msgstr "Re-exécuter la dernière cellule"
+msgstr "Réexécuter la dernière cellule"
 
 #: spyder/plugins/editor/plugin.py:286
 msgid "Re run last cell "
-msgstr "Re-exécuter la dernière cellule"
+msgstr "Réexécuter la dernière cellule "
 
 #: spyder/plugins/editor/plugin.py:294
 msgid "Run &current line/selection"
@@ -2687,7 +2687,7 @@ msgstr "Aperçu avant impression"
 
 #: spyder/plugins/editor/widgets/main_widget.py:337
 msgid "Show a print preview for the current file"
-msgstr "Afficher un aperçu d'impression pour le fichier courant"
+msgstr "Afficher un aperçu d'impression du fichier en cours d'édition"
 
 #: spyder/plugins/editor/widgets/main_widget.py:342
 msgid "&Print..."
@@ -2723,7 +2723,7 @@ msgstr "Afficher les caractères invisibles"
 
 #: spyder/plugins/editor/widgets/main_widget.py:420
 msgid "Show docstring style warnings"
-msgstr "Afficher les erreur de style des docstrings"
+msgstr "Afficher les erreurs de style des docstrings"
 
 #: spyder/plugins/editor/widgets/main_widget.py:443
 msgid "Show todo list"
@@ -2743,7 +2743,7 @@ msgstr "Afficher la liste des avertissements/erreurs provenant de l'analyse de c
 
 #: spyder/plugins/editor/widgets/main_widget.py:475
 msgid "Previous warning/error"
-msgstr "Avertissement suivant"
+msgstr "Avertissement/erreur précédent(e)"
 
 #: spyder/plugins/editor/widgets/main_widget.py:477
 msgid "Go to previous code analysis warning/error"
@@ -2751,7 +2751,7 @@ msgstr "Afficher le message d'avertissement ou d'erreur suivant"
 
 #: spyder/plugins/editor/widgets/main_widget.py:484
 msgid "Next warning/error"
-msgstr "Avertissement précédent"
+msgstr "Avertissement/erreur suivant(e)"
 
 #: spyder/plugins/editor/widgets/main_widget.py:486
 msgid "Go to next code analysis warning/error"
@@ -2767,7 +2767,7 @@ msgstr "Aller à la dernière position d'édition"
 
 #: spyder/plugins/editor/widgets/main_widget.py:504
 msgid "Previous cursor position"
-msgstr "Position suivante du curseur"
+msgstr "Position précédente du curseur"
 
 #: spyder/plugins/editor/widgets/main_widget.py:506
 msgid "Go to previous cursor position"
@@ -2835,7 +2835,7 @@ msgstr "&Supprimer un bloc de commentaires"
 
 #: spyder/plugins/editor/widgets/main_widget.py:612
 msgid "Remove comment block around current line or selection"
-msgstr "Supprimer le bloc de commentaires autour de la ligne en cours d'édition"
+msgstr "Supprimer le bloc de commentaires autour de la sélection ou de la ligne en cours d'édition"
 
 #: spyder/plugins/editor/widgets/main_widget.py:624
 msgid "Indent"
@@ -3677,7 +3677,7 @@ msgstr "Rechercher des motifs de texte dans les fichiers."
 
 #: spyder/plugins/findinfiles/plugin.py:67
 msgid "Search text in files..."
-msgstr "Rechercher dans les fichiers..."
+msgstr "Rechercher dans les fichiers…"
 
 #: spyder/plugins/findinfiles/plugin.py:68
 msgid "Search text in multiple files with the Find pane"
@@ -5366,7 +5366,7 @@ msgstr "Enregistrer le graphique sous..."
 
 #: spyder/plugins/plots/widgets/main_widget.py:158 spyder/plugins/plots/widgets/main_widget.py:159
 msgid "Save all plots..."
-msgstr "Enregistrer tous les graphiques..."
+msgstr "Enregistrer tous les graphiques…"
 
 #: spyder/plugins/plots/widgets/main_widget.py:167
 msgid "Copy plot to clipboard as image"
@@ -6438,7 +6438,7 @@ msgstr "&Configuration par fichier"
 
 #: spyder/plugins/run/container.py:82
 msgid "Run settings"
-msgstr "Options d'exécution"
+msgstr "Ouvrir la configuration"
 
 #: spyder/plugins/run/container.py:96
 msgid "&Global presets"
@@ -6446,7 +6446,7 @@ msgstr ""
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
-msgstr "Re-exécuter le &dernier fichier"
+msgstr "Réexécuter le &dernier fichier"
 
 #: spyder/plugins/run/container.py:104
 msgid "Run again last file"
