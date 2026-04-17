@@ -700,5 +700,48 @@ def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
     assert debugger_panel.isVisible()
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Segfaults on Linux and CIs"
+)
+def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
+    """Check that the outline is shown/hidden as expected in editor windows."""
+    # Create empty file
+    editor_plugin.new()
+    widget = editor_plugin.get_widget()
+
+    # Create editor window
+    editor_window = widget.create_new_window()
+    qtbot.wait(500)  # To check visually that the window was created
+
+    # Check Outline is visible (the default)
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+    # Hide Outline
+    editor_window.toggle_outline_action.trigger()
+    assert not editor_plugin.get_conf("show_outline_in_editor_window")
+    assert editor_window.editorwidget.outlineexplorer.width() == 0
+
+    # Close window and create new one
+    editor_window.close()
+    editor_window = widget.create_new_window()
+
+    # Check Outline is not visible because it was closed above and we should
+    # preserve that state for new windows
+    assert editor_window.editorwidget.outlineexplorer.width() == 0
+
+    # Show Outline
+    editor_window.toggle_outline_action.trigger()
+    assert editor_plugin.get_conf("show_outline_in_editor_window")
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+    # Close window and create new one
+    editor_window.close()
+    editor_window = widget.create_new_window()
+
+    # Check Outline is visible this time
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+
 if __name__ == "__main__":
     pytest.main(['-x', osp.basename(__file__), '-vv', '-rw'])

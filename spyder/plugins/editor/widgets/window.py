@@ -205,6 +205,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # ---- Splitter
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
+        self.splitter.splitterMoved.connect(self.on_splitter_moved)
+
         if self.outlineexplorer is not None:
             self.splitter.addWidget(self.outlineexplorer)
         self.splitter.addWidget(editor_widgets)
@@ -215,14 +217,6 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # This sets the same UX as the one users encounter when the editor is
         # maximized.
         self.splitter.setChildrenCollapsible(False)
-
-        self.splitter.splitterMoved.connect(self.on_splitter_moved)
-
-        if (
-            self.outlineexplorer is not None
-            and not self.get_conf("show_outline_in_editor_window")
-        ):
-            self.outlineexplorer.close_dock()
 
         # ---- Style
         self.splitter.setStyleSheet(self._splitter_css.toString())
@@ -357,7 +351,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         """Toggle outline explorer visibility."""
         if value:
             # When self._sizes is not available, the splitter sizes are set
-            # automatically by the ratios set for it above.
+            # automatically by the ratios set for it.
             if self._sizes is not None:
                 self.splitter.setSizes(self._sizes)
 
@@ -386,6 +380,17 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
                 self.splitter.handle(1).setEnabled(False)
 
             self.splitter.setChildrenCollapsible(False)
+
+    def showEvent(self, event):
+        # Wait until the window is shown to check if we need to close the
+        # Outline. Otherwise outline ends up taking the entire window width.
+        if (
+            self.outlineexplorer is not None
+            and not self.get_conf("show_outline_in_editor_window")
+        ):
+            self.outlineexplorer.close_dock()
+
+        super().showEvent(event)
 
 
 class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
