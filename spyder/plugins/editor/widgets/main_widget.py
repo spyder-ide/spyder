@@ -659,6 +659,24 @@ class EditorMainWidget(PluginMainWidget):
             context=Qt.WidgetShortcut,
             register_shortcut=True
         )
+        self.text_multiline_split_action = self.create_action(
+            EditorWidgetActions.MultilineSplit,
+            text=_("Multiline split"),
+            icon=self.create_icon('multiline_split'),
+            tip=_("Split selected items into multiple lines"),
+            triggered=self.multiline_split,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
+        self.text_multiline_merge_action = self.create_action(
+            EditorWidgetActions.MultilineMerge,
+            text=_("Multiline merge"),
+            icon=self.create_icon('multiline_merge'),
+            tip=_("Merge selected items into a single line"),
+            triggered=self.multiline_merge,
+            context=Qt.WidgetShortcut,
+            register_shortcut=True
+        )
 
         self.edit_menu_actions = [
             self.toggle_comment_action,
@@ -667,7 +685,9 @@ class EditorMainWidget(PluginMainWidget):
             self.indent_action,
             self.unindent_action,
             self.text_uppercase_action,
-            self.text_lowercase_action
+            self.text_lowercase_action,
+            self.text_multiline_split_action,
+            self.text_multiline_merge_action,
         ]
 
         # ---- CodeEditor context menu
@@ -2347,6 +2367,20 @@ class EditorMainWidget(PluginMainWidget):
         editor = self.get_current_editor()
         if editor is not None:
             editor.transform_to_lowercase()
+
+    @Slot()
+    def multiline_split(self):
+        """Split selected items into multiple lines."""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.multiline_split()
+
+    @Slot()
+    def multiline_merge(self):
+        """Merge selected items into a single line."""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.multiline_merge()
 
     @Slot()
     def toggle_comment(self):
