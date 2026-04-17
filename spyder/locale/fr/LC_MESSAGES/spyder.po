@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-16 13:53\n"
+"PO-Revision-Date: 2026-04-17 20:31\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -825,7 +825,7 @@ msgstr "Redémarrer en mode debug"
 
 #: spyder/plugins/application/container.py:357
 msgid "&New file..."
-msgstr "&Nouveau fichier..."
+msgstr "&Nouveau fichier…"
 
 #: spyder/plugins/application/container.py:359 spyder/plugins/explorer/widgets/explorer.py:1405 spyder/plugins/explorer/widgets/explorer.py:1417
 msgid "New file"
@@ -833,7 +833,7 @@ msgstr "Nouveau fichier"
 
 #: spyder/plugins/application/container.py:366
 msgid "&Open..."
-msgstr "&Ouvrir..."
+msgstr "&Ouvrir…"
 
 #: spyder/plugins/application/container.py:368 spyder/plugins/application/container.py:721 spyder/plugins/application/container.py:736 spyder/plugins/application/container.py:745
 msgid "Open file"
@@ -845,7 +845,7 @@ msgstr "O&uvrir le dernier fermé"
 
 #: spyder/plugins/application/container.py:376
 msgid "Open last closed"
-msgstr "Ouvert dernier fermé"
+msgstr "Ouvrir le dernier fichier fermé"
 
 #: spyder/plugins/application/container.py:383
 msgid "Open &recent"
@@ -885,15 +885,15 @@ msgstr "Enregistrer &sous"
 
 #: spyder/plugins/application/container.py:421
 msgid "Save current file as..."
-msgstr "Enregistrer le fichier en cours d'édition sous un autre nom..."
+msgstr "Enregistrer le fichier en cours d'édition sous un autre nom…"
 
 #: spyder/plugins/application/container.py:428
 msgid "Save copy as..."
-msgstr "Sauvegarder copie sous…"
+msgstr "Enregistrer une copie sous…"
 
 #: spyder/plugins/application/container.py:430
 msgid "Save copy of current file as..."
-msgstr "Enregistrez la copie du fichier actuel sous…"
+msgstr "Enregistrer une copie du fichier en cours d'édition sous…"
 
 #: spyder/plugins/application/container.py:435
 msgid "&Revert"
@@ -2695,7 +2695,7 @@ msgstr "Im&primer..."
 
 #: spyder/plugins/editor/widgets/main_widget.py:344
 msgid "Print current file..."
-msgstr "Imprimer le fichier en cours d'édition..."
+msgstr "Imprimer le fichier en cours d'édition…"
 
 #: spyder/plugins/editor/widgets/main_widget.py:349
 msgid "Set console working directory"
