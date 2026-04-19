@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-17 21:31\n"
+"PO-Revision-Date: 2026-04-19 13:32\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -543,15 +543,15 @@ msgstr "Thème de coloration syntaxique"
 
 #: spyder/plugins/appearance/confpage.py:98
 msgid "Edit selected theme"
-msgstr ""
+msgstr "Modifier le thème"
 
 #: spyder/plugins/appearance/confpage.py:99
 msgid "Create new theme"
-msgstr ""
+msgstr "Créer un nouveau thème"
 
 #: spyder/plugins/appearance/confpage.py:100
 msgid "Delete theme"
-msgstr ""
+msgstr "Supprimer le thème"
 
 #: spyder/plugins/appearance/confpage.py:101 spyder/plugins/preferences/widgets/configdialog.py:101
 msgid "Reset to defaults"
