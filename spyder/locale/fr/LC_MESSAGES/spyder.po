@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-19 13:32\n"
+"PO-Revision-Date: 2026-04-19 14:28\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -595,7 +595,7 @@ msgstr "Attention"
 
 #: spyder/plugins/appearance/confpage.py:566
 msgid "Are you sure you want to delete this theme?"
-msgstr ""
+msgstr "Êtes-vous sûr(e) de vouloir supprimer ce thème ?"
 
 #: spyder/plugins/appearance/plugin.py:41
 msgid "Appearance"
@@ -655,11 +655,11 @@ msgstr "Activer cette option afin que les fichiers ouverts<br>depuis l'extérieu
 
 #: spyder/plugins/application/confpage.py:69
 msgid "Prompt when exiting"
-msgstr "Demander à la sortie"
+msgstr "Demander une confirmation avant de quitter"
 
 #: spyder/plugins/application/confpage.py:70
 msgid "Show internal Spyder errors to report them to Github"
-msgstr "Montrer les erreurs internes de Spyder pour les signaler sur Github"
+msgstr "Afficher les erreurs internes de Spyder pour les signaler sur Github"
 
 #: spyder/plugins/application/confpage.py:73
 msgid "Check for updates on startup"
@@ -671,7 +671,7 @@ msgstr "Vérifier uniquement les versions stables"
 
 #: spyder/plugins/application/confpage.py:83
 msgid "Disable zoom with Ctrl/Cmd + mouse wheel"
-msgstr ""
+msgstr "Désactiver le zoom avec Ctrl/Cmd + molette"
 
 #: spyder/plugins/application/confpage.py:114 spyder/plugins/layout/container.py:171
 msgid "Panes"
@@ -679,15 +679,15 @@ msgstr "Volets"
 
 #: spyder/plugins/application/confpage.py:117
 msgid "Show friendly message when some panes are empty"
-msgstr ""
+msgstr "Afficher un message d'accueil dans les volets vides"
 
 #: spyder/plugins/application/confpage.py:121
 msgid "Vertical tabs in panes"
-msgstr "Languettes verticales dans onglets"
+msgstr "Onglets verticaux dans les volets"
 
 #: spyder/plugins/application/confpage.py:123
 msgid "Custom margin for panes:"
-msgstr "Marges personnalisées pour les onglets :"
+msgstr "Marges de volets personnalisées :"
 
 #: spyder/plugins/application/confpage.py:125
 msgid "pixels"
@@ -5005,15 +5005,15 @@ msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "Sélectionnez l'interpréteur Python par défaut pour les nouvelles consoles IPython et pour la complétion du code dans l'éditeur"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Internal (same used by Spyder)"
-msgstr ""
+msgstr "Intégré (utilisé par Spyder)"
 
 #: spyder/plugins/maininterpreter/confpage.py:82
 msgid "Selected interpreter:"
-msgstr ""
+msgstr "Interpréteur sélectionné :"
 
 #: spyder/plugins/maininterpreter/confpage.py:88
 msgid "Executables"
@@ -5025,19 +5025,19 @@ msgstr "Interpréteurs personnalisés récents"
 
 #: spyder/plugins/maininterpreter/confpage.py:119
 msgid "Conda executable"
-msgstr ""
+msgstr "Exécutable Conda"
 
 #: spyder/plugins/maininterpreter/confpage.py:123
 msgid "Use a custom Conda/Mamba/Micromamba executable"
-msgstr ""
+msgstr "Utiliser un exécutable Conda/Mamba/Micromamba personnalisé"
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
-msgstr ""
+msgstr "Utilise l'exécutable Conda, Mamba ou Micromamba spécifié au lieu de celui déterminé à partir du chemin de l'interpréteur.<br><br>Requis si un préfixe est utilisé pour une installation Conda/Mamba en dehors de l'emplacement standard."
 
 #: spyder/plugins/maininterpreter/confpage.py:138
 msgid "The selected file is not a valid Conda executable"
-msgstr ""
+msgstr "Le fichier sélectionné n'est pas un exécutable Conda valide"
 
 #: spyder/plugins/maininterpreter/confpage.py:156
 msgid "User Module Reloader (UMR)"
@@ -5045,7 +5045,7 @@ msgstr "Rechargeur de modules utilisateur (UMR)"
 
 #: spyder/plugins/maininterpreter/confpage.py:158
 msgid "UMR forces Python to reload imported modules when running a file in an IPython console."
-msgstr ""
+msgstr "L'UMR impose le rechargement des modules importés lors de l'exécution d'un fichier dans une console IPython."
 
 #: spyder/plugins/maininterpreter/confpage.py:165
 msgid "Enable UMR"
@@ -5053,7 +5053,7 @@ msgstr "Activer l'UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:167 spyder/plugins/maininterpreter/confpage.py:186
 msgid "This change will only be applied to new consoles"
-msgstr ""
+msgstr "Cette modification ne sera appliquée qu'aux nouvelles consoles"
 
 #: spyder/plugins/maininterpreter/confpage.py:168
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
