@@ -13,6 +13,7 @@ updating the file tree explorer associated with a project.
 
 # Standard library imports
 import logging
+import os
 import os.path as osp
 
 # Third party imports
@@ -179,14 +180,19 @@ class Projects(SpyderDockablePlugin):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+
+        # Create Projects menu
+        projects_menu = main_menu.create_application_menu(
+            ApplicationMenus.Projects,
+            _("&Projects"),
+            min_width=150 if os.name == "nt" else 170
+        )
+        projects_menu.aboutToShow.connect(self._is_invalid_active_project)
+
         new_project_action = self.get_action(ProjectsActions.NewProject)
         open_project_action = self.get_action(ProjectsActions.OpenProject)
         close_project_action = self.get_action(ProjectsActions.CloseProject)
         delete_project_action = self.get_action(ProjectsActions.DeleteProject)
-
-        projects_menu = main_menu.get_application_menu(
-            ApplicationMenus.Projects)
-        projects_menu.aboutToShow.connect(self._is_invalid_active_project)
 
         main_menu.add_item_to_application_menu(
             new_project_action,

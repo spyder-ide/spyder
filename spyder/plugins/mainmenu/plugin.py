@@ -10,7 +10,6 @@ Main menu Plugin.
 
 # Standard library imports
 from collections import OrderedDict
-import os
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
@@ -18,7 +17,7 @@ from typing import Dict, List, Tuple, Optional, Union
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.fonts import SpyderFontType
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
-from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin, Plugins
+from spyder.api.plugins import SpyderPluginV2, SpyderDockablePlugin
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
 from spyder.api.widgets.mixins import SpyderMenuMixin
@@ -76,20 +75,13 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         create_app_menu(ApplicationMenus.Search, _("&Search"))
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
         create_app_menu(ApplicationMenus.Run, _("&Run"))
-        create_app_menu(ApplicationMenus.Debug, _("&Debug"))
-        if self.is_plugin_enabled(Plugins.IPythonConsole):
-            create_app_menu(ApplicationMenus.Consoles, _("C&onsoles"))
-        if self.is_plugin_enabled(Plugins.Projects):
-            create_app_menu(
-                ApplicationMenus.Projects,
-                _("&Projects"),
-                min_width=150 if os.name == "nt" else 170
-            )
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.Window, _("&Window"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
 
     def on_mainwindow_visible(self):
+        self._add_menus()
+
         # Pre-render menus so actions with menu roles (like "About Spyder" and
         # "Preferences") are located in the right place in Mac's menu bar.
         # Fixes spyder-ide/spyder#14917
@@ -98,7 +90,7 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         for menu in self._APPLICATION_MENUS.values():
             menu.render()
 
-    # ---- Private methods
+    # ---- Private API
     # ------------------------------------------------------------------------
     def _hide_options_menus(self):
         """Hide options menu when menubar is pressed in macOS."""
@@ -110,6 +102,37 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                     editorstack.menu.hide()
                 else:
                     plugin_instance.options_menu.hide()
+
+    def _add_menus(self):
+        """Add menus to the main window menubar."""
+        menu_ids = set(self._APPLICATION_MENUS.keys())
+
+        # Add internal menus first, in the following order
+        for menu_id in [
+            ApplicationMenus.File,
+            ApplicationMenus.Edit,
+            ApplicationMenus.Search,
+            ApplicationMenus.Source,
+            ApplicationMenus.Run,
+            ApplicationMenus.Debug,
+            ApplicationMenus.Consoles,
+            ApplicationMenus.Projects,
+            ApplicationMenus.Tools,
+            ApplicationMenus.Window,
+            ApplicationMenus.Help,
+        ]:
+            # Add menu
+            menu = self._APPLICATION_MENUS.get(menu_id)
+            if menu:
+                self.main.menuBar().addMenu(menu)
+
+            # Remove it from the set of all menu ids
+            menu_ids -= {menu_id}
+
+        # Add menus for external plugins
+        for menu_id in menu_ids:
+            menu = self._APPLICATION_MENUS[menu_id]
+            self.main.menuBar().addMenu(menu)
 
     # ---- Public API
     # ------------------------------------------------------------------------
@@ -144,7 +167,6 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             MenuClass=ApplicationMenu
         )
         self._APPLICATION_MENUS[menu_id] = menu
-        self.main.menuBar().addMenu(menu)
 
         if sys.platform == 'darwin':
             menu.aboutToShow.connect(self._hide_options_menus)
