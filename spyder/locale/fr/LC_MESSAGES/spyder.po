@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-19 14:28\n"
+"PO-Revision-Date: 2026-04-19 15:29\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1057,7 +1057,7 @@ msgstr "Activer le fournisseur {0}"
 
 #: spyder/plugins/completion/confpage.py:39
 msgid "Time to wait for all providers to return (ms):"
-msgstr "Il est temps d’attendre le retour de tous les fournisseurs (ms):"
+msgstr "Temps d'attente du retour des fournisseurs (ms) :"
 
 #: spyder/plugins/completion/confpage.py:41
 msgid "Beyond this timeout the first available provider will be returned"
@@ -1073,19 +1073,19 @@ msgstr "Afficher les complétions à la volée"
 
 #: spyder/plugins/completion/confpage.py:52
 msgid "Use Enter to accept code completions"
-msgstr ""
+msgstr "Utilisez la touche Entrée pour accepter les complétions"
 
 #: spyder/plugins/completion/confpage.py:54
 msgid "If this option is disabled, completions will be accepted with the Tab key only."
-msgstr ""
+msgstr "Si cette option est désactivée, les complétions seront acceptées avec la touche Tab uniquement."
 
 #: spyder/plugins/completion/confpage.py:60
 msgid "Show automatic completions after characters entered:"
-msgstr "Afficher les complétions automatiques après la saisie des caractères:"
+msgstr "Afficher les complétions automatiques après la saisie du nombre de caractères :"
 
 #: spyder/plugins/completion/confpage.py:62
 msgid "Default is 1"
-msgstr "Par défaut, 1"
+msgstr "Valeur par défaut : 1 caractère"
 
 #: spyder/plugins/completion/confpage.py:64
 msgid "Enable code snippets"
@@ -1093,11 +1093,11 @@ msgstr "Activer les extraits de code"
 
 #: spyder/plugins/completion/confpage.py:66
 msgid "Show completion details after keyboard idle (ms):"
-msgstr "Afficher les détails de complétion après l'inactivité du clavier (ms) :"
+msgstr "Afficher les détails de complétion après un temps d'inactivité du clavier (ms) :"
 
 #: spyder/plugins/completion/confpage.py:68
 msgid "Default is 500 milliseconds"
-msgstr "La valeur par défaut est de 500 millisecondes"
+msgstr "Valeur par défaut : 500 millisecondes"
 
 #: spyder/plugins/completion/confpage.py:71
 msgid "Completions"
@@ -1243,7 +1243,7 @@ msgstr "Linting"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:42
 msgid "Spyder can highlight syntax errors and possible problems with your code in the editor by using one of the providers below"
-msgstr ""
+msgstr "Spyder peut signaler les erreurs de syntaxe et les potentiels problèmes dans votre code en utilisant l'un des fournisseurs ci-dessous"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:51
 msgid "Provider"
@@ -1251,19 +1251,19 @@ msgstr "Fournisseur"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:55
 msgid "Pyflakes (Basic)"
-msgstr ""
+msgstr "Pyflakes (simple)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:60
 msgid "Flake8 (Intermediate)"
-msgstr ""
+msgstr "Flake8 (intermédiaire)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:65
 msgid "Ruff (Advanced)"
-msgstr ""
+msgstr "Ruff (avancé)"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:70
 msgid "Disable linting"
-msgstr ""
+msgstr "Désactiver l'analyse de code"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:83 spyder/plugins/variableexplorer/widgets/importwizard.py:169
 msgid "Additional options"
@@ -1275,67 +1275,67 @@ msgstr "Souligner les erreurs et les avertissements"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:94
 msgid "Provider options"
-msgstr ""
+msgstr "Options du fournisseur"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:101
 msgid "Enable docstring style linting"
-msgstr "Activer le linting de style des docstrings"
+msgstr "Activer l'analyse de style des docstrings"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:104
 msgid "Convention used to lint docstrings: "
-msgstr ""
+msgstr "Convention utilisée pour les docstrings :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:126 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:173
 msgid "Exclude these files or directories:"
-msgstr ""
+msgstr "Exclure ces fichiers ou répertoires :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:130 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:177
 msgid "Exclude test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "Exclure les fichiers de test : (?!test_).*\\.py"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:134 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:181
 msgid "Show these errors or warnings:"
-msgstr ""
+msgstr "Afficher ces erreurs ou avertissements :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:138 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:185
 msgid "Example codes: E113, W391"
-msgstr "Exemple de code: E113, W391"
+msgstr "Exemples de code : E113, W391"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:142 spyder/plugins/completion/providers/languageserver/conftabs/linting.py:189
 msgid "Ignore these errors or warnings:"
-msgstr ""
+msgstr "Ignorer ces erreurs ou avertissements :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:146
 msgid "Default is: E"
-msgstr ""
+msgstr "Valeur par défaut : E"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:165
 msgid "Only check these filenames:"
-msgstr ""
+msgstr "Ne vérifier que ces fichiers :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:169
 msgid "Check test files: test_.*\\.py"
-msgstr ""
+msgstr "Vérifier les fichiers de test : test_.*\\.py"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:193
 msgid "Default is: E,W,C90"
-msgstr ""
+msgstr "Valeur par défaut : E,W,C90"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:210
 msgid "There are no configuration options for Pyflakes"
-msgstr ""
+msgstr "Il n'y a pas d'options de configuration pour Pyflakes"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:214
 msgid "Linting is disabled"
-msgstr ""
+msgstr "L'analyse de code est désactivée"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:272
 msgid "Directory patterns listed for exclusion should be valid regular expressions"
-msgstr "Les modèles de répertoire listés pour l'exclusion doivent être des expressions régulières valides"
+msgstr "Les motifs de dossiers à exclure doivent correspondre à des expressions régulières valides"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/linting.py:277
 msgid "File patterns listed for inclusion should be valid regular expressions"
-msgstr ""
+msgstr "Les motifs de fichiers à inclure doivent correspondre à des expressions régulières valides"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:31
 msgid "Other languages"
@@ -3833,7 +3833,7 @@ msgstr "Connexions automatiques"
 
 #: spyder/plugins/help/confpage.py:24
 msgid "This pane can automatically show an object's help information after a left parenthesis is written next to it. Below you can decide to which plugin you want to connect it to turn on this feature."
-msgstr "L'inspecteur d'objet peut automatiquement afficher l'aide sur un objet dès l'ouverture d'une parenthèse. Ci-dessous vous pouvez décider à quel plugin vous voulez le connecter pour activer cette fonctionnalité."
+msgstr "L'inspecteur d'objet peut afficher automatiquement l'aide sur un objet dès l'ouverture d'une parenthèse. Cette fonctionnalité peut être activée pour les plugins ci-dessous."
 
 #: spyder/plugins/help/confpage.py:33 spyder/plugins/ipythonconsole/plugin.py:236 spyder/plugins/ipythonconsole/widgets/main_widget.py:422 spyder/plugins/tours/tours.py:100
 msgid "IPython Console"
@@ -3849,7 +3849,7 @@ msgstr "Styliser les équations mathématiques"
 
 #: spyder/plugins/help/confpage.py:51
 msgid "This feature requires Sphinx 1.1 or superior."
-msgstr "Cette fonctionnalité nécessite l'installation de Sphinx 1.1 ou plus."
+msgstr "Cette fonctionnalité nécessite l'installation de Sphinx 1.1 ou ultérieure."
 
 #: spyder/plugins/help/confpage.py:52
 msgid "Sphinx %s is currently installed."
@@ -5057,32 +5057,33 @@ msgstr "Cette modification ne sera appliquée qu'aux nouvelles consoles"
 
 #: spyder/plugins/maininterpreter/confpage.py:168
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
-msgstr ""
+msgstr "Cette option active l'UMR (User Module Reloader) dans les consoles IPython. L'UMR force Python à recharger entièrement les modules importés lors de l'exécution des fichiers Python avec la commande <code>Exécuter</code>.<br><br>Après activation de l'UMR, la console doit être redémarrée (sinon seulement les nouveaux modules importés seront rechargés à l'exécution des fichiers).<br><br>En cas d'erreur lors de la réexécution d'un programme PyQt, veuillez vérifier que les objets Qt ont été correctement détruits (il peut être nécessaire d'utiliser l'attribut <code>Qt.WA_DeleteOnClose</code> sur la fenêtre principale avec la méthode <code>setAttribute</code>)."
 
 #: spyder/plugins/maininterpreter/confpage.py:184
 msgid "Print list of reloaded modules"
-msgstr ""
+msgstr "Afficher la liste des modules rechargés"
 
 #: spyder/plugins/maininterpreter/confpage.py:189
 msgid "Select modules to exclude from being reloaded"
-msgstr ""
+msgstr "Sélectionner les modules à exclure du rechargement"
 
 #: spyder/plugins/maininterpreter/confpage.py:212 spyder/plugins/maininterpreter/confpage.py:232 spyder/plugins/maininterpreter/confpage.py:240
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/plugins/maininterpreter/confpage.py:213
 msgid "List of excluded modules (e.g. {})"
-msgstr ""
+msgstr "Liste des modules exclus (ex : {})"
 
 #: spyder/plugins/maininterpreter/confpage.py:233
 msgid "The following modules are not installed:\n"
 "{}"
-msgstr ""
+msgstr "Les modules suivants ne sont pas installés :\n"
+"{}"
 
 #: spyder/plugins/maininterpreter/confpage.py:241
 msgid "Changes will only be applied to new IPython consoles"
-msgstr ""
+msgstr "Les modifications ne seront appliquées qu'aux nouvelles consoles IPython"
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
