@@ -686,10 +686,10 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             ('clear extra cursors', self.clear_extra_cursors),
             (
                 'fold or unfold current region',
-                self.folding_panel.toggle_fold_around_cursor,
+                self.collapse_expand_current_region,
             ),
-            ('fold all regions', self.folding_panel.collapse_all),
-            ('unfold all regions', self.folding_panel.expand_all)
+            ('fold all regions', self.collapse_all),
+            ('unfold all regions', self.expand_all)
         )
 
         for name, callback in shortcuts:
@@ -3816,7 +3816,19 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
             event.accept()
 
         self.setOverwriteMode(False)
+        
+    def collapse_all(self):
+        """Collapse all foldable regions."""
+        self.folding_panel.collapse_all()
 
+    def expand_all(self):
+        """Expand all foldable regions."""
+        self.folding_panel.expand_all()
+    
+    def collapse_expand_current_region(self):
+        """Collapse or expand the foldable region around the cursor."""
+        self.folding_panel.toggle_fold_around_cursor()
+    
     def do_automatic_completions(self):
         """Perform on the fly completions."""
         if not self.automatic_completions or self.extra_cursors:
