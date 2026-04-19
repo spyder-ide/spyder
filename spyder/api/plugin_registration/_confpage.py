@@ -11,6 +11,7 @@
 from __future__ import annotations
 from contextlib import contextmanager
 import functools
+import os
 
 # Third party imports
 from pyuca import Collator
@@ -218,43 +219,41 @@ class PluginsConfigPage(PluginConfigPage):
         if not plugins:
             return
 
-        # Build list of dependents to show
-        plugin_names = []
+        # Build list of plugins to show
+        plugins_list = ""
         for plugin in plugins:
-            plugin_names.append(f"<b>{self.plugin_ui_names[plugin]}</b>")
+            plugins_list += f"<li>{self.plugin_ui_names[plugin]}</li>"
 
-        if len(plugin_names) > 1:
-            plugins_list = (
-                ", ".join(plugin_names[:-1])
-                + " "
-                + _("and")
-                + " "
-                + plugin_names[-1]
-                + "."
-            )
-        else:
-            plugins_list = plugin_names[0] + "."
+        plugins_list = f"<ul>{plugins_list}</ul>"
 
         # Show message about enabling/disabling dependents
         plugin_ui_name = self.plugin_ui_names[plugin_name]
         if state:
             message = _(
                 "Would you like to also enable the following plugins because "
-                "they are required by <b>{}</b> to work?<br><br>"
-                "{}<br><br>"
+                "they are required by <b>{}</b> to work?"
+                "{}"
             ).format(plugin_ui_name, plugins_list)
         else:
             message = _(
                 "Besides <b>{}</b>, the following plugins will also be "
-                "disabled because they require it to work:<br><br>"
-                "{}<br><br>"
+                "disabled because they require it to work:"
+                "{}"
                 "Do you want to proceed?"
             ).format(plugin_ui_name, plugins_list)
+
+        vmargin = "0.4em" if os.name == "nt" else "0.3em"
+        style = (
+            "<style>"
+            "ul, li {{margin-left: -5px}}"
+            "li {{margin-bottom: {}}}"
+            "</style>"
+        ).format(vmargin)
 
         answer = QMessageBox.warning(
             self,
             _("Warning"),
-            message,
+            style + message,
             QMessageBox.Yes | QMessageBox.No
         )
 
