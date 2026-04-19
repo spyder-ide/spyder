@@ -45,8 +45,13 @@ class Run(SpyderPluginV2):
     """
 
     NAME = "run"
-    REQUIRES = [Plugins.Preferences, Plugins.WorkingDirectory]
-    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar, Plugins.Shortcuts]
+    REQUIRES = [
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Shortcuts,
+        Plugins.Toolbar,
+        Plugins.WorkingDirectory,
+    ]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -528,7 +533,7 @@ class Run(SpyderPluginV2):
                 before = add_to_toolbar.get('before')
                 before_section = add_to_toolbar.get('before_section')
 
-            toolbar = self.get_plugin(Plugins.Toolbar)
+            toolbar = self.get_plugin(Plugins.Toolbar, error=False)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
                     action,
@@ -751,7 +756,7 @@ class Run(SpyderPluginV2):
                 before = add_to_toolbar.get('before')
                 before_section = add_to_toolbar.get('before_section')
 
-            toolbar = self.get_plugin(Plugins.Toolbar)
+            toolbar = self.get_plugin(Plugins.Toolbar, error=False)
             if toolbar:
                 toolbar.add_item_to_application_toolbar(
                     action,
@@ -895,7 +900,7 @@ class Run(SpyderPluginV2):
     ):
         if register_shortcut:
             action = self.get_action(action_name)
-            shortcuts = self.get_plugin(Plugins.Shortcuts)
+            shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)

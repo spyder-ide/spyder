@@ -32,7 +32,7 @@ class Toolbar(SpyderPluginV2):
     Docstrings viewer widget.
     """
     NAME = 'toolbar'
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer

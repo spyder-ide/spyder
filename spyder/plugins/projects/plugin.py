@@ -41,9 +41,13 @@ class Projects(SpyderDockablePlugin):
     NAME = 'project_explorer'
     CONF_SECTION = NAME
     CONF_FILE = False
-    REQUIRES = []
-    OPTIONAL = [Plugins.Completions, Plugins.IPythonConsole, Plugins.Editor,
-                Plugins.MainMenu, Plugins.Switcher, Plugins.Application]
+    REQUIRES = [Plugins.Application, Plugins.MainMenu]
+    OPTIONAL = [
+        Plugins.Completions,
+        Plugins.Editor,
+        Plugins.IPythonConsole,
+        Plugins.Switcher,
+    ]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals

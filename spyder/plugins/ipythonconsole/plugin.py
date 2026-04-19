@@ -64,18 +64,22 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     """
 
     NAME = 'ipython_console'
-    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
+    REQUIRES = [
+        Plugins.Application,
+        Plugins.Console,
+        Plugins.MainInterpreter,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.WorkingDirectory,
+    ]
     OPTIONAL = [
         Plugins.Editor,
         Plugins.History,
-        Plugins.MainInterpreter,
-        Plugins.MainMenu,
         Plugins.Projects,
         Plugins.PythonpathManager,
         Plugins.RemoteClient,
         Plugins.Run,
         Plugins.StatusBar,
-        Plugins.WorkingDirectory,
     ]
     TABIFY = [Plugins.History]
     WIDGET_CLASS = IPythonConsoleWidget
