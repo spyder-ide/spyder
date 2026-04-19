@@ -488,6 +488,11 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
+        # Create Consoles menu
+        mainmenu.create_application_menu(
+            ApplicationMenus.Consoles, _("C&onsoles")
+        )
+
         # Connect state check/update logic for edit actions
         edit_menu = mainmenu.get_application_menu(ApplicationMenus.Edit)
         edit_menu.aboutToShow.connect(widget.update_edit_menu)
@@ -627,6 +632,8 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
     def on_main_menu_teardown(self):
         widget = self.get_widget()
         mainmenu = self.get_plugin(Plugins.MainMenu)
+
+        # Delete Consoles menu
         mainmenu.remove_application_menu(ApplicationMenus.Consoles)
 
         # Disconnect state check/update logic for edit actions

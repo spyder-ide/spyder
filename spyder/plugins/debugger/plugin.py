@@ -337,6 +337,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
+        # Create Debug menu
+        mainmenu.create_application_menu(ApplicationMenus.Debug, _("&Debug"))
+
         # ControlDebug section
         for action in [DebuggerWidgetActions.Next,
                        DebuggerWidgetActions.Step,
@@ -379,6 +382,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 name,
                 menu_id=ApplicationMenus.Debug
             )
+
+        # Remove Debug menu
+        mainmenu.remove_application_menu(ApplicationMenus.Debug)
 
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
