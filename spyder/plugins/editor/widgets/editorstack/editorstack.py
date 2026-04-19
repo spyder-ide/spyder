@@ -252,7 +252,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         self.find_widget = None
 
-        self.data = []
+        self.data: list[FileInfo] = []
 
         # Actions
         self.switcher_action = None
@@ -1947,13 +1947,20 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             index = self.get_stack_index()
 
         finfo = self.data[index]
-        if not (finfo.editor.document().isModified() or
-                finfo.newly_created) and not force:
+        if (
+            not (finfo.editor.document().isModified() or finfo.newly_created)
+            and not force
+        ):
             return True
+
+        # Reject inline completions before proceeding
+        finfo.editor.reject_inline_completions()
+
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
             if save_new_files:
                 return self.save_as(index=index)
+
             # The file doesn't need to be saved
             return True
 
@@ -2988,34 +2995,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         finfo = self.data[index]
         logger.debug(f"Run formatting in file {finfo.filename}")
         finfo.editor.format_document_or_range()
-
-    def collapse_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Collapse all regions in file {finfo.filename}")
-        finfo.editor.collapse_all()
-    
-    def expand_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Expand all regions in file {finfo.filename}")
-        finfo.editor.expand_all()
-
-    def collapse_expand_current(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Collapse/expand current region in file {finfo.filename}")
-        finfo.editor.collapse_expand_current_region()
-
-    def expand_all(self, index=None):
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        logger.debug(f"Expand all regions in file {finfo.filename}")
-        finfo.editor.expand_all()
 
     def refresh_formatting(self):
         editor = self.get_current_editor()
