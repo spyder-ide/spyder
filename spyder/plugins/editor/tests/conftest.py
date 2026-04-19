@@ -26,6 +26,7 @@ import pytest
 
 from spyder.config.manager import CONF
 from spyder.plugins.editor.plugin import Editor
+from spyder.plugins.outlineexplorer.plugin import OutlineExplorer
 
 
 @pytest.fixture
@@ -48,22 +49,36 @@ def editor_plugin(qtbot, monkeypatch):
             else:
                 return Mock()
 
-        def get_plugin(self, plugin_name, error=True):
-            if plugin_name in [
-                    Plugins.IPythonConsole,
-                    Plugins.Projects,
-                    Plugins.Debugger]:
-                return None
-            else:
-                return Mock()
-
     window = MainMock()
     configuration = CONF
+
     editor = Editor(window, configuration)
     editor.on_initialize()
     editor.update_font()  # Set initial font
+
+    outline = OutlineExplorer(window, configuration)
+    outline.on_initialize()
+
+    def get_plugin(plugin_name, error=True):
+        if plugin_name in [
+            Plugins.IPythonConsole,
+            Plugins.Projects,
+            Plugins.Debugger
+        ]:
+            return None
+        elif plugin_name == Plugins.Editor:
+            return editor
+        elif plugin_name == Plugins.OutlineExplorer:
+            return outline
+        else:
+            return Mock()
+
+    window.get_plugin = get_plugin
+    editor.on_outlineexplorer_available()
+
     window.setCentralWidget(editor.get_widget())
     window.resize(640, 480)
+
     qtbot.addWidget(window)
     window.show()
 

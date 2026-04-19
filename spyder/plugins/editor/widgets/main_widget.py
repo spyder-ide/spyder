@@ -1491,11 +1491,8 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- Handling editor windows
     # -------------------------------------------------------------------------
-    def setup_other_windows(self, main, outline_plugin):
+    def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
-        # Outline setup
-        self.outline_plugin = outline_plugin
-
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
             win = self.create_new_window()
@@ -1920,7 +1917,11 @@ class EditorMainWidget(PluginMainWidget):
                 filenames = from_qvariant(action.data(), str)
 
         focus_widget = QApplication.focusWidget()
-        if self.editorwindows and not self.dockwidget.isVisible():
+        if (
+            self.editorwindows
+            and self.dockwidget
+            and not self.dockwidget.isVisible()
+        ):
             # We override the editorwindow variable to force a focus on
             # the editor window instead of the hidden editor dockwidget.
             # See spyder-ide/spyder#5742.
@@ -1928,9 +1929,12 @@ class EditorMainWidget(PluginMainWidget):
                 editorwindow = self.editorwindows[0]
             editorwindow.setFocus()
             editorwindow.raise_()
-        elif (self.dockwidget and not self._is_maximized
-              and not self.dockwidget.isAncestorOf(focus_widget)
-              and not isinstance(focus_widget, CodeEditor)):
+        elif (
+            self.dockwidget
+            and not self._is_maximized
+            and not self.dockwidget.isAncestorOf(focus_widget)
+            and not isinstance(focus_widget, CodeEditor)
+        ):
             self.switch_to_plugin()
 
         def _convert(fname):
@@ -3113,6 +3117,7 @@ class EditorMainWidget(PluginMainWidget):
                     editorstack.tabs.refresh_style()
         else:
             self.__load_temp_file()
+
         self.set_create_new_file_if_empty(True)
         self.sig_open_files_finished.emit()
 

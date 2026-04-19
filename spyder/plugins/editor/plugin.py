@@ -655,6 +655,7 @@ class Editor(SpyderDockablePlugin):
         outline_widget = outline.get_widget()
 
         widget.set_outlineexplorer(outline_widget)
+        widget.outline_plugin = outline
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
@@ -1031,12 +1032,8 @@ class Editor(SpyderDockablePlugin):
             If any previously open file should be closed. Default `True`.
         """
         widget = self.get_widget()
-        outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
-        if outline:
-            widget.setup_other_windows(self._main, outline)
-        return self.get_widget().setup_open_files(
-            close_previous_files=close_previous_files
-        )
+        widget.setup_open_files(close_previous_files=close_previous_files)
+        widget.setup_other_windows()
 
     def save_open_files(self,):
         """Save the list of open files."""
