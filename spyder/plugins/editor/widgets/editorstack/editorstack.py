@@ -97,7 +97,7 @@ class EditorStackMenuSections:
     CloseOrderSection = "close_order_section"
     SplitCloseSection = "split_close_section"
     WindowSection = "window_section"
-    NewWindowCloseSection = "new_window_and_close_section"
+    MainWidgetSection = "main_widget_section"
 
 
 class EditorStack(QWidget, SpyderWidgetMixin):
@@ -310,6 +310,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             register_shortcut=True,
             register_action=False
         )
+
         self.new_window_action = None
         if parent is not None:
             self.new_window_action = self.create_action(
@@ -1396,24 +1397,26 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             for menu_action in (new_action, open_action):
                 self.menu.add_action(menu_action)
 
+        for window_action in self.__get_window_actions():
+            self.menu.add_action(
+                window_action, section=EditorStackMenuSections.WindowSection
+            )
+
         for split_actions in self.__get_split_actions():
             self.menu.add_action(
                 split_actions,
                 section=EditorStackMenuSections.SplitCloseSection
             )
 
-        for window_actions in self.__get_window_actions():
-            self.menu.add_action(
-                window_actions, section=EditorStackMenuSections.WindowSection
-            )
-
-        for new_window_and_close_action in (
-            self.__get_new_window_and_close_actions()
-        ):
-            self.menu.add_action(
-                new_window_and_close_action,
-                section=EditorStackMenuSections.NewWindowCloseSection
-            )
+        # These actions need to *only* be visible in the main editorstack to
+        # avoid confusions when closing a split stack in the main or new
+        # windows.
+        if not (self.is_closable or self.new_window):
+            for main_widget_action in self.__get_main_widget_actions():
+                self.menu.add_action(
+                    main_widget_action,
+                    section=EditorStackMenuSections.MainWidgetSection
+                )
 
         self.menu.render()
 
@@ -1461,6 +1464,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     # ---- Window actions
     def __get_window_actions(self):
         actions = []
+        if self.new_window_action:
+            actions += [self.new_window_action]
 
         if self.new_window:
             window = self.window()
@@ -1472,14 +1477,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
                 register_action=False
             )
 
-            if self.new_window_action:
-                actions += [self.new_window_action]
             actions += [close_window_action]
 
         return actions
 
     # ---- New window and close/docking/undocking actions
-    def __get_new_window_and_close_actions(self):
+    def __get_main_widget_actions(self):
         actions = []
         if self.parent() is not None:
             main_widget = self.get_main_widget()
@@ -1490,14 +1493,11 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             if main_widget.windowwidget is not None:
                 actions += [main_widget.dock_action]
             else:
-                if self.new_window_action:
-                    actions += [self.new_window_action]
-                if not self.new_window:
-                    actions += [
-                        main_widget.lock_unlock_action,
-                        main_widget.undock_action,
-                        main_widget.close_action
-                    ]
+                actions += [
+                    main_widget.lock_unlock_action,
+                    main_widget.undock_action,
+                    main_widget.close_action
+                ]
 
         return actions
 

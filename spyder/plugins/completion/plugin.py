@@ -76,10 +76,13 @@ class CompletionPlugin(SpyderPluginV2):
 
     NAME = 'completions'
     CONF_SECTION = 'completions'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [
+    REQUIRES = [
+        Plugins.Editor,
         Plugins.MainInterpreter,
         Plugins.MainMenu,
+        Plugins.Preferences
+    ]
+    OPTIONAL = [
         Plugins.IPythonConsole,
         Plugins.PythonpathManager,
         Plugins.StatusBar,
@@ -248,13 +251,14 @@ class CompletionPlugin(SpyderPluginV2):
                                f'point {entry_point}')
                 raise e
 
-        # Register statusbar widgets
-        self.register_statusbar_widgets(plugin_loaded=False)
+        # To hold a reference to the statusbar plugin
+        self.statusbar = None
 
         # Define configuration page and tabs
         (conf_providers, conf_tabs) = self.gather_providers_and_configtabs()
         self.CONF_WIDGET_CLASS = partialclass(
-            CompletionConfigPage, providers=conf_providers)
+            CompletionConfigPage, providers=conf_providers
+        )
         self.ADDITIONAL_CONF_TABS = {'completions': conf_tabs}
 
     # ---- SpyderPluginV2 API
@@ -293,10 +297,8 @@ class CompletionPlugin(SpyderPluginV2):
 
     @on_plugin_available(plugin=Plugins.StatusBar)
     def on_statusbar_available(self):
-        container = self.get_container()
         self.statusbar = self.get_plugin(Plugins.StatusBar)
-        for sb in container.all_statusbar_widgets():
-            self.statusbar.add_status_widget(sb)
+        self.register_statusbar_widgets()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -341,7 +343,7 @@ class CompletionPlugin(SpyderPluginV2):
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         container = self.get_container()
-        self.statusbar = self.get_plugin(Plugins.StatusBar)
+
         for sb in container.all_statusbar_widgets():
             self.statusbar.remove_status_widget(sb.ID)
 
@@ -434,7 +436,8 @@ class CompletionPlugin(SpyderPluginV2):
                 option_name, provider_name, *__ = option
                 if option_name == 'enabled_providers':
                     provider_status = self.get_conf(
-                        ('enabled_providers', provider_name))
+                        ('enabled_providers', provider_name)
+                    )
                     if provider_status:
                         self.start_provider_instance(provider_name)
                         self.register_statusbar_widget(provider_name)
@@ -458,15 +461,15 @@ class CompletionPlugin(SpyderPluginV2):
         ----------
         plugin_loaded: bool
             True if the plugin is already loaded in Spyder, False if it is
-            being loaded. This is needed to avoid adding statusbar widgets
-            multiple times at startup.
+            being loaded. It has no effect since 6.1.5 and will be removed in
+            6.2.0
         """
         for provider_key in self.providers:
             provider_on = self.get_conf(
-                ('enabled_providers', provider_key), True)
+                ('enabled_providers', provider_key), True
+            )
             if provider_on:
-                self.register_statusbar_widget(
-                    provider_key, plugin_loaded=plugin_loaded)
+                self.register_statusbar_widget(provider_key)
 
     def register_statusbar_widget(self, provider_name, plugin_loaded=True):
         """
@@ -478,20 +481,25 @@ class CompletionPlugin(SpyderPluginV2):
             Name of the provider that is going to create statusbar widgets.
         plugin_loaded: bool
             True if the plugin is already loaded in Spyder, False if it is
-            being loaded.
+            being loaded. It has no effect since 6.1.5 and will be removed in
+            6.2.0.
         """
+        if self.statusbar is None:
+            return
+
         container = self.get_container()
         provider = self.providers[provider_name]['instance']
         widgets_ids = container.register_statusbar_widgets(
-            provider.STATUS_BAR_CLASSES, provider_name)
-        if plugin_loaded:
-            for id_ in widgets_ids:
-                current_widget = container.statusbar_widgets[id_]
-                # Validation to check for status bar registration before trying
-                # to add a widget.
-                # See spyder-ide/spyder#16997
-                if id_ not in self.statusbar.get_status_widgets():
-                    self.statusbar.add_status_widget(current_widget)
+            provider.STATUS_BAR_CLASSES, provider_name
+        )
+
+        for id_ in widgets_ids:
+            current_widget = container.statusbar_widgets[id_]
+            # Validation to check for status bar registration before trying
+            # to add a widget.
+            # See spyder-ide/spyder#16997
+            if id_ not in self.statusbar.get_status_widgets():
+                self.statusbar.add_status_widget(current_widget)
 
     def unregister_statusbar(self, provider_name):
         """
@@ -502,9 +510,14 @@ class CompletionPlugin(SpyderPluginV2):
         provider_name: str
             Name of the provider that is going to delete statusbar widgets.
         """
+        if self.statusbar is None:
+            return
+
         container = self.get_container()
         provider_keys = self.get_container().get_provider_statusbar_keys(
-            provider_name)
+            provider_name
+        )
+
         for id_ in provider_keys:
             # Validation to check for status bar registration before trying
             # to remove a widget.

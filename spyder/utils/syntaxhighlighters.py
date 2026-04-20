@@ -71,6 +71,7 @@ COLOR_SCHEME_KEYS = {
     "number":         _("Number:"),
     "instance":       _("Instance:"),
     "magic":          _("Magic:"),
+    "symbols":        _("Symbols:"),
 }
 
 COLOR_SCHEME_DEFAULT_VALUES = {
@@ -91,6 +92,7 @@ COLOR_SCHEME_DEFAULT_VALUES = {
     "number":     ("#faed5c", False, False),
     "instance":   ("#ee6772", False, True),
     "magic":      ("#c670e0", False, False),
+    "symbols":    ("#ff0000", False, False),
 }
 
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
@@ -451,7 +453,7 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     for repeated_element in repeated:
         kwlist.remove(repeated_element)
     kw = r"\b" + any("keyword", kwlist) + r"\b"
-    builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
+    builtin = r"(?<![.'\"\\#])\b" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b",
                                 r"\bcls\b",
@@ -500,9 +502,10 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     ufstring4 = any("uf_dq3string", [uf_dq3string])
     ufstring5 = any("ufe_sqstring", [ufe_sqstring])
     ufstring6 = any("ufe_dqstring", [ufe_dqstring])
+    symbols = r"(?P<symbols>[()\[\]{}:=<>.,%+\-*/&|~;!])"
     return "|".join([instance, kw, builtin, comment, match_kw, case_kw,
                      ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
-                     ufstring6, string, number, any("SYNC", [r"\n"])])
+                     ufstring6, string, number, symbols, any("SYNC", [r"\n"])])
 
 
 def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
