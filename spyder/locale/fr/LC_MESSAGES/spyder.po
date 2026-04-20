@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-20 14:01\n"
+"PO-Revision-Date: 2026-04-20 16:19\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -639,7 +639,7 @@ msgstr ""
 
 #: spyder/plugins/application/confpage.py:50 spyder/plugins/completion/providers/snippets/conftabs.py:69
 msgid "Language:"
-msgstr "Langue :"
+msgstr "Langage :"
 
 #: spyder/plugins/application/confpage.py:58
 msgid "Rendering engine:"
@@ -1153,11 +1153,11 @@ msgstr "<b>Modifier ces options peut empêcher le bon fonctionnement de la compl
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
-msgstr "Il semble qu'aucun serveur de langue {langue} n'écoute à l'adresse: <br> <br> <tt> {hôte}: {port} </ tt> <br> <br> Veuillez vérifier que les informations fournies sont correctes et essayez encore."
+msgstr "Il semble qu'aucun serveur de langue {language} n'écoute à l'adresse:<br><br><tt>{host}:{port}</tt><br><br>Vérifiez que les informations fournies sont correctes et réessayez."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:225
 msgid "The address of the external server you are trying to connect to is the same as the one of the current internal server started by Spyder.<br><br>Please provide a different address!"
-msgstr "L'adresse du serveur externe auquel vous essayez de vous connecter est la même que celle du serveur interne actuel démarré par Spyder. <br> <br> Veuillez indiquer une adresse différente!"
+msgstr "L'adresse du serveur externe auquel vous essayez de vous connecter est la même que celle du serveur interne démarré par Spyder.<br><br>Merci de saisir une autre adresse."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:22 spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:80
 msgid "Code formatting"
@@ -1343,7 +1343,7 @@ msgstr "Autres langues"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:37
 msgid "Spyder uses the <a href=\"{lsp_url}\">Language Server Protocol</a> to provide code completion and linting for its Editor. Here, you can setup and configure LSP servers for languages other than Python, so Spyder can provide such features for those languages as well."
-msgstr "Spyder utilise le <a href=\"{lsp_url}\"> Language Server Protocol </a> pour fournir des informations sur le code et le remplissage du code de son éditeur. Ici, vous pouvez configurer et configurer les serveurs LSP pour des langues autres que Python. Spyder peut donc fournir de telles fonctionnalités pour ces langues."
+msgstr "Spyder utilise le <a href=\"{lsp_url}\">Language Server Protocol </a> pour la complétion et l'analyse de code (linting). Ces fonctionnalités peuvent être activées pour d'autres langages que Python en configurant les serveurs LSP dans le tableau ci-dessous."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/otherlanguages.py:48
 msgid "Available servers:"
@@ -1391,7 +1391,7 @@ msgstr "JSON invalide"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:135
 msgid "To create a new server configuration, you need to select a programming language, set the command to start its associated server and enter any arguments that should be passed to it on startup. Additionally, you can set the server's hostname and port if connecting to an external server, or to a local one using TCP instead of stdio pipes.<br><br><i>Note</i>: You can use the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments field to automatically fill in the respective values.<br>"
-msgstr "Pour créer une nouvelle configuration de serveur, vous devez sélectionner un langage de programmation, définir la commande pour démarrer le serveur associé et entrer les arguments à lui transmettre au démarrage. En outre, vous pouvez définir le nom d'hôte et le port du serveur si vous vous connectez à un serveur externe ou à un serveur local à l'aide de TCP au lieu de canaux stdio. <br> <br> <i> Remarque </ i>: Vous pouvez utiliser les espaces réservés < tt> {hôte} </ tt> et <tt> {port} </ tt> dans le champ des arguments du serveur pour renseigner automatiquement les valeurs respectives. <br>"
+msgstr "Pour créer une nouvelle configuration de serveur, sélectionnez un langage de programmation, saisissez la commande pour démarrer le serveur associé et entrez les arguments à lui transmettre au démarrage. Vous pouvez aussi définir le nom d'hôte et le port du serveur si vous vous connectez à un serveur externe ou à un serveur local via TCP au lieu des canaux stdio.<br><br><i>Remarque</i>: vous pouvez utiliser les variables <tt>{host}</tt> et <tt>{port}</tt> dans le champ des arguments du serveur pour renseigner automatiquement les valeurs correspondantes.<br>"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:156
 msgid "External server"
@@ -1399,7 +1399,7 @@ msgstr "Serveur externe"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:157
 msgid "Host:"
-msgstr "Hôte:"
+msgstr "Hôte :"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:159 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:107
 msgid "Port:"
@@ -1415,7 +1415,7 @@ msgstr "Arguments :"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:166
 msgid "<b>Server Configuration:</b>"
-msgstr "<b> Configuration du serveur : </ b>"
+msgstr "<b>Configuration du serveur :</b>"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:177
 msgid "LSP server editor"
@@ -1427,7 +1427,7 @@ msgstr "Langage de programmation fourni par le serveur LSP"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:183
 msgid "Select a language"
-msgstr "Sélectionnez un langage"
+msgstr "Sélectionner un langage"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:196
 msgid "TCP port number of the server"
@@ -1439,15 +1439,15 @@ msgstr "Arguments supplémentaires requis pour démarrer le serveur"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:218
 msgid "Additional LSP server configuration set at runtime. JSON required"
-msgstr "Configuration supplémentaire du serveur LSP définie au moment de l'exécution. JSON requis"
+msgstr "Configuration supplémentaire du serveur LSP définie au moment de l'exécution. Au format JSON"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:227
 msgid "Check if the server runs on a remote location"
-msgstr "Vérifier si le serveur fonctionne sur un emplacement distant"
+msgstr "Cocher cette case si le serveur fonctionne sur un emplacement distant"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:230
 msgid "Use stdio pipes for communication"
-msgstr "Utiliser des pipes stdio pour la communication"
+msgstr "Utiliser des canaux stdio pour la communication"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:231
 msgid "Check if the server communicates using stdin/out pipes"
@@ -1455,7 +1455,7 @@ msgstr "Vérifiez si le serveur communique à l'aide de canaux stdin/out"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:242 spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:553
 msgid "Language"
-msgstr "Langue"
+msgstr "Langage"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:248
 msgid "Language server"
@@ -1467,11 +1467,11 @@ msgstr "Adresse du serveur"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:325
 msgid "Hostname must be valid"
-msgstr "Le nom de l'hôte doit être valide"
+msgstr "Le nom d'hôte doit être valide"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:328
 msgid "Hostname or IP address of the host on which the server is running. Must be non empty."
-msgstr "Nom d'hôte ou adresse IP de l'hôte sur lequel le serveur est en cours d'exécution. Doit être non vide."
+msgstr "Nom d'hôte ou adresse IP de l'hôte sur lequel le serveur est en cours d'exécution. Ne peut pas être vide."
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:332
 msgid "Hostname is valid"
@@ -1479,7 +1479,7 @@ msgstr "Le nom d'hôte est valide"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:340
 msgid "Command used to start the LSP server locally. Must be non empty"
-msgstr "Commande utilisée pour démarrer le serveur LSP localement. Ne peut être vide"
+msgstr "Commande utilisée pour démarrer le serveur LSP localement. Ne peut pas être vide."
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:347
 msgid "Program was not found on your system"
@@ -1532,19 +1532,19 @@ msgstr "la grammaire de LSP"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:51
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr "Spyder permet de définir des extraits de complétion personnalisés à utiliser en plus de ceux proposés par le Language Server Protocol (LSP). Chaque extrait de code devrait suivre {}.<br><br> <b>Note :</b> Toutes les modifications ne seront effectives que lors de l'application des paramètres"
+msgstr "Spyder permet de définir des extraits de code personnalisés à utiliser en plus de ceux proposés par le Language Server Protocol (LSP). Chaque extrait de code doit respecter {}.<br><br><b>Note :</b> les modifications ne seront effectives qu'après avoir appliqué les paramètres."
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
-msgstr ""
+msgstr "Extraits de code disponibles :"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:88
 msgid "Create a new snippet"
-msgstr "Créer un bloc de texte"
+msgstr "Créer un extrait de code"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:91
 msgid "Delete currently selected snippet"
-msgstr "Supprimer le bloc de texte sélectionné"
+msgstr "Supprimer l'extrait de code sélectionné"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:97
 msgid "Export snippets to JSON"
@@ -1572,7 +1572,7 @@ msgstr "{0} extraits de code ont été chargés avec succès"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:196
 msgid "JSON malformed"
-msgstr "JSON malformé"
+msgstr "Fichier JSON incorrect"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:197
 msgid "There was an error when trying to load the provided JSON file: <tt>{0}</tt>"
@@ -1580,7 +1580,7 @@ msgstr "Il y a eu une erreur lors du chargement du fichier JSON fourni : <tt>{0}
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:206
 msgid "Invalid snippet file"
-msgstr "Fichier d’extraits de code invalide"
+msgstr "Fichier d’extraits de code incorrect"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:207
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
@@ -1592,7 +1592,7 @@ msgstr "Format d'extraits de code incorrect"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:225
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
-msgstr "Spyder a pu charger correctement {0}/{1} extraits de code, veuillez vérifier les extraits de code suivants pour toute erreur de syntaxe : <br><br>{2}"
+msgstr "Spyder a pu charger correctement {0}/{1} extraits de code. Merci de vérifier la syntaxe des extraits de code suivants : <br><br>{2}"
 
 #: spyder/plugins/completion/providers/snippets/provider.py:52
 msgid "Text snippets"
@@ -3981,7 +3981,7 @@ msgstr "Afficher le message de démarrage lors de l'ouverture d'une nouvelle con
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Show a summary help popup when typing an open parenthesis after a callable function"
-msgstr ""
+msgstr "Afficher une infobulle d'aide lors de la saisie d'une parenthèse ouvrante après le nom d'une fonction"
 
 #: spyder/plugins/ipythonconsole/confpage.py:53 spyder/plugins/ipythonconsole/widgets/main_widget.py:550
 msgid "Show elapsed time"
@@ -3989,11 +3989,11 @@ msgstr "Afficher le temps écoulé"
 
 #: spyder/plugins/ipythonconsole/confpage.py:55
 msgid "Display the time since the current console was started in the tab bar"
-msgstr ""
+msgstr "Afficher le temps écoulé depuis le démarrage de la console courante dans la barre d'onglets"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Confirmation"
-msgstr ""
+msgstr "Confirmation"
 
 #: spyder/plugins/ipythonconsole/confpage.py:68
 msgid "Ask for confirmation before closing"
@@ -4001,7 +4001,7 @@ msgstr "Demander confirmation avant de fermer une console"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Ask for confirmation before removing all variables"
-msgstr ""
+msgstr "Demander confirmation avant de supprimer toutes les variables"
 
 #: spyder/plugins/ipythonconsole/confpage.py:76
 msgid "Ask for confirmation before restarting"
@@ -4009,7 +4009,7 @@ msgstr "Demander confirmation avant de redémarrer"
 
 #: spyder/plugins/ipythonconsole/confpage.py:87
 msgid "Completion"
-msgstr ""
+msgstr "Complétion"
 
 #: spyder/plugins/ipythonconsole/confpage.py:88
 msgid "Graphical"
@@ -4021,35 +4021,35 @@ msgstr "Simple"
 
 #: spyder/plugins/ipythonconsole/confpage.py:88
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: spyder/plugins/ipythonconsole/confpage.py:90
 msgid "Display:"
-msgstr ""
+msgstr "Affichage :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
 msgid "Graphical shows a list of completion matches in a GUI.\n"
 "Plain displays matches in the Console output, like Bash.\n"
 "Terminal is Plain plus Tab selecting matches, like Zsh.\n"
-msgstr ""
+msgstr "Graphique affiche une liste de complétions dans une interface graphique.<br>Simple affiche les complétions dans la sortie de la console, comme Bash.<br>Terminal correspond à Simple plus une sélection des complétions avec Tab, comme Zsh."
 
 #: spyder/plugins/ipythonconsole/confpage.py:100
 msgid "Use Jedi completion"
-msgstr ""
+msgstr "Utiliser la complétion Jedi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
 msgid "Enable Jedi-based tab-completion in the IPython console.\n"
 "Similar to the greedy completer, but without evaluating the code and allows completion of dictionary keys, nested lists and similar.\n"
 "Warning: Can slow down the Console when working with large dataframes."
-msgstr ""
+msgstr "Activer la complétion avec Tab basé sur Jedi dans la console IPython.<br>Similaire à la complétion gloutonne mais sans l'évaluation du code. Permet aussi la complétion des clés de dictionnaire, des listes imbriquées et autres structures similaires.<br>Avertissement : peut ralentir la console lorsque des dataframes de grande taille sont utilisés."
 
 #: spyder/plugins/ipythonconsole/confpage.py:112
 msgid "Use greedy completion"
-msgstr ""
+msgstr "Utiliser la complétion gloutonne"
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Enable <tt>Tab</tt> completion on elements of lists, results of function calls and similar <i>without</i> assigning them to a variable, like <tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Warning</b>: This can be unsafe because your code is actually executed when you press <tt>Tab</tt>."
-msgstr ""
+msgstr "Active la complétion avec <tt>Tab</tt> sur les éléments de listes, les retours de fonction et autres structures similaires <i>sans</i> les assigner à une variable. Par exemple : <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt><br><b>Avertissement :</b> potentiellement dangereux car le code est exécuté lors de l'appui sur <tt>Tab</tt>."
 
 #: spyder/plugins/ipythonconsole/confpage.py:132 spyder/plugins/pylint/main_widget.py:511
 msgid "Output"
@@ -4057,7 +4057,7 @@ msgstr "Sortie"
 
 #: spyder/plugins/ipythonconsole/confpage.py:134
 msgid "Buffer:"
-msgstr ""
+msgstr "Historique :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:135
 msgid " lines"
