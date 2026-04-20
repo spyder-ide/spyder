@@ -68,7 +68,6 @@ class ToolbarContainer(PluginMainContainer):
         super().__init__(name, plugin, parent=parent)
 
         self._APPLICATION_TOOLBARS = OrderedDict()
-        self._ADDED_TOOLBARS = OrderedDict()
         self._toolbarslist: list[ApplicationToolbar] = []
         self._visible_toolbars: list[ApplicationToolbar] = []
         self._ITEMS_QUEUE: Dict[str, List[ItemInfo]] = {}
@@ -199,24 +198,24 @@ class ToolbarContainer(PluginMainContainer):
                 f"Toolbar `{repr(toolbar)}` doesn't have an identifier!"
             )
 
-        if toolbar_id in self._ADDED_TOOLBARS:
+        if toolbar_id in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" already added!'.format(toolbar_id))
+                'Toolbar with ID "{}" already added!'.format(toolbar_id)
+            )
 
         # Add toolbar to registry and add it to the app toolbars dict
         TOOLBAR_REGISTRY.register_reference(
             toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
         )
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
+        self._toolbarslist.append(toolbar)
 
         # TODO: Make the icon size adjustable in Preferences later on.
         iconsize = 24
         toolbar.setIconSize(QSize(iconsize, iconsize))
         toolbar.setObjectName(toolbar_id)
 
-        self._ADDED_TOOLBARS[toolbar_id] = toolbar
-        self._toolbarslist.append(toolbar)
-
+        # Add toolbar to main window
         if mainwindow:
             mainwindow.addToolBar(toolbar)
 
@@ -234,12 +233,14 @@ class ToolbarContainer(PluginMainContainer):
             The main application window.
         """
 
-        if toolbar_id not in self._ADDED_TOOLBARS:
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
                 'Toolbar with ID "{}" is not in the main window'.format(
-                    toolbar_id))
+                    toolbar_id
+                )
+            )
 
-        toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
+        toolbar = self._APPLICATION_TOOLBARS.pop(toolbar_id)
         self._toolbarslist.remove(toolbar)
 
         if mainwindow:
@@ -463,7 +464,7 @@ class ToolbarContainer(PluginMainContainer):
         secondary_section = ToolbarsMenuSections.Secondary
         default_toolbars = get_class_values(ApplicationToolbars)
 
-        for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
+        for toolbar_id, toolbar in self._APPLICATION_TOOLBARS.items():
             if toolbar:
                 action = toolbar.toggleViewAction()
 
