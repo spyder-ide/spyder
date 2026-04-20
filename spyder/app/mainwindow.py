@@ -383,13 +383,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
-        """
-        Register a plugin in Spyder Main Window.
-        """
+        """Register a plugin in the main window."""
+        logger.info("Loading {}...".format(plugin_name))
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
 
-        self.set_splash(_("Loading {}...").format(plugin.get_name()))
-        logger.info("Loading {}...".format(plugin.NAME))
+        if self.is_setting_up:
+            self.set_splash(_("Loading {}...").format(plugin.get_name()))
 
         # Check plugin compatibility
         is_compatible, message = plugin.check_compatibility()
