@@ -182,11 +182,79 @@ class SpyderRegistry:
             context, weakref.WeakValueDictionary())
         return context_references
 
+    def remove_reference(
+        self,
+        id_: str,
+        plugin: str | None = None,
+        context: str | None = None,
+    ) -> None:
+        """
+        Remove a stored object reference under a given id of a specific
+        context of a given plugin name.
+
+        Parameters
+        ----------
+        id_: str
+            String identifier used to remove the object.
+        plugin: str, optional
+            Plugin name used to store the reference. Should belong to
+            :class:`spyder.api.plugins.Plugins`. If None, then the object will
+            be retrieved from the global `main` key.
+        context: str, optional
+            Additional key that was used to store the object reference.
+            In any Spyder plugin implementation, this context may refer to an
+            identifier of a widget. This context enables plugins to define
+            multiple actions with the same key that live on different widgets.
+            If None, this context will default to the special `__global`
+            identifier.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If neither of `id_`, `plugin` or `context` were found in the
+            registry.
+        """
+        plugin = plugin if plugin is not None else 'main'
+        context = context if context is not None else '__global'
+
+        plugin_contexts = self.registry_map[plugin]
+        context_references = plugin_contexts[context]
+        context_references.pop(id_)
+
+    def remove_references(self, plugin: str) -> None:
+        """
+        Remove all stored object references for a given plugin.
+
+        Parameters
+        ----------
+        plugin: str, optional
+            Plugin name used to store the reference. Should belong to
+            :class:`spyder.api.plugins.Plugins`.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyError
+            If `plugin` was not found in the registry.
+        """
+        self.registry_map.pop(plugin)
+
     def reset_registry(self):
         self.registry_map = {}
 
     def __str__(self) -> str:
         return f'SpyderRegistry[{self.obj_type}, {self.registry_map}]'
+
+    def __contains__(self, plugin_name: str) -> bool:
+        """Determine if a plugin with a given name is the registry."""
+        return plugin_name in self.registry_map
 
 
 ACTION_REGISTRY = SpyderRegistry('create_action', 'SpyderAction')
