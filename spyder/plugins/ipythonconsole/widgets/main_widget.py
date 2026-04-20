@@ -58,7 +58,6 @@ from spyder.plugins.ipythonconsole.widgets import (
     KernelConnectionDialog,
     MatplotlibStatus,
     PageControlWidget,
-    PythonEnvironmentStatus,
     ShellWidget,
 )
 from spyder.plugins.ipythonconsole.widgets.mixins import CachedKernelMixin
@@ -401,14 +400,9 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         # See spyder-ide/spyder#11880
         self._init_asyncio_patch()
 
-        # Create status widgets
-        self.matplotlib_status = MatplotlibStatus(self)
-        self.pythonenv_status = PythonEnvironmentStatus(self)
-        self.pythonenv_status.sig_interpreter_changed.connect(
-            self.sig_interpreter_changed
-        )
-        self.pythonenv_status.sig_open_preferences_requested.connect(
-            self.sig_open_preferences_requested)
+        # Create status widgets for tests
+        if running_under_pytest():
+            self.matplotlib_status = MatplotlibStatus(self)
 
         # Initial value for the current working directory
         self._current_working_directory = get_home_dir()

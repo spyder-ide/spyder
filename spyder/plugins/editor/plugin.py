@@ -33,6 +33,13 @@ from spyder.plugins.editor.api.run import (
 )
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.widgets.main_widget import EditorMainWidget
+from spyder.plugins.editor.widgets.status import (
+    CursorPositionStatus,
+    EncodingStatus,
+    EOLStatus,
+    ReadWriteStatus,
+    VCSStatus,
+)
 from spyder.plugins.mainmenu.api import (
     ApplicationMenus,
     EditMenuSections,
@@ -57,7 +64,7 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Application, Plugins.Console, Plugins.Preferences]
+    REQUIRES = [Plugins.Console, Plugins.Application, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,
@@ -238,22 +245,43 @@ class Editor(SpyderDockablePlugin):
         # Add status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
         widget = self.get_widget()
+
+        widget.readwrite_status = ReadWriteStatus(widget)
         statusbar.add_status_widget(widget.readwrite_status)
+
+        widget.eol_status = EOLStatus(widget)
         statusbar.add_status_widget(widget.eol_status)
+
+        widget.encoding_status = EncodingStatus(widget)
         statusbar.add_status_widget(widget.encoding_status)
+
+        widget.cursorpos_status = CursorPositionStatus(widget)
         statusbar.add_status_widget(widget.cursorpos_status)
+
+        widget.vcs_status = VCSStatus(widget)
         statusbar.add_status_widget(widget.vcs_status)
+
+        # This is necessary for the first editorstack that is created because
+        # when that's done these widgets can't exist yet.
+        widget.register_status_widgets()
 
     @on_plugin_teardown(plugin=Plugins.StatusBar)
     def on_statusbar_teardown(self):
         # Remove status widgets
         statusbar = self.get_plugin(Plugins.StatusBar)
         widget = self.get_widget()
-        statusbar.remove_status_widget(widget.readwrite_status.ID)
-        statusbar.remove_status_widget(widget.eol_status.ID)
-        statusbar.remove_status_widget(widget.encoding_status.ID)
-        statusbar.remove_status_widget(widget.cursorpos_status.ID)
-        statusbar.remove_status_widget(widget.vcs_status.ID)
+
+        statusbar.remove_status_widget(ReadWriteStatus.ID)
+        statusbar.remove_status_widget(EOLStatus.ID)
+        statusbar.remove_status_widget(EncodingStatus.ID)
+        statusbar.remove_status_widget(CursorPositionStatus.ID)
+        statusbar.remove_status_widget(VCSStatus.ID)
+
+        widget.readwrite_status = None
+        widget.eol_status = None
+        widget.encoding_status = None
+        widget.cursorpos_status = None
+        widget.vcs_status = None
 
     @on_plugin_available(plugin=Plugins.Run)
     def on_run_available(self):
@@ -664,6 +692,7 @@ class Editor(SpyderDockablePlugin):
         outline_widget = outline.get_widget()
 
         widget.set_outlineexplorer(outline_widget)
+        widget.outline_plugin = outline
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
@@ -1040,12 +1069,8 @@ class Editor(SpyderDockablePlugin):
             If any previously open file should be closed. Default `True`.
         """
         widget = self.get_widget()
-        outline = self.get_plugin(Plugins.OutlineExplorer, error=False)
-        if outline:
-            widget.setup_other_windows(self._main, outline)
-        return self.get_widget().setup_open_files(
-            close_previous_files=close_previous_files
-        )
+        widget.setup_open_files(close_previous_files=close_previous_files)
+        widget.setup_other_windows()
 
     def save_open_files(self,):
         """Save the list of open files."""

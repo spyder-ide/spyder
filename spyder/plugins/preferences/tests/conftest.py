@@ -46,6 +46,10 @@ class MainWindowMock(QMainWindow):
         sys_argv = [sys.argv[0]]  # Avoid options passed to pytest
         self._cli_options = get_options(sys_argv)[0]
 
+        # For plugin registration
+        self._INTERNAL_PLUGINS_MAPPING = {}
+        self.is_webengine_available = False
+
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self.register_plugin)
         PLUGIN_REGISTRY.register_plugin(self, Preferences)
@@ -71,8 +75,8 @@ class MainWindowMock(QMainWindow):
 
 
 class ConfigDialogTester(QWidget):
-    def __init__(self, parent, main_class,
-                 general_config_plugins, plugins):
+
+    def __init__(self, parent, main_class, general_config_plugins, plugins):
         super().__init__(parent)
         self._main = main_class(self) if main_class else None
         if self._main is None:
@@ -87,10 +91,14 @@ class ConfigDialogTester(QWidget):
                 return PLUGIN_REGISTRY.get_plugin(plugin_name)
             return None
 
-        setattr(self._main, 'register_plugin',
-                types.MethodType(register_plugin, self._main))
-        setattr(self._main, 'get_plugin',
-                types.MethodType(get_plugin, self._main))
+        setattr(
+            self._main,
+            "register_plugin",
+            types.MethodType(register_plugin, self._main),
+        )
+        setattr(
+            self._main, "get_plugin", types.MethodType(get_plugin, self._main)
+        )
 
         PLUGIN_REGISTRY.reset()
         PLUGIN_REGISTRY.sig_plugin_ready.connect(self._main.register_plugin)
@@ -101,12 +109,17 @@ class ConfigDialogTester(QWidget):
                 if hasattr(Plugin, 'CONF_WIDGET_CLASS'):
                     for required in (Plugin.REQUIRES or []):
                         if required not in PLUGIN_REGISTRY:
-                            PLUGIN_REGISTRY.plugin_registry[required] = MagicMock()
+                            print(required)
+                            PLUGIN_REGISTRY.plugin_registry[required] = (
+                                MagicMock()
+                            )
 
+                    PLUGIN_REGISTRY._update_plugin_info(Plugin)
                     PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:
                     plugin = Plugin(self._main)
                     preferences = self._main.get_plugin(Plugins.Preferences)
+                    PLUGIN_REGISTRY._update_plugin_info(Plugin)
                     preferences.register_plugin_preferences(plugin)
 
 
@@ -136,7 +149,8 @@ def config_dialog(qtbot, request, mocker):
     main_class, general_config_plugins, plugins = request.param
 
     main_ref = ConfigDialogTester(
-        None, main_class, general_config_plugins, plugins)
+        None, main_class, general_config_plugins, plugins
+    )
     qtbot.addWidget(main_ref)
 
     preferences = main_ref._main.get_plugin(Plugins.Preferences)

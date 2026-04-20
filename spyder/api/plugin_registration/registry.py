@@ -10,14 +10,11 @@
 from __future__ import annotations
 
 # Standard library imports
+import configparser as cp
 import logging
 import sys
+import traceback
 from typing import Any, Union, TYPE_CHECKING
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -25,7 +22,11 @@ from qtpy.QtCore import QObject, Signal
 # Local imports
 from spyder import dependencies
 from spyder.api.translations import _
-from spyder.config.base import running_under_pytest
+from spyder.app.find_plugins import (
+    find_external_plugins,
+    find_internal_plugins,
+)
+from spyder.config.base import running_under_pytest, STDERR
 from spyder.config.manager import CONF
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.plugin_registration._confpage import PluginsConfigPage
@@ -33,12 +34,21 @@ from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.utils.icon_manager import ima
 
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeAlias
+else:
+    from typing import TypeAlias  # noqa: ICN003
+
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
 
     import spyder.app.mainwindow
 
 
+# =============================================================================
+# ---- Constants
+# =============================================================================
 SpyderPluginClass: TypeAlias = Union[SpyderPluginV2, SpyderDockablePlugin]
 """Type alias for the set of supported classes for Spyder plugin objects."""
 
@@ -52,7 +62,10 @@ ALL_PLUGINS: list[str] = [
 logger = logging.getLogger(__name__)
 
 
-class PreferencesAdapter(SpyderConfigurationAccessor):
+# =============================================================================
+# ---- Auxiliary classes
+# =============================================================================
+class _PluginRegistryPreferencesAdapter(SpyderConfigurationAccessor):
     """Class with constants for the plugin manager preferences page."""
 
     # Fake class constants used to register the configuration page
@@ -72,7 +85,18 @@ class PreferencesAdapter(SpyderConfigurationAccessor):
         pass
 
 
-class SpyderPluginRegistry(QObject, PreferencesAdapter):
+class _DummyPlugin:
+    """Dummy plugin class to use when a plugin hasn't been registered."""
+
+    # This is True because every plugin that we want to access but is
+    # not part of the registry can be disabled
+    CAN_BE_DISABLED = True
+
+
+# =============================================================================
+# ---- Registry
+# =============================================================================
+class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
     """
     Global Spyder plugin registry.
 
@@ -115,7 +139,7 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         None
         """
         super().__init__()
-        PreferencesAdapter.__init__(self)
+        _PluginRegistryPreferencesAdapter.__init__(self)
 
         self.main: spyder.app.mainwindow.MainWindow | None = None
         """Reference to the Spyder main window."""
@@ -172,7 +196,110 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         # This is used to allow disabling external plugins through Preferences
         self._external_plugins_conf_section = "external_plugins"
 
-    # ------------------------- PRIVATE API -----------------------------------
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _load_and_register_plugins(self):
+        """Load and register internal and external plugins."""
+        external_plugins = find_external_plugins()
+        internal_plugins = find_internal_plugins()
+        all_plugins = external_plugins.copy()
+        all_plugins.update(internal_plugins.copy())
+
+        # Determine 'enable' config for plugins that have it.
+        enabled_plugins = {}
+        registry_internal_plugins = {}
+        registry_external_plugins = {}
+
+        for plugin in all_plugins.values():
+            plugin_name = plugin.NAME
+            plugin_main_attribute_name = (
+                self.main._INTERNAL_PLUGINS_MAPPING[plugin_name]
+                if plugin_name in self.main._INTERNAL_PLUGINS_MAPPING
+                else plugin_name
+            )
+
+            if plugin_name in internal_plugins:
+                registry_internal_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin
+                )
+                enable_option = "enable"
+                enable_section = plugin_main_attribute_name
+            else:
+                registry_external_plugins[plugin_name] = (
+                    plugin_main_attribute_name, plugin
+                )
+
+                # This is a workaround to allow disabling external plugins.
+                # Because of the way the current config implementation works,
+                # an external plugin config option (e.g. 'enable') can only be
+                # read after the plugin is loaded. But here we're trying to
+                # decide if the plugin should be loaded if it's enabled. So,
+                # for now we read (and save, see PluginsConfigPage) that option
+                # in our internal config options.
+                # See spyder-ide/spyder#17464 for more details.
+                enable_option = f"{plugin_main_attribute_name}/enable"
+                enable_section = self._external_plugins_conf_section
+
+            try:
+                if self.get_conf(enable_option, section=enable_section):
+                    enabled_plugins[plugin_name] = plugin
+                    self.set_plugin_enabled(plugin_name)
+            except (cp.NoOptionError, cp.NoSectionError):
+                enabled_plugins[plugin_name] = plugin
+                self.set_plugin_enabled(plugin_name)
+
+        self.all_internal_plugins = registry_internal_plugins
+        self.all_external_plugins = registry_external_plugins
+
+        # Instantiate internal plugins
+        for plugin_name in internal_plugins:
+            PluginClass = internal_plugins[plugin_name]
+
+            # Update plugin dependency information
+            self._update_plugin_info(PluginClass)
+
+            if plugin_name in enabled_plugins:
+                # Disable plugins that use web widgets if WebEngine is not
+                # available or the user asks for it.
+                # See spyder-ide/spyder#16518
+                # The plugins that require QtWebengine must declare themselves
+                # as needing that dependency.
+                # https://github.com/spyder-ide/spyder/pull/
+                # 22196#issuecomment-2189377043
+                if (
+                    PluginClass.REQUIRE_WEB_WIDGETS
+                    and not self._are_web_widgets_available()
+                ):
+                    continue
+
+                self.register_plugin(
+                    self.main, PluginClass, external=False
+                )
+
+        # Instantiate external plugins
+        for plugin_name in external_plugins:
+            PluginClass = external_plugins[plugin_name]
+
+            # Update plugin dependency information
+            self._update_plugin_info(PluginClass)
+
+            if plugin_name in enabled_plugins:
+                # Disable plugins that require web widgets if they are not
+                # available.
+                if (
+                    PluginClass.REQUIRE_WEB_WIDGETS
+                    and not self._are_web_widgets_available()
+                ):
+                    continue
+
+                try:
+                    self.register_plugin(
+                        self.main, PluginClass, external=True
+                    )
+                except Exception as error:
+                    print("%s: %s" % (PluginClass, str(error)), file=STDERR)
+                    traceback.print_exc(file=STDERR)
+
     def _update_dependents(self, plugin: str, dependent_plugin: str, key: str):
         """Add `dependent_plugin` to the list of dependents of `plugin`."""
         plugin_dependents = self.plugin_dependents.get(plugin, {})
@@ -191,13 +318,20 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         plugin_dependencies[key] = plugin_strict_dependencies
         self.plugin_dependencies[plugin] = plugin_dependencies
 
-    def _update_plugin_info(
-        self,
-        plugin_name: str,
-        required_plugins: list[str],
-        optional_plugins: list[str],
-    ):
+    def _update_plugin_info(self, PluginClass: type[SpyderPluginClass]):
         """Update the dependencies and dependents of `plugin_name`."""
+        plugin_name = PluginClass.NAME
+        required_plugins = list(set(PluginClass.REQUIRES))
+        optional_plugins = list(set(PluginClass.OPTIONAL))
+
+        for plugin in list(required_plugins):
+            if plugin == Plugins.All:
+                required_plugins = list(set(required_plugins + ALL_PLUGINS))
+
+        for plugin in list(optional_plugins):
+            if plugin == Plugins.All:
+                optional_plugins = list(set(optional_plugins + ALL_PLUGINS))
+
         for plugin in required_plugins:
             self._update_dependencies(plugin_name, plugin, "requires")
             self._update_dependents(plugin, plugin_name, "requires")
@@ -213,27 +347,11 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         external: bool,
     ) -> SpyderPluginClass:
         """Instantiate and register a Spyder plugin."""
-        required_plugins = list(set(PluginClass.REQUIRES))
-        optional_plugins = list(set(PluginClass.OPTIONAL))
         plugin_name = PluginClass.NAME
-
         logger.debug(f"Registering plugin {plugin_name} - {PluginClass}")
 
         if PluginClass.CONF_FILE:
             CONF.register_plugin(PluginClass)
-
-        for plugin in list(required_plugins):
-            if plugin == Plugins.All:
-                required_plugins = list(set(required_plugins + ALL_PLUGINS))
-
-        for plugin in list(optional_plugins):
-            if plugin == Plugins.All:
-                optional_plugins = list(set(optional_plugins + ALL_PLUGINS))
-
-        # Update plugin dependency information
-        self._update_plugin_info(
-            plugin_name, required_plugins, optional_plugins
-        )
 
         # Create and store plugin instance
         plugin_instance = PluginClass(main_window, configuration=CONF)
@@ -318,7 +436,17 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
                     logger.debug(f"Disconnecting {plugin_name} from {plugin}")
                     plugin_instance._on_plugin_teardown(plugin)
 
-    # -------------------------- PUBLIC API -----------------------------------
+    def _are_web_widgets_available(self):
+        if (
+            self.main.is_webengine_available
+            and not self.main._cli_options.no_web_widgets
+        ):
+            return True
+        else:
+            return False
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
     def register_plugin(
         self,
         main_window: spyder.app.mainwindow.MainWindow,
@@ -869,6 +997,100 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
         """Name of the plugin registry, translated to the locale language."""
         return _("Plugins")
 
+    def get_plugin_required_dependencies(
+        self, plugin_name: str, include_all: bool = False
+    ) -> set[str]:
+        """
+        Get required dependencies (including transitive ones) of a given plugin.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to get its disabled dependencies.
+        include_all: bool
+            Whether to include all dependencies or only those that can be
+            disabled.
+
+        Returns
+        -------
+        dependencies: set[str]
+            Set of dependency plugins.
+        """
+        # Get direct dependencies
+        direct_dependencies = set(
+            self.plugin_dependencies.get(plugin_name, {}).get("requires", [])
+        )
+
+        # Filter plugins that can be disabled
+        if not include_all:
+            direct_dependencies = {
+                plugin
+                for plugin in direct_dependencies
+                if self.plugin_registry.get(
+                    plugin, _DummyPlugin
+                ).CAN_BE_DISABLED
+            }
+
+        if not direct_dependencies:
+            return set()
+
+        # Find transitive dependents
+        transitive_dependencies = set()
+        for plugin in direct_dependencies:
+            transitive_dependencies |= self.get_plugin_required_dependencies(
+                plugin
+            )
+
+        return direct_dependencies | transitive_dependencies
+
+    def get_plugin_required_dependents(
+        self, plugin_name: str, include_all: bool = False
+    ) -> set[str]:
+        """
+        Get required dependents (including transitive ones) of a given plugin.
+
+        Parameters
+        ----------
+        plugin_name: str
+            Name of the plugin to get its required dependents.
+        include_all: bool
+            Whether to include all dependents or only those that can be
+            disabled.
+
+        Returns
+        -------
+        dependents: set[str]
+            Set of dependent plugins.
+        """
+        # Get direct dependents
+        direct_dependents = set(
+            self.plugin_dependents.get(plugin_name, {}).get("requires", [])
+        )
+
+        # Filter plugins that can be disabled
+        if not include_all:
+            direct_dependents = {
+                plugin
+                for plugin in direct_dependents
+                if self.plugin_registry.get(
+                    plugin, _DummyPlugin
+                ).CAN_BE_DISABLED
+            }
+
+        if not direct_dependents:
+            return set()
+
+        # Find transitive dependents
+        transitive_dependents = set()
+        for plugin in direct_dependents:
+            transitive_dependents |= self.get_plugin_required_dependents(
+                plugin
+            )
+
+        return direct_dependents | transitive_dependents
+
+    # ---- Python API
+    # -------------------------------------------------------------------------
     def __contains__(self, plugin_name: str) -> bool:
         """
         Determine if a plugin with a given name is contained in the registry.

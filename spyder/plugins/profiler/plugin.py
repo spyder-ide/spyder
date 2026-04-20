@@ -45,7 +45,12 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     """
 
     NAME = 'profiler'
-    REQUIRES = [Plugins.Preferences, Plugins.IPythonConsole, Plugins.Run]
+    REQUIRES = [
+        Plugins.Preferences,
+        Plugins.IPythonConsole,
+        Plugins.Run,
+        Plugins.Toolbar,
+    ]
     OPTIONAL = [Plugins.Editor]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = ProfilerWidget
@@ -234,6 +239,18 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_preferences_teardown(self):
         preferences = self.get_plugin(Plugins.Preferences)
         preferences.deregister_plugin_preferences(self)
+
+    @on_plugin_available(plugin=Plugins.Toolbar)
+    def on_toolbar_available(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.create_application_toolbar(
+            ApplicationToolbars.Profile, _("Profile toolbar")
+        )
+
+    @on_plugin_teardown(plugin=Plugins.Toolbar)
+    def on_toolbar_teardown(self):
+        toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.remove_application_toolbar(ApplicationToolbars.Profile)
 
     def on_mainwindow_visible(self):
         # Make plugin visible in case it's not but only once. For most users

@@ -16,7 +16,6 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
 from spyder.api.translations import _
 from spyder.config.base import get_safe_mode, running_under_pytest
-from spyder.plugins.application.api import ApplicationActions
 from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.tours.container import TourActions, ToursContainer
 from spyder.plugins.tours.tours import INTRO_TOUR, TourIdentifiers
@@ -29,7 +28,8 @@ class Tours(SpyderPluginV2):
     """
     NAME = 'tours'
     CONF_SECTION = NAME
-    OPTIONAL = [Plugins.Help, Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.Help]
     CONF_FILE = False
     CONTAINER_CLASS = ToursContainer
 
