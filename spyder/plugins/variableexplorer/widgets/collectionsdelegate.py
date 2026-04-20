@@ -42,8 +42,6 @@ from qtpy.QtWidgets import (
     QStyleOptionButton,
     QTableView,
 )
-from spyder.config.base import running_under_pytest
-from spyder.config.manager import CONF
 from spyder_kernels.comms.commbase import CommsErrorWrapper
 from spyder_kernels.utils.lazymodules import (
     FakeObject, numpy as np, pandas as pd, PIL)
@@ -51,8 +49,10 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)
@@ -73,7 +73,11 @@ MAX_INT_BIT_LENGTH_FOR_EDITING = (
 )
 
 
-class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
+class CollectionsDelegate(
+    QItemDelegate,
+    SpyderConfigurationAccessor,
+    SpyderFontsMixin,
+):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -231,7 +235,9 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -244,7 +250,9 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 parent=parent,
                 data_function=self.make_data_function(index)
             )
-            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
             if not editor.setup_and_check(value, title=key, readonly=readonly):
                 self.sig_editor_shown.emit()
                 return
@@ -498,19 +506,28 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
     def close_all_editors(self):
         """Close all opened non-modal editor dialogs."""
-        ask_close_all_editors = CONF.get('variable_explorer', 'ask_close_all_editors')
+        ask_close_all_editors = self.get_conf(
+            "ask_close_all_editors", section="variable_explorer"
+        )
         close_all = True
         if ask_close_all_editors and not running_under_pytest():
-            message = MessageCheckBox(icon=QMessageBox.Question, parent=self.parent())
+            message = MessageCheckBox(
+                icon=QMessageBox.Question, parent=self.parent()
+            )
             message.set_checkbox_text(_("Don't ask again."))
             message.set_checked(False)
             message.set_check_visible(True)
             message.setText(_('Are you sure you want to close all editors?'))
             message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
             result = message.exec_()
             check = message.is_checked()
             if check:
-                CONF.set('variable_explorer', 'ask_close_all_editors', not check)
+                self.set_conf(
+                    "ask_close_all_editors",
+                    not check,
+                    section="variable_explorer",
+                )
             close_all = result == QMessageBox.Yes
 
         if not close_all:
@@ -815,7 +832,9 @@ class ToggleColumnDelegate(CollectionsDelegate):
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
-            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None

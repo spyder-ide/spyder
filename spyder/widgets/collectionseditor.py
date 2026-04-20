@@ -956,8 +956,13 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 section=CollectionsEditorContextMenuSections.AddRemove
             )
 
-        for action in [self.view_action, self.close_all_editors_action,
-                       self.plot_action, self.hist_action, self.imshow_action]:
+        for action in [
+            self.view_action,
+            self.close_all_editors_action,
+            self.plot_action,
+            self.hist_action,
+            self.imshow_action
+        ]:
             self.add_item_to_menu(
                 action,
                 menu,
@@ -2044,7 +2049,8 @@ class CollectionsEditor(BaseDialog):
             self.save_and_close_enable
         )
         self.widget.editor.sig_close_all_editors_requested.connect(
-            self.sig_close_all_editors_requested)
+            self.sig_close_all_editors_requested
+        )
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
