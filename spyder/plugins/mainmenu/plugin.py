@@ -27,6 +27,7 @@ from spyder.plugins.mainmenu.api import (
     MENUBAR_STYLESHEET,
 )
 from spyder.utils.qthelpers import SpyderAction
+from spyder.utils.registries import MENU_REGISTRY
 
 
 # Extended typing definitions
@@ -244,6 +245,8 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             The menu unique identifier string.
         """
         if menu_id in self._APPLICATION_MENUS:
+            MENU_REGISTRY.remove_reference(menu_id, self.PLUGIN_NAME)
+            self._menus.pop(menu_id)
             menu = self._APPLICATION_MENUS.pop(menu_id)
             self.main.menuBar().removeAction(menu.menuAction())
 
