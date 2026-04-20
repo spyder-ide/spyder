@@ -32,6 +32,12 @@ from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.utils.icon_manager import ima
+from spyder.utils.registries import (
+    ACTION_REGISTRY,
+    MENU_REGISTRY,
+    TOOLBAR_REGISTRY,
+    TOOLBUTTON_REGISTRY,
+)
 
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
@@ -676,6 +682,19 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                 plugin_instance.on_close(True)
             except RuntimeError:
                 pass
+
+            try:
+                for registry in [
+                    ACTION_REGISTRY,
+                    MENU_REGISTRY,
+                    TOOLBAR_REGISTRY,
+                    TOOLBUTTON_REGISTRY,
+                ]:
+                    if plugin_name in registry:
+                        registry.remove_references(plugin_name)
+            except KeyError:
+                if not running_under_pytest():
+                    raise
 
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
