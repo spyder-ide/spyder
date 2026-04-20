@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-20 16:19\n"
+"PO-Revision-Date: 2026-04-20 17:27\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4066,21 +4066,21 @@ msgstr " lignes"
 #: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "The maximum number of output lines retained in each console at a time.\n"
 "Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
+msgstr "Le nombre maximum de lignes conservées dans chaque console.<br>Avertissement : un nombre supérieur à 10000 lignes peut créer des ralentissements."
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
-msgstr ""
+msgstr "Styliser les expressions symboliques SymPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
 msgid "Pretty-print the outputs of SymPy symbolic computations\n"
 "(requires SymPy installed in the console environment).\n"
 "Refer to SymPy's documentation for details on using it."
-msgstr ""
+msgstr "Met en forme les résultats des calculs symboliques SymPy<br>(nécessite l'installation de SymPy dans l'environnement de la console).<br>Se référer à la documentation SymPy pour les détails d'utilisation."
 
 #: spyder/plugins/ipythonconsole/confpage.py:165
 msgid "Matplotlib support"
-msgstr ""
+msgstr "Prise en charge de Matplotlib"
 
 #: spyder/plugins/ipythonconsole/confpage.py:166
 msgid "Activate support"
@@ -4088,16 +4088,16 @@ msgstr "Activer"
 
 #: spyder/plugins/ipythonconsole/confpage.py:168
 msgid "Automatically import NumPy and Matplotlib modules"
-msgstr ""
+msgstr "Importer automatiquement les modules NumPy et Matplotlib"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "This is a convenience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
-msgstr ""
+msgstr "Permet l'utilisation de NumPy et Matplotlib dans la console<br>sans avoir à importer les modules explicitement."
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
-msgstr "En ligne"
+msgstr "Intégré"
 
 #: spyder/plugins/ipythonconsole/confpage.py:188
 msgid "Graphics backend"
@@ -4105,7 +4105,7 @@ msgstr "Sortie graphique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:189
 msgid "Choose how figures are displayed"
-msgstr ""
+msgstr "Choisissez de quelle manière les figures sont affichées"
 
 #: spyder/plugins/ipythonconsole/confpage.py:203
 msgid "Backend:"
@@ -4114,15 +4114,15 @@ msgstr "Sortie :"
 #: spyder/plugins/ipythonconsole/confpage.py:207
 msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
-msgstr ""
+msgstr "En cas de doute, sélectionnez {inline} pour afficher les figures<br>dans le volet Graphiques ou {auto} pour obtenir un graphique<br>interactif (zoom et déplacement) dans une nouvelle fenêtre."
 
 #: spyder/plugins/ipythonconsole/confpage.py:222
 msgid "Inline backend"
-msgstr "Backend intégré"
+msgstr "Sortie intégrée"
 
 #: spyder/plugins/ipythonconsole/confpage.py:223
 msgid "Settings for figures in the Plots pane"
-msgstr ""
+msgstr "Paramètres des graphiques dans le volet Graphiques"
 
 #: spyder/plugins/ipythonconsole/confpage.py:227
 msgid "Format:"
@@ -4130,7 +4130,7 @@ msgstr "Format :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:231
 msgid "PNG is more widely supported, while SVG is resolution-independent and easier to edit but complex plots may not be displayed correctly."
-msgstr ""
+msgstr "Le PNG est plus largement pris en charge, tandis que le SVG est indépendant de la résolution et plus facile à éditer mais les graphiques complexes peuvent ne pas s'afficher correctement."
 
 #: spyder/plugins/ipythonconsole/confpage.py:238
 msgid "Resolution:"
@@ -4138,11 +4138,11 @@ msgstr "Résolution :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:239
 msgid "DPI"
-msgstr ""
+msgstr "PPP (DPI)"
 
 #: spyder/plugins/ipythonconsole/confpage.py:244
 msgid "Only used when the format is PNG. Default is 144."
-msgstr ""
+msgstr "Utilisée uniquement avec le format PNG. Valeur par défaut : 144."
 
 #: spyder/plugins/ipythonconsole/confpage.py:247
 msgid "Width:"
@@ -4154,7 +4154,7 @@ msgstr "pouces"
 
 #: spyder/plugins/ipythonconsole/confpage.py:253
 msgid "Default is 6"
-msgstr "Par défaut : 6"
+msgstr "Valeur par défaut : 6"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Height:"
@@ -4162,42 +4162,42 @@ msgstr "Hauteur :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:262
 msgid "Default is 4"
-msgstr "Par défaut : 4"
+msgstr "Valeur par défaut : 4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:265
 msgid "Font size:"
-msgstr ""
+msgstr "Taille de police :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:266
 msgid "points"
-msgstr ""
+msgstr "points"
 
 #: spyder/plugins/ipythonconsole/confpage.py:271
 msgid "Default is 10"
-msgstr ""
+msgstr "Valeur par défaut : 10"
 
 #: spyder/plugins/ipythonconsole/confpage.py:274
 msgid "Bottom edge:"
-msgstr ""
+msgstr "Bord inférieur :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:275
 msgid "of figure height"
-msgstr ""
+msgstr "de la hauteur de la figure"
 
 #: spyder/plugins/ipythonconsole/confpage.py:280
 msgid "The position of the bottom edge of the subplots,\n"
 "as a fraction of the figure height (default is 0.11)."
-msgstr ""
+msgstr "La position du bord inférieur des sous-graphiques (subplots),<br>exprimée comme une fraction de la hauteur de la figure.<br>Valeur par défaut : 0,11."
 
 #: spyder/plugins/ipythonconsole/confpage.py:285
 msgid "Use a tight layout for inline plots"
-msgstr "Utiliser une disposition ajustée pour les graphes en ligne"
+msgstr "Utiliser une disposition ajustée pour les graphiques intégrés"
 
 #: spyder/plugins/ipythonconsole/confpage.py:287
 msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
-msgstr ""
+msgstr "Définit \"bbox_inches\" à \"tight\" pour les graphiques intégrés. Lorsque<br>cette option est active, les figures affichées dans le volet Graphiques<br>peuvent sembler différentes de celles obtenues avec \"savefig\"."
 
 #: spyder/plugins/ipythonconsole/confpage.py:318 spyder/plugins/tours/widgets.py:342
 msgid "Run code"
@@ -4206,7 +4206,8 @@ msgstr "Exécuter du code"
 #: spyder/plugins/ipythonconsole/confpage.py:319
 msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
-msgstr ""
+msgstr "Saisissez un extrait de code à exécuter au démarrage d'une nouvelle console.<br>\n"
+"Séparer les différentes lignes par des points-virgules, par exemple :<br><tt>import os; import sys</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:334
 msgid "Run a file"
@@ -4214,11 +4215,11 @@ msgstr "Exécuter un fichier"
 
 #: spyder/plugins/ipythonconsole/confpage.py:335
 msgid "Specify a Python file to execute at startup, similar to <tt>PYTHONSTARTUP</tt>"
-msgstr ""
+msgstr "Saisissez le chemin vers un fichier Python à exécuter au démarrage, similaire à <tt>PYTHONSTARTUP</tt>."
 
 #: spyder/plugins/ipythonconsole/confpage.py:341
 msgid "Execute the following file:"
-msgstr ""
+msgstr "Exécuter le fichier suivant :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:355
 msgid "Autocall"
@@ -4226,7 +4227,7 @@ msgstr "Appel automatique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:356
 msgid "Implicitly insert parethesis after any callable object, treating anything following it as arguments.<br>For example, typing <tt>print 'Number:', 42</tt> will execute <tt>print('Number:', 42)</tt>."
-msgstr ""
+msgstr "Insérer implicitement une parenthèse après tout objet appelable, en considérant tout ce qui le suit comme des arguments.<br>Par exemple, taper <tt>print 'Number:', 42</tt> exécutera <tt>print('Number:', 42)</tt>."
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Smart"
@@ -4247,15 +4248,15 @@ msgstr "Appel automatique : "
 #: spyder/plugins/ipythonconsole/confpage.py:372
 msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
-msgstr ""
+msgstr "En mode {smart}, l'appel automatique n'est pas appliqué s'il n'y a pas d'arguments. En mode {full}, tous les objets appelables sont automatiquement appelés (même s'il n'y a pas d'arguments)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:386
 msgid "Autoreload"
-msgstr ""
+msgstr "Rechargement automatique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:387
 msgid "Reload imported modules automatically before running code. This is a different mechanism than the User Module Reloader and can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "Recharger automatiquement les modules importés avant d'exécuter le code. Il s'agit d'un mécanisme différent de celui du User Module Reloader et peut être lent sur Windows en raison des limitations de son système de fichiers."
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
@@ -4263,7 +4264,7 @@ msgstr "Utiliser le rechargement automatique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "Active les commandes magiques autoreload. Se référer à sa documentation pour plus d'informations."
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4271,7 +4272,7 @@ msgstr "Invites de commande"
 
 #: spyder/plugins/ipythonconsole/confpage.py:410
 msgid "Modify how input and output prompts are shown in the console."
-msgstr ""
+msgstr "Modifie l'affichage des invites de commande d'entrée et de sortie de la console."
 
 #: spyder/plugins/ipythonconsole/confpage.py:415
 msgid "Input prompt:"
@@ -4279,7 +4280,7 @@ msgstr "En entrée :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:418
 msgid "Default is<br><tt>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
-msgstr ""
+msgstr "Valeur par défaut :<br><tt>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:423
 msgid "Output prompt:"
@@ -4287,7 +4288,7 @@ msgstr "En sortie :"
 
 #: spyder/plugins/ipythonconsole/confpage.py:426
 msgid "Default is<br><tt>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
-msgstr ""
+msgstr "Valeur par défaut :<br><tt>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:445
 msgid "Windows adjustments"
@@ -4295,11 +4296,11 @@ msgstr "Ajustements des fenêtres"
 
 #: spyder/plugins/ipythonconsole/confpage.py:447
 msgid "Hide command line output windows generated by the subprocess module"
-msgstr ""
+msgstr "Masquer la sortie de la ligne de commande générée par le sous-processus"
 
 #: spyder/plugins/ipythonconsole/confpage.py:462
 msgid "Plotting"
-msgstr ""
+msgstr "Graphiques"
 
 #: spyder/plugins/ipythonconsole/confpage.py:467 spyder/plugins/workingdirectory/confpage.py:34
 msgid "Startup"
@@ -4307,11 +4308,11 @@ msgstr "Démarrage"
 
 #: spyder/plugins/ipythonconsole/confpage.py:486
 msgid "Buffer sizes over 10000 lines can slow down Spyder"
-msgstr ""
+msgstr "Un historique supérieur à 10000 lignes peut créer des ralentissements"
 
 #: spyder/plugins/ipythonconsole/confpage.py:488
 msgid "Unlimited buffer size can slow down Spyder severely"
-msgstr ""
+msgstr "Un historique illimité peut créer de forts ralentissements"
 
 #: spyder/plugins/ipythonconsole/plugin.py:240
 msgid "Run Python files, cells, code and commands interactively."
