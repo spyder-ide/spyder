@@ -254,9 +254,6 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
         for plugin_name in internal_plugins:
             PluginClass = internal_plugins[plugin_name]
 
-            # Update plugin dependency information
-            self._update_plugin_info(PluginClass)
-
             if plugin_name in enabled_plugins:
                 # Disable plugins that use web widgets if WebEngine is not
                 # available or the user asks for it.
@@ -278,9 +275,6 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
         # Instantiate external plugins
         for plugin_name in external_plugins:
             PluginClass = external_plugins[plugin_name]
-
-            # Update plugin dependency information
-            self._update_plugin_info(PluginClass)
 
             if plugin_name in enabled_plugins:
                 # Disable plugins that require web widgets if they are not
@@ -355,6 +349,9 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
         # Create and store plugin instance
         plugin_instance = PluginClass(main_window, configuration=CONF)
         self.plugin_registry[plugin_name] = plugin_instance
+
+        # Update plugin dependency information
+        self._update_plugin_info(PluginClass)
 
         # Connect plugin availability signal to notification system
         plugin_instance.sig_plugin_ready.connect(
