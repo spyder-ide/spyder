@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-19 15:29\n"
+"PO-Revision-Date: 2026-04-20 14:01\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -419,7 +419,7 @@ msgstr "Complétion de code et linting pour l'éditeur"
 
 #: spyder/dependencies.py:222
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr "Formater automatiquement les fichiers Python dans l'éditeur avec le package Black"
+msgstr "Formater automatiquement les fichiers Python dans l'éditeur avec Black"
 
 #: spyder/dependencies.py:227
 msgid "Provide linting with the Ruff package"
@@ -591,7 +591,7 @@ msgstr "Aperçus"
 
 #: spyder/plugins/appearance/confpage.py:565 spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:154 spyder/plugins/completion/providers/languageserver/provider.py:428 spyder/plugins/completion/providers/languageserver/widgets/messagebox.py:25 spyder/plugins/ipythonconsole/confpage.py:490 spyder/plugins/ipythonconsole/widgets/main_widget.py:2659 spyder/plugins/ipythonconsole/widgets/main_widget.py:2689 spyder/plugins/layout/container.py:316 spyder/plugins/layout/container.py:375 spyder/plugins/layout/plugin.py:518 spyder/plugins/layout/plugin.py:535 spyder/plugins/preferences/plugin.py:279 spyder/plugins/projects/widgets/main_widget.py:375 spyder/plugins/pylint/main_widget.py:113 spyder/plugins/variableexplorer/widgets/arrayeditor.py:624 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:188 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:738 spyder/utils/environ.py:195 spyder/utils/environ.py:262 spyder/utils/environ.py:327 spyder/widgets/collectionseditor.py:1367 spyder/widgets/collectionseditor.py:1597 spyder/widgets/collectionseditor.py:1607 spyder/widgets/collectionseditor.py:1616 spyder/widgets/collectionseditor.py:1625
 msgid "Warning"
-msgstr "Attention"
+msgstr "Avertissement"
 
 #: spyder/plugins/appearance/confpage.py:566
 msgid "Are you sure you want to delete this theme?"
@@ -1137,11 +1137,11 @@ msgstr "Module pour le serveur de langage Python :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:51
 msgid "IP Address and port to bind the server to: "
-msgstr "Adresse IP et port pour lier le serveur à :"
+msgstr "Adresse IP et port d'écoute du serveur :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:57
 msgid "This is an external server"
-msgstr "Ceci est un serveur externe"
+msgstr "Serveur externe"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:60
 msgid "Use stdio pipes to communicate with server"
@@ -1149,7 +1149,7 @@ msgstr "Utiliser les canaux stdio pour communiquer avec le serveur"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:155
 msgid "<b>Modifying these options can break code completion!!</b><br><br>If that's the case, please reset your Spyder preferences by going to the menu<br><br><tt>Tools > Reset all preferences to default</tt><br><br>instead of reporting a bug."
-msgstr ""
+msgstr "<b>Modifier ces options peut empêcher le bon fonctionnement de la complétion du code !!</b><br><br>Si c'est le cas, réinitialisez les préférences Spyder en accédant au menu<br><br><tt>Outils > Réinitialiser les préférences par défaut</tt><br><br>. Il n'est pas nécessaire de signaler un bogue."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/advanced.py:207
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided information is correct and try again."
@@ -1169,11 +1169,11 @@ msgstr "Longueur de ligne maximale autorisée :"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:35
 msgid "Default is 79"
-msgstr "La valeur par défaut est 79"
+msgstr "Valeur par défaut : 79"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:38
 msgid "Show vertical line at that length"
-msgstr "Afficher la ligne verticale à cette longueur"
+msgstr "Afficher un repère vertical à cette longueur"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:42
 msgid "Line length"
@@ -1189,7 +1189,7 @@ msgstr "Choisissez le fournisseur de formatage de code : "
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:74
 msgid "Autoformat files on save"
-msgstr "Formater automatiquement les fichiers lors de la sauvegarde"
+msgstr "Formater automatiquement les fichiers lors de l'enregistrement"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:76
 msgid "If enabled, autoformatting will take place when saving a file"
@@ -1225,13 +1225,13 @@ msgstr "Afficher les infobulles"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:45
 msgid "Enable hover hints"
-msgstr "Activer les indices de survol"
+msgstr "Activer les infobulles"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
 msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr "Si cette option est activée, survolez le nom d'un objet avec le pointeur de la souris pour afficher la signature et/ou le doctring de cet objet (si présent)."
+msgstr "Si cette option est activée, survolez le nom d'un objet<br>avec le pointeur de la souris pour afficher la signature<br>et/ou le doctring de cet objet (si présent)."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:63
 msgid "Preload the following modules to make completion faster and more accurate:"
