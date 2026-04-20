@@ -32,6 +32,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
+from spyder.plugins.explorer.widgets.remote_dialog import RemoteFileDialog
 from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions,
     ExplorerTreeWidget,
@@ -397,11 +398,13 @@ class ExplorerWidget(PluginMainWidget):
 
             @AsyncDispatcher.QtSlot
             def remote_ls(future):
+                remote_files_manager = future.result()
+                # print(RemoteFileDialog.get_remote_directory(server_id, remote_files_manager, directory, parent=self))
                 self.remote_treewidget.chdir(
                     directory,
                     server_id=server_id,
                     emit=emit,
-                    remote_files_manager=future.result()
+                    remote_files_manager=remote_files_manager
                 )
 
             self._plugin._get_remote_files_manager(server_id).connect(
