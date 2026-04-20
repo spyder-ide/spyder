@@ -205,7 +205,7 @@ class ToolbarContainer(PluginMainContainer):
 
         # Add toolbar to registry and add it to the app toolbars dict
         TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+            toolbar, toolbar_id, self.PLUGIN_NAME
         )
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
         self._toolbarslist.append(toolbar)
@@ -242,6 +242,7 @@ class ToolbarContainer(PluginMainContainer):
 
         toolbar = self._APPLICATION_TOOLBARS.pop(toolbar_id)
         self._toolbarslist.remove(toolbar)
+        TOOLBAR_REGISTRY.remove_reference(toolbar_id, self.PLUGIN_NAME)
 
         if mainwindow:
             mainwindow.removeToolBar(toolbar)
