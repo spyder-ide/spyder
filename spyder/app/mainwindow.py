@@ -441,7 +441,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         if plugin_name == Plugins.Shortcuts:
             for action, context, action_name in self.shortcut_queue:
-                self.register_shortcut(action, context, action_name)
+                self.shortcuts.register_shortcut(action, context, action_name)
             self.shortcut_queue = []
 
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
@@ -453,7 +453,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 if isinstance(action_name, Enum):
                     action_name = action_name.value
                 if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                    self.register_shortcut(action, context, action_name)
+                    self.shortcuts.register_shortcut(
+                        action, context, action_name
+                    )
                 else:
                     self.shortcut_queue.append((action, context, action_name))
 
@@ -469,13 +471,15 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             plugin._switch_to_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                self.register_shortcut(sc, context, name)
-                self.register_shortcut(
-                    plugin.toggle_view_action, context, name)
+                self.shortcuts.register_shortcut(sc, context, action_name)
+                self.shortcuts.register_shortcut(
+                    plugin.toggle_view_action, context, name
+                )
             else:
                 self.shortcut_queue.append((sc, context, name))
                 self.shortcut_queue.append(
-                    (plugin.toggle_view_action, context, name))
+                    (plugin.toggle_view_action, context, name)
+                )
 
     def unregister_plugin(self, plugin):
         """
@@ -879,32 +883,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         self.base_title = title
         self.setWindowTitle(self.base_title)
-
-    # TODO: To be removed after all actions are moved to their corresponding
-    # plugins
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=True, plugin_name=None):
-        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
-        if shortcuts:
-            shortcuts.register_shortcut(
-                qaction_or_qshortcut,
-                context,
-                name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-                plugin_name=plugin_name,
-            )
-
-    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
-                            add_shortcut_to_tip=True, plugin_name=None):
-        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
-        if shortcuts:
-            shortcuts.unregister_shortcut(
-                qaction_or_qshortcut,
-                context,
-                name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-                plugin_name=plugin_name,
-            )
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
