@@ -834,8 +834,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             register=False
         )
         stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
-        for item in [self.close_all_editors_action,stretcher,
-                     self.resize_action, self.refresh_action, options_button]:
+        for item in [
+            self.close_all_editors_action,
+            stretcher,
+            self.resize_action,
+            self.refresh_action,
+            options_button
+        ]:
             self.add_item_to_toolbar(item, toolbar)
 
         toolbar.render()
