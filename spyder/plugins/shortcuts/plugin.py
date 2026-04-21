@@ -11,8 +11,8 @@ Shortcuts Plugin.
 """
 
 # Standard library imports
+from __future__ import annotations
 import configparser
-from typing import List
 
 # Third party imports
 from qtpy.QtCore import Qt, Signal, Slot
@@ -77,8 +77,8 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         return cls.create_icon('keyboard')
 
     def on_initialize(self):
-        self._shortcut_data: List[ShortcutData] = []
-        self._shortcut_sequences = set({})
+        self._shortcut_data: list[ShortcutData] = []
+        self._shortcut_sequences: set[tuple(str, str)] = set()
         self.create_action(
             ShortcutActions.ShortcutSummaryAction,
             text=_("Shortcuts summary"),
@@ -184,6 +184,29 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
         )
 
         if data in self._shortcut_data:
+            # Disable Qt shortcut
+            try:
+                if isinstance(qaction_or_qshortcut, QAction):
+                    qaction_or_qshortcut.setShortcut(QKeySequence())
+                elif isinstance(qaction_or_qshortcut, QShortcut):
+                    qaction_or_qshortcut.setEnabled(False)
+                    qaction_or_qshortcut.deleteLater()
+            except RuntimeError:
+                # Object has been deleted
+                pass
+
+            # Remove shortcut sequence
+            try:
+                shortcut_sequence = self.get_shortcut(
+                    name, context, plugin_name
+                )
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                shortcut_sequence = ''
+
+            if (context, shortcut_sequence) in self._shortcut_sequences:
+                self._shortcut_sequences -= {(context, shortcut_sequence)}
+
+            # Remove shortcut data
             self._shortcut_data.remove(data)
 
     def apply_shortcuts(self):
