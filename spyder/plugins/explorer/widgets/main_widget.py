@@ -398,13 +398,11 @@ class ExplorerWidget(PluginMainWidget):
 
             @AsyncDispatcher.QtSlot
             def remote_ls(future):
-                remote_files_manager = future.result()
-                # print(RemoteFileDialog.get_remote_directory(server_id, remote_files_manager, directory, parent=self))
                 self.remote_treewidget.chdir(
                     directory,
                     server_id=server_id,
                     emit=emit,
-                    remote_files_manager=remote_files_manager
+                    remote_files_manager=future.result()
                 )
 
             self._plugin._get_remote_files_manager(server_id).connect(

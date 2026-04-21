@@ -4,6 +4,10 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -18,6 +22,14 @@ from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
 from spyder.utils.qthelpers import create_waitspinner
 
+if TYPE_CHECKING:
+    from qtpy.QtCore import QObject
+    from qtpy.QtWidgets import QWidget
+
+    from spyder.plugins.remoteclient.api.modules.file_services import (
+        SpyderRemoteFileServicesAPI,
+    )
+
 
 class RemoteFileDialogWidgets:
     Spinner = "remote_file_dialog_spinner_widget"
@@ -30,15 +42,14 @@ class RemoteFileDialogActions:
 
 
 class RemoteFileDialog(QDialog, SpyderWidgetMixin):
-    
     def __init__(
         self,
-        server_id,
-        remote_files_manager,
-        directory,
-        parent=None,
-        class_parent=None,
-    ):
+        server_id: str,
+        remote_files_manager: SpyderRemoteFileServicesAPI,
+        directory: str,
+        parent: QWidget = None,
+        class_parent: QObject = None,
+    ) -> None:
         super().__init__(parent=parent, class_parent=parent)
 
         self.setWindowTitle(_("Remote Files"))
@@ -85,6 +96,8 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         self.remote_treewidget.next_action = self.next_action
         self.remote_treewidget.set_single_click_to_open(False)
         self.remote_treewidget.view.setSelectionMode(QTreeView.SingleSelection)
+        self.remote_treewidget.view.setColumnHidden(1, True)  # Hide `Size` column
+        self.remote_treewidget.view.setColumnHidden(2, True)  # Hide `Type` column
 
         self.remote_treewidget.sig_dir_opened.connect(
             self.set_selected_directory
@@ -101,7 +114,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
         button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.rejected)
+        button_box.rejected.connect(self.reject)
 
         # Layout
         layout = QVBoxLayout()
@@ -110,6 +123,29 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         layout.addWidget(button_box)
         self.setLayout(layout)
 
+        self.set_directory(directory, server_id, remote_files_manager)
+
+    # ---- Public API
+    # -------------------------------------------------------------------------
+    def set_directory(
+        self,
+        directory: str,
+        server_id: str,
+        remote_files_manager: SpyderRemoteFileServicesAPI,
+    ) -> None:
+        """
+        Set current directory being shown by the dialog.
+
+        Parameters
+        ----------
+        directory : str
+            Path of the directory that should be shown.
+        server_id : str
+            Id of the server where the path is reachable.
+        remote_files_manager : SpyderRemoteFileServicesAPI
+            Instance to handle server retome files access/operations.
+
+        """
         self.start_spinner()
         self.remote_treewidget.chdir(
             directory=directory,
@@ -117,45 +153,82 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             remote_files_manager=remote_files_manager,
         )
 
-    # ---- Public API
-    # -------------------------------------------------------------------------
-    def set_directory(self, directory, server_id, remote_files_manager):
-        self.remote_treewidget.chdir(
-            directory=directory,
-            server_id=server_id,
-            remote_files_manager=remote_files_manager,
-        )
-
-    def start_spinner(self):
+    def start_spinner(self) -> None:
+        """Start spinner."""
         self._spinner.start()
 
-    def stop_spinner(self):
+    def stop_spinner(self) -> None:
+        """Stop spinner."""
         self._spinner.stop()
 
-    def go_to_previous_directory(self):
+    def go_to_previous_directory(self) -> None:
+        """Go to previous directory."""
         self.remote_treewidget.go_to_previous_directory()
 
-    def go_to_next_directory(self):
+    def go_to_next_directory(self) -> None:
+        """Go to next directory."""
         self.remote_treewidget.go_to_next_directory()
 
-    def go_to_parent_directory(self):
+    def go_to_parent_directory(self) -> None:
+        """Go to parent directory."""
         self.remote_treewidget.go_to_parent_directory()
 
-    def set_selected_directory(self, directory):
+    def set_selected_directory(self, directory: str) -> None:
+        """
+        Set current selected directory.
+
+        Parameters
+        ----------
+        directory : str
+            Path to the currently selected directory.
+
+        """
         if directory:
             self._directory = directory
 
-    def get_selected_directory(self):
+    def get_selected_directory(self) -> str | None:
+        """
+        Give currently selected directory.
+
+        Returns
+        -------
+        str | None
+            Current selected directory path or `None` if nothing has been selected.
+        """
         return self._directory
 
     @staticmethod
     def get_remote_directory(
-        server_id,
-        remote_files_manager,
-        directory,
-        parent=None,
-        class_parent=None,
-    ):
+        server_id: str,
+        remote_files_manager: SpyderRemoteFileServicesAPI,
+        directory: str,
+        parent: QWidget = None,
+        class_parent: QObject = None,
+    ) -> str | None:
+        """
+        Allow to get a remote files system directory path.
+
+        Handles `RemoteFileDialog` instanciation.
+
+        Parameters
+        ----------
+        server_id : str
+            Id of the server where the path is reachable.
+        remote_files_manager : SpyderRemoteFileServicesAPI
+            Instance to handle server retome files access/operations.
+        directory : str
+            Path of the initial directory to show in the `RemoteFileDialog`.
+        parent : QWidget, optional
+            Parent widget to use for the dialog. The default is None.
+        class_parent : QObject, optional
+            Class definition of the parent to use for the dialog. The default is None.
+
+        Returns
+        -------
+        str | None
+            Path to the selected directory or `None` if nothing has been selected
+            or the dialog is not accepted.
+        """
         dialog = RemoteFileDialog(
             server_id,
             remote_files_manager,
