@@ -5576,7 +5576,7 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     markdown_cell = "# %% [markdown]" + 2 * eol
 
     editor.setFocus()
-    qtbot.keyClick(editor, Qt.Key_H, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
     assert editor.get_text_with_eol() == markdown_cell
 
     # Open Preferences and select shortcuts table
@@ -5629,7 +5629,7 @@ def test_shortcuts_in_external_plugins(main_window, qtbot):
     assert example_widget.toPlainText() == "Example text"
 
     editor.setFocus()
-    qtbot.keyClick(editor, Qt.Key_H, modifier=Qt.ControlModifier)
+    qtbot.keyClick(editor, Qt.Key_U, modifier=Qt.ControlModifier)
     assert editor.get_text_with_eol() == 3 * markdown_cell
 
 
