@@ -477,7 +477,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             plugin._switch_to_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                self.shortcuts.register_shortcut(sc, context, action_name)
+                self.shortcuts.register_shortcut(sc, context, name)
                 self.shortcuts.register_shortcut(
                     plugin.toggle_view_action, context, name
                 )
@@ -486,6 +486,15 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 self.shortcut_queue.append(
                     (plugin.toggle_view_action, context, name)
                 )
+
+        # Actions to perform when the plugin is re-registered
+        if not self.is_setting_up:
+            # This is necessary to register plugin shortcuts again
+            self.shortcuts.apply_shortcuts()
+
+            # Tabify plugin
+            if isinstance(plugin, SpyderDockablePlugin):
+                self.layouts.tabify_plugin(plugin)
 
     def unregister_plugin(self, plugin_name):
         """Unregister a plugin from the main window."""
