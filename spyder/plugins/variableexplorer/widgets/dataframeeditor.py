@@ -1002,12 +1002,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             triggered=self.plot_hist,
             register_action=False
         )
-        self.close_all_editors_action = self.create_action(
-            name=DataframeEditorActions.CloseAllEditors,
-            text=_("Close all viewers"),
-            icon=self.create_icon("filecloseall"),
-            triggered=self.sig_close_all_editors_requested.emit
-        )
 
         # ---- Create context menu and fill it
 
@@ -1834,6 +1828,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         If True, then the user can not edit the dataframe. The default is
         False.
     """
+    
+    sig_close_all_editors_requested = Signal()
+
     CONF_SECTION = 'variable_explorer'
 
     def __init__(
@@ -1856,6 +1853,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             triggered=self.refresh_editor,
             register_action=False
         )
+
         self.refresh_action.setEnabled(self.data_function is not None)
         self.preferences_action = self.create_action(
             name=DataframeEditorActions.Preferences,
@@ -1875,6 +1873,14 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
+        
+        self.close_all_editors_action = self.create_action(
+            name=DataframeEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
+        )
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -1887,7 +1893,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataTable = None
         self.resizeToHeader = False
 
-    def setup_and_check(self, data, title='') -> bool:
+    def setup_and_check(self, data, title='', from_variable_explorer=False) -> bool:
         """
         Setup editor.
 
@@ -1899,13 +1905,16 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         else:
             title = _("%s editor") % data.__class__.__name__
 
-        self.setup_ui(title)
+        self.setup_ui(title, from_variable_explorer)
         return self.set_data_and_check(data)
 
-    def setup_ui(self, title: str) -> None:
+    def setup_ui(self, title: str, from_variable_explorer) -> None:
         """
         Create user interface.
         """
+        
+        self.close_all_editors_action.setVisible(from_variable_explorer)
+
         # ---- Toolbar (to be filled later)
 
         self.toolbar = self.create_toolbar(
@@ -2083,6 +2092,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.dataTable.insert_action_after,
             self.dataTable.duplicate_col_action,
             self.dataTable.remove_col_action,
+            self.close_all_editors_action,
             stretcher,
             self.dataTable.histogram_action,
             self.dataTable.resize_action,

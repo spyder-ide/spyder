@@ -230,7 +230,7 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 data_function=self.make_data_function(index)
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
+                         readonly=readonly, from_variable_explorer=True)
             editor.sig_close_all_editors_requested.connect(self.close_all_editors)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
@@ -245,7 +245,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 data_function=self.make_data_function(index)
             )
             editor.sig_close_all_editors_requested.connect(self.close_all_editors)
-            if not editor.setup_and_check(value, title=key, readonly=readonly):
+            if not editor.setup_and_check(value,
+                                          title=key,
+                                          readonly=readonly,
+                                          from_variable_explorer=True):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -291,7 +294,8 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 data_function=self.make_data_function(index),
                 readonly=readonly
             )
-            if not editor.setup_and_check(value, title=key):
+            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
+            if not editor.setup_and_check(value, title=key, from_variable_explorer=True):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -814,7 +818,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 data_function=self.make_data_function(index)
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
+                         readonly=readonly, from_variable_explorer=True)
             editor.sig_close_all_editors_requested.connect(self.close_all_editors)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))

@@ -742,16 +742,16 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
 
-    def setup_and_check(self, data, title='', readonly=False):
+    def setup_and_check(self, data, title='', readonly=False, from_variable_explorer=False):
         """
         Setup the editor.
 
         It returns False if data is not supported, True otherwise.
         """
-        self.setup_ui(title, readonly)
+        self.setup_ui(title, readonly, from_variable_explorer)
         return self.set_data_and_check(data, readonly)
 
-    def setup_ui(self, title='', readonly=False):
+    def setup_ui(self, from_variable_explorer, title='', readonly=False):
         """
         Create the user interface.
 
@@ -809,6 +809,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             icon=self.create_icon("filecloseall"),
             triggered=self.sig_close_all_editors_requested.emit
         )
+        self.close_all_editors_action.setVisible(from_variable_explorer)
 
         # ---- Toolbar and options menu
 
