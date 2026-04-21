@@ -39,10 +39,11 @@ class Help(SpyderDockablePlugin):
     REQUIRES = [
         Plugins.Application,
         Plugins.Console,
-        Plugins.Editor,
+        Plugins.MainMenu,
         Plugins.Preferences,
+        Plugins.Shortcuts,
     ]
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.IPythonConsole]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
     CONF_SECTION = NAME
