@@ -129,6 +129,16 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
         ``False`` otherwise.
     """
 
+    sig_plugin_deleted: Signal = Signal(str)
+    """
+    Signal used to let the main window know that a plugin was deleted.
+
+    Parameters
+    ----------
+    plugin_name: str
+        Name of the plugin that was deleted.
+    """
+
     def __init__(self) -> None:
         """
         Create a global registry for internal and external Spyder plugins.
@@ -403,7 +413,9 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                     logger.debug(f"Plugin {plugin} has already loaded")
                     plugin_instance._on_plugin_available(plugin)
 
-    def _notify_plugin_teardown(self, plugin_name: str):
+    def _notify_plugin_teardown(
+        self, plugin_name: str, notify_main: bool = True
+    ):
         """Notify dependents of a plugin that is going to be unavailable."""
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
         required_plugins = plugin_dependents.get("requires", [])
@@ -418,6 +430,10 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                     )
                     plugin_instance = self.plugin_registry[plugin]
                     plugin_instance._on_plugin_teardown(plugin_name)
+
+        # Notify the main window that the plugin was deleted
+        if notify_main:
+            self.sig_plugin_deleted.emit(plugin_name)
 
     def _teardown_plugin(self, plugin_name: str):
         """Disconnect a plugin from its dependencies."""
@@ -665,6 +681,7 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
             plugin_instance.deleteLater()
         except RuntimeError:
             pass
+
         if teardown:
             # Disconnect plugin from other plugins
             self._teardown_plugin(plugin_name)
