@@ -130,6 +130,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.default_button_group = None
         self.tabs = None
         self.is_modified = False
+        self.is_loaded = False
 
         if getattr(parent, "main", None):
             self.main = parent.main
@@ -383,6 +384,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
                                           self.has_been_modified(sect, opt))
             cb_italic.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
                                             self.has_been_modified(sect, opt))
+
+        self.is_loaded = True
 
     def save_to_conf(self):
         """Save settings to configuration file"""

@@ -985,7 +985,17 @@ class LSPMixin:
     # -------------------------------------------------------------------------
     def format_document_or_range(self):
         """Format current document or selected text."""
-        if self.has_selected_text() and self.range_formatting_enabled:
+        formatter = self.get_conf(
+            ("provider_configuration", "lsp", "values", "formatting"),
+            "completions",
+            default="",
+        )
+        is_ruff = formatter == "ruff"
+        if (
+            self.has_selected_text()
+            and self.range_formatting_enabled
+            and not is_ruff
+        ):
             self.format_document_range()
         else:
             self.format_document()

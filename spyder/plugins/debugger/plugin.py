@@ -41,8 +41,14 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
-    REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences, Plugins.Run]
-    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.Toolbar]
+    REQUIRES = [
+        Plugins.IPythonConsole,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Run,
+        Plugins.Toolbar,
+    ]
+    OPTIONAL = [Plugins.Editor]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = DebuggerWidget
     CONF_SECTION = NAME
@@ -377,6 +383,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
+        toolbar.create_application_toolbar(
+            ApplicationToolbars.Debug, _("Debug toolbar")
+        )
 
         for action_id in [
             DebuggerWidgetActions.Next,
@@ -412,6 +421,8 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 action_id,
                 toolbar_id=ApplicationToolbars.Debug,
             )
+
+        toolbar.remove_application_toolbar(ApplicationToolbars.Debug)
 
     # ---- Private API
     # ------------------------------------------------------------------------

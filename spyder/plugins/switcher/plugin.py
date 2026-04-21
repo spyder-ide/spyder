@@ -31,7 +31,7 @@ class Switcher(SpyderPluginV2):
     """
 
     NAME = "switcher"
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu]
     CONTAINER_CLASS = SwitcherContainer
     CONF_SECTION = NAME
     CONF_FILE = False

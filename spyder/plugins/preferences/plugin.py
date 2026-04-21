@@ -27,7 +27,9 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
-from spyder.api.plugin_registration.registry import PreferencesAdapter
+from spyder.api.plugin_registration.registry import (
+    _PluginRegistryPreferencesAdapter,
+)
 from spyder.api.translations import _
 from spyder.config.base import running_under_pytest
 from spyder.config.main import CONF_VERSION
@@ -60,7 +62,7 @@ class Preferences(SpyderPluginV2):
 
     NAME = 'preferences'
     CONF_SECTION = 'preferences'
-    OPTIONAL = [Plugins.MainMenu, Plugins.Toolbar]
+    REQUIRES = [Plugins.MainMenu, Plugins.Toolbar]
     CONF_FILE = False
     CONTAINER_CLASS = PreferencesContainer
     CAN_BE_DISABLED = False
@@ -369,7 +371,7 @@ class Preferences(SpyderPluginV2):
         if self._config_pages_ordered:
             return
 
-        plugins_page = [PreferencesAdapter.NAME]
+        plugins_page = [_PluginRegistryPreferencesAdapter.NAME]
 
         # Order pages alphabetically by plugin name
         pages = []

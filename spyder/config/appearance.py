@@ -75,6 +75,7 @@ APPEARANCE = {
     'emacs/string':     ('#00aa00', False, True),
     'emacs/number':     ('#800000', False, False),
     'emacs/instance':   ('#ffffff', False, True),
+    'emacs/symbols':    ("#ff8800", False, False),
     # ---- IDLE ----
     'idle/name':         "IDLE",
     #      Name            Color     Bold  Italic
@@ -95,14 +96,15 @@ APPEARANCE = {
     'idle/string':      ('#00aa00', False, False),
     'idle/number':      ('#924900', False, False),
     'idle/instance':    ('#777777', True, True),
+    'idle/symbols':     ("#ff0099", False, False),
     # ---- Monokai ----
     'monokai/name':         "Monokai",
     #      Name              Color     Bold  Italic
     'monokai/background':   "#2a2b24",
     'monokai/currentline':  "#484848",
     'monokai/currentcell':  "#3d3d3d",
-    'monokai/occurrence':   "#1A72BB",
-    'monokai/ctrlclick':    "#0000ff",
+    'monokai/occurrence':   "#490d37",
+    'monokai/ctrlclick':    "#1A72BB",
     'monokai/sideareas':    "#2a2b24",
     'monokai/matched_p':    "#688060",
     'monokai/unmatched_p':  "#bd6e76",
@@ -115,6 +117,7 @@ APPEARANCE = {
     'monokai/string':      ("#e6db74", False, False),
     'monokai/number':      ("#ae81ff", False, False),
     'monokai/instance':    ("#ddddda", False, True),
+    'monokai/symbols':     ("#f26d33", False, False),
     # ---- Pydev ----
     'pydev/name':        "Pydev",
     #      Name            Color     Bold  Italic
@@ -125,7 +128,7 @@ APPEARANCE = {
     'pydev/ctrlclick':   "#0000ff",
     'pydev/sideareas':   "#efefef",
     'pydev/matched_p':   "#99ff99",
-    'pydev/unmatched_p': "#ff99992",
+    'pydev/unmatched_p': "#ff9992",
     'pydev/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'pydev/keyword':    ('#0000ff', False, False),
     'pydev/magic':      ('#0000ff', False, False),
@@ -135,6 +138,7 @@ APPEARANCE = {
     'pydev/string':     ('#00aa00', False, True),
     'pydev/number':     ('#800000', False, False),
     'pydev/instance':   ('#000000', False, True),
+    'pydev/symbols':    ("#ff0000", False, False),
     # ---- Scintilla ----
     'scintilla/name':        "Scintilla",
     #         Name             Color     Bold  Italic
@@ -155,6 +159,7 @@ APPEARANCE = {
     'scintilla/string':     ('#7f007f', False, False),
     'scintilla/number':     ('#007f7f', False, False),
     'scintilla/instance':   ('#000000', False, True),
+    'scintilla/symbols':    ("#00a900", False, False),
     # ---- Spyder ----
     'spyder/name':        "Spyder",
     #       Name            Color     Bold  Italic
@@ -175,6 +180,7 @@ APPEARANCE = {
     'spyder/string':     ('#00aa00', False, False),
     'spyder/number':     ('#800000', False, False),
     'spyder/instance':   ('#924900', False, True),
+    'spyder/symbols':    ("#d96b00", False, False),
     # ---- Spyder/Dark ----
     'spyder/dark/name':        "Spyder Dark",
     #           Name             Color     Bold  Italic
@@ -184,8 +190,8 @@ APPEARANCE = {
     'spyder/dark/occurrence':  "#1A72BB",
     'spyder/dark/ctrlclick':   "#179ae0",
     'spyder/dark/sideareas':   "#222b35",
-    'spyder/dark/matched_p':   "#0bbe0b",
-    'spyder/dark/unmatched_p': "#ff4340",
+    'spyder/dark/matched_p':   "#83bb58",
+    'spyder/dark/unmatched_p': "#A30300",
     'spyder/dark/normal':     (DarkPalette.COLOR_TEXT_1, False, False),
     'spyder/dark/keyword':    ('#c670e0', False, False),
     'spyder/dark/magic':      ('#c670e0', False, False),
@@ -195,6 +201,7 @@ APPEARANCE = {
     'spyder/dark/string':     ('#b0e686', False, True),
     'spyder/dark/number':     ('#faed5c', False, False),
     'spyder/dark/instance':   ('#ee6772', False, True),
+    'spyder/dark/symbols':    ("#d96b00", False, False),
     # ---- Zenburn ----
     'zenburn/name':        "Zenburn",
     #        Name            Color     Bold  Italic
@@ -215,6 +222,7 @@ APPEARANCE = {
     'zenburn/string':     ('#cc9393', False, False),
     'zenburn/number':     ('#8cd0d3', False, False),
     'zenburn/instance':   ('#dcdccc', False, True),
+    'zenburn/symbols':    ("#ff8800", False, False),
     # ---- Solarized Light ----
     'solarized/light/name':        "Solarized Light",
     #        Name            Color     Bold  Italic
@@ -234,7 +242,8 @@ APPEARANCE = {
     'solarized/light/comment':    ('#93a1a1', False, True),
     'solarized/light/string':     ('#2aa198', False, False),
     'solarized/light/number':     ('#d33682', False, False),
-    'solarized/light/instance':   ('#b58900', False, True),
+    'solarized/light/instance':   ('#b58900', False, True),    
+    'solarized/light/symbols':    ("#ed7710", False, False),
     # ---- Solarized Dark ----
     'solarized/dark/name':        "Solarized Dark",
     #        Name            Color     Bold  Italic
@@ -245,7 +254,7 @@ APPEARANCE = {
     'solarized/dark/ctrlclick':   '#d33682',
     'solarized/dark/sideareas':   '#073642',
     'solarized/dark/matched_p':   '#586e75',
-    'solarized/dark/unmatched_p': '#dc322f',
+    'solarized/dark/unmatched_p': '#530f10',
     'solarized/dark/normal':     ('#E1E1E1', False, False),
     'solarized/dark/keyword':    ('#859900', False, False),
     'solarized/dark/magic':      ('#859900', False, False),
@@ -255,6 +264,7 @@ APPEARANCE = {
     'solarized/dark/string':     ('#2aa198', False, False),
     'solarized/dark/number':     ('#d33682', False, False),
     'solarized/dark/instance':   ('#b58900', False, True),
+    'solarized/dark/symbols':    ("#d27800", False, False),
     # ---- Inkpot (Eclipse color theme) ----
     'inkpot/name':        "Inkpot",
     #      Name             Color     Bold  Italic
@@ -264,8 +274,8 @@ APPEARANCE = {
     'inkpot/occurrence':  "#1A72BB",
     'inkpot/ctrlclick':   "#1f1f27",
     'inkpot/sideareas':   "#2d2d44",
-    'inkpot/matched_p':   "#3672b5",
-    'inkpot/unmatched_p': "#8b8bff",
+    'inkpot/matched_p':   "#3b4974",
+    'inkpot/unmatched_p': "#81395b",
     'inkpot/normal':     ('#cfbfad', False, False),
     'inkpot/keyword':    ('#808bed', False, False),
     'inkpot/magic':      ('#808bed', False, False),
@@ -275,6 +285,7 @@ APPEARANCE = {
     'inkpot/string':     ('#ffcd8b', False, False),
     'inkpot/number':     ('#ffcd8b', False, False),
     'inkpot/instance':   ('#cfbfad', False, False),
+    'inkpot/symbols':    ("#b4494e", False, False),
     # ---- minimal (Eclipse color theme) ----
     'minimal/name':        "Minimal",
     #      Name              Color     Bold  Italic
@@ -284,8 +295,8 @@ APPEARANCE = {
     'minimal/occurrence':  "#C2E3FA",
     'minimal/ctrlclick':   "#05314d",
     'minimal/sideareas':   "#aaccff",
-    'minimal/matched_p':   "#000000",
-    'minimal/unmatched_p': "#efefff",
+    'minimal/matched_p':   "#efefff",
+    'minimal/unmatched_p': "#000000",
     'minimal/normal':     (LightPalette.COLOR_TEXT_1, False, False),
     'minimal/keyword':    ('#5c8198', False, False),
     'minimal/magic':      ('#5c8198', False, False),
@@ -294,7 +305,8 @@ APPEARANCE = {
     'minimal/comment':    ('#334466', False, False),
     'minimal/string':     ('#333333', False, False),
     'minimal/number':     ('#333333', False, False),
-    'minimal/instance':   ('#566874', False, False),
+    'minimal/instance':   ('#566874', False, False),    
+    'minimal/symbols':    ("#b6160c", False, False),
     # ---- NightLion Aptana Theme (Eclipse color theme) ----
     'nightlion/name':        "NightLion Aptana Theme",
     #      Name                             Color     Bold  Italic
@@ -315,6 +327,7 @@ APPEARANCE = {
     'nightlion/string':     ('#cc9393', False, False),
     'nightlion/number':     ('#eab882', False, False),
     'nightlion/instance':   ('#b3b784', False, False),
+    'nightlion/symbols':    ("#d25408", False, False),
     # ---- Notepad++ (Eclipse color theme) ----
     'notepad++/name':        "Notepad++",
     #      Name                     Color     Bold  Italic
@@ -324,8 +337,8 @@ APPEARANCE = {
     'notepad++/occurrence':  "#C2E3FA",
     'notepad++/ctrlclick':   "#800080",
     'notepad++/sideareas':   "#eeeeee",
-    'notepad++/matched_p':   "#8000ff",
-    'notepad++/unmatched_p': "#eeeeee",
+    'notepad++/matched_p':   "#aaaaaa",
+    'notepad++/unmatched_p': "#ff00ff",
     'notepad++/normal':     ('#8000ff', False, False),
     'notepad++/keyword':    ('#0000ff', False, False),
     'notepad++/magic':      ('#0000ff', False, False),
@@ -335,6 +348,7 @@ APPEARANCE = {
     'notepad++/string':     ('#808080', False, False),
     'notepad++/number':     ('#ff8000', False, False),
     'notepad++/instance':   ('#800080', False, False),
+    'notepad++/symbols':    ("#323232", False, False),
     # ---- Oblivion (Eclipse color theme) ----
     'oblivion/name':        "Oblivion",
     #      Name               Color     Bold  Italic
@@ -344,8 +358,8 @@ APPEARANCE = {
     'oblivion/occurrence':  "#1A72BB",
     'oblivion/ctrlclick':   "#ccdf32",
     'oblivion/sideareas':   "#2a2a2a",
-    'oblivion/matched_p':   "#de7878",
-    'oblivion/unmatched_p': "#000000",
+    'oblivion/matched_p':   "#a8a8a8",
+    'oblivion/unmatched_p': "#de7878",
     'oblivion/normal':     ('#d8d8d8', False, False),
     'oblivion/keyword':    ('#ffffff', False, False),
     'oblivion/magic':      ('#ffffff', False, False),
@@ -355,6 +369,7 @@ APPEARANCE = {
     'oblivion/string':     ('#ffc600', False, False),
     'oblivion/number':     ('#7fb347', False, False),
     'oblivion/instance':   ('#bed6ff', False, False),
+    'oblivion/symbols':    ("#ca2601", False, False),
     # ---- Obsidian (Eclipse color theme) ----
     'obsidian/name':        "Obsidian",
     #      Name               Color     Bold  Italic
@@ -375,6 +390,7 @@ APPEARANCE = {
     'obsidian/string':     ('#ec7600', False, False),
     'obsidian/number':     ('#ffcd22', False, False),
     'obsidian/instance':   ('#678cb1', False, False),
+    'obsidian/symbols':    ("#dd4400", False, False),
     # ---- Pastel (Eclipse color theme) ----
     'pastel/name':        "Pastel",
     #      Name             Color     Bold  Italic
@@ -385,7 +401,7 @@ APPEARANCE = {
     'pastel/ctrlclick':   "#7d8c93",
     'pastel/sideareas':   "#2f393c",
     'pastel/matched_p':   "#3672b5",
-    'pastel/unmatched_p': "#95bed8",
+    'pastel/unmatched_p': "#de7878",
     'pastel/normal':     ('#e0e2e4', False, False),
     'pastel/keyword':    ('#a57b61', False, False),
     'pastel/magic':      ('#a57b61', False, False),
@@ -395,6 +411,7 @@ APPEARANCE = {
     'pastel/string':     ('#c78d9b', False, False),
     'pastel/number':     ('#c78d9b', False, False),
     'pastel/instance':   ('#678cb1', False, False),
+    'pastel/symbols':    ("#E6BE8E", False, False),
     # ---- Retta (Eclipse color theme) ----
     'retta/name':        "Retta",
     #      Name            Color     Bold  Italic
@@ -404,8 +421,8 @@ APPEARANCE = {
     'retta/occurrence':  "#1A72BB",
     'retta/ctrlclick':   "#83786e",
     'retta/sideareas':   "#2a2a2a",
-    'retta/matched_p':   "#de7878",
-    'retta/unmatched_p': "#527d5d",
+    'retta/matched_p':   "#527d5d",
+    'retta/unmatched_p': "#de7878",
     'retta/normal':     ('#f8e1aa', False, False),
     'retta/keyword':    ('#e79e3c', True, False),
     'retta/magic':      ('#e79e3c', True, False),
@@ -415,6 +432,7 @@ APPEARANCE = {
     'retta/string':     ('#d6c248', False, False),
     'retta/number':     ('#d6c248', False, False),
     'retta/instance':   ('#de6546', False, False),
+    'retta/symbols':    ("#fffffa", False, False),
     # ---- Roboticket (Eclipse color theme) ----
     'roboticket/name':        "Roboticket",
     #      Name                 Color     Bold  Italic
@@ -424,8 +442,8 @@ APPEARANCE = {
     'roboticket/occurrence':  "#C2E3FA",
     'roboticket/ctrlclick':   "#ad95af",
     'roboticket/sideareas':   "#e0e0ff",
-    'roboticket/matched_p':   "#585858",
-    'roboticket/unmatched_p': "#bdd8f2",
+    'roboticket/matched_p':   "#bdd8f2",
+    'roboticket/unmatched_p': "#ab2525",
     'roboticket/normal':     ('#585858', False, False),
     'roboticket/keyword':    ('#295f94', False, True),
     'roboticket/magic':      ('#295f94', False, True),
@@ -435,6 +453,7 @@ APPEARANCE = {
     'roboticket/string':     ('#317ecc', False, False),
     'roboticket/number':     ('#af0f91', False, False),
     'roboticket/instance':   ('#566874', False, False),
+    'roboticket/symbols':    ("#2b343a", False, False),
     # ---- Sublime Text Monokai Extended (Eclipse color theme) ----
     'sublime-monokai/extended/name':        "Sublime Text Monokai Extended",
     #      Name                       Color     Bold  Italic
@@ -444,8 +463,8 @@ APPEARANCE = {
     'sublime-monokai/extended/occurrence':  "#1A72BB",
     'sublime-monokai/extended/ctrlclick':   "#ffffff",
     'sublime-monokai/extended/sideareas':   "#2f2f2f",
-    'sublime-monokai/extended/matched_p':   "#679116",
-    'sublime-monokai/extended/unmatched_p': "#cc9900",
+    'sublime-monokai/extended/matched_p':   "#778011",
+    'sublime-monokai/extended/unmatched_p': "#654037",
     'sublime-monokai/extended/normal':     ('#cfbfad', False, False),
     'sublime-monokai/extended/keyword':    ('#ff007f', False, False),
     'sublime-monokai/extended/magic':      ('#ff007f', False, False),
@@ -454,7 +473,8 @@ APPEARANCE = {
     'sublime-monokai/extended/comment':    ('#ffffff', False, False),
     'sublime-monokai/extended/string':     ('#ece47e', False, False),
     'sublime-monokai/extended/number':     ('#c48cff', False, False),
-    'sublime-monokai/extended/instance':   ('#cfbfad', False, False),
+    'sublime-monokai/extended/instance':   ('#cfbfad', False, False),    
+    'sublime-monokai/extended/symbols':    ("#ce2b6e", False, False),
     # ---- Vibrant Ink (Eclipse color theme) ----
     'vibrant-ink/name':        "Vibrant Ink",
     #      Name                  Color     Bold  Italic
@@ -474,5 +494,6 @@ APPEARANCE = {
     'vibrant-ink/comment':    ('#8146a2', False, False),
     'vibrant-ink/string':     ('#477488', False, False),
     'vibrant-ink/number':     ('#477488', False, False),
-    'vibrant-ink/instance':   ('#357a8f', False, False)
+    'vibrant-ink/instance':   ('#357a8f', False, False),
+    'vibrant-ink/symbols':    ("#c78d9b", False, False)
 }
