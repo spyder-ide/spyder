@@ -811,7 +811,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         formatter = self.get_conf('formatting')
 
         # Enabling/disabling formatters
-        formatters = ['autopep8', 'yapf', 'black']
+        formatters = ['autopep8', 'yapf', 'black', 'ruff']
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
@@ -825,6 +825,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
         #    flake8 one. That's why it's not necessary to set it here.
         # 2. The yapf pylsp plugin doesn't support this yet.
         formatter_options['black']['line_length'] = cs_max_line_length
+        formatter_options['ruff']['lineLength'] = cs_max_line_length
 
         # PyLS-Spyder configuration
         group_cells = self.get_conf(

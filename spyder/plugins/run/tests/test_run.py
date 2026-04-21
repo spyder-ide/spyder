@@ -21,15 +21,36 @@ import pytest
 from qtpy import PYQT6
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import (
-    QAction, QWidget, QCheckBox, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel)
+    QAction,
+    QCheckBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.plugins.run.api import (
-    RunExecutor, RunConfigurationProvider, RunConfigurationMetadata, Context,
-    RunConfiguration, SupportedExtensionContexts, RunExecutionParameters,
-    RunExecutorConfigurationGroup, ExtendedRunExecutionParameters,
-    PossibleRunResult, RunContext, ExtendedContext, RunActions, run_execute,
-    WorkingDirOpts, WorkingDirSource, StoredRunExecutorParameters)
+    Context,
+    ExtendedContext,
+    ExtendedRunExecutionParameters,
+    PossibleRunResult,
+    RunActions,
+    RunConfiguration,
+    RunConfigurationProvider,
+    RunConfigurationMetadata,
+    RunContext,
+    RunExecutor,
+    RunExecutionParameters,
+    RunExecutorConfigurationGroup,
+    StoredRunExecutorParameters,
+    SupportedExtensionContexts,
+    WorkingDirOpts,
+    WorkingDirSource,
+    run_execute,
+)
 from spyder.plugins.run.plugin import Run
 
 
@@ -37,8 +58,15 @@ logger = logging.getLogger(__name__)
 
 
 class MockedMainWindow(QWidget, MagicMock):
+
     def get_plugin(self, name, error=True):
         return MagicMock()
+
+    def is_plugin_enabled(self, name):
+        if name == Plugins.IPythonConsole:
+            return True
+        else:
+            return False
 
 
 class ExampleConfigurationProvider(RunConfigurationProvider):

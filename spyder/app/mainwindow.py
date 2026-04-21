@@ -20,7 +20,6 @@ Licensed under the terms of the MIT License
 # Stdlib imports
 # =============================================================================
 from collections import OrderedDict
-import configparser as cp
 from enum import Enum
 import errno
 import gc
@@ -32,7 +31,6 @@ import signal
 import socket
 import sys
 import threading
-import traceback
 
 #==============================================================================
 # Check requirements before proceeding
@@ -56,7 +54,7 @@ from qtpy import QtSvg  # analysis:ignore
 try:
     from qtpy.QtWebEngineWidgets import WEBENGINE
 except ImportError:
-    WEBENGINE = False
+    WEBENGINE = None
 
 from qtawesome import get_fonts_info
 from qtawesome.iconic_font import FontError
@@ -68,8 +66,6 @@ from qtawesome.iconic_font import FontError
 # from clicking the Spyder icon to showing the splash screen).
 #==============================================================================
 from spyder import __version__
-from spyder.app.find_plugins import (
-    find_external_plugins, find_internal_plugins)
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
     delete_debug_log_files, qt_message_handler, set_links_color, setup_logging,
@@ -78,9 +74,14 @@ from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderMainWindowMixin
-from spyder.config.base import (DEV, get_conf_path, get_debug_level,
-                                get_home_dir, is_conda_based_app,
-                                running_under_pytest, STDERR)
+from spyder.config.base import (
+    DEV,
+    get_conf_path,
+    get_debug_level,
+    get_home_dir,
+    is_conda_based_app,
+    running_under_pytest,
+)
 from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
@@ -93,7 +94,7 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 
 #==============================================================================
 # Windows only local imports
@@ -182,6 +183,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Save command line options for plugins to access them
         self._cli_options = options
+
+        # To tell if WebEngine is available
+        self.is_webengine_available = True if WEBENGINE else False
 
         logger.info("Start of MainWindow constructor")
 
@@ -635,7 +639,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         """Setup main window."""
         PLUGIN_REGISTRY.sig_plugin_ready.connect(
             lambda plugin_name, omit_conf: self.register_plugin(
-                plugin_name, omit_conf=omit_conf))
+                plugin_name, omit_conf=omit_conf
+            )
+        )
 
         PLUGIN_REGISTRY.main = self
 
@@ -675,87 +681,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         status.setObjectName("StatusBar")
         status.showMessage(_("Welcome to Spyder!"), 5000)
 
-        # Load and register internal and external plugins
-        external_plugins = find_external_plugins()
-        internal_plugins = find_internal_plugins()
-        all_plugins = external_plugins.copy()
-        all_plugins.update(internal_plugins.copy())
-
-        # Determine 'enable' config for plugins that have it.
-        enabled_plugins = {}
-        registry_internal_plugins = {}
-        registry_external_plugins = {}
-
-        for plugin in all_plugins.values():
-            plugin_name = plugin.NAME
-            plugin_main_attribute_name = (
-                self._INTERNAL_PLUGINS_MAPPING[plugin_name]
-                if plugin_name in self._INTERNAL_PLUGINS_MAPPING
-                else plugin_name)
-
-            if plugin_name in internal_plugins:
-                registry_internal_plugins[plugin_name] = (
-                    plugin_main_attribute_name, plugin)
-                enable_option = "enable"
-                enable_section = plugin_main_attribute_name
-            else:
-                registry_external_plugins[plugin_name] = (
-                    plugin_main_attribute_name, plugin)
-
-                # This is a workaround to allow disabling external plugins.
-                # Because of the way the current config implementation works,
-                # an external plugin config option (e.g. 'enable') can only be
-                # read after the plugin is loaded. But here we're trying to
-                # decide if the plugin should be loaded if it's enabled. So,
-                # for now we read (and save, see the config page associated to
-                # PLUGIN_REGISTRY) that option in our internal config options.
-                # See spyder-ide/spyder#17464 for more details.
-                enable_option = f"{plugin_main_attribute_name}/enable"
-                enable_section = PLUGIN_REGISTRY._external_plugins_conf_section
-
-            try:
-                if self.get_conf(enable_option, section=enable_section):
-                    enabled_plugins[plugin_name] = plugin
-                    PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
-            except (cp.NoOptionError, cp.NoSectionError):
-                enabled_plugins[plugin_name] = plugin
-                PLUGIN_REGISTRY.set_plugin_enabled(plugin_name)
-
-        PLUGIN_REGISTRY.all_internal_plugins = registry_internal_plugins
-        PLUGIN_REGISTRY.all_external_plugins = registry_external_plugins
-
-        # Instantiate internal Spyder 5 plugins
-        for plugin_name in internal_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = internal_plugins[plugin_name]
-                if issubclass(PluginClass, SpyderPluginV2):
-                    # Disable plugins that use web widgets (currently Help and
-                    # Online Help) if the user asks for it.
-                    # See spyder-ide/spyder#16518
-                    # The plugins that require QtWebengine must declare
-                    # themselves as needing that dependency
-                    # https://github.com/spyder-ide/spyder/pull/
-                    # 22196#issuecomment-2189377043
-                    if PluginClass.REQUIRE_WEB_WIDGETS and (
-                        not WEBENGINE or
-                        self._cli_options.no_web_widgets
-                    ):
-                        continue
-
-                    PLUGIN_REGISTRY.register_plugin(self, PluginClass,
-                                                    external=False)
-
-        # Instantiate external Spyder 5+ plugins
-        for plugin_name in external_plugins:
-            if plugin_name in enabled_plugins:
-                PluginClass = external_plugins[plugin_name]
-                try:
-                    PLUGIN_REGISTRY.register_plugin(
-                        self, PluginClass, external=True
-                    )
-                except Exception as error:
-                    print("%s: %s" % (PluginClass, str(error)), file=STDERR)
-                    traceback.print_exc(file=STDERR)
+        # Load and register all plugins
+        PLUGIN_REGISTRY._load_and_register_plugins()
 
         # Set window title
         self.set_window_title()
@@ -798,6 +725,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         if self.splash is not None:
             self.splash.hide()
+
+        # Hide status bar if its plugin is disabled
+        if not self.is_plugin_enabled(Plugins.StatusBar):
+            self.statusBar().hide()
 
         # Register custom layouts
         if self.layouts is not None:

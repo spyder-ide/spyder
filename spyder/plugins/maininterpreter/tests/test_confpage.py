@@ -33,15 +33,18 @@ GET_ENVS_TIME = time.time() - t0
 
 
 @pytest.mark.skipif(
-    ((len(conda_envs) == 0 and len(pyenv_envs) == 0) or
-     sys.platform == 'darwin'),
-    reason="Makes no sense if conda and pyenv are not installed, fails on mac"
+    (
+        (len(conda_envs) == 0 and len(pyenv_envs) == 0)
+        or sys.platform == "darwin"
+    ),
+    reason="Makes no sense if conda and pyenv are not installed, fails on Mac",
 )
 def test_load_time(qtbot):
     # Create Preferences dialog
     main = MainWindowMock(None)
     preferences = main.get_plugin(Plugins.Preferences)
 
+    PLUGIN_REGISTRY._update_plugin_info(MainInterpreter)
     PLUGIN_REGISTRY.register_plugin(main, MainInterpreter)
 
     # Create page and measure time to do it
