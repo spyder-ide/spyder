@@ -417,7 +417,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             plugin.sig_update_ancestor_requested.connect(
                 lambda: plugin.set_ancestor(self))
 
-        # Connect Main window Signals to plugin signals
+        # Connect main window signals to plugin signals
         self.sig_moved.connect(plugin.sig_mainwindow_moved)
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
         self.sig_window_state_changed.connect(
@@ -481,18 +481,28 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     (plugin.toggle_view_action, context, name)
                 )
 
-    def unregister_plugin(self, plugin):
-        """
-        Unregister a plugin from the Spyder Main Window.
-        """
-        logger.info("Unloading {}...".format(plugin.NAME))
+    def unregister_plugin(self, plugin_name):
+        """Unregister a plugin from the main window."""
+        logger.info("Unloading {}...".format(plugin_name))
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
 
-        # Disconnect all slots
+        # Disconnect plugin signals
         signals = [
+            plugin.sig_exception_occurred,
+            plugin.sig_free_memory_requested,
             plugin.sig_quit_requested,
+            plugin.sig_restart_requested,
             plugin.sig_redirect_stdio_requested,
             plugin.sig_status_message_requested,
+            plugin.sig_unmaximize_plugin_requested,
+            plugin.sig_unmaximize_plugin_requested[object],
         ]
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            signals += [
+                plugin.sig_switch_to_plugin_requested,
+                plugin.sig_update_ancestor_requested
+            ]
 
         for sig in signals:
             try:
@@ -500,36 +510,48 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             except TypeError:
                 pass
 
+        # Disconnect main window signals from plugin signals
+        self.sig_moved.disconnect(plugin.sig_mainwindow_moved)
+        self.sig_resized.disconnect(plugin.sig_mainwindow_resized)
+        self.sig_window_state_changed.disconnect(
+            plugin.sig_mainwindow_state_changed
+        )
+        self.sig_focused_plugin_changed.disconnect(
+            plugin.sig_focused_plugin_changed
+        )
+
         # Unregister shortcuts for actions
         logger.info("Unregistering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
-            context = (getattr(action, 'shortcut_context', plugin.NAME)
-                       or plugin.NAME)
+            context = (
+                getattr(action, "shortcut_context", plugin.NAME) or plugin.NAME
+            )
             self.shortcuts.unregister_shortcut(action, context, action_name)
 
-        # Unregister switch to shortcut
-        shortcut = None
-        try:
-            context = '_'
-            name = 'switch to {}'.format(plugin.CONF_SECTION)
-            shortcut = self.get_shortcut(
-                name,
-                context,
-                plugin_name=plugin.CONF_SECTION
-            )
-        except Exception:
-            pass
+        if isinstance(plugin, SpyderDockablePlugin):
+            # Unregister "switch to" shortcut
+            shortcut = None
+            try:
+                context = '_'
+                name = 'switch to {}'.format(plugin.CONF_SECTION)
+                shortcut = self.get_shortcut(
+                    name,
+                    context,
+                    plugin_name=plugin.CONF_SECTION
+                )
+            except Exception:
+                pass
 
-        if shortcut is not None:
-            self.shortcuts.unregister_shortcut(
-                plugin._switch_to_shortcut,
-                context,
-                "Switch to {}".format(plugin.CONF_SECTION),
-            )
+            if shortcut is not None:
+                self.shortcuts.unregister_shortcut(
+                    plugin._switch_to_shortcut,
+                    context,
+                    "Switch to {}".format(plugin.CONF_SECTION),
+                )
 
-        # Remove dockwidget
-        logger.info("Removing {} dockwidget...".format(plugin.NAME))
-        self.remove_dockwidget(plugin)
+            # Remove dockwidget
+            logger.info("Removing {} dockwidget...".format(plugin.NAME))
+            self.remove_dockwidget(plugin)
 
         plugin._unregister()
 
