@@ -677,7 +677,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 plugin_name, omit_conf=omit_conf
             )
         )
-
+        PLUGIN_REGISTRY.sig_plugin_deleted.connect(self.unregister_plugin)
         PLUGIN_REGISTRY.main = self
 
         logger.info("*** Start of MainWindow setup ***")
