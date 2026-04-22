@@ -525,7 +525,7 @@ class ConfigurationManager(object):
                     raise cp.NoOptionError(option, section)
         else:
             if secure:
-                import keyring # lazy import
+                import keyring
                 logger.debug(
                     f"Retrieving option {option} with keyring because it "
                     f"was marked as secure."
@@ -569,7 +569,7 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
 
         if secure:
-            import keyring # lazy import
+            import keyring
             from keyring.errors import NoKeyringError
             logger.debug(
                 f"Saving option {option} with keyring because it was marked "
