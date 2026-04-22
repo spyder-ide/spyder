@@ -19,8 +19,7 @@ from qdarkstyle.light.palette import LightPalette
 from spyder.config.base import running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
 
-# Compute CSS_PATH without importing sphinxify (which pulls in sphinx, docutils,
-# and jinja2 — over 300ms — just for a path constant).
+# Compute CSS_PATH without importing sphinxify
 _help_utils_spec = importlib.util.find_spec('spyder.plugins.help.utils')
 CSS_PATH = osp.join(_help_utils_spec.submodule_search_locations[0], 'static', 'css')
 
