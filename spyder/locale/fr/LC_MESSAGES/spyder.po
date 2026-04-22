@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-22 11:33\n"
+"PO-Revision-Date: 2026-04-22 13:10\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -623,7 +623,7 @@ msgstr "Texte"
 
 #: spyder/plugins/appearance/widgets.py:146 spyder/plugins/editor/confpage.py:126
 msgid "Highlight"
-msgstr "Surligner"
+msgstr "Surlignage"
 
 #: spyder/plugins/appearance/widgets.py:148
 msgid "Background"
@@ -2096,7 +2096,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:66
 msgid "Show full file path above editor"
-msgstr "Afficher le chemin complet du fichier en haut de l'éditeur"
+msgstr "Afficher le chemin complet du fichier au-dessus de l'éditeur"
 
 #: spyder/plugins/editor/confpage.py:68
 msgid "If hidden, the full file path is still shown when hovering over its tab."
@@ -2108,15 +2108,15 @@ msgstr "Afficher la sélection des classes/fonctions"
 
 #: spyder/plugins/editor/confpage.py:76
 msgid "For quick browsing and switching between classes/functions in a file."
-msgstr ""
+msgstr "Permet de naviguer rapidement entre les classes/fonctions dans un fichier."
 
 #: spyder/plugins/editor/confpage.py:82
 msgid "Allow scrolling past file end"
-msgstr ""
+msgstr "Autoriser le défilement au-delà de la fin du fichier"
 
 #: spyder/plugins/editor/confpage.py:93
 msgid "Helpers"
-msgstr ""
+msgstr "Aides visuelles"
 
 #: spyder/plugins/editor/confpage.py:94 spyder/plugins/editor/widgets/main_widget.py:402
 msgid "Show indent guides"
@@ -2124,11 +2124,11 @@ msgstr "Afficher les guides d'indentation"
 
 #: spyder/plugins/editor/confpage.py:96 spyder/plugins/editor/widgets/main_widget.py:408
 msgid "Show code folding"
-msgstr "Afficher le pliage du code"
+msgstr "Activer le repli du code"
 
 #: spyder/plugins/editor/confpage.py:98
 msgid "Allow collapsing and uncollapsing code by indent level"
-msgstr ""
+msgstr "Permettre de replier et déplier le code par niveau d'indentation"
 
 #: spyder/plugins/editor/confpage.py:100 spyder/plugins/history/confpage.py:29 spyder/plugins/history/widgets.py:124
 msgid "Show line numbers"
@@ -2144,19 +2144,19 @@ msgstr "Afficher les annotations de code"
 
 #: spyder/plugins/editor/confpage.py:109
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (and their lowercase variants)"
-msgstr ""
+msgstr "Afficher un marqueur à gauche des numéros de ligne lorsque les annotations suivantes apparaissent au début d'un commentaire : <tt>TODO, FIXME, XXX, ASTUCE, CONSEIL, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt> (insensible à la casse)"
 
 #: spyder/plugins/editor/confpage.py:128
 msgid "Highlight current line"
-msgstr "Surligner la ligne en cours d'édition"
+msgstr "Surligner la ligne courante"
 
 #: spyder/plugins/editor/confpage.py:131
 msgid "Highlight current cell"
-msgstr "Surligner la cellule en cours d'édition"
+msgstr "Surligner la cellule courante"
 
 #: spyder/plugins/editor/confpage.py:134
 msgid "Highlight occurrences of selected text after"
-msgstr ""
+msgstr "Surligner les occurrences du texte sélectionné après"
 
 #: spyder/plugins/editor/confpage.py:139
 msgid " milliseconds"
@@ -2168,39 +2168,39 @@ msgstr "Changements automatiques"
 
 #: spyder/plugins/editor/confpage.py:178
 msgid "Automatically insert closing parentheses, brackets and braces"
-msgstr ""
+msgstr "Insérer automatiquement les parenthèses, crochets et accolades fermant(e)s"
 
 #: spyder/plugins/editor/confpage.py:180
 msgid "Insert a matching closing bracket when typing an open one"
-msgstr ""
+msgstr "Insérer une parenthèse fermante lors de la saisie d'une parenthèse ouvrante"
 
 #: spyder/plugins/editor/confpage.py:183
 msgid "Automatically insert closing quotes"
-msgstr ""
+msgstr "Insérer automatiquement les guillemets fermants"
 
 #: spyder/plugins/editor/confpage.py:185
 msgid "Insert a matching closing quote when typing an open one"
-msgstr ""
+msgstr "Insère automatiquement les guillemets fermant lors de la saisie de guillemets ouvrants"
 
 #: spyder/plugins/editor/confpage.py:188
 msgid "Automatically insert colons after 'for', 'if', 'def', etc"
-msgstr ""
+msgstr "Insérer automatiquement les deux-points après 'for', 'si', 'def', etc."
 
 #: spyder/plugins/editor/confpage.py:192
 msgid "Automatically un-indent 'else', 'elif', etc"
-msgstr ""
+msgstr "Désindenter automatiquement 'else', 'elif', etc."
 
 #: spyder/plugins/editor/confpage.py:194
 msgid "Un-indent further block-level keywords when added inside an 'if', etc block"
-msgstr ""
+msgstr "Désindente les mots clés de bloc lorsqu'ils sont ajoutés dans un bloc 'if', etc."
 
 #: spyder/plugins/editor/confpage.py:208
 msgid "Trailing whitespace"
-msgstr ""
+msgstr "Espaces de fin de ligne"
 
 #: spyder/plugins/editor/confpage.py:210
 msgid "Strip all trailing spaces on save"
-msgstr ""
+msgstr "Supprimer tous les espaces en fin de ligne lors de l'enregistrement"
 
 #: spyder/plugins/editor/confpage.py:215
 msgid "Strip trailing spaces on changed lines"
@@ -2210,24 +2210,25 @@ msgstr "Supprimer les espaces en fin de ligne lors d'un changement de ligne"
 msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
+msgstr "Si cette case est cochée, les espaces en fin de ligne des lignes de code modifiées (sauf les chaines de caractères) seront supprimés lors du changement de ligne.<br>Sinon, uniquement les espaces ajoutés par Spyder seront supprimés."
 
 #: spyder/plugins/editor/confpage.py:226
 msgid "Automatically add missing end-of-file newline on save"
-msgstr ""
+msgstr "Ajouter automatiquement une ligne vide à la fin du fichier lors de l'enregistrement"
 
 #: spyder/plugins/editor/confpage.py:229
 msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
+msgstr "Si cette case est cochée, un caractère de nouvelle ligne (saut de ligne) sera automatiquement ajouté à la fin du fichier\n"
+"si nécessaire afin de respecter les conventions standards des fichiers texte."
 
 #: spyder/plugins/editor/confpage.py:237
 msgid "Strip blank lines at end of file on save"
-msgstr ""
+msgstr "Supprimer les lignes vides à la fin du fichier lors de l'enregistrement"
 
 #: spyder/plugins/editor/confpage.py:240
 msgid "Any extra newlines at the end of the file besides the first one will be stripped."
-msgstr ""
+msgstr "Supprime les lignes vides en fin de fichier à l'exception de la première."
 
 #: spyder/plugins/editor/confpage.py:262
 msgid "Indentation"
@@ -2235,7 +2236,7 @@ msgstr "Indentation"
 
 #: spyder/plugins/editor/confpage.py:264
 msgid "Tab width:"
-msgstr ""
+msgstr "Largeur de tabulation :"
 
 #: spyder/plugins/editor/confpage.py:265
 msgid "spaces"
@@ -2243,19 +2244,19 @@ msgstr "espaces"
 
 #: spyder/plugins/editor/confpage.py:273
 msgid "Indent with spaces instead of tabs"
-msgstr ""
+msgstr "Indenter avec des espaces au lieu de tabulations"
 
 #: spyder/plugins/editor/confpage.py:276
 msgid "When pressing Tab, insert the configured number of spaces instead of the tab character"
-msgstr ""
+msgstr "Lors d'un appui sur Tab, insère le nombre d'espace défini au lieu du caractères tabulation"
 
 #: spyder/plugins/editor/confpage.py:282
 msgid "Intelligent backspace"
-msgstr "Retour arrière (\"backspace\") intelligent"
+msgstr "Retour arrière intelligent"
 
 #: spyder/plugins/editor/confpage.py:284
 msgid "Make the backspace key automatically remove the number of indentation characters set above."
-msgstr ""
+msgstr "Supprime automatiquement le nombre de caractères d'indentation."
 
 #: spyder/plugins/editor/confpage.py:291
 msgid "Tab always indents"
@@ -2265,7 +2266,7 @@ msgstr "Toujours indenter avec la touche Tab"
 msgid "If enabled, pressing Tab will always add an indent,\n"
 "even when the cursor is not at the beginning of a line.\n"
 "Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
+msgstr "Si cette case est cochée, appuyer sur Tab ajoute toujours une indentation, même si le curseur n'est pas au début de la ligne. La complétion de code peut toujours être appelée avec le raccourci Ctrl+Espace."
 
 #: spyder/plugins/editor/confpage.py:319
 msgid "End-of-line characters"
@@ -2273,21 +2274,21 @@ msgstr "Caractères de fin de ligne"
 
 #: spyder/plugins/editor/confpage.py:321
 msgid "Fix mixed end-of-lines automatically and show warning dialog"
-msgstr ""
+msgstr "Corriger automatiquement le mélange de caractères de fin de ligne et afficher un avertissement"
 
 #: spyder/plugins/editor/confpage.py:324
 msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "Converti automatiquement les caractères de fin de ligne ne correspondant pas aux autres (mélange qui peut générer des erreurs de syntaxe dans la console sur Windows) lors de l'ouverture du fichier."
 
 #: spyder/plugins/editor/confpage.py:331
 msgid "Convert end-of-line characters to the following on save:"
-msgstr "Convertir les caractères de fin de ligne en ce qui suit lors de la sauvegarde:"
+msgstr "Convertir les caractères de fin de ligne à l'enregistrement en :"
 
 #: spyder/plugins/editor/confpage.py:338 spyder/plugins/editor/widgets/main_widget.py:534
 msgid "CR (legacy Mac)"
-msgstr ""
+msgstr "CR (anciens MAC)"
 
 #: spyder/plugins/editor/confpage.py:364
 msgid "Template"
@@ -2295,19 +2296,19 @@ msgstr "Modèle"
 
 #: spyder/plugins/editor/confpage.py:366
 msgid "Edit new file template"
-msgstr ""
+msgstr "Modifier le modèle de nouveau fichier"
 
 #: spyder/plugins/editor/confpage.py:377
 msgid "Autosave"
-msgstr "Enregistrement automatique"
+msgstr "Sauvegarde automatique"
 
 #: spyder/plugins/editor/confpage.py:379
 msgid "Automatically save a backup copy of unsaved files"
-msgstr ""
+msgstr "Enregistrer automatiquement une copie de sauvegarde des fichiers non enregistrés"
 
 #: spyder/plugins/editor/confpage.py:381
 msgid "If Spyder quits unexpectedly, it will offer to recover them on next launch"
-msgstr ""
+msgstr "Si Spyder se ferme de façon inattendue, il proposera de le récupérer au prochain lancement"
 
 #: spyder/plugins/editor/confpage.py:387
 msgid "Autosave interval: "
@@ -2323,47 +2324,47 @@ msgstr "Style des docstrings"
 
 #: spyder/plugins/editor/confpage.py:407
 msgid "Select the style of docstrings ({numpy}, {google} or {sphinx}) to generate when pressing <kbd>{shortcut}</kbd> after a function, method or class declaration"
-msgstr ""
+msgstr "Sélectionnez le style des docstrings ({numpy}, {google} ou {sphinx}) à générer en appuyant sur <kbd>{shortcut}</kbd> après une fonction, une méthode ou une déclaration de classe"
 
 #: spyder/plugins/editor/confpage.py:426
 msgid "Style:"
-msgstr ""
+msgstr "Style :"
 
 #: spyder/plugins/editor/confpage.py:437
 msgid "Multi-cursor"
-msgstr ""
+msgstr "Curseurs multiples"
 
 #: spyder/plugins/editor/confpage.py:439
 msgid "Enable multi-cursor support"
-msgstr ""
+msgstr "Activer la prise en charge des curseurs multiples"
 
 #: spyder/plugins/editor/confpage.py:441
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
-msgstr ""
+msgstr "Permet d'ajouter des curseurs et des colonnes de curseurs supplémentaires pour l'édition simultanée"
 
 #: spyder/plugins/editor/confpage.py:452
 msgid "Multi-cursor paste behavior"
-msgstr ""
+msgstr "Comportement de la copie avec curseurs multiples"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Always paste the entire clipboard for each cursor"
-msgstr ""
+msgstr "Toujours coller le presse-papiers entier de chaque curseur"
 
 #: spyder/plugins/editor/confpage.py:460
 msgid "Paste one line per cursor if the number of lines and cursors match"
-msgstr ""
+msgstr "Coller une ligne par curseur si le nombre de lignes et de curseurs correspondent"
 
 #: spyder/plugins/editor/confpage.py:468
 msgid "Always paste one line per cursor if there is more than one line in the clipboard"
-msgstr ""
+msgstr "Toujours coller une ligne par curseur s'il y a plus d'une ligne dans le presse-papiers"
 
 #: spyder/plugins/editor/confpage.py:490
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "Raccourcis"
 
 #: spyder/plugins/editor/confpage.py:493
 msgid "Edit mouse shortcut modifiers"
-msgstr ""
+msgstr "Modifier les raccourcis"
 
 #: spyder/plugins/editor/confpage.py:502 spyder/plugins/history/confpage.py:27 spyder/plugins/ipythonconsole/confpage.py:40 spyder/plugins/statusbar/confpage.py:23 spyder/plugins/variableexplorer/confpage.py:42
 msgid "Display"
@@ -2923,19 +2924,19 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:65
 msgid "Go to a code definition"
-msgstr ""
+msgstr "Aller à la définition du code"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:73
 msgid "Add/remove an additional cursor"
-msgstr ""
+msgstr "Ajouter/supprimer un curseur supplémentaire"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:81
 msgid "Add a column of cursors"
-msgstr ""
+msgstr "Ajouter une colonne de curseurs"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:211
 msgid "Shortcut Conflicts With Another"
-msgstr ""
+msgstr "Le raccourci est en conflit avec un autre"
 
 #: spyder/plugins/editor/widgets/recover.py:60
 msgid "Recover from autosave"
@@ -4122,7 +4123,7 @@ msgstr "Sortie intégrée"
 
 #: spyder/plugins/ipythonconsole/confpage.py:223
 msgid "Settings for figures in the Plots pane"
-msgstr "Paramètres des graphiques dans le volet Graphiques"
+msgstr "Paramètres des figures dans le volet Graphiques"
 
 #: spyder/plugins/ipythonconsole/confpage.py:227
 msgid "Format:"
