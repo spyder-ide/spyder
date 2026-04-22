@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-20 17:27\n"
+"PO-Revision-Date: 2026-04-22 11:33\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1859,7 +1859,7 @@ msgstr "Exécuter le code pendant le débogage"
 
 #: spyder/plugins/debugger/confpage.py:26
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
-msgstr "Vous pouvez exécuter plusieurs lignes de code à chaque nouvelle invite lors du débogage. Veuillez introduire chacun séparé par des points-virgules et un espace, par exemple :<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
+msgstr "Vous pouvez exécuter plusieurs lignes de code à chaque nouvelle invite lors du débogage. Séparer les différentes lignes par un point-virgule et un espace, par exemple :<br><i>import matplotlib.pyplot as plt; import numpy as np</i>"
 
 #: spyder/plugins/debugger/confpage.py:34 spyder/plugins/ipythonconsole/confpage.py:325
 msgid "Lines:"
@@ -1867,11 +1867,11 @@ msgstr "Lignes :"
 
 #: spyder/plugins/debugger/confpage.py:42
 msgid "Interaction"
-msgstr ""
+msgstr "Interaction"
 
 #: spyder/plugins/debugger/confpage.py:46
 msgid "Prevent editor from closing files while debugging"
-msgstr "Empêcher l'éditeur de fermer les fichiers lors du débogage"
+msgstr "Empêcher la fermeture des fichiers lors du débogage"
 
 #: spyder/plugins/debugger/confpage.py:48
 msgid "This option prevents the user from closing a file while it is debugged."
@@ -1899,7 +1899,7 @@ msgstr "Traiter les événements d'exécution pendant le débogage"
 
 #: spyder/plugins/debugger/confpage.py:68
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib <tt>show</tt> command."
-msgstr "Cette option vous permet de décider si le débogueur doit traiter les « événements d'exécution » après chaque invitation, comme par exemple la commande matplotlib <tt>afficher</tt>."
+msgstr "Cette option vous permet de décider si le débogueur doit traiter les « événements d'exécution » après chaque invite, comme par exemple la commande matplotlib <tt>show</tt>."
 
 #: spyder/plugins/debugger/confpage.py:74
 msgid "Use exclamation mark prefix for Pdb commands"
@@ -2096,11 +2096,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:66
 msgid "Show full file path above editor"
-msgstr ""
+msgstr "Afficher le chemin complet du fichier en haut de l'éditeur"
 
 #: spyder/plugins/editor/confpage.py:68
 msgid "If hidden, the full file path is still shown when hovering over its tab."
-msgstr ""
+msgstr "Si cette option est décochée, le chemin complet du fichier est toujours affiché au survol de l'onglet."
 
 #: spyder/plugins/editor/confpage.py:74 spyder/plugins/editor/widgets/main_widget.py:414
 msgid "Show class/function selector"
@@ -4206,8 +4206,7 @@ msgstr "Exécuter du code"
 #: spyder/plugins/ipythonconsole/confpage.py:319
 msgid "Enter a code snippet to run when a new console is started.\n"
 "Separate multiple lines by semicolons, for example:<br><tt>import os; import sys</tt>"
-msgstr "Saisissez un extrait de code à exécuter au démarrage d'une nouvelle console.<br>\n"
-"Séparer les différentes lignes par des points-virgules, par exemple :<br><tt>import os; import sys</tt>"
+msgstr "Saisissez un extrait de code à exécuter au démarrage d'une nouvelle console.<br>Séparer les différentes lignes par des points-virgules, par exemple :<br><tt>import os; import sys</tt>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:334
 msgid "Run a file"
