@@ -8,7 +8,9 @@
 Spyder appearance configuration
 """
 
+import importlib.util
 import os
+import os.path as osp
 import sys
 
 from qdarkstyle.dark.palette import DarkPalette
@@ -16,7 +18,11 @@ from qdarkstyle.light.palette import LightPalette
 
 from spyder.config.base import running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
+
+# Compute CSS_PATH without importing sphinxify (which pulls in sphinx, docutils,
+# and jinja2 — over 300ms — just for a path constant).
+_help_utils_spec = importlib.util.find_spec('spyder.plugins.help.utils')
+CSS_PATH = osp.join(_help_utils_spec.submodule_search_locations[0], 'static', 'css')
 
 
 WIN = os.name == 'nt'

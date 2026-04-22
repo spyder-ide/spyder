@@ -8,7 +8,6 @@
 
 # Standard library imports
 from ast import literal_eval
-import asyncio
 import glob
 from getpass import getuser
 import importlib
@@ -28,7 +27,6 @@ import logging
 # Third party imports
 from packaging.version import parse
 import psutil
-from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import is_conda_env
 
 # Local imports
@@ -186,12 +184,15 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
 
-        # Ensure Windows subprocess environment has certain variables
+        # Ensure Windows subprocess environment has certain variables.
+        # Use case-insensitive key lookup since Windows env vars are
+        # case-insensitive (avoids pulling in the requests library at import).
         if "env" in kwargs:
-            env = CaseInsensitiveDict(kwargs.get("env"))
+            env = kwargs.get("env")
+            env_lower = {k.lower(): k for k in env}
             for env_var in ['SYSTEMROOT', 'SYSTEMDRIVE', 'USERPROFILE']:
-                env.setdefault(env_var, os.getenv(env_var))
-            kwargs["env"] = dict(env)
+                if env_var.lower() not in env_lower:
+                    env[env_var] = os.getenv(env_var)
     else:
         # linux and macOS
         if "env" in kwargs:
@@ -227,6 +228,7 @@ def run_shell_command(cmdstr, asynchronous=False, **subprocess_kwargs):
     popen = subprocess.Popen
     pipe = subprocess.PIPE
     if asynchronous:
+        import asyncio
         popen = asyncio.create_subprocess_shell
         pipe = asyncio.subprocess.PIPE
 

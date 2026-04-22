@@ -18,8 +18,8 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
 # Third-party imports
-import keyring
-from keyring.errors import NoKeyringError
+# keyring is imported lazily at the call sites where secure=True to avoid
+# its ~200ms import cost on every startup when credentials are rarely used.
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
@@ -529,6 +529,7 @@ class ConfigurationManager(object):
                     raise cp.NoOptionError(option, section)
         else:
             if secure:
+                import keyring
                 logger.debug(
                     f"Retrieving option {option} with keyring because it "
                     f"was marked as secure."
@@ -572,6 +573,8 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
 
         if secure:
+            import keyring
+            from keyring.errors import NoKeyringError
             logger.debug(
                 f"Saving option {option} with keyring because it was marked "
                 f"as secure."
@@ -676,6 +679,7 @@ class ConfigurationManager(object):
                 self.notify_observers(section, base_option)
         else:
             if secure:
+                import keyring
                 logger.debug(
                     f"Deleting option {option} with keyring because it was "
                     f"marked as secure."
