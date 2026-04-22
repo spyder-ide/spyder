@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from qtpy.QtCore import QSize
 from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -94,10 +95,14 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         self.remote_treewidget = RemoteExplorer(parent=self, only_dir=True)
         self.remote_treewidget.previous_action = self.previous_action
         self.remote_treewidget.next_action = self.next_action
-        self.remote_treewidget.set_single_click_to_open(False)
+        self.remote_treewidget.view.header().hide()
+        self.remote_treewidget.view.setColumnHidden(1, True)
+        self.remote_treewidget.view.setColumnHidden(2, True)
+        self.remote_treewidget.view.setColumnHidden(3, True)
+        self.remote_treewidget.view.setRootIsDecorated(False)
         self.remote_treewidget.view.setSelectionMode(QTreeView.SingleSelection)
-        self.remote_treewidget.view.setColumnHidden(1, True)  # Hide `Size` column
-        self.remote_treewidget.view.setColumnHidden(2, True)  # Hide `Type` column
+        self.remote_treewidget.view.setIconSize(QSize(22, 22))
+        self.remote_treewidget.set_single_click_to_open(False)
 
         self.remote_treewidget.sig_dir_opened.connect(
             self.set_selected_directory
