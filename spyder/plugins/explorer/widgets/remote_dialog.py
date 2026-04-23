@@ -50,6 +50,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         directory: str,
         parent: QWidget = None,
         class_parent: QObject = None,
+        only_dir: bool = True,
     ) -> None:
         super().__init__(parent=parent, class_parent=parent)
 
@@ -92,7 +93,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         self.toolbar.addWidget(self._spinner)
 
         # RemoteExplorer
-        self.remote_treewidget = RemoteExplorer(parent=self, only_dir=True)
+        self.remote_treewidget = RemoteExplorer(parent=self, only_dir=only_dir)
         self.remote_treewidget.previous_action = self.previous_action
         self.remote_treewidget.next_action = self.next_action
         self.remote_treewidget.view.header().hide()
@@ -209,6 +210,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         directory: str,
         parent: QWidget = None,
         class_parent: QObject = None,
+        only_dir: bool = True,
     ) -> str | None:
         """
         Allow to get a remote files system directory path.
@@ -224,9 +226,11 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         directory : str
             Path of the initial directory to show in the `RemoteFileDialog`.
         parent : QWidget, optional
-            Parent widget to use for the dialog. The default is None.
+            Parent widget to use for the dialog. The default is `None`.
         class_parent : QObject, optional
-            Class definition of the parent to use for the dialog. The default is None.
+            Class definition of the parent to use for the dialog. The default is `None`.
+        only_dir : bool, optional
+            If only directories should be shown/listed in the dialog. The default is `True`.
 
         Returns
         -------

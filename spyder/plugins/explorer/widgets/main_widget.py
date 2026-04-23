@@ -32,7 +32,6 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.main import NAME_FILTERS
 from spyder.plugins.explorer.widgets.remote_explorer import RemoteExplorer
-from spyder.plugins.explorer.widgets.remote_dialog import RemoteFileDialog
 from spyder.plugins.explorer.widgets.explorer import (
     DirViewActions,
     ExplorerTreeWidget,
