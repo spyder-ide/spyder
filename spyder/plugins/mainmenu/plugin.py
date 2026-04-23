@@ -105,9 +105,15 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
                 else:
                     plugin_instance.options_menu.hide()
 
-    def _add_menus(self):
+    def _add_menus(self, readd: bool = False):
         """Add menus to the main window menubar."""
         menu_ids = set(self._APPLICATION_MENUS.keys())
+
+        # Remove all menus to readd them again
+        if readd:
+            for menu_id in menu_ids:
+                menu = self._APPLICATION_MENUS[menu_id]
+                self.main.menuBar().removeAction(menu.menuAction())
 
         # Add internal menus first, in the following order
         for menu_id in [
@@ -185,11 +191,20 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)
             for pending in pending_items:
-                (item, section,
-                 before_item, before_section) = pending
+                (item, section, before_item, before_section) = pending
                 self.add_item_to_application_menu(
                     item, menu_id=menu_id, section=section,
-                    before=before_item, before_section=before_section)
+                    before=before_item, before_section=before_section
+                )
+
+        # Actions to take when the plugin that creates this menu is reenabled
+        if not self.main.is_setting_up:
+            # This enables global shortcuts for actions in the menu
+            menu.render()
+
+            # Readd all menus to the menu bar to display them in the expected
+            # order.
+            self._add_menus(readd=True)
 
         return menu
 
