@@ -10,6 +10,7 @@ Main menu Plugin.
 
 # Standard library imports
 from collections import OrderedDict
+import functools
 import sys
 from typing import Dict, List, Tuple, Optional, Union
 
@@ -177,7 +178,9 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             # dialogs and the only way to make it visible again is by
             # re-rendering the menu.
             if menu_id == ApplicationMenus.Run:
-                menu.aboutToShow.connect(lambda: menu.render(force=True))
+                force_render = functools.partial(menu.render, force=True)
+                menu.aboutToShow.connect(force_render)
+                menu._render_callback = force_render
 
         if menu_id in self._ITEM_QUEUE:
             pending_items = self._ITEM_QUEUE.pop(menu_id)
@@ -249,6 +252,13 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
             self._menus.pop(menu_id)
             menu = self._APPLICATION_MENUS.pop(menu_id)
             self.main.menuBar().removeAction(menu.menuAction())
+
+            # Disconnect slots from signals (see create_application_menu)
+            if sys.platform == 'darwin':
+                menu.aboutToShow.disconnect(self._hide_options_menus)
+
+                if menu_id == ApplicationMenus.Run:
+                    menu.aboutToShow.disconnect(menu._render_callback)
 
     def remove_item_from_application_menu(self, item_id: str,
                                           menu_id: Optional[str] = None):
