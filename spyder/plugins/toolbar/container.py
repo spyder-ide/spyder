@@ -9,9 +9,10 @@ Toolbar Container.
 """
 
 # Standard library imports
+from __future__ import annotations
 from collections import OrderedDict
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 # Third party imports
 from qtpy.QtCore import QSize, Slot
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
-ItemInfo = Tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
+ItemInfo = tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
 
 
 class ToolbarMenus:
@@ -70,7 +71,7 @@ class ToolbarContainer(PluginMainContainer):
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._toolbarslist: list[ApplicationToolbar] = []
         self._visible_toolbars: list[ApplicationToolbar] = []
-        self._ITEMS_QUEUE: Dict[str, List[ItemInfo]] = {}
+        self._ITEMS_QUEUE: dict[str, list[ItemInfo]] = {}
 
     # ---- Private Methods
     # ------------------------------------------------------------------------
@@ -250,10 +251,10 @@ class ToolbarContainer(PluginMainContainer):
     def add_item_to_application_toolbar(
         self,
         item: ToolbarItem,
-        toolbar_id: Optional[str] = None,
-        section: Optional[str] = None,
-        before: Optional[str] = None,
-        before_section: Optional[str] = None,
+        toolbar_id: str | None = None,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
         omit_id: bool = False
     ):
         """
@@ -289,7 +290,7 @@ class ToolbarContainer(PluginMainContainer):
     def remove_item_from_application_toolbar(
         self,
         item_id: str,
-        toolbar_id: Optional[str] = None
+        toolbar_id: str | None = None
     ):
         """
         Remove action or widget from given application toolbar by id.
@@ -333,7 +334,7 @@ class ToolbarContainer(PluginMainContainer):
 
         return self._APPLICATION_TOOLBARS[toolbar_id]
 
-    def get_application_toolbars(self) -> Dict[str, ApplicationToolbar]:
+    def get_application_toolbars(self) -> dict[str, ApplicationToolbar]:
         """
         Return all created application toolbars.
 
