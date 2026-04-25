@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-25 10:11\n"
+"PO-Revision-Date: 2026-04-25 11:23\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -3506,7 +3506,7 @@ msgstr "Échec de l'affichage du contenu"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:701
 msgid "An error occured while trying to view a directory"
-msgstr "Une erreur est survenue lors de la tentative de visualisation d'un répertoire"
+msgstr "Une erreur est survenue lors de la visualisation d'un répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:777
 msgid "An error occured while trying to upload files"
@@ -3578,7 +3578,7 @@ msgstr "Nouveau nom pour <b>{}</b> :"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1503
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note</b>: The file/directory will be removed permanently from the remote filesystem."
-msgstr "Voulez-vous vraiment supprimer <b>{filename}</b>?<br><br><b>Note :</b> Le fichier/répertoire sera supprimé définitivement du système de fichiers distant."
+msgstr "Voulez-vous vraiment supprimer <b>{filename}</b>?<br><br><b>Note :</b> le fichier/répertoire sera supprimé définitivement du système de fichiers distant."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1543
 msgid "Download directory"
@@ -3590,7 +3590,7 @@ msgstr "Le fichier <b>{}</b> que vous essayez de télécharger depuis le serveur
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1658
 msgid "You are about to upload more than 50 files to server <b>{}</b>.<br><br>Do you prefer to skip checking whether they exist on the server to upload them more quickly?"
-msgstr "Vous êtes sur le point d'envoyer plus de 50 fichiers sur le serveur <b>{}</b>.<br><br>Souhaitez-vous ignorer la vérification de la présence des fichiers sur le serveur pour les envoyer plus rapidement ?"
+msgstr "Vous êtes sur le point d'envoyer plus de 50 fichiers sur le serveur <b>{}</b>.<br><br>Voulez-vous ignorer la vérification de la présence des fichiers sur le serveur pour les envoyer plus rapidement ?"
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External Terminal"
@@ -3794,7 +3794,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
 msgid "Searching..."
-msgstr ""
+msgstr "Rechercher…"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:303
 msgid "Maximum number of results reached! Try narrowing the search."
@@ -7217,7 +7217,7 @@ msgstr "Options d'affichage…"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:790 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1848 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:256 spyder/widgets/collectionseditor.py:1845
 msgid "Refresh editor with current value of variable in console"
-msgstr ""
+msgstr "Actualiser l'éditeur avec la valeur actuelle de la variable dans la console"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:797
 msgid "Resize"
@@ -7297,7 +7297,7 @@ msgstr "Le format (%s) n'est pas valide"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1183 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2454 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:463 spyder/widgets/collectionseditor.py:2096
 msgid "The variable no longer exists."
-msgstr ""
+msgstr "La variable n'existe plus."
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1188
 msgid "The new value cannot be displayed in the array editor."
@@ -7305,7 +7305,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1199 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2471 spyder/widgets/collectionseditor.py:2116
 msgid "Refreshing the editor will overwrite the changes that you made. Do you want to proceed?"
-msgstr ""
+msgstr "Rafraîchir l'éditeur écrasera les modifications effectuées. Voulez-vous continuer ?"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:1203
 msgid "Refresh array editor?"
@@ -7352,7 +7352,7 @@ msgstr ""
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:537
 msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
-msgstr ""
+msgstr "Il n'est pas possible d'afficher cette valeur car<br>une erreur est survenue en essayant de le faire"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:912 spyder/plugins/variableexplorer/widgets/main_widget.py:188 spyder/widgets/collectionseditor.py:813
 msgid "Resize rows to contents"
@@ -7368,27 +7368,27 @@ msgstr "Insérer en dessous"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:947
 msgid "Insert before"
-msgstr ""
+msgstr "Insérer avant"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:954
 msgid "Insert after"
-msgstr ""
+msgstr "Insérer après"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:961
 msgid "Remove row"
-msgstr ""
+msgstr "Supprimer la ligne"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:968
 msgid "Remove column"
-msgstr ""
+msgstr "Supprimer la colonne"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:975
 msgid "Duplicate row"
-msgstr ""
+msgstr "Dupliquer la ligne"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:982
 msgid "Duplicate column"
-msgstr ""
+msgstr "Dupliquer la colonne"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:998 spyder/plugins/variableexplorer/widgets/main_widget.py:231 spyder/widgets/collectionseditor.py:856
 msgid "Histogram"
@@ -7396,7 +7396,7 @@ msgstr "Histogramme"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:999
 msgid "Plot a histogram of the selected columns"
-msgstr ""
+msgstr "Créer un histogramme des colonnes sélectionnées"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1053
 msgid "Text can't be copied."
@@ -7404,15 +7404,15 @@ msgstr "Le texte ne peut être copié."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1100 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1101
 msgid "Enter a value"
-msgstr ""
+msgstr "Saisir une valeur"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1132
 msgid "Warning: Duplicate column"
-msgstr ""
+msgstr "Avertissement : dupliquer la colonne"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1133
 msgid "Column with name \"{}\" already exists!"
-msgstr ""
+msgstr "La colonne avec le nom \"{}\" existe déjà !"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1468 spyder/widgets/collectionseditor.py:1315
 msgid "Do you want to remove the selected item?"
@@ -7424,23 +7424,23 @@ msgstr "Souhaitez-vous supprimer les éléments sélectionnés ?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1491
 msgid "Warning: It was not possible to remove this item!"
-msgstr ""
+msgstr "Avertissement : cet élément n'a pas pu être supprimé !"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1492 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1698
 msgid "ValueError: {} must be removed from index."
-msgstr ""
+msgstr "ValueError : {} doit être supprimé de l'index."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1696
 msgid "Warning: It was not possible to remove this index!"
-msgstr ""
+msgstr "Avertissement : cet indice n'a pas pu être supprimé !"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1705
 msgid "Warning: Duplicate index!"
-msgstr ""
+msgstr "Avertissement : dupliquer l'indice !"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1706
 msgid "Row with name \"{}\" already exists!"
-msgstr ""
+msgstr "La ligne avec le nom \"{}\" existe déjà !"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1772 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1777 spyder/widgets/collectionseditor.py:251
 msgid "Index"
@@ -7452,19 +7452,19 @@ msgstr "Éditeur de %s"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2459
 msgid "The new value cannot be displayed in the dataframe editor."
-msgstr ""
+msgstr "La nouvelle valeur ne peut pas être affichée dans l'éditeur de dataframe."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2475
 msgid "Refresh dataframe editor?"
-msgstr ""
+msgstr "Actualiser l'éditeur de dataframe ?"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2482
 msgid "Dataframe editor"
-msgstr ""
+msgstr "Éditeur de dataframe"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:2562
 msgid "Resize columns to headers"
-msgstr ""
+msgstr "Ajuster les colonnes aux entêtes"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:107 spyder/plugins/variableexplorer/widgets/importwizard.py:447
 msgid "Import as"
@@ -7872,59 +7872,59 @@ msgstr "<racine_invisible>"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:65
 msgid "{} editor preferences"
-msgstr ""
+msgstr "Préférences de l'éditeur de {}"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:70
 msgid "Formatting"
-msgstr ""
+msgstr "Mise en forme"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:73
 msgid "<a href=\"{url}\">Format specification</a> for floats:"
-msgstr ""
+msgstr "<a href=\"{url}\">Format</a> pour les flottants :"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:80
 msgid "Use same syntax as for built-in <tt>format()</tt> function. Default is <tt>.6g</tt>."
-msgstr ""
+msgstr "Utiliser la même syntaxe que pour la fonction <tt>format()</tt>. Valeur par défaut : <tt>.6g</tt>."
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:94
 msgid "Background color"
-msgstr "Couleur de fond"
+msgstr "Couleur d'arrière-plan"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:98
 msgid "Use default background color"
-msgstr ""
+msgstr "Utiliser la couleur d'arrière-plan par défaut"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:99
 msgid "Use same background color for all cells"
-msgstr ""
+msgstr "Utiliser la même couleur d'arrière-plan pour toutes les cellules"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:105
 msgid "Vary background color according to value"
-msgstr ""
+msgstr "Varier la couleur d'arrière-plan en fonction de la valeur"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:106
 msgid "Use red for largest number, blue for smallest number, and intermediate colors for the other numbers."
-msgstr ""
+msgstr "Mettre en rouge pour le nombre le plus élevé, en bleu pour le nombre le plus petit et utiliser des couleurs intermédiaires pour les autres nombres."
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:117
 msgid "Coloring algorithm"
-msgstr ""
+msgstr "Algorithme de coloration"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:121
 msgid "Global"
-msgstr ""
+msgstr "Global"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:122
 msgid "Compare each cell against the largest and smallest numbers in the entire dataframe"
-msgstr ""
+msgstr "Comparer chaque cellule avec le plus grand et le plus petit nombre dans le dataframe entier"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:131
 msgid "Column by column"
-msgstr ""
+msgstr "Colonne par colonne"
 
 #: spyder/plugins/variableexplorer/widgets/preferences.py:132
 msgid "Compare each cell against the largest and smallest numbers in the same column"
-msgstr ""
+msgstr "Comparer chaque cellule avec le plus grand et le plus petit nombre de la colonne"
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:141
 msgid "Text editor"
