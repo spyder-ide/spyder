@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-22 13:10\n"
+"PO-Revision-Date: 2026-04-25 05:30\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -6380,7 +6380,7 @@ msgstr ""
 
 #: spyder/plugins/run/confpage.py:150
 msgid "%s (copy)"
-msgstr ""
+msgstr "%s (copie)"
 
 #: spyder/plugins/run/confpage.py:207
 msgid "The following are the global configuration presets of the different runners that can execute files in Spyder."
@@ -6388,35 +6388,35 @@ msgstr ""
 
 #: spyder/plugins/run/confpage.py:216
 msgid "Configuration presets:"
-msgstr ""
+msgstr "Configurations :"
 
 #: spyder/plugins/run/confpage.py:225 spyder/plugins/run/widgets.py:625
 msgid "Runner:"
-msgstr ""
+msgstr "Mode d'exécution :"
 
 #: spyder/plugins/run/confpage.py:242
 msgid "New parameters"
-msgstr ""
+msgstr "Nouvelle configuration"
 
 #: spyder/plugins/run/confpage.py:247
 msgid "Edit selected"
-msgstr ""
+msgstr "Modifier la sélection"
 
 #: spyder/plugins/run/confpage.py:252
 msgid "Clone selected"
-msgstr ""
+msgstr "Dupliquer la sélection"
 
 #: spyder/plugins/run/confpage.py:257
 msgid "Delete selected"
-msgstr ""
+msgstr "Supprimer la sélection"
 
 #: spyder/plugins/run/confpage.py:262
 msgid "Reset current changes"
-msgstr ""
+msgstr "Réinitialiser les modifications en cours"
 
 #: spyder/plugins/run/confpage.py:285
 msgid "Global presets"
-msgstr ""
+msgstr "Configurations générales"
 
 #: spyder/plugins/run/confpage.py:300
 msgid "Save all files before running script"
