@@ -2573,7 +2573,10 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
 
         # Replace in all related clients
         for cl in self.get_related_clients(client):
-            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=False)
+            # Use shutdown_kernel=True here to prevent
+            # "QThread: Destroyed while thread is still running".
+            # See spyder-ide/spyder#25984
+            cl.replace_kernel(kernel_handler.copy(), shutdown_kernel=True)
 
         client.replace_kernel(kernel_handler, shutdown_kernel=True)
 
