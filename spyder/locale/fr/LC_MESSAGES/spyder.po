@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-25 06:32\n"
+"PO-Revision-Date: 2026-04-25 07:35\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:29
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
-msgstr "Désactivez un plugin Spyder (externe ou intégré) pour l'empêcher de charger jusqu'à ce qu'il soit réactivé ici, pour simplifier l'interface ou en cas de problème."
+msgstr "En cas de problème (ou pour simplifier l'interface), les plugins Spyder externes et intégrés peuvent être désactivés ici. Les plugins ne seront plus chargés jusqu'à ce qu'ils soient réactivés."
 
 #: spyder/api/plugin_registration/_confpage.py:68
 msgid "Built-in"
@@ -1105,11 +1105,11 @@ msgstr "Complétions"
 
 #: spyder/plugins/completion/plugin.py:263
 msgid "Completion and linting"
-msgstr "Complétion et linting"
+msgstr "Complétion et analyse de code"
 
 #: spyder/plugins/completion/plugin.py:267
 msgid "Handle code completion, analysis, formatting, introspection, folding and more via the Language Server Protocol and other providers."
-msgstr "Gérer la complétion de code, l'analyse, le formatage, l'introspection, le pliage, etc. via le protocole du serveur linguistique et d'autres fournisseurs."
+msgstr "Gérer la complétion du code, l'analyse, le formatage, l'introspection, le repli du code, etc. via LSP et d'autres fournisseurs."
 
 #: spyder/plugins/completion/providers/fallback/provider.py:42
 msgid "Fallback"
@@ -1923,7 +1923,7 @@ msgstr "Débogueur"
 
 #: spyder/plugins/debugger/plugin.py:60
 msgid "View, explore and navigate stack frames while debugging."
-msgstr "Afficher, explorer et naviguer les piles de frames pendant le débogage."
+msgstr "Afficher, explorer et naviguer dans la pile d'appels pendant le débogage."
 
 #: spyder/plugins/debugger/plugin.py:194
 msgid "&Debug file"
@@ -3057,7 +3057,7 @@ msgstr "Paramètres de filtrage"
 
 #: spyder/plugins/explorer/confpage.py:43 spyder/plugins/explorer/widgets/main_widget.py:468
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr "Filtrer les fichiers par nom, extension, ou plus en utilisant <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob.</a> Entrez les motifs glob correspondant aux fichiers que vous voulez afficher, séparés par des virgules."
+msgstr "Filtrer les fichiers par nom, extension, ou plus en utilisant <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob</a>. Entrez les motifs glob correspondant aux fichiers que vous voulez afficher, séparés par des virgules."
 
 #: spyder/plugins/explorer/confpage.py:89 spyder/widgets/config.py:1232
 msgid "General"
@@ -3153,7 +3153,7 @@ msgstr "Ouvrir avec"
 
 #: spyder/plugins/explorer/widgets/explorer.py:810 spyder/plugins/explorer/widgets/fileassociations.py:395
 msgid " (Application not found!)"
-msgstr "(Application non trouvée !)"
+msgstr "(Application introuvable !)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1168
 msgid "Do you really want to delete <b>%s</b>?\n"
@@ -3314,11 +3314,11 @@ msgstr "Vous n'avez pas les permissions nécessaires pour afficher le contenu de
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
-msgstr "Parcourir..."
+msgstr "Parcourir…"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:121
 msgid "Applications"
-msgstr ""
+msgstr "Applications"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:122
 msgid "Type to filter by name"
@@ -3326,31 +3326,31 @@ msgstr "Tapez pour filtrer par nom"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:188
 msgid "Applications (*.app)"
-msgstr "Applications (* .app)"
+msgstr "Applications (*.app)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:189 spyder/plugins/explorer/widgets/fileassociations.py:204 spyder/plugins/explorer/widgets/fileassociations.py:223
 msgid "Select application"
-msgstr "Sélectionnez une application"
+msgstr "Sélectionner une application"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:203
 msgid "Applications (*.exe *.bat *.com)"
-msgstr "Applications (* .exe * .bat * .com)"
+msgstr "Applications (*.exe *.bat *.com)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:222
 msgid "Applications (*.desktop)"
-msgstr "Applications (* .desktop)"
+msgstr "Applications (*.desktop)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:259
 msgid "Choose the application for files of type "
-msgstr "Choisissez l'application pour les fichiers de type"
+msgstr "Choisissez l'application pour les fichiers de type "
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:298
 msgid "Here you can associate different external applications to open specific file extensions (e.g. .txt files with Notepad++ or .csv files with Excel)."
-msgstr "Ici, vous pouvez associer différentes applications externes pour ouvrir des extensions de fichier spécifiques (par exemple, des fichiers .txt avec Notepad ou des fichiers .csv avec Excel)."
+msgstr "Ces paramètres permettent d'associer différentes applications externes pour ouvrir des extensions de fichier spécifiques (par exemple, des fichiers .txt avec Notepad++ ou des fichiers .csv avec Excel)."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:303
 msgid "File types:"
-msgstr "Types de fichier:"
+msgstr "Types de fichier :"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:305 spyder/plugins/explorer/widgets/fileassociations.py:311
 msgid "Add"
@@ -3374,7 +3374,7 @@ msgstr "Définir par défaut"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:414
 msgid "Application not found!"
-msgstr "Application non trouvée!"
+msgstr "Application introuvable !"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:431
 msgid "File association"
@@ -3858,7 +3858,7 @@ msgstr "Sphinx %s n'est pas installé."
 
 #: spyder/plugins/help/plugin.py:73
 msgid "Get documentation for objects in the Editor and IPython console."
-msgstr "Obtenir de la documentation pour les objets dans l'éditeur et la console IPython."
+msgstr "Afficher la documentation pour les objets dans l'éditeur et la console IPython."
 
 #: spyder/plugins/help/plugin.py:94
 msgid "Built-in tutorial"
@@ -4316,7 +4316,7 @@ msgstr "Un historique illimité peut créer de forts ralentissements"
 
 #: spyder/plugins/ipythonconsole/plugin.py:240
 msgid "Run Python files, cells, code and commands interactively."
-msgstr "Exécutez les fichiers Python, les cellules, le code et les commandes de manière interactive."
+msgstr "Exécuter les fichiers Python, les cellules, le code et les commandes de manière interactive."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
@@ -5416,15 +5416,15 @@ msgstr "Rétablir toutes les préférences par défaut"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
-msgstr ""
+msgstr "Ouvrir le profileur à la fin du profilage"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
-msgstr ""
+msgstr "Cette option ouvre le plugin profileur quand un profilage est terminé."
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
-msgstr ""
+msgstr "Nombre maximum d'éléments affichés ayant un temps local élevé"
 
 #: spyder/plugins/profiler/plugin.py:60 spyder/plugins/profiler/widgets/main_widget.py:121 spyder/plugins/tours/tours.py:186
 msgid "Profiler"
@@ -5908,7 +5908,7 @@ msgstr "Sortie de l'analyse de code"
 
 #: spyder/plugins/pylint/plugin.py:72
 msgid "Analyze code and view the results from both static and real-time analysis."
-msgstr ""
+msgstr "Analyser le code et voir les résultats d'analyse statique et en temps réel."
 
 #: spyder/plugins/pythonpath/container.py:71 spyder/plugins/pythonpath/plugin.py:54 spyder/plugins/pythonpath/widgets/pathmanager.py:125
 msgid "PYTHONPATH manager"
@@ -6692,11 +6692,11 @@ msgstr "Les conflits suivants ont été détectés :"
 
 #: spyder/plugins/statusbar/confpage.py:25
 msgid "Show memory usage every"
-msgstr "Afficher l'occupation mémoire toutes les"
+msgstr "Afficher l'utilisation de la mémoire toutes les"
 
 #: spyder/plugins/statusbar/confpage.py:26 spyder/plugins/statusbar/confpage.py:33
 msgid " ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/plugins/statusbar/confpage.py:32
 msgid "Show CPU usage every"
@@ -7932,11 +7932,11 @@ msgstr "Éditeur de texte"
 
 #: spyder/plugins/workingdirectory/confpage.py:28
 msgid "This is the directory that will be set as the default for the IPython console and Files panes."
-msgstr "C'est le répertoire qui sera défini par défaut pour la console IPython et les panneaux Fichiers."
+msgstr "Ces paramètres permettent de définir le répertoire de travail par défaut pour la console IPython et pour les panneaux Fichiers."
 
 #: spyder/plugins/workingdirectory/confpage.py:37
 msgid "At startup, the working directory is:"
-msgstr "Au démarrage, le répertoire de travail est:"
+msgstr "Au démarrage, le répertoire de travail est :"
 
 #: spyder/plugins/workingdirectory/confpage.py:41 spyder/plugins/workingdirectory/confpage.py:80
 msgid "The project (if open) or user home directory"
@@ -7944,15 +7944,15 @@ msgstr "Le projet (si ouvert) ou le répertoire personnel de l'utilisateur"
 
 #: spyder/plugins/workingdirectory/confpage.py:43
 msgid "The startup working dir will be root of the current project if one is open, otherwise the user home directory"
-msgstr "Le répertoire de démarrage sera à la racine du projet courant si l'un est ouvert, sinon le répertoire personnel de l'utilisateur"
+msgstr "Le répertoire de travail défini au démarrage sera la racine du projet courant si un projet est ouvert, sinon le répertoire personnel de l'utilisateur"
 
 #: spyder/plugins/workingdirectory/confpage.py:51
 msgid "At startup, the current working directory will be the specified path"
-msgstr "Au démarrage, le répertoire de travail actuel sera le chemin spécifié"
+msgstr "Au démarrage, le répertoire de travail courant sera le chemin spécifié"
 
 #: spyder/plugins/workingdirectory/confpage.py:73
 msgid "New consoles"
-msgstr "Nouvelles Consoles"
+msgstr "Nouvelles consoles"
 
 #: spyder/plugins/workingdirectory/confpage.py:75
 msgid "The working directory for new IPython consoles is:"
@@ -7960,11 +7960,11 @@ msgstr "Le répertoire de travail des nouvelles consoles IPython est :"
 
 #: spyder/plugins/workingdirectory/confpage.py:82
 msgid "The working dir for new consoles will be root of the project if one is open, otherwise the user home directory"
-msgstr "Le répertoire de travail des nouvelles consoles sera la racine du projet si on est ouvert, sinon le répertoire personnel de l'utilisateur"
+msgstr "Le répertoire de travail des nouvelles consoles sera la racine du projet si un projet est ouvert, sinon le répertoire personnel de l'utilisateur"
 
 #: spyder/plugins/workingdirectory/confpage.py:87
 msgid "The working directory of the current console"
-msgstr "Le répertoire de travail de la console actuelle"
+msgstr "Le répertoire de travail de la console courante"
 
 #: spyder/plugins/workingdirectory/confpage.py:94
 msgid "The directory when a new console is open will be the specified path"
