@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-25 09:13\n"
+"PO-Revision-Date: 2026-04-25 10:11\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -675,19 +675,19 @@ msgstr "Désactiver le zoom avec Ctrl/Cmd + molette"
 
 #: spyder/plugins/application/confpage.py:114 spyder/plugins/layout/container.py:171
 msgid "Panes"
-msgstr "Volets"
+msgstr "Panneaux"
 
 #: spyder/plugins/application/confpage.py:117
 msgid "Show friendly message when some panes are empty"
-msgstr "Afficher un message d'accueil dans les volets vides"
+msgstr "Afficher un message d'accueil dans les panneaux vides"
 
 #: spyder/plugins/application/confpage.py:121
 msgid "Vertical tabs in panes"
-msgstr "Onglets verticaux dans les volets"
+msgstr "Onglets verticaux dans les panneaux"
 
 #: spyder/plugins/application/confpage.py:123
 msgid "Custom margin for panes:"
-msgstr "Marges de volets personnalisées :"
+msgstr "Marges de panneaux personnalisées :"
 
 #: spyder/plugins/application/confpage.py:125
 msgid "pixels"
@@ -3414,151 +3414,151 @@ msgstr "Éditer les paramètres de filtre"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:221
 msgid "Download..."
-msgstr ""
+msgstr "Télécharger…"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:227 spyder/plugins/explorer/widgets/remote_explorer.py:1639
 msgid "Upload files"
-msgstr ""
+msgstr "Envoyer des fichiers"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:395
 msgid "Unsupported functionality"
-msgstr ""
+msgstr "Fonctionnalité non prise en charge"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:396
 msgid "Opening remote files in the Editor is not yet supported. This feature will be added in Spyder 6.2.0"
-msgstr ""
+msgstr "L'ouverture des fichiers distants dans l'éditeur n'est pas encore prise en charge. Cette fonctionnalité sera ajoutée dans Spyder 6.2.0"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:439
 msgid "New Python Package error"
-msgstr ""
+msgstr "Échec de création de paquet Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:440
 msgid "An error occured while trying to create a new Python package"
-msgstr ""
+msgstr "Une erreur est survenue lors de la création d'un nouveau paquet Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:456
 msgid "New Python File error"
-msgstr ""
+msgstr "Échec de création de fichier Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:457
 msgid "An error occured while trying to create a new Python file"
-msgstr ""
+msgstr "Une erreur est survenue lors de la création d'un nouveau fichier Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:476
 msgid "New error"
-msgstr ""
+msgstr "Nouvelle erreur"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:477
 msgid "An error occured while trying to create a file/directory"
-msgstr ""
+msgstr "Une erreur est survenue lors de la création d'un nouveau fichier/répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:500
 msgid "Paste error"
-msgstr ""
+msgstr "Erreur de copie"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:501
 msgid "An error occured while trying to paste a file or directory"
-msgstr ""
+msgstr "Une erreur est survenue lors de la copie d'un fichier ou un répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:523
 msgid "Rename error"
-msgstr ""
+msgstr "Erreur de renommage"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:524
 msgid "An error occured while trying to rename a file"
-msgstr ""
+msgstr "Une erreur est survenue lors du renommage d'un fichier"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:544
 msgid "Delete error"
-msgstr ""
+msgstr "Échec de suppression"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:545
 msgid "An error occured while trying to delete a file/directory"
-msgstr ""
+msgstr "Une erreur est survenue lors de la suppression d'un fichier/répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:580
 msgid "An error occurred while trying to download the file <b>{}</b> from server <b>{}</b>:<br><br>{}"
-msgstr ""
+msgstr "Une erreur est survenue lors du téléchargement du fichier <b>{}</b> depuis le serveur <b>{}</b>:<br><br>{}"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:592
 msgid "It seems you don't have permissions to read the directory <b>{}</b> in server <b>{}</b>."
-msgstr ""
+msgstr "Il semble que vous n'avez pas la permission de lire le répertoire <b>{}</b> sur le serveur <b>{}</b>."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:597
 msgid "An error occurred while trying to download the directory <b>{}</b> as a zip file from server <b>{}</b>:<br><br>{}"
-msgstr ""
+msgstr "Une erreur est survenue lors du téléchargement du répertoire <b>{}</b> en tant que fichier zip depuis le serveur <b>{}</b>:<br><br>{}"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:608
 msgid "Download error"
-msgstr ""
+msgstr "Échec de téléchargement"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:661 spyder/plugins/explorer/widgets/remote_explorer.py:776
 msgid "Upload error"
-msgstr ""
+msgstr "Échec de l'envoi"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:662
 msgid "An error occured while trying to upload a file"
-msgstr ""
+msgstr "Une erreur est survenue lors de l'envoi d'un fichier"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:700
 msgid "List contents error"
-msgstr ""
+msgstr "Échec de l'affichage du contenu"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:701
 msgid "An error occured while trying to view a directory"
-msgstr ""
+msgstr "Une erreur est survenue lors de la tentative de visualisation d'un répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:777
 msgid "An error occured while trying to upload files"
-msgstr ""
+msgstr "Une erreur est survenue lors de l'envoi des fichiers"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:799
 msgid "The file <b>{}</b> that you're trying to paste on the server <b>{}</b> already exists in the current location."
-msgstr ""
+msgstr "Le fichier <b>{}</b> que vous essayez de copier sur le serveur <b>{}</b> existe déjà à l'emplacement actuel."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:807
 msgid "The file <b>{}</b> that you're trying to upload to the server <b>{}</b> already exists in the current location."
-msgstr ""
+msgstr "Le fichier <b>{}</b> que vous essayez d'envoyer sur le serveur <b>{}</b> existe déjà à l'emplacement actuel."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:818
 msgid "The file <b>{}</b> that you're trying to create on the server <b>{}</b> already exists in the current location."
-msgstr ""
+msgstr "Le fichier <b>{}</b> que vous essayez de créer sur le serveur <b>{}</b> existe déjà à l'emplacement actuel."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:828
 msgid "An error occurred while trying to create a file/directory"
-msgstr ""
+msgstr "Une erreur est survenue lors de la création d'un fichier/répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:845
 msgid "Do you want to overwrite it?"
-msgstr ""
+msgstr "Voulez-vous l'écraser ?"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:849 spyder/plugins/explorer/widgets/remote_explorer.py:1590
 msgid "Overwrite file"
-msgstr ""
+msgstr "Écraser le fichier"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1160 spyder/plugins/explorer/widgets/remote_explorer.py:1213
 msgid "Show more files"
-msgstr ""
+msgstr "Afficher plus de fichiers"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1169 spyder/plugins/explorer/widgets/remote_explorer.py:1224
 msgid "Maximum number of files to display reached!"
-msgstr ""
+msgstr "Nombre maximum de fichiers à afficher atteint !"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1322
 msgid "New Python Package"
-msgstr ""
+msgstr "Nouveau paquet Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1322 spyder/plugins/explorer/widgets/remote_explorer.py:1329 spyder/plugins/explorer/widgets/remote_explorer.py:1336 spyder/plugins/explorer/widgets/remote_explorer.py:1343
 msgid "Name as:"
-msgstr ""
+msgstr "Nommer en tant que :"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1329
 msgid "New Python File"
-msgstr ""
+msgstr "Nouveau fichier Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1336
 msgid "New Folder"
-msgstr ""
+msgstr "Nouveau dossier"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1343
 msgid "New File"
@@ -3566,31 +3566,31 @@ msgstr "Nouveau Fichier"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1374 spyder/plugins/explorer/widgets/remote_explorer.py:1657
 msgid "Existence check"
-msgstr ""
+msgstr "Contrôle de présence"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1375
 msgid "You are about to paste more than 50 files in server <b>{}</b>.<br><br>Do you prefer to skip checking whether they exist in the server to paste them more quickly?"
-msgstr ""
+msgstr "Vous êtes sur le point de copier plus de 50 fichiers sur le serveur <b>{}</b>.<br><br>Voulez-vous ignorer la vérification de la présence des fichiers sur le serveur pour les copier plus rapidement ?"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1433
 msgid "New name for <b>{}</b>:"
-msgstr ""
+msgstr "Nouveau nom pour <b>{}</b> :"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1503
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note</b>: The file/directory will be removed permanently from the remote filesystem."
-msgstr ""
+msgstr "Voulez-vous vraiment supprimer <b>{filename}</b>?<br><br><b>Note :</b> Le fichier/répertoire sera supprimé définitivement du système de fichiers distant."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1543
 msgid "Download directory"
-msgstr ""
+msgstr "Télécharger le répertoire"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1591
 msgid "The file <b>{}</b> that you're trying to download from server <b>{}</b> already exists in the location you selected.<br><br>Do you want to overwrite it?"
-msgstr ""
+msgstr "Le fichier <b>{}</b> que vous essayez de télécharger depuis le serveur <b>{}</b> existe déjà dans l'emplacement que vous avez sélectionné.<br><br>Voulez-vous l'écraser ?"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1658
 msgid "You are about to upload more than 50 files to server <b>{}</b>.<br><br>Do you prefer to skip checking whether they exist on the server to upload them more quickly?"
-msgstr ""
+msgstr "Vous êtes sur le point d'envoyer plus de 50 fichiers sur le serveur <b>{}</b>.<br><br>Souhaitez-vous ignorer la vérification de la présence des fichiers sur le serveur pour les envoyer plus rapidement ?"
 
 #: spyder/plugins/externalterminal/plugin.py:52
 msgid "External Terminal"
@@ -4768,7 +4768,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:47
 msgid "Restart current kernel"
-msgstr ""
+msgstr "Redémarrer le noyau courant"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:48
 msgid "Restart all kernels"
@@ -4954,11 +4954,11 @@ msgstr "Gestionnaire de mise en page"
 
 #: spyder/plugins/layout/plugin.py:287
 msgid "Unlock panes and toolbars"
-msgstr "Déverrouiller les volets et les barres d'outils"
+msgstr "Déverrouiller les panneaux et les barres d'outils"
 
 #: spyder/plugins/layout/plugin.py:290
 msgid "Lock panes and toolbars"
-msgstr "Verrouiller les volets et les barres d'outils"
+msgstr "Verrouiller les panneaux et les barres d'outils"
 
 #: spyder/plugins/layout/plugin.py:519
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -5724,7 +5724,7 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:956
 msgid "There are missing fields on this page."
-msgstr ""
+msgstr "Certains champs du formulaire sont manquants."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
@@ -6100,87 +6100,87 @@ msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:172
 msgid "Invalid host for configuration file"
-msgstr ""
+msgstr "Hôte invalide pour le fichier de configuration"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:199
 msgid "This field is empty"
-msgstr ""
+msgstr "Ce champ est vide"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:302
 msgid "Configure settings for connecting to a JupyterHub server"
-msgstr ""
+msgstr "Configurer les paramètres de connexion à un serveur JupyterHub"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:304
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely via a JupyterHub server."
-msgstr ""
+msgstr "Spyder utilisera cette connexion pour démarrer des noyaux distants dans la console IPython. Cela vous permet d'utiliser Spyder localement tout en exécutant du code à distance via un serveur JupyterHub."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:354
 msgid "Configure SSH settings for connecting to remote hosts"
-msgstr ""
+msgstr "Configurer les paramètres SSH pour la connexion aux hôtes distants"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:356
 msgid "Spyder will use this connection to start remote kernels in the IPython Console. This allows you to use Spyder locally while running code remotely, such as on a cloud instance, office workstation or high-performance cluster."
-msgstr ""
+msgstr "Spyder utilisera cette connexion pour démarrer des noyaux distants dans la console IPython. Cela vous permet d'utiliser Spyder localement tout en exécutant du code à distance, par exemple sur une instance cloud, une station de travail ou un cluster hautes performances."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:385
 msgid "Password"
-msgstr ""
+msgstr "Mot de passe"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:386
 msgid "Key file"
-msgstr ""
+msgstr "Fichier de clé"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:460 spyder/plugins/remoteclient/widgets/connectionpages.py:681
 msgid "Name *"
-msgstr ""
+msgstr "Nom *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:462 spyder/plugins/remoteclient/widgets/connectionpages.py:683
 msgid "Introduce a name to identify your connection"
-msgstr ""
+msgstr "Saisissez un nom pour identifier votre connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:464
 msgid "This connection name is already taken"
-msgstr ""
+msgstr "Ce nom de connexion est déjà utilisé"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:468
 msgid "Remote address or host *"
-msgstr ""
+msgstr "Adresse ou hôte distant *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:470
 msgid "This is the IP address, domain name or host identifier (when using a configuration file) of your remote machine"
-msgstr ""
+msgstr "Il s'agit de l'adresse IP, du nom de domaine ou de l'identifiant d'hôte (lorsque vous utilisez un fichier de configuration) de votre machine distante"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:475
 msgid "The address is not a valid IP, domain name or host identifier"
-msgstr ""
+msgstr "L'adresse n'est pas une adresse IP, un nom de domaine ou un identifiant d'hôte valide"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:481
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:486
 msgid "Introduce a port to use for this connection. Set <b>0</b> to use the port specified in the configuration file, if provided"
-msgstr ""
+msgstr "Choisissez un port à utiliser pour cette connexion. Définissez <b>0</b> pour utiliser le port spécifié dans le fichier de configuration, si fourni"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:495
 msgid "Username *"
-msgstr ""
+msgstr "Nom d'utilisateur *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:502
 msgid "Unable to get OpenSSH client configuration from the given file. Check that the provided host corresponds to the values available in the file and the file exists"
-msgstr ""
+msgstr "Impossible d'obtenir la configuration du client OpenSSH à partir du fichier donné. Vérifiez que l'hôte fourni correspond aux valeurs disponibles dans le fichier et que le fichier existe"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:511
 msgid "Configuration file"
-msgstr ""
+msgstr "Fichier de configuration"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:513
 msgid "OpenSSH client configuration file to use"
-msgstr ""
+msgstr "Fichier de configuration du client OpenSSH à utiliser"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:574
 msgid "Password *"
-msgstr ""
+msgstr "Mot de passe *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:577
 msgid "Your password will be saved securely by Spyder"
@@ -6192,11 +6192,11 @@ msgstr "Votre mot de passe est sauvegardé en toute sécurité par Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:627
 msgid "Key file *"
-msgstr ""
+msgstr "Fichier de clé *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:634
 msgid "Passphrase"
-msgstr ""
+msgstr "Phrase de passe"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:637
 msgid "Your passphrase will be saved securely by Spyder"
@@ -6208,91 +6208,91 @@ msgstr "Votre phrase de passe est sauvegardée en toute sécurité par Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:688
 msgid "Server URL *"
-msgstr ""
+msgstr "URL du serveur *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:690
 msgid "This is the URL of the JupyterHub server"
-msgstr ""
+msgstr "URL du serveur JupyterHub"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:692
 msgid "The URL is not a valid one"
-msgstr ""
+msgstr "URL invalide"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:696
 msgid "Token *"
-msgstr ""
+msgstr "Jeton *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:699
 msgid "Your token will be saved securely by Spyder"
-msgstr ""
+msgstr "Votre jeton sera enregistré en toute sécurité par Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:701
 msgid "Your token is saved securely by Spyder"
-msgstr ""
+msgstr "Votre jeton est enregistré en toute sécurité par Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:891
 msgid "The name you selected is already used by another connection."
-msgstr ""
+msgstr "Le nom que vous avez choisi est déjà utilisé par une autre connexion."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:901
 msgid "The address you provided is not a valid IP or domain name."
-msgstr ""
+msgstr "L'adresse que vous avez indiquée n'est pas une adresse IP ou un nom de domaine valide."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:911
 msgid "The configuration file and/or host you provided are not valid."
-msgstr ""
+msgstr "Le fichier de configuration et/ou l'hôte que vous avez fourni n'est pas valide."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:920
 msgid "The URL you provided is not valid."
-msgstr ""
+msgstr "L'URL que vous avez indiquée n'est pas valide."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:925
 msgid "The file you provided is not available."
-msgstr ""
+msgstr "Le fichier que vous avez fourni est indisponible."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:931
 msgid "The key file is encrypted but no passphrase was provided or it's incorrect"
-msgstr ""
+msgstr "Le fichier de clé est chiffré mais aucun mot de passe n'a été fourni ou il est incorrect"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:940
 msgid "The key file you provided is invalid."
-msgstr ""
+msgstr "Le fichier de clé que vous avez fourni est invalide."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:946
 msgid "The key file you provided is malformed or not a valid SSH key format."
-msgstr ""
+msgstr "Le fichier de clé que vous avez fourni est incorrect ou n'est pas un format de clé SSH valide."
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1018
 msgid "New connection"
-msgstr ""
+msgstr "Nouvelle connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1183
 msgid "Create a Python environment on the remote host"
-msgstr ""
+msgstr "Créer un environnement Python sur l'hôte distant"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1185
 msgid "Decide whether you want to create a remote environment to run your code and how to do it"
-msgstr ""
+msgstr "Défini si vous voulez créer un environnement distant pour exécuter votre code et de quelle manière"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1211
 msgid "Available methods"
-msgstr ""
+msgstr "Méthodes disponibles"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1218
 msgid "Create a new environment"
-msgstr ""
+msgstr "Créer un nouvel environnement"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1224
 msgid "Import an existing environment"
-msgstr ""
+msgstr "Importer un environnement existant"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1230
 msgid "Don't create an environment"
-msgstr ""
+msgstr "Ne pas créer d'environnement"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1244
 msgid "Required information"
-msgstr ""
+msgstr "Informations requises"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1262
 msgid "You can set up an environment later by going to the menu entry <i>Tools > Environment manager</i>."
@@ -6300,19 +6300,19 @@ msgstr "Vous pouvez configurer un environnement plus tard en allant dans le menu
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1313
 msgid "Select packages for your remote environment"
-msgstr ""
+msgstr "Sélectionner les paquets pour votre environnement distant"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1314
 msgid "Choose the packages you want to install in your remote Python environment"
-msgstr ""
+msgstr "Choisir les paquets que vous voulez installer dans votre environnement distant Python"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1389
 msgid "Connection status"
-msgstr ""
+msgstr "État de la connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:1390
 msgid "Connection info"
-msgstr ""
+msgstr "Infos de connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:42
 msgid "Inactive"
@@ -6656,11 +6656,11 @@ msgstr "Cette combinaison de touches est en conflit avec :"
 
 #: spyder/plugins/shortcuts/widgets/table.py:412
 msgid "Press 'Ok' to unbind it and assign the shortcut to"
-msgstr "Appuyez sur « Ok » pour le dissocier et l'assigner à"
+msgstr "Appuyez sur « Ok » pour dissocier le raccourci et l'assigner à"
 
 #: spyder/plugins/shortcuts/widgets/table.py:416
 msgid "Press 'Ok' to unbind them and assign the shortcut to"
-msgstr ""
+msgstr "Appuyez sur « Ok » pour dissocier les raccourcis et l'assigner à"
 
 #: spyder/plugins/shortcuts/widgets/table.py:424
 msgid "This key sequence is forbidden."
