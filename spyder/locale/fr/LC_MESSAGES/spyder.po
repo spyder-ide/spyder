@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-25 05:30\n"
+"PO-Revision-Date: 2026-04-25 06:32\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -3049,7 +3049,7 @@ msgstr "Afficher les fichiers cachés"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
-msgstr "Un seul clic pour ouvrir les fichiers"
+msgstr "Ouvrir les fichiers avec un seul clic"
 
 #: spyder/plugins/explorer/confpage.py:41
 msgid "Filter settings"
@@ -3057,7 +3057,7 @@ msgstr "Paramètres de filtrage"
 
 #: spyder/plugins/explorer/confpage.py:43 spyder/plugins/explorer/widgets/main_widget.py:468
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
-msgstr "Filtrer les fichiers par nom, extension, ou plus en utilisant <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob.</a> Veuillez entrer le code glob correspondant aux fichiers que vous voulez afficher, séparés par des virgules."
+msgstr "Filtrer les fichiers par nom, extension, ou plus en utilisant <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob.</a> Entrez les motifs glob correspondant aux fichiers que vous voulez afficher, séparés par des virgules."
 
 #: spyder/plugins/explorer/confpage.py:89 spyder/widgets/config.py:1232
 msgid "General"
@@ -3065,7 +3065,7 @@ msgstr "Général"
 
 #: spyder/plugins/explorer/confpage.py:90
 msgid "File associations"
-msgstr "Les associations de fichiers"
+msgstr "Associations de fichiers"
 
 #: spyder/plugins/explorer/plugin.py:171 spyder/plugins/explorer/widgets/main_widget.py:244 spyder/plugins/tours/tours.py:155
 msgid "Files"
@@ -3634,7 +3634,7 @@ msgstr "Paramètres de script Bash/Batch"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:77 spyder/plugins/ipythonconsole/widgets/run_conf.py:64
 msgid "Command line options:"
-msgstr "Options en ligne de commande :"
+msgstr "Options de la ligne de commande :"
 
 #: spyder/plugins/externalterminal/widgets/run_conf.py:136
 msgid "Interpreter"
@@ -4412,7 +4412,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
-msgstr "Les figures sont désormais affichées par défaut dans le volet Plots. Pour les faire apparaître aussi en ligne dans la console, décochez \"Rendre muet le tracé en ligne\" dans le menu d'options de Plots."
+msgstr "Les figures sont désormais affichées par défaut dans le panneau Graphiques. Pour les afficher aussi dans la console, décochez \"Désactiver l'affichage intégré\" dans le menu d'options du panneau Graphiques."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:71
 msgid "Connect to existing kernel"
@@ -4804,7 +4804,7 @@ msgstr "Supprimer toutes les variables avant l'exécution"
 
 #: spyder/plugins/ipythonconsole/widgets/run_conf.py:28
 msgid "Run in console's namespace instead of an empty one"
-msgstr "Exécuter dans l'espace de noms de la console au lieu d'un vide"
+msgstr "Exécuter dans l'espace de noms de la console (au lieu d'un espace de noms vide)"
 
 #: spyder/plugins/ipythonconsole/widgets/run_conf.py:29
 msgid "Directly enter debugging when errors appear"
@@ -5316,7 +5316,7 @@ msgstr "Bloquer les commentaires"
 
 #: spyder/plugins/plots/plugin.py:34 spyder/plugins/plots/widgets/main_widget.py:102 spyder/plugins/tours/tours.py:147
 msgid "Plots"
-msgstr "Graphes"
+msgstr "Graphiques"
 
 #: spyder/plugins/plots/plugin.py:38
 msgid "View, browse and save generated figures."
@@ -5328,43 +5328,43 @@ msgstr "L'image est endommagée, veuillez essayer de la générer à nouveau"
 
 #: spyder/plugins/plots/widgets/main_widget.py:72
 msgid "No plots to show"
-msgstr ""
+msgstr "Aucun graphique à afficher"
 
 #: spyder/plugins/plots/widgets/main_widget.py:73
 msgid "Run plot-generating code in the Editor or IPython console to see your figures appear here. This pane only supports static images, so it can't display interactive plots like Bokeh, Plotly or Altair."
-msgstr ""
+msgstr "Les graphiques créés dans l'éditeur ou la console IPython apparaissent ici. Ce panneau ne prend en charge que les images statiques, il ne peut donc pas afficher de graphiques interactifs de type Bokeh, Plotly ou Altair."
 
 #: spyder/plugins/plots/widgets/main_widget.py:116
 msgid "Mute inline plotting"
-msgstr "Désactiver l'affichage en ligne"
+msgstr "Désactiver l'affichage intégré"
 
 #: spyder/plugins/plots/widgets/main_widget.py:117
 msgid "Mute inline plotting in the ipython console."
-msgstr "Désactiver l'affichage en ligne des graphes dans la console IPython."
+msgstr "Désactiver l'affichage intégré des graphiques dans la console IPython."
 
 #: spyder/plugins/plots/widgets/main_widget.py:124
 msgid "Show plot outline"
-msgstr "Afficher le contour des graphes"
+msgstr "Afficher le contour des graphiques"
 
 #: spyder/plugins/plots/widgets/main_widget.py:125
 msgid "Show the plot outline."
-msgstr "Montrer le contour des graphes."
+msgstr "Afficher le contour des graphiques."
 
 #: spyder/plugins/plots/widgets/main_widget.py:132 spyder/plugins/plots/widgets/main_widget.py:134
 msgid "Set maximum number of plots"
-msgstr ""
+msgstr "Définir le nombre maximum de graphiques"
 
 #: spyder/plugins/plots/widgets/main_widget.py:139
 msgid "Fit plots to pane"
-msgstr ""
+msgstr "Ajuster les graphiques au panneau"
 
 #: spyder/plugins/plots/widgets/main_widget.py:140
 msgid "Fit plot to the pane size"
-msgstr ""
+msgstr "Ajuster le graphique à la taille du panneau"
 
 #: spyder/plugins/plots/widgets/main_widget.py:150 spyder/plugins/plots/widgets/main_widget.py:151
 msgid "Save plot as..."
-msgstr "Enregistrer le graphique sous..."
+msgstr "Enregistrer le graphique sous…"
 
 #: spyder/plugins/plots/widgets/main_widget.py:158 spyder/plugins/plots/widgets/main_widget.py:159
 msgid "Save all plots..."
@@ -5392,11 +5392,11 @@ msgstr "Graphique suivant"
 
 #: spyder/plugins/plots/widgets/main_widget.py:522
 msgid "Max plots"
-msgstr ""
+msgstr "Nombre maximum de graphiques"
 
 #: spyder/plugins/plots/widgets/main_widget.py:523
 msgid "Set maximum number of plots: "
-msgstr ""
+msgstr "Définissez le nombre maximum de graphiques :"
 
 #: spyder/plugins/preferences/plugin.py:280
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
@@ -6384,7 +6384,7 @@ msgstr "%s (copie)"
 
 #: spyder/plugins/run/confpage.py:207
 msgid "The following are the global configuration presets of the different runners that can execute files in Spyder."
-msgstr ""
+msgstr "Les configurations générales suivantes définissent les paramètres des différents modes d'exécution des fichiers dans Spyder."
 
 #: spyder/plugins/run/confpage.py:216
 msgid "Configuration presets:"
@@ -6424,11 +6424,11 @@ msgstr "Enregistrer tous les fichiers avant l'exécution d'un script"
 
 #: spyder/plugins/run/confpage.py:302
 msgid "Copy full cell contents to the console when running code cells"
-msgstr "Copier le contenu complet des cellules sur la console lors de l'exécution de cellules de code"
+msgstr "Copier le contenu complet des cellules dans la console lors de l'exécution de cellules de code"
 
 #: spyder/plugins/run/confpage.py:305
 msgid "Editor interactions"
-msgstr ""
+msgstr "Options d'exécution"
 
 #: spyder/plugins/run/container.py:68
 msgid "Run file"
@@ -6456,7 +6456,7 @@ msgstr "Exécuter de nouveau le dernier fichier"
 
 #: spyder/plugins/run/models.py:467
 msgid "File extension"
-msgstr ""
+msgstr "Extension du fichier"
 
 #: spyder/plugins/run/models.py:469 spyder/plugins/shortcuts/widgets/table.py:597
 msgid "Context"
@@ -6484,11 +6484,11 @@ msgstr "Le répertoire suivant :"
 
 #: spyder/plugins/run/widgets.py:64
 msgid "Provide a name for this configuration"
-msgstr ""
+msgstr "Définissez un nom pour cette configuration"
 
 #: spyder/plugins/run/widgets.py:65
 msgid "Select a different name for this configuration"
-msgstr ""
+msgstr "Définissez un nom différent pour cette configuration"
 
 #: spyder/plugins/run/widgets.py:66
 msgid "You are trying to save a configuration that is exactly the same as the current one"
@@ -6496,7 +6496,7 @@ msgstr "Vous essayez d'enregistrer une configuration qui est exactement la même
 
 #: spyder/plugins/run/widgets.py:127
 msgid "Reset"
-msgstr ""
+msgstr "Réinitialiser"
 
 #: spyder/plugins/run/widgets.py:212
 msgid "Save configuration as:"
@@ -6504,11 +6504,11 @@ msgstr "Enregistrer la configuration sous :"
 
 #: spyder/plugins/run/widgets.py:214
 msgid "Configuration name:"
-msgstr ""
+msgstr "Nom de la configuration :"
 
 #: spyder/plugins/run/widgets.py:245
 msgid "File extension:"
-msgstr ""
+msgstr "Extension du fichier :"
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
@@ -6520,11 +6520,11 @@ msgstr "Paramètres du répertoire de travail"
 
 #: spyder/plugins/run/widgets.py:322
 msgid "New run configuration for: {}"
-msgstr ""
+msgstr "Nouveaux paramètres d'exécution pour : {}"
 
 #: spyder/plugins/run/widgets.py:586
 msgid "Configure runner settings for a specific file"
-msgstr ""
+msgstr "Configurer les paramètres d'exécution pour un fichier spécifique"
 
 #: spyder/plugins/run/widgets.py:593
 msgid "Configure file-specific options here for each available runner, such as the IPython Console, Debugger or External Terminal. To execute your code in a specific runner, use its action in the Run menu or elsewhere, such as 'Run > Run in external terminal'."
@@ -6536,11 +6536,11 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:629
 msgid "Configure the selected runner for this file"
-msgstr ""
+msgstr "Configure le mode d'exécution sélectionné pour ce fichier"
 
 #: spyder/plugins/run/widgets.py:636
 msgid "Preset configuration:"
-msgstr ""
+msgstr "Configuration :"
 
 #: spyder/plugins/run/widgets.py:640
 msgid "Select between global or local (i.e. for this file) configuration presets. You can set the latter below"
@@ -6552,11 +6552,11 @@ msgstr "Propriétés de configuration"
 
 #: spyder/plugins/run/widgets.py:674
 msgid "Name:"
-msgstr ""
+msgstr "Nom :"
 
 #: spyder/plugins/run/widgets.py:677
 msgid "Set a name for this configuration"
-msgstr ""
+msgstr "Définissez un nom pour cette configuration"
 
 #: spyder/plugins/run/widgets.py:680
 msgid "You can set as many configuration presets as you want by providing different names. Each one will be saved after clicking the Ok button below"
@@ -6564,11 +6564,11 @@ msgstr ""
 
 #: spyder/plugins/run/widgets.py:738
 msgid "Custom configuration"
-msgstr ""
+msgstr "Configuration personnalisée"
 
 #: spyder/plugins/run/widgets.py:799
 msgid "Run configuration"
-msgstr ""
+msgstr "Paramètres d'exécution"
 
 #: spyder/plugins/run/widgets.py:940
 msgid "Do you want to delete the current configuration?"
@@ -6576,7 +6576,7 @@ msgstr "Voulez-vous supprimer la configuration actuelle ?"
 
 #: spyder/plugins/run/widgets.py:1176
 msgid "custom"
-msgstr ""
+msgstr "personnalisé"
 
 #: spyder/plugins/shortcuts/confpage.py:33
 msgid "Reset all shortcuts to default values"
@@ -7181,11 +7181,11 @@ msgstr "Exclure les références en lettres capitales"
 
 #: spyder/plugins/variableexplorer/confpage.py:29 spyder/plugins/variableexplorer/widgets/main_widget.py:417
 msgid "Exclude unsupported data types"
-msgstr "Exclure les types non supportés"
+msgstr "Exclure les types de données non pris en charge"
 
 #: spyder/plugins/variableexplorer/confpage.py:31 spyder/plugins/variableexplorer/widgets/main_widget.py:426
 msgid "Exclude callables and modules"
-msgstr "Exclure les appelables et les modules"
+msgstr "Exclure les objets appelables et les modules"
 
 #: spyder/plugins/variableexplorer/confpage.py:43 spyder/plugins/variableexplorer/widgets/main_widget.py:150
 msgid "Show arrays min/max"
