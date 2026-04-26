@@ -39,6 +39,16 @@ logger = logging.getLogger(__name__)
 ToolbarItem = Union[SpyderAction, QWidget]
 ItemInfo = tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
 
+# Default order for internal toolbars
+INTERNAL_TOOLBARS_ORDER = [
+    ApplicationToolbars.File,
+    ApplicationToolbars.Run,
+    ApplicationToolbars.Debug,
+    ApplicationToolbars.Profile,
+    ApplicationToolbars.Main,
+    ApplicationToolbars.WorkingDirectory,
+]
+
 
 class ToolbarMenus:
     ToolbarsMenu = "toolbars_menu"
@@ -241,6 +251,9 @@ class ToolbarContainer(PluginMainContainer):
                layout = self._plugin.get_plugin(Plugins.Layout)
                layout.toggle_lock(True)
 
+            # Rebuild menu to account for the new toolbar
+            self.create_toolbars_menu(rebuild=True)
+
     def remove_application_toolbar(self, toolbar_id: str):
         """
         Remove toolbar from application toolbars.
@@ -266,6 +279,10 @@ class ToolbarContainer(PluginMainContainer):
 
         if toolbar in self._visible_toolbars:
             self._visible_toolbars.remove(toolbar)
+
+        # Rebuild menu to account for the removed toolbar
+        if not self._plugin.main.is_closing:
+            self.create_toolbars_menu(rebuild=True)
 
     def add_item_to_application_toolbar(
         self,
@@ -376,25 +393,14 @@ class ToolbarContainer(PluginMainContainer):
             if toolbar_id not in internal_toolbars
         ]
 
-        # Default order for internal toolbars
-        internal_toolbars_order = [
-            ApplicationToolbars.File,
-            ApplicationToolbars.Run,
-            ApplicationToolbars.Debug,
-            ApplicationToolbars.Profile,
-            ApplicationToolbars.Main,
-        ]
-
-        # Check we didn't leave out any internal toolbar from the order above
+        # Check we didn't leave out any internal toolbar from the internal
+        # order
         if DEV:
             if (
-                (set(internal_toolbars) - set(internal_toolbars_order))
-                != {ApplicationToolbars.WorkingDirectory}
-            ):
-                missing_toolbars = (
-                    set(internal_toolbars)
-                    - set(internal_toolbars_order)
-                    - {ApplicationToolbars.WorkingDirectory}
+                set(internal_toolbars) - set(INTERNAL_TOOLBARS_ORDER)
+            ) != set():
+                missing_toolbars = set(internal_toolbars) - set(
+                    INTERNAL_TOOLBARS_ORDER
                 )
 
                 raise SpyderAPIError(
@@ -424,7 +430,7 @@ class ToolbarContainer(PluginMainContainer):
             # Add toolbars with the working directory to the right because it's
             # not clear where it ends, so users can have a hard time finding a
             # new toolbar in the interface if it's placed next to it.
-            toolbars_order = internal_toolbars_order + external_toolbars
+            toolbars_order = INTERNAL_TOOLBARS_ORDER[:-1] + external_toolbars
             for toolbar_id in (
                 toolbars_order
                 + [ApplicationToolbars.WorkingDirectory]
@@ -487,15 +493,24 @@ class ToolbarContainer(PluginMainContainer):
 
         self.update_actions()
 
-    def create_toolbars_menu(self):
-        """
-        Populate the toolbars menu inside the view application menu.
-        """
+    def create_toolbars_menu(self, rebuild: bool = False):
+        """Populate the 'Window > Toolbars' menu."""
         main_section = ToolbarsMenuSections.Main
         secondary_section = ToolbarsMenuSections.Secondary
         default_toolbars = get_class_values(ApplicationToolbars)
 
-        for toolbar_id, toolbar in self._APPLICATION_TOOLBARS.items():
+        if rebuild:
+            # Remove references to toggleView actions
+            for action_id in self.toolbars_menu._actions_map:
+                ACTION_REGISTRY.remove_reference(
+                    action_id, self._plugin.NAME
+                )
+
+            # Clear menu
+            self.toolbars_menu.clear_actions()
+
+        for toolbar_id in INTERNAL_TOOLBARS_ORDER:
+            toolbar = self._APPLICATION_TOOLBARS.get(toolbar_id)
             if toolbar:
                 action = toolbar.toggleViewAction()
 
