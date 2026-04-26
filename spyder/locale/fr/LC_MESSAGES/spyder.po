@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 15:40\n"
+"PO-Revision-Date: 2026-04-26 16:38\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2716,7 +2716,7 @@ msgstr "Aller au fichier précédent"
 
 #: spyder/plugins/editor/widgets/main_widget.py:375
 msgid "Go to line..."
-msgstr "Aller à la ligne..."
+msgstr "Aller à la ligne…"
 
 #: spyder/plugins/editor/widgets/main_widget.py:390
 msgid "Show invisible characters"
@@ -2796,7 +2796,7 @@ msgstr "Convertir les tabulations en espaces"
 
 #: spyder/plugins/editor/widgets/main_widget.py:561
 msgid "Replace tabs with the configured number of spaces"
-msgstr ""
+msgstr "Remplacer les tabulations par le nombre d'espaces défini"
 
 #: spyder/plugins/editor/widgets/main_widget.py:573 spyder/plugins/editor/widgets/main_widget.py:1668
 msgid "Format file or selection with {0}"
@@ -2965,7 +2965,7 @@ msgstr "Récupérez le fichier de sauvegarde automatique à son emplacement d'or
 
 #: spyder/plugins/editor/widgets/recover.py:180 spyder/plugins/editor/widgets/recover.py:288 spyder/widgets/onecolumntree.py:96
 msgid "Restore"
-msgstr "Restaurer"
+msgstr "Rétablir"
 
 #: spyder/plugins/editor/widgets/recover.py:186
 msgid "Delete the autosave file."
@@ -4320,11 +4320,11 @@ msgstr "Exécuter les fichiers Python, les cellules, le code et les commandes de
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "Impossible d'ouvrir un tunnel SSH pour se connecter au noyau distant. Vérifiez vos identifiants et l'état de la connexion au serveur."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:41
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
-msgstr ""
+msgstr "Le répertoire <tt>{}</tt> n’est pas accessible en écriture. Modifiez les droits d'accès pour créer une console IPython."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:46
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
@@ -4356,23 +4356,23 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
-msgstr ""
+msgstr "En attente de réponse du noyau distant…"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:179
 msgid "Reconnecting to remote kernel..."
-msgstr ""
+msgstr "Reconnexion au noyau distant…"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
-msgstr ""
+msgstr "Récupération des variables d'environnement…"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:269
 msgid "Connecting to kernel..."
-msgstr "Connexion au noyau..."
+msgstr "Connexion au noyau…"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:339
 msgid "Your Python environment or installation doesn't have the <tt>{missing_dependency}</tt> module installed or it occurred a problem importing it. Due to that, it is not possible for Spyder to create this special console for you."
-msgstr "Votre environnement ou votre installation Python ne dispose pas du module <tt>{missing_dependency}</tt> ou un problème est survenu lors de son importation. De ce fait, il n'est pas possible pour Spyder de créer cette console pour vous."
+msgstr "La création de la console spéciale a échoué. Le module <tt>{missing_dependency}</tt> n'est pas disponible dans votre environnement/installation Python ou un problème est survenu lors de son import."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:440
 msgid "The error is:<br><br><tt>{}</tt>"
@@ -4380,35 +4380,35 @@ msgstr "L'erreur est :<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:598
 msgid "An error occurred while starting the kernel"
-msgstr ""
+msgstr "Une erreur est survenue lors du démarrage du noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:627
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "La connexion au noyau associé à cette console a échoué. Si vous essayez de vous connecter à un noyau existant, vérifiez que le fichier de connexion sélectionné correspond bien au noyau auquel vous voulez vous connecter."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:988
 msgid "An error occurred while restarting the remote kernel"
-msgstr ""
+msgstr "Une erreur est survenue lors du redémarrage du noyau distant"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:996
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr ""
+msgstr "Une erreur est survenue lors de la reconnexion au noyau distant"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1015
 msgid "It was not possible to restart the remote kernel"
-msgstr ""
+msgstr "Impossible de redémarrer le noyau distant"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1034
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "Le nombre maximum de tentatives de reconnexion au noyau a été dépassé."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1060
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "Les informations du noyau distant n'ont pas été trouvées. Le serveur a probablement été redémarré."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1112
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr ""
+msgstr "Une erreur est survenue lors de la connexion au serveur <b>{}</b>.<br><br>Vérifiez que votre connexion est active dans <tt>Outils > Gérer les connexions distantes</tt>."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
@@ -4488,7 +4488,7 @@ msgstr "Sélectionner le fichier clé SSH"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:358
 msgid "Press <b>Q</b> to exit pager"
-msgstr "Appuyez sur <b>Q</b> pour quitter le paginateur"
+msgstr "Appuyez sur <b>Q</b> pour quitter l'affichage paginé"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:433
 msgid "New console in environment"
@@ -4520,7 +4520,7 @@ msgstr "Interrompre le noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:494
 msgid "Connect to existing kernel..."
-msgstr "Se connecter à un noyau existant..."
+msgstr "Se connecter à un noyau existant…"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Open an IPython console connected to an existing kernel"
@@ -4648,7 +4648,7 @@ msgstr "La console ne fonctionne pas avec un noyau Spyder et ne peut donc pas ex
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2239
 msgid "Do you want to close this console?"
-msgstr "Souhaitez-vous fermer cette console ?"
+msgstr "Voulez-vous fermer cette console ?"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2247
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
@@ -4664,15 +4664,15 @@ msgstr "Ne plus demander."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2556
 msgid "Are you sure you want to restart the kernel?"
-msgstr "Souhaitez-vous vraiment redémarrer le noyau ?"
+msgstr "Voulez-vous vraiment redémarrer le noyau ?"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2660
 msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
-msgstr "Aucune console IPython n'est actuellement disponible pour exécuter <b> {} </ b>. <br> <br> Veuillez en ouvrir une nouvelle et réessayer."
+msgstr "Aucune console IPython n'est actuellement disponible pour exécuter <b>{}</b>.<br><br>Ouvrez une nouvelle console et réessayez."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2690
 msgid "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
-msgstr "Aucun client IPython n'est actuellement sélectionné pour exécuter <b>%s</b>.<br><br>Merci d'ouvrir un nouveau client IPython et de réessayer."
+msgstr "Aucune console IPython n'est actuellement disponible pour exécuter <b>%s</b>.<br><br>Ouvrez une nouvelle console et réessayez."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2898 spyder/plugins/ipythonconsole/widgets/main_widget.py:2949
 msgid "New console in remote server"
@@ -8476,15 +8476,15 @@ msgstr "Mises à jour de Spyder"
 
 #: spyder/widgets/onecolumntree.py:82
 msgid "Collapse all"
-msgstr "Replier tout"
+msgstr "Tout replier"
 
 #: spyder/widgets/onecolumntree.py:89
 msgid "Expand all"
-msgstr "Déplier tout"
+msgstr "Tout déplier"
 
 #: spyder/widgets/onecolumntree.py:97
 msgid "Restore original tree layout"
-msgstr "Restaurer l'organisation initiale de l'arbre"
+msgstr "Rétablir la disposition initiale de l'arborescence"
 
 #: spyder/widgets/onecolumntree.py:104
 msgid "Collapse section"
