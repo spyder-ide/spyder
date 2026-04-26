@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 20:59\n"
+"PO-Revision-Date: 2026-04-26 22:04\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4680,7 +4680,7 @@ msgstr "Nouvelle console sur serveur distant"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:51
 msgid "The variable is too big to be retrieved"
-msgstr "La variable est trop grosse pour être récupérée"
+msgstr "La variable est trop volumineuse pour être récupérée"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
@@ -4688,11 +4688,11 @@ msgstr "La copie de la variable dans le noyau ou le chargement de cette copie da
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:59
 msgid "The kernel is dead"
-msgstr "Le noyau est mort"
+msgstr "Le noyau a cessé de fonctionné"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:60
 msgid "An unknown error occurred, sorry."
-msgstr "Une erreur inconnue s'est produite, désolé."
+msgstr "Une erreur inconnue est survenue, désolé."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:61
 msgid "The channel used to communicate with the kernel is not working."
@@ -4724,63 +4724,63 @@ msgstr "Deux versions incompatibles de Pandas sont utilisées par Spyder et le n
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Deux versions incompatibles de Python sont utilisées par Spyder ({}) et le noyau de la console active ({}).<br><br>Pour résoudre le problème, recréez l'environnement de la console avec Python {} ou {}."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:105
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Deux versions incompatibles de Python sont utilisées par Spyder ({}) et le noyau de la console active ({}).<br><br>Pour résoudre le problème, installez Spyder dans un environnement avec Python {} ou {}, ou recréez l'environnement de la console avec Python {} ou {}."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:114
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "Vous pouvez soutenir le développement et contribuer à la correction de ce problème en faisant un don <a href='{}'>ici</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:122
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "Si vous êtes l'auteur du module requis, créez un projet <a href='{}'>Spyder</a> ou ajoutez le chemin où il est situé dans le gestionnaire PYTHONPATH (accessible dans le menu <tt>Outils</tt>)."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>Note :</b> si vous considérez que cette erreur devrait être corrigée par l'équipe de Spyder, n'hésitez pas à le signaler sur <a href='{}'>Github</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:178 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:192
 msgid "greater"
-msgstr ""
+msgstr "supérieur"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:180 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:190
 msgid "lower"
-msgstr ""
+msgstr "inférieur"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:269
 msgid "<b>Notes</b>:"
-msgstr ""
+msgstr "<b>Notes :</b>"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Deux versions incompatibles de Numpy sont utilisées par Spyder et le noyau de la console active. Pour résoudre ce problème, mettez à jour <tt>numpy</tt> (version >= 2.0) dans l'environnement de la console."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
-msgstr ""
+msgstr "Redémarrer les noyaux"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:46
 msgid "Keep existing kernels"
-msgstr ""
+msgstr "Conserver les noyaux existants"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:47
 msgid "Restart current kernel"
-msgstr "Redémarrer le noyau courant"
+msgstr "Redémarrer le noyau de la console active"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:48
 msgid "Restart all kernels"
-msgstr ""
+msgstr "Redémarrer tous les noyaux"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:59
 msgid "By default, some IPython console preferences will be applied to new consoles only. To apply preferences to existing consoles, select from the options below.<br><br>Please note: applying changes to running consoles will force a kernel restart and all current work will be lost."
-msgstr "Par défaut, certaines préférences de la console IPython ne seront appliquées qu'aux nouvelles consoles. Pour appliquer les préférences aux consoles existantes, sélectionnez les options ci-dessous.<br><br>Important: l'application des modifications aux consoles en cours d'exécution forcera le redémarrage du noyau et que tout le travail en cours sera perdu."
+msgstr "Par défaut, certaines préférences de la console IPython ne seront appliquées qu'aux nouvelles consoles. Pour appliquer les préférences aux consoles existantes, sélectionnez les options ci-dessous.<br><br>Important : l'application des modifications aux consoles en cours d'exécution forcera le redémarrage du noyau et tout le travail en cours sera perdu."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:70
 msgid "Don't apply changes to existing consoles"
-msgstr ""
+msgstr "Ne pas appliquer les modifications aux consoles existantes"
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:73
 msgid "Apply to current console and restart kernel"
@@ -4812,43 +4812,43 @@ msgstr "Lancer le débogage automatiquement en cas d'erreurs"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:564
 msgid "<br><br>The kernel appears to be dead, so it can't be interrupted. Please open a new console to keep working.<br>"
-msgstr "<br><br>Le noyau semble mort, donc il ne peut pas être interrompu. Veuillez ouvrir une nouvelle console pour continuer de travailler.<br>"
+msgstr "<br><br>Le noyau ne semble plus fonctionner et ne peut donc pas être interrompu. Ouvrez une nouvelle console pour continuer.<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:570
 msgid "<br><br>It is not possible to interrupt a non-Spyder kernel I did not start.<br>"
-msgstr ""
+msgstr "<br><br>Un noyau non Spyder que je n'ai pas démarré ne peut pas être interrompu.<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:932
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
-msgstr "Toutes les variables définies par l'utilisateur seront supprimées. Souhaitez-vous continuer ?"
+msgstr "Toutes les variables définies par l'utilisateur seront supprimées. Voulez-vous continuer ?"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1023
 msgid "Changing backend to Qt for Mayavi"
-msgstr "Changement du back-end pour Qt pour Mayavi"
+msgstr "Changement du moteur de rendu par Qt pour Mayavi"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1065
 msgid "Important"
-msgstr "Important "
+msgstr "Important"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1269
 msgid "<br><br>Removing all variables...<br>"
-msgstr "<br><br>Suppression de toutes les variables...<br>"
+msgstr "<br><br>Suppression de toutes les variables…<br>"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1466
 msgid "The kernel died, restarting..."
-msgstr ""
+msgstr "Le noyau a cessé de fonctionner, redémarrage en cours…"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1468
 msgid "Kernel reconnected..."
-msgstr ""
+msgstr "Noyau reconnecté…"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1470
 msgid "Restarting kernel..."
-msgstr ""
+msgstr "Redémarrage du noyau…"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1481
 msgid "Its crash file is located at:"
-msgstr ""
+msgstr "Le rapport de plantage est disponible à l'emplacement suivant :"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1549
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
@@ -4970,7 +4970,7 @@ msgstr "La disposition de fenêtre personnalisée #%s n'a pas encore été défi
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "Donnez un nom à votre disposition"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
@@ -4978,31 +4978,31 @@ msgstr "Enregistrer la disposition sous"
 
 #: spyder/plugins/layout/widgets/dialog.py:222
 msgid "Reorder or delete your saved layouts"
-msgstr ""
+msgstr "Réorganiser ou supprimer vos dispositions enregistrées"
 
 #: spyder/plugins/layout/widgets/dialog.py:228
 msgid "Move up"
-msgstr ""
+msgstr "Monter"
 
 #: spyder/plugins/layout/widgets/dialog.py:235
 msgid "Move down"
-msgstr ""
+msgstr "Descendre"
 
 #: spyder/plugins/layout/widgets/dialog.py:242
 msgid "Delete layout"
-msgstr ""
+msgstr "Supprimer la disposition"
 
 #: spyder/plugins/layout/widgets/dialog.py:258
 msgid "Layouts display and order"
-msgstr ""
+msgstr "Affichage et ordre des dispositions"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "Supprimer la disposition"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
-msgstr ""
+msgstr "Voulez-vous supprimer la disposition « <b>{}</b> » ?"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
@@ -5216,7 +5216,7 @@ msgstr "Explorer les fonctions, classes et méthodes des fichiers ouverts. La d�
 
 #: spyder/plugins/outlineexplorer/widgets.py:39 spyder/widgets/dependencies.py:34
 msgid "Module"
-msgstr ""
+msgstr "Module"
 
 #: spyder/plugins/outlineexplorer/widgets.py:40
 msgid "Namespace"
@@ -5248,7 +5248,7 @@ msgstr "constructeur"
 
 #: spyder/plugins/outlineexplorer/widgets.py:47
 msgid "Enum"
-msgstr ""
+msgstr "Enumération"
 
 #: spyder/plugins/outlineexplorer/widgets.py:49
 msgid "Function"
@@ -5256,11 +5256,11 @@ msgstr "Fonction"
 
 #: spyder/plugins/outlineexplorer/widgets.py:50
 msgid "Variable"
-msgstr ""
+msgstr "Variable"
 
 #: spyder/plugins/outlineexplorer/widgets.py:51
 msgid "Constant"
-msgstr ""
+msgstr "Constante"
 
 #: spyder/plugins/outlineexplorer/widgets.py:52
 msgid "String"
@@ -5284,7 +5284,7 @@ msgstr "Clé"
 
 #: spyder/plugins/outlineexplorer/widgets.py:58
 msgid "Null"
-msgstr ""
+msgstr "Null"
 
 #: spyder/plugins/outlineexplorer/widgets.py:59
 msgid "Enum member"
