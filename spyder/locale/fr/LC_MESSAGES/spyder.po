@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-25 11:23\n"
+"PO-Revision-Date: 2026-04-26 11:32\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -5604,7 +5604,7 @@ msgstr "Créer des projets Spyder et gérer leurs fichiers."
 
 #: spyder/plugins/projects/widgets/main_widget.py:97
 msgid "No project opened"
-msgstr ""
+msgstr "Aucun projet ouvert"
 
 #: spyder/plugins/projects/widgets/main_widget.py:98
 msgid "Create one using the menu entry Projects > New project."
