@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 22:04\n"
+"PO-Revision-Date: 2026-04-26 23:20\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -303,23 +303,23 @@ msgstr "Fichiers compatibles"
 
 #: spyder/dependencies.py:102
 msgid "Async http client/server"
-msgstr "Async http client/serveur"
+msgstr "Client/serveur HTTP asynchrone"
 
 #: spyder/dependencies.py:106
 msgid "Notify macOS that Spyder can open Python files"
-msgstr "Avertissez macOS que Spyder peut ouvrir les fichiers Python"
+msgstr "Indiquer à macOS que Spyder peut ouvrir les fichiers Python"
 
 #: spyder/dependencies.py:111
 msgid "Connect to remote kernels through SSH"
-msgstr "Connexion à des noyaux distants via SSH"
+msgstr "Se connecter aux noyaux distants via SSH"
 
 #: spyder/dependencies.py:115
 msgid "Decrypt passphrase of SSH key files"
-msgstr "Déchiffrement de la phrase de passe des clés SSH"
+msgstr "Déchiffrement de la phrase de passe des fichiers clés SSH"
 
 #: spyder/dependencies.py:119
 msgid "Character encoding auto-detection for the Editor"
-msgstr "Détection automatique de l'encodage de caractères pour l'éditeur"
+msgstr "Détection automatique de l'encodage des caractères dans l'éditeur"
 
 #: spyder/dependencies.py:123
 msgid "Handle communications between kernel and frontend"
@@ -331,7 +331,7 @@ msgstr "Créer des projets à partir de modèles cookiecutter"
 
 #: spyder/dependencies.py:131
 msgid "Compute text file diff changes during edition"
-msgstr "Calcul des changements de fichier texte lors de l'édition"
+msgstr "Générer un fichier des différences pendant l'édition"
 
 #: spyder/dependencies.py:135
 msgid "Access the metadata for a Python package"
@@ -423,7 +423,7 @@ msgstr "Formater automatiquement les fichiers Python dans l'éditeur avec Black"
 
 #: spyder/dependencies.py:227
 msgid "Provide linting with the Ruff package"
-msgstr ""
+msgstr "Utiliser le paquet Ruff pour l'analyse de code"
 
 #: spyder/dependencies.py:231
 msgid "Spyder plugin for the Python LSP Server"
@@ -1851,7 +1851,7 @@ msgstr "Effacer la console"
 
 #: spyder/plugins/console/widgets/shell.py:722
 msgid "Clear shell contents ('cls' command)"
-msgstr "Effacer le contenu de la console"
+msgstr "Effacer le contenu de la console (commande « cls »)"
 
 #: spyder/plugins/debugger/confpage.py:25
 msgid "Run code while debugging"
@@ -2508,7 +2508,7 @@ msgstr "Erreur de suppression"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2915
 msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
-msgstr "Impossible d'effacer les résultats de ce notebook :\n\n"
+msgstr "Impossible d'effacer les résultats de ce notebook. Message d'erreur :\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2926 spyder/plugins/explorer/widgets/explorer.py:1807
 msgid "Conversion error"
@@ -2760,11 +2760,11 @@ msgstr "Afficher le message d'avertissement ou d'erreur précédent"
 
 #: spyder/plugins/editor/widgets/main_widget.py:495
 msgid "Last edit location"
-msgstr "Dernière position d'édition"
+msgstr "Position de la dernière modification"
 
 #: spyder/plugins/editor/widgets/main_widget.py:497
 msgid "Go to last edit location"
-msgstr "Aller à la dernière position d'édition"
+msgstr "Aller à la position de la dernière modification"
 
 #: spyder/plugins/editor/widgets/main_widget.py:504
 msgid "Previous cursor position"
@@ -2920,7 +2920,7 @@ msgstr "Impression en cours..."
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:57
 msgid "Jump within the document in the scroll flags area"
-msgstr ""
+msgstr "Aller dans le document dans la zone d'erreurs de la barre de défilement"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:65
 msgid "Go to a code definition"
@@ -2928,7 +2928,7 @@ msgstr "Aller à la définition du code"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:73
 msgid "Add/remove an additional cursor"
-msgstr "Ajouter/supprimer un curseur supplémentaire"
+msgstr "Ajouter/supprimer un curseur"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:81
 msgid "Add a column of cursors"
@@ -3710,15 +3710,15 @@ msgstr "Effacer les autres répertoires"
 
 #: spyder/plugins/findinfiles/widgets/combobox.py:168
 msgid "Do you want to clear the list of other directories?"
-msgstr "Souhaitez-vous effacer la liste des autres répertoires ?"
+msgstr "Voulez-vous effacer la liste des autres répertoires ?"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:102
 msgid "Nothing searched for yet"
-msgstr "Rien n'a encore été recherché"
+msgstr "Aucune recherche effectuée"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:103
 msgid "Search the content of text files in any directory using the search box."
-msgstr "Recherchez le contenu des fichiers texte dans n'importe quel répertoire en utilisant la zone de recherche."
+msgstr "Recherchez dans le contenu des fichiers texte de n'importe quel répertoire en utilisant la zone de recherche."
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:109 spyder/widgets/findreplace.py:65
 msgid "Regular expression error"
@@ -3726,7 +3726,7 @@ msgstr "Erreur d'expression régulière"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:185
 msgid "Write text to search"
-msgstr "Écrire du texte à rechercher"
+msgstr "Tapez le texte à rechercher"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:206
 msgid "Search in:"
@@ -3738,7 +3738,7 @@ msgstr "Exclure :"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:225
 msgid "Exclude pattern"
-msgstr "Pattern à exclure"
+msgstr "Motif à exclure"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:313 spyder/plugins/findinfiles/widgets/main_widget.py:339
 msgid "Regular expression"
@@ -3754,15 +3754,15 @@ msgstr "Sensible à la casse"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:323
 msgid "Case sensitive search"
-msgstr "Recherche respectant la casse"
+msgstr "Recherche sensible à la casse"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:331
 msgid "&Find in files"
-msgstr "Rechercher dans des &fichiers"
+msgstr "Rechercher dans les &fichiers"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:332
 msgid "Search text"
-msgstr "Recherche de texte"
+msgstr "Rechercher"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:348 spyder/plugins/findinfiles/widgets/main_widget.py:349
 msgid "Exclude case sensitive"
@@ -3790,7 +3790,7 @@ msgstr "Définir le nombre maximum de résultats :"
 
 #: spyder/plugins/findinfiles/widgets/main_widget.py:832
 msgid "Regular expression error in Exclude field"
-msgstr ""
+msgstr "Erreur d'expression régulière dans le champ « Exclure »"
 
 #: spyder/plugins/findinfiles/widgets/results_browser.py:264
 msgid "Searching..."
@@ -4344,15 +4344,15 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:145
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "Le programme « pixi » nécessaire pour démarrer l'environnement du noyau n'a pas été trouvé sur votre système. Ajoutez le répertoire de l'exécutable « pixi » dans votre variable d'environnement PATH afin qu'il soit détecté."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:182
 msgid "Spyder couldn't find Conda, Mamba or Micromamba on your system to activate the kernel's environment.<br><br>Please set the path for one of their executables in <tt>Preferences > Python interpreter > Conda executable</tt>"
-msgstr ""
+msgstr "Aucun gestionnaire d'environnement (« Conda », « Mamba » ou « Micromamba ») nécessaire à l'activation de l'environnement du noyau n'a été trouvé sur votre système.<br><br>Ajoutez le chemin vers l'un de leurs exécutables dans <tt>Préférences > Interpréteur Python > Exécutable Conda</tt>."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:226
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "La version de Conda détectée est trop ancienne et n'est plus prise en charge par Spyder. La version minimum prise en charge est la 4.9 alors que la version détectée est la {conda_version}.<br><br><b>Note :</b> le redémarrage de Spyder est nécessaire après la mise à jour de Conda afin que les modifications soient prise en compte."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
@@ -4852,7 +4852,7 @@ msgstr "Le rapport de plantage est disponible à l'emplacement suivant :"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:1549
 msgid "It seems you're trying to use a module that doesn't come with our installer. Check <a href='{}'>this FAQ</a> in our docs to learn how to do this."
-msgstr "Il semble que vous essayez d'utiliser un module qui n'est pas fourni avec notre installateur. Consultez <a href='{}'>cette FAQ</a> dans notre documentation pour apprendre comment faire cela."
+msgstr "Vous essayez d'utiliser un module qui n'est pas fourni avec notre installateur. Consultez <a href='{}'>cette FAQ</a> dans notre documentation pour plus d'informations."
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:53
 msgid "Click to toggle between inline and interactive Matplotlib plotting"
@@ -4922,7 +4922,7 @@ msgstr "La disposition des fenêtres sera réinitialisée selon les réglages pa
 
 #: spyder/plugins/layout/layouts.py:72
 msgid "Default layout"
-msgstr ""
+msgstr "Disposition par défaut"
 
 #: spyder/plugins/layout/layouts.py:106
 msgid "Horizontal split"
@@ -4934,15 +4934,15 @@ msgstr "Séparation verticale"
 
 #: spyder/plugins/layout/layouts.py:184
 msgid "Rstudio layout"
-msgstr "Mise en page Rstudio"
+msgstr "Disposition Rstudio"
 
 #: spyder/plugins/layout/layouts.py:243
 msgid "Matlab layout"
-msgstr "Mise en page Matlab"
+msgstr "Disposition Matlab"
 
 #: spyder/plugins/layout/layouts.py:270
 msgid "testing layout"
-msgstr "mise en page de test"
+msgstr "test de disposition"
 
 #: spyder/plugins/layout/plugin.py:87
 msgid "Layout"
@@ -5828,7 +5828,7 @@ msgstr "Les résultats sont stockés ici :"
 
 #: spyder/plugins/pylint/main_widget.py:105
 msgid "Convention"
-msgstr ""
+msgstr "Convention"
 
 #: spyder/plugins/pylint/main_widget.py:109
 msgid "Refactor"
@@ -5836,11 +5836,11 @@ msgstr "Factorisation"
 
 #: spyder/plugins/pylint/main_widget.py:125
 msgid "messages"
-msgstr ""
+msgstr "messages"
 
 #: spyder/plugins/pylint/main_widget.py:127
 msgid "message"
-msgstr ""
+msgstr "messages"
 
 #: spyder/plugins/pylint/main_widget.py:194
 msgid "Results for "
@@ -5848,11 +5848,11 @@ msgstr "Résultats pour "
 
 #: spyder/plugins/pylint/main_widget.py:275
 msgid "Code not analyzed yet"
-msgstr ""
+msgstr "Aucune analyse effectuée"
 
 #: spyder/plugins/pylint/main_widget.py:276
 msgid "Run an analysis using Pylint to get feedback on style issues, bad practices, potential bugs, and suggested improvements in your code."
-msgstr ""
+msgstr "Lancer une analyse du code avec Pylint afin d'obtenir un retour sur les erreurs de style, les mauvaises pratiques, les bogues potentiels et des suggestions d'amélioration."
 
 #: spyder/plugins/pylint/main_widget.py:385
 msgid "Process failed to start"
@@ -5864,15 +5864,15 @@ msgstr "Analyse de code"
 
 #: spyder/plugins/pylint/main_widget.py:490
 msgid "History..."
-msgstr "Historique..."
+msgstr "Historique…"
 
 #: spyder/plugins/pylint/main_widget.py:491
 msgid "Set history maximum entries"
-msgstr "Modifier le nombre d'entrées maximum de l'historique"
+msgstr "Définir le nombre maximum d'entrées dans l'historique"
 
 #: spyder/plugins/pylint/main_widget.py:497 spyder/plugins/pylint/main_widget.py:498 spyder/plugins/pylint/plugin.py:131 spyder/plugins/pylint/plugin.py:132
 msgid "Run code analysis"
-msgstr "Démarrer l'analyse statique de code"
+msgstr "Démarrer l'analyse de code"
 
 #: spyder/plugins/pylint/main_widget.py:504 spyder/plugins/pylint/main_widget.py:505 spyder/plugins/pylint/main_widget.py:863
 msgid "Select Python file"
@@ -5892,7 +5892,7 @@ msgstr "Le code source n'a pas encore été analysé."
 
 #: spyder/plugins/pylint/main_widget.py:788
 msgid "Analysis did not succeed (see output for more details)."
-msgstr "L'analyse n'a pas réussi (voir la sortie pour plus de détails)."
+msgstr "L'analyse a échoué (voir les résultats pour plus de détails)."
 
 #: spyder/plugins/pylint/main_widget.py:803
 msgid "Global evaluation:"
@@ -5904,7 +5904,7 @@ msgstr "analyse précédente :"
 
 #: spyder/plugins/pylint/main_widget.py:826
 msgid "Code analysis output"
-msgstr "Sortie de l'analyse de code"
+msgstr "Résultats de l'analyse de code"
 
 #: spyder/plugins/pylint/plugin.py:72
 msgid "Analyze code and view the results from both static and real-time analysis."
@@ -6000,7 +6000,7 @@ msgstr "La connexion a été perdue"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:248
 msgid "Starting Spyder remote services"
-msgstr ""
+msgstr "Démarrage des services distants de Spyder"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:315
 msgid "We're establishing the connection. Please be patient"
@@ -6924,7 +6924,7 @@ msgstr "Ce volet enregistre toutes les commandes et le code exécutés dans n'im
 
 #: spyder/plugins/tours/tours.py:179
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr "Le volet de recherche vous permet de rechercher du texte dans un répertoire donné et de naviguer à travers toutes les occurrences trouvées."
+msgstr "Le panneau de recherche vous permet de rechercher du texte dans un répertoire et de naviguer dans les résultats."
 
 #: spyder/plugins/tours/tours.py:187
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
@@ -8464,7 +8464,7 @@ msgstr "S'identifier"
 
 #: spyder/widgets/helperwidgets.py:394
 msgid "Clear text"
-msgstr "Effacer le texte"
+msgstr "Effacer la recherche"
 
 #: spyder/widgets/helperwidgets.py:515
 msgid "Type and press Enter to search"
