@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 19:58\n"
+"PO-Revision-Date: 2026-04-26 20:59\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2528,11 +2528,11 @@ msgstr "Ce fichier ne fait pas partie d'un référentiel local ou les télécomm
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:87
 msgid "Large number of cursors!"
-msgstr "Beaucoup de curseurs !"
+msgstr "Grand nombre de curseurs !"
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:88
 msgid "A large numbers of text cursors can cause Spyder to become unresponsive. Do you want to continue?"
-msgstr ""
+msgstr "Un grand nombre de curseurs peut bloquer Spyder. Voulez-vous continuer ?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:264 spyder/plugins/explorer/widgets/explorer.py:513 spyder/plugins/explorer/widgets/remote_explorer.py:210
 msgid "Copy absolute path"
@@ -4684,7 +4684,7 @@ msgstr "La variable est trop grosse pour être récupérée"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "La copie de la variable dans le noyau ou le chargement de cette copie dans Spyder a échoué.<br><br>Si l'objet que vous essayez de voir contient un générateur, remplacez le par une liste car les générateurs ne peuvent pas être sérialisés."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:59
 msgid "The kernel is dead"
@@ -4704,23 +4704,23 @@ msgstr "Le module « <tt>{}</tt> » est requis pour ouvrir cette variable mais
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
-msgstr ""
+msgstr "Le module « <tt>{}</tt> » est requis pour ouvrir cette variable. Il ne fait malheureusement pas partie de notre installateur, ce qui signifie que votre variable ne peut pas être affichée par Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "Le module « <tt>{}</tt> » est requis pour ouvrir cette variable mais n'est pas installé avec Spyder. Pour résoudre ce problème, installez ce module dans le même environnement que celui dans lequel s'exécute Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
-msgstr ""
+msgstr "Deux versions incompatibles de Numpy sont utilisées par Spyder et le noyau de la console active. Pour résoudre ce problème, mettez à jour <tt>numpy</tt> (version >= 1.26.1) dans l'environnement dans lequel Spyder est exécuté."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:86
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Deux versions incompatibles de Pandas sont utilisées par Spyder et le noyau de la console active. Pour résoudre ce problème, mettez à jour <tt>pandas</tt> (version >= 2.0) dans l'environnement de la console."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the environment where Spyder is installed to version 3.0 or higher, or downgrade it in the console enviroment to version 2.3."
-msgstr ""
+msgstr "Deux versions incompatibles de Pandas sont utilisées par Spyder et le noyau de la console active. Pour résoudre ce problème, mettez à jour <tt>pandas</tt> (version >= 3.0) dans l'environnement dans lequel Spyder est exécuté ou revenez à une version antérieure dans l'environnement de la console (version 2.3)."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
