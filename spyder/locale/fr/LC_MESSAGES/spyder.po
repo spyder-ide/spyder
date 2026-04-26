@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 11:32\n"
+"PO-Revision-Date: 2026-04-26 13:34\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -5608,7 +5608,7 @@ msgstr "Aucun projet ouvert"
 
 #: spyder/plugins/projects/widgets/main_widget.py:98
 msgid "Create one using the menu entry Projects > New project."
-msgstr ""
+msgstr "Créez un projet dans Projets > Nouveau projet…"
 
 #: spyder/plugins/projects/widgets/main_widget.py:237
 msgid "New Project..."
@@ -5636,7 +5636,7 @@ msgstr "Projets récents"
 
 #: spyder/plugins/projects/widgets/main_widget.py:284
 msgid "Search project files in the switcher"
-msgstr ""
+msgstr "Rechercher les fichiers de projet dans le sélecteur"
 
 #: spyder/plugins/projects/widgets/main_widget.py:352
 msgid "<b>{}</b> is not a registered Spyder project type!"
@@ -5648,15 +5648,15 @@ msgstr "Ouvrir le projet"
 
 #: spyder/plugins/projects/widgets/main_widget.py:376
 msgid "<b>%s</b> is not a Spyder project.<br><br>Do you want to create a project in this location?"
-msgstr ""
+msgstr "<b>%s</b> n'est pas un projet Spyder.<br><br>Voulez-vous créer un projet à cet emplacement ?"
 
 #: spyder/plugins/projects/widgets/main_widget.py:390
 msgid "It was not possible to create a project in <b>{}</b>. The reason is:<br><br>{}"
-msgstr ""
+msgstr "Le projet n'a pas pu être créé dans <b>{}</b> pour la raison suivante :<br><br>{}"
 
 #: spyder/plugins/projects/widgets/main_widget.py:502
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr ""
+msgstr "Voulez-vous vraiment supprimer le projet <b>{filename}</b> ?<br><br><b>Note :</b> cette action ne supprimera que le projet. Ses fichiers seront conservés sur le disque."
 
 #: spyder/plugins/projects/widgets/main_widget.py:518
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
@@ -5668,19 +5668,19 @@ msgstr "<b>{}</b> n'est plus un projet Spyder valide ! Comme il s'agit du projet
 
 #: spyder/plugins/projects/widgets/main_widget.py:1067
 msgid "No directory was selected"
-msgstr ""
+msgstr "Aucun répertoire sélectionné"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1070
 msgid "The directory doesn't exist"
-msgstr ""
+msgstr "Le répertoire n'existe pas"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1073
 msgid "The directory is not writable"
-msgstr ""
+msgstr "Le répertoire n'est pas accessible en écriture"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1080 spyder/plugins/projects/widgets/projectdialog.py:314
 msgid "The project directory can't contain ':'"
-msgstr ""
+msgstr "Le répertoire du projet ne peut pas contenir « : »"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:85
 msgid "Location"
@@ -5688,39 +5688,39 @@ msgstr "Répertoire"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:137 spyder/plugins/projects/widgets/projectdialog.py:301
 msgid "This is empty"
-msgstr ""
+msgstr "Ce champ est vide"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:142
 msgid "This directory doesn't exist"
-msgstr ""
+msgstr "Ce répertoire n'existe pas"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:148
 msgid "This directory is not writable"
-msgstr ""
+msgstr "Ce répertoire n'est pas accessible en écriture"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:170
 msgid "You selected a Spyder project"
-msgstr ""
+msgstr "Vous avez sélectionné un projet Spyder"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:185
 msgid "The directory you selected for this project already exists."
-msgstr ""
+msgstr "Le répertoire sélectionné pour ce projet existe déjà."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:194
 msgid "This directory is already a Spyder project."
-msgstr ""
+msgstr "Ce répertoire est déjà un projet Spyder."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:200
 msgid "You don't have write permissions in the location you selected."
-msgstr ""
+msgstr "Vous n'avez pas les droits d'écriture dans l'emplacement que vous avez sélectionné."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:209
 msgid "The location you selected doesn't exist."
-msgstr ""
+msgstr "L'emplacement sélectionné n'existe pas."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:216
 msgid "The directory name you selected is not valid."
-msgstr ""
+msgstr "Le nom du répertoire que vous avez sélectionné est invalide."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:956
 msgid "There are missing fields on this page."
@@ -5728,7 +5728,7 @@ msgstr "Certains champs du formulaire sont manquants."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
-msgstr ""
+msgstr "Sélectionnez l'emplacement où le répertoire du projet sera créé"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:239
 msgid "New directory"
@@ -5736,23 +5736,23 @@ msgstr "Sélectionner un répertoire"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
 msgid "Start a project in a new directory"
-msgstr ""
+msgstr "Démarrer un projet dans un nouveau répertoire"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
-msgstr ""
+msgstr "Pour plus d'informations sur les projets, voir la <a href=\"{0}\">documentation</a>."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
 msgid "Project directory"
-msgstr ""
+msgstr "Répertoire du projet"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:260
 msgid "A directory with this name will be created in the location below"
-msgstr ""
+msgstr "Un répertoire avec ce nom sera créé à l'emplacement ci-dessous"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:309
 msgid "A directory with this name already exists"
-msgstr ""
+msgstr "Un répertoire avec ce nom existe déjà"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:327 spyder/plugins/pythonpath/widgets/pathmanager.py:342
 msgid "Project path"
@@ -5760,7 +5760,7 @@ msgstr "Chemin du projet"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:328
 msgid "Select the directory to use for the project"
-msgstr ""
+msgstr "Sélectionnez le répertoire à utiliser pour le projet"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:331
 msgid "Existing directory"
@@ -5768,7 +5768,7 @@ msgstr "Répertoire existant"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:338
 msgid "Create a Spyder project in an existing directory"
-msgstr ""
+msgstr "Créer un projet Spyder dans un répertoire existant"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:411
 msgid "Create new project"
