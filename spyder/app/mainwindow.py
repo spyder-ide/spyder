@@ -272,6 +272,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.already_closed = False
         self.is_starting_up = True
         self.is_setting_up = True
+        self.is_closing = False
 
         self.window_size = None
         self.window_position = None
@@ -1031,6 +1032,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             )
             if reply == QMessageBox.No:
                 return False
+
+        self.is_closing = True
 
         # Save visible plugins
         if self.layouts is not None:
