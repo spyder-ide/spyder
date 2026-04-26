@@ -1020,17 +1020,21 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if self.already_closed or self.is_starting_up:
             return True
 
-        if self.layouts is not None:
-            self.layouts.save_visible_plugins()
-
-        self.plugin_registry = PLUGIN_REGISTRY
-
+        # Ask before closing
         if cancelable and self.get_conf('prompt_on_exit'):
-            reply = QMessageBox.critical(self, 'Spyder',
-                                         'Do you really want to exit?',
-                                         QMessageBox.Yes, QMessageBox.No)
+            reply = QMessageBox.critical(
+                self,
+                "Spyder",
+                _("Do you really want to exit?"),
+                QMessageBox.Yes,
+                QMessageBox.No,
+            )
             if reply == QMessageBox.No:
                 return False
+
+        # Save visible plugins
+        if self.layouts is not None:
+            self.layouts.save_visible_plugins()
 
         # Disconnect this signal because we don't need it anymore
         qapp = QApplication.instance()
@@ -1051,7 +1055,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Dock undocked plugins before saving the layout.
         # Fixes spyder-ide/spyder#12139
-        self.plugin_registry.dock_all_undocked_plugins(save_undocked=True)
+        PLUGIN_REGISTRY.dock_all_undocked_plugins(save_undocked=True)
 
         # Save layout before closing all plugins. This ensures its restored
         # correctly in the next session when there are many IPython consoles
@@ -1065,13 +1069,14 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     layouts_container.close()
                     layouts_container.deleteLater()
                 self.layouts.deleteLater()
-                self.plugin_registry.delete_plugin(
-                    Plugins.Layout, teardown=False)
+                PLUGIN_REGISTRY.delete_plugin(
+                    Plugins.Layout, teardown=False
+                )
             except RuntimeError:
                 pass
 
-        # Close all plugins
-        can_close = self.plugin_registry.delete_all_plugins(
+        # Delete all plugins
+        can_close = PLUGIN_REGISTRY.delete_all_plugins(
             excluding={Plugins.Layout}, close_immediately=close_immediately
         )
 
