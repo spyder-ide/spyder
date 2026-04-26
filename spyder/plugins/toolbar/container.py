@@ -15,12 +15,13 @@ import logging
 from typing import Optional, Union
 
 # Third party imports
-from qtpy.QtCore import QSize, Slot
+from qtpy.QtCore import QSize, QTimer, Slot
 from qtpy.QtWidgets import QAction, QWidget
 from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.main_container import PluginMainContainer
@@ -222,6 +223,24 @@ class ToolbarContainer(PluginMainContainer):
         # Add toolbar elements in queue
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
 
+        # Actions to take when the plugin that creates this toolbar is
+        # reenabled
+        if not self._plugin.main.is_setting_up:
+            # Reload toolbars to show toolbars of reenabled plugins again
+            self.load_application_toolbars(reload=True)
+
+            # Render toolbar to make its icons visible. This needs to be done
+            # after reloading all toolbars and with a timer (otherwise it
+            # doesn't work)
+            QTimer.singleShot(1, toolbar.render)
+
+            # When the toolbar is readded, Qt adds a handle to move it even if
+            # the toolbars and panes are locked. So, we need to relock them
+            # again.
+            if self.get_conf("panes_locked", section="main"):
+               layout = self._plugin.get_plugin(Plugins.Layout)
+               layout.toggle_lock(True)
+
     def remove_application_toolbar(self, toolbar_id: str):
         """
         Remove toolbar from application toolbars.
@@ -243,8 +262,10 @@ class ToolbarContainer(PluginMainContainer):
         toolbar = self._APPLICATION_TOOLBARS.pop(toolbar_id)
         self._toolbarslist.remove(toolbar)
         TOOLBAR_REGISTRY.remove_reference(toolbar_id, self.PLUGIN_NAME)
-
         self._plugin.main.removeToolBar(toolbar)
+
+        if toolbar in self._visible_toolbars:
+            self._visible_toolbars.remove(toolbar)
 
     def add_item_to_application_toolbar(
         self,
@@ -343,8 +364,8 @@ class ToolbarContainer(PluginMainContainer):
         """
         return self._APPLICATION_TOOLBARS
 
-    def load_application_toolbars(self):
-        """Load application toolbars at startup."""
+    def load_application_toolbars(self, reload: bool = False):
+        """Load application toolbars."""
         app_toolbars = self.get_application_toolbars()
 
         # Get internal and external toolbars
@@ -386,8 +407,12 @@ class ToolbarContainer(PluginMainContainer):
         # new toolbars were added
         last_toolbars = self.get_conf("last_toolbars")
         if (
+            # First time Spyder starts
             not last_toolbars
+            # A new toolbar was added by a plugin
             or set(last_toolbars) != set(app_toolbars.keys())
+            # A plugin that adds a toolbar was reenabled
+            or reload
         ):
             logger.debug("Reorganize application toolbars")
 
@@ -408,6 +433,12 @@ class ToolbarContainer(PluginMainContainer):
                 if toolbar:
                     self._plugin.main.addToolBar(toolbar)
                     toolbar.render()
+                    if reload:
+                        if toolbar_id in self.get_conf(
+                            "last_visible_toolbars"
+                        ):
+                            toolbar.toggleViewAction().setChecked(True)
+                            toolbar.setVisible(True)
         else:
             logger.debug("Render application toolbars")
 
