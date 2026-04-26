@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 16:38\n"
+"PO-Revision-Date: 2026-04-26 17:53\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4328,15 +4328,15 @@ msgstr "Le répertoire <tt>{}</tt> n’est pas accessible en écriture. Modifiez
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:46
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
-msgstr ""
+msgstr "La version du module <tt>spyder-kernels</tt> disponible dans l'environnement/installation Python (dont l'interpréteur est : <pre><tt>{0}</tt></pre>) est incorrecte ({1} au lieu de >= {2} et < {3}). La création de console est impossible avec la version actuelle. Installez la version du module nécessaire en activant votre environnement (si nécessaire) et en exécutant dans une console système : <pre><tt>{4}</tt></pre> ou <pre><tt>{5}</tt></pre>."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:66
 msgid "This Python environment doesn't have the right version of <tt>spyder-kernels</tt> installed (>= {0} and < {1}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "La version du module <tt>spyder-kernels</tt> disponible dans l'environnement Python est incorrecte (>= {0} et < {1}). La création de console est impossible avec la version actuelle.<br><br>Installez la version du module nécessaire en activant votre environnement (si nécessaire) et en exécutant dans une console système : <pre><tt>{2}</tt></pre> ou <pre><tt>{3}</tt></pre>."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:523
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
-msgstr "Une erreur s'est produite lors de la tentative de chargement du fichier de connexion au noyau. L'erreur était :\n\n"
+msgstr "Une erreur est survenue lors du chargement du fichier de connexion au noyau. L'erreur était :<br><br>"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:57
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
