@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 17:53\n"
+"PO-Revision-Date: 2026-04-26 18:53\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4700,7 +4700,7 @@ msgstr "Le canal utilisé pour communiquer avec le noyau ne fonctionne pas."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:64
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed in the console environment. To fix this problem, please install it in the environment which you use to run your code."
-msgstr ""
+msgstr "Le module « <tt>{}</tt> » est requis pour ouvrir cette variable mais n'est pas installé dans l'environnement de la console. Pour résoudre ce problème, installez ce module dans l'environnement que vous utilisez pour exécuter votre code."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
