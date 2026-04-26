@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 18:53\n"
+"PO-Revision-Date: 2026-04-26 19:58\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2528,7 +2528,7 @@ msgstr "Ce fichier ne fait pas partie d'un référentiel local ou les télécomm
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:87
 msgid "Large number of cursors!"
-msgstr ""
+msgstr "Beaucoup de curseurs !"
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:88
 msgid "A large numbers of text cursors can cause Spyder to become unresponsive. Do you want to continue?"
@@ -5192,7 +5192,7 @@ msgstr "Afficher les commentaires spéciaux"
 
 #: spyder/plugins/outlineexplorer/main_widget.py:126
 msgid "Group code cells"
-msgstr "Cellules de code de groupe"
+msgstr "Grouper les cellules de code"
 
 #: spyder/plugins/outlineexplorer/main_widget.py:132
 msgid "Display variables and attributes"
