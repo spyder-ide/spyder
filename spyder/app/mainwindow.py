@@ -1032,6 +1032,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             if reply == QMessageBox.No:
                 return False
 
+        # Disconnect this signal because we don't need it anymore
+        qapp = QApplication.instance()
+        qapp.focusChanged.disconnect()
+
         # Save current project files here to be sure we do it as expected in
         # case the Editor is closed before Projects below.
         projects = self.get_plugin(Plugins.Projects, error=False)
