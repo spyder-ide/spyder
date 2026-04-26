@@ -416,6 +416,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
 
+        debug_toolbar = toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug
+        )
+        debug_toolbar.sig_is_rendered.disconnect(
+            self.get_widget().on_debug_toolbar_rendered
+        )
+
         for action_id in [
             DebuggerWidgetActions.Next,
             DebuggerWidgetActions.Step,
