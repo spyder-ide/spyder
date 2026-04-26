@@ -280,7 +280,8 @@ class ShellConnectMainWidget(PluginMainWidget):
                 self._stack.removeWidget(widget)
                 self.close_widget(widget)
 
-            self.update_actions()
+            if not self._plugin.main.is_closing:
+                self.update_actions()
 
     def set_shellwidget(
         self,
