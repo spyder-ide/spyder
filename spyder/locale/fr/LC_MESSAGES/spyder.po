@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 14:43\n"
+"PO-Revision-Date: 2026-04-26 15:40\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2896,7 +2896,7 @@ msgstr "Réduire"
 
 #: spyder/plugins/editor/widgets/main_widget.py:714
 msgid "Zoom reset"
-msgstr "Réinitialisation du zoom"
+msgstr "Réinitialiser le zoom"
 
 #: spyder/plugins/editor/widgets/main_widget.py:721
 msgid "Generate docstring"
@@ -3033,11 +3033,11 @@ msgstr "Branche de Git"
 
 #: spyder/plugins/editor/widgets/window.py:500 spyder/plugins/mainmenu/plugin.py:89
 msgid "&Window"
-msgstr ""
+msgstr "Fenêtre"
 
 #: spyder/plugins/editor/widgets/window.py:508 spyder/plugins/outlineexplorer/main_widget.py:78
 msgid "Outline"
-msgstr "Structure"
+msgstr "Hiérarchie"
 
 #: spyder/plugins/explorer/confpage.py:31
 msgid "General options"
@@ -3878,7 +3878,7 @@ msgstr "Aucune documentation disponible"
 
 #: spyder/plugins/help/widgets.py:322
 msgid "Source"
-msgstr ""
+msgstr "Source"
 
 #: spyder/plugins/help/widgets.py:328 spyder/plugins/outlineexplorer/widgets.py:56
 msgid "Object"
@@ -3886,7 +3886,7 @@ msgstr "Objet"
 
 #: spyder/plugins/help/widgets.py:342 spyder/plugins/ipythonconsole/widgets/client.py:692 spyder/plugins/ipythonconsole/widgets/run_conf.py:42
 msgid "Console"
-msgstr ""
+msgstr "Console"
 
 #: spyder/plugins/help/widgets.py:396
 msgid "Automatic import"
@@ -3926,15 +3926,15 @@ msgstr "Récupération de la documentation"
 
 #: spyder/plugins/help/widgets.py:772
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr "Ici vous pouvez obtenir de l'aide de n'importe quel objet en appuyant sur %s devant lui au éditeur, ou %s devant lui sur la Console."
+msgstr "Accédez à la documentation de n'importe quel objet depuis l'éditeur ou la console en plaçant le curseur sur celui-ci et en appuyant sur %s.%s"
 
 #: spyder/plugins/help/widgets.py:776
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
-msgstr "Ici vous pouvez obtenir de l'aide de n'importe quel objet en appuyant sur %s devant l'éditeur, ou %s devant lui sur la Console.%s"
+msgstr "Accédez à la documentation de n'importe quel objet depuis l'éditeur ou la console en plaçant le curseur sur celui-ci et en appuyant sur %s (dans l'éditeur) ou %s (dans la console).%s"
 
 #: spyder/plugins/help/widgets.py:780
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
-msgstr "L'aide peut également être affichée automatiquement après avoir écrit une parenthèse à gauche à côté d'un objet. Vous pouvez activer ce comportement dans %s."
+msgstr "L'aide peut également être affichée automatiquement en tapant une parenthèse ouvrante après un objet. Vous pouvez activer ce comportement dans %s."
 
 #: spyder/plugins/help/widgets.py:784
 msgid "Preferences > Help"
@@ -4508,7 +4508,7 @@ msgstr "Redémarrer le noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
 msgid "Reconnect to remote kernel"
-msgstr ""
+msgstr "Se reconnecter au noyau distant"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4524,7 +4524,7 @@ msgstr "Se connecter à un noyau existant..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:495
 msgid "Open an IPython console connected to an existing kernel"
-msgstr ""
+msgstr "Ouvrir une console IPython connectée à un noyau existant"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:500
 msgid "Rename tab"
@@ -4548,7 +4548,7 @@ msgstr "Afficher le contenu de sys.path"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:575
 msgid "Copy (raw text)"
-msgstr ""
+msgstr "Copier (texte brut)"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:589 spyder/widgets/browser.py:148
 msgid "Select all"
@@ -4568,7 +4568,7 @@ msgstr "Enregistrer en HTML..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:626
 msgid "Print..."
-msgstr ""
+msgstr "Imprimer…"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:633
 msgid "Clear line or block"
@@ -4588,7 +4588,7 @@ msgstr "Enregistrer l'image sous..."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:661
 msgid "Copy SVG"
-msgstr ""
+msgstr "Copier le SVG"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:667
 msgid "Save SVG as..."
@@ -4640,11 +4640,11 @@ msgstr "Défaut"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1318 spyder/plugins/ipythonconsole/widgets/main_widget.py:1348
 msgid "Internal"
-msgstr ""
+msgstr "Interne"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1527 spyder/plugins/ipythonconsole/widgets/main_widget.py:2643
 msgid "The console is not running a Spyder-kernel, so it can't execute <b>{}</b>.<br><br>Please use a Spyder-kernel for this."
-msgstr ""
+msgstr "La console ne fonctionne pas avec un noyau Spyder et ne peut donc pas exécuter <b>{}</b>.<br><br>Utilisez un noyau Spyder pour effectuer cette opération."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2239
 msgid "Do you want to close this console?"
