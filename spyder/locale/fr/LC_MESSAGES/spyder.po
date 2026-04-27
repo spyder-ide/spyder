@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-04-26 23:20\n"
+"PO-Revision-Date: 2026-04-27 00:34\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -4340,7 +4340,7 @@ msgstr "Une erreur est survenue lors du chargement du fichier de connexion au no
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:57
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
-msgstr ""
+msgstr "La version <tt>{1}</tt> du module <tt>spyder-kernels</tt> disponible dans l'environnement/installation Python (dont l'interpréteur est : <pre><tt>{0}</tt></pre>) n'est pas installée. La création de console est impossible sans ce module et cette version spécifique. Installez la version du module nécessaire en activant votre environnement (si nécessaire) et en exécutant dans une console système : <pre><tt>{2}</tt></pre> ou <pre><tt>{3}</tt></pre>."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:145
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
@@ -4420,7 +4420,7 @@ msgstr "Connexion à un noyau existant"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:73
 msgid "<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH information if connecting to a remote machine. To learn more about starting external kernels and connecting to them, see <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">our documentation</a>.</p>"
-msgstr ""
+msgstr "<p>Sélectionnez le fichier de connexion JSON (<i>par exemple</i> <tt>kernel-1234.json</tt>) du noyau existant et entrez les informations SSH si vous vous connectez à une machine distante. Pour en savoir plus sur le démarrage et la connexion aux noyaux externes, consultez <a href=\"https://docs.spyder-ide.org/current/panes/ipythonconsole.html#using-external-kernels\">notre documentation</a>.</p>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:86
 msgid "Connection file:"
@@ -4436,11 +4436,11 @@ msgstr "Parcourir"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:102
 msgid "This is a remote kernel (via SSH)"
-msgstr "Il s'agit d'un noyau distant (via SSH)"
+msgstr "Noyau distant (via SSH)"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:105
 msgid "Hostname:"
-msgstr "Nom de l'hôte :"
+msgstr "Nom d'hôte :"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:111
 msgid "Username:"
@@ -4456,11 +4456,11 @@ msgstr "Mot de passe :"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:119
 msgid "SSH keyfile:"
-msgstr "Fichier de la clé SSH :"
+msgstr "Fichier clé SSH :"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:133
 msgid "Passphase:"
-msgstr "Phrase secrète :"
+msgstr "Phrase de passe :"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:135 spyder/widgets/dependencies.py:45
 msgid "Optional"
@@ -4472,15 +4472,15 @@ msgstr "Enregistrer les paramètres de connexion"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:276
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "Le fichier de connexion sélectionné n'existe pas ou n'a pas pu être trouvé par Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:294
 msgid "The connection file you passed is not valid.<br><br>The following issue was found: {}"
-msgstr ""
+msgstr "Le fichier de connexion sélectionné est incorrect.<br><br>Le problème suivant est survenu : {}"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:333
 msgid "Select kernel connection file"
-msgstr "Sélectionner un fichier de connection au noyau"
+msgstr "Sélectionner un fichier de connexion au noyau"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:338
 msgid "Select SSH keyfile"
@@ -4856,11 +4856,11 @@ msgstr "Vous essayez d'utiliser un module qui n'est pas fourni avec notre instal
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:53
 msgid "Click to toggle between inline and interactive Matplotlib plotting"
-msgstr ""
+msgstr "Cliquez pour basculer entre le mode d'affichage intégré et interactif des figures Matplotlib"
 
 #: spyder/plugins/ipythonconsole/widgets/status.py:277
 msgid "Change default environment in Preferences..."
-msgstr ""
+msgstr "Modifier l'environnement par défaut dans Préférences…"
 
 #: spyder/plugins/layout/container.py:80
 msgid "Close current pane"
@@ -4880,7 +4880,7 @@ msgstr "Pour le mode plein écran utilisez la fonction intégrée macOS"
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "Le mode plein écran ne fonctionne pas correctement sur WSL"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -4908,17 +4908,16 @@ msgstr "Dispositions de fenêtres personnalisées"
 
 #: spyder/plugins/layout/container.py:308
 msgid "Layout <b>{0}</b> was defined programatically. It is not possible to overwrite programatically registered layouts."
-msgstr "La mise en page <b>{0}</b> a été définie par le programme. Il n'est pas possible de remplacer les mises en page enregistrées par le programme."
+msgstr "La disposition <b>{0}</b> a été définie par programmation. Le remplacement des dispositions enregistrées par programmation est impossible."
 
 #: spyder/plugins/layout/container.py:317
 msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
-msgstr "La mise en page <b>{0}</b> sera remplacée. Voulez-vous continuer ?"
+msgstr "La disposition <b>{0}</b> sera remplacée. Voulez-vous continuer ?"
 
 #: spyder/plugins/layout/container.py:376
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr "La disposition des fenêtres sera réinitialisée selon les réglages par défaut.\n"
-"Souhaitez-vous continuer ?"
+msgstr "La disposition des fenêtres sera réinitialisée aux réglages par défaut, ce qui inclut la position et la taille de la fenêtre ainsi que les panneaux ouverts.<br>Voulez-vous continuer ?"
 
 #: spyder/plugins/layout/layouts.py:72
 msgid "Default layout"
@@ -5088,7 +5087,7 @@ msgstr "Les modifications ne seront appliquées qu'aux nouvelles consoles IPytho
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
-msgstr ""
+msgstr "Configurer l'interpréteur Python par défaut utilisé pour exécuter, analyser et profiler votre code dans Spyder."
 
 #: spyder/plugins/mainmenu/plugin.py:48
 msgid "Main menus"
@@ -5400,7 +5399,7 @@ msgstr "Définissez le nombre maximum de graphiques :"
 
 #: spyder/plugins/preferences/plugin.py:280
 msgid "Spyder will restart and reset to default settings:<br><br>Do you want to continue?"
-msgstr ""
+msgstr "Spyder va redémarrer et les paramètres par défaut seront réinitialisés :<br><br>Voulez-vous continuer ?"
 
 #: spyder/plugins/preferences/plugin.py:294 spyder/plugins/preferences/widgets/configdialog.py:31 spyder/plugins/preferences/widgets/container.py:120
 msgid "Preferences"
@@ -5408,7 +5407,7 @@ msgstr "Préférences"
 
 #: spyder/plugins/preferences/plugin.py:298
 msgid "Manage Spyder's preferences."
-msgstr ""
+msgstr "Modifier les préférences de Spyder."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
@@ -5920,7 +5919,7 @@ msgstr "Gérez les emplacements supplémentaires des modules Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:132
 msgid "The paths listed below will be passed to the IPython console and to the Editor as additional locations to search for Python modules."
-msgstr ""
+msgstr "Les chemins d'accès listés ci-dessous seront transmis aux consoles IPython et à l'éditeur en tant qu'emplacements supplémentaires où rechercher les modules Python."
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:181
 msgid "Move path to the top"
@@ -5948,7 +5947,7 @@ msgstr "Supprimer"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:211
 msgid "Import from PYTHONPATH environment variable"
-msgstr ""
+msgstr "Importer depuis une variable d'environnement PYTHONPATH"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:218
 msgid "Export to PYTHONPATH environment variable"
@@ -5968,19 +5967,19 @@ msgstr "Exporter"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:398
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to keep the inactive system paths?"
-msgstr ""
+msgstr "La liste des chemins d'accès de Spyder seront exportés dans la variable d'environnement <b>PYTHONPATH</b> de l'utilisateur actuel. Les modules Python pourront ainsi être exécutés en dehors de Spyder sans avoir à configurer sys.path.<br><br>Voulez-vous conserver les chemins d'accès systèmes actuellement inutilisés ?"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:538
 msgid "Paths are prepended to sys.path"
-msgstr ""
+msgstr "Les chemins d'accès sont ajoutés au début de sys.path"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:543
 msgid "Paths are appended to sys.path"
-msgstr ""
+msgstr "Les chemins d'accès sont ajoutés à la fin de sys.path"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:580
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of the list?"
-msgstr ""
+msgstr "Ce répertoire est déjà inclus dans la liste des chemins d'accès de Spyder.<br>Voulez-vous le déplacer au début de la liste ?"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:614
 msgid "This directory cannot be added to the path!<br><br>If you want to set a different Python interpreter, please go to <tt>Preferences > Main interpreter</tt>."
@@ -6028,19 +6027,19 @@ msgstr "JupyterHub n'est pas connecté"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:81 spyder/plugins/remoteclient/api/manager/jupyterhub.py:143 spyder/plugins/remoteclient/api/manager/ssh.py:169 spyder/plugins/remoteclient/api/manager/ssh.py:184 spyder/plugins/remoteclient/api/manager/ssh.py:231
 msgid "Spyder remote services are active"
-msgstr ""
+msgstr "Les services distants de Spyder sont actifs"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:104 spyder/plugins/remoteclient/api/manager/jupyterhub.py:136 spyder/plugins/remoteclient/api/manager/jupyterhub.py:183 spyder/plugins/remoteclient/api/manager/ssh.py:201
 msgid "Error starting the remote server"
-msgstr ""
+msgstr "Erreur lors du démarrage du serveur distant"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:118 spyder/plugins/remoteclient/api/manager/ssh.py:214
 msgid "There was an error when trying to get the remote server information"
-msgstr ""
+msgstr "Une erreur est survenue lors de la récupération des informations du serveur distant"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:199
 msgid "Error staring the remote server"
-msgstr ""
+msgstr "Erreur lors du démarrage du serveur distant"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:281 spyder/plugins/remoteclient/api/manager/ssh.py:439
 msgid "The connection was closed successfully"
@@ -6048,7 +6047,7 @@ msgstr "Connexion fermée avec succès"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:179 spyder/plugins/remoteclient/api/manager/ssh.py:238
 msgid "It was not possible to forward the local port"
-msgstr ""
+msgstr "Le transfert du port local a échoué"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:271
 msgid "Error connecting to the remote server"
@@ -6056,11 +6055,11 @@ msgstr "Erreur lors de la connexion au serveur distant"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:311 spyder/plugins/remoteclient/api/manager/ssh.py:321
 msgid "There was an error installing the remote server"
-msgstr ""
+msgstr "Une erreur est survenue lors de l'installation du serveur distant"
 
 #: spyder/plugins/remoteclient/api/manager/ssh.py:365
 msgid "The server port is not set"
-msgstr ""
+msgstr "Le port du serveur n'est pas défini"
 
 #: spyder/plugins/remoteclient/plugin.py:133
 msgid "Remote Client"
@@ -6072,7 +6071,7 @@ msgstr "Se connecter à des machines distantes pour y exécuter du code."
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:46
 msgid "Remote connections"
-msgstr ""
+msgstr "Connexions à distance"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:114 spyder/plugins/shortcuts/widgets/table.py:211
 msgid "Clear"
@@ -6084,7 +6083,7 @@ msgstr "Arrêter"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:124
 msgid "Connect"
-msgstr ""
+msgstr "Se connecter"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:132 spyder/plugins/workingdirectory/container.py:210 spyder/plugins/workingdirectory/container.py:211 spyder/widgets/browser.py:126
 msgid "Back"
@@ -6092,11 +6091,11 @@ msgstr "Retour"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:257
 msgid "Remove connection"
-msgstr ""
+msgstr "Supprimer la connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectiondialog.py:258
 msgid "Do you want to remove the connection called <b>{}</b>?"
-msgstr ""
+msgstr "Voulez-vous supprimer la connexion nommée <b>{}</b> ?"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:172
 msgid "Invalid host for configuration file"
@@ -6316,55 +6315,55 @@ msgstr "Infos de connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:42
 msgid "Inactive"
-msgstr ""
+msgstr "Inactif"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:43
 msgid "Connecting..."
-msgstr ""
+msgstr "Connexion en cours…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:44
 msgid "Connected..."
-msgstr ""
+msgstr "Connecté…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:45
 msgid "Starting..."
-msgstr ""
+msgstr "Démarrage en cours…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:46
 msgid "Active"
-msgstr ""
+msgstr "Actif"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:47
 msgid "Stopping..."
-msgstr ""
+msgstr "Arrêt en cours…"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:116
 msgid "Connection messages"
-msgstr ""
+msgstr "Messages de connexion"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:118
 msgid "Copy messages"
-msgstr ""
+msgstr "Copier les messages"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:127
 msgid "No logs to show"
-msgstr ""
+msgstr "Aucun journal à afficher"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:294
 msgid "The connection hasn't been used"
-msgstr ""
+msgstr "La connexion n'a pas été utilisée"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:304
 msgid "Connection to: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Connexion à : <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:310
 msgid "Username: {}"
-msgstr ""
+msgstr "Nom d'utilisateur : {}"
 
 #: spyder/plugins/remoteclient/widgets/connectionstatus.py:314
 msgid "Status: <span style=\"color:{}\">{}<span>"
-msgstr ""
+msgstr "Statut : <span style=\"color:{}\">{}<span>"
 
 #: spyder/plugins/remoteclient/widgets/container.py:111
 msgid "Manage remote connections"
@@ -6372,11 +6371,11 @@ msgstr "Gérer les connexions distantes"
 
 #: spyder/plugins/remoteclient/widgets/container.py:137
 msgid "Remote server error"
-msgstr ""
+msgstr "Erreur du serveur distant"
 
 #: spyder/plugins/remoteclient/widgets/container.py:138
 msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{server}</b> (<b>{srs_version}</b>) is newer than the latest Spyder supports (<b>{max_version}</b>).<br><br>Please update Spyder to be able to connect to this host."
-msgstr ""
+msgstr "La version de <tt>spyder-remote-services</tt> sur l'hôte distant <b>{server}</b> (<b>{srs_version}</b>) est plus récente que la dernière version que Spyder prend en charge (<b>{max_version}</b>).<br><br>Mettez à jour Spyder pour pouvoir vous connecter à cet hôte."
 
 #: spyder/plugins/run/confpage.py:150
 msgid "%s (copy)"
@@ -6444,7 +6443,7 @@ msgstr "Ouvrir la configuration"
 
 #: spyder/plugins/run/container.py:96
 msgid "&Global presets"
-msgstr ""
+msgstr "Configurations &globales"
 
 #: spyder/plugins/run/container.py:102
 msgid "Re-run &last file"
@@ -6512,7 +6511,7 @@ msgstr "Extension du fichier :"
 
 #: spyder/plugins/run/widgets.py:246
 msgid "Run context:"
-msgstr ""
+msgstr "Contexte d'exécution :"
 
 #: spyder/plugins/run/widgets.py:273 spyder/plugins/run/widgets.py:711
 msgid "Working directory settings"
@@ -6528,11 +6527,11 @@ msgstr "Configurer les paramètres d'exécution pour un fichier spécifique"
 
 #: spyder/plugins/run/widgets.py:593
 msgid "Configure file-specific options here for each available runner, such as the IPython Console, Debugger or External Terminal. To execute your code in a specific runner, use its action in the Run menu or elsewhere, such as 'Run > Run in external terminal'."
-msgstr ""
+msgstr "Ces paramètres permettent de définir les configurations par fichier pour chaque mode d'exécution, par exemple la console IPython, le débogueur ou le terminal externe. Pour utiliser un mode d'exécution spécifique, lancez l'exécution depuis le menu Exécuter ou ailleurs, par exemple « Exécuter > Exécuter dans un terminal externe »."
 
 #: spyder/plugins/run/widgets.py:616
 msgid "File:"
-msgstr ""
+msgstr "Fichier :"
 
 #: spyder/plugins/run/widgets.py:629
 msgid "Configure the selected runner for this file"
