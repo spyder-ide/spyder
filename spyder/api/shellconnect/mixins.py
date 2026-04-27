@@ -207,6 +207,22 @@ class ShellConnectPluginMixin(ShellConnectMixin):
     ShellConnectMainWidget.
     """
 
+    # ---- SpyderPluginV2 API
+    # -------------------------------------------------------------------------
+    def on_close(self, cancelable=False):
+        """
+        Remove registered shellwidgets.
+
+        This is only needed when the plugin is disabled. When the main window
+        is closed, shellwidgets are removed automatically when the IPython
+        console is closed too.
+        """
+        if not self.main.is_closing:
+            ipythonconsole = self.get_plugin(Plugins.IPythonConsole)
+            clients = ipythonconsole.get_clients()
+            for client in clients:
+                self.remove_shellwidget(client.shellwidget)
+
     # ---- Connection to the IPython console
     # -------------------------------------------------------------------------
     @on_plugin_available(plugin=Plugins.IPythonConsole)
@@ -346,3 +362,19 @@ class ShellConnectPluginMixin(ShellConnectMixin):
             or ``None`` if not found.
         """
         return self.get_widget().get_widget_for_shellwidget(shellwidget)
+
+    # ---- Private API
+    # -------------------------------------------------------------------------
+    def _add_current_shellwidgets(self):
+        """
+        Add available shellwidgets to the plugin.
+
+        This is only necessary when the plugin is reenabled.
+        """
+        ipythonconsole = self.get_plugin(Plugins.IPythonConsole)
+        clients = ipythonconsole.get_clients()
+        if clients:
+            for client in clients:
+                self.add_shellwidget(client.shellwidget)
+
+            self.set_shellwidget(ipythonconsole.get_current_shellwidget())

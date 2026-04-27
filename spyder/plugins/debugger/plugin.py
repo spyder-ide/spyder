@@ -37,7 +37,7 @@ from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
+class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'

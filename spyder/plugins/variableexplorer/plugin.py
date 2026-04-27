@@ -23,7 +23,7 @@ from spyder.plugins.variableexplorer.widgets.main_widget import (
     VariableExplorerWidget)
 
 
-class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
+class VariableExplorer(ShellConnectPluginMixin, SpyderDockablePlugin):
     """
     Variable explorer plugin.
     """
