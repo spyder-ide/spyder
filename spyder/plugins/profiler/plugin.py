@@ -87,12 +87,32 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
-            'extension': ['py', 'ipy', 'pyw'],
-            "contexts": [
-                {"name": "File"},
-                {"name": "Cell"},
-                {"name": "Selection"},
-            ],
+            'extension': 'py',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
+        self.ipython_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'ipy',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
+        }
+
+        self.pyw_editor_run_configuration = {
+            'origin': self.NAME,
+            'extension': 'pyw',
+            'contexts': [
+                {'name': 'File'},
+                {'name': 'Cell'},
+                {'name': 'Selection'},
+            ]
         }
 
         self.executor_configuration = [
@@ -121,7 +141,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy', 'pyw'],
+                'input_extension': 'py',
                 'context': {'name': 'Cell'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -129,7 +149,39 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 'priority': 10
             },
             {
-                'input_extension': ['py', 'ipy', 'pyw'],
+                'input_extension': 'ipy',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
+                'context': {'name': 'Cell'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'py',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'ipy',
+                'context': {'name': 'Selection'},
+                'output_formats': [],
+                'configuration_widget': None,
+                'requires_cwd': True,
+                'priority': 10
+            },
+            {
+                'input_extension': 'pyw',
                 'context': {'name': 'Selection'},
                 'output_formats': [],
                 'configuration_widget': None,
@@ -225,9 +277,12 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.add_supported_run_configuration(
-            self.python_editor_run_configuration
-        )
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration,
+        ]:
+            editor.add_supported_run_configuration(run_config)
 
         widget.sig_edit_goto_requested.connect(editor.load)
 
@@ -236,9 +291,12 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
 
-        editor.remove_supported_run_configuration(
-            self.python_editor_run_configuration
-        )
+        for run_config in [
+            self.python_editor_run_configuration,
+            self.ipython_editor_run_configuration,
+            self.pyw_editor_run_configuration,
+        ]:
+            editor.remove_supported_run_configuration(run_config)
 
         widget.sig_edit_goto_requested.disconnect(editor.load)
 
