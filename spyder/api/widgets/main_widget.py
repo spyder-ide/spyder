@@ -1360,7 +1360,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
 
         Parameters
         ----------
-        state : bool
+        enable : bool
             Whether the widget is being raised to the foreground
             (``True``) or set as not in the foreground (``False``).
             The latter does not actually send it to the background, but
@@ -1430,7 +1430,7 @@ class PluginMainWidget(SpyderWidgetMixin, QWidget):
 
         Parameters
         ----------
-        value : bool
+        checked : bool
             Whether to show (``True``) or hide (``False``) this widget.
 
         Returns
