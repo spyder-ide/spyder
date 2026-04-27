@@ -14,7 +14,7 @@ from lsprotocol import types as lsp
 
 # Local imports
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri, process_uri, snake_to_camel)
+    path_as_uri, process_uri)
 from spyder.plugins.completion.providers.languageserver.decorators import (
     handles, send_request, send_notification)
 
@@ -358,14 +358,11 @@ class DocumentProvider:
 
     @send_request(method=lsp.TEXT_DOCUMENT_FORMATTING)
     def document_formatting_request(self, params):
-        options = {
-            snake_to_camel(k): v for k, v in params['options'].items()
-        }
         return lsp.DocumentFormattingParams(
             text_document=lsp.TextDocumentIdentifier(
                 uri=path_as_uri(params['file']),
             ),
-            options=lsp.FormattingOptions(**options),
+            options=lsp.FormattingOptions(**params['options']),
         )
 
     @handles(lsp.TEXT_DOCUMENT_FORMATTING)
@@ -383,15 +380,12 @@ class DocumentProvider:
 
     @send_request(method=lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def document_range_formatting_request(self, params):
-        options = {
-            snake_to_camel(k): v for k, v in params['options'].items()
-        }
         rng = params['range']
         return lsp.DocumentRangeFormattingParams(
             text_document=lsp.TextDocumentIdentifier(
                 uri=path_as_uri(params['file']),
             ),
-            options=lsp.FormattingOptions(**options),
+            options=lsp.FormattingOptions(**params['options']),
             range=lsp.Range(
                 start=lsp.Position(
                     line=rng['start']['line'],
