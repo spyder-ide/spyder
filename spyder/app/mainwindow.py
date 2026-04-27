@@ -493,9 +493,16 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             # This is necessary to register plugin shortcuts again
             self.shortcuts.apply_shortcuts()
 
-            # Tabify plugin
+            # For dockable plugins
             if isinstance(plugin, SpyderDockablePlugin):
+                # Tabify plugin
                 self.layouts.tabify_plugin(plugin)
+
+                # Rebuild 'Window > Panes' menu
+                self.layouts.create_plugins_menu(rebuild=True)
+
+                # Check plugin as visible in that menu
+                plugin.get_widget().toggle_view(True)
 
     def unregister_plugin(self, plugin_name):
         """Unregister a plugin from the main window."""
@@ -568,6 +575,10 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             # Remove dockwidget
             logger.info("Removing {} dockwidget...".format(plugin.NAME))
             self.remove_dockwidget(plugin)
+
+            # Rebuild 'Window > Panes' menu
+            if not self.is_closing:
+                self.layouts.create_plugins_menu(rebuild=True)
 
         plugin._unregister()
 
