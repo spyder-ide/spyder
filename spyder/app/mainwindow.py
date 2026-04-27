@@ -484,6 +484,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Actions to perform when the plugin is re-registered
         if not self.is_setting_up:
+            from spyder.api.shellconnect.main_widget import (
+                ShellConnectMainWidget,
+            )
+
             # This is necessary to register plugin shortcuts again
             self.shortcuts.apply_shortcuts()
 
@@ -496,7 +500,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 self.layouts.create_plugins_menu(rebuild=True)
 
                 # Check plugin as visible in that menu
-                plugin.get_widget().toggle_view(True)
+                main_widget = plugin.get_widget()
+                main_widget.toggle_view(True)
+
+                # Add current shellwidgets to ShellConnect plugins
+                if isinstance(main_widget, ShellConnectMainWidget):
+                    plugin._add_current_shellwidgets()
 
     def unregister_plugin(self, plugin_name):
         """Unregister a plugin from the main window."""
