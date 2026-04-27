@@ -1056,8 +1056,8 @@ class LSPMixin:
                 "tab_size": tab_size,
                 "insert_spaces": using_spaces,
                 "trim_trailing_whitespace": self.remove_trailing_spaces,
-                "insert_final_new_line": self.add_newline,
-                "trim_final_new_lines": self.remove_trailing_newlines,
+                "insert_final_newline": self.add_newline,
+                "trim_final_newlines": self.remove_trailing_newlines,
             },
         }
 
@@ -1109,8 +1109,8 @@ class LSPMixin:
                 "tab_size": tab_size,
                 "insert_spaces": using_spaces,
                 "trim_trailing_whitespace": self.remove_trailing_spaces,
-                "insert_final_new_line": self.add_newline,
-                "trim_final_new_lines": self.remove_trailing_newlines,
+                "insert_final_newline": self.add_newline,
+                "trim_final_newlines": self.remove_trailing_newlines,
             },
         }
 
