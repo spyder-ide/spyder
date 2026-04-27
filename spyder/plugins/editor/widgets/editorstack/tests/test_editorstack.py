@@ -17,6 +17,7 @@ from unittest.mock import Mock, MagicMock
 # Third party imports
 import pytest
 from flaky import flaky
+from lsprotocol import types as lsp
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWidgets import QVBoxLayout, QWidget
@@ -953,22 +954,24 @@ def test_ipython_files(base_editor_bot, qtbot):
     # Mock linting results for this file. This is actually what's returned by
     # Pyflakes.
     editor._diagnostics = [
-        {
-            'source': 'pyflakes',
-            'range': {
-                'start': {'line': 8, 'character': 0},
-                'end': {'line': 8, 'character': 19}
-            },
-            'message': "'numpy as np' imported but unused", 'severity': 2
-        },
-        {
-            'source': 'pyflakes',
-            'range': {
-                'start': {'line': 11, 'character': 0},
-                'end': {'line': 11, 'character': 47}
-            },
-            'message': "undefined name 'get_ipython'", 'severity': 1
-        }
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=8, character=0),
+                end=lsp.Position(line=8, character=19),
+            ),
+            message="'numpy as np' imported but unused",
+            severity=lsp.DiagnosticSeverity.Warning,
+            source='pyflakes',
+        ),
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=11, character=0),
+                end=lsp.Position(line=11, character=47),
+            ),
+            message="undefined name 'get_ipython'",
+            severity=lsp.DiagnosticSeverity.Error,
+            source='pyflakes',
+        ),
     ]
 
     # Setting them in the editor
