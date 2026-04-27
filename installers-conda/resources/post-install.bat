@@ -17,6 +17,9 @@ if "%no_launch_spyder%"=="true" (
     @echo Launching Spyder after install completed.
 )
 
+@rem Add PowerShell directory to PATH because constructor does not include it
+set "PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0"
+
 set mode=system
 if exist "%PREFIX%\.nonadmin" set mode=user
 
@@ -47,4 +50,4 @@ if not exist "%tmpdir%" mkdir "%tmpdir%"
     echo ^)
 ) > "%launch_script%"
 
-C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
+powershell -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
