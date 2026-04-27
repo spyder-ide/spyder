@@ -93,7 +93,8 @@ def test_get_signature(lsp_client_and_completion, qtbot):
     _, response = blocker.args
 
     # Assert the response has what we expect
-    assert response['label'].startswith('walk')
+    active = response.active_signature or 0
+    assert response.signatures[active].label.startswith('walk')
 
 
 @pytest.mark.order(3)
