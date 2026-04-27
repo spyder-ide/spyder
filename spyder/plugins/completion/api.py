@@ -14,6 +14,7 @@ extensions for the Language Server Protocol.
 # Standard library imports
 from __future__ import annotations
 from typing import Any, Optional, Tuple, TYPE_CHECKING, Union
+from enum import IntEnum
 
 # Third party imports
 from lsprotocol.types import SymbolKind
@@ -38,10 +39,11 @@ SUPPORTED_LANGUAGES = [
 
 # ---- Spyder-specific symbol kind extensions (not in the LSP spec) -----------
 
-#: Integer sentinel for block comments in the outline explorer.
-SYMBOL_KIND_BLOCK_COMMENT = 224
-#: Integer sentinel for notebook cells in the outline explorer.
-SYMBOL_KIND_CELL = 225
+class SpyderSymbolKind(IntEnum):
+    #: Integer sentinel for block comments in the outline explorer.
+    BlockComment = 224
+    #: Integer sentinel for notebook cells in the outline explorer.
+    Cell = 225
 
 # Mapping between SymbolKind values and icon identifiers used by the UI.
 SYMBOL_KIND_ICON = {
@@ -71,8 +73,8 @@ SYMBOL_KIND_ICON = {
     SymbolKind.Event: 'event',
     SymbolKind.Operator: 'operator',
     SymbolKind.TypeParameter: 'type_parameter',
-    SYMBOL_KIND_BLOCK_COMMENT: 'blockcomment',
-    SYMBOL_KIND_CELL: 'cell',
+    SpyderSymbolKind.BlockComment: 'blockcomment',
+    SpyderSymbolKind.Cell: 'cell',
 }
 
 #: Spyder-specific LSP extension: cursor event notification method name.

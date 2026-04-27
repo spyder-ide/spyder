@@ -27,8 +27,7 @@ from spyder.api.config.decorators import on_conf_change
 from spyder.api.translations import _
 from spyder.utils.icon_manager import ima
 from spyder.plugins.completion.api import (
-    SYMBOL_KIND_BLOCK_COMMENT,
-    SYMBOL_KIND_CELL,
+    SpyderSymbolKind,
     SYMBOL_KIND_ICON,
 )
 from spyder.utils.qthelpers import set_item_user_text
@@ -75,8 +74,8 @@ SYMBOL_NAME_MAP = {
     lsp.SymbolKind.Event: _('Event'),
     lsp.SymbolKind.Operator: _('Operator'),
     lsp.SymbolKind.TypeParameter: _('Type parameter'),
-    SYMBOL_KIND_CELL: _('Cell'),
-    SYMBOL_KIND_BLOCK_COMMENT: _('Block comment'),
+    SpyderSymbolKind.Cell: _('Cell'),
+    SpyderSymbolKind.BlockComment: _('Block comment'),
 }
 
 

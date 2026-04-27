@@ -37,6 +37,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.config.base import (
     DEV, get_conf_path, get_debug_level, running_under_pytest
 )
+from spyder.plugins.completion.api import SpyderSymbolKind
 from spyder.plugins.completion.providers.languageserver.decorators import (
     class_register, handles
 )
@@ -92,6 +93,16 @@ def _spyder_converter():
         return converter.structure(obj, lsp.NotebookDocumentFilterPattern)
 
     converter.register_structure_hook(_opt_notebook_filter, _structure_opt_notebook_filter)
+
+    # Register hook for custom for Spyder extended LSP SymbolKind
+    def _structure_symbol_kind(obj, _):
+        try:
+            return lsp.SymbolKind(obj)
+        except ValueError:
+            return SpyderSymbolKind(obj)
+
+    converter.register_structure_hook(lsp.SymbolKind, _structure_symbol_kind)
+
     return converter
 
 
