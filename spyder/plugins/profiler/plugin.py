@@ -39,7 +39,7 @@ from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 # --- Plugin
 # ----------------------------------------------------------------------------
-class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
+class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     """
     Profiler (after python's profile and pstats).
     """
