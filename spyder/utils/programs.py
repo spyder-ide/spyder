@@ -186,7 +186,7 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
 
         # Ensure Windows subprocess environment has certain variables.
         # Use case-insensitive key lookup since Windows env vars are
-        # case-insensitive (avoids pulling in the requests library at import).
+        # case-insensitive.
         if "env" in kwargs:
             env = kwargs.get("env")
             env_lower = {k.lower(): k for k in env}
