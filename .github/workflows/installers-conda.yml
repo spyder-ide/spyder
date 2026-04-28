@@ -163,7 +163,7 @@ jobs:
 
       - name: Restore python-lsp-server Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
@@ -172,7 +172,7 @@ jobs:
 
       - name: Restore qtconsole Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Restore ${{ matrix.spyk-arch }} spyder-kernels Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
