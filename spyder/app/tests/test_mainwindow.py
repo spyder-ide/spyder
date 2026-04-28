@@ -7831,5 +7831,89 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     assert instance_value.var == 123
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="Fails with Python 3.9")
+def test_help_long_type_alias_rendering(main_window, qtbot):
+    """Test that long type annotations from __main__ are readable."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=20000
+    )
+
+    help_plugin = main_window.help
+    webview = help_plugin.get_widget().rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    code = dedent(
+        """
+        from collections.abc import Sequence
+        type_alias = Sequence[int | str] | int | str
+
+        def my_fun(x: type_alias) -> type_alias:
+            '''Test docstring'''
+            return x
+        """
+    )
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    qtbot.keyClicks(control, 'my_fun')
+    control.inspect_current_object()
+
+    # Validate the docstring is shown in the Help pane
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Test docstring"),
+        timeout=20000
+    )
+
+    # And the right signature is in it.
+    assert check_text(webpage, "x")
+    assert not check_text(webpage, "Sequence[int | str] | int | str |")
+
+
+def test_help_numpy_typing_annotations(main_window, qtbot):
+    """Test that numpy typing annotations don't break argument visibility."""
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=20000
+    )
+
+    help_plugin = main_window.help
+    webview = help_plugin.get_widget().rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    code = dedent(
+        """
+        from __future__ import annotations
+        import numpy as np
+        import numpy.typing as npt
+
+        def my_np_fun(x: npt.ArrayLike, axis: int) -> npt.NDArray[float]:
+            '''Numpy typing test'''
+            return np.asarray(x, np.float64).sum(axis)
+        """
+    )
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(code)
+
+    qtbot.keyClicks(control, 'my_np_fun')
+    control.inspect_current_object()
+
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Numpy typing test"),
+        timeout=20000
+    )
+
+    assert check_text(webpage, "axis")
+    assert not check_text(
+        webpage, "[Union[bool, int, float, complex, str, bytes]]"
+    )
+
+
 if __name__ == "__main__":
     pytest.main()
