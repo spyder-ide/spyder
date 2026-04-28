@@ -1838,7 +1838,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         self,
         parent,
         data,
-        from_variable_explorer,
+        from_variable_explorer=False,
         namespacebrowser=None,
         data_function: Optional[Callable[[], Any]] = None,
         readonly=False,
