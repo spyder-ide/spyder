@@ -62,14 +62,14 @@ jobs:
           detached: true
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ inputs.branch }}
 
       - name: Cache ${{ matrix.pkg }} ${{ matrix.cache-arch }} Conda Build
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: ${{ matrix.pkg }}_${{ matrix.cache-arch }}_${{ matrix.python-version }}_${{ hashFiles(format('external-deps/{0}/.gitrepo', env.pkg)) }}
@@ -78,7 +78,7 @@ jobs:
 
       - name: Setup Build Environment
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
             conda_build:

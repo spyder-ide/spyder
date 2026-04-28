@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ matrix.branch }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Restore python-lsp-server Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: python-lsp-server_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/python-lsp-server/.gitrepo') }}
@@ -172,7 +172,7 @@ jobs:
 
       - name: Restore qtconsole Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: qtconsole_noarch_${{ matrix.python-version }}_${{ hashFiles('external-deps/qtconsole/.gitrepo') }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Restore ${{ matrix.spyk-arch }} spyder-kernels Cache
         if: env.USE_SUBREPOS == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: installers-conda/build/conda-bld/**/*.conda
           key: spyder-kernels_${{ matrix.spyk-arch }}_${{ matrix.python-version }}_${{ hashFiles('external-deps/spyder-kernels/.gitrepo') }}
@@ -190,7 +190,7 @@ jobs:
 
       - name: Setup Build Environment (Windows)
         if: runner.os == 'Windows'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
             conda_build:
@@ -213,7 +213,7 @@ jobs:
 
       - name: Setup Build Environment (macOS & Linux)
         if: runner.os != 'Windows'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           condarc: |
             conda_build:
@@ -358,7 +358,7 @@ jobs:
           ./notarize.sh -p $APPLICATION_PWD $PKG_PATH
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{ env.DISTDIR }}
           name: ${{ env.ARTIFACT_NAME }}
@@ -375,7 +375,7 @@ jobs:
 
     steps:
       - name: Download Assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           merge-multiple: 'true'
 
@@ -388,13 +388,13 @@ jobs:
           sha256sum *.zip *.pkg *.sh *.exe > Spyder-checksums.txt || true
 
       - name: Upload Lock Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: spyder-conda-lock.zip
           name: spyder-conda-lock-artifact
 
       - name: Upload Checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: Spyder-checksums.txt
           name: Spyder-checksums
