@@ -30,7 +30,7 @@ class VariableExplorer(ShellConnectPluginMixin, SpyderDockablePlugin):
     NAME = 'variable_explorer'
     REQUIRES = [Plugins.IPythonConsole, Plugins.Preferences]
     OPTIONAL = [Plugins.Plots]
-    TABIFY = None
+    TABIFY = [Plugins.Help, Plugins.Explorer]
     WIDGET_CLASS = VariableExplorerWidget
     CONF_SECTION = NAME
     CONF_FILE = False

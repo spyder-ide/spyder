@@ -45,7 +45,7 @@ class Explorer(SpyderDockablePlugin):
         Plugins.IPythonConsole,
         Plugins.RemoteClient,
     ]
-    TABIFY = Plugins.VariableExplorer
+    TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     WIDGET_CLASS = ExplorerWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = ExplorerConfigPage
