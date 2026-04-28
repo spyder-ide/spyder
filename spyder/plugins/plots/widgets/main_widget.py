@@ -525,7 +525,7 @@ class PlotsWidget(ShellConnectMainWidget):
             dialog.setIntStep(1)
             dialog.setIntValue(self.get_conf('max_plots'))
 
-            dialog.setIntRange(10, 100)
+            dialog.setIntRange(10, 10000)
 
             # Connect slot
             dialog.intValueSelected.connect(
