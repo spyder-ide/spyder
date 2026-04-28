@@ -167,7 +167,7 @@ jobs:
           .github/scripts/run_tests.sh -n 7
 
       - name: Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: false
           verbose: true
