@@ -1060,16 +1060,18 @@ class HelpWidget(PluginMainWidget):
         is_code = False
 
         if self.get_conf('rich_mode'):
-            is_function=False
+            # Check if the function was declared in the console
+            is_interactive_function = False
             if doc:
                 documentation = doc.get('docstring', '')
                 note = doc.get('note', '')
-                is_function = '__main__' in note
+                is_interactive_function = '__main__' in note
 
-            if is_function and source_text:
-                signature = unicodedata.normalize("NFKD", source_text)
+            # Get signature from text
+            if is_interactive_function and source_text:
+                normalized_text = unicodedata.normalize("NFKD", source_text)
                 match = re.search(
-                    r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', signature, re.S
+                    r'def\s+.*?\)\s*(?:->\s*[^:]+)?\s*:', normalized_text, re.S
                 )
                 args = ''
 
@@ -1077,6 +1079,7 @@ class HelpWidget(PluginMainWidget):
                     definition = match.group(0)
                     start = definition.find('(')
                     args = definition[start:-1]
+
                 doc = {
                     'name': obj_text,
                     'argspec': args,

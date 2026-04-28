@@ -226,6 +226,7 @@ def sphinxify(docstring, context, buildername='html'):
         argspec = argspec.replace(char,
                          '<span class="argspec-highlight">' + char + '</span>')
 
+    # Highlight annotation arrows.
     argspec = argspec.replace(
         '-&gt;',
         '<span class="argspec-highlight">-&gt;</span>'
