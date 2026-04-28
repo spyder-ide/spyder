@@ -108,10 +108,9 @@ jobs:
           key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
 
       - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           conda-remove-defaults: "true"
-          auto-activate-base: false
           python-version: ${{ matrix.PYTHON_VERSION }}
           miniconda-version: "latest"
           channels: conda-forge
