@@ -50,7 +50,8 @@ if not exist "%tmpdir%" mkdir "%tmpdir%"
     echo ^)
 ) > "%launch_script%"
 
-endlocal
+@rem Allow launch_script to be global
+endlocal & set "launch_script=%launch_script%"
 
 @rem Add PowerShell directory to PATH because constructor does not include it
 set "PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0"
