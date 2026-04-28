@@ -2444,7 +2444,6 @@ class EditorMainWidget(PluginMainWidget):
     @Slot()
     def collapse_all(self):
         self.switch_to_plugin()
-        editorstack = self.get_current_editorstack()
         editor = self.get_current_editor()
         if editor is not None:
             editor.collapse_all()
@@ -2452,7 +2451,6 @@ class EditorMainWidget(PluginMainWidget):
     @Slot()
     def expand_all(self):
         self.switch_to_plugin()
-        editorstack = self.get_current_editorstack()
         editor = self.get_current_editor()
         if editor is not None:
             editor.expand_all()
