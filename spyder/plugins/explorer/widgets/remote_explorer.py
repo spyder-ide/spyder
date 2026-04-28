@@ -131,7 +131,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
-    def __init__(self, parent=None, class_parent=None, files=None, only_dir=False):
+    def __init__(
+        self, parent=None, class_parent=None, files=None, only_dir=False
+    ):
         super().__init__(parent=parent, class_parent=parent)
 
         # General attributes
