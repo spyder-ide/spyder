@@ -509,7 +509,6 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         self.shellwidget.disconnect_kernel(shutdown_kernel)
         self.kernel_handler = None
 
-
     @Slot(str)
     def print_stderr(self, stderr):
         """Print stderr written in PIPE."""
