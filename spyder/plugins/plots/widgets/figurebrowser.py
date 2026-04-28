@@ -34,7 +34,7 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QLabel)
 from superqt.utils import qdebounced
 
 # Local library imports
@@ -757,7 +757,14 @@ class ThumbnailScrollBar(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
+        self.limit_label = QLabel(self)
+        self.limit_label.setWordWrap(True)
+        layout.addWidget(self.limit_label)
+
         layout.addWidget(self.setup_scrollarea())
+
+        self.update_limit_label()
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -807,6 +814,7 @@ class ThumbnailScrollBar(QFrame):
         remove_thumbnails = self._thumbnails[:-self._max_plots]
         for thumbnail in remove_thumbnails:
             self.remove_thumbnail(thumbnail)
+        self.update_limit_label()
 
     def eventFilter(self, widget, event):
         """
@@ -1040,6 +1048,7 @@ class ThumbnailScrollBar(QFrame):
 
         if not is_first and (not stick_at_end or not select_last):
             self._scroll_to_last_thumbnail = False
+        self.update_limit_label()
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -1102,6 +1111,7 @@ class ThumbnailScrollBar(QFrame):
         # This is necessary to free memory faster than Python itself does it.
         # See https://github.com/spyder-ide/spyder/issues/25249#issuecomment-3473017854
         self._free_memory()
+        self.update_limit_label()
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
@@ -1194,6 +1204,20 @@ class ThumbnailScrollBar(QFrame):
         """Scroll the scrollbar of the scrollarea down by a single step."""
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(int(vsb.value() + vsb.singleStep()))
+
+    def update_limit_label(self):
+        """Update plots usage label."""
+        current = len(self._thumbnails)
+        limit = self._max_plots
+
+        text = f"Plots ({current} / {limit})"
+
+        if current >= limit:
+            text += " Oldest plots will be replaced"
+        elif current >= int(limit * 0.8):
+            text += " Near limit"
+
+        self.limit_label.setText(text)
 
 
 
