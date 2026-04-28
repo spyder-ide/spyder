@@ -124,7 +124,7 @@ class MainInterpreterConfigPage(PluginConfigPage):
             "custom_conda",
             tip=_(
                 "Use the specified Conda, Mamba or Micromamba instead of "
-                "finding the executable from the interpreter path.<br><br>"
+                "finding the executable from the interpreter path. "
                 "Required if using a custom Conda prefix with a Conda/Mamba "
                 "installed at a non-standard location."
             ),
