@@ -709,33 +709,17 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                 raise
 
         # Delete plugin from the registry and auxiliary structures
-        self.plugin_dependents.pop(plugin_name, None)
         self.plugin_dependencies.pop(plugin_name, None)
         if plugin_instance.CONF_FILE:
             # This must be done after on_close() so that plugins can modify
             # their (external) config therein.
             CONF.unregister_plugin(plugin_instance)
 
-        for plugin in self.plugin_dependents:
-            all_plugin_dependents = self.plugin_dependents[plugin]
-            for key in {"requires", "optional"}:
-                plugin_dependents = all_plugin_dependents.get(key, [])
-                if plugin_name in plugin_dependents:
-                    plugin_dependents.remove(plugin_name)
-
-        for plugin in self.plugin_dependencies:
-            all_plugin_dependencies = self.plugin_dependencies[plugin]
-            for key in {"requires", "optional"}:
-                plugin_dependencies = all_plugin_dependencies.get(key, [])
-                if plugin_name in plugin_dependencies:
-                    plugin_dependencies.remove(plugin_name)
-
         self.plugin_availability.pop(plugin_name)
         self.enabled_plugins -= {plugin_name}
         self.internal_plugins -= {plugin_name}
         self.external_plugins -= {plugin_name}
 
-        # Remove the plugin from the registry
         self.plugin_registry.pop(plugin_name)
 
         return True
