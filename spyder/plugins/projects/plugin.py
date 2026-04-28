@@ -49,6 +49,7 @@ class Projects(SpyderDockablePlugin):
         Plugins.IPythonConsole,
         Plugins.Switcher,
     ]
+    TABIFY = [Plugins.OutlineExplorer]
     WIDGET_CLASS = ProjectExplorerWidget
 
     # Signals
