@@ -1101,10 +1101,10 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         else:
             next_to_plugins = tabify
 
-        # Check if TABIFY is not a list with None as unique value or a default
-        # list
-        if tabify in [[None], []]:
-            return False
+        # Add the Internal Console to next_plugins because it's the only
+        # dockable plugin that can't be disabled. So, if all plugins in TABIFY
+        # are unavailable, at least we'll tabify it next to the console.
+        next_to_plugins += [Plugins.Console]
 
         # Get the actual plugins from their names
         next_to_plugins = [
