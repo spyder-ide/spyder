@@ -107,7 +107,7 @@ jobs:
 
       - name: Create conda test environment
         if: env.USE_CONDA == 'true'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml
@@ -117,7 +117,7 @@ jobs:
 
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           micromamba-version: '1.5.10-0'
           environment-name: test
