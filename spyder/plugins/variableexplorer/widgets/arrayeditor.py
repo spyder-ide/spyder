@@ -748,7 +748,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         It returns False if data is not supported, True otherwise.
         """
-        self.setup_ui(title, readonly, from_variable_explorer)
+        self.setup_ui(from_variable_explorer, title, readonly)
         return self.set_data_and_check(data, readonly)
 
     def setup_ui(self, from_variable_explorer, title='', readonly=False):
