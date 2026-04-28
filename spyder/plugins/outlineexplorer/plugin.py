@@ -22,7 +22,7 @@ class OutlineExplorer(SpyderDockablePlugin):
     NAME = 'outline_explorer'
     CONF_SECTION = 'outline_explorer'
     REQUIRES = [Plugins.Completions, Plugins.Editor]
-    OPTIONAL = []
+    TABIFY = [Plugins.Projects]
 
     CONF_FILE = False
     WIDGET_CLASS = OutlineExplorerWidget
