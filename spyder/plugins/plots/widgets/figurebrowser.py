@@ -1306,7 +1306,10 @@ class FigureThumbnail(QWidget):
         clicked.
         """
         if event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.LeftButton:
+            # It seems some events don't have the 'button' attribute, so we
+            # need to check for it first.
+            # Fixes spyder-ide/spyder#25980
+            if hasattr(event, "button") and event.button() == Qt.LeftButton:
                 self.sig_canvas_clicked.emit(self)
 
         return super().eventFilter(widget, event)
