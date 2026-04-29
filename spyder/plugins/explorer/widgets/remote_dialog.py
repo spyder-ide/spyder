@@ -8,10 +8,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from qtpy.QtCore import QSize
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
+    QLabel,
     QToolBar,
     QTreeView,
     QVBoxLayout,
@@ -45,6 +47,7 @@ class RemoteFileDialogActions:
 class RemoteFileDialog(QDialog, SpyderWidgetMixin):
     def __init__(
         self,
+        server_name: str,
         server_id: str,
         remote_files_manager: SpyderRemoteFileServicesAPI,
         directory: str,
@@ -60,7 +63,11 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             else _("Select remote file")
         )
         self.setModal(True)
-        self._directory = None
+        self.setFixedSize(600, 400)
+        self._server_name = server_name
+        self._current_directory = None
+        self._selected = None
+        self._only_dir = only_dir
 
         # Actions
         self.previous_action = self.create_action(
@@ -87,6 +94,8 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
 
         # Toolbar
         self.toolbar = QToolBar(self)
+        self.current_directory = QLabel(self)
+
         for action in [
             self.previous_action,
             self.next_action,
@@ -94,6 +103,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         ]:
             self.toolbar.addAction(action)
 
+        self.toolbar.addWidget(self.current_directory)
         self.toolbar.addWidget(self._spinner)
 
         # RemoteExplorer
@@ -113,13 +123,16 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
 
         # Signals
         self.remote_treewidget.sig_dir_opened.connect(
-            self.set_selected_directory
+            self.set_current_directory
         )
         self.remote_treewidget.sig_start_spinner_requested.connect(
             self.start_spinner
         )
         self.remote_treewidget.sig_stop_spinner_requested.connect(
             self.stop_spinner
+        )
+        self.remote_treewidget.view.selectionModel().currentChanged.connect(
+            self._set_selected
         )
 
         # ButtonBox
@@ -136,18 +149,18 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         layout.addWidget(button_box)
         self.setLayout(layout)
 
-        self.set_directory(directory, server_id, remote_files_manager)
+        self.set_initial_directory(directory, server_id, remote_files_manager)
 
     # ---- Public API
     # -------------------------------------------------------------------------
-    def set_directory(
+    def set_initial_directory(
         self,
         directory: str,
         server_id: str,
         remote_files_manager: SpyderRemoteFileServicesAPI,
     ) -> None:
         """
-        Set current directory being shown by the dialog.
+        Set initial directory being shown by the dialog.
 
         Parameters
         ----------
@@ -185,9 +198,9 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         """Go to parent directory."""
         self.remote_treewidget.go_to_parent_directory()
 
-    def set_selected_directory(self, directory: str) -> None:
+    def set_current_directory(self, directory: str) -> None:
         """
-        Set current selected directory.
+        Set current directory.
 
         Parameters
         ----------
@@ -195,21 +208,66 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             Path to the currently selected directory.
         """
         if directory:
-            self._directory = directory
+            current_directory = directory
+            if len(directory) > 30:
+                metrics = QFontMetrics(self.font())
+                max_width = 30 * metrics.width("W")
+                current_directory = metrics.elidedText(
+                    directory, Qt.ElideMiddle, max_width
+                )
+            self.current_directory.setText(
+                _(
+                    "Current location: {server_name}:/{current_directory}"
+                ).format(
+                    server_name=self._server_name,
+                    current_directory=current_directory,
+                )
+            )
+            self._current_directory = directory
+            #self.adjustSize()
 
-    def get_selected_directory(self) -> str | None:
+    def get_current_directory(self) -> str:
         """
-        Get currently selected directory.
+        Get currently directory.
+
+        Returns
+        -------
+        str
+            Current directory.
+        """
+        return self._current_directory
+
+    def _set_selected(self, current, previous) -> None:
+        """
+        Set current directory.
+
+        Parameters
+        ----------
+        current : QModelIndex
+            Current selected index.
+        previous : QModelIndex
+            Previously selected index.
+        """
+        data = current.data(role=Qt.UserRole + 1)
+        if data:
+            if not self._only_dir and data["type"] == "directory":
+                return
+            self._selected = data["name"]
+
+    def get_selected(self) -> str | None:
+        """
+        Get currently selected directory/file.
 
         Returns
         -------
         str | None
-            Current selected directory or `None` if nothing has been selected.
+            Current selected directory/file or `None` if nothing has been selected.
         """
-        return self._directory
+        return self._selected
 
     @staticmethod
     def get_remote_directory(
+        server_name: str,
         server_id: str,
         remote_files_manager: SpyderRemoteFileServicesAPI,
         directory: str,
@@ -224,6 +282,8 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
 
         Parameters
         ----------
+        server_name: str
+            Name of the server where the directory is located.
         server_id : str
             Id of the server where the directory is located.
         remote_files_manager : SpyderRemoteFileServicesAPI
@@ -246,11 +306,61 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             or the dialog is not accepted.
         """
         dialog = RemoteFileDialog(
+            server_name,
             server_id,
             remote_files_manager,
             directory,
             parent=parent,
             class_parent=class_parent,
+            only_dir=True,
         )
         if dialog.exec_():
-            return dialog.get_selected_directory()
+            return dialog.get_selected()
+
+    @staticmethod
+    def get_remote_file(
+        server_name: str,
+        server_id: str,
+        remote_files_manager: SpyderRemoteFileServicesAPI,
+        directory: str,
+        parent: QWidget = None,
+        class_parent: QObject = None,
+    ) -> str | None:
+        """
+        Allow to get a remote files system file path.
+
+        Handles `RemoteFileDialog` instantiation.
+
+        Parameters
+        ----------
+        server_name: str
+            Name of the server where the directory is located.
+        server_id : str
+            Id of the server where the directory is located.
+        remote_files_manager : SpyderRemoteFileServicesAPI
+            API instance to handle remote files access/operations.
+        directory : str
+            Path of the initial directory to show in the dialog.
+        parent : QWidget, optional
+            Parent widget to use for the dialog. The default is `None`.
+        class_parent : QObject, optional
+            Class definition of the parent to use for the dialog. The default
+            is `None`.
+
+        Returns
+        -------
+        str | None
+            Path to the selected file or `None` if no file has been selected
+            or the dialog is not accepted.
+        """
+        dialog = RemoteFileDialog(
+            server_name,
+            server_id,
+            remote_files_manager,
+            directory,
+            parent=parent,
+            class_parent=class_parent,
+            only_dir=False,
+        )
+        if dialog.exec_():
+            return dialog.get_selected()
