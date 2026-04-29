@@ -20,8 +20,16 @@ from typing import Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
-                         QItemSelectionRange, QModelIndex, Qt, Slot)
+from qtpy.QtCore import (
+    QAbstractTableModel,
+    QItemSelection,
+    QItemSelectionRange,
+    QLocale,
+    QModelIndex,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
@@ -58,6 +66,7 @@ class ArrayEditorActions:
     Preferences = 'preferences_action'
     Refresh = 'refresh_action'
     Resize = 'resize_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class ArrayEditorMenus:
@@ -703,6 +712,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
     CONF_SECTION = 'variable_explorer'
 
+    sig_close_all_editors_requested = Signal()
+
     def __init__(
         self,
         parent: Optional[QWidget] = None,
@@ -739,16 +750,18 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
 
-    def setup_and_check(self, data, title='', readonly=False):
+    def setup_and_check(
+        self, data, title='', readonly=False, from_variable_explorer=False
+    ):
         """
         Setup the editor.
 
         It returns False if data is not supported, True otherwise.
         """
-        self.setup_ui(title, readonly)
+        self.setup_ui(from_variable_explorer, title, readonly)
         return self.set_data_and_check(data, readonly)
 
-    def setup_ui(self, title='', readonly=False):
+    def setup_ui(self, from_variable_explorer, title='', readonly=False):
         """
         Create the user interface.
 
@@ -800,6 +813,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             triggered=do_nothing,
             register_action=False
         )
+        self.close_all_editors_action = self.create_action(
+            name=ArrayEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
+        )
+        self.close_all_editors_action.setVisible(from_variable_explorer)
 
         # ---- Toolbar and options menu
 
@@ -824,8 +844,13 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             register=False
         )
         stretcher = self.create_stretcher(ArrayEditorWidgets.ToolbarStretcher)
-        for item in [stretcher, self.resize_action, self.refresh_action,
-                     options_button]:
+        for item in [
+            self.close_all_editors_action,
+            stretcher,
+            self.resize_action,
+            self.refresh_action,
+            options_button
+        ]:
             self.add_item_to_toolbar(item, toolbar)
 
         toolbar.render()

@@ -49,13 +49,16 @@ from spyder_kernels.utils.nsview import (display_to_value, is_editable_type,
                                          is_known_type)
 
 # Local imports
+from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
+from spyder.config.base import running_under_pytest
 from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor
 from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
     DataFrameEditor)
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 LARGE_COLLECTION = 1e5
@@ -70,7 +73,11 @@ MAX_INT_BIT_LENGTH_FOR_EDITING = (
 )
 
 
-class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
+class CollectionsDelegate(
+    QItemDelegate,
+    SpyderConfigurationAccessor,
+    SpyderFontsMixin,
+):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
     sig_editor_creation_started = Signal()
@@ -227,7 +234,10 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 data_function=self.make_data_function(index)
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
+                         readonly=readonly, from_variable_explorer=True)
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -240,7 +250,15 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 parent=parent,
                 data_function=self.make_data_function(index)
             )
-            if not editor.setup_and_check(value, title=key, readonly=readonly):
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
+            if not editor.setup_and_check(
+                value,
+                title=key,
+                readonly=readonly,
+                from_variable_explorer=True
+            ):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -286,7 +304,12 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 data_function=self.make_data_function(index),
                 readonly=readonly
             )
-            if not editor.setup_and_check(value, title=key):
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
+            if not editor.setup_and_check(
+                value, title=key, from_variable_explorer=True
+            ):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -493,12 +516,40 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
 
     def close_all_editors(self):
         """Close all opened non-modal editor dialogs."""
+        ask_close_all_editors = self.get_conf(
+            "ask_close_all_editors", section="variable_explorer"
+        )
+        close_all = True
+
+        if ask_close_all_editors and not running_under_pytest():
+            message = MessageCheckBox(
+                icon=QMessageBox.Question, parent=self.parent()
+            )
+            message.set_checkbox_text(_("Don't ask again"))
+            message.set_checked(False)
+            message.set_check_visible(True)
+            message.setText(_('Are you sure you want to close all editors?'))
+            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+            result = message.exec_()
+            check = message.is_checked()
+            if check:
+                self.set_conf(
+                    "ask_close_all_editors",
+                    not check,
+                    section="variable_explorer",
+                )
+
+            close_all = result == QMessageBox.Yes
+
+        if not close_all:
+            return
+
         for editor_id, data in list(self._editors.items()):
             editor = data.get('editor')
             if editor is None:
                 self._editors.pop(editor_id, None)
                 continue
-
             try:
                 editor.reject()
             except RuntimeError:
@@ -793,7 +844,10 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 data_function=self.make_data_function(index)
             )
             editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly)
+                         readonly=readonly, from_variable_explorer=True)
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None

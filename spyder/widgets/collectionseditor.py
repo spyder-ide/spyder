@@ -106,6 +106,7 @@ class CollectionsEditorActions:
     Save = 'save_action'
     ShowImage = 'show_image_action'
     ViewObject = 'view_object_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class CollectionsEditorMenus:
@@ -131,7 +132,8 @@ class CollectionsEditorContextMenuSections:
 
 class CollectionsEditorToolbarSections:
     AddDelete = 'add_delete_section'
-    ViewAndRest = 'view_section'
+    View = 'view_section'
+    CloseAndReset = 'close_and_rest_section'
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -947,8 +949,12 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
                 section=CollectionsEditorContextMenuSections.AddRemove
             )
 
-        for action in [self.view_action, self.plot_action,
-                       self.hist_action, self.imshow_action]:
+        for action in [
+            self.view_action,
+            self.plot_action,           
+            self.hist_action,
+            self.imshow_action,
+        ]:
             self.add_item_to_menu(
                 action,
                 menu,
@@ -1825,12 +1831,14 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
     CONF_SECTION = "variable_explorer"
 
     sig_refresh_requested = Signal()
-    sig_close_window_requested = Signal()
+    sig_close_window_requested = Signal()    
+    sig_close_all_editors_requested = Signal()
 
     def __init__(
         self,
         parent,
         data,
+        from_variable_explorer=False,
         namespacebrowser=None,
         data_function: Optional[Callable[[], Any]] = None,
         readonly=False,
@@ -1867,6 +1875,14 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
         self.register_shortcut_for_widget(
             name='close', triggered=self.close_window
         )
+        
+        self.close_all_editors_action = self.create_action(
+            name=CollectionsEditorActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
+        )
+        self.close_all_editors_action.setVisible(from_variable_explorer)
 
         toolbar = self.create_toolbar(
             CollectionsEditorWidgets.Toolbar,
@@ -1910,7 +1926,16 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.editor.view_action,
             self.editor.plot_action,
             self.editor.hist_action,
-            self.editor.imshow_action,
+            self.editor.imshow_action
+        ]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar,
+                section=CollectionsEditorToolbarSections.View
+            )
+
+        for item in [
+            self.close_all_editors_action,
             stretcher,
             self.editor.resize_action,
             self.editor.resize_columns_action,
@@ -1920,7 +1945,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.add_item_to_toolbar(
                 item,
                 toolbar,
-                section=CollectionsEditorToolbarSections.ViewAndRest
+                section=CollectionsEditorToolbarSections.CloseAndReset
             )
 
         toolbar.render()
@@ -1951,6 +1976,8 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
 
 class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
+
+    sig_close_all_editors_requested = Signal()
 
     def __init__(
         self,
@@ -1985,6 +2012,7 @@ class CollectionsEditor(BaseDialog):
         parent=None,
         loading_msg=None,
         loading_img=None,
+        from_variable_explorer=False
     ):
         """Setup editor."""
         if isinstance(data, (dict, set, frozenset)):
@@ -2012,6 +2040,7 @@ class CollectionsEditor(BaseDialog):
         self.widget = CollectionsEditorWidget(
             self,
             self.data_copy,
+            from_variable_explorer,
             self.namespacebrowser,
             self.data_function,
             title=title,
@@ -2022,6 +2051,9 @@ class CollectionsEditor(BaseDialog):
         self.widget.sig_close_window_requested.connect(self.reject)
         self.widget.editor.source_model.sig_setting_data.connect(
             self.save_and_close_enable
+        )
+        self.widget.sig_close_all_editors_requested.connect(
+            self.sig_close_all_editors_requested
         )
 
         # Buttons configuration
