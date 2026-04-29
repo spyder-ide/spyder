@@ -97,7 +97,9 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         self.toolbar.addWidget(self._spinner)
 
         # RemoteExplorer
-        self.remote_treewidget = RemoteExplorer(parent=self, only_dir=only_dir)
+        self.remote_treewidget = RemoteExplorer(
+            parent=self, only_dir=only_dir, register_actions_and_menus=False
+        )
         self.remote_treewidget.previous_action = self.previous_action
         self.remote_treewidget.next_action = self.next_action
         self.remote_treewidget.view.header().hide()
