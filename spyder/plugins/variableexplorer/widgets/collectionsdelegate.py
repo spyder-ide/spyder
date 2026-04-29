@@ -253,10 +253,12 @@ class CollectionsDelegate(
             editor.sig_close_all_editors_requested.connect(
                 self.close_all_editors
             )
-            if not editor.setup_and_check(value,
-                                          title=key,
-                                          readonly=readonly,
-                                          from_variable_explorer=True):
+            if not editor.setup_and_check(
+                value,
+                title=key,
+                readonly=readonly,
+                from_variable_explorer=True
+            ):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -302,8 +304,12 @@ class CollectionsDelegate(
                 data_function=self.make_data_function(index),
                 readonly=readonly
             )
-            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
-            if not editor.setup_and_check(value, title=key, from_variable_explorer=True):
+            editor.sig_close_all_editors_requested.connect(
+                self.close_all_editors
+            )
+            if not editor.setup_and_check(
+                value, title=key, from_variable_explorer=True
+            ):
                 self.sig_editor_shown.emit()
                 return
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
@@ -514,11 +520,12 @@ class CollectionsDelegate(
             "ask_close_all_editors", section="variable_explorer"
         )
         close_all = True
+
         if ask_close_all_editors and not running_under_pytest():
             message = MessageCheckBox(
                 icon=QMessageBox.Question, parent=self.parent()
             )
-            message.set_checkbox_text(_("Don't ask again."))
+            message.set_checkbox_text(_("Don't ask again"))
             message.set_checked(False)
             message.set_check_visible(True)
             message.setText(_('Are you sure you want to close all editors?'))
@@ -532,10 +539,12 @@ class CollectionsDelegate(
                     not check,
                     section="variable_explorer",
                 )
+
             close_all = result == QMessageBox.Yes
 
         if not close_all:
             return
+
         for editor_id, data in list(self._editors.items()):
             editor = data.get('editor')
             if editor is None:

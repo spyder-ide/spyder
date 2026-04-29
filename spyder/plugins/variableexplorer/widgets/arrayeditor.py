@@ -20,8 +20,16 @@ from typing import Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
-                         QItemSelectionRange, QModelIndex, Qt, Slot, Signal)
+from qtpy.QtCore import (
+    QAbstractTableModel,
+    QItemSelection,
+    QItemSelectionRange,
+    QLocale,
+    QModelIndex,
+    Qt,
+    Signal,
+    Slot,
+)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (
     QAbstractItemDelegate, QApplication, QDialog, QHBoxLayout, QInputDialog,
@@ -742,7 +750,9 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0  # Adjust this for changing the startup dimension
 
-    def setup_and_check(self, data, title='', readonly=False, from_variable_explorer=False):
+    def setup_and_check(
+        self, data, title='', readonly=False, from_variable_explorer=False
+    ):
         """
         Setup the editor.
 

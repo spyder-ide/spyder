@@ -1893,7 +1893,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         self.dataTable = None
         self.resizeToHeader = False
 
-    def setup_and_check(self, data, title='', from_variable_explorer=False) -> bool:
+    def setup_and_check(
+        self, data, title="", from_variable_explorer=False
+    ) -> bool:
         """
         Setup editor.
 
