@@ -17,10 +17,6 @@ import traceback
 from typing import Any, Dict, List, Optional, Set, Tuple
 import weakref
 
-# Third-party imports
-import keyring
-from keyring.errors import NoKeyringError
-
 # Local imports
 from spyder.api.utils import PrefixedTuple
 from spyder.config.base import (
@@ -529,6 +525,7 @@ class ConfigurationManager(object):
                     raise cp.NoOptionError(option, section)
         else:
             if secure:
+                import keyring
                 logger.debug(
                     f"Retrieving option {option} with keyring because it "
                     f"was marked as secure."
@@ -572,6 +569,8 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
 
         if secure:
+            import keyring
+            from keyring.errors import NoKeyringError
             logger.debug(
                 f"Saving option {option} with keyring because it was marked "
                 f"as secure."
@@ -676,6 +675,7 @@ class ConfigurationManager(object):
                 self.notify_observers(section, base_option)
         else:
             if secure:
+                import keyring
                 logger.debug(
                     f"Deleting option {option} with keyring because it was "
                     f"marked as secure."

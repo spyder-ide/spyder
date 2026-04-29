@@ -9,14 +9,19 @@ Spyder appearance configuration
 """
 
 import os
+import os.path as osp
 import sys
 
 from qdarkstyle.dark.palette import DarkPalette
 from qdarkstyle.light.palette import LightPalette
 
+import spyder
 from spyder.config.base import running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
+
+CSS_PATH = osp.join(
+    osp.dirname(spyder.__file__), 'plugins', 'help', 'utils', 'static', 'css'
+)
 
 
 WIN = os.name == 'nt'
