@@ -19,9 +19,11 @@ from spyder.plugins.completion.providers.languageserver.decorators import (
 
 if typing.TYPE_CHECKING:
     from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
-    class WatchedFolder(typing.TypedDict):
-        uri: str
-        instance: LSPMixin
+
+class WatchedFolder(typing.TypedDict):
+    uri: str
+    instance: LSPMixin
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ class WorkspaceProvider:
     watched_folders: dict[str, WatchedFolder]
     server_capabilites: lsp.ServerCapabilities | None
     language: str
-    req_reply: dict[str, typing.Callable]
+    req_reply: dict[int, typing.Callable]
 
     # ------------------------------------------------------------------
     # workspace/didChangeConfiguration

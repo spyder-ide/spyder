@@ -50,6 +50,12 @@ if typing.TYPE_CHECKING:
     from spyder.plugins.completion.providers.languageserver.providers.workspace import WatchedFolder
 
 
+class RequestParams(typing.TypedDict, total=False):
+    """TypedDict for parameters passed to LSPClient.perform_request builders."""
+    requires_response: bool
+    response_callback: typing.Callable
+
+
 # Verbosity level sent to the server in the initialize request.
 TRACE = lsp.TraceValue.Messages
 if DEV:
@@ -291,6 +297,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     Wraps a pygls BaseLanguageClient running in a dedicated asyncio thread.
     """
 
+    sender_registry: dict[str, str]  # method_name -> builder method name
+    handler_registry: dict[str, str]  # method_name -> handler method name
+
     # --- Public Qt signals ---
 
     #: Emitted when the server has initialised and is ready for requests.
@@ -317,7 +326,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.initialized = False
         self.ready_to_close = False
         self.server_unresponsive = False
-        self.req_reply: dict[str, typing.Callable] = {}       # req_id -> callback
+        self.req_reply: dict[int, typing.Callable] = {}       # req_id -> callback
         self.watched_files: dict = {}   # uri -> [editor, ...]
         self.watched_folders: dict[str, WatchedFolder] = {}
 
