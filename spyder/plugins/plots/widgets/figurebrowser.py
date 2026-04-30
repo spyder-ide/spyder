@@ -34,7 +34,7 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget)
+                            QVBoxLayout, QWidget, QLabel)
 from superqt.utils import qdebounced
 
 # Local library imports
@@ -149,6 +149,8 @@ class FigureBrowser(
     zoom_value: int
         The new value for the zoom property.
     """
+    
+    sig_show_info_message_requested = Signal(str)
 
     def __init__(self, parent=None, background_color=None):
         if not PYSIDE2:
@@ -187,6 +189,8 @@ class FigureBrowser(
             self.sig_save_dir_changed)
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
+        self.thumbnails_sb.sig_show_info_message_requested.connect(
+            self.sig_show_info_message_requested)
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
@@ -723,6 +727,8 @@ class ThumbnailScrollBar(QFrame):
     sig_free_memory_requested = Signal()
     """Request to free memory after thumbnail is removed."""
 
+    sig_show_info_message_requested = Signal(str)
+
     def __init__(
         self, figure_viewer, parent=None, background_color=None, max_plots=30
     ):
@@ -757,7 +763,10 @@ class ThumbnailScrollBar(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
         layout.addWidget(self.setup_scrollarea())
+
+        self.update_limit_label()
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -807,6 +816,7 @@ class ThumbnailScrollBar(QFrame):
         remove_thumbnails = self._thumbnails[:-self._max_plots]
         for thumbnail in remove_thumbnails:
             self.remove_thumbnail(thumbnail)
+        self.update_limit_label()
 
     def eventFilter(self, widget, event):
         """
@@ -1040,6 +1050,7 @@ class ThumbnailScrollBar(QFrame):
 
         if not is_first and (not stick_at_end or not select_last):
             self._scroll_to_last_thumbnail = False
+        self.update_limit_label()
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -1102,6 +1113,7 @@ class ThumbnailScrollBar(QFrame):
         # This is necessary to free memory faster than Python itself does it.
         # See https://github.com/spyder-ide/spyder/issues/25249#issuecomment-3473017854
         self._free_memory()
+        self.update_limit_label()
 
     def _remove_thumbnail_parent(self, thumbnail):
         try:
@@ -1195,6 +1207,14 @@ class ThumbnailScrollBar(QFrame):
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(int(vsb.value() + vsb.singleStep()))
 
+    def update_limit_label(self):
+        """Update plots usage label."""
+        message = _("Maximum number of plots reached. Oldest plots will be replaced.")
+        current = len(self._thumbnails)
+        limit = self._max_plots
+
+        if current >= limit:
+            self.sig_show_info_message_requested.emit(message)
 
 
 class FigureThumbnail(QWidget):

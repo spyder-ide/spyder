@@ -58,6 +58,7 @@ from spyder.utils.stylesheet import (
 )
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
+from spyder.widgets.helperwidgets import InfoWidget
 from spyder.widgets.tabs import Tabs
 
 if TYPE_CHECKING:
@@ -387,6 +388,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.windowwidget: SpyderWindowWidget | None = None
         self.dockwidget: spyder.widgets.dock.SpyderDockWidget | None = None
         self._icon = QIcon()
+        self._info_widget = None
         self._spinner = None
         self._stack = None
         self._content_widget = None
@@ -396,6 +398,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             self._spinner = create_waitspinner(
                 size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
             )
+
+        self._info_widget = InfoWidget(self, text=None)
+        self._info_widget.setVisible(False)
 
         self._corner_widget = MainCornerWidget(
             parent=self,
@@ -468,7 +473,8 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         # Add inititals layouts
         self._main_toolbar_layout.addWidget(self._main_toolbar, stretch=10000)
         self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
-        self._toolbars_layout.addLayout(self._main_toolbar_layout)
+        self._toolbars_layout.addLayout(self._main_toolbar_layout)        
+        self._toolbars_layout.addWidget(self._info_widget)
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
 
         # Create a stacked layout when the widget displays an empty message
