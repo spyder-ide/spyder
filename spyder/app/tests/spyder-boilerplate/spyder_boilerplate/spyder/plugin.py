@@ -145,7 +145,7 @@ class SpyderBoilerplate(SpyderDockablePlugin):
             # set/get/reset them correctly.
             {
                 f"{NAME}/Change text": "Ctrl+B",
-                "editor/Markdown cell": "Ctrl+H",
+                "editor/Markdown cell": "Ctrl+U",
             },
         ),
     ]
