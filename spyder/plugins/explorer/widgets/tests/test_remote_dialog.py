@@ -9,7 +9,8 @@
 
 # Third party imports
 import pytest
-from qtpy.QtWidgets import QDialog
+from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.remoteclient.tests.conftest import (
@@ -20,21 +21,24 @@ from spyder.plugins.explorer.widgets.remote_dialog import RemoteFileDialog
 
 
 @mark_remote_test
-def test_remote_directory(
-    remote_explorer, remote_client, remote_client_id, monkeypatch
-):
+def test_remote_directory(qtbot, remote_explorer, remote_client, remote_client_id):
     remote_files_manager = run_async(
         remote_client.get_file_api(remote_client_id)().connect
     ).result()
-    expected_directory = "/home/ubuntu"
+    expected_directory = "/home"
 
-    monkeypatch.setattr(QDialog, "exec_", lambda *args: QDialog.Accepted)
+    def choose_parent_directory():
+        dialog = QApplication.activeModalWidget()
+        dialog.go_to_parent_directory()
+        qtbot.wait(1000)
+        dialog.accept()
 
+    QTimer.singleShot(100, choose_parent_directory)
     directory = RemoteFileDialog.get_remote_directory(
         "Test server",
         remote_client_id,
         remote_files_manager,
-        expected_directory,
+        "/home/ubuntu",
         parent=remote_explorer,
     )
 

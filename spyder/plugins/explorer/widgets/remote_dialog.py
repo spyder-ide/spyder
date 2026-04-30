@@ -228,7 +228,6 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
                 )
             )
             self._current_directory = directory
-            #self.adjustSize()
 
     def get_current_directory(self) -> str:
         """
@@ -315,7 +314,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             only_dir=True,
         )
         if dialog.exec_():
-            return dialog.get_selected()
+            return dialog.get_selected() or dialog.get_current_directory()
 
     @staticmethod
     def get_remote_file(
