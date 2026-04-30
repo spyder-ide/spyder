@@ -1273,13 +1273,11 @@ class CompletionPlugin(SpyderPluginV2):
                 if all_returned or any_nonempty:
                     self.skip_and_reply(req_id)
         else:
-            # Any empty response will be discarded and the completion
-            # loop will wait for the next non-empty response.
-            # This should fix the scenario where a provider does not have a
-            # response for a non-aggregated request but the LSP does.
-            any_nonempty = any(request_responses['sources'].get(source)
-                               for source in sorted_providers)
-            if any_nonempty:
+            any_responded = any(
+                request_responses['sources'].get(source) is not None
+                for source in sorted_providers
+            )
+            if any_responded:
                 self.skip_and_reply(req_id)
 
     def skip_and_reply(self, req_id: int):
