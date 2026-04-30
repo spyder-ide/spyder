@@ -14,6 +14,7 @@ from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QLabel,
+    QSizePolicy,
     QToolBar,
     QTreeView,
     QVBoxLayout,
@@ -63,7 +64,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             else _("Select remote file")
         )
         self.setModal(True)
-        self.setFixedSize(600, 400)
+        self.setFixedSize(650, 400)
         self._server_name = server_name
         self._current_directory = None
         self._selected = None
@@ -95,6 +96,12 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         # Toolbar
         self.toolbar = QToolBar(self)
         self.current_directory = QLabel(self)
+        self.current_directory.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Preferred,
+        )
+
+        self.toolbar.addWidget(self.current_directory)
+        self.toolbar.addWidget(self._spinner)
 
         for action in [
             self.previous_action,
@@ -102,9 +109,6 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
             self.parent_action,
         ]:
             self.toolbar.addAction(action)
-
-        self.toolbar.addWidget(self.current_directory)
-        self.toolbar.addWidget(self._spinner)
 
         # RemoteExplorer
         self.remote_treewidget = RemoteExplorer(
@@ -273,10 +277,9 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         directory: str,
         parent: QWidget = None,
         class_parent: QObject = None,
-        only_dir: bool = True,
     ) -> str | None:
         """
-        Allow to get a remote files system directory path.
+        Allow to get a directory path from a remote file system.
 
         Handles `RemoteFileDialog` instantiation.
 
@@ -295,9 +298,6 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         class_parent : QObject, optional
             Class definition of the parent to use for the dialog. The default
             is `None`.
-        only_dir : bool, optional
-            If only directories should be shown/listed in the dialog. The
-            default is `True`.
 
         Returns
         -------
@@ -327,7 +327,7 @@ class RemoteFileDialog(QDialog, SpyderWidgetMixin):
         class_parent: QObject = None,
     ) -> str | None:
         """
-        Allow to get a remote files system file path.
+        Allow to get a file path from a remote file system.
 
         Handles `RemoteFileDialog` instantiation.
 

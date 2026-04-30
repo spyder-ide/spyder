@@ -31,6 +31,7 @@ def test_remote_directory(
     monkeypatch.setattr(QDialog, "exec_", lambda *args: QDialog.Accepted)
 
     directory = RemoteFileDialog.get_remote_directory(
+        "Test server",
         remote_client_id,
         remote_files_manager,
         expected_directory,
