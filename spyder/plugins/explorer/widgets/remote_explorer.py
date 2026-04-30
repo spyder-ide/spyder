@@ -131,7 +131,14 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
-    def __init__(self, parent=None, class_parent=None, files=None):
+    def __init__(
+        self,
+        parent=None,
+        class_parent=None,
+        files=None,
+        only_dir=False,
+        register_actions_and_menus=True,
+    ):
         super().__init__(parent=parent, class_parent=parent)
 
         # General attributes
@@ -144,6 +151,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.more_files_available = False
 
         self.filter_on = False
+        self.only_dir = only_dir
         self.name_filters = []
 
         self.history = []
@@ -157,10 +165,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self._files_to_upload: dict[str, int] = {}
 
         # Model, actions and widget setup
-        self.context_menu = self.create_menu(RemoteViewMenus.Context)
+        self.context_menu = self.create_menu(RemoteViewMenus.Context, register=False)
         new_submenu = self.create_menu(
             RemoteViewMenus.New,
             _('New'),
+            register=register_actions_and_menus,
         )
 
         self.new_package_action = self.create_action(
@@ -168,65 +177,76 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             text=_("Python package..."),
             icon=self.create_icon('package_new'),
             triggered=self.new_package,
+            register_action=register_actions_and_menus,
         )
         self.new_module_action = self.create_action(
             RemoteExplorerActions.NewModule,
             text=_("Python file..."),
             icon=self.create_icon('python'),
             triggered=self.new_module,
+            register_action=register_actions_and_menus,
         )
         self.new_directory_action = self.create_action(
             RemoteExplorerActions.NewDirectory,
             text=_("Folder..."),
             icon=self.create_icon('folder_new'),
             triggered=self.new_directory,
+            register_action=register_actions_and_menus,
         )
         self.new_file_action = self.create_action(
             RemoteExplorerActions.NewFile,
             text=_("File..."),
             icon=self.create_icon('TextFileIcon'),
             triggered=self.new_file,
+            register_action=register_actions_and_menus,
         )
         self.copy_action = self.create_action(
             RemoteExplorerActions.Copy,
             _("Copy"),
             icon=self.create_icon("editcopy"),
             triggered=self.copy_items,
+            register_action=register_actions_and_menus,
         )
         self.paste_action = self.create_action(
             RemoteExplorerActions.Paste,
             _("Paste"),
             icon=self.create_icon("editpaste"),
             triggered=self.paste_items,
+            register_action=register_actions_and_menus,
         )
         self.rename_action = self.create_action(
             RemoteExplorerActions.Rename,
             _("Rename..."),
             icon=self.create_icon("rename"),
             triggered=self.rename_items,
+            register_action=register_actions_and_menus,
         )
         self.copy_path_action = self.create_action(
             RemoteExplorerActions.CopyPath,
             _("Copy absolute path"),
             triggered=self.copy_paths,
+            register_action=register_actions_and_menus,
         )
         self.delete_action = self.create_action(
             RemoteExplorerActions.Delete,
             _("Delete..."),
             icon=self.create_icon("editclear"),
             triggered=self.delete_items,
+            register_action=register_actions_and_menus,
         )
         self.download_action = self.create_action(
             RemoteExplorerActions.Download,
             _("Download..."),
             icon=self.create_icon("fileimport"),
             triggered=self.download_items,
+            register_action=register_actions_and_menus,
         )
         self.upload_file_action = self.create_action(
             RemoteExplorerActions.Upload,
             _("Upload files"),
             icon=self.create_icon("fileexport"),
             triggered=self.upload_files,
+            register_action=register_actions_and_menus,
         )
 
         for item in [self.new_file_action, self.new_directory_action]:
@@ -741,6 +761,10 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                         "show_hidden"
                     ) and file_name.startswith("."):
                         continue
+
+                    if self.only_dir and file_type == "file":
+                        continue
+
                     if (
                         self.name_filters
                         and len(self.name_filters)
