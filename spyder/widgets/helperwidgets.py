@@ -827,6 +827,59 @@ class MessageLabel(QLabel):
         self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
         self.setText(text)
 
+class InfoWidget(QWidget):
+
+    sig_text_changed = Signal(str)
+
+    def __init__(
+        self,
+        parent: QWidget,
+        text: str = "",
+        set_min_width: bool = True,
+    ):
+        super().__init__(parent)
+
+        self.label = QLabel(self)
+        self.label.setText(text)
+
+        close_button = QToolButton(self)
+        close_button.setIcon(ima.icon("DialogCloseButton"))
+        close_button.clicked.connect(self.hide)
+
+        layout = QHBoxLayout()
+
+        layout.addWidget(close_button)
+
+        layout.addWidget(self.label)
+
+        if set_min_width:
+            layout.addStretch()
+
+        layout.setContentsMargins(
+            2 * AppStyle.MarginSize,
+            AppStyle.MarginSize,
+            0,
+            0
+        )
+
+        self.setLayout(layout)
+
+    def hide(self):
+        """Hide widget."""
+        self.setVisible(False)
+
+    def set_visible(self, visible):
+        """Set visibility of widget."""
+        self.setVisible(visible)
+
+    def text(self):
+        """Get current text."""
+        return self.label.text()
+
+    def set_text(self, text: str):
+        """Set label text."""
+        self.label.setText(text)
+
 
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication

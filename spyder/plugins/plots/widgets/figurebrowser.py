@@ -149,6 +149,8 @@ class FigureBrowser(
     zoom_value: int
         The new value for the zoom property.
     """
+    
+    sig_show_info_message_requested = Signal(str)
 
     def __init__(self, parent=None, background_color=None):
         if not PYSIDE2:
@@ -187,6 +189,8 @@ class FigureBrowser(
             self.sig_save_dir_changed)
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
+        self.thumbnails_sb.sig_show_info_message_requested.connect(
+            self.sig_show_info_message_requested)
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
@@ -723,6 +727,8 @@ class ThumbnailScrollBar(QFrame):
     sig_free_memory_requested = Signal()
     """Request to free memory after thumbnail is removed."""
 
+    sig_show_info_message_requested = Signal(str)
+
     def __init__(
         self, figure_viewer, parent=None, background_color=None, max_plots=30
     ):
@@ -757,10 +763,6 @@ class ThumbnailScrollBar(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-
-        self.limit_label = QLabel(self)
-        self.limit_label.setWordWrap(True)
-        layout.addWidget(self.limit_label)
 
         layout.addWidget(self.setup_scrollarea())
 
@@ -1207,18 +1209,12 @@ class ThumbnailScrollBar(QFrame):
 
     def update_limit_label(self):
         """Update plots usage label."""
+        message = _("Maximum number of plots reached. Oldest plots will be replaced.")
         current = len(self._thumbnails)
         limit = self._max_plots
 
-        text = f"Plots ({current} / {limit})"
-
         if current >= limit:
-            text += " Oldest plots will be replaced"
-        elif current >= int(limit * 0.8):
-            text += " Near limit"
-
-        self.limit_label.setText(text)
-
+            self.sig_show_info_message_requested.emit(message)
 
 
 class FigureThumbnail(QWidget):
