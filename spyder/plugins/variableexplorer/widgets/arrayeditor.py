@@ -938,7 +938,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         if is_torch_tensor:
             readonly = True
-            data = data.cpu().numpy() #data is converted to numpy array for display and edition, but the original tensor is not modified when accepting changes, so we can keep it read-only
+            data = data.detach().cpu().numpy() #data is converted to numpy array for display, but the original tensor is not modified when accepting changes, so we can keep it read-only
         else:
             readonly = readonly or not data.flags.writeable
         
