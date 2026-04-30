@@ -46,6 +46,11 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import keybinding, safe_disconnect
 from spyder.utils.stylesheet import AppStyle, MAC
 
+# try to import torch.
+try:    
+    import torch
+except ImportError:
+    torch = None
 
 # =============================================================================
 # ---- Constants
@@ -904,7 +909,7 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
 
         # Set title
         if title:
-            title = str(title) + " - " + _("NumPy object array")
+            title = str(title) + " - " + _("Object array")
         else:
             title = _("Array editor")
         if readonly:
@@ -922,13 +927,23 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         Setup ArrayEditor:
         return False if data is not supported, True otherwise
         """
+        
         if not isinstance(data, (np.ndarray, np.ma.MaskedArray)):
-            return False
-
-        self.data = data
-        readonly = readonly or not self.data.flags.writeable
+            if torch is not None and isinstance(data, torch.Tensor):
+                pass
+            else:
+                return False
         is_masked_array = isinstance(data, np.ma.MaskedArray)
+        is_torch_tensor = isinstance(data, torch.Tensor)
 
+        if is_torch_tensor:
+            readonly = True
+            data = data.detach().cpu().numpy() #data is converted to numpy array for display, but the original tensor is not modified when accepting changes, so we can keep it read-only
+        else:
+            readonly = readonly or not data.flags.writeable
+        
+        self.data = data
+        
         # Reset data for 3d arrays
         self.dim_indexes = [{}, {}, {}]
         self.last_dim = 0
