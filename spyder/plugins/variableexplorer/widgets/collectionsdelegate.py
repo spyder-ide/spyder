@@ -57,6 +57,11 @@ from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 from spyder.utils.icon_manager import ima
 
+# try to import torch.
+try:    
+    import torch
+except ImportError:
+    torch = None
 
 LARGE_COLLECTION = 1e5
 LARGE_ARRAY = 5e6
@@ -374,6 +379,25 @@ class CollectionsDelegate(QItemDelegate, SpyderFontsMixin):
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
                 self.sig_editor_shown.emit()
                 return editor
+            
+        # ArrayEditor for a torch tensors
+        elif torch is not None and isinstance(value, torch.Tensor) and not object_explorer:
+            
+            #             # We need to leave this import here for tests to pass.
+            from .arrayeditor import ArrayEditor
+            editor = ArrayEditor(
+                parent=parent,
+                data_function=self.make_data_function(index)
+            )
+            
+            # set torch tensors as read-only for now, since we convert them to numpy arrays.
+            if not editor.setup_and_check(value, title=key, readonly=True):
+                self.sig_editor_shown.emit()
+                return
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=True))
+            return None
+                                           
         # ObjectExplorer for an arbitrary Python object
         else:
             # Don't show the object explorer for short bytes because it's not
