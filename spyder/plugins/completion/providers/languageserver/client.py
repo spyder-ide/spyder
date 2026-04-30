@@ -46,6 +46,10 @@ from spyder.plugins.completion.providers.languageserver.providers import (
 )
 from spyder.utils.misc import getcwd_or_home, select_port
 
+if typing.TYPE_CHECKING:
+    from spyder.plugins.completion.providers.languageserver.providers.workspace import WatchedFolder
+
+
 # Verbosity level sent to the server in the initialize request.
 TRACE = lsp.TraceValue.Messages
 if DEV:
@@ -285,8 +289,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     Language Server Protocol v3.0 client.
 
     Wraps a pygls BaseLanguageClient running in a dedicated asyncio thread.
-    All public signals and methods retain the same interface as before so
-    that LanguageServerProvider and the rest of Spyder require no changes.
     """
 
     # --- Public Qt signals ---
@@ -315,9 +317,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.initialized = False
         self.ready_to_close = False
         self.server_unresponsive = False
-        self.req_reply: dict = {}       # req_id -> callback
+        self.req_reply: dict[str, typing.Callable] = {}       # req_id -> callback
         self.watched_files: dict = {}   # uri -> [editor, ...]
-        self.watched_folders: dict = {} # folder_path -> {uri, instance}
+        self.watched_folders: dict[str, WatchedFolder] = {}
 
         # Request sequence counter (thread access: increment only from Qt thread)
         self._request_seq = 1
@@ -591,10 +593,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.sig_initialize.emit(self.server_capabilites, self.language)
 
     # ------------------------------------------------------------------
-    # Public request dispatch (same interface as previous LSPClient)
+    # Public request dispatch
     # ------------------------------------------------------------------
 
-    def perform_request(self, method: str, params: dict) -> int | None:
+    def perform_request(self, method: str, params: RequestParams) -> int | None:
         """
         Dispatch *params* as an LSP request or notification for *method*.
 

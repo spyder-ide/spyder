@@ -5,8 +5,9 @@
 # (see spyder/__init__.py for details)
 
 """Spyder Language Server Protocol Client workspace handler routines."""
-
+from __future__ import annotations
 import logging
+import typing
 
 from lsprotocol import types as lsp
 
@@ -16,10 +17,21 @@ from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.completion.providers.languageserver.decorators import (
     handles, send_request, send_notification)
 
+if typing.TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
+    class WatchedFolder(typing.TypedDict):
+        uri: str
+        instance: LSPMixin
+
 logger = logging.getLogger(__name__)
 
 
 class WorkspaceProvider:
+
+    watched_folders: dict[str, WatchedFolder]
+    server_capabilites: lsp.ServerCapabilities | None
+    language: str
+    req_reply: dict[str, typing.Callable]
 
     # ------------------------------------------------------------------
     # workspace/didChangeConfiguration
@@ -137,13 +149,6 @@ class WorkspaceProvider:
                 lsp.WORKSPACE_EXECUTE_COMMAND,
                 response,
             )
-
-    # ------------------------------------------------------------------
-    # workspace/applyEdit  (server -> client, routed via _sig_notification)
-    # The actual response (applied=True) is sent by _SpyderPyglsClient
-    # directly from the asyncio thread. Here we process the edit payload
-    # and distribute it to the affected workspace instances.
-    # ------------------------------------------------------------------
 
     @handles(lsp.WORKSPACE_APPLY_EDIT)
     def apply_edit(self, params: lsp.ApplyWorkspaceEditParams) -> None:
