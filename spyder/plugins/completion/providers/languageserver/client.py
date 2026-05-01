@@ -572,6 +572,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 ),
             )
         )
+        if running_under_pytest():
+            self._requests.append((0, lsp.INITIALIZE))
         self._process_server_capabilities(result)
 
     def _process_server_capabilities(
@@ -588,6 +590,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self._pygls_client.protocol.notify(
             lsp.INITIALIZED, lsp.InitializedParams()
         )
+        if running_under_pytest():
+            self._requests.append((None, lsp.INITIALIZED))
 
         self.initialized = True
 
@@ -597,6 +601,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             lsp.WORKSPACE_DID_CHANGE_CONFIGURATION,
             lsp.DidChangeConfigurationParams(settings=self.configurations),
         )
+        if running_under_pytest():
+            self._requests.append(
+                (None, lsp.WORKSPACE_DID_CHANGE_CONFIGURATION)
+            )
 
         # Inform the rest of Spyder that the server is ready.
         self.sig_initialize.emit(self.server_capabilites, self.language)
