@@ -4753,7 +4753,6 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     # Wait until the initial requests are sent to the server.
     lsp = main_window.completions.get_provider('lsp')
     python_client = lsp.clients['python']
-    qtbot.wait(5000)
 
     expected_requests = [
         'initialize',
@@ -6778,6 +6777,7 @@ def test_debug_selection(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_namespace_project

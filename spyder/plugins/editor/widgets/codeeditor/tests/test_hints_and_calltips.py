@@ -99,7 +99,9 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 
         args = blocker.args
         print('args:', [args])
-        output_text = args[0]['signatures']['label']
+        sig_help = args[0]
+        active = sig_help.active_signature or 0
+        output_text = sig_help.signatures[active].label
         assert expected_output_text in output_text
         code_editor.calltip_widget.hide()
 
@@ -115,7 +117,9 @@ def test_get_calltips(qtbot, completions_codeeditor, params):
 
         args = blocker.args
         print('args:', [args])
-        output_text = args[0]['signatures']['label']
+        sig_help = args[0]
+        active = sig_help.active_signature or 0
+        output_text = sig_help.signatures[active].label
         assert expected_output_text in output_text
         code_editor.calltip_widget.hide()
 

@@ -10,6 +10,7 @@ import sys
 
 # Third party imports
 import pytest
+from lsprotocol import types as lsp
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
 
@@ -111,15 +112,27 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'flake8', 'range':{
-                    'start': {'line': 4, 'character': 0},
-                    'end': {'line': 4, 'character': 1}},
-                 'line': 4, 'code': 'E227','message': 'E227 warning',
-                 'severity': 2},
-                 {'source': 'pyflakes', 'range':{
-                     'start': {'line': 5, 'character': 0},
-                     'end': {'line': 5, 'character': 1}},
-                  'message': 'syntax error', 'severity': 1}]
+    analysis = [
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=4, character=0),
+                end=lsp.Position(line=4, character=1),
+            ),
+            message='E227 warning',
+            severity=lsp.DiagnosticSeverity.Warning,
+            code='E227',
+            source='flake8',
+        ),
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=5, character=0),
+                end=lsp.Position(line=5, character=1),
+            ),
+            message='syntax error',
+            severity=lsp.DiagnosticSeverity.Error,
+            source='pyflakes',
+        ),
+    ]
     editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,
@@ -134,15 +147,27 @@ def test_flag_painting(editor_bot, qtbot):
     # Trigger the painting of all flag types.
     editor.breakpoints_manager.toogle_breakpoint(line_number=2)
     editor.process_todo([[True, 3]])
-    analysis = [{'source': 'flake8', 'range':{
-                    'start': {'line': 4, 'character': 0},
-                    'end': {'line': 4, 'character': 1}},
-                 'line': 4, 'code': 'E227','message': 'E227 warning',
-                 'severity': 2},
-                 {'source': 'pyflakes', 'range':{
-                     'start': {'line': 5, 'character': 0},
-                     'end': {'line': 5, 'character': 1}},
-                  'message': 'syntax error', 'severity': 1}]
+    analysis = [
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=4, character=0),
+                end=lsp.Position(line=4, character=1),
+            ),
+            message='E227 warning',
+            severity=lsp.DiagnosticSeverity.Warning,
+            code='E227',
+            source='flake8',
+        ),
+        lsp.Diagnostic(
+            range=lsp.Range(
+                start=lsp.Position(line=5, character=0),
+                end=lsp.Position(line=5, character=1),
+            ),
+            message='syntax error',
+            severity=lsp.DiagnosticSeverity.Error,
+            source='pyflakes',
+        ),
+    ]
     editor.process_code_analysis(analysis)
     editor.highlight_found_results('line6')
     with qtbot.waitSignal(editor.sig_flags_changed, raising=True,

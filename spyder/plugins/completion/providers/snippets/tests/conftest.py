@@ -18,8 +18,7 @@ class CompletionManagerMock(QObject):
     sig_recv_snippets = Signal(list)
 
     def handle_response(self, client, req_id, response):
-        snippets = list(response['params'])
-        self.sig_recv_snippets.emit(list(snippets))
+        self.sig_recv_snippets.emit(list(response))
 
 
 @pytest.fixture(scope='module')

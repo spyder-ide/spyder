@@ -104,19 +104,21 @@ class BlockUserData(QTextBlockUserData):
             return None
         document = self.editor.document()
         cursor = self.editor.textCursor()
-        block = document.findBlockByNumber(self.selection_start['line'])
+        block = document.findBlockByNumber(self.selection_start.line)
         cursor.setPosition(block.position())
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_start['character'])
+            QTextCursor.NextCharacter, n=self.selection_start.character
+        )
         block2 = document.findBlockByNumber(
-            self.selection_end['line'])
+            self.selection_end.line)
         cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
         cursor.movePosition(
             QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_end['character'],
-            mode=QTextCursor.KeepAnchor)
+            QTextCursor.NextCharacter, n=self.selection_end.character,
+            mode=QTextCursor.KeepAnchor
+        )
         return QTextCursor(cursor)
 
 

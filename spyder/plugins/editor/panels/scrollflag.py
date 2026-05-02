@@ -15,13 +15,13 @@ import os
 import sys
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QSize, Qt, QThread
 from qtpy.QtGui import QColor, QCursor, QPainter
 from qtpy.QtWidgets import QApplication, QStyle, QStyleOptionSlider
 from superqt.utils import qdebounced
 
 # Local imports
-from spyder.plugins.completion.api import DiagnosticSeverity
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 
@@ -166,7 +166,7 @@ class ScrollFlagArea(Panel):
             if data:
                 if data.code_analysis:
                     for _, _, severity, _ in data.code_analysis:
-                        if severity == DiagnosticSeverity.ERROR:
+                        if severity == lsp.DiagnosticSeverity.Error:
                             flag_type = 'error'
                             break
                     else:
