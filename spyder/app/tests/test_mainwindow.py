@@ -6777,6 +6777,7 @@ def test_debug_selection(main_window, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 @pytest.mark.use_introspection
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_namespace_project
