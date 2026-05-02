@@ -636,6 +636,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         kind = getattr(builder, '_kind', 'request')
 
         if kind == 'notification':
+            if running_under_pytest():
+                self._requests.append((None, method))
             self._async_notification(method, lsp_params)
             return None
 

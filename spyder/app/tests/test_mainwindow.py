@@ -4753,7 +4753,6 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     # Wait until the initial requests are sent to the server.
     lsp = main_window.completions.get_provider('lsp')
     python_client = lsp.clients['python']
-    qtbot.wait(5000)
 
     expected_requests = [
         'initialize',
