@@ -57,7 +57,7 @@ class AppearanceConfigPage(PluginConfigPage):
         CONF.restore_notifications(section='appearance', option='selected')
 
         try:
-            from spyder.utils.theme_manager import ThemeManager, theme_manager
+            from spyder.utils.theme_manager import theme_manager
 
             for variant_name in theme_manager.get_available_theme_variants():
                 try:
@@ -67,7 +67,7 @@ class AppearanceConfigPage(PluginConfigPage):
                     CONF.set("appearance", f"{variant_name}/name", display_name)
 
             selected = CONF.get("appearance", "selected", default="spyder_themes.spyder/dark")
-            resolved = ThemeManager.canonical_theme_variant_id(selected)
+            resolved = theme_manager.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set("appearance", "selected", resolved)
                 selected = resolved

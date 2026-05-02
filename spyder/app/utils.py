@@ -294,13 +294,13 @@ def create_application():
     # This ensures the theme's stylesheet is available and resources are loaded
     # This must be done after Qt is initialized to avoid segfaults
     try:
-        from spyder.utils.theme_manager import ThemeManager, theme_manager
+        from spyder.utils.theme_manager import theme_manager
         from spyder.config.manager import CONF
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
             # Load the selected theme (this will load its stylesheet and resources)
             selected = CONF.get('appearance', 'selected', default='spyder_themes.spyder/dark')
-            resolved = ThemeManager.canonical_theme_variant_id(selected)
+            resolved = theme_manager.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set('appearance', 'selected', resolved)
             selected = resolved
