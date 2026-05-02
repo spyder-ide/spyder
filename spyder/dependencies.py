@@ -167,7 +167,7 @@ DESCRIPTIONS = [
      'required_version': KEYRING_REQVER},
     {'modname': "lsprotocol",
      'package_name': "lsprotocol",
-     'features': _("Python types for the Language Server Protocol Specification"),
+     'features': _("Python types for the Language Server Protocol specification"),
      'required_version': LSPROTOCOL_REQVER},
     {'modname': "lxml",
      'package_name': "lxml",

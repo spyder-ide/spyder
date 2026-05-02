@@ -432,9 +432,7 @@ class LanguageServerProvider(SpyderCompletionProvider):
 
     @Slot(str)
     def report_lsp_down(self, language):
-        """
-        Report that the LSP server is down.
-        """
+        """Report that the LSP server is down."""
         self.update_status(language, ClientStatus.DOWN)
 
         if not self.get_conf('show_lsp_down_warning'):
@@ -696,8 +694,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
                 return
-        self.sig_response_ready.emit(self.COMPLETION_PROVIDER_NAME,
-                                     req_id, None)
+
+        self.sig_response_ready.emit(
+            self.COMPLETION_PROVIDER_NAME, req_id, None
+        )
 
     def send_notification(self, language, request, params):
         if language in self.clients:

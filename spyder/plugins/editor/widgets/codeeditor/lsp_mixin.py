@@ -16,6 +16,7 @@ import re
 
 # Third party imports
 from diff_match_patch import diff_match_patch
+from lsprotocol import types as lsp
 from qtpy.QtCore import (
     QEventLoop,
     Qt,
@@ -29,8 +30,6 @@ from three_merge import merge
 
 # Local imports
 from spyder.config.base import running_under_pytest
-from lsprotocol import types as lsp
-
 from spyder.plugins.completion.api import DOCUMENT_CURSOR_EVENT
 from spyder.plugins.completion.decorators import (
     request,
@@ -345,10 +344,7 @@ class LSPMixin:
         logger.debug("Stopping completion services for %s" % self.filename)
         self.completions_available = False
 
-    @request(
-        method=lsp.TEXT_DOCUMENT_DID_OPEN,
-        requires_response=False,
-    )
+    @request(method=lsp.TEXT_DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
 
@@ -439,10 +435,7 @@ class LSPMixin:
         self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
         self._server_requests_timer.start()
 
-    @request(
-        method=lsp.TEXT_DOCUMENT_DID_CHANGE,
-        requires_response=False,
-    )
+    @request(method=lsp.TEXT_DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
@@ -612,6 +605,7 @@ class LSPMixin:
             ):
                 # get_ipython is defined in IPython files
                 continue
+
             source = diagnostic.source or ""
             msg_range = diagnostic.range
             start_pos = msg_range.start
@@ -745,7 +739,9 @@ class LSPMixin:
                 else:
                     text_insertion = completion.insert_text or completion.label
 
-                first_insert_letter = text_insertion[0] if text_insertion else ""
+                first_insert_letter = (
+                    text_insertion[0] if text_insertion else ""
+                )
                 case_mismatch = (
                     first_letter.isupper() and first_insert_letter.islower()
                 ) or (first_letter.islower() and first_insert_letter.isupper())
@@ -848,9 +844,14 @@ class LSPMixin:
             sig = response.signatures[active]
 
             doc = sig.documentation
-            documentation = doc.value if isinstance(doc, lsp.MarkupContent) else (doc or '')
+            documentation = (
+                doc.value
+                if isinstance(doc, lsp.MarkupContent)
+                else (doc or "")
+            )
 
-            # The language server returns encoded text with spaces defined as `\xa0`
+            # The language server returns encoded text with spaces defined as
+            # `\xa0`
             documentation = documentation.replace("\xa0", " ")
 
             # Enable parsing signature's active parameter if available
@@ -1361,8 +1362,9 @@ class LSPMixin:
 
     # ---- Save/close file
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_DID_SAVE,
-                      requires_response=False)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_DID_SAVE, requires_response=False
+    )
     def notify_save(self):
         """Send save request."""
         params = {'file': self.filename}
@@ -1370,8 +1372,7 @@ class LSPMixin:
             params['text'] = self.get_text_with_eol()
         return params
 
-    @request(method=lsp.TEXT_DOCUMENT_DID_CLOSE,
-             requires_response=False)
+    @request(method=lsp.TEXT_DOCUMENT_DID_CLOSE, requires_response=False)
     def notify_close(self):
         """Send close request."""
         self._pending_server_requests = []

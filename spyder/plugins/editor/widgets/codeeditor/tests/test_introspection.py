@@ -15,6 +15,7 @@ import sys
 
 # Third party imports
 from flaky import flaky
+from lsprotocol import types as lsp
 import pytest
 import pytestqt
 from qtpy.QtCore import Qt
@@ -24,8 +25,6 @@ from spyder_kernels.utils.pythonenv import is_conda_env
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.config.manager import CONF
-from lsprotocol import types as lsp
-
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri
 )
@@ -498,9 +497,11 @@ def test_completions(completions_codeeditor, qtbot):
 
     qtbot.keyPress(completion, Qt.Key_Tab)
 
-    assert [x.label for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                    "hypot(*coordinates)",
-                                                    'hypot(coordinates)']
+    assert [x.label for x in sig.args[0]][0] in [
+        "hypot(x, y)",
+        "hypot(*coordinates)",
+        "hypot(coordinates)",
+    ]
 
     print([(x.label, (x.data or {}).get('provider')) for x in sig.args[0]])
 
@@ -532,9 +533,11 @@ def test_completions(completions_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
-    assert [x.label for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                    "hypot(*coordinates)",
-                                                    'hypot(coordinates)']
+    assert [x.label for x in sig.args[0]][0] in [
+        "hypot(x, y)",
+        "hypot(*coordinates)",
+        'hypot(coordinates)'
+    ]
 
     # right for () + enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
@@ -702,7 +705,8 @@ def test_code_snippets(completions_codeeditor, qtbot):
         qtbot.keyPress(completion, Qt.Key_Tab)
 
     assert 'test_func(xlonger, y1, some_z)' in {
-        x.label for x in sig.args[0]}
+        x.label for x in sig.args[0]
+    }
 
     expected_insert = 'test_func(${1:xlonger}, ${2:y1}, ${3:some_z})$0'
     insert = sig.args[0][0]
@@ -949,8 +953,9 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
         qtbot.keyClicks(code_editor, 'f')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
-    results = [x for x in sig.args[0]
-               if (x.data or {}).get('provider') == 'Snippets']
+    results = [
+        x for x in sig.args[0] if (x.data or {}).get('provider') == 'Snippets'
+    ]
 
     # Assert all retrieved words start with 'f'
     assert all({x.sort_text.split('_', 1)[-1] in {'for', 'from'}
@@ -1142,8 +1147,11 @@ def test_file_completions(filename, mock_completions_codeeditor, qtbot):
             insert_text=f'{filename}',
             filter_text=f'{filename}',
             sort_text=f'000_a{filename}',
-            data={'provider': 'LSP', 'resolve': True,
-                  'doc_uri': path_as_uri(__file__)},
+            data={
+                'provider': 'LSP',
+                'resolve': True,
+                'doc_uri': path_as_uri(__file__)
+            },
         )
     ] if method == lsp.TEXT_DOCUMENT_COMPLETION else None
 

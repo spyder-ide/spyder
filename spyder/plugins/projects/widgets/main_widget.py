@@ -749,8 +749,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             handler = getattr(self, handler_name)
             handler(params)
 
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         """Notify LSP server about file creation."""
@@ -769,8 +770,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         return params
 
     @Slot(str, str, bool)
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
         self._update_default_switcher_paths()
@@ -794,8 +796,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         """Notify LSP server about file deletion."""
@@ -812,8 +815,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
         """Notify LSP server about file modification."""
@@ -828,8 +832,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+        requires_response=False,
+    )
     def notify_project_open(self, path):
         """Notify LSP server about project path availability."""
         params = {
@@ -839,8 +845,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+        requires_response=False,
+    )
     def notify_project_close(self, path):
         """Notify LSP server to unregister project path."""
         params = {
@@ -851,8 +859,7 @@ class ProjectExplorerWidget(PluginMainWidget):
         return params
 
     @handles(lsp.WORKSPACE_APPLY_EDIT)
-    @request(method=lsp.WORKSPACE_APPLY_EDIT,
-             requires_response=False)
+    @request(method=lsp.WORKSPACE_APPLY_EDIT, requires_response=False)
     def handle_workspace_edit(self, params):
         """Apply edits to multiple files and notify server about success."""
         response = {

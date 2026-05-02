@@ -31,9 +31,9 @@ from spyder.api.plugin_registration.decorators import (
 from spyder.api.translations import _
 from spyder.config.user import NoDefault
 from spyder.plugins.completion.api import (
+    COMPLETION_ENTRYPOINT,
     DOCUMENT_CURSOR_EVENT,
     SpyderCompletionProvider,
-    COMPLETION_ENTRYPOINT,
 )
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
@@ -239,13 +239,8 @@ class CompletionPlugin(SpyderPluginV2):
     RUNNING = 'running'
     STOPPED = 'stopped'
 
-    SKIP_INTERMEDIATE_REQUESTS = {
-        lsp.TEXT_DOCUMENT_COMPLETION
-    }
-
-    AGGREGATE_RESPONSES = {
-        lsp.TEXT_DOCUMENT_COMPLETION
-    }
+    SKIP_INTERMEDIATE_REQUESTS = {lsp.TEXT_DOCUMENT_COMPLETION}
+    AGGREGATE_RESPONSES = {lsp.TEXT_DOCUMENT_COMPLETION}
 
     def __init__(self, parent, configuration=None):
         super().__init__(parent, configuration)
@@ -1214,7 +1209,8 @@ class CompletionPlugin(SpyderPluginV2):
     # ----------------- Completion result processing methods ------------------
     @Slot(str, int, object)
     def receive_response(
-            self, completion_source: str, req_id: int, resp: object):
+        self, completion_source: str, req_id: int, resp: object
+    ):
         """Process request response from a completion provider."""
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
@@ -1333,8 +1329,7 @@ class CompletionPlugin(SpyderPluginV2):
 
     def gather_completions(self, req_id_responses: dict):
         """Gather completion responses from providers."""
-        priorities = self.source_priority[
-            lsp.TEXT_DOCUMENT_COMPLETION]
+        priorities = self.source_priority[lsp.TEXT_DOCUMENT_COMPLETION]
         priorities = sorted(list(priorities.keys()),
                             key=lambda p: priorities[p])
 
@@ -1367,4 +1362,5 @@ class CompletionPlugin(SpyderPluginV2):
                 if candidate is not None:
                     response = candidate
                     break
+
         return response

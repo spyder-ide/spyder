@@ -7,8 +7,8 @@
 """
 Spyder Language Server Protocol Client implementation.
 
-Uses pygls JsonRPCClient (_SpyderPyglsClient) with a dedicated asyncio
-thread for all LSP communication.  All parameters and responses are typed
+It uses pygls JsonRPCClient (_SpyderPyglsClient) with a dedicated asyncio
+thread for all LSP communications.  All parameters and responses are typed
 lsprotocol objects; requests and notifications are dispatched directly via
 protocol.send_request_async / protocol.notify.
 """
@@ -17,12 +17,13 @@ protocol.send_request_async / protocol.notify.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 import os
 import os.path as osp
 import pathlib
 import sys
-import typing
+from typing import Optional, TypedDict, TYPE_CHECKING, Union
 
 # Third-party imports
 from lsprotocol import types as lsp
@@ -39,21 +40,24 @@ from spyder.config.base import (
 )
 from spyder.plugins.completion.api import SpyderSymbolKind
 from spyder.plugins.completion.providers.languageserver.decorators import (
-    class_register, handles
+    class_register,
+    handles,
 )
 from spyder.plugins.completion.providers.languageserver.providers import (
     LSPMethodProviderMixIn
 )
 from spyder.utils.misc import getcwd_or_home, select_port
 
-if typing.TYPE_CHECKING:
-    from spyder.plugins.completion.providers.languageserver.providers.workspace import WatchedFolder
+if TYPE_CHECKING:
+    from spyder.plugins.completion.providers.languageserver.providers.workspace import (
+        WatchedFolder,
+    )
 
 
-class RequestParams(typing.TypedDict, total=False):
+class RequestParams(TypedDict, total=False):
     """TypedDict for parameters passed to LSPClient.perform_request builders."""
     requires_response: bool
-    response_callback: typing.Callable
+    response_callback: Callable
 
 
 # Verbosity level sent to the server in the initialize request.
@@ -82,8 +86,8 @@ def _spyder_converter():
 
     # Build the exact Optional Union type that lsprotocol 2025.0.0 exposes on
     # NotebookDocumentFilterWithCells.notebook so the hook key matches.
-    _opt_notebook_filter = typing.Optional[
-        typing.Union[
+    _opt_notebook_filter = Optional[
+        Union[
             str,
             lsp.NotebookDocumentFilterNotebookType,
             lsp.NotebookDocumentFilterScheme,
@@ -97,12 +101,16 @@ def _spyder_converter():
         if isinstance(obj, str):
             return obj
         if "notebookType" in obj:
-            return converter.structure(obj, lsp.NotebookDocumentFilterNotebookType)
+            return converter.structure(
+                obj, lsp.NotebookDocumentFilterNotebookType
+            )
         if "scheme" in obj:
             return converter.structure(obj, lsp.NotebookDocumentFilterScheme)
         return converter.structure(obj, lsp.NotebookDocumentFilterPattern)
 
-    converter.register_structure_hook(_opt_notebook_filter, _structure_opt_notebook_filter)
+    converter.register_structure_hook(
+        _opt_notebook_filter, _structure_opt_notebook_filter
+    )
 
     # Register hook for custom for Spyder extended LSP SymbolKind
     def _structure_symbol_kind(obj, _):
@@ -145,6 +153,7 @@ def _build_client_capabilities() -> lsp.ClientCapabilities:
             workspace_folders=True,
             configuration=True,
         ),
+
         text_document=lsp.TextDocumentClientCapabilities(
             synchronization=lsp.TextDocumentSyncClientCapabilities(
                 dynamic_registration=True,
@@ -216,7 +225,9 @@ class _SpyderPyglsClient(JsonRPCClient):
     and requests back to the Qt-thread LSPClient via AsyncDispatcher.
     """
 
-    def __init__(self, qt_client: 'LSPClient', name: str, version: str) -> None:
+    def __init__(
+        self, qt_client: "LSPClient", name: str, version: str
+    ) -> None:
         self.name = name
         self.version = version
         super().__init__(
@@ -230,8 +241,7 @@ class _SpyderPyglsClient(JsonRPCClient):
         """Register handlers for server-to-client messages."""
         qt = self._qt_client
 
-        # --- Notifications (server -> client, no response required) ---
-
+        # ---- Notifications (server -> client, no response required)
         @self.feature(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
         def on_diagnostics(params: lsp.PublishDiagnosticsParams) -> None:
             qt._post_notification(
@@ -250,8 +260,7 @@ class _SpyderPyglsClient(JsonRPCClient):
                 lsp.WINDOW_LOG_MESSAGE, params
             )
 
-        # --- Requests from server (require a response) ---
-
+        # ---- Requests from server (require a response)
         @self.feature(lsp.WORKSPACE_WORKSPACE_FOLDERS)
         def on_workspace_folders(params: None) -> list:
             """Return the currently open workspace folders."""
@@ -276,7 +285,9 @@ class _SpyderPyglsClient(JsonRPCClient):
         def on_apply_edit(
             params: lsp.ApplyWorkspaceEditParams,
         ) -> lsp.ApplyWorkspaceEditResult:
-            """Route edit application to the Qt thread; acknowledge immediately."""
+            """
+            Route edit application to the Qt thread; acknowledge immediately.
+            """
             qt._post_notification(
                 lsp.WORKSPACE_APPLY_EDIT, params
             )
@@ -300,7 +311,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     sender_registry: dict[str, str]  # method_name -> builder method name
     handler_registry: dict[str, str]  # method_name -> handler method name
 
-    # --- Public Qt signals ---
+    # ---- Public Qt signals
 
     #: Emitted when the server has initialised and is ready for requests.
     sig_initialize = Signal(object, str)
@@ -326,11 +337,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.initialized = False
         self.ready_to_close = False
         self.server_unresponsive = False
-        self.req_reply: dict[int, typing.Callable] = {}       # req_id -> callback
+        self.req_reply: dict[int, Callable] = {}  # req_id -> callback
         self.watched_files: dict = {}   # uri -> [editor, ...]
         self.watched_folders: dict[str, WatchedFolder] = {}
 
-        # Request sequence counter (thread access: increment only from Qt thread)
+        # Request sequence counter (thread access: increment only from Qt
+        # thread)
         self._request_seq = 1
         self._requests = []  # kept only for testing
 
@@ -364,12 +376,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         self.server: QProcess | None = None
 
         # pygls client
-        self._pygls_client = _SpyderPyglsClient(self, f"spyder-{self.language}", "0.1.0")
+        self._pygls_client = _SpyderPyglsClient(
+            self, f"spyder-{self.language}", "0.1.0"
+        )
 
-    # ------------------------------------------------------------------
-    # Properties / helpers
-    # ------------------------------------------------------------------
-
+    # ---- Properties / helpers
+    # -------------------------------------------------------------------------
     def _next_req_id(self) -> int:
         req_id = self._request_seq
         self._request_seq += 1
@@ -416,7 +428,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
     @property
     def stdio_pid(self) -> int | None:
-        """Return the PID of the stdio server process, or None if not in stdio mode."""
+        """
+        Return the PID of the stdio server process, or None if not in stdio
+        mode.
+        """
         if not self.stdio:
             return None
         server = getattr(self._pygls_client, '_server', None)
@@ -430,10 +445,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         # asyncio.subprocess.Process.returncode is None while the process runs
         return getattr(server, 'returncode', 1) is None
 
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
-
+    # ---- Lifecycle
+    # -------------------------------------------------------------------------
     def start_server(self) -> None:
         """Start the LSP server as a QProcess (TCP non-external mode only)."""
         if self.external_server or self.stdio:
@@ -511,10 +524,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
     def _handle_process_error(self, _error) -> None:
         self.sig_went_down.emit(self.language)
 
-    # ------------------------------------------------------------------
-    # Asyncio connection and request dispatch
-    # ------------------------------------------------------------------
-
+    # ---- Asyncio connection and request dispatch
+    # -------------------------------------------------------------------------
     @AsyncDispatcher(loop=_LSP_LOOP)
     async def _graceful_stop(self) -> None:
         """Send shutdown and exit to the server (LSP graceful teardown)."""
@@ -543,7 +554,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
             logger.exception('LSP %s: connection failed.', self.language)
             self.sig_went_down.emit(self.language)
 
-    async def _connect_tcp(self, retries: int = 10, delay: float = 0.5) -> None:
+    async def _connect_tcp(
+        self, retries: int = 10, delay: float = 0.5
+    ) -> None:
         """Connect pygls client to the TCP LSP server with retries."""
         for attempt in range(retries):
             try:
@@ -609,11 +622,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         # Inform the rest of Spyder that the server is ready.
         self.sig_initialize.emit(self.server_capabilites, self.language)
 
-    # ------------------------------------------------------------------
-    # Public request dispatch
-    # ------------------------------------------------------------------
-
-    def perform_request(self, method: str, params: RequestParams) -> int | None:
+    # ---- Public request dispatch
+    # -------------------------------------------------------------------------
+    def perform_request(
+        self, method: str, params: RequestParams
+    ) -> int | None:
         """
         Dispatch *params* as an LSP request or notification for *method*.
 
@@ -708,7 +721,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 handler = getattr(self, self.handler_registry[method])
                 handler(params)
         except RuntimeError:
-            # CodeEditor may have been destroyed before the notification arrives.
+            # CodeEditor may have been destroyed before the notification
+            # arrives.
             pass
         except Exception:
             logger.exception('Error handling notification %s', method)
@@ -722,12 +736,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
         except RuntimeError:
             pass
         except Exception:
-            logger.exception('Error handling response %s (id=%d)', method, req_id)
+            logger.exception(
+                "Error handling response %s (id=%d)", method, req_id
+            )
 
-    # ------------------------------------------------------------------
-    # Shutdown helpers
-    # ------------------------------------------------------------------
-
+    # ---- Shutdown helpers
+    # -------------------------------------------------------------------------
     def is_down(self) -> bool:
         """Return True when the LSP client or managed server has stopped."""
         if self._pygls_client.stopped:
@@ -745,18 +759,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         return False
 
-    # ------------------------------------------------------------------
-    # Built-in initialization handlers
-    # ------------------------------------------------------------------
-
+    # ---- Built-in initialization handlers
+    # -------------------------------------------------------------------------
     @handles(lsp.SHUTDOWN)
     def handle_shutdown(self, response, *args) -> None:
         self.ready_to_close = True
 
-    # ------------------------------------------------------------------
-    # Settings queries (unchanged interface)
-    # ------------------------------------------------------------------
-
+    # ---- Settings queries (unchanged interface)
+    # -------------------------------------------------------------------------
     @property
     def support_multiple_workspaces(self) -> bool:
         if self.server_capabilites is None:

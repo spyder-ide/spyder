@@ -7,10 +7,12 @@
 """Completion widget class."""
 
 # Standard library imports
+from __future__ import annotations
 import html
 import sys
 
 # Third psrty imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QFocusEvent
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
@@ -18,8 +20,6 @@ from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.utils.icon_manager import ima
-from lsprotocol import types as lsp
-
 from spyder.utils.qthelpers import keyevent_to_keysequence_str
 from spyder.widgets.helperwidgets import HTMLDelegate
 
@@ -538,13 +538,17 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
     def _get_insert_text(self, item):
         if item.text_edit is not None:
             return item.text_edit.new_text
+
         insert_text = item.insert_text or item.label
+
         # Split by starting $ or language specific chars
         chars = ['$']
         if self._language == 'python':
             chars.append('(')
+
         for ch in chars:
             insert_text = insert_text.split(ch)[0]
+
         return insert_text
 
     def request_completion_hint(self, row=None):
@@ -581,16 +585,20 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         """Augment completion info with hints that come from the server."""
         if self.current_selected_item_label != item.label:
             return
+
         insert_text = self._get_insert_text(item)
+
         doc = item.documentation
         if isinstance(doc, lsp.MarkupContent):
             doc = doc.value
         elif doc is None:
             doc = ''
+
         self.sig_completion_hint.emit(
             insert_text,
             doc,
-            self.current_selected_item_point)
+            self.current_selected_item_point
+        )
 
     @Slot(int)
     def row_changed(self, row):

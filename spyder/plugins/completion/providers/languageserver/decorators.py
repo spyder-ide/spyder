@@ -79,14 +79,19 @@ def class_register(cls):
             cls.handler_registry[method._handle] = method_name
         if hasattr(method, '_sends'):
             cls.sender_registry[method._sends] = method_name
-            if getattr(method, '_kind', 'request') in ('notification', 'response'):
+            if getattr(method, "_kind", "request") in (
+                "notification",
+                "response",
+            ):
                 cls.notification_registry.add(method._sends)
 
     return cls
 
 
 def handles(method_name):
-    """Tag a method as the handler for LSP *method_name* responses/notifications."""
+    """
+    Tag a method as the handler for LSP *method_name* responses/notifications.
+    """
     def wrapper(func):
         func._handle = method_name
         return func

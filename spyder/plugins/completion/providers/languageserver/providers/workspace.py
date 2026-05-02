@@ -5,9 +5,11 @@
 # (see spyder/__init__.py for details)
 
 """Spyder Language Server Protocol Client workspace handler routines."""
+
 from __future__ import annotations
+from collections.abc import Callable
 import logging
-import typing
+from typing import TypedDict, TYPE_CHECKING
 
 from lsprotocol import types as lsp
 
@@ -15,12 +17,16 @@ from spyder.plugins.completion.providers.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
 from spyder.plugins.completion.api import WorkspaceUpdateKind
 from spyder.plugins.completion.providers.languageserver.decorators import (
-    handles, send_request, send_notification)
+    handles,
+    send_request,
+    send_notification,
+)
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 
-class WatchedFolder(typing.TypedDict):
+
+class WatchedFolder(TypedDict):
     uri: str
     instance: LSPMixin
 
@@ -33,12 +39,10 @@ class WorkspaceProvider:
     watched_folders: dict[str, WatchedFolder]
     server_capabilites: lsp.ServerCapabilities | None
     language: str
-    req_reply: dict[int, typing.Callable]
+    req_reply: dict[int, Callable]
 
-    # ------------------------------------------------------------------
-    # workspace/didChangeConfiguration
-    # ------------------------------------------------------------------
-
+    # ---- workspace/didChangeConfiguration
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.WORKSPACE_DID_CHANGE_CONFIGURATION)
     def send_configurations(self, configurations, *args):
         self.configurations = configurations
@@ -46,10 +50,8 @@ class WorkspaceProvider:
             settings=configurations,
         )
 
-    # ------------------------------------------------------------------
-    # workspace/didChangeWorkspaceFolders
-    # ------------------------------------------------------------------
-
+    # ---- workspace/didChangeWorkspaceFolders
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS)
     def send_workspace_folders_change(self, params):
         folder = params['folder']
@@ -68,14 +70,22 @@ class WorkspaceProvider:
         elif params['kind'] == WorkspaceUpdateKind.DELETION:
             if folder in self.watched_folders:
                 self.watched_folders.pop(folder)
-                removed.append(lsp.WorkspaceFolder(uri=folder_uri, name=folder))
+                removed.append(
+                    lsp.WorkspaceFolder(uri=folder_uri, name=folder)
+                )
 
-        ws = self.server_capabilites.workspace if self.server_capabilites else None
+        ws = (
+            self.server_capabilites.workspace
+            if self.server_capabilites
+            else None
+        )
         wf = ws.workspace_folders if ws else None
         if not (wf and wf.supported):
             return None  # Server doesn't support workspace folders, cancel.
 
-        logger.debug('Workspace folders change: %s -> %s', folder, params['kind'])
+        logger.debug(
+            "Workspace folders change: %s -> %s", folder, params["kind"]
+        )
         return lsp.DidChangeWorkspaceFoldersParams(
             event=lsp.WorkspaceFoldersChangeEvent(
                 added=added,
@@ -83,10 +93,8 @@ class WorkspaceProvider:
             ),
         )
 
-    # ------------------------------------------------------------------
-    # workspace/didChangeWatchedFiles
-    # ------------------------------------------------------------------
-
+    # ---- workspace/didChangeWatchedFiles
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES)
     def send_watched_files_change(self, params):
         changes = [
@@ -98,17 +106,17 @@ class WorkspaceProvider:
         ]
         return lsp.DidChangeWatchedFilesParams(changes=changes)
 
-    # ------------------------------------------------------------------
-    # workspace/symbol
-    # ------------------------------------------------------------------
-
+    # ---- workspace/symbol
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.WORKSPACE_SYMBOL)
     def send_symbol_request(self, params):
         return lsp.WorkspaceSymbolParams(query=params['query'])
 
     @handles(lsp.WORKSPACE_SYMBOL)
     def handle_symbol_response(self, response, *args):
-        """Distribute symbol results to the corresponding workspace instances."""
+        """
+        Distribute symbol results to the corresponding workspace instances.
+        """
         if not response:
             return
 
@@ -133,10 +141,8 @@ class WorkspaceProvider:
                 syms,
             )
 
-    # ------------------------------------------------------------------
-    # workspace/executeCommand
-    # ------------------------------------------------------------------
-
+    # ---- workspace/executeCommand
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.WORKSPACE_EXECUTE_COMMAND)
     def send_execute_command(self, params):
         return lsp.ExecuteCommandParams(
@@ -167,8 +173,14 @@ class WorkspaceProvider:
                     workspace = match_path_to_folder(folders, path)
                     if workspace is not None:
                         assigned_files[workspace].append(change)
-                elif isinstance(change, (lsp.CreateFile, lsp.RenameFile, lsp.DeleteFile)):
-                    ref_uri = change.new_uri if isinstance(change, lsp.RenameFile) else change.uri
+                elif isinstance(
+                    change, (lsp.CreateFile, lsp.RenameFile, lsp.DeleteFile)
+                ):
+                    ref_uri = (
+                        change.new_uri
+                        if isinstance(change, lsp.RenameFile)
+                        else change.uri
+                    )
                     path = process_uri(ref_uri)
                     workspace = match_path_to_folder(folders, path)
                     if workspace is not None:
@@ -180,7 +192,9 @@ class WorkspaceProvider:
                 if workspace is not None:
                     assigned_files[workspace].append(
                         lsp.TextDocumentEdit(
-                            text_document=lsp.OptionalVersionedTextDocumentIdentifier(uri=uri),
+                            text_document=lsp.OptionalVersionedTextDocumentIdentifier(
+                                uri=uri
+                            ),
                             edits=text_edits,
                         )
                     )

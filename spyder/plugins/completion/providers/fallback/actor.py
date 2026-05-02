@@ -16,15 +16,11 @@ programming language of that file.
 # Standard library imports
 import logging
 
-# Qt imports
-from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
-
-# Other imports
-from pygments.lexers import get_lexer_by_name
-from diff_match_patch import diff_match_patch
-
 # Third-party imports
+from diff_match_patch import diff_match_patch
 from lsprotocol import types as lsp
+from pygments.lexers import get_lexer_by_name
+from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Local imports
 from spyder.plugins.completion.providers.fallback.utils import (
@@ -103,8 +99,11 @@ class FallbackActor(QObject):
         # Filter matching results
         if current_word is not None:
             current_word = current_word.lower()
-            keywords = [k for k in keywords
-                        if current_word in (k.insert_text or k.label).lower()]
+            keywords = [
+                k
+                for k in keywords
+                if current_word in (k.insert_text or k.label).lower()
+            ]
 
         return keywords
 

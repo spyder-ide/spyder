@@ -16,6 +16,7 @@ import os
 import sys
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
 from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
@@ -27,7 +28,6 @@ from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from lsprotocol import types as lsp
 
 from spyder.plugins.editor.widgets.completion import CompletionWidget
 from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
@@ -948,10 +948,19 @@ class TextEditBaseWidget(
         has_selected_text = self.has_selected_text()
         selection_start, selection_end = self.get_selection_start_end()
 
-        if isinstance(completion, lsp.CompletionItem) and completion.text_edit is not None:
+        if (
+            isinstance(completion, lsp.CompletionItem)
+            and completion.text_edit is not None
+        ):
             te = completion.text_edit
-            r = te.insert if isinstance(te, lsp.InsertReplaceEdit) else te.range
-            start = self.get_position_line_number(r.start.line, r.start.character)
+            r = (
+                te.insert
+                if isinstance(te, lsp.InsertReplaceEdit)
+                else te.range
+            )
+            start = self.get_position_line_number(
+                r.start.line, r.start.character
+            )
             end = self.get_position_line_number(r.end.line, r.end.character)
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.KeepAnchor)

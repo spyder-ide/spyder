@@ -17,9 +17,9 @@ from lsprotocol import types as lsp
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.translations import _
-from spyder.utils.icon_manager import ima
-from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
 from spyder.plugins.completion.api import SYMBOL_KIND_ICON
+from spyder.plugins.switcher.utils import shorten_paths, get_file_icon
+from spyder.utils.icon_manager import ima
 
 
 def _symbol_range(symbol):
@@ -182,7 +182,10 @@ class EditorSwitcherManager(SpyderConfigurationAccessor):
                     total_symbols -= 1
                     continue
 
-                if symbol_kind == lsp.SymbolKind.Field and not display_variables:
+                if (
+                    symbol_kind == lsp.SymbolKind.Field
+                    and not display_variables
+                ):
                     total_symbols -= 1
                     continue
 

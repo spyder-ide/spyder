@@ -15,11 +15,9 @@ given source file.
 # Standard library imports
 import logging
 
-# Qt imports
-from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
-
 # Third-party imports
 from lsprotocol import types as lsp
+from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 
 # Local imports
 from spyder.plugins.completion.providers.snippets.trie import Trie

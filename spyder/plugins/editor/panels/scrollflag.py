@@ -15,14 +15,13 @@ import os
 import sys
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QSize, Qt, QThread
 from qtpy.QtGui import QColor, QCursor, QPainter
 from qtpy.QtWidgets import QApplication, QStyle, QStyleOptionSlider
 from superqt.utils import qdebounced
 
 # Local imports
-from lsprotocol import types as lsp
-
 from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.editor.utils.editor import is_block_safe
 

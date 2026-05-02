@@ -5,18 +5,15 @@
 # (see spyder/__init__.py for details)
 
 # Standard lib imports
-import json
-import os.path as osp
-
-# Third-party imports
-import pytest
 import random
 
-# Third-party imports (additional)
+# Third-party imports
 from lsprotocol import types as lsp
+import pytest
 
 # Local imports
 from spyder.config.snippets import SNIPPETS
+
 
 PY_SNIPPETS = SNIPPETS['python']
 

@@ -13,14 +13,13 @@ from math import ceil
 import math
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.QtCore import QSize, Qt, QPointF
 from qtpy.QtGui import (
     QColor, QFont, QFontMetricsF, QPainter, QStaticText, QTextOption
 )
 
 # Local imports
-from lsprotocol import types as lsp
-
 from spyder.utils.icon_manager import ima
 from spyder.plugins.editor.api.panel import Panel
 

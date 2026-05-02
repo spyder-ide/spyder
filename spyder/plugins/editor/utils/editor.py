@@ -108,7 +108,8 @@ class BlockUserData(QTextBlockUserData):
         cursor.setPosition(block.position())
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(
-            QTextCursor.NextCharacter, n=self.selection_start.character)
+            QTextCursor.NextCharacter, n=self.selection_start.character
+        )
         block2 = document.findBlockByNumber(
             self.selection_end.line)
         cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
@@ -116,7 +117,8 @@ class BlockUserData(QTextBlockUserData):
             QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
         cursor.movePosition(
             QTextCursor.NextCharacter, n=self.selection_end.character,
-            mode=QTextCursor.KeepAnchor)
+            mode=QTextCursor.KeepAnchor
+        )
         return QTextCursor(cursor)
 
 

@@ -7,12 +7,13 @@
 """
 General Spyder completion API constants and enumerations.
 
-The constants and enums presented on this file are Spyder-specific 
-extensions for the Language Server Protocol.
+The constants and enums declared on this file are Spyder-specific extensions
+for the Language Server Protocol.
 """
 
 # Standard library imports
 from __future__ import annotations
+from collections.abc import Callable
 from typing import Any, Optional, Tuple, TYPE_CHECKING, Union
 from enum import IntEnum
 
@@ -82,7 +83,6 @@ SYMBOL_KIND_ICON = {
 DOCUMENT_CURSOR_EVENT = 'textDocument/cursorEvent'
 
 # ---------------------- INTERNAL CONSTANTS -------------------------
-
 
 class ClientConstants:
     """Internal LSP Client constants."""

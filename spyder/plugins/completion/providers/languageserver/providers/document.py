@@ -14,7 +14,8 @@ from lsprotocol import types as lsp
 
 # Local imports
 from spyder.plugins.completion.providers.languageserver.providers.utils import (
-    path_as_uri, process_uri)
+    path_as_uri,
+)
 from spyder.plugins.completion.providers.languageserver.decorators import (
     handles, send_request, send_notification)
 
@@ -31,10 +32,8 @@ class DocumentProvider:
             self.watched_files[filename] = []
         self.watched_files[filename].append(codeeditor)
 
-    # ------------------------------------------------------------------
-    # Diagnostics (server -> client notification)
-    # ------------------------------------------------------------------
-
+    # ---- Diagnostics (server -> client notification)
+    # -------------------------------------------------------------------------
     @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_document_diagnostics(
         self, params: lsp.PublishDiagnosticsParams, *args
@@ -51,10 +50,8 @@ class DocumentProvider:
         else:
             logger.debug('Received diagnostics for file not open: %s', uri)
 
-    # ------------------------------------------------------------------
-    # textDocument/didChange
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/didChange
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.TEXT_DOCUMENT_DID_CHANGE)
     def document_changed(self, params):
         return lsp.DidChangeTextDocumentParams(
@@ -69,15 +66,15 @@ class DocumentProvider:
             ],
         )
 
-    # ------------------------------------------------------------------
-    # textDocument/didOpen
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/didOpen
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.TEXT_DOCUMENT_DID_OPEN)
     def document_open(self, editor_params):
         uri = path_as_uri(editor_params['file'])
         if uri not in self.watched_files:
-            self.register_file(editor_params['file'], editor_params['codeeditor'])
+            self.register_file(
+                editor_params["file"], editor_params["codeeditor"]
+            )
         return lsp.DidOpenTextDocumentParams(
             text_document=lsp.TextDocumentItem(
                 uri=uri,
@@ -87,10 +84,8 @@ class DocumentProvider:
             ),
         )
 
-    # ------------------------------------------------------------------
-    # textDocument/completion
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/completion
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_COMPLETION)
     def document_completion_request(self, params):
         return lsp.CompletionParams(
@@ -112,7 +107,11 @@ class DocumentProvider:
         else:
             items = []
 
-        cp = self.server_capabilites.completion_provider if self.server_capabilites else None
+        cp = (
+            self.server_capabilites.completion_provider
+            if self.server_capabilites
+            else None
+        )
         must_resolve = bool(cp and cp.resolve_provider)
 
         # Annotate each item with provider metadata in .data
@@ -131,10 +130,8 @@ class DocumentProvider:
                 result,
             )
 
-    # ------------------------------------------------------------------
-    # completionItem/resolve
-    # ------------------------------------------------------------------
-
+    # ---- completionItem/resolve
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.COMPLETION_ITEM_RESOLVE)
     def completion_resolve_request(self, params):
         return params['completion_item']
@@ -147,10 +144,8 @@ class DocumentProvider:
                 response,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/signatureHelp
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/signatureHelp
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
     def signature_help_request(self, params):
         return lsp.SignatureHelpParams(
@@ -173,10 +168,8 @@ class DocumentProvider:
                 response,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/hover
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/hover
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_HOVER)
     def hover_request(self, params):
         return lsp.HoverParams(
@@ -219,10 +212,8 @@ class DocumentProvider:
                 contents,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/documentSymbol
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/documentSymbol
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def document_symbol_request(self, params):
         return lsp.DocumentSymbolParams(
@@ -241,10 +232,8 @@ class DocumentProvider:
                 symbols,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/definition
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/definition
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):
         return lsp.DefinitionParams(
@@ -272,10 +261,8 @@ class DocumentProvider:
                 location,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/foldingRange
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/foldingRange
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def folding_range_request(self, params):
         return lsp.FoldingRangeParams(
@@ -293,10 +280,8 @@ class DocumentProvider:
                 ranges,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/willSave
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/willSave
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.TEXT_DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):
         return lsp.WillSaveTextDocumentParams(
@@ -306,10 +291,8 @@ class DocumentProvider:
             reason=lsp.TextDocumentSaveReason(params['reason']),
         )
 
-    # ------------------------------------------------------------------
-    # textDocument/didSave
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/didSave
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.TEXT_DOCUMENT_DID_SAVE)
     def document_did_save_notification(self, params):
         return lsp.DidSaveTextDocumentParams(
@@ -319,10 +302,8 @@ class DocumentProvider:
             text=params.get('text'),
         )
 
-    # ------------------------------------------------------------------
-    # textDocument/didClose
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/didClose
+    # -------------------------------------------------------------------------
     @send_notification(method=lsp.TEXT_DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
@@ -345,6 +326,7 @@ class DocumentProvider:
             if id(codeeditor) == id(editor):
                 editors.pop(i)
                 break
+
         if not editors:
             self.watched_files.pop(filename, None)
 
@@ -352,10 +334,8 @@ class DocumentProvider:
             text_document=lsp.TextDocumentIdentifier(uri=filename),
         )
 
-    # ------------------------------------------------------------------
-    # textDocument/formatting
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/formatting
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_FORMATTING)
     def document_formatting_request(self, params):
         return lsp.DocumentFormattingParams(
@@ -374,10 +354,8 @@ class DocumentProvider:
                 edits,
             )
 
-    # ------------------------------------------------------------------
-    # textDocument/rangeFormatting
-    # ------------------------------------------------------------------
-
+    # ---- textDocument/rangeFormatting
+    # -------------------------------------------------------------------------
     @send_request(method=lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def document_range_formatting_request(self, params):
         rng = params['range']

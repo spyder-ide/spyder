@@ -38,26 +38,30 @@ def _dicts_to_symbols(items):
         except ValueError:
             # handle Spyder-specific symbol kinds that are not in the LSP spec
             kind = SpyderSymbolKind(kind_val)
+
         loc = item['location']
         rng = loc['range']
-        symbols.append(lsp.SymbolInformation(
-            name=item['name'],
-            kind=kind,
-            location=lsp.Location(
-                uri=loc['uri'],
-                range=lsp.Range(
-                    start=lsp.Position(
-                        line=rng['start']['line'],
-                        character=rng['start']['character'],
-                    ),
-                    end=lsp.Position(
-                        line=rng['end']['line'],
-                        character=rng['end']['character'],
+        symbols.append(
+            lsp.SymbolInformation(
+                name=item["name"],
+                kind=kind,
+                location=lsp.Location(
+                    uri=loc["uri"],
+                    range=lsp.Range(
+                        start=lsp.Position(
+                            line=rng["start"]["line"],
+                            character=rng["start"]["character"],
+                        ),
+                        end=lsp.Position(
+                            line=rng["end"]["line"],
+                            character=rng["end"]["character"],
+                        ),
                     ),
                 ),
-            ),
-            container_name=item.get('containerName'),
-        ))
+                container_name=item.get("containerName"),
+            )
+        )
+
     return symbols
 
 
@@ -88,6 +92,7 @@ def create_outlineexplorer(qtbot):
 
         with open(case_info['data'], 'r') as f:
             symbol_info = _dicts_to_symbols(json.load(f))
+
         with open(case_info['tree'], 'r') as f:
             expected_tree = json.load(f)
 

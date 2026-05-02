@@ -10,7 +10,9 @@ import logging
 
 from lsprotocol import types as lsp
 
-from spyder.plugins.completion.providers.languageserver.decorators import handles
+from spyder.plugins.completion.providers.languageserver.decorators import (
+    handles,
+)
 
 logger = logging.getLogger(__name__)
 

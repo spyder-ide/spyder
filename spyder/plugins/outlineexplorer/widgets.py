@@ -14,13 +14,11 @@ import uuid
 
 # Third party imports
 from intervaltree import IntervalTree
+from lsprotocol import types as lsp
 from packaging.version import parse
 from qtpy import PYSIDE2, PYSIDE_VERSION
 from qtpy.QtCore import Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
-
-# Third-party imports (additional)
-from lsprotocol import types as lsp
 
 # Local imports
 from spyder.api.config.decorators import on_conf_change
@@ -38,6 +36,7 @@ def _symbol_range(symbol):
     """Return the lsp.Range of a DocumentSymbol or SymbolInformation."""
     if isinstance(symbol, lsp.SymbolInformation):
         return symbol.location.range
+
     return symbol.range
 
 
@@ -598,11 +597,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if language.lower() == 'python':
                 if symbol_kind == lsp.SymbolKind.Module:
                     continue
-                if (symbol_kind == lsp.SymbolKind.Variable and
-                        not self.display_variables):
+
+                if (
+                    symbol_kind == lsp.SymbolKind.Variable
+                    and not self.display_variables
+                ):
                     continue
-                if (symbol_kind == lsp.SymbolKind.Field and
-                        not self.display_variables):
+
+                if (
+                    symbol_kind == lsp.SymbolKind.Field
+                    and not self.display_variables
+                ):
                     continue
 
             symbol_range = _symbol_range(symbol)
