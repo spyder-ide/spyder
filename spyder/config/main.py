@@ -484,6 +484,8 @@ DEFAULTS = [
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Alt+Shift+U',
               'editor/transform to lowercase': 'Alt+U',
+              'editor/multiline split': 'Alt+Shift+M',
+              'editor/multiline merge': 'Alt+M',
               'editor/indent': 'Ctrl+]',
               'editor/unindent': 'Ctrl+[',
               'editor/move line up': "Alt+Up",
