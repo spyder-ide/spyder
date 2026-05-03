@@ -791,7 +791,7 @@ class Run(SpyderPluginV2):
                 menu_section = add_to_menu['section']
                 before_section = add_to_menu.get('before_section', None)
 
-            main_menu = self.get_plugin(Plugins.MainMenu)
+            main_menu = self.get_plugin(Plugins.MainMenu, error=False)
             if self.main_menu_ready and main_menu:
                 main_menu.add_item_to_application_menu(
                     action, menu_id, menu_section,
@@ -907,6 +907,9 @@ class Run(SpyderPluginV2):
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
+
+                if not self.main.is_setting_up:
+                    shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))
