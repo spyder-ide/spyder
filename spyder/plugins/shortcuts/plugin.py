@@ -18,6 +18,7 @@ import configparser
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import QAction, QShortcut
+from superqt.utils import qdebounced
 
 # Local imports
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
@@ -216,6 +217,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
             # Remove shortcut data
             self._shortcut_data.remove(data)
 
+    @qdebounced(timeout=150)
     def apply_shortcuts(self):
         """
         Apply shortcuts settings to all widgets/plugins.
