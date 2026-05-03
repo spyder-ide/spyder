@@ -34,6 +34,7 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.container import RunContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
+from spyder.utils.registries import ACTION_REGISTRY
 
 
 
@@ -494,17 +495,10 @@ class Run(SpyderPluginV2):
         `run <context> <context_modificator> and <extra_action_name>`
         on the action registry.
 
-        3. The created button will operate over the last focused run input
-        provider.
-
-        4. If the requested button already exists, this method will not do
-        anything, which implies that the first registered shortcut will be the
-        one to be used. For the built-in run contexts (file, cell and
-        selection), the editor will register their corresponding icons and
-        shortcuts.
+        4. For the built-in run contexts (file, cell and selection), the editor
+        will register their corresponding icons and shortcuts.
         """
-        key = (context_name, extra_action_name, context_modificator,
-               re_run)
+        key = (context_name, extra_action_name, context_modificator, re_run)
 
         action = self.get_container().create_run_button(
             context_name,
@@ -611,7 +605,7 @@ class Run(SpyderPluginV2):
             after requesting the run input.
         context_modificator: Optional[str]
             The name of the modification to apply to the action, e.g. run
-            run selection <up to line>.
+            selection <up to line>.
         re_run: bool
             If True, then the button was registered as a re-run button
             instead of a run one.
@@ -619,30 +613,29 @@ class Run(SpyderPluginV2):
         Notes
         -----
         1. The action will be removed from the main menu and toolbar if and
-        only if there is no longer a RunInputProvider that registered the same
-        action and has not called this method.
+        only if there is a single action registered to run a given context.
         """
         main_menu = self.get_plugin(Plugins.MainMenu)
         toolbar = self.get_plugin(Plugins.Toolbar)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
+        container = self.get_container()
 
-        key = (context_name, extra_action_name, context_modificator,
-               re_run)
+        key = (context_name, extra_action_name, context_modificator, re_run)
 
         with self.action_lock:
             action, count, action_id = self.all_run_actions[key]
 
-            if count == 0:
+            if count == 1:
                 self.all_run_actions.pop(key)
                 if key in self.menu_actions:
-                    self.menu_actions.pop(key)
+                    self.menu_actions.remove(key)
                     if main_menu:
                         main_menu.remove_item_from_application_menu(
                             action_id, menu_id=ApplicationMenus.Run
                         )
 
                 if key in self.toolbar_actions:
-                    self.toolbar_actions.pop(key)
+                    self.toolbar_actions.remove(key)
                     if toolbar:
                         toolbar.remove_item_from_application_toolbar(
                             action_id, toolbar_id=ApplicationToolbars.Run
@@ -655,6 +648,16 @@ class Run(SpyderPluginV2):
                             action, shortcut_context, action_id
                         )
                         shortcuts.apply_shortcuts()
+
+                if (
+                    context_name,
+                    extra_action_name,
+                ) in container.run_executor_actions:
+                    container.run_executor_actions.pop(
+                        (context_name, extra_action_name)
+                    )
+
+                ACTION_REGISTRY.remove_reference(action_id, self.PLUGIN_NAME)
             else:
                 count -= 1
                 self.all_run_actions[key] = (action, count, action_id)
