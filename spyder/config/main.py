@@ -400,9 +400,9 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
-              'history_filenames': [],
-              'max_entries': 30,
-              'project_dir': None,
+              'use_pylint': True,
+              'use_ruff': True,
+              'use_mypy': False,
               }),
             ('workingdir',
              {

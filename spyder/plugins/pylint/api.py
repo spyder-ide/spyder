@@ -11,5 +11,6 @@ Code Analysis plugin API.
 
 # Local imports
 from spyder.plugins.pylint.main_widget import (
-    PylintWidgetActions, PylintWidgetMainToolbarSections,
-    PylintWidgetOptionsMenuSections)
+    PylintWidgetActions,
+    PylintWidgetMainToolbarSections,
+)
