@@ -259,6 +259,9 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         run.deregister_executor_configuration(
             self, self.executor_configuration
         )
+        run.destroy_run_in_executor_button(RunContext.File, self.NAME)
+        run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
+        run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
