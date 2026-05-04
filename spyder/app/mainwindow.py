@@ -272,6 +272,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.already_closed = False
         self.is_starting_up = True
         self.is_setting_up = True
+        self.is_closing = False
 
         self.window_size = None
         self.window_position = None
@@ -383,13 +384,12 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         messageBox.move(x, y)
 
     def register_plugin(self, plugin_name, external=False, omit_conf=False):
-        """
-        Register a plugin in Spyder Main Window.
-        """
+        """Register a plugin in the main window."""
+        logger.info("Loading {}...".format(plugin_name))
         plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
 
-        self.set_splash(_("Loading {}...").format(plugin.get_name()))
-        logger.info("Loading {}...".format(plugin.NAME))
+        if self.is_setting_up:
+            self.set_splash(_("Loading {}...").format(plugin.get_name()))
 
         # Check plugin compatibility
         is_compatible, message = plugin.check_compatibility()
@@ -418,7 +418,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             plugin.sig_update_ancestor_requested.connect(
                 lambda: plugin.set_ancestor(self))
 
-        # Connect Main window Signals to plugin signals
+        # Connect main window signals to plugin signals
         self.sig_moved.connect(plugin.sig_mainwindow_moved)
         self.sig_resized.connect(plugin.sig_mainwindow_resized)
         self.sig_window_state_changed.connect(
@@ -442,7 +442,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         if plugin_name == Plugins.Shortcuts:
             for action, context, action_name in self.shortcut_queue:
-                self.register_shortcut(action, context, action_name)
+                self.shortcuts.register_shortcut(action, context, action_name)
             self.shortcut_queue = []
 
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
@@ -454,7 +454,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 if isinstance(action_name, Enum):
                     action_name = action_name.value
                 if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                    self.register_shortcut(action, context, action_name)
+                    self.shortcuts.register_shortcut(
+                        action, context, action_name
+                    )
                 else:
                     self.shortcut_queue.append((action, context, action_name))
 
@@ -470,26 +472,63 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             plugin._switch_to_shortcut = sc
 
             if Plugins.Shortcuts in PLUGIN_REGISTRY:
-                self.register_shortcut(sc, context, name)
-                self.register_shortcut(
-                    plugin.toggle_view_action, context, name)
+                self.shortcuts.register_shortcut(sc, context, name)
+                self.shortcuts.register_shortcut(
+                    plugin.toggle_view_action, context, name
+                )
             else:
                 self.shortcut_queue.append((sc, context, name))
                 self.shortcut_queue.append(
-                    (plugin.toggle_view_action, context, name))
+                    (plugin.toggle_view_action, context, name)
+                )
 
-    def unregister_plugin(self, plugin):
-        """
-        Unregister a plugin from the Spyder Main Window.
-        """
-        logger.info("Unloading {}...".format(plugin.NAME))
+        # Actions to perform when the plugin is re-registered
+        if not self.is_setting_up:
+            from spyder.api.shellconnect.main_widget import (
+                ShellConnectMainWidget,
+            )
 
-        # Disconnect all slots
+            # This is necessary to register plugin shortcuts again
+            self.shortcuts.apply_shortcuts()
+
+            # For dockable plugins
+            if isinstance(plugin, SpyderDockablePlugin):
+                # Tabify plugin
+                self.layouts.tabify_plugin(plugin)
+
+                # Rebuild 'Window > Panes' menu
+                self.layouts.create_plugins_menu(rebuild=True)
+
+                # Check plugin as visible in that menu
+                main_widget = plugin.get_widget()
+                main_widget.toggle_view(True)
+
+                # Add current shellwidgets to ShellConnect plugins
+                if isinstance(main_widget, ShellConnectMainWidget):
+                    plugin._add_current_shellwidgets()
+
+    def unregister_plugin(self, plugin_name):
+        """Unregister a plugin from the main window."""
+        logger.info("Unloading {}...".format(plugin_name))
+        plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
+
+        # Disconnect plugin signals
         signals = [
+            plugin.sig_exception_occurred,
+            plugin.sig_free_memory_requested,
             plugin.sig_quit_requested,
+            plugin.sig_restart_requested,
             plugin.sig_redirect_stdio_requested,
             plugin.sig_status_message_requested,
+            plugin.sig_unmaximize_plugin_requested,
+            plugin.sig_unmaximize_plugin_requested[object],
         ]
+
+        if isinstance(plugin, SpyderDockablePlugin):
+            signals += [
+                plugin.sig_switch_to_plugin_requested,
+                plugin.sig_update_ancestor_requested
+            ]
 
         for sig in signals:
             try:
@@ -497,36 +536,52 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             except TypeError:
                 pass
 
+        # Disconnect main window signals from plugin signals
+        self.sig_moved.disconnect(plugin.sig_mainwindow_moved)
+        self.sig_resized.disconnect(plugin.sig_mainwindow_resized)
+        self.sig_window_state_changed.disconnect(
+            plugin.sig_mainwindow_state_changed
+        )
+        self.sig_focused_plugin_changed.disconnect(
+            plugin.sig_focused_plugin_changed
+        )
+
         # Unregister shortcuts for actions
         logger.info("Unregistering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
-            context = (getattr(action, 'shortcut_context', plugin.NAME)
-                       or plugin.NAME)
+            context = (
+                getattr(action, "shortcut_context", plugin.NAME) or plugin.NAME
+            )
             self.shortcuts.unregister_shortcut(action, context, action_name)
 
-        # Unregister switch to shortcut
-        shortcut = None
-        try:
-            context = '_'
-            name = 'switch to {}'.format(plugin.CONF_SECTION)
-            shortcut = self.get_shortcut(
-                name,
-                context,
-                plugin_name=plugin.CONF_SECTION
-            )
-        except Exception:
-            pass
+        if isinstance(plugin, SpyderDockablePlugin):
+            # Unregister "switch to" shortcut
+            shortcut = None
+            try:
+                context = '_'
+                name = 'switch to {}'.format(plugin.CONF_SECTION)
+                shortcut = self.get_shortcut(
+                    name,
+                    context,
+                    plugin_name=plugin.CONF_SECTION
+                )
+            except Exception:
+                pass
 
-        if shortcut is not None:
-            self.shortcuts.unregister_shortcut(
-                plugin._switch_to_shortcut,
-                context,
-                "Switch to {}".format(plugin.CONF_SECTION),
-            )
+            if shortcut is not None:
+                self.shortcuts.unregister_shortcut(
+                    plugin._switch_to_shortcut,
+                    context,
+                    "Switch to {}".format(plugin.CONF_SECTION),
+                )
 
-        # Remove dockwidget
-        logger.info("Removing {} dockwidget...".format(plugin.NAME))
-        self.remove_dockwidget(plugin)
+            # Remove dockwidget
+            logger.info("Removing {} dockwidget...".format(plugin.NAME))
+            self.remove_dockwidget(plugin)
+
+            # Rebuild 'Window > Panes' menu
+            if not self.is_closing:
+                self.layouts.create_plugins_menu(rebuild=True)
 
         plugin._unregister()
 
@@ -642,7 +697,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                 plugin_name, omit_conf=omit_conf
             )
         )
-
+        PLUGIN_REGISTRY.sig_plugin_deleted.connect(self.unregister_plugin)
         PLUGIN_REGISTRY.main = self
 
         logger.info("*** Start of MainWindow setup ***")
@@ -881,32 +936,6 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         self.base_title = title
         self.setWindowTitle(self.base_title)
 
-    # TODO: To be removed after all actions are moved to their corresponding
-    # plugins
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=True, plugin_name=None):
-        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
-        if shortcuts:
-            shortcuts.register_shortcut(
-                qaction_or_qshortcut,
-                context,
-                name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-                plugin_name=plugin_name,
-            )
-
-    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
-                            add_shortcut_to_tip=True, plugin_name=None):
-        shortcuts = self.get_plugin(Plugins.Shortcuts, error=False)
-        if shortcuts:
-            shortcuts.unregister_shortcut(
-                qaction_or_qshortcut,
-                context,
-                name,
-                add_shortcut_to_tip=add_shortcut_to_tip,
-                plugin_name=plugin_name,
-            )
-
     # ---- Qt methods
     # -------------------------------------------------------------------------
     def createPopupMenu(self):
@@ -1012,17 +1041,27 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         if self.already_closed or self.is_starting_up:
             return True
 
+        # Ask before closing
+        if cancelable and self.get_conf('prompt_on_exit'):
+            reply = QMessageBox.critical(
+                self,
+                "Spyder",
+                _("Do you really want to exit?"),
+                QMessageBox.Yes,
+                QMessageBox.No,
+            )
+            if reply == QMessageBox.No:
+                return False
+
+        self.is_closing = True
+
+        # Save visible plugins
         if self.layouts is not None:
             self.layouts.save_visible_plugins()
 
-        self.plugin_registry = PLUGIN_REGISTRY
-
-        if cancelable and self.get_conf('prompt_on_exit'):
-            reply = QMessageBox.critical(self, 'Spyder',
-                                         'Do you really want to exit?',
-                                         QMessageBox.Yes, QMessageBox.No)
-            if reply == QMessageBox.No:
-                return False
+        # Disconnect this signal because we don't need it anymore
+        qapp = QApplication.instance()
+        qapp.focusChanged.disconnect()
 
         # Save current project files here to be sure we do it as expected in
         # case the Editor is closed before Projects below.
@@ -1039,7 +1078,7 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
 
         # Dock undocked plugins before saving the layout.
         # Fixes spyder-ide/spyder#12139
-        self.plugin_registry.dock_all_undocked_plugins(save_undocked=True)
+        PLUGIN_REGISTRY.dock_all_undocked_plugins(save_undocked=True)
 
         # Save layout before closing all plugins. This ensures its restored
         # correctly in the next session when there are many IPython consoles
@@ -1053,13 +1092,14 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
                     layouts_container.close()
                     layouts_container.deleteLater()
                 self.layouts.deleteLater()
-                self.plugin_registry.delete_plugin(
-                    Plugins.Layout, teardown=False)
+                PLUGIN_REGISTRY.delete_plugin(
+                    Plugins.Layout, teardown=False
+                )
             except RuntimeError:
                 pass
 
-        # Close all plugins
-        can_close = self.plugin_registry.delete_all_plugins(
+        # Delete all plugins
+        can_close = PLUGIN_REGISTRY.delete_all_plugins(
             excluding={Plugins.Layout}, close_immediately=close_immediately
         )
 

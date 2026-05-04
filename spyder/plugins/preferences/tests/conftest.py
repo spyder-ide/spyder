@@ -114,7 +114,6 @@ class ConfigDialogTester(QWidget):
                                 MagicMock()
                             )
 
-                    PLUGIN_REGISTRY._update_plugin_info(Plugin)
                     PLUGIN_REGISTRY.register_plugin(self._main, Plugin)
                 else:
                     plugin = Plugin(self._main)

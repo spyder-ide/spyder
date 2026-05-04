@@ -37,7 +37,7 @@ from spyder.plugins.ipythonconsole.widgets.run_conf import IPythonConfigOptions
 from spyder.plugins.editor.api.run import CellRun, SelectionRun
 
 
-class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
+class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     """Debugger plugin."""
 
     NAME = 'debugger'
@@ -337,6 +337,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     def on_main_menu_available(self):
         mainmenu = self.get_plugin(Plugins.MainMenu)
 
+        # Create Debug menu
+        mainmenu.create_application_menu(ApplicationMenus.Debug, _("&Debug"))
+
         # ControlDebug section
         for action in [DebuggerWidgetActions.Next,
                        DebuggerWidgetActions.Step,
@@ -380,6 +383,9 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
                 menu_id=ApplicationMenus.Debug
             )
 
+        # Remove Debug menu
+        mainmenu.remove_application_menu(ApplicationMenus.Debug)
+
     @on_plugin_available(plugin=Plugins.Toolbar)
     def on_toolbar_available(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
@@ -409,6 +415,13 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
+
+        debug_toolbar = toolbar.get_application_toolbar(
+            ApplicationToolbars.Debug
+        )
+        debug_toolbar.sig_is_rendered.disconnect(
+            self.get_widget().on_debug_toolbar_rendered
+        )
 
         for action_id in [
             DebuggerWidgetActions.Next,

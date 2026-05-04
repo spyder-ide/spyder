@@ -33,6 +33,12 @@ from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.utils.icon_manager import ima
+from spyder.utils.registries import (
+    ACTION_REGISTRY,
+    MENU_REGISTRY,
+    TOOLBAR_REGISTRY,
+    TOOLBUTTON_REGISTRY,
+)
 
 
 if sys.version_info < (3, 10):
@@ -128,6 +134,16 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
     omit_conf: bool
         ``True`` if the plugin configuration does not need to be written;
         ``False`` otherwise.
+    """
+
+    sig_plugin_deleted: Signal = Signal(str)
+    """
+    Signal used to let the main window know that a plugin was deleted.
+
+    Parameters
+    ----------
+    plugin_name: str
+        Name of the plugin that was deleted.
     """
 
     def __init__(self) -> None:
@@ -255,9 +271,6 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
         for plugin_name in internal_plugins:
             PluginClass = internal_plugins[plugin_name]
 
-            # Update plugin dependency information
-            self._update_plugin_info(PluginClass)
-
             if plugin_name in enabled_plugins:
                 # Disable plugins that use web widgets if WebEngine is not
                 # available or the user asks for it.
@@ -279,9 +292,6 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
         # Instantiate external plugins
         for plugin_name in external_plugins:
             PluginClass = external_plugins[plugin_name]
-
-            # Update plugin dependency information
-            self._update_plugin_info(PluginClass)
 
             if plugin_name in enabled_plugins:
                 # Disable plugins that require web widgets if they are not
@@ -357,6 +367,9 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
         plugin_instance = PluginClass(main_window, configuration=CONF)
         self.plugin_registry[plugin_name] = plugin_instance
 
+        # Update plugin dependency information
+        self._update_plugin_info(PluginClass)
+
         # Connect plugin availability signal to notification system
         plugin_instance.sig_plugin_ready.connect(
             lambda: self.notify_plugin_availability(
@@ -407,7 +420,9 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
                     logger.debug(f"Plugin {plugin} has already loaded")
                     plugin_instance._on_plugin_available(plugin)
 
-    def _notify_plugin_teardown(self, plugin_name: str):
+    def _notify_plugin_teardown(
+        self, plugin_name: str, notify_main: bool = True
+    ):
         """Notify dependents of a plugin that is going to be unavailable."""
         plugin_dependents = self.plugin_dependents.get(plugin_name, {})
         required_plugins = plugin_dependents.get("requires", [])
@@ -422,6 +437,10 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
                     )
                     plugin_instance = self.plugin_registry[plugin]
                     plugin_instance._on_plugin_teardown(plugin_name)
+
+        # Notify the main window that the plugin was deleted
+        if notify_main:
+            self.sig_plugin_deleted.emit(plugin_name)
 
     def _teardown_plugin(self, plugin_name: str):
         """Disconnect a plugin from its dependencies."""
@@ -648,41 +667,53 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
             if not can_delete:
                 return False
 
-        if isinstance(plugin_instance, SpyderPluginV2):
-            # Cleanly delete plugin widgets. This avoids segfaults with
-            # PyQt 5.15
-            if isinstance(plugin_instance, SpyderDockablePlugin):
+        # Cleanly delete plugin widgets. This avoids segfaults with PyQt 5.15
+        if isinstance(plugin_instance, SpyderDockablePlugin):
+            try:
+                plugin_instance.get_widget().close()
+                plugin_instance.get_widget().deleteLater()
+            except RuntimeError:
+                pass
+        else:
+            container = plugin_instance.get_container()
+            if container:
                 try:
-                    plugin_instance.get_widget().close()
-                    plugin_instance.get_widget().deleteLater()
+                    container.close()
+                    container.deleteLater()
                 except RuntimeError:
                     pass
-            else:
-                container = plugin_instance.get_container()
-                if container:
-                    try:
-                        container.close()
-                        container.deleteLater()
-                    except RuntimeError:
-                        pass
 
-            # Delete plugin
-            try:
-                plugin_instance.deleteLater()
-            except RuntimeError:
-                pass
-            if teardown:
-                # Disconnect plugin from other plugins
-                self._teardown_plugin(plugin_name)
+        # Delete plugin
+        try:
+            plugin_instance.deleteLater()
+        except RuntimeError:
+            pass
 
-                # Disconnect depending plugins from the plugin to delete
-                self._notify_plugin_teardown(plugin_name)
+        if teardown:
+            # Disconnect plugin from other plugins
+            self._teardown_plugin(plugin_name)
 
-            # Perform plugin closure tasks
-            try:
-                plugin_instance.on_close(True)
-            except RuntimeError:
-                pass
+            # Disconnect depending plugins from the plugin to delete
+            self._notify_plugin_teardown(plugin_name)
+
+        # Perform plugin closure tasks
+        try:
+            plugin_instance.on_close(True)
+        except RuntimeError:
+            pass
+
+        try:
+            for registry in [
+                ACTION_REGISTRY,
+                MENU_REGISTRY,
+                TOOLBAR_REGISTRY,
+                TOOLBUTTON_REGISTRY,
+            ]:
+                if plugin_name in registry:
+                    registry.remove_references(plugin_name)
+        except KeyError:
+            if not running_under_pytest():
+                raise
 
         # Delete plugin from the registry and auxiliary structures
         self.plugin_dependents.pop(plugin_name, None)
