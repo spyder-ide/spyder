@@ -449,7 +449,8 @@ class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
         if not current_word:
             return True
 
-        return str(filter_text).lower().startswith(str(current_word).lower())
+        # Allow suggestions not starts with current word
+        return True
 
     def is_position_correct(self):
         """Check if the position is correct."""
