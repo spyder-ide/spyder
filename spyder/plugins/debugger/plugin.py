@@ -314,6 +314,12 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
 
         editor.add_panel(DebuggerPanel)
 
+        # Reconnect CodeEditors if the plugin is reenabled
+        if not self.main.is_setting_up:
+            for editorstack in editor.get_editorstacks():
+                for finfo in editorstack.data:
+                    self._add_codeeditor(finfo.editor)
+
     @on_plugin_teardown(plugin=Plugins.Editor)
     def on_editor_teardown(self):
         editor = self.get_plugin(Plugins.Editor)
@@ -342,6 +348,12 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             action = self.get_action(name)
             if action in editor.get_widget().pythonfile_dependent_actions:
                 editor.get_widget().pythonfile_dependent_actions.remove(action)
+
+        editor.remove_panel(DebuggerPanel)
+
+        for editorstack in editor.get_editorstacks():
+            for finfo in editorstack.data:
+                self._remove_codeeditor(finfo.editor)
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
