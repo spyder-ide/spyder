@@ -133,7 +133,7 @@ class CollectionsEditorContextMenuSections:
 class CollectionsEditorToolbarSections:
     AddDelete = 'add_delete_section'
     View = 'view_section'
-    CloseAndRest = 'close_and_rest_section'
+    CloseAndReset = 'close_and_rest_section'
 
 
 # Maximum length of a serialized variable to be set in the kernel
@@ -953,7 +953,7 @@ class BaseTableView(QTableView, SpyderWidgetMixin):
             self.view_action,
             self.plot_action,           
             self.hist_action,
-            self.imshow_action
+            self.imshow_action,
         ]:
             self.add_item_to_menu(
                 action,
@@ -1945,7 +1945,7 @@ class CollectionsEditorWidget(QWidget, SpyderWidgetMixin):
             self.add_item_to_toolbar(
                 item,
                 toolbar,
-                section=CollectionsEditorToolbarSections.CloseAndRest
+                section=CollectionsEditorToolbarSections.CloseAndReset
             )
 
         toolbar.render()
