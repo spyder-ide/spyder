@@ -53,6 +53,7 @@ from spyder.plugins.run.api import RunContext
 
 if TYPE_CHECKING:
     from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+    from spyder.plugins.editor.widgets.editorstack import EditorStack
 
 
 logger = logging.getLogger(__name__)
@@ -1042,6 +1043,17 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().get_current_editorstack()
 
+    def get_editorstacks(self) -> list["EditorStack"]:
+        """
+        Get all `EditorStack` instances.
+
+        Returns
+        -------
+        list[spyder.plugins.editor.editorstack.EditorStack]
+            List of `EditorStack` instances.
+        """
+        return self.get_widget().editorstacks
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to.
@@ -1269,11 +1281,71 @@ class Editor(SpyderDockablePlugin):
 
         self.extensions.append(extension)
 
+        # This is necessary to readd the extension for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_extension(extension)
+
+    def remove_extension(self, extension: type[EditorExtension]) -> None:
+        """
+        Remove an editor extension from all CodeEditors.
+
+        Parameters
+        ----------
+        extension: type[EditorExtension]
+            Subclass of EditorExtension to be removed.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of EditorExtension.
+        """
+        if not issubclass(extension, EditorExtension):
+            raise SpyderAPIError(
+                "The extension you provided is not a subclass of "
+                "EditorExtension."
+            )
+
+        self.extensions.remove(extension)
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_extension(extension)
+
     def add_panel(
         self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
     ) -> None:
         """
         Add a panel to every CodeEditor.
+
+        Parameters
+        ----------
+        panel: type[Panel]
+            Subclass of Panel to be added to the editor.
+        position: PanelPosition, optional
+            Position to add the panel to. Default is to the left.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the panel is not a subclass of Panel.
+        """
+        if not issubclass(panel, Panel):
+            raise SpyderAPIError(
+                "The panel you provided is not a subclass of Panel."
+            )
+
+        self.panels.append((panel, position))
+
+        # This is necessary to readd the panel for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_panel(panel, position)
+
+    def remove_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    )-> None:
+        """
+        Remove a panel from all CodeEditors.
 
         Parameters
         ----------
@@ -1292,7 +1364,10 @@ class Editor(SpyderDockablePlugin):
                 "The panel you provided is not a subclass of Panel."
             )
 
-        self.panels.append((panel, position))
+        self.panels.remove((panel, position))
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_panel(panel, position)
 
     def add_shortcut(
         self,

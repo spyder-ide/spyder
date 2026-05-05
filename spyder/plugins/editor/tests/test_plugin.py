@@ -667,14 +667,14 @@ def test_add_panel(editor_plugin, position, qtbot):
     editor = editor_plugin.get_current_editor()
 
     # Verify the panel was added
-    new_panel = editor.panels.get(EmojiPanel)
+    new_panel = editor.panels.get(EmojiPanel, position=position)
     assert new_panel is not None
 
     # Verify that the panel is shown in other files
     editor_plugin.new(fname="foo.py", text="hola = 3\n")
     editor2 = editor_plugin.get_current_editor()
 
-    new_panel = editor2.panels.get(EmojiPanel)
+    new_panel = editor2.panels.get(EmojiPanel, position=position)
     assert new_panel is not None
 
     # Remove created file to prevent issues with other tests
