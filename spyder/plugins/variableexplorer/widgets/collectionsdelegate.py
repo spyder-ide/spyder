@@ -409,7 +409,9 @@ class CollectionsDelegate(
                 parent=parent,
                 namespacebrowser=self.namespacebrowser,
                 data_function=self.make_data_function(index),
-                readonly=readonly)
+                readonly=readonly
+                )
+            editor.sig_close_all_editors_requested.connect(self.close_all_editors)
             self.create_dialog(editor, dict(model=index.model(),
                                             editor=editor,
                                             key=key, readonly=readonly))
