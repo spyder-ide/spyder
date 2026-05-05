@@ -14,7 +14,7 @@ import traceback
 from typing import Any, Callable, Optional
 
 # Third-party imports
-from qtpy.QtCore import Signal, Slot, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import QModelIndex, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QTextOption
 from qtpy.QtWidgets import (
     QAbstractItemView, QButtonGroup, QGroupBox, QHBoxLayout, QHeaderView,
