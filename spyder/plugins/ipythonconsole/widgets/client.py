@@ -501,6 +501,11 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         kernel_handler.sig_stdout.disconnect(self.print_stdout)
         kernel_handler.sig_fault.disconnect(self.print_fault)
 
+        # FIXME: If shutdown_kernel is False, then when the last reference to
+        # kernel_handler is gone (which happens when this function returns),
+        # "QThread: Destroyed while thread is still running" results. If
+        # shutdown_kernel is True, this does not happen.
+        # See spyder-ide/spyder#23973
         self.shellwidget.disconnect_kernel(shutdown_kernel)
         self.kernel_handler = None
 
