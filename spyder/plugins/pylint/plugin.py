@@ -139,7 +139,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
             text=_("Run code analysis"),
             tip=_("Run code analysis"),
             icon=self.create_icon("pylint"),
-            shortcut_context='pylint',
+            shortcut_context="_",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Source,

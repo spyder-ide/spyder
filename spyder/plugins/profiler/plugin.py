@@ -12,6 +12,7 @@ Profiler Plugin.
 from typing import List
 
 # Third party imports
+from qtpy.QtCore import Qt
 from packaging.version import parse
 
 # Local imports
@@ -224,44 +225,54 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             text=_("Profile file"),
             tip=_("Profile file"),
             icon=self.create_icon('profiler'),
-            shortcut_context=self.NAME,
+            shortcut_context="_",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.ApplicationShortcut,
         )
 
-        run.create_run_in_executor_button(
+        cell_action = run.create_run_in_executor_button(
             RunContext.Cell,
             self.NAME,
             text=_("Profile cell"),
             tip=_("Profile cell"),
             icon=self.create_icon('profile_cell'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
 
-        run.create_run_in_executor_button(
+        selection_action = run.create_run_in_executor_button(
             RunContext.Selection,
             self.NAME,
             text=_("Profile current line or selection"),
             tip=_("Profile current line or selection"),
             icon=self.create_icon('profile_selection'),
-            shortcut_context=self.NAME,
+            shortcut_context="editor",
             register_shortcut=True,
             add_to_menu={
                 "menu": ApplicationMenus.Run,
                 "section": RunMenuSections.Profile,
             },
-            add_to_toolbar=ApplicationToolbars.Profile
+            add_to_toolbar=ApplicationToolbars.Profile,
+            shortcut_widget_context=Qt.WidgetShortcut,
         )
+
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.add_shortcut("run cell in profiler", cell_action.trigger)
+            editor.add_shortcut(
+                "run selection in profiler", selection_action.trigger
+            )
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
