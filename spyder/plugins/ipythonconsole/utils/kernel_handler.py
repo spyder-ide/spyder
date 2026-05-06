@@ -579,6 +579,10 @@ class KernelHandler(QObject):
             self.kernel_client is not None
             and self.kernel_client.channels_running
         ):
+            # FIXME: Race condition with self.close_comm(). If comms have not
+            # completed closing, then stop_channels here results in
+            # [WARNING] [tornado.general] -> Got events for closed stream
+            #     <zmq.eventloop.zmqstream.ZMQStream object at ...>
             self.kernel_client.stop_channels()
 
     def after_shutdown(self):
