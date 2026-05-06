@@ -233,8 +233,13 @@ class CollectionsDelegate(
                 namespacebrowser=self.namespacebrowser,
                 data_function=self.make_data_function(index)
             )
-            editor.setup(value, key, icon=self.parent().windowIcon(),
-                         readonly=readonly, from_variable_explorer=True)
+            editor.setup(
+                value,
+                key,
+                icon=self.parent().windowIcon(),
+                readonly=readonly,
+                from_variable_explorer=True
+            )
             editor.sig_close_all_editors_requested.connect(
                 self.close_all_editors
             )
@@ -530,7 +535,7 @@ class CollectionsDelegate(
             message.set_checkbox_text(_("Don't ask again"))
             message.set_checked(False)
             message.set_check_visible(True)
-            message.setText(_('Are you sure you want to close all editors?'))
+            message.setText(_("Are you sure you want to close all viewers?"))
             message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
 
             result = message.exec_()
