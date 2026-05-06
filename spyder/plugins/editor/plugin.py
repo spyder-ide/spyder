@@ -1372,23 +1372,23 @@ class Editor(SpyderDockablePlugin):
     def add_shortcut(
         self,
         name: str,
-        triggered: Callable[["CodeEditor"], None],
-        plugin_name: str,
+        triggered: Callable[[], None] | Callable[["CodeEditor"], None],
+        plugin_name: str | None = None,
     ) -> None:
         """
-        Add a keyboard shorcut to every CodeEditor.
+        Add a keyboard shortcut to every CodeEditor.
 
         Parameters
         ----------
         name: str
             The shortcut name (e.g. ``"add text"``).
-        triggered: Callable[["CodeEditor"], None]
+        triggered: Callable[[], None] | Callable[["CodeEditor"], None]
             Callable (i.e. function or method) to be triggered by the shortcut.
-            It must have a single parameter that receives an instance of
-            CodeEditor to work with and it doesn't need to return anything
-            because it's expected result is to have a side effect on the
-            editor (e.g. adding some text to it).
-        plugin_name: str
+            It must have no args or a single arg that receives an instance of
+            CodeEditor to work with. In addition, the callable must not return
+            anything because it's expected result is to have a side effect on
+            the editor (e.g. adding some text to it).
+        plugin_name: str, optional
             Name of the plugin that attempts to register the shortcut. This
             allows Spyder to get the shortcut from its configuration options.
 
