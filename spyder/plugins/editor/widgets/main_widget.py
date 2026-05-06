@@ -275,9 +275,9 @@ class EditorMainWidget(PluginMainWidget):
         self.checkable_actions = {}
 
         self.__first_open_files_setup = True
-        self.editorstacks = []
+        self.editorstacks: list[EditorStack] = []
         self.last_focused_editorstack = {}
-        self.editorwindows = []
+        self.editorwindows: list[EditorMainWindow] = []
         self.editorwindows_to_be_created = []
 
         # Configuration dialog size
