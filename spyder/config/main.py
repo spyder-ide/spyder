@@ -562,11 +562,11 @@ DEFAULTS = [
               'internal_console/clear shell': "Ctrl+L",
               'internal_console/clear line': "Shift+Escape",
               # -- Pylint --
-              'pylint/run file in pylint': "F8",
+              '_/run file in pylint': "F8",
               # -- Profiler --
-              'profiler/run file in profiler': "F10",
-              'profiler/run cell in profiler': "Alt+F10",
-              'profiler/run selection in profiler': "",
+              '_/run file in profiler': "F10",
+              'editor/run cell in profiler': "Alt+F10",
+              'editor/run selection in profiler': "",
               'profiler/find_action': "Ctrl+F",
               # -- Switcher --
               '_/file switcher': 'Ctrl+P',
