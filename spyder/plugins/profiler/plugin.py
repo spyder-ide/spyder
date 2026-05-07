@@ -284,6 +284,11 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
 
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            editor.remove_shortcut("run cell in profiler")
+            editor.remove_shortcut("run selection in profiler")
+
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
         widget = self.get_widget()
