@@ -1416,6 +1416,49 @@ class Editor(SpyderDockablePlugin):
 
         self.shortcuts.append((name, triggered, plugin_name))
 
+        # This is necessary to readd the shortcut for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_shortcut(name, triggered, plugin_name)
+
+    def remove_shortcut(
+        self, name: str, plugin_name: str | None = None
+    ) -> None:
+        """
+        Remove a keyboard shortcut from all CodeEditors.
+
+        Parameters
+        ----------
+        name: str
+            The shortcut name (e.g. ``"add text"``).
+        plugin_name: str, optional
+            Name of the plugin that attempts to register the shortcut. This
+            allows Spyder to get the shortcut from its configuration options.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the shortcut context is not 'editor', or the shortcut is not
+            part of the external plugin's configuration options.
+        """
+        try:
+            self.get_widget().get_shortcut(
+                name=name, context="editor", plugin_name=plugin_name
+            )
+        except configparser.NoOptionError:
+            raise SpyderAPIError(
+                f"The shortcut context is not 'editor' or the shortcut is not "
+                f"part of the config options of the plugin {plugin_name}"
+            )
+
+        for sc in self.shortcuts:
+            if sc[0] == name and sc[2] == plugin_name:
+                triggered = sc[1]
+                self.shortcuts.remove((name, triggered, plugin_name))
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_shortcut(name, plugin_name)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
