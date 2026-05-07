@@ -84,6 +84,7 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         return cls.create_icon('profiler')
 
     def on_initialize(self):
+        self._run_actions_with_editor_shortcuts = []
 
         self.python_editor_run_configuration = {
             'origin': self.NAME,
@@ -269,10 +270,12 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
 
         editor = self.get_plugin(Plugins.Editor, error=False)
         if editor:
-            editor.add_shortcut("run cell in profiler", cell_action.trigger)
-            editor.add_shortcut(
-                "run selection in profiler", selection_action.trigger
-            )
+            self._run_actions_with_editor_shortcuts = [
+                cell_action,
+                selection_action,
+            ]
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.add_shortcut(action.name, action.trigger)
 
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
@@ -283,6 +286,11 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
         run.destroy_run_in_executor_button(RunContext.File, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Cell, self.NAME)
         run.destroy_run_in_executor_button(RunContext.Selection, self.NAME)
+
+        editor = self.get_plugin(Plugins.Editor, error=False)
+        if editor:
+            for action in self._run_actions_with_editor_shortcuts:
+                editor.remove_shortcut(action.name)
 
     @on_plugin_available(plugin=Plugins.Editor)
     def on_editor_available(self):
