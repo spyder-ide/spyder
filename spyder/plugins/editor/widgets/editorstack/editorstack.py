@@ -14,6 +14,7 @@
 # Standard library imports
 from __future__ import annotations
 from collections.abc import Callable
+import inspect
 import functools
 import logging
 import os
@@ -3156,6 +3157,33 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         """Remove a panel from all CodeEditors."""
         for finfo in self.data:
             finfo.editor.panels.remove(panel, position)
+
+    def add_shortcut(
+        self,
+        name: str,
+        triggered: Callable[[], None] | Callable[[CodeEditor], None],
+        plugin_name: str,
+    ):
+        """Add a shortcut to all CodeEditors."""
+        for finfo in self.data:
+            # Qt objects don't have signatures, which generates a ValueError.
+            # In that case we assume `triggered` has no args.
+            try:
+                if len(inspect.signature(triggered).parameters) == 1:
+                    triggered = functools.partial(triggered, finfo.editor)
+            except ValueError:
+                pass
+
+            finfo.editor.register_shortcut_for_widget(
+                name=name, triggered=triggered, plugin_name=plugin_name
+            )
+
+    def remove_shortcut(self, name: str, plugin_name: str):
+        """Remove a shortcut from all CodeEditors."""
+        for finfo in self.data:
+            finfo.editor.unregister_shortcut_from_widget(
+                name=name, plugin_name=plugin_name
+            )
 
     # ---- Drag and drop
     # -------------------------------------------------------------------------
