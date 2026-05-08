@@ -122,6 +122,8 @@ class IconManager():
             'inactive':          SpyderPalette.COLOR_OCCURRENCE_5,
             'error':             SpyderPalette.COLOR_ERROR_2,
             'connecting':        SpyderPalette.COLOR_WARN_4,
+            # Empty-pane illustrations 
+            'COLOR_ACCENT_2':    SpyderPalette.COLOR_ACCENT_2,
         }
 
         # Cache for processed icons
