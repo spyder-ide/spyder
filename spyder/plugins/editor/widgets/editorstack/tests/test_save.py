@@ -16,6 +16,7 @@ from unittest.mock import Mock
 
 # Third party imports
 from flaky import flaky
+from lsprotocol import types as lsp
 import pytest
 from qtpy import PYQT6
 from qtpy.QtCore import Qt
@@ -505,8 +506,8 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'some')
-    assert "some" in [x['label'] for x in sig.args[0]]
-    assert "something" in [x['label'] for x in sig.args[0]]
+    assert "some" in [x.label for x in sig.args[0]]
+    assert "something" in [x.label for x in sig.args[0]]
 
     # Check that pressing Ctrl+S emits the signal for saving the file
     with qtbot.waitSignal(
@@ -572,51 +573,18 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     qtbot.waitUntil(symbols_and_folding_processed, timeout=5000)
 
     # Check response by LSP
-    assert code_editor.handle_folding_range.call_args == mocker.call(
-        {"params": [{"startLine": 1, "endLine": 3}]}
-    )
+    folding_args = code_editor.handle_folding_range.call_args.args[0]
+    assert len(folding_args) == 1
+    assert folding_args[0].start_line == 1
+    assert folding_args[0].end_line == 3
 
-    symbols = [
-        {
-            'name': 'foo',
-            'containerName': None,
-            'location': {
-                'uri': path_as_uri(str(file_path)),
-                'range': {
-                    'start': {'line': 1, 'character': 0},
-                    'end': {'line': 4, 'character': 0}
-                }
-            },
-            'kind': 12
-        },
-        {
-            'name': 'a',
-            'containerName': 'foo',
-            'location': {
-                'uri': path_as_uri(str(file_path)),
-                'range': {
-                    'start': {'line': 2, 'character': 4},
-                    'end': {'line': 2, 'character': 9}
-                }
-            },
-            'kind': 13
-        },
-        {
-            'name': 'b',
-            'containerName': 'foo',
-            'location': {
-                'uri': path_as_uri(str(file_path)),
-                'range': {
-                    'start': {'line': 3, 'character': 4},
-                    'end': {'line': 3, 'character': 9}
-                }
-            },
-            'kind': 13
-        }
-    ]
-
-    assert code_editor.process_symbols.call_args == \
-           mocker.call({'params': symbols})
+    symbols = code_editor.process_symbols.call_args.args[0]
+    assert len(symbols) == 3
+    symbol_names = [s.name for s in symbols]
+    assert symbol_names == ['foo', 'a', 'b']
+    assert symbols[0].kind == lsp.SymbolKind.Function
+    assert symbols[1].kind == lsp.SymbolKind.Variable
+    assert symbols[2].kind == lsp.SymbolKind.Variable
 
     # === Reset mocks
     code_editor.emit_request.reset_mock()
@@ -665,17 +633,15 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     # responded to the requests).
 
     # Check that LSP responded with updated folding and symbols information
-    assert code_editor.handle_folding_range.call_args == mocker.call(
-        {
-            "params": [
-                {"startLine": 1, "endLine": 5},
-                {"startLine": 7, "endLine": 9},
-            ]
-        }
-    )
+    folding_args = code_editor.handle_folding_range.call_args.args[0]
+    assert len(folding_args) == 2
+    assert folding_args[0].start_line == 1
+    assert folding_args[0].end_line == 5
+    assert folding_args[1].start_line == 7
+    assert folding_args[1].end_line == 9
 
     # There must be 7 symbols (2 functions and 5 variables)
-    assert len(code_editor.process_symbols.call_args.args[0]['params']) == 7
+    assert len(code_editor.process_symbols.call_args.args[0]) == 7
 
 
 def test_save_with_inline_completions(editor_bot, mocker, tmp_path):

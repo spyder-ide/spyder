@@ -8,19 +8,19 @@
 """CompletionPlugin tests."""
 
 # Third party imports
+from lsprotocol import types as lsp
 import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 # Local imports
-from spyder.plugins.completion.api import (
-    SpyderCompletionProvider, CompletionRequestTypes)
+from spyder.plugins.completion.api import SpyderCompletionProvider
 
 
 class DummyCompletionReceiver(QObject):
     """Dummy class that can handle LSP responses."""
-    sig_response = Signal(str, dict)
+    sig_response = Signal(str, object)
 
-    @Slot(str, dict)
+    @Slot(str, object)
     def handle_response(self, method, params):
         self.sig_response.emit(method, params)
 
@@ -181,7 +181,8 @@ def test_plugin_completion_gather(qtbot_module, completion_receiver):
 
     with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
         completion.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_DID_OPEN, params)
+            'python', lsp.TEXT_DOCUMENT_DID_OPEN, params
+        )
 
     # Parameters to perform a textDocument/completion request
     params = {
@@ -199,12 +200,12 @@ def test_plugin_completion_gather(qtbot_module, completion_receiver):
 
     with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
         completion.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_COMPLETION, params)
+            'python', lsp.TEXT_DOCUMENT_COMPLETION, params
+        )
 
     _, response = blocker.args
 
-    response = response['params']
-    provider_set = {x['provider'] for x in response}
+    provider_set = {(x.data or {}).get('provider') for x in response}
 
     # Assert the response contains information from all the providers
     provider_set == {'LSP', 'Fallback', 'Snippets'}
@@ -231,8 +232,8 @@ def test_plugin_first_response_request(qtbot_module, completion_receiver):
 
     with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
         completion.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_DID_OPEN, params)
-
+            'python', lsp.TEXT_DOCUMENT_DID_OPEN, params
+        )
 
     params = {
         'file': 'test2.py',
@@ -247,7 +248,8 @@ def test_plugin_first_response_request(qtbot_module, completion_receiver):
 
     with qtbot_module.waitSignal(receiver.sig_response, timeout=30000) as blocker:
         completion.send_request(
-            'python', CompletionRequestTypes.DOCUMENT_HOVER, params)
+            'python', lsp.TEXT_DOCUMENT_HOVER, params
+        )
 
     _, response = blocker.args
-    assert len(response['params']) > 0
+    assert response
