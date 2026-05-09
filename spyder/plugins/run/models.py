@@ -123,7 +123,12 @@ class RunExecutorListModel(QAbstractListModel):
 
         if executor_id is not None:
             executors = self.executors_per_input[self.current_input]
-            pos = executors[executor_id]
+
+            # This avoids an error when the last executor is disabled
+            try:
+                pos = executors[executor_id]
+            except KeyError:
+                pass
 
         return pos
 
