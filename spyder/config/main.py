@@ -207,7 +207,8 @@ DEFAULTS = [
               'show_remove_message_dataframe': True,
               'show_remove_message_collections': True,
               'show_special_attributes': False,
-              'filter_on': True
+              'filter_on': True,
+              'ask_close_all_editors': True
              }),
             ('debugger',
              {
@@ -554,6 +555,9 @@ DEFAULTS = [
               'editor/run selection in debugger': CTRL + '+F9',
               'editor/add cursor up': 'Alt+Shift+Up',
               'editor/add cursor down': 'Alt+Shift+Down',
+              'editor/fold or unfold current region': 'Ctrl+H',
+              'editor/fold all regions': 'Ctrl+J',
+              'editor/unfold all regions': 'Ctrl+K',
               # -- Internal console --
               'internal_console/inspect current object': "Ctrl+I",
               'internal_console/clear shell': "Ctrl+L",

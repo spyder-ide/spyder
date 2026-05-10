@@ -11,8 +11,9 @@ from qtpy.QtWidgets import QWidget
 import pytest
 from pytestqt.qtbot import QtBot
 
+from lsprotocol import types as lsp
+
 from spyder.config.manager import CONF
-from spyder.plugins.completion.api import SERVER_CAPABILITES
 from spyder.plugins.completion.tests.conftest import qtbot_module
 from spyder.plugins.completion.providers.languageserver.provider import (
     LanguageServerProvider)
@@ -53,8 +54,7 @@ def lsp_context(is_stdio):
             provider.start_completion_services_for_language('python')
 
         capabilities, _ = block.args
-        assert all(
-            [option in SERVER_CAPABILITES for option in capabilities.keys()])
+        assert isinstance(capabilities, lsp.ServerCapabilities)
 
         def teardown():
             provider.shutdown()
