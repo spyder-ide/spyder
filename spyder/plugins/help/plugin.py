@@ -18,12 +18,16 @@ from qtpy.QtCore import Signal
 from spyder.api.fonts import SpyderFontType
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.plugin_registration.decorators import (
-    on_plugin_available, on_plugin_teardown)
+    on_plugin_available,
+    on_plugin_teardown,
+)
 from spyder.api.translations import _
 from spyder.config.base import get_conf_path
 from spyder.plugins.application.api import ApplicationActions
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
+from spyder.plugins.shortcuts.plugin import ShortcutActions
 
 
 class HelpActions:
@@ -144,16 +148,16 @@ class Help(SpyderDockablePlugin):
         # See: spyder-ide/spyder#6992
         shortcuts.sig_shortcuts_updated.connect(self.show_intro_message)
 
-        if self.is_plugin_available(Plugins.MainMenu):
-            self._setup_menus()
-
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
-        if self.is_plugin_enabled(Plugins.Shortcuts):
-            if self.is_plugin_available(Plugins.Shortcuts):
-                self._setup_menus()
-        else:
-            self._setup_menus()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.add_item_to_application_menu(
+            self.tutorial_action,
+            menu_id=ApplicationMenus.Help,
+            section=HelpMenuSections.Documentation,
+            before=ShortcutActions.ShortcutSummaryAction,
+            before_section=HelpMenuSections.ExternalDocumentation,
+        )
 
     @on_plugin_teardown(plugin=Plugins.Console)
     def on_console_teardown(self):
@@ -193,7 +197,11 @@ class Help(SpyderDockablePlugin):
 
     @on_plugin_teardown(plugin=Plugins.MainMenu)
     def on_main_menu_teardown(self):
-        self._remove_menus()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        mainmenu.remove_item_from_application_menu(
+            HelpActions.ShowSpyderTutorialAction,
+            menu_id=ApplicationMenus.Help
+        )
 
     def update_font(self):
         color_scheme = self.get_color_scheme()
@@ -214,32 +222,6 @@ class Help(SpyderDockablePlugin):
 
     # --- Private API
     # ------------------------------------------------------------------------
-    def _setup_menus(self):
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        shortcuts = self.get_plugin(Plugins.Shortcuts)
-        shortcuts_summary_action = None
-        if shortcuts:
-            from spyder.plugins.shortcuts.plugin import ShortcutActions
-            shortcuts_summary_action = ShortcutActions.ShortcutSummaryAction
-        if mainmenu:
-            from spyder.plugins.mainmenu.api import (
-                ApplicationMenus, HelpMenuSections)
-            # Documentation actions
-            mainmenu.add_item_to_application_menu(
-                self.tutorial_action,
-                menu_id=ApplicationMenus.Help,
-                section=HelpMenuSections.Documentation,
-                before=shortcuts_summary_action,
-                before_section=HelpMenuSections.ExternalDocumentation,
-            )
-
-    def _remove_menus(self):
-        from spyder.plugins.mainmenu.api import ApplicationMenus
-        mainmenu = self.get_plugin(Plugins.MainMenu)
-        mainmenu.remove_item_from_application_menu(
-            HelpActions.ShowSpyderTutorialAction,
-            menu_id=ApplicationMenus.Help)
-
     def _enable_search_action(self, action_name: str, enabled: bool) -> None:
         """Enable or disable search action for this plugin."""
         application = self.get_plugin(Plugins.Application, error=False)
