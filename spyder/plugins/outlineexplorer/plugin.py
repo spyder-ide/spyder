@@ -72,6 +72,28 @@ class OutlineExplorer(SpyderDockablePlugin):
         widget.edit_goto.connect(editor.load_edit_goto)
         widget.edit.connect(editor.load_edit)
 
+        # Reconnect proxy editors if the plugin is reenabled
+        if not self.main.is_setting_up:
+            for editorstack in editor.get_editorstacks():
+                for finfo in editorstack.data:
+                    oe_proxy = finfo.editor.oe_proxy
+                    if oe_proxy is not None:
+                        self.get_widget().register_editor(oe_proxy)
+
+            for (
+                language,
+                capabilities,
+            ) in editor.get_widget().completion_capabilities.items():
+                self.start_symbol_services(capabilities, language)
+
+            current_proxy = editor.get_current_editor().oe_proxy
+            if current_proxy is not None:
+                self.get_widget().set_current_editor(
+                    current_proxy, update=True, clear=False
+                )
+
+            self.update_all_editors()
+
     @on_plugin_teardown(plugin=Plugins.Completions)
     def on_completions_teardown(self):
         completions = self.get_plugin(Plugins.Completions)
@@ -90,6 +112,15 @@ class OutlineExplorer(SpyderDockablePlugin):
             self.update_all_editors)
         widget.edit_goto.disconnect(editor.load_edit_goto)
         widget.edit.disconnect(editor.load_edit)
+
+    def on_close(self, cancelable: bool = False):
+        if self.main:
+            self.main.restore_scrollbar_position.disconnect(
+                self._restore_scrollbar_position
+            )
+        self.sig_mainwindow_state_changed.disconnect(
+            self._on_mainwindow_state_changed
+        )
 
     # ----- Private API
     # -------------------------------------------------------------------------
