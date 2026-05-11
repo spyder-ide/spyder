@@ -18,6 +18,7 @@ import pathlib
 import shutil
 
 # Third party imports
+from lsprotocol import types as lsp
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (
@@ -31,8 +32,6 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.config.base import (
     get_home_dir, get_project_config_folder, running_under_pytest)
 from spyder.config.utils import EDIT_EXTENSIONS
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
     class_register, handles, request)
 from spyder.plugins.explorer.api import DirViewActions
@@ -750,8 +749,9 @@ class ProjectExplorerWidget(PluginMainWidget):
             handler = getattr(self, handler_name)
             handler(params)
 
-    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_created(self, src_file, is_dir):
         """Notify LSP server about file creation."""
@@ -764,14 +764,15 @@ class ProjectExplorerWidget(PluginMainWidget):
         params = {
             'params': [{
                 'file': src_file,
-                'kind': FileChangeType.CREATED
+                'kind': lsp.FileChangeType.Created
             }]
         }
         return params
 
     @Slot(str, str, bool)
-    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     def file_moved(self, src_file, dest_file, is_dir):
         """Notify LSP server about a file that is moved."""
         self._update_default_switcher_paths()
@@ -781,12 +782,12 @@ class ProjectExplorerWidget(PluginMainWidget):
 
         deletion_entry = {
             'file': src_file,
-            'kind': FileChangeType.DELETED
+            'kind': lsp.FileChangeType.Deleted
         }
 
         addition_entry = {
             'file': dest_file,
-            'kind': FileChangeType.CREATED
+            'kind': lsp.FileChangeType.Created
         }
 
         entries = [addition_entry, deletion_entry]
@@ -795,8 +796,9 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_deleted(self, src_file, is_dir):
         """Notify LSP server about file deletion."""
@@ -808,13 +810,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         params = {
             'params': [{
                 'file': src_file,
-                'kind': FileChangeType.DELETED
+                'kind': lsp.FileChangeType.Deleted
             }]
         }
         return params
 
-    @request(method=CompletionRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WATCHED_FILES, requires_response=False
+    )
     @Slot(str, bool)
     def file_modified(self, src_file, is_dir):
         """Notify LSP server about file modification."""
@@ -824,13 +827,15 @@ class ProjectExplorerWidget(PluginMainWidget):
         params = {
             'params': [{
                 'file': src_file,
-                'kind': FileChangeType.CHANGED
+                'kind': lsp.FileChangeType.Changed
             }]
         }
         return params
 
-    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+        requires_response=False,
+    )
     def notify_project_open(self, path):
         """Notify LSP server about project path availability."""
         params = {
@@ -840,8 +845,10 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @request(method=CompletionRequestTypes.WORKSPACE_FOLDERS_CHANGE,
-             requires_response=False)
+    @request(
+        method=lsp.WORKSPACE_DID_CHANGE_WORKSPACE_FOLDERS,
+        requires_response=False,
+    )
     def notify_project_close(self, path):
         """Notify LSP server to unregister project path."""
         params = {
@@ -851,16 +858,14 @@ class ProjectExplorerWidget(PluginMainWidget):
         }
         return params
 
-    @handles(CompletionRequestTypes.WORKSPACE_APPLY_EDIT)
-    @request(method=CompletionRequestTypes.WORKSPACE_APPLY_EDIT,
-             requires_response=False)
+    @handles(lsp.WORKSPACE_APPLY_EDIT)
+    @request(method=lsp.WORKSPACE_APPLY_EDIT, requires_response=False)
     def handle_workspace_edit(self, params):
         """Apply edits to multiple files and notify server about success."""
-        edits = params['params']
         response = {
             'applied': False,
             'error': 'Not implemented',
-            'language': edits['language']
+            'language': params['language']
         }
         return response
 

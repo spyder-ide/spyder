@@ -38,7 +38,8 @@ class Console(SpyderDockablePlugin):
     """
     NAME = 'internal_console'
     WIDGET_CLASS = ConsoleWidget
-    OPTIONAL = [Plugins.Editor, Plugins.MainMenu, Plugins.PythonpathManager]
+    REQUIRES = [Plugins.MainMenu]
+    OPTIONAL = [Plugins.Editor, Plugins.PythonpathManager]
     CONF_SECTION = NAME
     CONF_FILE = False
     TABIFY = [Plugins.IPythonConsole, Plugins.History]

@@ -19,17 +19,18 @@ from spyder.api.plugin_registration.decorators import (
     on_plugin_teardown
 )
 from spyder.config.base import is_conda_based_app
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 from spyder.plugins.updatemanager.container import (
     UpdateManagerActions,
     UpdateManagerContainer
 )
-from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
+from spyder.plugins.updatemanager.widgets.status import UpdateManagerStatus
 
 
 class UpdateManager(SpyderPluginV2):
     NAME = 'update_manager'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [Plugins.Application, Plugins.MainMenu, Plugins.StatusBar]
+    REQUIRES = [Plugins.Application, Plugins.MainMenu, Plugins.Preferences]
+    OPTIONAL = [Plugins.StatusBar]
     CONTAINER_CLASS = UpdateManagerContainer
     CONF_SECTION = 'update_manager'
     CONF_FILE = False
@@ -58,7 +59,7 @@ class UpdateManager(SpyderPluginV2):
 
     # ---- Plugin initialization
     def on_initialize(self):
-        pass
+        self.update_manager_status = None
 
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
@@ -83,6 +84,10 @@ class UpdateManager(SpyderPluginV2):
     def on_statusbar_available(self):
         # Add status widget
         statusbar = self.get_plugin(Plugins.StatusBar)
+        container = self.get_container()
+
+        self.update_manager_status = UpdateManagerStatus(parent=container)
+        container.update_manager_status = self.update_manager_status
         statusbar.add_status_widget(self.update_manager_status)
 
     # ---- Plugin teardown
@@ -111,7 +116,8 @@ class UpdateManager(SpyderPluginV2):
 
         # Initialize status.
         # Note that NO_STATUS also hides the statusbar widget.
-        container.update_manager_status.set_no_status()
+        if self.update_manager_status is not None:
+            self.update_manager_status.set_no_status()
 
         # Check for updates on startup
         if self.get_conf('check_updates_on_startup'):
@@ -172,8 +178,3 @@ class UpdateManager(SpyderPluginV2):
     def check_update_action(self):
         """Check if a new version of Spyder is available."""
         return self.get_container().check_update_action
-
-    @property
-    def update_manager_status(self):
-        """Get Update manager statusbar widget"""
-        return self.get_container().update_manager_status

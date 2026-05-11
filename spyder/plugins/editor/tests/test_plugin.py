@@ -12,14 +12,17 @@
 import os
 import os.path as osp
 import shutil
+import sys
 
 # Third party imports
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QColor, QFontMetrics, QPainter
+from qtpy.QtWidgets import QApplication
 import pytest
 
 # Local imports
 from spyder.api.plugins import Plugins
+from spyder.config.base import running_in_ci
 from spyder.plugins.debugger.panels.debuggerpanel import DebuggerPanel
 from spyder.plugins.editor.api.panel import Panel, PanelPosition
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
@@ -141,6 +144,9 @@ def test_restore_open_files(qtbot, editor_plugin_open_files):
         filename = expected_filenames.pop()
         editor.close_file_from_name(filename)
 
+    # Create editor window to check its restored
+    editor.get_widget().create_new_window()
+
     # Close editor and check that opened files are saved
     editor.on_close()
     filenames = [osp.normcase(f) for f in editor.get_conf("filenames")]
@@ -151,6 +157,9 @@ def test_restore_open_files(qtbot, editor_plugin_open_files):
     filenames = editor.get_current_editorstack().get_filenames()
     filenames = [osp.normcase(f) for f in filenames]
     assert filenames == expected_filenames
+
+    # Check editor windows are restored too
+    assert len(editor.get_widget().editorwindows) == 1
 
 
 def test_setup_open_files_cleanprefs(editor_plugin_open_files):
@@ -541,10 +550,15 @@ def test_save_with_os_eol_chars(editor_plugin, mocker, qtbot, tmpdir):
     assert get_eol_chars(text) == os.linesep
 
 
-def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Segfaults on Linux and CIs"
+)
+def test_editorstacks_and_windows(editor_plugin, qtbot):
     """
     Check that editor stacks and windows are removed from the list maintained
-    for them in the editor when closing editor windows and split editors.
+    for them in the editor when closing editor windows and split editors. Also
+    check that splits work as expected in editor windows.
 
     This is a regression test for spyder-ide/spyder#20144.
     """
@@ -554,6 +568,22 @@ def test_remove_editorstacks_and_windows(editor_plugin, qtbot):
     # Create editor window
     editor_window = editor_plugin.get_widget().create_new_window()
     qtbot.wait(500)  # To check visually that the window was created
+
+    # Check split in window is performed without errors and has the right attrs
+    editor_window.editorwidget.editorstacks[0].versplit_action.trigger()
+    assert len(editor_window.editorwidget.editorstacks) == 2
+    assert len(editor_plugin.get_widget().editorstacks) == 3
+    assert editor_window.editorwidget.editorstacks[1].new_window
+
+    # Close split in window and check focus is given to the current editor
+    # in the main stack of the window
+    editor_window.editorwidget.editorstacks[1].close_split_action.trigger()
+    qtbot.waitUntil(lambda: len(editor_window.editorwidget.editorstacks) == 1)
+    assert len(editor_plugin.get_widget().editorstacks) == 2
+    assert (
+        editor_window.editorwidget.editorstacks[0].get_current_editor()
+        is QApplication.focusWidget()
+    )
 
     # This is not done automatically by Qt when running our tests (don't know
     # why), but it's done in normal usage. So we need to do it manually
@@ -668,6 +698,49 @@ def test_debugger_panel_visibility(editor_plugin, mocker, tmp_path):
     )
     assert editorstack.save_as() is True
     assert debugger_panel.isVisible()
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux") and running_in_ci(),
+    reason="Segfaults on Linux and CIs"
+)
+def test_outline_visibility_in_editor_window(editor_plugin, qtbot):
+    """Check that the outline is shown/hidden as expected in editor windows."""
+    # Create empty file
+    editor_plugin.new()
+    widget = editor_plugin.get_widget()
+
+    # Create editor window
+    editor_window = widget.create_new_window()
+    qtbot.wait(500)  # To check visually that the window was created
+
+    # Check Outline is visible (the default)
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+    # Hide Outline
+    editor_window.toggle_outline_action.trigger()
+    assert not editor_plugin.get_conf("show_outline_in_editor_window")
+    assert editor_window.editorwidget.outlineexplorer.width() == 0
+
+    # Close window and create new one
+    editor_window.close()
+    editor_window = widget.create_new_window()
+
+    # Check Outline is not visible because it was closed above and we should
+    # preserve that state for new windows
+    assert editor_window.editorwidget.outlineexplorer.width() == 0
+
+    # Show Outline
+    editor_window.toggle_outline_action.trigger()
+    assert editor_plugin.get_conf("show_outline_in_editor_window")
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
+
+    # Close window and create new one
+    editor_window.close()
+    editor_window = widget.create_new_window()
+
+    # Check Outline is visible this time
+    assert editor_window.editorwidget.outlineexplorer.width() > 0
 
 
 if __name__ == "__main__":

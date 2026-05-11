@@ -11,14 +11,17 @@ Holds references for base actions in the Application of Spyder.
 """
 
 # Standard library imports
+from __future__ import annotations
 import functools
 import glob
 import os
 import os.path as osp
 import sys
 from typing import Optional
+import webbrowser
 
 # Third party imports
+from qtpy import QtModuleNotInstalledError
 from qtpy.compat import getopenfilenames
 from qtpy.QtCore import QDir, Qt, QThread, QTimer, Signal, Slot
 from qtpy.QtGui import QGuiApplication
@@ -45,7 +48,12 @@ from spyder.config.utils import (
     get_edit_filters,
     get_filter,
 )
-from spyder.plugins.application.widgets import AboutDialog, InAppAppealStatus
+from spyder.plugins.application.widgets import (
+    AboutDialog,
+    FakeInAppAppealDialog,
+    InAppAppealDialog,
+    InAppAppealStatus,
+)
 from spyder.plugins.console.api import ConsoleActions
 from spyder.utils.icon_manager import ima
 from spyder.utils.installers import InstallerMissingDependencies
@@ -53,6 +61,13 @@ from spyder.utils.environ import UserEnvDialog
 from spyder.utils.qthelpers import start_file, DialogManager
 from spyder.widgets.dependencies import DependenciesDialog
 from spyder.widgets.helperwidgets import MessageCheckBox
+
+
+DONATIONS_URL = "https://www.spyder-ide.org/donate"
+CHANGELOG_URL = (
+    "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
+    "Spyder-6.md#version-614-2026-04-06"
+)
 
 
 class ApplicationPluginMenus:
@@ -243,22 +258,25 @@ class ApplicationContainer(PluginMainContainer):
         self.current_dpi = None
         self.dpi_messagebox = None
 
+        # To manage the user env vars dialog
+        self.dialog_manager = DialogManager()
+
         # Keep track of list of recent files
         self.recent_files = self.get_conf('recent_files', [])
-
-    # ---- PluginMainContainer API
-    # -------------------------------------------------------------------------
-    def setup(self):
 
         # Compute dependencies in a thread to not block the interface.
         self.dependencies_thread = QThread(None)
         self.dependencies_dialog = DependenciesDialog(self)
 
-        # Attributes
-        self.dialog_manager = DialogManager()
-        self.inapp_appeal_status = InAppAppealStatus(self)
+        # For the in-app appeal message
+        self.inapp_appeal_status: InAppAppealStatus | None = None
+        self._appeal_dialog: (
+            InAppAppealDialog | FakeInAppAppealDialog | None
+        ) = None
 
-        # Actions
+    # ---- PluginMainContainer API
+    # -------------------------------------------------------------------------
+    def setup(self):
         # Documentation actions
         self.documentation_action = self.create_action(
             ApplicationActions.SpyderDocumentationAction,
@@ -300,13 +318,13 @@ class ApplicationContainer(PluginMainContainer):
         self.create_action(
             ApplicationActions.ShowChangelogAction,
             _("Show changelog"),
-            triggered=self.inapp_appeal_status.show_changelog,
+            triggered=self.show_changelog,
         )
         self.create_action(
             ApplicationActions.HelpSpyderAction,
             _("Help Spyder..."),
             icon=self.create_icon("inapp_appeal"),
-            triggered=self.inapp_appeal_status.show_appeal,
+            triggered=self.show_appeal,
         )
 
         # About action
@@ -968,3 +986,60 @@ class ApplicationContainer(PluginMainContainer):
             # Fixes spyder-ide/spyder#17677
             self.dpi_messagebox.move(int(x), int(y))
             self.dpi_messagebox.adjustSize()
+
+    # ---- In-app appeal
+    # -------------------------------------------------------------------------
+    def on_inapp_appeal_status_clicked(self):
+        """Handle widget clicks."""
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
+
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            if self._appeal_dialog.isVisible():
+                self._appeal_dialog.hide()
+            else:
+                self.show_appeal()
+        else:
+            webbrowser.open(DONATIONS_URL)
+
+    def show_changelog(self):
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
+
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            self._appeal_dialog.setWindowTitle(_("Changelog"))
+
+        self._show_dialog(show_appeal=False)
+
+    def show_appeal(self):
+        if self._appeal_dialog is None:
+            self._create_appeal_dialog()
+
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            self._appeal_dialog.setWindowTitle(_("Help Spyder"))
+
+        self._show_dialog(show_appeal=True)
+
+    def _create_appeal_dialog(self):
+        cli_options = self._plugin.get_command_line_options()
+        if cli_options.no_web_widgets:
+            self._appeal_dialog = FakeInAppAppealDialog
+            return
+
+        try:
+            self._appeal_dialog = InAppAppealDialog(self)
+        except QtModuleNotInstalledError:
+            # QtWebEngineWidgets is optional.
+            # See spyder-ide/spyder#24905 for the details.
+            self._appeal_dialog = FakeInAppAppealDialog
+
+    def _show_dialog(self, show_appeal: bool):
+        if self._appeal_dialog is not FakeInAppAppealDialog:
+            if not self._appeal_dialog.isVisible():
+                self._appeal_dialog.set_message(show_appeal)
+                self._appeal_dialog.show()
+        else:
+            if show_appeal:
+                webbrowser.open(DONATIONS_URL)
+            else:
+                webbrowser.open(CHANGELOG_URL)

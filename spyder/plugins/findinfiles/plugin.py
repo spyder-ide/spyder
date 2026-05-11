@@ -34,13 +34,8 @@ class FindInFiles(SpyderDockablePlugin):
     Find in files DockWidget.
     """
     NAME = 'find_in_files'
-    REQUIRES = []
-    OPTIONAL = [
-        Plugins.Editor,
-        Plugins.Projects,
-        Plugins.MainMenu,
-        Plugins.WorkingDirectory,
-    ]
+    REQUIRES = [Plugins.MainMenu, Plugins.WorkingDirectory]
+    OPTIONAL = [Plugins.Editor, Plugins.Projects]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME

@@ -39,8 +39,8 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
-    REQUIRES = [Plugins.Preferences, Plugins.Editor, Plugins.Run]
-    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
+    REQUIRES = [Plugins.MainMenu, Plugins.Preferences, Plugins.Run]
+    OPTIONAL = [Plugins.Editor, Plugins.Projects]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False

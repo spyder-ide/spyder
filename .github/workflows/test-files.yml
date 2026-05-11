@@ -73,13 +73,13 @@ jobs:
 
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Checkout Push
         if: github.event_name != 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Fetch branches
         if: github.event_name == 'pull_request'
@@ -91,13 +91,13 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get install -qq pyqt5-dev-tools libxcb-xinerama0 xterm --fix-missing
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-cachepip-installconda-${{ env.CACHE_NUMBER }}-${{ hashFiles('setup.py') }}
 
       - name: Create conda test environment
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           micromamba-version: '1.5.10-0'
           environment-file: requirements/main.yml

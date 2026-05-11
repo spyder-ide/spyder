@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import re
 import sys
 
@@ -70,7 +71,13 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
     return_shift_pressed = Signal()
     return_pressed = Signal()
 
-    def __init__(self, parent, enable_replace=False):
+    def __init__(
+        self,
+        parent: QWidget,
+        enable_replace: bool = False,
+        margin_top: int | None = None,
+        margin_bottom: int | None = None,
+    ):
         if not PYSIDE2:
             super().__init__(parent)
         else:
@@ -83,9 +90,9 @@ class FindReplace(QWidget, SpyderShortcutsMixin):
         glayout = QGridLayout()
         glayout.setContentsMargins(
             2 * AppStyle.MarginSize,
-            AppStyle.MarginSize,
+            AppStyle.MarginSize if margin_top is None else margin_top,
             2 * AppStyle.MarginSize,
-            0
+            0 if margin_bottom is None else margin_bottom,
         )
         if sys.platform == "darwin":
             # Spacing is too big on Mac, which makes the widget look bad

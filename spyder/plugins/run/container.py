@@ -407,7 +407,12 @@ class RunContainer(PluginMainContainer):
 
         self.metadata_model.set_current_run_configuration(uuid)
 
-        if uuid is not None:
+        # For now, the default executor for run_action is the IPython console,
+        # so we check if it's enabled to enable the action too.
+        # TODO: Fix this when we make the executor configurable.
+        if uuid is not None and self._plugin.is_plugin_enabled(
+            Plugins.IPythonConsole
+        ):
             self.run_action.setEnabled(True)
             self.configure_action.setEnabled(True)
 

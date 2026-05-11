@@ -71,7 +71,8 @@ class RemoteClient(SpyderPluginV2):
     """
 
     NAME = "remoteclient"
-    OPTIONAL = [Plugins.MainMenu, OptionalPlugins.EnvManager]
+    REQUIRES = [Plugins.MainMenu]
+    OPTIONAL = [OptionalPlugins.EnvManager]
     CONF_SECTION = NAME
     CONTAINER_CLASS = RemoteClientContainer
     CONF_FILE = False

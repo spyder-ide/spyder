@@ -78,8 +78,9 @@ class ConfigDialog(SidebarDialog):
 
     def current_page_changed(self, index):
         widget = self.get_page(index)
-        self.apply_btn.setVisible(widget.apply_callback is not None)
-        self.apply_btn.setEnabled(widget.is_modified)
+        if widget is not None:
+            self.apply_btn.setVisible(widget.apply_callback is not None)
+            self.apply_btn.setEnabled(widget.is_modified)
 
     def add_page(self, page, initialize=False):
         # Signals

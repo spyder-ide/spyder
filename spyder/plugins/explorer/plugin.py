@@ -35,13 +35,15 @@ class Explorer(SpyderDockablePlugin):
     """File and Directories Explorer DockWidget."""
 
     NAME = 'explorer'
-    REQUIRES = [Plugins.Preferences]
-    OPTIONAL = [
-        Plugins.IPythonConsole,
-        Plugins.Editor,
-        Plugins.WorkingDirectory,
-        Plugins.RemoteClient,
+    REQUIRES = [
         Plugins.Application,
+        Plugins.Preferences,
+        Plugins.WorkingDirectory,
+    ]
+    OPTIONAL = [
+        Plugins.Editor,
+        Plugins.IPythonConsole,
+        Plugins.RemoteClient,
     ]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = ExplorerWidget

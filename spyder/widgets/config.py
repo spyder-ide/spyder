@@ -130,6 +130,7 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         self.default_button_group = None
         self.tabs = None
         self.is_modified = False
+        self.is_loaded = False
 
         if getattr(parent, "main", None):
             self.main = parent.main
@@ -384,6 +385,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
             cb_italic.clicked[bool].connect(lambda _foo, opt=option, sect=sec:
                                             self.has_been_modified(sect, opt))
 
+        self.is_loaded = True
+
     def save_to_conf(self):
         """Save settings to configuration file"""
         for checkbox, (sec, option, _default) in list(
@@ -510,7 +513,8 @@ class SpyderConfigPage(SidebarPage, ConfigAccessMixin):
         help_label = TipWidget(
             tip_text=tip_text,
             icon=ima.icon('question_tip'),
-            hover_icon=ima.icon('question_tip_hover')
+            hover_icon=ima.icon('question_tip_hover'),
+            wrap_text=True
         )
 
         layout.addWidget(help_label)

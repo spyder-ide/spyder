@@ -14,7 +14,7 @@ import traceback
 from typing import Any, Callable, Optional
 
 # Third-party imports
-from qtpy.QtCore import Slot, QModelIndex, QPoint, QSize, Qt
+from qtpy.QtCore import QModelIndex, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QTextOption
 from qtpy.QtWidgets import (
     QAbstractItemView, QButtonGroup, QGroupBox, QHBoxLayout, QHeaderView,
@@ -43,6 +43,7 @@ class ObjectExplorerActions:
     Refresh = 'refresh_action'
     ShowCallable = 'show_callable_action'
     ShowSpecialAttributes = 'show_special_attributes_action'
+    CloseAllEditors = 'close_all_editors_action'
 
 
 class ObjectExplorerMenus:
@@ -66,6 +67,8 @@ EDITOR_NAME = 'Object'
 class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
     """Object explorer main widget window."""
     CONF_SECTION = 'variable_explorer'
+
+    sig_close_all_editors_requested = Signal()
 
     def __init__(self,
                  obj,
@@ -247,6 +250,13 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             register_action=False
         )
 
+        self.close_all_editors_action = self.create_action(
+            name=ObjectExplorerActions.CloseAllEditors,
+            text=_("Close all viewers"),
+            icon=self.create_icon("filecloseall"),
+            triggered=self.sig_close_all_editors_requested.emit
+        )
+
         stretcher = self.create_stretcher(
             ObjectExplorerWidgets.ToolbarStretcher
         )
@@ -300,6 +310,7 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
         for item in [
             self.toggle_show_callable_action,
             self.toggle_show_special_attribute_action,
+            self.close_all_editors_action,
             stretcher,
             self.refresh_action,
             self.options_button

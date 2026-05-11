@@ -20,8 +20,13 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import QByteArray, QEvent, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import (QAction, QApplication, QMainWindow, QSplitter,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -103,22 +108,42 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         self._splitter_css = self._generate_splitter_stylesheet()
 
         # ---- Find widget
-        self.find_widget = FindReplace(self, enable_replace=True)
+        self.find_widget = FindReplace(
+            self,
+            enable_replace=True,
+            margin_top=0,
+            margin_bottom=AppStyle.MarginSize,
+        )
         self.find_widget.hide()
 
         # ---- Status bar
         statusbar = parent.statusBar()
-        self.vcs_status = VCSStatus(self)
-        self.cursorpos_status = CursorPositionStatus(self)
-        self.encoding_status = EncodingStatus(self)
-        self.eol_status = EOLStatus(self)
-        self.readwrite_status = ReadWriteStatus(self)
 
-        statusbar.insertPermanentWidget(0, self.readwrite_status)
-        statusbar.insertPermanentWidget(0, self.eol_status)
-        statusbar.insertPermanentWidget(0, self.encoding_status)
-        statusbar.insertPermanentWidget(0, self.cursorpos_status)
-        statusbar.insertPermanentWidget(0, self.vcs_status)
+        # Check if the StatusBar plugin is enabled to create status widgets
+        if self.get_conf("enable", section="statusbar", default=True):
+            # *DON'T* change the order in which these widgets are added. It's
+            # the same one used in the main window.
+            self.readwrite_status = ReadWriteStatus(self)
+            statusbar.insertPermanentWidget(0, self.readwrite_status)
+
+            self.eol_status = EOLStatus(self)
+            statusbar.insertPermanentWidget(0, self.eol_status)
+
+            self.encoding_status = EncodingStatus(self)
+            statusbar.insertPermanentWidget(0, self.encoding_status)
+
+            self.cursorpos_status = CursorPositionStatus(self)
+            statusbar.insertPermanentWidget(0, self.cursorpos_status)
+
+            self.vcs_status = VCSStatus(self)
+            statusbar.insertPermanentWidget(0, self.vcs_status)
+        else:
+            statusbar.hide()
+            self.vcs_status = None
+            self.cursorpos_status = None
+            self.encoding_status = None
+            self.eol_status = None
+            self.readwrite_status = None
 
         # ---- Outline.
         self.outlineexplorer = None
@@ -166,6 +191,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editor_layout.setSpacing(0)
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
+
         self.editorsplitter = EditorSplitter(
             self,
             main_widget,
@@ -179,6 +205,8 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # ---- Splitter
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
+        self.splitter.splitterMoved.connect(self.on_splitter_moved)
+
         if self.outlineexplorer is not None:
             self.splitter.addWidget(self.outlineexplorer)
         self.splitter.addWidget(editor_widgets)
@@ -189,14 +217,6 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         # This sets the same UX as the one users encounter when the editor is
         # maximized.
         self.splitter.setChildrenCollapsible(False)
-
-        self.splitter.splitterMoved.connect(self.on_splitter_moved)
-
-        if (
-            self.outlineexplorer is not None
-            and not self.get_conf("show_outline_in_editor_window")
-        ):
-            self.outlineexplorer.close_dock()
 
         # ---- Style
         self.splitter.setStyleSheet(self._splitter_css.toString())
@@ -212,6 +232,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.set_closable(len(self.editorstacks) > 1)
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
+        editorstack.new_window = True
 
         # Adjust style.
         # This is necessary to give some space between the tabwidget pane and
@@ -225,16 +246,34 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         editorstack.tabs.setStyleSheet(css.toString())
 
         # Signals
-        editorstack.reset_statusbar.connect(self.readwrite_status.hide)
-        editorstack.reset_statusbar.connect(self.encoding_status.hide)
-        editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
-        editorstack.readonly_changed.connect(
-            self.readwrite_status.update_readonly)
-        editorstack.encoding_changed.connect(
-            self.encoding_status.update_encoding)
-        editorstack.sig_editor_cursor_position_changed.connect(
-            self.cursorpos_status.update_cursor_position)
-        editorstack.sig_refresh_eol_chars.connect(self.eol_status.update_eol)
+        if self.readwrite_status is not None:
+            editorstack.reset_statusbar.connect(self.readwrite_status.hide)
+            editorstack.readonly_changed.connect(
+                self.readwrite_status.update_readonly
+            )
+
+        if self.encoding_status is not None:
+            editorstack.reset_statusbar.connect(self.encoding_status.hide)
+            editorstack.encoding_changed.connect(
+                self.encoding_status.update_encoding
+            )
+
+        if self.cursorpos_status is not None:
+            editorstack.reset_statusbar.connect(self.cursorpos_status.hide)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                self.cursorpos_status.update_cursor_position
+            )
+
+        if self.eol_status is not None:
+            editorstack.sig_refresh_eol_chars.connect(
+                self.eol_status.update_eol
+            )
+
+        if self.vcs_status is not None:
+            editorstack.current_file_changed.connect(
+                self.vcs_status.update_vcs
+            )
+            editorstack.file_saved.connect(self.vcs_status.update_vcs_state)
 
         # Register stack
         self.main_widget.register_editorstack(editorstack)
@@ -269,6 +308,14 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         logger.debug("Unregistering editorstack")
         self.main_widget.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
+
+        # Give focus to current editor of the main stack so the find widget is
+        # bound to it after a split stack is closed (otherwise a RuntimeError
+        # is raised because we're trying to do that for the current editor of
+        # closed stack).
+        if self.editorstacks:
+            self.editorstacks[0].get_current_editor().setFocus()
+
         self.__print_editorstacks()
 
     def unregister_all_editorstacks(self):
@@ -304,7 +351,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         """Toggle outline explorer visibility."""
         if value:
             # When self._sizes is not available, the splitter sizes are set
-            # automatically by the ratios set for it above.
+            # automatically by the ratios set for it.
             if self._sizes is not None:
                 self.splitter.setSizes(self._sizes)
 
@@ -333,6 +380,17 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
                 self.splitter.handle(1).setEnabled(False)
 
             self.splitter.setChildrenCollapsible(False)
+
+    def showEvent(self, event):
+        # Wait until the window is shown to check if we need to close the
+        # Outline. Otherwise outline ends up taking the entire window width.
+        if (
+            self.outlineexplorer is not None
+            and not self.get_conf("show_outline_in_editor_window")
+        ):
+            self.outlineexplorer.close_dock()
+
+        super().showEvent(event)
 
 
 class EditorMainWindow(QMainWindow, SpyderWidgetMixin):

@@ -16,14 +16,53 @@ from unittest.mock import MagicMock
 
 # Third party imports
 from flaky import flaky
+from lsprotocol import types as lsp
 import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
+from spyder.plugins.completion.api import SpyderSymbolKind
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.main_widget import (
     OutlineExplorerWidget, OutlineExplorerToolbuttons)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+
+
+def _dicts_to_symbols(items):
+    """Convert a list of SymbolInformation-like dicts to lsprotocol objects."""
+    symbols = []
+    for item in items:
+        kind_val = item['kind']
+        try:
+            kind = lsp.SymbolKind(kind_val)
+        except ValueError:
+            # handle Spyder-specific symbol kinds that are not in the LSP spec
+            kind = SpyderSymbolKind(kind_val)
+
+        loc = item['location']
+        rng = loc['range']
+        symbols.append(
+            lsp.SymbolInformation(
+                name=item["name"],
+                kind=kind,
+                location=lsp.Location(
+                    uri=loc["uri"],
+                    range=lsp.Range(
+                        start=lsp.Position(
+                            line=rng["start"]["line"],
+                            character=rng["start"]["character"],
+                        ),
+                        end=lsp.Position(
+                            line=rng["end"]["line"],
+                            character=rng["end"]["character"],
+                        ),
+                    ),
+                ),
+                container_name=item.get("containerName"),
+            )
+        )
+
+    return symbols
 
 
 # ---- Constants
@@ -51,8 +90,11 @@ def create_outlineexplorer(qtbot):
         with open(case_info['file'], 'r') as f:
             text = f.read()
 
-        symbol_info = json.load(open(case_info['data'], 'r'))
-        expected_tree = json.load(open(case_info['tree'], 'r'))
+        with open(case_info['data'], 'r') as f:
+            symbol_info = _dicts_to_symbols(json.load(f))
+
+        with open(case_info['tree'], 'r') as f:
+            expected_tree = json.load(f)
 
         code_editor = CodeEditor(None)
         code_editor.set_language('py', filename)

@@ -279,7 +279,7 @@ Before releasing new minor or major versions, it's necessary to:
 
 * Add changelog for new version to `spyder/plugins/application/widgets/appeal_page/changelog.md` (only `New features` and `Important fixes`).
 
-* Update `CHANGELOG_URL` in `spyder/plugins/application/widgets/status.py` to point to the changelog for the new version.
+* Update `CHANGELOG_URL` in `spyder/plugins/application/container.py` to point to the changelog for the new version.
 
 * `git add .` and `git commit -m "Update Changelog [ci skip]"`
 

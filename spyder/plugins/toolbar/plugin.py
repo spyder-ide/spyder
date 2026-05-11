@@ -32,7 +32,7 @@ class Toolbar(SpyderPluginV2):
     Docstrings viewer widget.
     """
     NAME = 'toolbar'
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
@@ -53,12 +53,13 @@ class Toolbar(SpyderPluginV2):
         return QIcon()
 
     def on_initialize(self):
-        create_app_toolbar = self.create_application_toolbar
-        create_app_toolbar(ApplicationToolbars.File, _("File toolbar"))
-        create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
-        create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
-        create_app_toolbar(ApplicationToolbars.Profile, _("Profile toolbar"))
-        create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
+        # Only create here toolbars for plugins that can't be disabled
+        self.create_application_toolbar(
+            ApplicationToolbars.File, _("File toolbar")
+        )
+        self.create_application_toolbar(
+            ApplicationToolbars.Main, _("Main toolbar")
+        )
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
