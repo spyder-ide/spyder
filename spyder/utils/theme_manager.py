@@ -554,11 +554,7 @@ class ThemeManager:
             logger = logging.getLogger(__name__)
 
             # Create a unique module name based on the file path
-            module_name = f"theme_resources_{
-                rc_file.stem}_{
-                hash(
-                    str(rc_file)) %
-                10000}"
+            module_name = f"theme_resources_{rc_file.stem}_{hash(str(rc_file)) % 10000}"
 
             spec = importlib.util.spec_from_file_location(module_name, rc_file)
             resource_module = importlib.util.module_from_spec(spec)
