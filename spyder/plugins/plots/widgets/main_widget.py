@@ -543,4 +543,5 @@ class PlotsWidget(ShellConnectMainWidget):
     def switch_info_message(self, message):
         if self._info_widget is not None:
             self._info_widget.set_text(message)
-            self._info_widget.set_visible(True)
+            visible = not self.get_conf('not_show_info_messages', section='main')
+            self._info_widget.set_visible(visible)

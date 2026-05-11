@@ -60,6 +60,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import SpyderPalette
@@ -827,7 +828,7 @@ class MessageLabel(QLabel):
         self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
         self.setText(text)
 
-class InfoWidget(QWidget):
+class InfoWidget(QWidget, SpyderWidgetMixin):
 
     sig_text_changed = Signal(str)
 
@@ -835,7 +836,7 @@ class InfoWidget(QWidget):
         self,
         parent: QWidget,
         text: str = "",
-        set_min_width: bool = True,
+        set_min_width: bool = False,
     ):
         super().__init__(parent)
 
@@ -848,9 +849,9 @@ class InfoWidget(QWidget):
 
         layout = QHBoxLayout()
 
-        layout.addWidget(close_button)
-
         layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(close_button)
 
         if set_min_width:
             layout.addStretch()
@@ -866,6 +867,20 @@ class InfoWidget(QWidget):
 
     def hide(self):
         """Hide widget."""
+        reset_str = _("Show warnings again")
+        warn_str = _("Do you want to hide this warning in the future?")
+        answer = QMessageBox.warning(
+            self,
+            reset_str,
+            warn_str,
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if answer == QMessageBox.Yes:
+            self.set_conf('not_show_info_messages', True, section='main')
+        else:
+            self.set_conf('not_show_info_messages', False, section='main')
+        
         self.setVisible(False)
 
     def set_visible(self, visible):

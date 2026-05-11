@@ -87,6 +87,7 @@ DEFAULTS = [
               'show_message_when_panes_are_empty': True,
               'max_recent_files': 20,
               'disable_zoom_mouse': False,
+              'not_show_info_messages': False,
               }),
             ('update_manager',
              {
