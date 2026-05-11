@@ -454,7 +454,7 @@ class UserConfig(DefaultsConfig):
     def reset_to_defaults(self, save=True, verbose=False, section=None):
         """Reset config to Default values."""
         for sec, options in self.defaults:
-            if section == None or section == sec:
+            if section is None or section == sec:
                 for option in options:
                     value = options[option]
                     self._set(sec, option, value, verbose)
@@ -530,10 +530,11 @@ class UserConfig(DefaultsConfig):
         elif isinstance(default_value, int):
             value = int(value)
         elif isinstance(default_value, str):
-            # Some INI rows store a Python-quoted string (e.g. ``'#aabbcc'`` for
-            # a color) so the ``#`` is not parsed as a comment. Unwrap one level
+            # Some INI rows store a Python-quoted string (e.g. ``'#aabbcc'``)
+            # for a color so ``#`` is not parsed as a comment. Unwrap one level
             # so callers get a plain ``#...`` hex string.
-            if isinstance(value, str) and len(value) >= 4 and value[0] in '\'"':
+            if isinstance(value, str) and len(
+                    value) >= 4 and value[0] in '\'"':
                 try:
                     ev = ast.literal_eval(value)
                     if isinstance(ev, str) and ev.startswith('#'):
@@ -944,7 +945,10 @@ class MultiUserConfig(object):
         return config.options(section=section)
 
     def has_option(self, section, option):
-        """Return whether *option* exists in *section* in the right backing file."""
+        """Return whether *option* exists in *section*.
+
+        Uses the backing file that owns the option.
+        """
         config = self._get_config(section, option)
         return config.has_option(section, option)
 

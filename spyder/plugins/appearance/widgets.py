@@ -105,7 +105,6 @@ class SchemeEditor(QDialog):
         else:
             self.accept()
 
-
     def get_edited_color_scheme(self):
         """
         Get the values of the last edited color scheme to be used in an instant
@@ -139,23 +138,23 @@ class SchemeEditor(QDialog):
             (_('Highlight'), ["currentcell", "currentline", "occurrence",
                               "matched_p", "unmatched_p", "ctrlclick"]),
             (_('Background'), ["background", "sideareas"])
-            ]
+        ]
 
         parent = self.parent
-        
-        # All themes (new and old) now have a 'name' field in config
-        # Provide a default value to avoid errors when the option doesn't exist yet
-        # The default will be the display name from the theme manager
+
+        # Themes store a ``name`` field in config; default when missing comes
+        # from the theme manager display name.
         try:
             from spyder.utils.theme_manager import theme_manager
             default_name = theme_manager.get_theme_display_name(scheme_name)
         except Exception:
             # Fallback to scheme_name if we can't get display name
             default_name = scheme_name
-        
+
         self.line_edit = parent.create_lineedit(
-            _("Theme name:"), '{0}/name'.format(scheme_name), default=default_name
-        )
+            _("Theme name:"),
+            '{0}/name'.format(scheme_name),
+            default=default_name)
 
         self.widgets[scheme_name] = {}
 
@@ -191,7 +190,8 @@ class SchemeEditor(QDialog):
                     resolved = syntaxhighlighters.get_color_scheme(scheme_name)
                 return resolved[k]
 
-        for index, item in enumerate[tuple[str, list[str]]](color_scheme_groups):
+        for index, item in enumerate[tuple[str, list[str]]](
+                color_scheme_groups):
             group_name, keys = item
             group_layout = QGridLayout()
 
@@ -206,10 +206,10 @@ class SchemeEditor(QDialog):
                         option,
                         default=value,
                         without_layout=True,
-                        )
+                    )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row+1, 0)
-                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(label, row + 1, 0)
+                    group_layout.addLayout(clayout, row + 1, 1)
 
                     self.widgets[scheme_name][key] = [clayout]
                 else:
@@ -218,12 +218,12 @@ class SchemeEditor(QDialog):
                         option,
                         default=value,
                         without_layout=True,
-                        )
+                    )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row+1, 0)
-                    group_layout.addLayout(clayout, row+1, 1)
-                    group_layout.addWidget(cb_bold, row+1, 2)
-                    group_layout.addWidget(cb_italic, row+1, 3)
+                    group_layout.addWidget(label, row + 1, 0)
+                    group_layout.addLayout(clayout, row + 1, 1)
+                    group_layout.addWidget(cb_bold, row + 1, 2)
+                    group_layout.addWidget(cb_italic, row + 1, 3)
 
                     self.widgets[scheme_name][key] = [clayout, cb_bold,
                                                       cb_italic]

@@ -58,7 +58,7 @@ from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.plugins.switcher.api import SwitcherActions
-from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import mimedata2url, create_waitspinner
@@ -387,11 +387,15 @@ class EditorStack(QWidget, SpyderWidgetMixin):
         }
 
         # Set default color scheme from config
-        # Always use the selected theme from config, don't fall back to first in list
+        # Always use the selected theme from config
+        # Fall back to spyder_themes.spyder/dark 
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
             try:
-                color_scheme = CONF.get("appearance", "selected", default="spyder_themes.spyder/dark")
+                color_scheme = CONF.get(
+                    "appearance",
+                    "selected",
+                    default="spyder_themes.spyder/dark")
             except Exception:
                 color_scheme = 'spyder_themes.spyder/dark'
         else:
@@ -1342,7 +1346,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_stack_title(self, index, is_modified):
         finfo = self.data[index]
         fname = finfo.filename
-        is_modified = (is_modified or finfo.newly_created) and not finfo.default
+        is_modified = (
+            is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)

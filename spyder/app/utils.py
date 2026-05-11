@@ -289,29 +289,32 @@ def create_application():
     """Create application and patch sys.exit."""
     # Our QApplication
     app = qapplication()
-    
-    # Load the selected theme before APP_STYLESHEET is accessed
-    # This ensures the theme's stylesheet is available and resources are loaded
-    # This must be done after Qt is initialized to avoid segfaults
+
+    # Load the selected theme before APP_STYLESHEET is accessed so the
+    # theme stylesheet is available and resources are loaded. Must run
+    # after Qt is initialized to avoid segfaults.
     try:
         from spyder.utils.theme_manager import theme_manager
         from spyder.config.manager import CONF
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
-            # Load the selected theme (this will load its stylesheet and resources)
-            selected = CONF.get('appearance', 'selected', default='spyder_themes.spyder/dark')
+            # Load the selected theme (this will load its stylesheet and
+            # resources)
+            selected = CONF.get('appearance', 'selected',
+                                default='spyder_themes.spyder/dark')
             resolved = theme_manager.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set('appearance', 'selected', resolved)
             selected = resolved
             if '/' in selected:
                 theme_name, ui_mode = selected.rsplit('/', 1)
-                # Load the theme - this will load its stylesheet and queue resources for loading
+                # Load theme stylesheet and queue resources for loading.
                 try:
                     theme_manager.load_theme(theme_name, ui_mode)
                 except Exception:
                     pass
-        # Load any pending theme resources that were deferred during initialization
+        # Load any pending theme resources that were deferred during
+        # initialization
         theme_manager.load_pending_resources()
     except Exception:
         # If loading theme fails, continue anyway - will fall back to default

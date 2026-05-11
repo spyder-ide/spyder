@@ -34,40 +34,42 @@ def font_is_installed(font):
 def get_family(families):
     """Return the first installed font family in family list"""
     if not isinstance(families, list):
-        families = [ families ]
+        families = [families]
     for family in families:
         if font_is_installed(family):
             return family
     else:
-        print("Warning: None of the following fonts is installed: %r" % families)  # spyder: test-skip
+        print("Warning: None of the following fonts is installed: %r" %
+              families)  # spyder: test-skip
         return QFont().family()
 
 
 FONT_CACHE = {}
+
 
 def get_font(section='appearance', option='font', font_size_delta=0):
     """Get console font properties depending on OS and user options"""
     font = FONT_CACHE.get((section, option, font_size_delta))
 
     if font is None:
-        families = CONF.get(section, option+"/family", None)
+        families = CONF.get(section, option + "/family", None)
 
         if families is None:
             return QFont()
 
         family = get_family(families)
         weight = QFont.Normal
-        italic = CONF.get(section, option+'/italic', False)
+        italic = CONF.get(section, option + '/italic', False)
 
-        if CONF.get(section, option+'/bold', False):
+        if CONF.get(section, option + '/bold', False):
             weight = QFont.Bold
 
-        size = CONF.get(section, option+'/size', 9) + font_size_delta
+        size = CONF.get(section, option + '/size', 9) + font_size_delta
         font = QFont(family, size, weight)
         font.setItalic(italic)
         FONT_CACHE[(section, option, font_size_delta)] = font
 
-    size = CONF.get(section, option+'/size', 9) + font_size_delta
+    size = CONF.get(section, option + '/size', 9) + font_size_delta
     if size > 0:
         font.setPointSize(size)
     return font
@@ -75,10 +77,10 @@ def get_font(section='appearance', option='font', font_size_delta=0):
 
 def set_font(font, section='appearance', option='font'):
     """Set font properties in our config system."""
-    CONF.set(section, option+'/family', str(font.family()))
-    CONF.set(section, option+'/size', float(font.pointSize()))
-    CONF.set(section, option+'/italic', int(font.italic()))
-    CONF.set(section, option+'/bold', int(font.bold()))
+    CONF.set(section, option + '/family', str(font.family()))
+    CONF.set(section, option + '/size', float(font.pointSize()))
+    CONF.set(section, option + '/italic', int(font.italic()))
+    CONF.set(section, option + '/bold', int(font.bold()))
 
     # This function is only used to set fonts that were changed through
     # Preferences. And in that case it's not possible to set a delta.
@@ -88,7 +90,10 @@ def set_font(font, section='appearance', option='font'):
 
 
 def get_color_scheme(name):
-    """Get syntax color scheme (theme base merged with per-key appearance overrides)."""
+    """Get syntax color scheme.
+
+    Merges the theme base with per-key appearance overrides.
+    """
     return sh.get_color_scheme(name)
 
 

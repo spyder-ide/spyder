@@ -32,7 +32,8 @@ class ThemeManager:
         self._current_stylesheet = None
         self._current_theme_module = None  # Store the loaded theme module
         self._loaded_resource_modules = {}  # Keep references to resource modules
-        self._pending_resource_files = []  # Resource files to load after Qt is initialized
+        # Resource files to load after Qt is initialized
+        self._pending_resource_files = []
 
     @staticmethod
     def get_available_themes():
@@ -45,7 +46,8 @@ class ThemeManager:
         for package_name in theme_packages:
             try:
                 package = importlib.import_module(package_name)
-                if hasattr(package, "THEMES") and hasattr(package, "get_theme_module"):
+                if hasattr(package, "THEMES") and hasattr(
+                        package, "get_theme_module"):
                     # Iterate through registered themes
                     for theme_name in package.THEMES:
                         try:
@@ -57,7 +59,8 @@ class ThemeManager:
                             ):
                                 full_theme_name = f"{package_name}.{theme_name}"
                                 try:
-                                    ThemeManager._load_theme_metadata(full_theme_name)
+                                    ThemeManager._load_theme_metadata(
+                                        full_theme_name)
                                 except Exception as exc:
                                     logger.warning(
                                         "Ignoring theme '%s': invalid or missing metadata: %s",
@@ -241,10 +244,12 @@ class ThemeManager:
             with open(metadata_file, "r", encoding="utf-8") as fh:
                 metadata = yaml.safe_load(fh)
         except Exception as exc:
-            raise ValueError(f"Failed to parse metadata file {metadata_file}: {exc}")
+            raise ValueError(
+                f"Failed to parse metadata file {metadata_file}: {exc}")
 
         if not isinstance(metadata, dict):
-            raise ValueError(f"Theme metadata in {metadata_file} must be a mapping")
+            raise ValueError(
+                f"Theme metadata in {metadata_file} must be a mapping")
 
         return metadata
 
@@ -397,10 +402,13 @@ class ThemeManager:
                         display_name = ThemeManager.get_theme_display_name(
                             variant_name
                         )
-                        CONF.set("appearance", f"{variant_name}/name", display_name)
-                        logger.info("Registered theme name for %s in config", variant_name)
+                        CONF.set("appearance",
+                                 f"{variant_name}/name", display_name)
+                        logger.info(
+                            "Registered theme name for %s in config", variant_name)
                     except Exception as e:
-                        logger.warning("Failed to register theme name for %s: %s", variant_name, e)
+                        logger.warning(
+                            "Failed to register theme name for %s: %s", variant_name, e)
 
         # Restore original theme if needed
         if current_theme and current_theme != self._current_theme:
@@ -425,7 +433,8 @@ class ThemeManager:
         # Get palette class
         if ui_mode == "dark":
             if not hasattr(theme_module, "SpyderPaletteDark"):
-                raise ValueError(f"Theme '{theme_name}' has no SpyderPaletteDark class")
+                raise ValueError(
+                    f"Theme '{theme_name}' has no SpyderPaletteDark class")
             palette_class = theme_module.SpyderPaletteDark
         else:
             if not hasattr(theme_module, "SpyderPaletteLight"):
@@ -507,7 +516,8 @@ class ThemeManager:
             rc_file = None
 
         # Load the resources if they exist, but defer loading until Qt is initialized
-        # Loading resources before Qt is ready can cause segfaults during Qt initialization
+        # Loading resources before Qt is ready can cause segfaults during Qt
+        # initialization
         if rc_file is not None:
             # Store the resource file path for later loading
             # Don't load it now to avoid segfaults during Qt initialization
@@ -523,7 +533,7 @@ class ThemeManager:
     def _load_theme_resources(self, rc_file):
         """
         Load theme resources into Qt resource system.
-        
+
         This should only be called after Qt is fully initialized to avoid segfaults.
         """
         try:
@@ -536,7 +546,7 @@ class ThemeManager:
                     f"QApplication not initialized, skipping resource loading for {rc_file}"
                 )
                 return
-            
+
             # Import the resource module directly (like QDarkStyleSheet does)
             import importlib.util
             import logging
@@ -544,7 +554,11 @@ class ThemeManager:
             logger = logging.getLogger(__name__)
 
             # Create a unique module name based on the file path
-            module_name = f"theme_resources_{rc_file.stem}_{hash(str(rc_file)) % 10000}"
+            module_name = f"theme_resources_{
+                rc_file.stem}_{
+                hash(
+                    str(rc_file)) %
+                10000}"
 
             spec = importlib.util.spec_from_file_location(module_name, rc_file)
             resource_module = importlib.util.module_from_spec(spec)
@@ -559,7 +573,8 @@ class ThemeManager:
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.warning(f"Failed to load theme resources from {rc_file}: {e}")
+            logger.warning(
+                f"Failed to load theme resources from {rc_file}: {e}")
 
     def get_current_theme(self):
         """Get the currently loaded theme name."""
@@ -568,14 +583,15 @@ class ThemeManager:
     def get_current_stylesheet(self):
         """Get the currently loaded stylesheet."""
         return self._current_stylesheet
-    
+
     def load_pending_resources(self):
         """
         Load any pending theme resources that were deferred during initialization.
-        
+
         This should be called after Qt is fully initialized to avoid segfaults.
         """
-        if hasattr(self, '_pending_resource_files') and self._pending_resource_files:
+        if hasattr(
+                self, '_pending_resource_files') and self._pending_resource_files:
             for rc_file in list(self._pending_resource_files):
                 try:
                     self._load_theme_resources(rc_file)
@@ -583,7 +599,8 @@ class ThemeManager:
                 except Exception as e:
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.warning(f"Failed to load pending resource {rc_file}: {e}")
+                    logger.warning(
+                        f"Failed to load pending resource {rc_file}: {e}")
 
 
 # Global appearance object

@@ -14,7 +14,7 @@ from qtpy.QtGui import QFont, QTextCursor
 # Local imports
 from spyder.config.base import running_in_ci
 from spyder.plugins.editor.extensions.closequotes import (
-        CloseQuotesExtension)
+    CloseQuotesExtension)
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils import sourcecode

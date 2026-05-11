@@ -160,16 +160,18 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         """
         # Try to get the theme's stylesheet first
         # If theme is not loaded yet, we need to load it via SpyderPalette
-        # but avoid calling qdarkstyle.load_stylesheet() which loads qdarkstyle resources
+        # but avoid calling qdarkstyle.load_stylesheet() which loads qdarkstyle
+        # resources
         try:
             from spyder.utils.theme_manager import theme_manager
             theme_stylesheet = theme_manager.get_current_stylesheet()
             if theme_stylesheet:
-                # Use theme's stylesheet directly - this avoids loading qdarkstyle resources
+                # Use theme's stylesheet directly - this avoids loading
+                # qdarkstyle resources
                 stylesheet = theme_stylesheet
             else:
-                # Theme not loaded yet - access SpyderPalette to trigger theme loading
-                # This will load the theme and its stylesheet
+                # Theme not loaded yet: touch SpyderPalette to trigger loading
+                # and fetch the theme stylesheet.
                 _ = SpyderPalette  # Trigger theme loading
                 # Try again to get the theme's stylesheet
                 theme_stylesheet = theme_manager.get_current_stylesheet()
@@ -178,16 +180,18 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
                 else:
                     # Still no theme stylesheet, fall back to qdarkstyle
                     # But this should rarely happen if theme loading works
-                    stylesheet = qdarkstyle.load_stylesheet(palette=SpyderPalette)
+                    stylesheet = qdarkstyle.load_stylesheet(
+                        palette=SpyderPalette)
         except Exception:
             # Fallback to qdarkstyle's default if theme loading fails
-            # This is a last resort and may cause segfault if Qt resources aren't ready
+            # This is a last resort and may cause segfault if Qt resources
+            # aren't ready
             try:
                 stylesheet = qdarkstyle.load_stylesheet(palette=SpyderPalette)
             except Exception:
                 # If even qdarkstyle fails, return empty stylesheet
                 stylesheet = ""
-        
+
         self._stylesheet = parse_stylesheet(stylesheet)
 
         # Add our customizations
@@ -378,6 +382,8 @@ APP_STYLESHEET = AppStylesheet()
 # =============================================================================
 # ---- Toolbar stylesheets
 # =============================================================================
+
+
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 

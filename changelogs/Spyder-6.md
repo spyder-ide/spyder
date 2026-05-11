@@ -1,5 +1,18 @@
 # History of changes for Spyder 6
 
+## Unreleased
+
+### New features
+
+* Support external theme package (`spyder-themes`) with a theme
+  manager, early theme export at startup, and lazy-loaded palettes and
+  stylesheets. Appearance preferences and syntax highlighting are aligned with
+  the selected theme variant.
+
+### API changes
+
+* Add `has_option` method to `ConfigurationManager`.
+
 ## Version 6.1.4 (2026-04-06)
 
 ### New features

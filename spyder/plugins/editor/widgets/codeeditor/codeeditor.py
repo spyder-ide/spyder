@@ -386,7 +386,8 @@ class CodeEditor(
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
             try:
-                ccs = CONF.get('appearance', 'selected', default='spyder_themes.spyder/dark')
+                ccs = CONF.get('appearance', 'selected',
+                               default='spyder_themes.spyder/dark')
             except Exception:
                 ccs = 'spyder_themes.spyder/dark'
         else:
@@ -471,7 +472,7 @@ class CodeEditor(
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)
-        self.menu_docstring= None
+        self.menu_docstring = None
 
         # Tab key behavior
         self.tab_indents = None
@@ -822,7 +823,7 @@ class CodeEditor(
                      close_quotes=False,
                      add_colons=True,
                      auto_unindent=True,
-                     indent_chars=" "*4,
+                     indent_chars=" " * 4,
                      tab_stop_width_spaces=4,
                      cloned_from=None,
                      filename=None,
@@ -1357,7 +1358,7 @@ class CodeEditor(
         while True:
             cursor.movePosition(QTextCursor.EndOfBlock)
             text = str(cursor.block().text())
-            length = len(text)-len(text.rstrip())
+            length = len(text) - len(text.rstrip())
             if length > 0:
                 cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
                                     length)
@@ -1531,7 +1532,7 @@ class CodeEditor(
     # -------------------------------------------------------------------------
     def __find_first(self, text):
         """Find first occurrence: scan whole document"""
-        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
+        flags = QTextDocument.FindCaseSensitively | QTextDocument.FindWholeWords
         cursor = self.textCursor()
         # Scanning whole document
         cursor.movePosition(QTextCursor.Start)
@@ -1544,7 +1545,7 @@ class CodeEditor(
 
     def __find_next(self, text, cursor):
         """Find next occurrence"""
-        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
+        flags = QTextDocument.FindCaseSensitively | QTextDocument.FindWholeWords
         regexp = QRegularExpression(
             r"\b%s\b" % QRegularExpression.escape(text)
         )
@@ -1635,7 +1636,7 @@ class CodeEditor(
         if (
             self.is_python_like()
             and (sourcecode.is_keyword(str(text))
-            or str(text) == 'self')
+                 or str(text) == 'self')
         ):
             return
 
@@ -1759,7 +1760,7 @@ class CodeEditor(
         block = self.firstVisibleBlock()
         line_number = block.blockNumber()
         top = self.blockBoundingGeometry(block).translated(
-                                                    self.contentOffset()).top()
+            self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
         while block.isValid() and top < event.pos().y():
             block = block.next()
@@ -1877,7 +1878,7 @@ class CodeEditor(
         """Toggle blanks visibility"""
         self.blanks_enabled = state
         option = self.document().defaultTextOption()
-        option.setFlags(option.flags() | \
+        option.setFlags(option.flags() |
                         QTextOption.AddSpaceForLineAndParagraphSeparators)
         if self.blanks_enabled:
             option.setFlags(option.flags() | QTextOption.ShowTabsAndSpaces)
@@ -2835,7 +2836,8 @@ class CodeEditor(
 
             if prevtext.endswith((':', '\\')):
                 # Presume a block was started
-                line_in_block = True  # add one level of indent to correct_indent
+                # add one level of indent to correct_indent
+                line_in_block = True
                 # Does this variable actually do *anything* of relevance?
                 # comment_or_string = True
 
@@ -2892,7 +2894,8 @@ class CodeEditor(
             if self.indent_chars == '\t':
                 correct_indent = prevline_indent + self.tab_stop_width_spaces * add_indent
             else:
-                correct_indent = prevline_indent + len(self.indent_chars) * add_indent
+                correct_indent = prevline_indent + \
+                    len(self.indent_chars) * add_indent
         else:
             correct_indent = prevline_indent
 
@@ -2952,13 +2955,14 @@ class CodeEditor(
                 indent == correct_indent or
                 forward and indent > correct_indent or
                 not forward and indent < correct_indent
-                ):
+        ):
             # Insert the determined indent
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.StartOfBlock)
             if self.indent_chars == '\t':
                 indent = indent // self.tab_stop_width_spaces
-            cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
+            cursor.setPosition(cursor.position() + indent,
+                               QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
             if self.indent_chars == '\t':
                 indent_text = (
@@ -2966,7 +2970,7 @@ class CodeEditor(
                     ' ' * (correct_indent % self.tab_stop_width_spaces)
                 )
             else:
-                indent_text = ' '*correct_indent
+                indent_text = ' ' * correct_indent
             cursor.insertText(indent_text)
             return True
         return False
@@ -2988,10 +2992,10 @@ class CodeEditor(
             self.insertPlainText(nbformat.writes(nb))
             self.skip_rstrip = False
         except Exception as e:
-            QMessageBox.critical(self, _('Removal error'),
-                           _("It was not possible to remove outputs from "
-                             "this notebook. The error is:\n\n") + \
-                             str(e))
+            QMessageBox.critical(
+                self, _('Removal error'), _(
+                    "It was not possible to remove outputs from "
+                    "this notebook. The error is:\n\n") + str(e))
             return
 
     def convert_notebook(self):
@@ -3002,7 +3006,7 @@ class CodeEditor(
         except Exception as e:
             QMessageBox.critical(self, _('Conversion error'),
                                  _("It was not possible to convert this "
-                                 "notebook. The error is:\n\n") + \
+                                 "notebook. The error is:\n\n") +
                                  str(e))
             return
         self.sig_new_file.emit(script)
@@ -3026,7 +3030,7 @@ class CodeEditor(
         else:
             if len(self.indent_chars) > 1:
                 length = len(self.indent_chars)
-                self.insert_text(" "*(length-(len(leading_text) % length)))
+                self.insert_text(" " * (length - (len(leading_text) % length)))
             else:
                 self.insert_text(self.indent_chars)
 
@@ -3066,7 +3070,7 @@ class CodeEditor(
                 if remainder:
                     # Get block on "space multiple grid".
                     # See spyder-ide/spyder#5734.
-                    self.remove_prefix(" "*remainder)
+                    self.remove_prefix(" " * remainder)
                 else:
                     # Unindent one space multiple
                     self.remove_prefix(self.indent_chars)
@@ -3097,7 +3101,7 @@ class CodeEditor(
         # whitespace, uncomment. Otherwise, comment.
         is_comment_or_whitespace = True
         at_least_one_comment = False
-        for _line_nb in range(first_line, last_line+1):
+        for _line_nb in range(first_line, last_line + 1):
             text = str(cursor.block().text()).lstrip()
             is_comment = text.startswith(self.comment_string)
             is_whitespace = (text == '')
@@ -3134,11 +3138,11 @@ class CodeEditor(
         """Handle versions of blockcomment bar for backwards compatibility."""
         # Blockcomment bar in Spyder version >= 4
         blockcomment_bar = self.comment_string + ' ' + '=' * (
-                                    79 - len(self.comment_string + ' '))
+            79 - len(self.comment_string + ' '))
         if compatibility:
             # Blockcomment bar in Spyder version < 4
             blockcomment_bar = self.comment_string + '=' * (
-                                    79 - len(self.comment_string))
+                79 - len(self.comment_string))
         return blockcomment_bar
 
     def transform_to_uppercase(self):
@@ -3816,7 +3820,7 @@ class CodeEditor(
         ):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
-                ind = lambda txt: len(txt) - len(txt.lstrip())
+                def ind(txt): return len(txt) - len(txt.lstrip())
                 prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
@@ -3833,7 +3837,7 @@ class CodeEditor(
             self.completion_widget.hide()
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
-                ind = lambda txt: len(txt)-len(txt.lstrip())
+                def ind(txt): return len(txt) - len(txt.lstrip())
                 prevtxt = str(self.textCursor().block().previous().text())
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
@@ -4590,7 +4594,7 @@ class CodeEditor(
             if not visible:
                 break
             if block.isVisible():
-                self.__visible_blocks.append((top, blockNumber+1, block))
+                self.__visible_blocks.append((top, blockNumber + 1, block))
             block = block.next()
             top = bottom
             bottom = top + int(self.blockBoundingRect(block).height())

@@ -130,7 +130,8 @@ def test_update_decorations_when_scrolling(qtbot):
         # be a call to _update.
         assert _update.call_count == 0
 
-        with open(osp.join(PARENT, 'codeeditor.py'), 'r', encoding='utf-8') as f:
+        codeeditor_path = osp.join(PARENT, 'codeeditor.py')
+        with open(codeeditor_path, 'r', encoding='utf-8') as f:
             text = f.read()
         editor.set_text(text)
 
