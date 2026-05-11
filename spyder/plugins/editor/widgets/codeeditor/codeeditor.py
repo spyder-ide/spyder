@@ -3255,7 +3255,8 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
                         elif isinstance(stmt.targets[0], ast.Tuple):  # :multi
                             lhs = get_items(stmt.targets[0])
                             rhs = get_items(stmt.value)
-                        elif isinstance(stmt.targets[0], ast.Name):  # :single
+                        elif isinstance(stmt.targets[0],
+                                        (ast.Name, ast.Subscript)):  # :single
                             lhs = get_item_singleton(stmt.targets[0])
                             rhs = get_item_singleton(stmt.value)
 
