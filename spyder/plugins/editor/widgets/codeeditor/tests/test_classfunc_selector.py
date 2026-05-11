@@ -53,8 +53,8 @@ def test_class_func_selector(completions_codeeditor, qtbot):
     # Wait for symbols info to arrive
     qtbot.wait(3000)
 
-    class_names = [item['name'] for item in panel.classes]
-    func_names = [item['name'] for item in panel.funcs]
+    class_names = [item.name for item in panel.classes]
+    func_names = [item.name for item in panel.funcs]
 
     assert len(panel.classes) == 2
     assert len(panel.funcs) == 6

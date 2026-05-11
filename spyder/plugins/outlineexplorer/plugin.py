@@ -7,6 +7,7 @@
 """Outline Explorer Plugin."""
 
 # Third party imports
+import lsprotocol.types as lsp
 from qtpy.QtCore import Qt, Slot
 
 # Local imports
@@ -121,10 +122,12 @@ class OutlineExplorer(SpyderDockablePlugin):
     # ----- Public API
     # -------------------------------------------------------------------------
     @Slot(dict, str)
-    def start_symbol_services(self, capabilities, language):
+    def start_symbol_services(
+        self, capabilities: lsp.ServerCapabilities, language
+    ):
         """Enable LSP symbols functionality."""
         explorer = self.get_widget()
-        symbol_provider = capabilities.get('documentSymbolProvider', False)
+        symbol_provider = capabilities.document_symbol_provider
         if symbol_provider:
             explorer.start_symbol_services(language)
 

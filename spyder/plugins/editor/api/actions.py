@@ -41,6 +41,11 @@ class EditorWidgetActions:
     ShowDoctringWarnings = "pydocstyle_action"
     UnderlineErrors = "underline_errors_action"
 
+    # Folding operations
+    CollapseAll = "fold all regions"
+    ExpandAll = "unfold all regions"
+    CollapseExpand = "fold or unfold current region"
+
     # Stack menu
     GoToLine = "Go to line"
     SetWorkingDirectory = "set_working_directory_action"

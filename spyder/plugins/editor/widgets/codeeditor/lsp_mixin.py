@@ -16,6 +16,7 @@ import re
 
 # Third party imports
 from diff_match_patch import diff_match_patch
+from lsprotocol import types as lsp
 from qtpy.QtCore import (
     QEventLoop,
     Qt,
@@ -29,15 +30,14 @@ from three_merge import merge
 
 # Local imports
 from spyder.config.base import running_under_pytest
-from spyder.plugins.completion.api import (
-    CompletionRequestTypes,
-    TextDocumentSyncKind,
-    DiagnosticSeverity,
-)
+from spyder.plugins.completion.api import DOCUMENT_CURSOR_EVENT
 from spyder.plugins.completion.decorators import (
     request,
     handles,
     class_register,
+)
+from spyder.plugins.completion.providers.languageserver.providers.utils import (
+    process_uri
 )
 from spyder.plugins.editor.panels.utils import (
     merge_folding,
@@ -112,7 +112,7 @@ class LSPMixin:
 
     #: Signal only used for tests
     # TODO: Remove it!
-    sig_signature_invoked = Signal(dict)
+    sig_signature_invoked = Signal(object)
 
     #: Signal emitted when processing code analysis warnings is finished
     sig_process_code_analysis = Signal()
@@ -181,7 +181,7 @@ class LSPMixin:
         self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
-        self.sync_mode = TextDocumentSyncKind.FULL
+        self.sync_mode = lsp.TextDocumentSyncKind.Full
         self.will_save_notify = False
         self.will_save_until_notify = False
         self.enable_hover = False
@@ -224,7 +224,7 @@ class LSPMixin:
 
     # ---- Basic methods
     # -------------------------------------------------------------------------
-    @Slot(str, dict)
+    @Slot(str, object)
     def handle_response(self, method, params):
         if method in self.handler_registry:
             handler_name = self.handler_registry[method]
@@ -268,59 +268,75 @@ class LSPMixin:
             )
         )
 
-    def register_completion_capabilities(self, capabilities):
+    def register_completion_capabilities(
+        self, capabilities: lsp.ServerCapabilities
+    ):
         """
         Register completion server capabilities.
 
         Parameters
         ----------
-        capabilities: dict
-            Capabilities supported by a language server.
+        capabilities: lsp.ServerCapabilities
+            Server capabilities reported during LSP initialization.
         """
-        sync_options = capabilities["textDocumentSync"]
-        save_options = sync_options.get("save", {})
-        completion_options = capabilities["completionProvider"]
-        signature_options = capabilities["signatureHelpProvider"]
-        range_formatting_options = capabilities[
-            "documentOnTypeFormattingProvider"
-        ]
+        tds = capabilities.text_document_sync
+        open_close = False
+        sync_kind = lsp.TextDocumentSyncKind.None_
+        will_save = False
+        will_save_wait_until = False
+        save_include_text = False
 
-        self.open_close_notifications = sync_options.get("openClose", False)
-        self.sync_mode = sync_options.get("change", TextDocumentSyncKind.NONE)
-        self.will_save_notify = sync_options.get("willSave", False)
-        self.will_save_until_notify = sync_options.get(
-            "willSaveWaitUntil", False
+        if isinstance(tds, lsp.TextDocumentSyncOptions):
+            open_close = tds.open_close or False
+            sync_kind = tds.change or lsp.TextDocumentSyncKind.None_
+            will_save = tds.will_save or False
+            will_save_wait_until = tds.will_save_wait_until or False
+            save_opt = tds.save
+            if isinstance(save_opt, lsp.SaveOptions):
+                save_include_text = save_opt.include_text or False
+        elif isinstance(tds, lsp.TextDocumentSyncKind):
+            sync_kind = tds
+
+        self.open_close_notifications = open_close
+        self.sync_mode = sync_kind
+        self.will_save_notify = will_save
+        self.will_save_until_notify = will_save_wait_until
+        self.save_include_text = save_include_text
+        self.enable_hover = bool(capabilities.hover_provider)
+        self.folding_supported = bool(capabilities.folding_range_provider)
+
+        cp = capabilities.completion_provider
+        self.auto_completion_characters = (
+            list(cp.trigger_characters or []) if cp else []
         )
-        self.save_include_text = save_options.get("includeText", False)
-        self.enable_hover = capabilities["hoverProvider"]
-        self.folding_supported = capabilities.get(
-            "foldingRangeProvider", False
+        self.resolve_completions_enabled = bool(cp and cp.resolve_provider)
+
+        shp = capabilities.signature_help_provider
+        self.signature_completion_characters = (
+            list(shp.trigger_characters or []) if shp else []
+        ) + ["="]  # FIXME:
+
+        self.go_to_definition_enabled = bool(capabilities.definition_provider)
+        self.find_references_enabled = bool(capabilities.references_provider)
+        self.highlight_enabled = bool(
+            capabilities.document_highlight_provider
         )
-        self.auto_completion_characters = completion_options[
-            "triggerCharacters"
-        ]
-        self.resolve_completions_enabled = completion_options.get(
-            "resolveProvider", False
+        self.formatting_enabled = bool(
+            capabilities.document_formatting_provider
         )
-        self.signature_completion_characters = signature_options[
-            "triggerCharacters"
-        ] + [
-            "="
-        ]  # FIXME:
-        self.go_to_definition_enabled = capabilities["definitionProvider"]
-        self.find_references_enabled = capabilities["referencesProvider"]
-        self.highlight_enabled = capabilities["documentHighlightProvider"]
-        self.formatting_enabled = capabilities["documentFormattingProvider"]
-        self.range_formatting_enabled = capabilities[
-            "documentRangeFormattingProvider"
-        ]
-        self.document_symbols_enabled = capabilities["documentSymbolProvider"]
-        self.formatting_characters.append(
-            range_formatting_options["firstTriggerCharacter"]
+        self.range_formatting_enabled = bool(
+            capabilities.document_range_formatting_provider
         )
-        self.formatting_characters += range_formatting_options.get(
-            "moreTriggerCharacter", []
+        self.document_symbols_enabled = bool(
+            capabilities.document_symbol_provider
         )
+
+        otf = capabilities.document_on_type_formatting_provider
+        if otf:
+            self.formatting_characters.append(otf.first_trigger_character)
+            self.formatting_characters += list(
+                otf.more_trigger_character or []
+            )
 
         if self.formatting_enabled:
             self.sig_refresh_formatting.emit()
@@ -331,10 +347,7 @@ class LSPMixin:
         logger.debug("Stopping completion services for %s" % self.filename)
         self.completions_available = False
 
-    @request(
-        method=CompletionRequestTypes.DOCUMENT_DID_OPEN,
-        requires_response=False,
-    )
+    @request(method=lsp.TEXT_DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
 
@@ -380,7 +393,7 @@ class LSPMixin:
 
     # ---- Symbols
     # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_SYMBOL)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
@@ -390,11 +403,11 @@ class LSPMixin:
         params = {"file": self.filename}
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_SYMBOL)
+    @handles(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
         try:
-            symbols = params["params"]
+            symbols = params or []
             self._update_classfuncdropdown(symbols)
 
             if self.oe_proxy is not None:
@@ -425,10 +438,7 @@ class LSPMixin:
         self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
         self._server_requests_timer.start()
 
-    @request(
-        method=CompletionRequestTypes.DOCUMENT_DID_CHANGE,
-        requires_response=False,
-    )
+    @request(method=lsp.TEXT_DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
@@ -463,7 +473,7 @@ class LSPMixin:
         }
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_PUBLISH_DIAGNOSTICS)
+    @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
         """Handle linting response."""
         # The LSP spec doesn't require that folding and symbols
@@ -476,7 +486,7 @@ class LSPMixin:
         self._timer_sync_symbols_and_folding.start()
 
         # Process results (runs in a thread)
-        self.process_code_analysis(params["params"])
+        self.process_code_analysis(params or [])
 
     def set_sync_symbols_and_folding_timeout(self):
         """
@@ -592,20 +602,25 @@ class LSPMixin:
             first_block, last_block = self.get_buffer_block_numbers()
 
         for diagnostic in self._diagnostics:
+            message = diagnostic.message
             if self.is_ipython() and (
-                diagnostic["message"] == "undefined name 'get_ipython'"
+                message == "undefined name 'get_ipython'"
             ):
                 # get_ipython is defined in IPython files
                 continue
-            source = diagnostic.get("source", "")
-            msg_range = diagnostic["range"]
-            start = msg_range["start"]
-            end = msg_range["end"]
-            code = diagnostic.get("code", "E")
-            message = diagnostic["message"]
-            severity = diagnostic.get("severity", DiagnosticSeverity.ERROR)
 
-            block = document.findBlockByNumber(start["line"])
+            source = diagnostic.source or ""
+            msg_range = diagnostic.range
+            start_pos = msg_range.start
+            end_pos = msg_range.end
+            code = diagnostic.code or "E"
+            severity = (
+                diagnostic.severity
+                if diagnostic.severity is not None
+                else lsp.DiagnosticSeverity.Error
+            )
+
+            block = document.findBlockByNumber(start_pos.line)
             text = block.text()
 
             # Skip messages according to certain criteria.
@@ -625,14 +640,14 @@ class LSPMixin:
             if underline:
                 block_nb = block.blockNumber()
                 if first_block <= block_nb <= last_block:
-                    error = severity == DiagnosticSeverity.ERROR
+                    error = severity == lsp.DiagnosticSeverity.Error
                     color = self.error_color if error else self.warning_color
                     color = QColor(color)
                     color.setAlpha(255)
                     block.color = color
 
-                    data.selection_start = start
-                    data.selection_end = end
+                    data.selection_start = start_pos
+                    data.selection_end = end_pos
 
                     self.highlight_selection(
                         "code_analysis_underline",
@@ -651,7 +666,7 @@ class LSPMixin:
 
     # ---- Completion
     # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_COMPLETION)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -671,7 +686,7 @@ class LSPMixin:
         self.completion_args = (self.textCursor().position(), automatic)
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_COMPLETION)
+    @handles(lsp.TEXT_DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
         args = self.completion_args
@@ -689,25 +704,23 @@ class LSPMixin:
         eol_char = self.get_line_separator()
 
         try:
-            completions = params["params"]
-            completions = (
-                []
-                if completions is None
-                else [
-                    completion
-                    for completion in completions
-                    if completion.get("insertText")
-                    or completion.get("textEdit", {}).get("newText")
-                ]
-            )
+            completions = params or []
+            completions = [
+                c for c in completions
+                if c.insert_text or (c.text_edit and c.text_edit.new_text)
+            ]
+
             prefix = self.get_current_word(
                 completion=True, valid_python_variable=False
             )
 
             if (
                 len(completions) == 1
-                and completions[0].get("insertText") == prefix
-                and not completions[0].get("textEdit", {}).get("newText")
+                and completions[0].insert_text == prefix
+                and not (
+                    completions[0].text_edit
+                    and completions[0].text_edit.new_text
+                )
             ):
                 completions.pop()
 
@@ -723,18 +736,21 @@ class LSPMixin:
                 first_letter = word[0]
 
             def sort_key(completion):
-                if "textEdit" in completion:
-                    text_insertion = completion["textEdit"]["newText"]
+                te = completion.text_edit
+                if te is not None:
+                    text_insertion = te.new_text
                 else:
-                    text_insertion = completion["insertText"]
+                    text_insertion = completion.insert_text or completion.label
 
-                first_insert_letter = text_insertion[0]
+                first_insert_letter = (
+                    text_insertion[0] if text_insertion else ""
+                )
                 case_mismatch = (
                     first_letter.isupper() and first_insert_letter.islower()
                 ) or (first_letter.islower() and first_insert_letter.isupper())
 
                 # False < True, so case matches go first
-                return (case_mismatch, completion["sortText"])
+                return (case_mismatch, completion.sort_text or "")
 
             completion_list = sorted(completions, key=sort_key)
 
@@ -742,28 +758,38 @@ class LSPMixin:
             # if on-the-fly completions are disabled, only if the
             # textEdit range matches the word under the cursor.
             for completion in completion_list:
-                if "textEdit" in completion:
-                    c_replace_start = completion["textEdit"]["range"]["start"]
-                    c_replace_end = completion["textEdit"]["range"]["end"]
+                te = completion.text_edit
+                if te is not None:
+                    c_range = te.range
+                    c_replace_start = (
+                        self.get_position_line_number(
+                            c_range.start.line, c_range.start.character
+                        )
+                    )
+                    c_replace_end = (
+                        self.get_position_line_number(
+                            c_range.end.line, c_range.end.character
+                        )
+                    )
 
                     if (
                         c_replace_start == replace_start
                         and c_replace_end == replace_end
                     ):
-                        insert_text = completion["textEdit"]["newText"]
-                        completion["filterText"] = insert_text
-                        completion["insertText"] = insert_text
-                        del completion["textEdit"]
+                        insert_text = te.new_text
+                        completion.filter_text = insert_text
+                        completion.insert_text = insert_text
+                        completion.text_edit = None
 
-                if "insertText" in completion:
-                    insert_text = completion["insertText"]
+                insert_text = completion.insert_text
+                if insert_text:
                     insert_text_lines = insert_text.splitlines()
                     reindented_text = [insert_text_lines[0]]
                     for insert_line in insert_text_lines[1:]:
                         insert_line = indentation_whitespace + insert_line
                         reindented_text.append(insert_line)
                     reindented_text = eol_char.join(reindented_text)
-                    completion["insertText"] = reindented_text
+                    completion.insert_text = reindented_text
 
             self.completion_widget.show_list(
                 completion_list, position, automatic
@@ -775,15 +801,13 @@ class LSPMixin:
         except Exception:
             self.manage_lsp_handle_errors("Error when processing completions")
 
-    @schedule_request(method=CompletionRequestTypes.COMPLETION_RESOLVE)
+    @schedule_request(method=lsp.COMPLETION_ITEM_RESOLVE)
     def resolve_completion_item(self, item):
         return {"file": self.filename, "completion_item": item}
 
-    @handles(CompletionRequestTypes.COMPLETION_RESOLVE)
+    @handles(lsp.COMPLETION_ITEM_RESOLVE)
     def handle_completion_item_resolution(self, response):
         try:
-            response = response["params"]
-
             if not response:
                 return
 
@@ -799,7 +823,7 @@ class LSPMixin:
 
     # ---- Signature Hints
     # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_SIGNATURE)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
     def request_signature(self):
         """Ask for signature."""
         line, column = self.get_cursor_line_column()
@@ -812,45 +836,50 @@ class LSPMixin:
         }
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_SIGNATURE)
-    def process_signatures(self, params):
+    @handles(lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
+    def process_signatures(self, response):
         """Handle signature response."""
         try:
-            signature_params = params["params"]
+            if response is None or not response.signatures:
+                return
 
-            if signature_params is not None:
-                self.sig_signature_invoked.emit(signature_params)
-                signature_data = signature_params["signatures"]
-                documentation = signature_data["documentation"]
+            active = response.active_signature or 0
+            sig = response.signatures[active]
 
-                if isinstance(documentation, dict):
-                    documentation = documentation["value"]
+            doc = sig.documentation
+            documentation = (
+                doc.value
+                if isinstance(doc, lsp.MarkupContent)
+                else (doc or "")
+            )
 
-                # The language server returns encoded text with
-                # spaces defined as `\xa0`
-                documentation = documentation.replace("\xa0", " ")
+            # The language server returns encoded text with spaces defined as
+            # `\xa0`
+            documentation = documentation.replace("\xa0", " ")
 
-                # Enable parsing signature's active parameter if available
-                # while allowing to show calltip for signatures without
-                # parameters.
-                # See spyder-ide/spyder#21660
-                parameter = None
-                if "activeParameter" in signature_params:
-                    parameter_idx = signature_params["activeParameter"]
-                    parameters = signature_data["parameters"]
-                    if len(parameters) > 0 and parameter_idx < len(parameters):
-                        parameter_data = parameters[parameter_idx]
-                        parameter = parameter_data["label"]
+            # Enable parsing signature's active parameter if available
+            # while allowing to show calltip for signatures without parameters.
+            # See spyder-ide/spyder#21660
+            parameter = None
+            if response.active_parameter is not None:
+                parameter_idx = response.active_parameter
+                parameters = sig.parameters or []
+                if 0 <= parameter_idx < len(parameters):
+                    label = parameters[parameter_idx].label
+                    if isinstance(label, tuple):
+                        parameter = sig.label[label[0]:label[1]]
+                    else:
+                        parameter = label
 
-                signature = signature_data["label"]
+            self.sig_signature_invoked.emit(response)
 
-                # This method is part of spyder/widgets/mixins
-                self.show_calltip(
-                    signature=signature,
-                    parameter=parameter,
-                    language=self.language,
-                    documentation=documentation,
-                )
+            # This method is part of spyder/widgets/mixins
+            self.show_calltip(
+                signature=sig.label,
+                parameter=parameter,
+                language=self.language,
+                documentation=documentation,
+            )
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -860,7 +889,7 @@ class LSPMixin:
 
     # ---- Hover/Cursor
     # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_CURSOR_EVENT)
+    @schedule_request(method=DOCUMENT_CURSOR_EVENT)
     def request_cursor_event(self):
         text = self.get_text_with_eol()
         cursor = self.textCursor()
@@ -874,7 +903,7 @@ class LSPMixin:
         }
         return params
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_HOVER)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
         params = {
@@ -887,7 +916,7 @@ class LSPMixin:
         self._request_hover_clicked = clicked
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_HOVER)
+    @handles(lsp.TEXT_DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
         if running_under_pytest():
@@ -898,7 +927,7 @@ class LSPMixin:
                 return
 
         try:
-            content = contents["params"]
+            content = contents
 
             # - Don't display hover if there's no content to display.
             # - Prevent spurious errors when a client returns a list.
@@ -936,7 +965,7 @@ class LSPMixin:
     # ---- Go To Definition
     # -------------------------------------------------------------------------
     @Slot()
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DEFINITION)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_DEFINITION)
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)."""
         if not self.go_to_definition_enabled or self.in_comment_or_string():
@@ -956,21 +985,27 @@ class LSPMixin:
             params = {"file": self.filename, "line": line, "column": column}
             return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_DEFINITION)
+    @handles(lsp.TEXT_DOCUMENT_DEFINITION)
     def handle_go_to_definition(self, position):
         """Handle go to definition response."""
         try:
-            position = position["params"]
             if position is not None:
-                def_range = position["range"]
-                start = def_range["start"]
-                if self.filename == position["file"]:
+                if isinstance(position, lsp.Location):
+                    uri = position.uri
+                    start = position.range.start
+                elif isinstance(position, lsp.LocationLink):
+                    uri = position.target_uri
+                    start = position.target_range.start
+                else:
+                    return
+                file_path = process_uri(uri)
+                if self.filename == file_path:
                     self.go_to_line(
-                        start["line"] + 1, start["character"], None, word=None
+                        start.line + 1, start.character, None, word=None
                     )
                 else:
                     self.go_to_definition.emit(
-                        position["file"], start["line"] + 1, start["character"]
+                        file_path, start.line + 1, start.character
                     )
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
@@ -1000,7 +1035,7 @@ class LSPMixin:
         else:
             self.format_document()
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_FORMATTING)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_FORMATTING)
     def format_document(self):
         """Format current document."""
         self.__cursor_position_before_format = self.textCursor().position()
@@ -1023,8 +1058,8 @@ class LSPMixin:
                 "tab_size": tab_size,
                 "insert_spaces": using_spaces,
                 "trim_trailing_whitespace": self.remove_trailing_spaces,
-                "insert_final_new_line": self.add_newline,
-                "trim_final_new_lines": self.remove_trailing_newlines,
+                "insert_final_newline": self.add_newline,
+                "trim_final_newlines": self.remove_trailing_newlines,
             },
         }
 
@@ -1038,7 +1073,7 @@ class LSPMixin:
 
         return params
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def format_document_range(self):
         """Format selected text."""
         self.__cursor_position_before_format = self.textCursor().position()
@@ -1076,8 +1111,8 @@ class LSPMixin:
                 "tab_size": tab_size,
                 "insert_spaces": using_spaces,
                 "trim_trailing_whitespace": self.remove_trailing_spaces,
-                "insert_final_new_line": self.add_newline,
-                "trim_final_new_lines": self.remove_trailing_newlines,
+                "insert_final_newline": self.add_newline,
+                "trim_final_newlines": self.remove_trailing_newlines,
             },
         }
 
@@ -1091,7 +1126,7 @@ class LSPMixin:
 
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_FORMATTING)
+    @handles(lsp.TEXT_DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
         """Handle document formatting response."""
         try:
@@ -1114,7 +1149,7 @@ class LSPMixin:
             self.operation_in_progress = False
             self.formatting_in_progress = False
 
-    @handles(CompletionRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    @handles(lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
         """Handle document range formatting response."""
         try:
@@ -1139,8 +1174,7 @@ class LSPMixin:
 
     def _apply_document_edits(self, edits):
         """Apply a set of atomic document edits to the current editor text."""
-        edits = edits["params"]
-        if edits is None:
+        if not edits:
             return
 
         # We need to use here toPlainText (which returns text with '\n'
@@ -1154,11 +1188,11 @@ class LSPMixin:
         text_tokens = list(text)
         merged_text = None
         for edit in edits:
-            edit_range = edit["range"]
-            repl_text = edit["newText"]
-            start, end = edit_range["start"], edit_range["end"]
-            start_line, start_col = start["line"], start["character"]
-            end_line, end_col = end["line"], end["character"]
+            repl_text = edit.new_text
+            start_line = edit.range.start.line
+            start_col = edit.range.start.character
+            end_line = edit.range.end.line
+            end_col = edit.range.end.character
 
             start_pos = self.get_position_line_number(start_line, start_col)
             end_pos = self.get_position_line_number(end_line, end_col)
@@ -1259,7 +1293,7 @@ class LSPMixin:
         """Cleanup folding pane."""
         self.folding_panel.folding_regions = {}
 
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
@@ -1267,11 +1301,11 @@ class LSPMixin:
         params = {"file": self.filename}
         return params
 
-    @handles(CompletionRequestTypes.DOCUMENT_FOLDING_RANGE)
+    @handles(lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
-        ranges = response["params"]
-        if ranges is None:
+        ranges = response or []
+        if not ranges:
             return
 
         # Update folding info in a thread
@@ -1329,8 +1363,9 @@ class LSPMixin:
 
     # ---- Save/close file
     # -------------------------------------------------------------------------
-    @schedule_request(method=CompletionRequestTypes.DOCUMENT_DID_SAVE,
-                      requires_response=False)
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_DID_SAVE, requires_response=False
+    )
     def notify_save(self):
         """Send save request."""
         params = {'file': self.filename}
@@ -1338,8 +1373,7 @@ class LSPMixin:
             params['text'] = self.get_text_with_eol()
         return params
 
-    @request(method=CompletionRequestTypes.DOCUMENT_DID_CLOSE,
-             requires_response=False)
+    @request(method=lsp.TEXT_DOCUMENT_DID_CLOSE, requires_response=False)
     def notify_close(self):
         """Send close request."""
         self._pending_server_requests = []
