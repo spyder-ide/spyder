@@ -12,7 +12,6 @@ import os
 import sys
 
 # Third-party imports
-import qdarkstyle
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
@@ -22,7 +21,7 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import SpyderPalette
-
+from spyder.utils.theme_manager import theme_manager
 
 # =============================================================================
 # ---- Constants
@@ -158,39 +157,18 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         This takes the stylesheet from the theme and applies our
         customizations to it.
         """
-        # Try to get the theme's stylesheet first
-        # If theme is not loaded yet, we need to load it via SpyderPalette
-        # but avoid calling qdarkstyle.load_stylesheet() which loads qdarkstyle
-        # resources
+        # Base string comes from the active theme package
+        stylesheet = ""
         try:
-            from spyder.utils.theme_manager import theme_manager
             theme_stylesheet = theme_manager.get_current_stylesheet()
-            if theme_stylesheet:
-                # Use theme's stylesheet directly - this avoids loading
-                # qdarkstyle resources
-                stylesheet = theme_stylesheet
-            else:
-                # Theme not loaded yet: touch SpyderPalette to trigger loading
-                # and fetch the theme stylesheet.
-                _ = SpyderPalette  # Trigger theme loading
-                # Try again to get the theme's stylesheet
+            if not theme_stylesheet:
+                # Theme may not be registered until SpyderPalette is resolved.
+                _ = SpyderPalette
                 theme_stylesheet = theme_manager.get_current_stylesheet()
-                if theme_stylesheet:
-                    stylesheet = theme_stylesheet
-                else:
-                    # Still no theme stylesheet, fall back to qdarkstyle
-                    # But this should rarely happen if theme loading works
-                    stylesheet = qdarkstyle.load_stylesheet(
-                        palette=SpyderPalette)
+            if theme_stylesheet:
+                stylesheet = theme_stylesheet
         except Exception:
-            # Fallback to qdarkstyle's default if theme loading fails
-            # This is a last resort and may cause segfault if Qt resources
-            # aren't ready
-            try:
-                stylesheet = qdarkstyle.load_stylesheet(palette=SpyderPalette)
-            except Exception:
-                # If even qdarkstyle fails, return empty stylesheet
-                stylesheet = ""
+            stylesheet = ""
 
         self._stylesheet = parse_stylesheet(stylesheet)
 
