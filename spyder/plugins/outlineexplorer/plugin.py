@@ -72,26 +72,43 @@ class OutlineExplorer(SpyderDockablePlugin):
         widget.edit_goto.connect(editor.load_edit_goto)
         widget.edit.connect(editor.load_edit)
 
-        # Reconnect proxy editors if the plugin is reenabled
+        # Reconnect open CodeEditors if the plugin is reenabled
         if not self.main.is_setting_up:
             for editorstack in editor.get_editorstacks():
+                # Editor windows have their own Outline, so stacks in them
+                # don't need to be reconnected to this one.
+                if editorstack.new_window:
+                    continue
+
+                # Register proxy editors
                 for finfo in editorstack.data:
                     oe_proxy = finfo.editor.oe_proxy
                     if oe_proxy is not None:
                         self.get_widget().register_editor(oe_proxy)
 
+            # Restart symbol services (active LSPs are saved in the Editor main
+            # widget)
             for (
                 language,
                 capabilities,
             ) in editor.get_widget().completion_capabilities.items():
                 self.start_symbol_services(capabilities, language)
 
-            current_proxy = editor.get_current_editor().oe_proxy
+            # Get an editorstack in the main window
+            current_editorstack = editor.get_current_editorstack()
+            if current_editorstack.new_window:
+                current_editorstack = editor.get_editorstacks()[0]
+
+            # Set proxy of current editor to update the Outline contents
+            # automatically (otherwise it's necessary to give focus to the
+            # Editor)
+            current_proxy = current_editorstack.get_current_editor().oe_proxy
             if current_proxy is not None:
                 self.get_widget().set_current_editor(
                     current_proxy, update=True, clear=False
                 )
 
+            # Update symbols for all open CodeEditors
             self.update_all_editors()
 
     @on_plugin_teardown(plugin=Plugins.Completions)
