@@ -538,10 +538,18 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
             ApplicationMenus.Help
         ]
 
+        self._window_menu = self._create_menu(
+            menu_id=EditorMainWindowMenus.Window,
+            parent=self,
+            title=_("&Window"),
+            register=False,
+            MenuClass=ApplicationMenu
+        )
+        self._populate_window_menu()
+
         for menu_id in menu_list:
             if menu_id == EditorMainWindowMenus.Window:
-                window_menu = self._create_window_menu()
-                self.menuBar().addMenu(window_menu)
+                self.menuBar().addMenu(self._window_menu)
             else:
                 # This is necessary to run tests for this widget without
                 # Spyder's main window
@@ -616,31 +624,28 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
 
     def set_outlineexplorer(self, outline_plugin):
         self.editorwidget.set_outlineexplorer(outline_plugin)
+        self._populate_window_menu()
 
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _create_window_menu(self):
-        # Create menu
-        window_menu = self._create_menu(
-            menu_id=EditorMainWindowMenus.Window,
-            parent=self,
-            title=_("&Window"),
-            register=False,
-            MenuClass=ApplicationMenu
-        )
+    def _populate_window_menu(self):
+        self._window_menu.clear_actions()
 
         # Create Outline action
-        self.toggle_outline_action = self.create_action(
-            EditorMainWindowActions.ToggleOutline,
-            _("Outline"),
-            toggled=True,
-            option="show_outline_in_editor_window"
-        )
+        self.toggle_outline_action = None
+        if self.editorwidget.outlineexplorer is not None:
+            self.toggle_outline_action = self.create_action(
+                EditorMainWindowActions.ToggleOutline,
+                _("Outline"),
+                toggled=True,
+                option="show_outline_in_editor_window",
+                register_action=False,
+            )
 
-        window_menu.add_action(
-            self.toggle_outline_action,
-            section=WindowMenuSections.Outline
-        )
+            self._window_menu.add_action(
+                self.toggle_outline_action,
+                section=WindowMenuSections.Outline
+            )
 
         # Add toolbar toggle window actions
         visible_toolbars = self.get_conf(
@@ -659,12 +664,10 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
                 toolbar_action.setChecked(True)
                 toolbar.setVisible(True)
 
-            window_menu.add_action(
+            self._window_menu.add_action(
                 toolbar_action,
                 section=WindowMenuSections.Toolbars
             )
-
-        return window_menu
 
 
 class EditorMainWidgetExample(QSplitter):
