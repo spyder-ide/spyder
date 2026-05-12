@@ -323,6 +323,12 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         for es in self.editorstacks:
             es.close()
 
+    def get_current_editorstack(self):
+        return self.editorsplitter.editorstack
+
+    def get_current_editor(self):
+        return self.get_current_editorstack().get_current_editor()
+
     @Slot(object)
     def on_window_state_changed(self, window_state):
         """
@@ -427,8 +433,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             self.menuBar().setStyleSheet(str(MENUBAR_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
-        editorstack = self.editorwidget.editorsplitter.editorstack
-        editor = editorstack.get_current_editor()
+        editor = self.editorwidget.get_current_editor()
         if editor is not None:
             editor.setFocus()
 
