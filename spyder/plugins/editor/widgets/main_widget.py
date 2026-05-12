@@ -1220,11 +1220,20 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- For other plugins
     # -------------------------------------------------------------------------
-    def set_outlineexplorer(self, outlineexplorer_widget):
+    def set_outlineexplorer(self, outline_plugin):
         # TODO: Is there another way to do this?
-        self.outlineexplorer = outlineexplorer_widget
+        self.outline_plugin = outline_plugin
+        self.outlineexplorer = (
+            outline_plugin.get_widget() if outline_plugin is not None else None
+        )
+
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
+
+        # This is necessary when the Outline plugin is disabled/reenabled
+        if not self._plugin.main.is_setting_up:
+            for window in self.editorwindows:
+                window.set_outlineexplorer(self.outline_plugin)
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?
