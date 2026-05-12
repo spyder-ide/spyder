@@ -690,10 +690,8 @@ class Editor(SpyderDockablePlugin):
     def on_outlineexplorer_available(self):
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer)
-        outline_widget = outline.get_widget()
 
-        widget.set_outlineexplorer(outline_widget)
-        widget.outline_plugin = outline
+        widget.set_outlineexplorer(outline)
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):

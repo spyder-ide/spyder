@@ -149,43 +149,7 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
 
         # ---- Outline.
         self.outlineexplorer = None
-        if outline_plugin is not None:
-            self.outlineexplorer = OutlineExplorerInEditorWindow(
-                'outline_explorer',
-                outline_plugin,
-                self,
-                context=f'editor_window_{str(id(self))}'
-            )
-
-            # Show widget's toolbar
-            self.outlineexplorer.setup()
-            self.outlineexplorer.update_actions()
-            self.outlineexplorer._setup()
-            self.outlineexplorer.render_toolbars()
-
-            # Remove bottom section actions from Options menu because they
-            # don't apply here.
-            options_menu = self.outlineexplorer.get_options_menu()
-            for action in ['undock_pane', 'lock_unlock_position']:
-                options_menu.remove_action(action)
-
-            # Signals
-            self.outlineexplorer.edit_goto.connect(
-                lambda filenames, goto, word:
-                main_widget.load(filenames=filenames, goto=goto, word=word,
-                                 editorwindow=self.parent())
-            )
-
-            self.outlineexplorer.sig_collapse_requested.connect(
-                lambda: self.set_conf("show_outline_in_editor_window", False)
-            )
-
-            # Start symbol services for all supported languages
-            for language in outline_plugin.get_supported_languages():
-                self.outlineexplorer.start_symbol_services(language)
-
-            # Tell Outline's treewidget that is visible
-            self.outlineexplorer.change_tree_visibility(True)
+        self.set_outlineexplorer(outline_plugin)
 
         # ---- Editor widgets
         editor_widgets = QWidget(self)
@@ -353,6 +317,99 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
             self.outlineexplorer.change_tree_visibility(False)
         else:
             self.outlineexplorer.change_tree_visibility(True)
+
+    def set_outlineexplorer(self, outline_plugin):
+        if outline_plugin is not None:
+            # Create Outline widget
+            self.outlineexplorer = OutlineExplorerInEditorWindow(
+                'outline_explorer',
+                outline_plugin,
+                self,
+                context=f'editor_window_{str(id(self))}'
+            )
+
+            # Show widget's toolbar
+            self.outlineexplorer.setup()
+            self.outlineexplorer.update_actions()
+            self.outlineexplorer._setup()
+            self.outlineexplorer.render_toolbars()
+
+            # Remove bottom section actions from Options menu because they
+            # don't apply here.
+            options_menu = self.outlineexplorer.get_options_menu()
+            for action in ['undock_pane', 'lock_unlock_position']:
+                options_menu.remove_action(action)
+
+            # Signals
+            self.outlineexplorer.edit_goto.connect(
+                lambda filenames, goto, word: self.main_widget.load(
+                    filenames=filenames,
+                    goto=goto,
+                    word=word,
+                    editorwindow=self.parent(),
+                )
+            )
+
+            self.outlineexplorer.sig_collapse_requested.connect(
+                lambda: self.set_conf("show_outline_in_editor_window", False)
+            )
+
+            # Start symbol services for all supported languages
+            for language in outline_plugin.get_supported_languages():
+                self.outlineexplorer.start_symbol_services(language)
+
+            # Tell Outline's treewidget that it's visible
+            self.outlineexplorer.change_tree_visibility(True)
+
+            # This is necessary in case the Outline plugin is reenabled on the
+            # fly
+            if (
+                getattr(self, "splitter", None)
+                and self.splitter.indexOf(self.outlineexplorer) == -1
+            ):
+                for editorstack in self.editorstacks:
+                    # Set new Outline in window stacks
+                    editorstack.set_outlineexplorer(self.outlineexplorer)
+
+                    # Register proxy editors
+                    for finfo in editorstack.data:
+                        oe_proxy = finfo.editor.oe_proxy
+                        if oe_proxy is not None:
+                            self.outlineexplorer.register_editor(oe_proxy)
+
+                # Start symbol services for active LSPs that support them
+                for (
+                    language,
+                    capabilities,
+                ) in self.main_widget.completion_capabilities.items():
+                    if capabilities.get('documentSymbolProvider', False):
+                        self.outlineexplorer.start_symbol_services(language)
+
+                # Add Outline to splitter again, otherwise Qt splits the editor
+                # widgets and Outline 50/50 (the stretch factors are the same
+                # ones set in init)
+                self.splitter.insertWidget(0, self.outlineexplorer)
+                self.splitter.setStretchFactor(0, 1)
+                self.splitter.setStretchFactor(1, 4)
+
+                # Set proxy of current editor to update the Outline contents
+                # automatically (otherwise it's necessary to give focus to the
+                # Editor)
+                current_proxy = self.get_current_editor().oe_proxy
+                if current_proxy is not None:
+                    self.outlineexplorer.set_current_editor(
+                        current_proxy, update=True, clear=False
+                    )
+
+                # Update symbols for all open CodeEditors
+                self.outlineexplorer.update_all_editors()
+        else:
+            if self.outlineexplorer is not None:
+                # This removes the Outline from the splitter
+                self.outlineexplorer.deleteLater()
+
+                # Remove reference to the widget
+                self.outlineexplorer = None
 
     @on_conf_change(option='show_outline_in_editor_window')
     def toggle_outlineexplorer(self, value):
@@ -556,6 +613,9 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         splitsettings = settings.get('splitsettings')
         if splitsettings is not None:
             self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
+
+    def set_outlineexplorer(self, outline_plugin):
+        self.editorwidget.set_outlineexplorer(outline_plugin)
 
     # ---- Private API
     # -------------------------------------------------------------------------
