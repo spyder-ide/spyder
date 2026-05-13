@@ -149,13 +149,6 @@ class HistoryWidget(PluginMainWidget):
         for editor in self.editors:
             editor.toggle_line_numbers(value)
 
-    # Note: Theme changes now require restart for full UI application
-    # Syntax colors will be applied on next editor creation
-    # @on_conf_change(section='appearance', option='selected')
-    # def on_color_scheme_change(self, value):
-    #     for editor in self.editors:
-    #         editor.set_color_scheme(value)
-
     # --- Public API
     # ------------------------------------------------------------------------
     def update_font(self, font, color_scheme):
