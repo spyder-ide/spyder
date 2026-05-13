@@ -680,7 +680,7 @@ class ConfigurationManager(object):
             # See spyder-ide/spyder#21161
             if last_option in conf_ptr:
                 conf_ptr.pop(last_option)
-                self.set(section, base_option, base_conf)
+                self.set(section, base_option,  base_conf)
                 self.notify_observers(section, base_option)
         else:
             if secure:

@@ -76,7 +76,6 @@ black = pytest.param(
 
 ruff = pytest.param("ruff")
 
-
 def get_formatter_values(formatter, newline, range_fmt=False, max_line=False):
     if range_fmt:
         suffix = 'range'
@@ -241,16 +240,13 @@ def search_codeeditor(completions_codeeditor, qtbot_module, request):
 @pytest.fixture
 def codeeditor(qtbot):
     widget = CodeEditor(None)
-    widget.setup_editor(
-        linenumbers=True,
-        markers=True,
-        tab_mode=False,
-        font=QFont(
-            "Courier New",
-            10),
-        show_blanks=True,
-        color_scheme='spyder_themes.spyder/dark',
-        scroll_past_end=True)
+    widget.setup_editor(linenumbers=True,
+                        markers=True,
+                        tab_mode=False,
+                        font=QFont("Courier New", 10),
+                        show_blanks=True,
+                        color_scheme='spyder_themes.spyder/dark',
+                        scroll_past_end=True)
     widget.setup_editor(language='Python')
     widget.resize(640, 480)
     widget.show()

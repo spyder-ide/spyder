@@ -639,8 +639,7 @@ class Application(SpyderPluginV2):
         currently process the search action has enabled it or not.
         """
         plugin = self.focused_plugin
-        if not plugin or not getattr(
-                plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
+        if not plugin or not getattr(plugin, 'CAN_HANDLE_SEARCH_ACTIONS', False):
             plugin = self.get_plugin(Plugins.Editor, error=False)
         if plugin:
             for action_name in [

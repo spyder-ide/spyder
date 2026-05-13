@@ -1346,8 +1346,7 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     def set_stack_title(self, index, is_modified):
         finfo = self.data[index]
         fname = finfo.filename
-        is_modified = (
-            is_modified or finfo.newly_created) and not finfo.default
+        is_modified = (is_modified or finfo.newly_created) and not finfo.default
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(index, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)

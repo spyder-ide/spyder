@@ -32,15 +32,15 @@ import socket
 import sys
 import threading
 
-# ==============================================================================
+#==============================================================================
 # Check requirements before proceeding
-# ==============================================================================
+#==============================================================================
 from spyder import requirements
 requirements.check_qt()
 
-# ==============================================================================
+#==============================================================================
 # Third-party imports
-# ==============================================================================
+#==============================================================================
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QKeySequence
@@ -59,12 +59,12 @@ except ImportError:
 from qtawesome import get_fonts_info
 from qtawesome.iconic_font import FontError
 
-# ==============================================================================
+#==============================================================================
 # Local imports
 # NOTE: Move (if possible) import's of widgets and plugins exactly where they
 # are needed in MainWindow to speed up perceived startup time (i.e. the time
 # from clicking the Spyder icon to showing the splash screen).
-# ==============================================================================
+#==============================================================================
 from spyder import __version__
 from spyder.app.utils import (
     create_application, create_splash_screen, create_window, ORIGINAL_SYS_EXIT,
@@ -96,9 +96,9 @@ from spyder.utils.stylesheet import APP_STYLESHEET
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 
-# ==============================================================================
+#==============================================================================
 # Windows only local imports
-# ==============================================================================
+#==============================================================================
 set_attached_console_visible = None
 is_attached_console_visible = None
 set_windows_appusermodelid = None
@@ -106,21 +106,21 @@ if os.name == 'nt':
     from spyder.utils.windows import (set_attached_console_visible,
                                       set_windows_appusermodelid)
 
-# ==============================================================================
+#==============================================================================
 # Constants
-# ==============================================================================
+#==============================================================================
 # Module logger
 logger = logging.getLogger(__name__)
 
-# ==============================================================================
+#==============================================================================
 # Install Qt message handler
-# ==============================================================================
+#==============================================================================
 qInstallMessageHandler(qt_message_handler)
 
 
-# ==============================================================================
+#==============================================================================
 # Main Window
-# ==============================================================================
+#==============================================================================
 class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
     """Spyder main window"""
     CONF_SECTION = 'main'
@@ -1211,9 +1211,9 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
             return QCoreApplication.testAttribute(Qt.AA_UseOpenGLES)
 
 
-# ==============================================================================
+#==============================================================================
 # Main
-# ==============================================================================
+#==============================================================================
 def main(options, args):
     """Main function"""
     # **** For Pytest ****

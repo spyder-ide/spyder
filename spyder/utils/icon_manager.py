@@ -23,10 +23,8 @@ from spyder.utils.palette import SpyderPalette
 from spyder.utils.svg_colorizer import SVGColorize
 import qtawesome as qta
 
-
 class IconManager():
     """Class that manages all the icons."""
-
     def __init__(self):
         self.MAIN_FG_COLOR = SpyderPalette.ICON_1
         self.BIN_FILES = {x: 'ArchiveFileIcon' for x in [
@@ -157,7 +155,7 @@ class IconManager():
             'print':                   [('mdi.printer',), {'color': self.MAIN_FG_COLOR}],
             'fileclose':               [('mdi.close',), {'color': self.MAIN_FG_COLOR}],
             'breakpoint_transparent':  [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.COLOR_ERROR_1, 'opacity': 0.75, 'scale_factor': 0.9}],
-            'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9}],
+            'breakpoint_big':          [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9} ],
             'breakpoint_cond_big':     [('mdi.help-circle',), {'color': SpyderPalette.ICON_4, 'scale_factor': 0.9},],
             'breakpoints':             [('mdi.dots-vertical',), {'color': self.MAIN_FG_COLOR}],
             'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': SpyderPalette.ICON_2, 'scale_factor': 1.5}],
@@ -363,7 +361,7 @@ class IconManager():
             'constructor':             [('mdi.alpha-c-box',), {'color': SpyderPalette.ICON_5, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'function':                [('mdi.alpha-f-box',), {'color': SpyderPalette.COLOR_WARN_3, 'scale_factor': self.BIG_ATTR_FACTOR}],
             'blockcomment':            [('mdi.pound',), {'color': SpyderPalette.ICON_2, 'scale_factor': self.SMALL_ATTR_FACTOR}],
-            'cell':                    [('mdi.percent',), {'color': SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
+            'cell':                    [('mdi.percent',), {'color':SpyderPalette.GROUP_9, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'no_match':                [('mdi.checkbox-blank-circle',), {'color': SpyderPalette.GROUP_3, 'scale_factor': self.SMALL_ATTR_FACTOR}],
             'github':                  [('mdi.github',), {'color': self.MAIN_FG_COLOR}],
             # --- Spyder Tour --------------------------------------------------------
@@ -552,18 +550,18 @@ class IconManager():
         """
         disabled_pixmap = QPixmap(source_pixmap.size())
         disabled_pixmap.fill(QColor(0, 0, 0, 0))  # Transparent
-
+        
         # Draw the source pixmap first
         disabled_painter = QPainter(disabled_pixmap)
         disabled_painter.drawPixmap(0, 0, source_pixmap)
-
+        
         # Apply disabled color overlay
         disabled_painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
         disabled_painter.fillRect(
             disabled_pixmap.rect(), QColor(SpyderPalette.COLOR_DISABLED)
         )
         disabled_painter.end()
-
+        
         return disabled_pixmap
 
     def _process_regular_icon(self, icon_path, resample):
@@ -613,7 +611,7 @@ class IconManager():
                 # Try to load the icons from QtAwesome
                 if not self._resource['loaded']:
                     qta.load_font('spyder', 'spyder.ttf', 'spyder-charmap.json',
-                                  directory=self._resource['directory'])
+                                directory=self._resource['directory'])
                     self._resource['loaded'] = True
                 args, kwargs = self._qtaargs[name]
                 if scale_factor is not None:

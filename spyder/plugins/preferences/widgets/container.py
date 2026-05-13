@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QAction
 from qtpy import PYSIDE2, PYSIDE6
 
@@ -18,7 +18,6 @@ from spyder.api.widgets.main_container import PluginMainContainer
 from spyder.plugins.preferences import MOST_IMPORTANT_PAGES
 from spyder.plugins.preferences.api import PreferencesActions
 from spyder.plugins.preferences.widgets.configdialog import ConfigDialog
-from spyder.config.base import running_under_pytest
 
 
 class PreferencesContainer(PluginMainContainer):
@@ -78,8 +77,6 @@ class PreferencesContainer(PluginMainContainer):
                     dlg.add_separator()
 
             dlg.set_current_index(self.dialog_index)
-            if running_under_pytest():
-                dlg.setAttribute(Qt.WA_DontShowOnScreen, True)
             dlg.show()
             dlg.check_all_settings()
 
@@ -91,8 +88,6 @@ class PreferencesContainer(PluginMainContainer):
                 self.sig_reset_preferences_requested)
         else:
             self.dialog.resize(*self._dialog_size)
-            if running_under_pytest():
-                self.dialog.setAttribute(Qt.WA_DontShowOnScreen, True)
             self.dialog.show()
             self.dialog.activateWindow()
             self.dialog.raise_()

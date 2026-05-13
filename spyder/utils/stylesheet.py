@@ -360,8 +360,6 @@ APP_STYLESHEET = AppStylesheet()
 # =============================================================================
 # ---- Toolbar stylesheets
 # =============================================================================
-
-
 class ApplicationToolbarStylesheet(SpyderStyleSheet):
     """Stylesheet for application toolbars."""
 

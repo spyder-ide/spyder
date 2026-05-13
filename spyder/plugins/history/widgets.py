@@ -32,7 +32,6 @@ from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
 # Maximum number of lines to show
 MAX_LINES = 1000
 
-
 class HistoryWidgetActions:
     # Triggers
     MaximumHistoryEntries = 'maximum_history_entries_action'

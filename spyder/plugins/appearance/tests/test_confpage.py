@@ -13,70 +13,83 @@ import pytest
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.plugin import Appearance
 from spyder.widgets.config import SpyderConfigPage
-from spyder.plugins.preferences.tests.config_dialog_helpers import (
-    MainWindowMock,
-    config_dialog,  # noqa: F401 — registers fixture for this test module
-)
+from spyder.plugins.preferences.tests.conftest import (
+    config_dialog, MainWindowMock)
 
 
 @pytest.mark.parametrize(
     'config_dialog',
     [[MainWindowMock, [], [Appearance]]],
     indirect=True)
-def test_apply_theme_variant_triggers_restart_prompt(config_dialog, mocker, qtbot):
-    """Built-in theme variant change + Apply: one restart prompt, mute ``selected``."""
+def test_change_ui_theme_and_color_scheme(config_dialog, mocker, qtbot):
+    """Test that changing color scheme or UI theme works as expected."""
+    # Patch methods whose calls we want to check
     mocker.patch.object(
-        SpyderConfigPage, "prompt_restart_required", return_value=False
+        SpyderConfigPage, "prompt_restart_required", return_value=True
     )
     mocker.patch.object(SpyderConfigPage, "restart")
     mocker.patch.object(CONF, "disable_notifications")
 
+    # Get reference to Preferences dialog and widget page to interact with
     dlg = config_dialog
     widget = config_dialog.get_page()
 
+    # List of color schemes
+    names = widget.get_option('names')
+
+    # Assert no restarts have been requested so far.
     assert SpyderConfigPage.prompt_restart_required.call_count == 0
 
+    # Assert default UI theme is 'automatic' and interface is dark. The other
+    # tests below depend on this.
+    assert widget.get_option('ui_theme') == 'automatic'
     assert widget.is_dark_interface()
 
-    cb = widget.schemes_combobox
-    current = widget.current_scheme
-    other_index = None
-    for i in range(cb.count()):
-        data = cb.itemData(i)
-        if data is not None and data != current:
-            other_index = i
-            break
-    assert other_index is not None
-    cb.setCurrentIndex(other_index)
-    dlg.apply_btn.click()
-    assert SpyderConfigPage.prompt_restart_required.call_count == 1
-    assert SpyderConfigPage.restart.call_count == 0
-    assert CONF.disable_notifications.call_count == 1
-
-
-@pytest.mark.parametrize(
-    'config_dialog',
-    [[MainWindowMock, [], [Appearance]]],
-    indirect=True)
-def test_apply_monospace_font_only_no_restart_prompt(config_dialog, mocker, qtbot):
-    """Monospace font is not a restart option; theme unchanged → no prompt, no mute."""
-    mocker.patch.object(
-        SpyderConfigPage, "prompt_restart_required", return_value=False
-    )
-    mocker.patch.object(SpyderConfigPage, "restart")
-    mocker.patch.object(CONF, "disable_notifications")
-
-    dlg = config_dialog
-    widget = dlg.get_page()
-    sizebox = widget.plain_text_font.sizebox
-
-    v = sizebox.value()
-    if v < sizebox.maximum():
-        sizebox.setValue(v + 1)
-    else:
-        sizebox.setValue(v - 1)
-
+    # Change to another dark color scheme
+    widget.schemes_combobox.setCurrentIndex(names.index('monokai'))
     dlg.apply_btn.click()
     assert SpyderConfigPage.prompt_restart_required.call_count == 0
     assert SpyderConfigPage.restart.call_count == 0
     assert CONF.disable_notifications.call_count == 0
+
+    # Change to a light color scheme
+    widget.schemes_combobox.setCurrentIndex(names.index('pydev'))
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 1
+    assert SpyderConfigPage.restart.call_count == 1
+    assert CONF.disable_notifications.call_count == 2
+
+    # Change to the 'dark' ui theme
+    widget.ui_combobox.setCurrentIndex(2)
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 1
+    assert SpyderConfigPage.restart.call_count == 1
+    assert CONF.disable_notifications.call_count == 2
+
+    # Change to the 'automatic' ui theme
+    widget.ui_combobox.setCurrentIndex(0)
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 2
+    assert SpyderConfigPage.restart.call_count == 2
+    assert CONF.disable_notifications.call_count == 4
+
+    # Change to the 'light' ui theme
+    widget.ui_combobox.setCurrentIndex(1)
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 3
+    assert SpyderConfigPage.restart.call_count == 3
+    assert CONF.disable_notifications.call_count == 6
+
+    # Change to another dark color scheme
+    widget.schemes_combobox.setCurrentIndex(names.index('solarized/dark'))
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 4
+    assert SpyderConfigPage.restart.call_count == 4
+    assert CONF.disable_notifications.call_count == 8
+
+    # Change to the 'automatic' ui theme again
+    widget.ui_combobox.setCurrentIndex(0)
+    dlg.apply_btn.clicked.emit()
+    assert SpyderConfigPage.prompt_restart_required.call_count == 4
+    assert SpyderConfigPage.restart.call_count == 4
+    assert CONF.disable_notifications.call_count == 8

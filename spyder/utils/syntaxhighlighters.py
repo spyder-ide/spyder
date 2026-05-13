@@ -122,9 +122,9 @@ for key, value in CUSTOM_EXTENSION_LEXER.items():
             custom_extension_lexer_mapping[k] = value
 
 
-# ==============================================================================
+#==============================================================================
 # Auxiliary functions
-# ==============================================================================
+#==============================================================================
 def get_span(match, key=None):
     if key is not None:
         start, end = match.span(key)
@@ -244,9 +244,9 @@ DEFAULT_COMPILED_PATTERNS = re.compile(create_patterns(DEFAULT_PATTERNS,
                                                        compile=True))
 
 
-# ==============================================================================
+#==============================================================================
 # Syntax highlighting color schemes
-# ==============================================================================
+#==============================================================================
 class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
@@ -505,9 +505,9 @@ class GenericSH(BaseSH):
         self.highlight_extras(text)
 
 
-# ==============================================================================
+#==============================================================================
 # Python syntax highlighter
-# ==============================================================================
+#==============================================================================
 def make_python_patterns(additional_keywords=None, additional_builtins=None):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     additional_keywords = (
@@ -528,19 +528,19 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     instance = any("instance", [r"\bself\b",
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
-                                 r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
+                                     r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
     match_kw = r"\s*(?P<match_kw>match)(?=\s+.+:)"
     case_kw = r"\s+(?P<case_kw>case)(?=\s+.+:)"
 
     prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
-    sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
-    dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
-    uf_sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
-    uf_dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
+    sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
+    dqstring =     r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*"?' % prefix
+    uf_sqstring =  r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$" % prefix
+    uf_dqstring =  r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$' % prefix
     ufe_sqstring = r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*(?!\\)$(?!')$" % prefix
     ufe_dqstring = r'(\b(%s))?"[^"\\\n]*(\\.[^"\\\n]*)*(?!\\)$(?!")$' % prefix
-    sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
-    dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
+    sq3string =    r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?" % prefix
+    dq3string =    r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?' % prefix
     uf_sq3string = r"(\b(%s))?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$" \
                    % prefix
     uf_dq3string = r'(\b(%s))?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$' \
@@ -875,11 +875,10 @@ class IPythonSH(PythonSH):
     PROG = re.compile(make_ipython_patterns(additional_keywords=add_kw), re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # Cython syntax highlighter
-# ==============================================================================
+#==============================================================================
 C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void NULL'
-
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
@@ -895,9 +894,9 @@ class CythonSH(PythonSH):
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # Enaml syntax highlighter
-# ==============================================================================
+#==============================================================================
 class EnamlSH(PythonSH):
     """Enaml Syntax Highlighter"""
     ADDITIONAL_KEYWORDS = ["enamldef", "template", "attr", "event", "const", "alias",
@@ -908,13 +907,12 @@ class EnamlSH(PythonSH):
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # C/C++ syntax highlighter
-# ==============================================================================
+#==============================================================================
 C_KEYWORDS1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
 C_KEYWORDS2 = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
 C_KEYWORDS3 = 'asm auto class compl false true volatile wchar_t'
-
 
 def make_generic_c_patterns(keywords, builtins,
                             instance=None, define=None, comment=None):
@@ -940,10 +938,8 @@ def make_generic_c_patterns(keywords, builtins,
                      comment_start, comment_end, builtin,
                      define, any("SYNC", [r"\n"])])
 
-
 def make_cpp_patterns():
     return make_generic_c_patterns(C_KEYWORDS1+' '+C_KEYWORDS2, C_KEYWORDS3)
-
 
 class CppSH(BaseSH):
     """C/C++ Syntax Highlighter"""
@@ -959,8 +955,7 @@ class CppSH(BaseSH):
     def highlight_block(self, text):
         """Implement highlight specific for C/C++."""
         text = str(text)
-        inside_comment = tbh.get_state(
-            self.currentBlock().previous()) == self.INSIDE_COMMENT
+        inside_comment = tbh.get_state(self.currentBlock().previous()) == self.INSIDE_COMMENT
         self.setFormat(0, qstring_length(text),
                        self.formats["comment" if inside_comment else "normal"])
 
@@ -1006,15 +1001,14 @@ def make_opencl_patterns():
     builtin_list = C_KEYWORDS3+' '+builtins+' '+qualifiers
     return make_generic_c_patterns(keyword_list, builtin_list)
 
-
 class OpenCLSH(CppSH):
     """OpenCL Syntax Highlighter"""
     PROG = re.compile(make_opencl_patterns(), re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # Fortran Syntax Highlighter
-# ==============================================================================
+#==============================================================================
 def make_fortran_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata enddo endfile endforall endfunction endif endinterface endmodule endprogram endselect endsubroutine endtype endwhere entry eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream subroutine target then to type unformatted unit use value volatile wait where while write'
@@ -1033,15 +1027,13 @@ def make_fortran_patterns():
     return "|".join([kw, comment, string, number, builtin,
                      any("SYNC", [r"\n"])])
 
-
 class FortranSH(BaseSH):
     """Fortran Syntax Highlighter"""
     # Syntax highlighting rules:
-    PROG = re.compile(make_fortran_patterns(), re.S | re.I)
+    PROG = re.compile(make_fortran_patterns(), re.S|re.I)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
-
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
 
@@ -1066,10 +1058,8 @@ class FortranSH(BaseSH):
 
         self.highlight_extras(text)
 
-
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
-
     def highlight_block(self, text):
         """Implement highlight specific for Fortran77."""
         text = str(text)
@@ -1083,12 +1073,12 @@ class Fortran77SH(FortranSH):
                            self.formats["comment"])
 
 
-# ==============================================================================
+#==============================================================================
 # IDL highlighter
 #
 # Contribution from Stuart Mumford (Littlemumford) - 2012-02-02
 # See spyder-ide/spyder#850.
-# ==============================================================================
+#==============================================================================
 def make_idl_patterns():
     """Strongly inspired by idlelib.ColorDelegator.make_pat."""
     kwstr = 'begin of pro function endfor endif endwhile endrep endcase endswitch end if then else for do while repeat until break case switch common continue exit return goto help message print read retall stop'
@@ -1108,18 +1098,16 @@ def make_idl_patterns():
     return "|".join([kw, comment, string, number, builtin,
                      any("SYNC", [r"\n"])])
 
-
 class IdlSH(GenericSH):
     """IDL Syntax Highlighter"""
-    PROG = re.compile(make_idl_patterns(), re.S | re.I)
+    PROG = re.compile(make_idl_patterns(), re.S|re.I)
 
 
-# ==============================================================================
+#==============================================================================
 # Diff/Patch highlighter
-# ==============================================================================
+#==============================================================================
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
-
     def highlight_block(self, text):
         """Implement highlight specific Diff/Patch files."""
         text = str(text)
@@ -1136,11 +1124,9 @@ class DiffSH(BaseSH):
 
         self.highlight_extras(text)
 
-# ==============================================================================
+#==============================================================================
 # NSIS highlighter
-# ==============================================================================
-
-
+#==============================================================================
 def make_nsis_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr1 = 'Abort AddBrandingImage AddSize AllowRootDirInstall AllowSkipFiles AutoCloseWindow BGFont BGGradient BrandingText BringToFront Call CallInstDLL Caption ClearErrors CompletedText ComponentText CopyFiles CRCCheck CreateDirectory CreateFont CreateShortCut Delete DeleteINISec DeleteINIStr DeleteRegKey DeleteRegValue DetailPrint DetailsButtonText DirText DirVar DirVerify EnableWindow EnumRegKey EnumRegValue Exec ExecShell ExecWait Exch ExpandEnvStrings File FileBufSize FileClose FileErrorText FileOpen FileRead FileReadByte FileSeek FileWrite FileWriteByte FindClose FindFirst FindNext FindWindow FlushINI Function FunctionEnd GetCurInstType GetCurrentAddress GetDlgItem GetDLLVersion GetDLLVersionLocal GetErrorLevel GetFileTime GetFileTimeLocal GetFullPathName GetFunctionAddress GetInstDirError GetLabelAddress GetTempFileName Goto HideWindow ChangeUI CheckBitmap Icon IfAbort IfErrors IfFileExists IfRebootFlag IfSilent InitPluginsDir InstallButtonText InstallColors InstallDir InstallDirRegKey InstProgressFlags InstType InstTypeGetText InstTypeSetText IntCmp IntCmpU IntFmt IntOp IsWindow LangString LicenseBkColor LicenseData LicenseForceSelection LicenseLangString LicenseText LoadLanguageFile LogSet LogText MessageBox MiscButtonText Name OutFile Page PageCallbacks PageEx PageExEnd Pop Push Quit ReadEnvStr ReadINIStr ReadRegDWORD ReadRegStr Reboot RegDLL Rename ReserveFile Return RMDir SearchPath Section SectionEnd SectionGetFlags SectionGetInstTypes SectionGetSize SectionGetText SectionIn SectionSetFlags SectionSetInstTypes SectionSetSize SectionSetText SendMessage SetAutoClose SetBrandingImage SetCompress SetCompressor SetCompressorDictSize SetCtlColors SetCurInstType SetDatablockOptimize SetDateSave SetDetailsPrint SetDetailsView SetErrorLevel SetErrors SetFileAttributes SetFont SetOutPath SetOverwrite SetPluginUnload SetRebootFlag SetShellVarContext SetSilent ShowInstDetails ShowUninstDetails ShowWindow SilentInstall SilentUnInstall Sleep SpaceTexts StrCmp StrCpy StrLen SubCaption SubSection SubSectionEnd UninstallButtonText UninstallCaption UninstallIcon UninstallSubCaption UninstallText UninstPage UnRegDLL Var VIAddVersionKey VIProductVersion WindowIcon WriteINIStr WriteRegBin WriteRegDWORD WriteRegExpandStr WriteRegStr WriteUninstaller XPStyle'
@@ -1154,16 +1140,15 @@ def make_nsis_patterns():
                                    instance=instance, define=define,
                                    comment=comment)
 
-
 class NsisSH(CppSH):
     """NSIS Syntax Highlighter"""
     # Syntax highlighting rules:
     PROG = re.compile(make_nsis_patterns(), re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # gettext highlighter
-# ==============================================================================
+#==============================================================================
 def make_gettext_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kwstr = 'msgid msgstr'
@@ -1181,17 +1166,14 @@ def make_gettext_patterns():
     return "|".join([kw, string, number, fuzzy, links, comment,
                      any("SYNC", [r"\n"])])
 
-
 class GetTextSH(GenericSH):
     """gettext Syntax Highlighter"""
     # Syntax highlighting rules:
     PROG = re.compile(make_gettext_patterns(), re.S)
 
-# ==============================================================================
+#==============================================================================
 # yaml highlighter
-# ==============================================================================
-
-
+#==============================================================================
 def make_yaml_patterns():
     "Strongly inspired from sublime highlighter "
     kw = any("keyword", [r":|>|-|\||\[|\]|[A-Za-z][\w\s\-\_ ]+(?=:)"])
@@ -1207,19 +1189,18 @@ def make_yaml_patterns():
     return "|".join([kw, string, number, links, comment,
                      any("SYNC", [r"\n"])])
 
-
 class YamlSH(GenericSH):
     """yaml Syntax Highlighter"""
     # Syntax highlighting rules:
     PROG = re.compile(make_yaml_patterns(), re.S)
 
 
-# ==============================================================================
+#==============================================================================
 # HTML highlighter
-# ==============================================================================
+#==============================================================================
 class BaseWebSH(BaseSH):
     """Base class for CSS and HTML syntax highlighters"""
-    NORMAL = 0
+    NORMAL  = 0
     COMMENT = 1
 
     def __init__(self, parent, font=None, color_scheme=None):
@@ -1275,7 +1256,6 @@ class BaseWebSH(BaseSH):
 
         self.highlight_extras(text)
 
-
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
     tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
@@ -1286,7 +1266,6 @@ def make_html_patterns():
     multiline_comment_end = any("multiline_comment_end", [r"-->"])
     return "|".join([comment, multiline_comment_start,
                      multiline_comment_end, tags, keywords, string])
-
 
 class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
@@ -1420,9 +1399,9 @@ class MarkdownSH(BaseSH):
         self.formats['title'] = font
 
 
-# ==============================================================================
+#==============================================================================
 # Pygments based omni-parser
-# ==============================================================================
+#==============================================================================
 # IMPORTANT NOTE:
 # --------------
 # Do not be tempted to generalize the use of PygmentsSH (that is tempting
@@ -1440,7 +1419,6 @@ class PygmentsSH(BaseSH):
 
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
-
     def __init__(self, parent, font=None, color_scheme=None):
         # Map Pygments tokens to Spyder tokens
         self._tokmap = {Text: "normal",
@@ -1519,7 +1497,7 @@ class PygmentsSH(BaseSH):
                 return tokmap[typ]
             # Partial (parent-> child) matches
             for key, val in tokmap.items():
-                if typ in key:  # Checks if typ is a subtype of key.
+                if typ in key: # Checks if typ is a subtype of key.
                     return val
 
             return 'normal'

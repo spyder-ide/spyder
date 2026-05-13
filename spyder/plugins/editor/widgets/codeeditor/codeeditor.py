@@ -381,7 +381,7 @@ class CodeEditor(
 
         self.highlighter_class = sh.TextSH
         self.highlighter = None
-        # Always use the selected theme from config, not a hardcoded fallback
+        # Use the currently selected theme from config
         from spyder.config.manager import CONF
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
