@@ -21,6 +21,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAction
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -113,6 +114,7 @@ class Run(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+        main_menu.create_application_menu(ApplicationMenus.Run, _("&Run"))
 
         for action in [
             RunActions.Run,
@@ -131,7 +133,8 @@ class Run(SpyderPluginV2):
 
         while self.pending_menu_actions != []:
             action, menu_id, menu_section, before_section = (
-                self.pending_menu_actions.pop(0))
+                self.pending_menu_actions.pop(0)
+            )
             main_menu.add_item_to_application_menu(
                 action,
                 menu_id,
@@ -207,6 +210,8 @@ class Run(SpyderPluginV2):
                 main_menu.remove_item_from_application_menu(
                     action_id, ApplicationMenus.Run
                 )
+
+        main_menu.remove_application_menu(ApplicationMenus.Run)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -630,9 +635,14 @@ class Run(SpyderPluginV2):
                 if key in self.menu_actions:
                     self.menu_actions.remove(key)
                     if main_menu:
-                        main_menu.remove_item_from_application_menu(
-                            action_id, menu_id=ApplicationMenus.Run
-                        )
+                        # The try/except is necessary to prevent errors when
+                        # the menu is no longer available.
+                        try:
+                            main_menu.remove_item_from_application_menu(
+                                action_id, menu_id=ApplicationMenus.Run
+                            )
+                        except SpyderAPIError:
+                            pass
 
                 if key in self.toolbar_actions:
                     self.toolbar_actions.remove(key)
