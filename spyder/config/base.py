@@ -147,40 +147,6 @@ def _is_conf_ready():
         return False
 
 
-def is_dark_interface():
-    """
-    Check if current interface is dark mode.
-    
-    Determines the interface mode by inspecting the selected theme variant.
-    Theme variants follow the format 'theme_name/mode' (e.g., 'solarized/dark').
-    Returns True if config is not ready to avoid segfaults during initialization.
-    """
-    # Don't access config if it's not ready to avoid segfaults
-    if not _is_conf_ready():
-        return True
-    
-    try:
-        from spyder.config.manager import CONF
-
-        # Use default value if config doesn't exist or isn't initialized yet
-        selected = CONF.get("appearance", "selected", "spyder_themes.spyder/dark")
-        # Import here so spyder.config.base can load before spyder.utils.theme_manager.
-        from spyder.utils.theme_manager import ThemeManager
-
-        selected = ThemeManager.canonical_theme_variant_id(selected)
-
-        if "/" in selected:
-            _, ui_mode = selected.rsplit("/", 1)
-            return ui_mode == "dark"
-        
-        # Default to dark if no mode specified (shouldn't happen with new themes)
-        return True
-    except (AttributeError, ImportError, RuntimeError, OSError):
-        # If CONF is not initialized, config file doesn't exist, or there's
-        # an error accessing it, default to dark mode
-        return True
-
-
 #==============================================================================
 # Debug helpers
 #==============================================================================

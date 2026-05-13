@@ -16,11 +16,17 @@ from pathlib import Path
 
 import yaml  # pyright: ignore[reportMissingModuleSource]
 
-from spyder.config.base import is_dark_interface, running_under_pytest
+from spyder.config.base import running_under_pytest
 from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 
 logger = logging.getLogger(__name__)
+
+
+def _is_dark_interface():
+    """Late import to avoid gui <-> theme_manager circular import at load time."""
+    from spyder.config.gui import is_dark_interface
+    return is_dark_interface()
 
 
 class ThemeManager:
@@ -373,7 +379,7 @@ class ThemeManager:
         if current_theme and current_theme != theme_name:
             try:
                 # Determine ui_mode from current interface state
-                restore_ui_mode = "dark" if is_dark_interface() else "light"
+                restore_ui_mode = "dark" if _is_dark_interface() else "light"
                 self._load_theme_internal(current_theme, restore_ui_mode)
             except Exception:
                 # If restoration fails, just continue
@@ -414,7 +420,7 @@ class ThemeManager:
         if current_theme and current_theme != self._current_theme:
             try:
                 # Determine ui_mode from current interface state
-                restore_ui_mode = "dark" if is_dark_interface() else "light"
+                restore_ui_mode = "dark" if _is_dark_interface() else "light"
                 self.load_theme(current_theme, restore_ui_mode)
             except Exception:
                 # If restoration fails, just continue with the current theme
@@ -423,7 +429,7 @@ class ThemeManager:
     def _load_theme_internal(self, theme_name, ui_mode=None):
         """Load theme using standard package import."""
         if ui_mode is None:
-            ui_mode = "dark" if is_dark_interface() else "light"
+            ui_mode = "dark" if _is_dark_interface() else "light"
 
         ThemeManager._load_theme_metadata(theme_name)
 

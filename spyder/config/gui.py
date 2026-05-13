@@ -20,7 +20,7 @@ from qtpy import QT_VERSION
 from qtpy.QtGui import QFont, QFontDatabase
 
 # Local imports
-from spyder.config.base import is_dark_interface  # noqa: F401
+from spyder.config.base import _is_conf_ready
 from spyder.config.manager import CONF
 from spyder.utils import syntaxhighlighters as sh
 
@@ -111,6 +111,38 @@ def set_color_scheme(name, color_scheme, replace=True):
         option = ("%s/%s" % (name, key)).lower()
         if replace or not CONF.has_option(section, option):
             CONF.set(section, option, color_scheme[key])
+
+
+def is_dark_interface():
+    """
+    Check if current interface is dark mode.
+
+    Determines the interface mode by inspecting the selected theme variant.
+    Theme variants follow the format 'theme_name/mode' (e.g., 'solarized/dark').
+    Returns True if config is not ready to avoid segfaults during initialization.
+    """
+    # Don't access config if it's not ready to avoid segfaults
+    if not _is_conf_ready():
+        return True
+
+    try:
+        # Use default value if config doesn't exist or isn't initialized yet
+        selected = CONF.get("appearance", "selected", "spyder_themes.spyder/dark")
+        # Import here so spyder.config.gui can load before spyder.utils.theme_manager.
+        from spyder.utils.theme_manager import ThemeManager
+
+        selected = ThemeManager.canonical_theme_variant_id(selected)
+
+        if "/" in selected:
+            _, ui_mode = selected.rsplit("/", 1)
+            return ui_mode == "dark"
+
+        # Default to dark if no mode specified (shouldn't happen with new themes)
+        return True
+    except (AttributeError, ImportError, RuntimeError, OSError):
+        # If CONF is not initialized, config file doesn't exist, or there's
+        # an error accessing it, default to dark mode
+        return True
 
 
 def is_dark_font_color(color_scheme):
