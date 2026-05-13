@@ -637,9 +637,15 @@ class Run(SpyderPluginV2):
                 if key in self.toolbar_actions:
                     self.toolbar_actions.remove(key)
                     if toolbar:
-                        toolbar.remove_item_from_application_toolbar(
-                            action_id, toolbar_id=ApplicationToolbars.Run
-                        )
+                        # The try/except is necessary to prevent errors when
+                        # trying to remove actions registered by other plugins,
+                        # which can be in other toolbars.
+                        try:
+                            toolbar.remove_item_from_application_toolbar(
+                                action_id, toolbar_id=ApplicationToolbars.Run
+                            )
+                        except SpyderAPIError:
+                            pass
 
                 if key in self.shortcut_actions:
                     shortcut_context = self.shortcut_actions.pop(key)
