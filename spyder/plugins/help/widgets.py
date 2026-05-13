@@ -556,12 +556,6 @@ class HelpWidget(PluginMainWidget):
         else:
             self.force_refresh()
 
-    # Note: Theme changes now require restart for full UI application
-    # Syntax colors will be applied on next widget creation
-    # @on_conf_change(section='appearance', option='selected')
-    # def change_color_scheme(self, value):
-    #     self.set_plain_text_color_scheme(value)
-
     def update_actions(self):
         pass
 

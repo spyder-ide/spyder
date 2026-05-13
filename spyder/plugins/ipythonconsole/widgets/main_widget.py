@@ -868,16 +868,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 value
             )
 
-    # Note: Theme changes now require restart for full UI application
-    # Syntax colors will be applied on next client creation
-    # @on_conf_change(section='appearance', option='selected')
-    # def change_clients_color_scheme(self, value):
-    #     for idx, client in enumerate(self.clients):
-    #         self._change_client_conf(
-    #             client,
-    #             client.set_color_scheme,
-    #             value)
-
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
         for idx, client in enumerate(self.clients):
