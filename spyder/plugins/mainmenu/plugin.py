@@ -76,7 +76,6 @@ class MainMenu(SpyderPluginV2, SpyderMenuMixin):
         create_app_menu(ApplicationMenus.Edit, _("&Edit"))
         create_app_menu(ApplicationMenus.Search, _("&Search"))
         create_app_menu(ApplicationMenus.Source, _("Sour&ce"))
-        create_app_menu(ApplicationMenus.Run, _("&Run"))
         create_app_menu(ApplicationMenus.Tools, _("&Tools"))
         create_app_menu(ApplicationMenus.Window, _("&Window"))
         create_app_menu(ApplicationMenus.Help, _("&Help"))
