@@ -206,10 +206,10 @@ class SchemeEditor(QDialog):
                         option,
                         default=value,
                         without_layout=True,
-                    )
+                        )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row + 1, 0)
-                    group_layout.addLayout(clayout, row + 1, 1)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
 
                     self.widgets[scheme_name][key] = [clayout]
                 else:
@@ -220,10 +220,10 @@ class SchemeEditor(QDialog):
                         without_layout=True,
                     )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    group_layout.addWidget(label, row + 1, 0)
-                    group_layout.addLayout(clayout, row + 1, 1)
-                    group_layout.addWidget(cb_bold, row + 1, 2)
-                    group_layout.addWidget(cb_italic, row + 1, 3)
+                    group_layout.addWidget(label, row+1, 0)
+                    group_layout.addLayout(clayout, row+1, 1)
+                    group_layout.addWidget(cb_bold, row+1, 2)
+                    group_layout.addWidget(cb_italic, row+1, 3)
 
                     self.widgets[scheme_name][key] = [clayout, cb_bold,
                                                       cb_italic]

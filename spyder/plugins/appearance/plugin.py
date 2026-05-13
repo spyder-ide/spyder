@@ -28,7 +28,7 @@ class Appearance(SpyderPluginV2):
     """
 
     NAME = "appearance"
-    # Appearance should load first among config plugins
+    # TODO: Fix requires to reflect the desired order in the preferences
     REQUIRES = [Plugins.Preferences]
     CONTAINER_CLASS = None
     CONF_SECTION = NAME
