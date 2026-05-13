@@ -7431,7 +7431,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
     qtbot.waitUntil(editorwindow.isVisible)
 
     # Check toolbars in editor window are visible
-    for toolbar in editorwindow.toolbars:
+    for toolbar in editorwindow._toolbars.values():
         assert toolbar.isVisible()
         assert toolbar.toggleViewAction().isChecked()
 
@@ -7477,7 +7477,7 @@ def test_editor_window_outline_and_toolbars(main_window, qtbot):
     # windows
     editorwindow2 = main_window.editor.get_widget().create_new_window()
 
-    for toolbar in editorwindow2.toolbars:
+    for toolbar in editorwindow2._toolbars.values():
         toolbar_action = toolbar.toggleViewAction()
 
         if toolbar.ID == ApplicationToolbars.Debug:
