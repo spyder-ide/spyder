@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import logging
 import os.path as osp
 import sys
@@ -474,7 +475,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         # ---- Attributes
         self.main_widget = main_widget
         self.window_size = None
-        self.toolbars = []
+        self._toolbars: dict[str, ApplicationToolbar] = {}
 
         # ---- Main widget
         self.editorwidget = EditorWidget(
@@ -502,29 +503,14 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         self.setWindowIcon(main_widget.windowIcon())
 
         # ---- Add toolbars
-        toolbar_list = [
+        self._toolbars_order = [
             ApplicationToolbars.File,
             ApplicationToolbars.Run,
             ApplicationToolbars.Debug
         ]
 
-        for toolbar_id in toolbar_list:
-            # This is necessary to run tests for this widget without Spyder's
-            # main window
-            try:
-                toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
-            except KeyError:
-                continue
-
-            new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
-            for action in toolbar.actions():
-                new_toolbar.add_item(action)
-
-            new_toolbar.render()
-            new_toolbar.setMovable(False)
-
-            self.addToolBar(new_toolbar)
-            self.toolbars.append(new_toolbar)
+        for toolbar_id in self._toolbars_order:
+            self.add_toolbar(toolbar_id)
 
         # ---- Add menus
         menu_list = [
@@ -626,6 +612,33 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         self.editorwidget.set_outlineexplorer(outline_plugin)
         self._populate_window_menu()
 
+    def add_toolbar(self, toolbar_id: str, reload: bool = False):
+        # Some toolbars can't be available if their respective plugins are
+        # disabled
+        try:
+            toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
+        except KeyError:
+            return
+
+        new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
+        for action in toolbar.actions():
+            new_toolbar.add_item(action)
+
+        new_toolbar.render()
+        new_toolbar.setMovable(False)
+
+        self._toolbars[toolbar_id] = new_toolbar
+
+        if reload:
+            self._reload_toolbars()
+        else:
+            self.addToolBar(new_toolbar)
+
+    def remove_toolbar(self, toolbar_id):
+        toolbar = self._toolbars.pop(toolbar_id)
+        self.removeToolBar(toolbar)
+        self._reload_toolbars()
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _populate_window_menu(self):
@@ -653,7 +666,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
             section='toolbar'
         )
 
-        for toolbar in self.toolbars:
+        for toolbar in self._toolbars.values():
             toolbar_action = toolbar.toggleViewAction()
             toolbar_action.action_id = f'toolbar_{toolbar.ID}'
 
@@ -668,6 +681,18 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
                 toolbar_action,
                 section=WindowMenuSections.Toolbars
             )
+
+    def _reload_toolbars(self):
+        for toolbar in self._toolbars.values():
+            self.removeToolBar(toolbar)
+
+        for toolbar_id in self._toolbars_order:
+            toolbar = self._toolbars.get(toolbar_id)
+            if toolbar:
+                self.addToolBar(toolbar)
+                toolbar.render()
+
+        self._populate_window_menu()
 
 
 class EditorMainWidgetExample(QSplitter):
