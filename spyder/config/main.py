@@ -636,7 +636,7 @@ DEFAULTS = [
               # -- Find --
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
-            ('appearance', APPEARANCE),
+            ('appearance', _get_appearance_defaults()),
             ]
 
 
