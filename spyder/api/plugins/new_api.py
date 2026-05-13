@@ -330,8 +330,7 @@ class SpyderPluginV2(
     We thus ask plugins to declare whether or not they need
     web widgets to make it easier to distribute Spyder without them.
 
-    See `Spyder issue #22196
-    <https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043>`__
+    See `Spyder issue #22196 <https://github.com/spyder-ide/spyder/pull/22196#issuecomment-2189377043>`__
     for more information.
     """
 
@@ -374,7 +373,7 @@ class SpyderPluginV2(
     sig_redirect_stdio_requested: Signal = Signal(bool)
     """
     Request the main app redirect standard out/error within file pickers.
-
+    
     This will redirect :data:`~sys.stdin`, :data:`~sys.stdout`, and
     :data:`~sys.stderr` when using :guilabel:`Open`, :guilabel:`Save`,
     and :guilabel:`Browse` dialogs within a plugin's widgets.
@@ -795,8 +794,7 @@ class SpyderPluginV2(
         ----------
         option: spyder.config.types.ConfigurationKey
             Name/tuple path of the configuration option value to get.
-        default: spyder.api.config.mixins.BasicTypes |
-            spyder.config.user.NoDefault, optional
+        default: spyder.api.config.mixins.BasicTypes | spyder.config.user.NoDefault, optional
             Fallback value to return if the option is not found on the
             configuration system. No default value if not passed.
         section: str | None, optional
@@ -1372,7 +1370,7 @@ class SpyderPluginV2(
     def update_font(self) -> None:
         """
         Modify the font used in the plugin's interface.
-
+        
         This must be reimplemented by plugins that need to adjust their fonts.
 
         The following plugins illustrate the usage of this method:
@@ -1388,7 +1386,7 @@ class SpyderPluginV2(
     def update_style(self) -> None:
         """
         Modify the interface styling used by the plugin.
-
+        
         This must be reimplemented by plugins that need to adjust their style.
 
         Changing from the dark to the light interface theme might
@@ -2160,7 +2158,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     def close_window(self, save_undocked: bool = False) -> None:
         """
         Close the plugin's undocked window, optionally saving its state.
-
+        
         This is a convenience wrapper to close an undocked plugin.
 
         Parameters
