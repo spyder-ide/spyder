@@ -434,6 +434,16 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             self.get_widget().on_debug_toolbar_rendered
         )
 
+        # Readd toolbar to active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor and not self.main.is_setting_up:
+            # This is necessary to be able to grab the toolbar actions to
+            # create the corresponding toolbar in editor windows
+            debug_toolbar.render()
+
+            for window in editor.get_widget().editorwindows:
+                window.add_toolbar(ApplicationToolbars.Debug, reload=True)
+
     @on_plugin_teardown(plugin=Plugins.Toolbar)
     def on_toolbar_teardown(self):
         toolbar = self.get_plugin(Plugins.Toolbar)
@@ -458,6 +468,12 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             )
 
         toolbar.remove_application_toolbar(ApplicationToolbars.Debug)
+
+        # Remove toolbar from active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor:
+            for window in editor.get_widget().editorwindows:
+                window.remove_toolbar(ApplicationToolbars.Debug)
 
     # ---- Private API
     # ------------------------------------------------------------------------
