@@ -65,18 +65,22 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Console, Plugins.Application, Plugins.Preferences]
+    REQUIRES = [
+        Plugins.Application,
+        Plugins.Console,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Toolbar,
+    ]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,
         Plugins.IPythonConsole,
-        Plugins.MainMenu,
         Plugins.Projects,
         Plugins.OutlineExplorer,
         Plugins.Run,
         Plugins.StatusBar,
         Plugins.Switcher,
-        Plugins.Toolbar
     ]
     WIDGET_CLASS = EditorMainWidget
     CONF_SECTION = NAME
