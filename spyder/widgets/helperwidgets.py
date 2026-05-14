@@ -835,10 +835,13 @@ class InfoWidget(QWidget, SpyderWidgetMixin):
     def __init__(
         self,
         parent: QWidget,
+        section: str,
         text: str = "",
         set_min_width: bool = False,
     ):
         super().__init__(parent)
+        
+        self.section = section
 
         self.label = QLabel(self)
         self.label.setText(text)
@@ -877,9 +880,9 @@ class InfoWidget(QWidget, SpyderWidgetMixin):
         )
 
         if answer == QMessageBox.Yes:
-            self.set_conf('not_show_info_messages', True, section='main')
+            self.set_conf('not_show_info_messages', True, section=self.section)
         else:
-            self.set_conf('not_show_info_messages', False, section='main')
+            self.set_conf('not_show_info_messages', False, section=self.section)
         
         self.setVisible(False)
 
@@ -894,6 +897,8 @@ class InfoWidget(QWidget, SpyderWidgetMixin):
     def set_text(self, text: str):
         """Set label text."""
         self.label.setText(text)
+        visible = not self.get_conf('not_show_info_messages', section=self.sectio)
+        self.set_visible(visible)
 
 
 def test_msgcheckbox():

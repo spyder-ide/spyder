@@ -87,7 +87,6 @@ DEFAULTS = [
               'show_message_when_panes_are_empty': True,
               'max_recent_files': 20,
               'disable_zoom_mouse': False,
-              'not_show_info_messages': False,
               }),
             ('update_manager',
              {
@@ -232,6 +231,7 @@ DEFAULTS = [
               'mute_inline_plotting': True,
               'show_plot_outline': False,
               'max_plots': 100,
+              'not_show_info_messages': False,
              }),
             ('editor',
              {
@@ -293,6 +293,7 @@ DEFAULTS = [
                   'add_remove_cursor': 'Ctrl+Alt',
                   'column_cursor': 'Ctrl+Alt+Shift'
               },
+              'not_show_info_messages': False,
               }),
             ('historylog',
              {
@@ -314,6 +315,7 @@ DEFAULTS = [
               'rich_mode': True,
               'show_source': False,
               'locked': False,
+              'not_show_info_messages': False,
               }),
             ('onlinehelp',
              {
