@@ -399,7 +399,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
             )
 
-        self._info_widget = InfoWidget(self, text=None)
+        self._info_widget = InfoWidget(self, text=None, section="plots")
         self._info_widget.setVisible(False)
 
         self._corner_widget = MainCornerWidget(
