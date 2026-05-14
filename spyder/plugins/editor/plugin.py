@@ -373,6 +373,12 @@ class Editor(SpyderDockablePlugin):
 
         self.get_widget().add_run_actions_to_codeeditor_context_menu()
 
+        # Re-register open files to the plugin if it's reenabled
+        if not self.main.is_setting_up:
+            editorstack = self.get_current_editorstack()
+            for finfo in editorstack.data:
+                widget.handle_run_status(finfo.filename)
+
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         widget = self.get_widget()
@@ -412,6 +418,14 @@ class Editor(SpyderDockablePlugin):
             RunContext.Selection,
             context_modificator=SelectionContextModificator.FromLine
         )
+
+        # Deregister all runnable files
+        for filename in self.get_widget().id_per_file.copy():
+            widget.deregister_file_run_metadata(filename)
+
+        # Clear files that could be with a run config added by another plugin
+        # or users
+        widget.pending_run_files = set()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
