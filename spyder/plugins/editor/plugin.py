@@ -297,16 +297,10 @@ class Editor(SpyderDockablePlugin):
             run.switch_focused_run_configuration
         )
         widget.sig_register_run_configuration_provider_requested.connect(
-            lambda supported_extensions:
-                run.register_run_configuration_provider(
-                    self.NAME, supported_extensions
-                )
+            self._register_run_configuration_provider
         )
         widget.sig_deregister_run_configuration_provider_requested.connect(
-            lambda unsupported_extensions:
-                run.deregister_run_configuration_provider(
-                    self.NAME, unsupported_extensions
-                )
+            self._deregister_run_configuration_provider
         )
 
         # This is necessary to register run configs that were added before Run
@@ -388,6 +382,16 @@ class Editor(SpyderDockablePlugin):
 
         run.deregister_run_configuration_provider(
             self.NAME, widget.supported_run_extensions
+        )
+
+        widget.sig_editor_focus_changed_uuid.disconnect(
+            run.switch_focused_run_configuration
+        )
+        widget.sig_register_run_configuration_provider_requested.disconnect(
+            self._register_run_configuration_provider
+        )
+        widget.sig_deregister_run_configuration_provider_requested.disconnect(
+            self._deregister_run_configuration_provider
         )
 
         run.destroy_run_button(RunContext.Cell)
@@ -1485,6 +1489,20 @@ class Editor(SpyderDockablePlugin):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.switch_focused_run_configuration(file_id)
+
+    def _register_run_configuration_provider(self, supported_extensions):
+        run = self.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.register_run_configuration_provider(
+                self.NAME, supported_extensions
+            )
+
+    def _deregister_run_configuration_provider(self, unsupported_extensions):
+        run = self.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.deregister_run_configuration_provider(
+                self.NAME, unsupported_extensions
+            )
 
     # ---- Completions related methods
     def _register_file_completions(self, language, filename, codeeditor):
