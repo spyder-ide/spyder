@@ -907,6 +907,25 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
+    def handle_run_status(self, filename: str):
+        """Handle run status of a given filename."""
+        __, filename_ext = osp.splitext(filename)
+        filename_ext = filename_ext[1:]
+
+        able_to_run_file = False
+        if filename_ext in self.supported_run_configurations:
+            ext_contexts = self.supported_run_configurations[filename_ext]
+
+            if (
+                filename not in self.id_per_file
+                and RunContext.File in ext_contexts
+            ):
+                self.register_file_run_metadata(filename)
+                able_to_run_file = True
+
+        if not able_to_run_file:
+            self.pending_run_files |= {(filename, filename_ext)}
+
     def register_file_run_metadata(self, filename):
         """Register opened files with the Run plugin."""
         all_uuids = self.get_conf('file_uuids', default={})
@@ -980,22 +999,8 @@ class EditorMainWidget(PluginMainWidget):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-        __, filename_ext = osp.splitext(filename)
-        filename_ext = filename_ext[1:]
 
-        able_to_run_file = False
-        if filename_ext in self.supported_run_configurations:
-            ext_contexts = self.supported_run_configurations[filename_ext]
-
-            if (
-                filename not in self.id_per_file
-                and RunContext.File in ext_contexts
-            ):
-                self.register_file_run_metadata(filename)
-                able_to_run_file = True
-
-        if not able_to_run_file:
-            self.pending_run_files |= {(filename, filename_ext)}
+        self.handle_run_status(filename)
 
         status, fallback_only = self._plugin._register_file_completions(
             language.lower(), filename, codeeditor
