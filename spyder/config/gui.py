@@ -15,7 +15,6 @@ Important note regarding shortcuts:
 """
 
 # Third party imports
-from qtconsole.styles import dark_color
 from qtpy import QT_VERSION
 from qtpy.QtGui import QFont, QFontDatabase
 
@@ -95,22 +94,6 @@ def get_color_scheme(name):
     return sh.get_color_scheme(name)
 
 
-def set_color_scheme(name, color_scheme, replace=True):
-    """Set syntax color scheme.
-
-    When ``replace`` is False, only set keys that are not already present.
-    :meth:`ConfigurationManager.options` can disagree with the per-option
-    backing file used for :meth:`~ConfigurationManager.get` (multi-file
-    config), so we use :meth:`~ConfigurationManager.has_option` which follows
-    the same routing as ``get``/``set`` for that option.
-    """
-    section = "appearance"
-    for key in sh.COLOR_SCHEME_KEYS:
-        option = ("%s/%s" % (name, key)).lower()
-        if replace or not CONF.has_option(section, option):
-            CONF.set(section, option, color_scheme[key])
-
-
 def is_dark_interface():
     """
     Check if current interface is dark mode.
@@ -141,10 +124,3 @@ def is_dark_interface():
         # If CONF is not initialized, config file doesn't exist, or there's
         # an error accessing it, default to dark mode
         return True
-
-
-def is_dark_font_color(color_scheme):
-    """Check if the font color used in the color scheme is dark."""
-    color_scheme = get_color_scheme(color_scheme)
-    font_color, fon_fw, fon_fs = color_scheme['normal']
-    return dark_color(font_color)

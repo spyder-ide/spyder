@@ -82,7 +82,6 @@ from spyder.config.base import (
     is_conda_based_app,
     running_under_pytest,
 )
-from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.utils import encoding, programs
