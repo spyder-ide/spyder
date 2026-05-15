@@ -16,9 +16,6 @@ from pathlib import Path
 
 import yaml  # pyright: ignore[reportMissingModuleSource]
 
-from spyder.config.base import running_under_pytest
-from spyder.config.fonts import MEDIUM, MONOSPACE
-from spyder.plugins.help.utils.sphinxify import CSS_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -603,35 +600,6 @@ class ThemeManager:
                     logger = logging.getLogger(__name__)
                     logger.warning(
                         f"Failed to load pending resource {rc_file}: {e}")
-
-
-# Global appearance object
-APPEARANCE = {
-    "css_path": CSS_PATH,
-    "icon_theme": "spyder 3",
-    # This is our monospace font
-    "font/family": MONOSPACE,
-    "font/size": MEDIUM,
-    "font/italic": False,
-    "font/bold": False,
-    # We set the app font used in the system when Spyder starts, so we don't
-    # need to do it here.
-    "app_font/family": "Arial" if running_under_pytest() else "",
-    # This default value helps to do visual checks in our tests when run
-    # independently and avoids Qt warnings related to a null font size. It can
-    # also be useful in case we fail to detect the interface font.
-    "app_font/size": 10,
-    "app_font/italic": False,
-    "app_font/bold": False,
-    "use_system_font": True,
-    # We set these values at startup too.
-    "monospace_app_font/family": "",
-    "monospace_app_font/size": 0,
-    "monospace_app_font/italic": False,
-    "monospace_app_font/bold": False,
-    # Default to spyder_themes.spyder/dark if no selection exists
-    "selected": "spyder_themes.spyder/dark",
-}
 
 
 # Global theme manager instance
