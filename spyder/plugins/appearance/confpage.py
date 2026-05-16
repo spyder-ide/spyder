@@ -30,8 +30,8 @@ from spyder.config.gui import get_font, set_font
 
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
-from spyder.utils import syntaxhighlighters
 from spyder.utils.palette import SpyderPalette
+from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, theme_manager
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -57,8 +57,6 @@ class AppearanceConfigPage(PluginConfigPage):
         CONF.restore_notifications(section='appearance', option='selected')
 
         try:
-            from spyder.utils.theme_manager import theme_manager
-
             for variant_name in theme_manager.get_available_theme_variants():
                 try:
                     CONF.get("appearance", f"{variant_name}/name")
@@ -89,8 +87,6 @@ class AppearanceConfigPage(PluginConfigPage):
 
         Excludes placeholder ``Custom`` when present.
         """
-        from spyder.utils.theme_manager import theme_manager
-
         names = list(theme_manager.get_available_theme_variants())
         try:
             names.remove("Custom")
@@ -100,15 +96,13 @@ class AppearanceConfigPage(PluginConfigPage):
 
     def _remove_temp_syntax_options(self):
         """Drop legacy ``temp/...`` syntax keys (preview scratch space)."""
-        for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+        for key in COLOR_SCHEME_KEYS:
             try:
                 CONF.remove_option(self.CONF_SECTION, f"temp/{key}")
             except Exception:
                 pass
 
     def setup_page(self):
-        from spyder.utils.theme_manager import theme_manager
-
         for variant_name in theme_manager.get_available_theme_variants():
             try:
                 CONF.get("appearance", f"{variant_name}/name")
@@ -476,7 +470,6 @@ class AppearanceConfigPage(PluginConfigPage):
         self.schemes_combobox.blockSignals(True)
 
         # Use theme manager to get available themes dynamically
-        from spyder.utils.theme_manager import theme_manager
         names = theme_manager.get_available_theme_variants()
         try:
             names.pop(names.index(u'Custom'))
@@ -596,14 +589,13 @@ class AppearanceConfigPage(PluginConfigPage):
         names = self._builtin_theme_variants()
 
         if scheme in names:
-            from spyder.utils.theme_manager import theme_manager
             try:
                 theme_name, ui_mode = scheme.rsplit('/', 1)
                 theme_manager.export_theme_to_config(
                     theme_name, ui_mode, replace=True
                 )
             except Exception:
-                for key in syntaxhighlighters.COLOR_SCHEME_KEYS:
+                for key in COLOR_SCHEME_KEYS:
                     option = "{0}/{1}".format(scheme, key)
                     value = CONF.get_default(self.CONF_SECTION, option)
                     self.set_option(option, value)

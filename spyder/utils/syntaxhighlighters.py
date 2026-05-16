@@ -27,9 +27,6 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.translations import _
-from spyder.config.manager import CONF
-from spyder.config.user import NoDefault
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
@@ -55,48 +52,6 @@ DEFAULT_PATTERNS = {
         r'(?:mailto:\s*)?([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})',
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
-}
-
-COLOR_SCHEME_KEYS = {
-    "background":     _("Background:"),
-    "currentline":    _("Current line:"),
-    "currentcell":    _("Current cell:"),
-    "occurrence":     _("Occurrence:"),
-    "ctrlclick":      _("Link:"),
-    "sideareas":      _("Side areas:"),
-    "matched_p":      _("Matched <br>parens:"),
-    "unmatched_p":    _("Unmatched <br>parens:"),
-    "normal":         _("Normal text:"),
-    "keyword":        _("Keyword:"),
-    "builtin":        _("Builtin:"),
-    "definition":     _("Definition:"),
-    "comment":        _("Comment:"),
-    "string":         _("String:"),
-    "number":         _("Number:"),
-    "instance":       _("Instance:"),
-    "magic":          _("Magic:"),
-    "symbol":         _("Symbol:"),
-}
-
-COLOR_SCHEME_DEFAULT_VALUES = {
-    "background":  "#19232D",
-    "currentline": "#3a424a",
-    "currentcell": "#292d3e",
-    "occurrence":  "#1A72BB",
-    "ctrlclick":   "#179ae0",
-    "sideareas":   "#222b35",
-    "matched_p":   "#0bbe0b",
-    "unmatched_p": "#ff4340",
-    "normal":     ("#ffffff", False, False),
-    "keyword":    ("#c670e0", False, False),
-    "builtin":    ("#fab16c", False, False),
-    "definition": ("#57d6e4", True, False),
-    "comment":    ("#999999", False, False),
-    "string":     ("#b0e686", False, True),
-    "number":     ("#faed5c", False, False),
-    "instance":   ("#ee6772", False, True),
-    "magic":      ("#c670e0", False, False),
-    "symbol":     ("#ff0000", False, False),
 }
 
 # Mapping for file extensions that use Pygments highlighting but should use
@@ -135,84 +90,7 @@ def get_span(match, key=None):
     return start16, end16
 
 
-def _syntax_override_for_variant(canonical_variant, key):
-    """Return user-stored syntax value for ``canonical_variant``/``key`` if set."""
-    try:
-        v = CONF.get(
-            "appearance",
-            f"{canonical_variant}/{key}",
-        )
-        logger.debug("Syntax highlighter color scheme value: %s", v)
-    except Exception:
-        return None
-    return v
 
-
-def get_color_scheme(name):
-    """
-    Resolve syntax colors for a scheme id.
-
-    Theme variants (``spyder_themes.<theme>/<mode>``) use the installed theme
-    palette as the base and apply per-key overrides from the ``appearance``
-    section when those options exist (user edits in Preferences).
-    """
-
-    # Highlighter default ``'Spyder'``
-    if name and str(name).lower() == "spyder" or not name:
-        name = CONF.get("appearance", "selected",
-                        default="spyder_themes.spyder/dark")
-
-    canonical = theme_manager.canonical_theme_variant_id(name)
-
-    logger.debug(
-        "get_color_scheme called with name=%s, canonical=%s", name, canonical)
-
-    if "/" in canonical:
-        try:
-            theme_name, ui_mode = canonical.rsplit("/", 1)
-            palette, _ = theme_manager._load_theme_internal(
-                theme_name, ui_mode)
-            base = theme_manager.get_syntax_color_scheme(palette)
-            merged = {}
-            for key in COLOR_SCHEME_KEYS:
-                override = _syntax_override_for_variant(canonical, key)
-                merged[key] = override if override is not None else base[key]
-            logger.debug(
-                "Merged theme %s/%s with config overrides",
-                theme_name,
-                ui_mode,
-            )
-            return merged
-        except Exception as e:
-            logger.warning(
-                "Failed to merge theme variant colors for %s: %s", canonical, e
-            )
-
-    scheme = {}
-    missing_in_config = []
-    for key in COLOR_SCHEME_KEYS:
-        try:
-            scheme[key] = CONF.get("appearance", f"{canonical}/{key}")
-        except Exception:
-            missing_in_config.append(key)
-
-    if missing_in_config and "/" in canonical:
-        try:
-            theme_name, ui_mode = canonical.rsplit("/", 1)
-            palette, _ = theme_manager._load_theme_internal(
-                theme_name, ui_mode)
-            theme_colors = theme_manager.get_syntax_color_scheme(palette)
-            for key in missing_in_config:
-                scheme[key] = theme_colors[key]
-        except Exception as e:
-            logger.warning("Failed to fill missing colors from theme: %s", e)
-            for key in missing_in_config:
-                scheme[key] = COLOR_SCHEME_DEFAULT_VALUES[key]
-    elif missing_in_config:
-        for key in missing_in_config:
-            scheme[key] = COLOR_SCHEME_DEFAULT_VALUES[key]
-
-    return scheme
 
 
 def any(name, alternates):
@@ -267,7 +145,7 @@ class BaseSH(QSyntaxHighlighter):
 
         self.font = font
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = theme_manager.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -369,7 +247,7 @@ class BaseSH(QSyntaxHighlighter):
 
     def set_color_scheme(self, color_scheme):
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = theme_manager.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 

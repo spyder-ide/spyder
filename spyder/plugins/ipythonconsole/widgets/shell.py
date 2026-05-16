@@ -30,7 +30,7 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import is_conda_based_app, running_under_pytest
-from spyder.config.gui import get_color_scheme, is_dark_interface
+from spyder.config.gui import is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
@@ -46,6 +46,7 @@ from spyder.plugins.ipythonconsole.widgets import (
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.clipboard_helper import CLIPBOARD_HELPER
+from spyder.utils.theme_manager import theme_manager
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 if typing.TYPE_CHECKING:
@@ -771,7 +772,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.set_kernel_configuration(
             "color scheme", "dark" if not dark_color else "light"
         )
-        color_scheme = get_color_scheme(self.syntax_style)
+        color_scheme = theme_manager.get_color_scheme(self.syntax_style)
         self.set_kernel_configuration(
             "traceback_highlight_style",
             color_scheme,
@@ -1507,7 +1508,7 @@ overrided by the Sympy module (e.g. plot)
             # ignore premature calls
             return
         if self.syntax_style:
-            color_scheme = get_color_scheme(self.syntax_style)
+            color_scheme = theme_manager.get_color_scheme(self.syntax_style)
             self._highlighter._style = create_style_class(color_scheme)
             self._highlighter._clear_caches()
         else:
@@ -1518,7 +1519,7 @@ overrided by the Sympy module (e.g. plot)
         Get a color as qtconsole.styles._get_color() would return from
         a builtin Pygments style.
         """
-        color_scheme = get_color_scheme(self.syntax_style)
+        color_scheme = theme_manager.get_color_scheme(self.syntax_style)
         return dict(
             bgcolor=color_scheme['background'],
             select=color_scheme['background'],

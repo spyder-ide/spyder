@@ -21,7 +21,6 @@ from qtpy.QtGui import QFont, QFontDatabase
 # Local imports
 from spyder.config.base import _is_conf_ready
 from spyder.config.manager import CONF
-from spyder.utils import syntaxhighlighters as sh
 
 
 def font_is_installed(font):
@@ -84,14 +83,6 @@ def set_font(font, section='appearance', option='font'):
     font_size_delta = 0
 
     FONT_CACHE[(section, option, font_size_delta)] = font
-
-
-def get_color_scheme(name):
-    """Get syntax color scheme.
-
-    Merges the theme base with per-key appearance overrides.
-    """
-    return sh.get_color_scheme(name)
 
 
 def is_dark_interface():

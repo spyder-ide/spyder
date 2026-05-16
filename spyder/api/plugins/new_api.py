@@ -49,10 +49,10 @@ from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin, SpyderWidgetMixin
 from spyder.app.cli_options import get_options
 from spyder.config.gui import get_font
-from spyder.utils.syntaxhighlighters import get_color_scheme
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
+from spyder.utils.theme_manager import theme_manager
 
 # Package imports
 from spyder.api.plugins.enum import Plugins
@@ -1118,7 +1118,9 @@ class SpyderPluginV2(
         if self._conf is None:
             return None
 
-        return get_color_scheme(self._conf.get("appearance", "selected"))
+        return theme_manager.get_color_scheme(
+            self._conf.get("appearance", "selected")
+        )
 
     def initialize(self) -> None:
         """

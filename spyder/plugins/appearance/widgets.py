@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (
 
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.utils import syntaxhighlighters
+from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, theme_manager
 
 
 class SchemeEditor(QDialog):
@@ -87,7 +87,7 @@ class SchemeEditor(QDialog):
                 "The following properties have invalid colors:<br><br>"
             )
             for property_name, color in invalid_colors.items():
-                name = syntaxhighlighters.COLOR_SCHEME_KEYS[property_name]
+                name = COLOR_SCHEME_KEYS[property_name]
                 clean_name = name[:-1].replace("<br>", "")
                 message += _(
                     'The property <b>{}</b> has an invalid color: {}<br>'
@@ -145,7 +145,6 @@ class SchemeEditor(QDialog):
         # Themes store a ``name`` field in config; default when missing comes
         # from the theme manager display name.
         try:
-            from spyder.utils.theme_manager import theme_manager
             default_name = theme_manager.get_theme_display_name(scheme_name)
         except Exception:
             # Fallback to scheme_name if we can't get display name
@@ -187,7 +186,7 @@ class SchemeEditor(QDialog):
                 return self.parent.get_option(opt)
             except Exception:
                 if resolved is None:
-                    resolved = syntaxhighlighters.get_color_scheme(scheme_name)
+                    resolved = theme_manager.get_color_scheme(scheme_name)
                 return resolved[k]
 
         for index, item in enumerate[tuple[str, list[str]]](
@@ -198,7 +197,7 @@ class SchemeEditor(QDialog):
             for row, key in enumerate(keys):
                 option = "{0}/{1}".format(scheme_name, key)
                 value = value_for_key(key)
-                name = syntaxhighlighters.COLOR_SCHEME_KEYS[key]
+                name = COLOR_SCHEME_KEYS[key]
 
                 if isinstance(value, str):
                     label, clayout = parent.create_coloredit(
@@ -253,8 +252,6 @@ class SchemeEditor(QDialog):
             display = str(parent.get_option(name_opt))
         except Exception:
             try:
-                from spyder.utils.theme_manager import theme_manager
-
                 display = theme_manager.get_theme_display_name(scheme_name)
             except Exception:
                 display = scheme_name

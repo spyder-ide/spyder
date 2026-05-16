@@ -9,15 +9,62 @@ Theme manager for Spyder's new theming system.
 """
 
 # Standard library imports
+import configparser
 from functools import lru_cache
 import importlib
 import logging
 from pathlib import Path
 
-import yaml  # pyright: ignore[reportMissingModuleSource]
+import yaml
 
+from spyder.api.config.mixins import SpyderConfigurationAccessor
+from spyder.api.translations import _
 
 logger = logging.getLogger(__name__)
+
+
+COLOR_SCHEME_KEYS = {
+    "background":     _("Background:"),
+    "currentline":    _("Current line:"),
+    "currentcell":    _("Current cell:"),
+    "occurrence":     _("Occurrence:"),
+    "ctrlclick":      _("Link:"),
+    "sideareas":      _("Side areas:"),
+    "matched_p":      _("Matched <br>parens:"),
+    "unmatched_p":    _("Unmatched <br>parens:"),
+    "normal":         _("Normal text:"),
+    "keyword":        _("Keyword:"),
+    "builtin":        _("Builtin:"),
+    "definition":     _("Definition:"),
+    "comment":        _("Comment:"),
+    "string":         _("String:"),
+    "number":         _("Number:"),
+    "instance":       _("Instance:"),
+    "magic":          _("Magic:"),
+    "symbol":         _("Symbol:"),
+}
+
+
+COLOR_SCHEME_DEFAULT_VALUES = {
+    "background":  "#19232D",
+    "currentline": "#3a424a",
+    "currentcell": "#292d3e",
+    "occurrence":  "#1A72BB",
+    "ctrlclick":   "#179ae0",
+    "sideareas":   "#222b35",
+    "matched_p":   "#0bbe0b",
+    "unmatched_p": "#ff4340",
+    "normal":     ("#ffffff", False, False),
+    "keyword":    ("#c670e0", False, False),
+    "builtin":    ("#fab16c", False, False),
+    "definition": ("#57d6e4", True, False),
+    "comment":    ("#999999", False, False),
+    "string":     ("#b0e686", False, True),
+    "number":     ("#faed5c", False, False),
+    "instance":   ("#ee6772", False, True),
+    "magic":      ("#c670e0", False, False),
+    "symbol":     ("#ff0000", False, False),
+}
 
 
 def _is_dark_interface():
@@ -26,8 +73,10 @@ def _is_dark_interface():
     return is_dark_interface()
 
 
-class ThemeManager:
+class ThemeManager(SpyderConfigurationAccessor):
     """Manager for Spyder's theming system."""
+
+    CONF_SECTION = "appearance"
 
     def __init__(self):
         self._current_theme = None
@@ -300,7 +349,7 @@ class ThemeManager:
             )
         return metadata[field]
 
-    def get_syntax_color_scheme(self, palette):
+    def get_color_scheme_from_palette(self, palette):
         """
         Extract syntax highlighting colors from a theme palette.
 
@@ -339,6 +388,78 @@ class ThemeManager:
 
         return color_scheme
 
+    def get_color_scheme(self, name):
+        """
+        Resolve syntax colors for a scheme id.
+
+        Theme variants (``spyder_themes.<theme>/<mode>``) use the installed
+        theme palette as the base and apply per-key overrides from the
+        ``appearance`` section when those options exist (user edits in
+        Preferences).
+        """
+
+        # Highlighter default ``'Spyder'``
+        if name and str(name).lower() == "spyder" or not name:
+            name = self.get_conf(
+                "selected", default="spyder_themes.spyder/dark"
+            )
+
+        canonical = self.canonical_theme_variant_id(name)
+
+        logger.debug(
+            "get_color_scheme called with name=%s, canonical=%s",
+            name,
+            canonical
+        )
+
+        if "/" in canonical:
+            theme_name, ui_mode = canonical.rsplit("/", 1)
+            palette, _ = self._load_theme_internal(theme_name, ui_mode)
+            base = self.get_color_scheme_from_palette(palette)
+            merged = {}
+
+            for key in COLOR_SCHEME_KEYS:
+                try:
+                    override = self.get_conf(f"{canonical}/{key}")
+                except configparser.NoOptionError:
+                    override = None
+
+                merged[key] = override if override is not None else base[key]
+
+            logger.debug(
+                "Merged theme %s/%s with config overrides",
+                theme_name,
+                ui_mode,
+            )
+            return merged
+
+        scheme = {}
+        missing_in_config = []
+        for key in COLOR_SCHEME_KEYS:
+            try:
+                scheme[key] = self.get_conf(f"{canonical}/{key}")
+            except Exception:
+                missing_in_config.append(key)
+
+        if missing_in_config and "/" in canonical:
+            try:
+                theme_name, ui_mode = canonical.rsplit("/", 1)
+                palette, _ = self._load_theme_internal(theme_name, ui_mode)
+                theme_colors = self.get_color_scheme_from_palette(palette)
+                for key in missing_in_config:
+                    scheme[key] = theme_colors[key]
+            except Exception as e:
+                logger.warning(
+                    "Failed to fill missing colors from theme: %s", e
+                )
+                for key in missing_in_config:
+                    scheme[key] = COLOR_SCHEME_DEFAULT_VALUES[key]
+        elif missing_in_config:
+            for key in missing_in_config:
+                scheme[key] = COLOR_SCHEME_DEFAULT_VALUES[key]
+
+        return scheme
+
     def export_theme_to_config(self, theme_name, ui_mode, replace=False):
         """
         Export theme data to the user configuration file.
@@ -362,7 +483,7 @@ class ThemeManager:
             # Load the theme to get its palette (without auto-export to avoid
             # circular calls)
             palette, _ = self._load_theme_internal(theme_name, ui_mode)
-            color_scheme = self.get_syntax_color_scheme(palette)
+            color_scheme = self.get_color_scheme_from_palette(palette)
             section = "appearance"
             for key, value in color_scheme.items():
                 option = f"{variant_name}/{key}"
