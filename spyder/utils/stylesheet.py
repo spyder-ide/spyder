@@ -19,7 +19,6 @@ import qstylizer.style
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
-from spyder.config.gui import is_dark_interface 
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.theme_manager import theme_manager
 
@@ -605,8 +604,9 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         # Style for selected tabs
         css['QTabBar::tab:selected'].setValues(
             color=(
-                SpyderPalette.COLOR_TEXT_1 if is_dark_interface() else
-                SpyderPalette.COLOR_BACKGROUND_1
+                SpyderPalette.COLOR_TEXT_1
+                if theme_manager.is_dark_interface()
+                else SpyderPalette.COLOR_BACKGROUND_1
             ),
             backgroundColor=SpyderPalette.SPECIAL_TABS_SELECTED,
         )

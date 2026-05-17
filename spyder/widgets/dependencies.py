@@ -19,12 +19,12 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 from spyder import __version__
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.gui import is_dark_interface
 from spyder.dependencies import OPTIONAL, PLUGIN
 from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.emptymessage import EmptyMessageWidget
+from spyder.utils.theme_manager import theme_manager
 
 
 class DependenciesTreeWidget(QTreeWidget):
@@ -67,7 +67,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setBackground(2, QColor(SpyderPalette.COLOR_WARN_1))
 
                 # Fix foreground color in the light theme
-                if not is_dark_interface():
+                if not theme_manager.is_dark_interface():
                     item.setForeground(
                         2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )
@@ -76,7 +76,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setBackground(2, QColor(SpyderPalette.COLOR_ERROR_1))
 
                 # Fix foreground color in the light theme
-                if not is_dark_interface():
+                if not theme_manager.is_dark_interface():
                     item.setForeground(
                         2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )

@@ -659,10 +659,10 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
-        from spyder.config.gui import is_dark_interface
+        from spyder.utils.theme_manager import theme_manager
 
         # Determine CSS path based on whether interface is dark
-        if is_dark_interface():
+        if theme_manager.is_dark_interface():
             css_path = DARK_CSS_PATH
         else:
             css_path = CSS_PATH

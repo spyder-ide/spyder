@@ -29,12 +29,12 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.plugins.editor.api.panel import Panel
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.panels.utils import FoldingRegion
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 from spyder.utils.icon_manager import ima
+from spyder.utils.theme_manager import theme_manager
 from spyder.widgets.mixins import EOL_SYMBOLS
 
 
@@ -275,7 +275,7 @@ class FoldingPanel(Panel):
         c = self.editor.sideareas_color
         grad = QLinearGradient(rect.topLeft(), rect.topRight())
 
-        if is_dark_interface():
+        if theme_manager.is_dark_interface():
             grad.setColorAt(0, c.lighter(110))
             grad.setColorAt(1, c.lighter(130))
             outline = c.darker(100)
@@ -351,7 +351,7 @@ class FoldingPanel(Panel):
         """
         color = self.editor.sideareas_color
 
-        if is_dark_interface():
+        if theme_manager.is_dark_interface():
             color = drift_color(color, 130)
         else:
             color = drift_color(color, 105)

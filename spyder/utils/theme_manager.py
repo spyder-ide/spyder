@@ -67,12 +67,6 @@ COLOR_SCHEME_DEFAULT_VALUES = {
 }
 
 
-def _is_dark_interface():
-    """Late import to avoid gui <-> theme_manager circular import at load time."""
-    from spyder.config.gui import is_dark_interface
-    return is_dark_interface()
-
-
 class ThemeManager(SpyderConfigurationAccessor):
     """Manager for Spyder's theming system."""
 
@@ -460,6 +454,29 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return scheme
 
+    def is_dark_interface(self):
+        """
+        Check if current interface is dark mode.
+
+        Determines the interface mode by inspecting the selected theme variant.
+        Theme variants follow the format 'theme_name/mode' (e.g., 'solarized/dark').
+        Returns True if config is not ready to avoid segfaults during initialization.
+        """
+        # Use default value if config doesn't exist or isn't initialized yet
+        selected = self.get_conf(
+            "selected", default="spyder_themes.spyder/dark"
+        )
+
+        selected = self.canonical_theme_variant_id(selected)
+
+        if "/" in selected:
+            _, ui_mode = selected.rsplit("/", 1)
+            return ui_mode == "dark"
+
+        # Default to dark if no mode specified (shouldn't happen with new
+        # themes)
+        return True
+
     def export_theme_to_config(self, theme_name, ui_mode, replace=False):
         """
         Export theme data to the user configuration file.
@@ -497,7 +514,9 @@ class ThemeManager(SpyderConfigurationAccessor):
         if current_theme and current_theme != theme_name:
             try:
                 # Determine ui_mode from current interface state
-                restore_ui_mode = "dark" if _is_dark_interface() else "light"
+                restore_ui_mode = (
+                    "dark" if self.is_dark_interface() else "light"
+                )
                 self._load_theme_internal(current_theme, restore_ui_mode)
             except Exception:
                 # If restoration fails, just continue
@@ -538,7 +557,9 @@ class ThemeManager(SpyderConfigurationAccessor):
         if current_theme and current_theme != self._current_theme:
             try:
                 # Determine ui_mode from current interface state
-                restore_ui_mode = "dark" if _is_dark_interface() else "light"
+                restore_ui_mode = (
+                    "dark" if self.is_dark_interface() else "light"
+                )
                 self.load_theme(current_theme, restore_ui_mode)
             except Exception:
                 # If restoration fails, just continue with the current theme
@@ -547,7 +568,7 @@ class ThemeManager(SpyderConfigurationAccessor):
     def _load_theme_internal(self, theme_name, ui_mode=None):
         """Load theme using standard package import."""
         if ui_mode is None:
-            ui_mode = "dark" if _is_dark_interface() else "light"
+            ui_mode = "dark" if self.is_dark_interface() else "light"
 
         ThemeManager._load_theme_metadata(theme_name)
 

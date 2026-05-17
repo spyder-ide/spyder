@@ -30,7 +30,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import is_conda_based_app, running_under_pytest
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.ipythonconsole.api import (
     IPythonConsoleWidgetCornerWidgets,
     IPythonConsoleWidgetMenus,
@@ -1068,7 +1067,7 @@ overrided by the Sympy module (e.g. plot)
 
         # This makes the header text have good contrast against its background
         # for the light theme.
-        if is_dark_interface():
+        if theme_manager.is_dark_interface():
             font_color = SpyderPalette.COLOR_TEXT_1
         else:
             font_color = 'white'
