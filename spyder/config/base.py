@@ -123,30 +123,6 @@ def use_dev_config_dir(use_dev_config_dir=USE_DEV_CONFIG_DIR):
     return use_dev_config_dir
 
 
-def _is_conf_ready():
-    """
-    Check if CONF is initialized and ready to use.
-    
-    Returns
-    -------
-    bool
-        True if CONF is ready, False otherwise.
-    """
-    try:
-        # Check if CONF module is in sys.modules first
-        if 'spyder.config.manager' not in sys.modules:
-            return False
-        
-        from spyder.config.manager import CONF
-        # Check if CONF has been initialized by checking for _user_config
-        # Also check if it's actually a ConfigurationManager instance
-        return (hasattr(CONF, '_user_config') and 
-                CONF._user_config is not None and
-                hasattr(CONF, 'get'))
-    except (AttributeError, ImportError, RuntimeError):
-        return False
-
-
 #==============================================================================
 # Debug helpers
 #==============================================================================

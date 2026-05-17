@@ -156,56 +156,51 @@ def main():
         return
 
     from spyder.config.manager import CONF
-    from spyder.config.base import _is_conf_ready
+    from spyder.utils.theme_manager import THEME_MANAGER
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
-    
-    # Export only the selected theme to config early to ensure colors are available
-    # before any editor widgets are created (fixes first-run color issues)
-    # Don't export all themes at startup as it loads all theme resources unnecessarily
-    if _is_conf_ready():
-        try:
-            from spyder.utils.theme_manager import THEME_MANAGER
-            # Get the selected theme and export only that one
-            selected = CONF.get('appearance', 'selected', default='spyder_themes.spyder/dark')
-            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
-            if resolved != selected:
-                CONF.set('appearance', 'selected', resolved)
-            selected = resolved
-            if '/' in selected:
-                theme_name, ui_mode = selected.rsplit('/', 1)
-                # Only fill missing syntax keys; do not overwrite user overrides
-                THEME_MANAGER.export_theme_to_config(theme_name, ui_mode, replace=False)
-        except Exception as e:
-            # Don't fail startup if theme export fails, but log it
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Failed to export selected theme to config during startup: {e}")
+
+    # Export only the selected theme to config early to ensure colors are
+    # available before any editor widgets are created (fixes first-run color
+    # issues).
+    # Don't export all themes at startup as it loads all theme resources
+    # unnecessarily.
+    try:
+        # Get the selected theme and export only that one
+        selected = CONF.get(
+            'appearance', 'selected', default='spyder_themes.spyder/dark'
+        )
+        resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+        if resolved != selected:
+            CONF.set('appearance', 'selected', resolved)
+
+        selected = resolved
+        if '/' in selected:
+            theme_name, ui_mode = selected.rsplit('/', 1)
+            # Only fill missing syntax keys; do not overwrite user overrides
+            THEME_MANAGER.export_theme_to_config(
+                theme_name, ui_mode, replace=False
+            )
+    except Exception as e:
+        # Don't fail startup if theme export fails, but log it
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Failed to export selected theme to config during startup: {e}"
+        )
 
     #==========================================================================
     # Proper high DPI scaling is available in Qt >= 5.6.0. This attribute must
     # be set before creating the application.
     #==========================================================================
-    # Only access config if it's ready to avoid segfaults during initialization
-    if _is_conf_ready():
-        try:
-            if CONF.get('main', 'high_dpi_custom_scale_factor'):
-                factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
-                f = list(filter(None, factors.split(';')))
-                if len(f) == 1:
-                    os.environ['QT_SCALE_FACTOR'] = f[0]
-                else:
-                    os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
-            else:
-                os.environ['QT_SCALE_FACTOR'] = ''
-                os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
-        except Exception:
-            # If config access fails, use defaults
-            os.environ['QT_SCALE_FACTOR'] = ''
-            os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
+    if CONF.get('main', 'high_dpi_custom_scale_factor'):
+        factors = str(CONF.get('main', 'high_dpi_custom_scale_factors'))
+        f = list(filter(None, factors.split(';')))
+        if len(f) == 1:
+            os.environ['QT_SCALE_FACTOR'] = f[0]
+        else:
+            os.environ['QT_SCREEN_SCALE_FACTORS'] = factors
     else:
-        # Config not ready, use defaults
         os.environ['QT_SCALE_FACTOR'] = ''
         os.environ['QT_SCREEN_SCALE_FACTORS'] = ''
 
@@ -263,15 +258,7 @@ def main():
         sys.stdout.write('\n')
         return
 
-    # Check if config is ready before accessing it
-    single_instance = False
-    if _is_conf_ready():
-        try:
-            single_instance = CONF.get('main', 'single_instance', False)
-        except Exception:
-            single_instance = False
-    
-    if (single_instance and not options.new_instance
+    if (CONF.get('main', 'single_instance') and not options.new_instance
             and not options.reset_config_files):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their

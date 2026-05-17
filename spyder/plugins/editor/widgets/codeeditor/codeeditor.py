@@ -381,19 +381,11 @@ class CodeEditor(
 
         self.highlighter_class = sh.TextSH
         self.highlighter = None
-        # Use the currently selected theme from config
-        from spyder.config.manager import CONF
-        from spyder.config.base import _is_conf_ready
-        if _is_conf_ready():
-            try:
-                ccs = CONF.get('appearance', 'selected',
-                               default='spyder_themes.spyder/dark')
-            except Exception:
-                ccs = 'spyder_themes.spyder/dark'
-        else:
-            ccs = 'spyder_themes.spyder/dark'
-        self.color_scheme = ccs
-
+        self.color_scheme = self.get_conf(
+            'selected',
+            default='spyder_themes.spyder/dark',
+            section = 'appearance'
+        )
         self.highlight_current_line_enabled = False
 
         # Vertical scrollbar

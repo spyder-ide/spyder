@@ -386,21 +386,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             'column_cursor': 'Ctrl+Alt+Shift'
         }
 
-        # Set default color scheme from config
-        # Always use the selected theme from config
-        # Fall back to spyder_themes.spyder/dark 
-        from spyder.config.base import _is_conf_ready
-        if _is_conf_ready():
-            try:
-                color_scheme = CONF.get(
-                    "appearance",
-                    "selected",
-                    default="spyder_themes.spyder/dark")
-            except Exception:
-                color_scheme = 'spyder_themes.spyder/dark'
-        else:
-            color_scheme = 'spyder_themes.spyder/dark'
-        self.color_scheme = color_scheme
+        # Get color scheme from config
+        self.color_scheme = self.get_conf(
+            'selected',
+            default='spyder_themes.spyder/dark',
+            section = 'appearance'
+        )
 
         # Real-time code analysis
         self.analysis_timer = QTimer(self)

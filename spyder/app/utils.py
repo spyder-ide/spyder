@@ -34,6 +34,7 @@ from spyder.utils.image_path_manager import get_image_path
 from spyder.utils.installers import running_installer_test
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import file_uri, qapplication
+from spyder.utils.theme_manager import THEME_MANAGER
 
 # For spyder-ide/spyder#7447.
 try:
@@ -289,35 +290,25 @@ def create_application():
     # Our QApplication
     app = qapplication()
 
-    # Load the selected theme before APP_STYLESHEET is accessed so the
-    # theme stylesheet is available and resources are loaded. Must run
-    # after Qt is initialized to avoid segfaults.
-    try:
-        from spyder.utils.theme_manager import THEME_MANAGER
-        from spyder.config.manager import CONF
-        from spyder.config.base import _is_conf_ready
-        if _is_conf_ready():
-            # Load the selected theme (this will load its stylesheet and
-            # resources)
-            selected = CONF.get('appearance', 'selected',
-                                default='spyder_themes.spyder/dark')
-            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
-            if resolved != selected:
-                CONF.set('appearance', 'selected', resolved)
-            selected = resolved
-            if '/' in selected:
-                theme_name, ui_mode = selected.rsplit('/', 1)
-                # Load theme stylesheet and queue resources for loading.
-                try:
-                    THEME_MANAGER.load_theme(theme_name, ui_mode)
-                except Exception:
-                    pass
-        # Load any pending theme resources that were deferred during
-        # initialization
-        THEME_MANAGER.load_pending_resources()
-    except Exception:
-        # If loading theme fails, continue anyway - will fall back to default
-        pass
+    # ---- Load the selected theme
+    # Must be done before APP_STYLESHEET is accessed so the theme stylesheet is
+    # available and resources are loaded; and after Qt is initialized to avoid
+    # segfaults.
+    selected = CONF.get(
+        'appearance', 'selected', default='spyder_themes.spyder/dark'
+    )
+    resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+
+    if resolved != selected:
+        CONF.set('appearance', 'selected', resolved)
+
+    selected = resolved
+    if '/' in selected:
+        theme_name, ui_mode = selected.rsplit('/', 1)
+        THEME_MANAGER.load_theme(theme_name, ui_mode)
+
+    # Load any pending theme resources that were deferred during initialization
+    THEME_MANAGER.load_pending_resources()
 
     # ---- Set icon
     app_icon = QIcon(get_image_path("spyder"))

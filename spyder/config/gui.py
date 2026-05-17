@@ -19,7 +19,6 @@ from qtpy import QT_VERSION
 from qtpy.QtGui import QFont, QFontDatabase
 
 # Local imports
-from spyder.config.base import _is_conf_ready
 from spyder.config.manager import CONF
 
 
