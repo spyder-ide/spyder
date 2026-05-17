@@ -11,7 +11,6 @@ import glob
 import logging
 import os
 import os.path as osp
-from pathlib import Path
 import re
 import sys
 
@@ -294,7 +293,7 @@ def create_application():
     # theme stylesheet is available and resources are loaded. Must run
     # after Qt is initialized to avoid segfaults.
     try:
-        from spyder.utils.theme_manager import theme_manager
+        from spyder.utils.theme_manager import THEME_MANAGER
         from spyder.config.manager import CONF
         from spyder.config.base import _is_conf_ready
         if _is_conf_ready():
@@ -302,7 +301,7 @@ def create_application():
             # resources)
             selected = CONF.get('appearance', 'selected',
                                 default='spyder_themes.spyder/dark')
-            resolved = theme_manager.canonical_theme_variant_id(selected)
+            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set('appearance', 'selected', resolved)
             selected = resolved
@@ -310,12 +309,12 @@ def create_application():
                 theme_name, ui_mode = selected.rsplit('/', 1)
                 # Load theme stylesheet and queue resources for loading.
                 try:
-                    theme_manager.load_theme(theme_name, ui_mode)
+                    THEME_MANAGER.load_theme(theme_name, ui_mode)
                 except Exception:
                     pass
         # Load any pending theme resources that were deferred during
         # initialization
-        theme_manager.load_pending_resources()
+        THEME_MANAGER.load_pending_resources()
     except Exception:
         # If loading theme fails, continue anyway - will fall back to default
         pass

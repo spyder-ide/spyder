@@ -31,7 +31,7 @@ from spyder.config.gui import get_font, set_font
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, theme_manager
+from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 from spyder.utils.stylesheet import AppStyle
 from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
@@ -57,18 +57,18 @@ class AppearanceConfigPage(PluginConfigPage):
         CONF.restore_notifications(section='appearance', option='selected')
 
         try:
-            for variant_name in theme_manager.get_available_theme_variants():
+            for variant_name in THEME_MANAGER.get_available_theme_variants():
                 try:
                     CONF.get("appearance", f"{variant_name}/name")
                 except Exception:
-                    display_name = theme_manager.get_theme_display_name(
+                    display_name = THEME_MANAGER.get_theme_display_name(
                         variant_name)
                     CONF.set("appearance",
                              f"{variant_name}/name", display_name)
 
             selected = CONF.get("appearance", "selected",
                                 default="spyder_themes.spyder/dark")
-            resolved = theme_manager.canonical_theme_variant_id(selected)
+            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set("appearance", "selected", resolved)
                 selected = resolved
@@ -76,7 +76,7 @@ class AppearanceConfigPage(PluginConfigPage):
                 try:
                     CONF.get("appearance", f"{selected}/name")
                 except Exception:
-                    display_name = theme_manager.get_theme_display_name(
+                    display_name = THEME_MANAGER.get_theme_display_name(
                         selected)
                     CONF.set("appearance", f"{selected}/name", display_name)
         except Exception:
@@ -87,7 +87,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
         Excludes placeholder ``Custom`` when present.
         """
-        names = list(theme_manager.get_available_theme_variants())
+        names = list(THEME_MANAGER.get_available_theme_variants())
         try:
             names.remove("Custom")
         except ValueError:
@@ -103,18 +103,18 @@ class AppearanceConfigPage(PluginConfigPage):
                 pass
 
     def setup_page(self):
-        for variant_name in theme_manager.get_available_theme_variants():
+        for variant_name in THEME_MANAGER.get_available_theme_variants():
             try:
                 CONF.get("appearance", f"{variant_name}/name")
             except Exception:
-                display_name = theme_manager.get_theme_display_name(
+                display_name = THEME_MANAGER.get_theme_display_name(
                     variant_name)
                 CONF.set("appearance", f"{variant_name}/name", display_name)
 
         # Ensure every variant has full syntax keys in config so scheme editor
         # stacks can be built (only fills missing keys; see ThemeManager).
         try:
-            theme_manager.export_all_themes_to_config()
+            THEME_MANAGER.export_all_themes_to_config()
         except Exception:
             pass
 
@@ -470,7 +470,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.schemes_combobox.blockSignals(True)
 
         # Use theme manager to get available themes dynamically
-        names = theme_manager.get_available_theme_variants()
+        names = THEME_MANAGER.get_available_theme_variants()
         try:
             names.pop(names.index(u'Custom'))
         except ValueError:
@@ -486,7 +486,7 @@ class AppearanceConfigPage(PluginConfigPage):
             try:
                 display_name = str(self.get_option('{0}/name'.format(name)))
             except Exception:
-                display_name = theme_manager.get_theme_display_name(name)
+                display_name = THEME_MANAGER.get_theme_display_name(name)
 
             # Add to dictionary and combobox
             self.scheme_choices_dict[display_name] = name
@@ -591,7 +591,7 @@ class AppearanceConfigPage(PluginConfigPage):
         if scheme in names:
             try:
                 theme_name, ui_mode = scheme.rsplit('/', 1)
-                theme_manager.export_theme_to_config(
+                THEME_MANAGER.export_theme_to_config(
                     theme_name, ui_mode, replace=True
                 )
             except Exception:

@@ -745,4 +745,4 @@ class ThemeManager(SpyderConfigurationAccessor):
 
 
 # Global theme manager instance
-theme_manager = ThemeManager()
+THEME_MANAGER = ThemeManager()

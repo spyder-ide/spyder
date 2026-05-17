@@ -23,7 +23,7 @@ from qtpy.QtWidgets import (
 
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, theme_manager
+from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 
 
 class SchemeEditor(QDialog):
@@ -145,7 +145,7 @@ class SchemeEditor(QDialog):
         # Themes store a ``name`` field in config; default when missing comes
         # from the theme manager display name.
         try:
-            default_name = theme_manager.get_theme_display_name(scheme_name)
+            default_name = THEME_MANAGER.get_theme_display_name(scheme_name)
         except Exception:
             # Fallback to scheme_name if we can't get display name
             default_name = scheme_name
@@ -186,7 +186,7 @@ class SchemeEditor(QDialog):
                 return self.parent.get_option(opt)
             except Exception:
                 if resolved is None:
-                    resolved = theme_manager.get_color_scheme(scheme_name)
+                    resolved = THEME_MANAGER.get_color_scheme(scheme_name)
                 return resolved[k]
 
         for index, item in enumerate[tuple[str, list[str]]](
@@ -252,7 +252,7 @@ class SchemeEditor(QDialog):
             display = str(parent.get_option(name_opt))
         except Exception:
             try:
-                display = theme_manager.get_theme_display_name(scheme_name)
+                display = THEME_MANAGER.get_theme_display_name(scheme_name)
             except Exception:
                 display = scheme_name
         self.scheme_name_textbox[scheme_name].setText(display)

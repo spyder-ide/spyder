@@ -44,7 +44,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
 from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 @flaky(max_runs=3)
@@ -449,7 +449,7 @@ def test_console_coloring(ipyconsole, qtbot):
 
     selected_color_scheme = ipyconsole.get_conf(
         'selected', section='appearance')
-    color_scheme = theme_manager.get_color_scheme(selected_color_scheme)
+    color_scheme = THEME_MANAGER.get_color_scheme(selected_color_scheme)
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]
 

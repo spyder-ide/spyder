@@ -48,7 +48,7 @@ from spyder.utils.programs import (
     is_program_installed,
     find_program
 )
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -635,7 +635,7 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             ),
             "interface_theme": (
                 # FIXME
-                "dark" if theme_manager.is_dark_interface() else "light"
+                "dark" if THEME_MANAGER.is_dark_interface() else "light"
             ),
             "icon_color": SpyderPalette.ICON_1,
         }

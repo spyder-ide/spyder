@@ -52,7 +52,7 @@ from spyder.config.gui import get_font
 from spyder.config.user import NoDefault
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 # Package imports
 from spyder.api.plugins.enum import Plugins
@@ -1118,7 +1118,7 @@ class SpyderPluginV2(
         if self._conf is None:
             return None
 
-        return theme_manager.get_color_scheme(
+        return THEME_MANAGER.get_color_scheme(
             self._conf.get("appearance", "selected")
         )
 

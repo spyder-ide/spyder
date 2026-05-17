@@ -166,17 +166,17 @@ def main():
     # Don't export all themes at startup as it loads all theme resources unnecessarily
     if _is_conf_ready():
         try:
-            from spyder.utils.theme_manager import theme_manager
+            from spyder.utils.theme_manager import THEME_MANAGER
             # Get the selected theme and export only that one
             selected = CONF.get('appearance', 'selected', default='spyder_themes.spyder/dark')
-            resolved = theme_manager.canonical_theme_variant_id(selected)
+            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
             if resolved != selected:
                 CONF.set('appearance', 'selected', resolved)
             selected = resolved
             if '/' in selected:
                 theme_name, ui_mode = selected.rsplit('/', 1)
                 # Only fill missing syntax keys; do not overwrite user overrides
-                theme_manager.export_theme_to_config(theme_name, ui_mode, replace=False)
+                THEME_MANAGER.export_theme_to_config(theme_name, ui_mode, replace=False)
         except Exception as e:
             # Don't fail startup if theme export fails, but log it
             import logging

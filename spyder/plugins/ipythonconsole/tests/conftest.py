@@ -29,7 +29,7 @@ from spyder.plugins.debugger.plugin import Debugger
 from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 # =============================================================================
@@ -59,7 +59,7 @@ def pytest_runtest_makereport(item, call):
 # =============================================================================
 def get_console_font_color(syntax_style):
     styles = create_style_class(
-        theme_manager.get_color_scheme(syntax_style)
+        THEME_MANAGER.get_color_scheme(syntax_style)
     ).styles
     font_color = styles[Name]
     return font_color

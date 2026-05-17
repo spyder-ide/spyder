@@ -20,7 +20,7 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
 from spyder.utils.palette import SpyderPalette
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 # =============================================================================
 # ---- Constants
@@ -159,11 +159,11 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
         # Base string comes from the active theme package
         stylesheet = ""
         try:
-            theme_stylesheet = theme_manager.get_current_stylesheet()
+            theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
             if not theme_stylesheet:
                 # Theme may not be registered until SpyderPalette is resolved.
                 _ = SpyderPalette
-                theme_stylesheet = theme_manager.get_current_stylesheet()
+                theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
             if theme_stylesheet:
                 stylesheet = theme_stylesheet
         except Exception:
@@ -605,7 +605,7 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         css['QTabBar::tab:selected'].setValues(
             color=(
                 SpyderPalette.COLOR_TEXT_1
-                if theme_manager.is_dark_interface()
+                if THEME_MANAGER.is_dark_interface()
                 else SpyderPalette.COLOR_BACKGROUND_1
             ),
             backgroundColor=SpyderPalette.SPECIAL_TABS_SELECTED,

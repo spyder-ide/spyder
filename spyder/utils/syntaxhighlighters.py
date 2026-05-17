@@ -33,7 +33,7 @@ from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qstringhelpers import qstring_length
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 import logging
 logger = logging.getLogger(__name__)
@@ -145,7 +145,7 @@ class BaseSH(QSyntaxHighlighter):
 
         self.font = font
         if isinstance(color_scheme, str):
-            self.color_scheme = theme_manager.get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -247,7 +247,7 @@ class BaseSH(QSyntaxHighlighter):
 
     def set_color_scheme(self, color_scheme):
         if isinstance(color_scheme, str):
-            self.color_scheme = theme_manager.get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 

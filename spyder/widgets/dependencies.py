@@ -24,7 +24,7 @@ from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.stylesheet import AppStyle, MAC, WIN
 from spyder.widgets.emptymessage import EmptyMessageWidget
-from spyder.utils.theme_manager import theme_manager
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 class DependenciesTreeWidget(QTreeWidget):
@@ -67,7 +67,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setBackground(2, QColor(SpyderPalette.COLOR_WARN_1))
 
                 # Fix foreground color in the light theme
-                if not theme_manager.is_dark_interface():
+                if not THEME_MANAGER.is_dark_interface():
                     item.setForeground(
                         2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )
@@ -76,7 +76,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setBackground(2, QColor(SpyderPalette.COLOR_ERROR_1))
 
                 # Fix foreground color in the light theme
-                if not theme_manager.is_dark_interface():
+                if not THEME_MANAGER.is_dark_interface():
                     item.setForeground(
                         2, QColor(SpyderPalette.COLOR_BACKGROUND_1)
                     )
