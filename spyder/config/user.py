@@ -533,8 +533,11 @@ class UserConfig(DefaultsConfig):
             # Some INI rows store a Python-quoted string (e.g. ``'#aabbcc'``)
             # for a color so ``#`` is not parsed as a comment. Unwrap one level
             # so callers get a plain ``#...`` hex string.
-            if isinstance(value, str) and len(
-                    value) >= 4 and value[0] in '\'"':
+            if (
+                isinstance(value, str)
+                and len(value) >= 4
+                and value[0] in '\'"'
+            ):
                 try:
                     ev = ast.literal_eval(value)
                     if isinstance(ev, str) and ev.startswith('#'):
