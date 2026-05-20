@@ -26,10 +26,9 @@ from qtpy.QtWidgets import (
 from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.preferences import PluginConfigPage
 from spyder.api.translations import _
-from spyder.config.gui import get_font, set_font
-
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
+from spyder.utils.fonts import get_font, set_font
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 from spyder.utils.stylesheet import AppStyle

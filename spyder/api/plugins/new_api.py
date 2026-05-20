@@ -48,8 +48,8 @@ from spyder.api.plugin_registration.mixins import SpyderPluginObserver
 from spyder.api.widgets.main_widget import PluginMainWidget
 from spyder.api.widgets.mixins import SpyderActionMixin, SpyderWidgetMixin
 from spyder.app.cli_options import get_options
-from spyder.config.gui import get_font
 from spyder.config.user import NoDefault
+from spyder.utils.fonts import get_font
 from spyder.utils.icon_manager import ima
 from spyder.utils.image_path_manager import IMAGE_PATH_MANAGER
 from spyder.utils.theme_manager import THEME_MANAGER
