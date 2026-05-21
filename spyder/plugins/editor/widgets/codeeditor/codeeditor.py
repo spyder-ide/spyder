@@ -89,6 +89,9 @@ from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
     MultiCursorMixin
 )
+from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+    EditsStackMixin,
+)
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.utils import encoding, sourcecode
@@ -141,7 +144,11 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, MultiCursorMixin, InlineCompletionsMixin, TextEditBaseWidget
+    LSPMixin,
+    EditsStackMixin,
+    TextEditBaseWidget,
+    MultiCursorMixin,
+    InlineCompletionsMixin,
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -287,6 +294,7 @@ class CodeEditor(
         ) = None,
     ):
         TextEditBaseWidget.__init__(self, parent, class_parent=parent)
+        EditsStackMixin.__init__(self)  # load after text edit (requires document)
         InlineCompletionsMixin.__init__(self)
         LSPMixin.__init__(self)
 

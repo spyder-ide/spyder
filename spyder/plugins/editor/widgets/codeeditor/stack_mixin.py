@@ -344,8 +344,7 @@ class EditsStackMixin(TextEditBaseWidget):
     """
     sig_document_change = Signal(EditBlock)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
         self._undo_stack = QUndoStack(self)
         self._text_version = 0
         self._undo_recording_depth = 0
