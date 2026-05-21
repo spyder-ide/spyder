@@ -196,6 +196,8 @@ class ProjectExplorerWidget(PluginMainWidget):
         self.treewidget.setup_view()
         self.treewidget.sig_open_file_requested.connect(
             self.sig_open_file_requested)
+        # TODO: Should treewidget and remotetreewidget be added via this method
+        # or a stackwidget that handles them should be created?
         self.set_content_widget(self.treewidget)
 
         # -- Watcher
@@ -873,6 +875,7 @@ class ProjectExplorerWidget(PluginMainWidget):
     # -------------------------------------------------------------------------
     def _set_project_dir(self, directory):
         """Set the project directory"""
+        # TODO: Should check if directory is remote and use/create appropiate widget?
         if directory is not None:
             self.treewidget.set_root_path(osp.dirname(directory))
             self.treewidget.set_folder_names([osp.basename(directory)])
