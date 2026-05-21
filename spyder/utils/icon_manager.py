@@ -108,22 +108,23 @@ class IconManager():
         }
 
         self.ICON_COLORS = {
-            'ICON_1':            SpyderPalette.ICON_1,
-            'ICON_2':            SpyderPalette.ICON_2,
-            'ICON_3':            SpyderPalette.ICON_3,
-            'ICON_4':            SpyderPalette.ICON_4,
-            'ICON_5':            SpyderPalette.ICON_5,
-            'ICON_6':            SpyderPalette.ICON_6,
-            'ICON_7':            SpyderPalette.ICON_7,
-            'SPYDER_LOGO_WEB':   SpyderPalette.SPYDER_LOGO_WEB,
-            'SPYDER_LOGO_SNAKE': SpyderPalette.SPYDER_LOGO_SNAKE,
+            'ICON_1':                 SpyderPalette.ICON_1,
+            'ICON_2':                 SpyderPalette.ICON_2,
+            'ICON_3':                 SpyderPalette.ICON_3,
+            'ICON_4':                 SpyderPalette.ICON_4,
+            'ICON_5':                 SpyderPalette.ICON_5,
+            'ICON_6':                 SpyderPalette.ICON_6,
+            'ICON_7':                 SpyderPalette.ICON_7,
+            'SPYDER_LOGO_WEB':        SpyderPalette.SPYDER_LOGO_WEB,
+            'SPYDER_LOGO_SNAKE':      SpyderPalette.SPYDER_LOGO_SNAKE,
+            'SPYDER_LOGO_BACKGROUND': SpyderPalette.SPYDER_LOGO_BACKGROUND,
             # Connection status colors
-            'active':            SpyderPalette.COLOR_SUCCESS_3,
-            'inactive':          SpyderPalette.COLOR_OCCURRENCE_5,
-            'error':             SpyderPalette.COLOR_ERROR_2,
-            'connecting':        SpyderPalette.COLOR_WARN_4,
-            # Empty-pane illustrations
-            'COLOR_ACCENT_2':    SpyderPalette.COLOR_ACCENT_2,
+            'active':                 SpyderPalette.COLOR_SUCCESS_3,
+            'inactive':               SpyderPalette.COLOR_OCCURRENCE_5,
+            'error':                  SpyderPalette.COLOR_ERROR_2,
+            'connecting':             SpyderPalette.COLOR_WARN_4,
+            # Empty-pane color
+            'empty_pane':             SpyderPalette.COLOR_ACCENT_2,
         }
 
         # Cache for processed icons
