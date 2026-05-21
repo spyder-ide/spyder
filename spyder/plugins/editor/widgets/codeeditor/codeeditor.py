@@ -2171,22 +2171,19 @@ class CodeEditor(
         """
         Reimplementation of undo with additional functionality.
 
-        For instance, this decreases the ``text_version`` number and emits some
-        required signals.
-
         Parameters
         ----------
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
-        if self.document().isUndoAvailable():
+        # Flush pending edits to undo immediately
+        self._commit_pending_edit()
+        if self.undo_stack.canUndo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
-
-            self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
-            TextEditBaseWidget.undo(self)
+            self.undo_stack.undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2195,11 +2192,11 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
-        if self.document().isRedoAvailable():
-            self.text_version += 1
+        self._commit_pending_edit()
+        if self.undo_stack.canRedo():
             self.skip_rstrip = True
             self.is_redoing = True
-            TextEditBaseWidget.redo(self)
+            self.undo_stack.redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
