@@ -1101,8 +1101,8 @@ class EditorMainWidget(PluginMainWidget):
                 not_readonly = not editor.isReadOnly()
 
                 # Undo, redo
-                undo_action_enabled = editor.document().isUndoAvailable()
-                redo_action_enabled = editor.document().isRedoAvailable()
+                undo_action_enabled = editor.undo_stack.canUndo()
+                redo_action_enabled = editor.undo_stack.canRedo()
 
         # Copy, cut, paste, select all
         copy_action_enabled = has_selection
