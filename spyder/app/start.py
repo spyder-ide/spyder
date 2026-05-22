@@ -183,9 +183,8 @@ def main():
                 theme_name, ui_mode, replace=False
             )
     except Exception as e:
-        # Don't fail startup if theme export fails, but log it
-        logger = logging.getLogger(__name__)
-        logger.warning(
+        # Don't fail startup if theme export fails, but print message
+        print(
             f"Failed to export selected theme to config during startup: {e}"
         )
 

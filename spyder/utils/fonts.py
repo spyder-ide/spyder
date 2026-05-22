@@ -5,13 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder GUI-related configuration management
-(for non-GUI configuration, see spyder/config/base.py)
-
-Important note regarding shortcuts:
-    For compatibility with QWERTZ keyboards, one must avoid using the following
-    shortcuts:
-        Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
+Utilities for fonts.
 """
 
 # Third party imports
