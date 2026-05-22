@@ -10,7 +10,6 @@ import configparser
 import sys
 
 import qstylizer.style
-from qtconsole.styles import dark_color
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
@@ -51,35 +50,35 @@ class AppearanceConfigPage(PluginConfigPage):
         super().__init__(plugin, parent)
         self._is_shown = False
 
-        # Notifications for this option are disabled when the plugin is
-        # initialized, so we need to restore them here.
-        CONF.restore_notifications(section='appearance', option='selected')
+        self._theme_changed_during_apply = False
+        self.pre_apply_callback = self.check_theme_changed
+        self.apply_callback = self.apply_theme_changes
 
-        try:
-            for variant_name in THEME_MANAGER.get_available_theme_variants():
-                try:
-                    CONF.get("appearance", f"{variant_name}/name")
-                except Exception:
-                    display_name = THEME_MANAGER.get_theme_display_name(
-                        variant_name)
-                    CONF.set("appearance",
-                             f"{variant_name}/name", display_name)
+        for variant_name in THEME_MANAGER.get_available_theme_variants():
+            try:
+                self.get_option(f"{variant_name}/name")
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(
+                    variant_name
+                )
+                self.set_option(f"{variant_name}/name", display_name)
 
-            selected = CONF.get("appearance", "selected",
-                                default="spyder_themes.spyder/dark")
-            resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
-            if resolved != selected:
-                CONF.set("appearance", "selected", resolved)
-                selected = resolved
-            if selected and "/" in selected:
-                try:
-                    CONF.get("appearance", f"{selected}/name")
-                except Exception:
-                    display_name = THEME_MANAGER.get_theme_display_name(
-                        selected)
-                    CONF.set("appearance", f"{selected}/name", display_name)
-        except Exception:
-            pass
+        selected = self.get_option(
+            "selected", default="spyder_themes.spyder/dark"
+        )
+        resolved = THEME_MANAGER.canonical_theme_variant_id(selected)
+        if resolved != selected:
+            self.set_option("selected", resolved)
+            selected = resolved
+
+        if selected and "/" in selected:
+            try:
+                self.get_option(f"{selected}/name")
+            except configparser.NoOptionError:
+                display_name = THEME_MANAGER.get_theme_display_name(
+                    selected
+                )
+                self.set_option(f"{selected}/name", display_name)
 
     def _builtin_theme_variants(self):
         """Registered theme variant ids.
@@ -87,38 +86,37 @@ class AppearanceConfigPage(PluginConfigPage):
         Excludes placeholder ``Custom`` when present.
         """
         names = list(THEME_MANAGER.get_available_theme_variants())
+
         try:
             names.remove("Custom")
         except ValueError:
             pass
+
         return names
 
     def _remove_temp_syntax_options(self):
         """Drop legacy ``temp/...`` syntax keys (preview scratch space)."""
         for key in COLOR_SCHEME_KEYS:
             try:
-                CONF.remove_option(self.CONF_SECTION, f"temp/{key}")
+                self.remove_option(f"temp/{key}")
             except Exception:
                 pass
 
     def setup_page(self):
         for variant_name in THEME_MANAGER.get_available_theme_variants():
             try:
-                CONF.get("appearance", f"{variant_name}/name")
-            except Exception:
+                self.get_option(f"{variant_name}/name")
+            except configparser.NoOptionError:
                 display_name = THEME_MANAGER.get_theme_display_name(
-                    variant_name)
-                CONF.set("appearance", f"{variant_name}/name", display_name)
+                    variant_name
+                )
+                self.set_option(f"{variant_name}/name", display_name)
 
         # Ensure every variant has full syntax keys in config so scheme editor
         # stacks can be built (only fills missing keys; see ThemeManager).
-        try:
-            THEME_MANAGER.export_all_themes_to_config()
-        except Exception:
-            pass
+        THEME_MANAGER.export_all_themes_to_config()
 
         names = self._builtin_theme_variants()
-
         self._remove_temp_syntax_options()
 
         # UI theme options
@@ -136,8 +134,11 @@ class AppearanceConfigPage(PluginConfigPage):
 
         self.scheme_choices_dict = {}
         schemes_combobox_widget = self.create_combobox(
-            '', [('', '')], 'selected', items_elide_mode=Qt.ElideNone,
-            restart=True
+            '',
+            [('', '')],
+            'selected',
+            items_elide_mode=Qt.ElideNone,
+            restart=True,
         )
         self.schemes_combobox = schemes_combobox_widget.combobox
 
@@ -339,88 +340,30 @@ class AppearanceConfigPage(PluginConfigPage):
             for plugin in plugins:
                 plugin.update_font()
 
-    def apply_changes(self):
-        """Override to check if theme actually changed before restart check."""
-        if self.is_modified:
-            # Check if theme actually changed BEFORE saving/apply_settings
-            # This must be done before save_to_conf() or apply_settings()
-            # modifies the saved value
-            current_scheme = self.current_scheme
-            saved_scheme = self.get_option('selected', default='')
-            theme_changed = (current_scheme != saved_scheme)
+    def check_theme_changed(self):
+        """
+        Check if theme actually changed before apply_settings.
 
-            # Store theme_changed flag so apply_settings() can use it
-            # (since save_to_conf() will modify the saved value)
-            self._theme_changed_during_apply = theme_changed
+        This avoids requesting for a restart if the theme didn't actually
+        change.
+        """
+        current_scheme = self.current_scheme
+        saved_scheme = self.get_option('selected', default='')
+        theme_changed = (current_scheme != saved_scheme)
+        self._theme_changed_during_apply = theme_changed
 
-            if self.pre_apply_callback is not None:
-                self.pre_apply_callback()
-
-            self.save_to_conf()
-
-            if self.apply_callback is not None:
-                self.apply_callback()
-
-            # Since the language cannot be retrieved by CONF and the language
-            # is needed before loading CONF, this is an extra method needed to
-            # ensure that when changes are applied, they are copied to a
-            # specific file storing the language value. This only applies to
-            # the main section config.
-            if self.CONF_SECTION == 'main':
-                self._save_lang()
-
-            # Drop 'selected' from changed_options if theme did not change.
+    def apply_theme_changes(self):
+        """Apply changes to theme options."""
+        if not self._theme_changed_during_apply:
+            # Drop 'selected' from changed_options if theme didn't change.
             # Avoids restart prompt when only font or other options changed.
-            # Run right before the restart check.
-            if not theme_changed:
-                self.changed_options.discard('selected')
+            self.changed_options.discard('selected')
 
-            restart = False
-            for restart_option in self.restart_options:
-                if restart_option in self.changed_options:
-                    restart = self.prompt_restart_required()
-                    break  # Ensure a single popup is displayed
-
-            # Don't call set_modified() when restart() is called: The
-            # latter triggers closing of the application. Calling the former
-            # afterwards may result in an error because the underlying C++ Qt
-            # object of 'self' may be deleted at that point.
-            if restart:
-                self.restart()
-            else:
-                self.set_modified(False)
-
-    def apply_settings(self):
-        # Use the theme_changed flag stored in apply_changes() if available
-        # Otherwise check if theme actually changed (fallback for direct calls)
-        if hasattr(self, '_theme_changed_during_apply'):
-            theme_changed = self._theme_changed_during_apply
-            # Clear the flag after using it
-            delattr(self, '_theme_changed_during_apply')
-        else:
-            # Fallback: check if theme actually changed by comparing current vs
-            # saved value
-            current_scheme = self.current_scheme
-            saved_scheme = self.get_option('selected', default='')
-            theme_changed = (current_scheme != saved_scheme)
-
-        if theme_changed:
-            # Disable notifications to prevent immediate theme application
-            CONF.disable_notifications(section='appearance', option='selected')
-            # Note: save_to_conf() already saved the value, but we ensure
-            # notifications are disabled
-
-        self.update_combobox()
-
-        # Only update preview and fonts if theme didn't change
-        # Theme changes require restart, so skip immediate updates
-        if not theme_changed:
+            # Update preview and plugins font/color scheme
             self.update_editor_preview()
             for plugin_name in PLUGIN_REGISTRY:
                 plugin = PLUGIN_REGISTRY.get_plugin(plugin_name)
                 plugin.update_font()
-
-        return set(self.changed_options)
 
     # ---- Helpers
     # -------------------------------------------------------------------------
@@ -431,16 +374,6 @@ class AppearanceConfigPage(PluginConfigPage):
     @property
     def current_scheme(self):
         return self.scheme_choices_dict[self.current_scheme_name]
-
-    @property
-    def current_scheme_index(self):
-        return self.schemes_combobox.currentIndex()
-
-    @property
-    def current_ui_theme_index(self):
-        # No longer have separate UI theme combobox
-        # UI mode is derived from selected theme variant
-        return 0  # Placeholder for backward compatibility
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -461,10 +394,11 @@ class AppearanceConfigPage(PluginConfigPage):
     # ---- Update contents
     # -------------------------------------------------------------------------
     def update_combobox(self):
-        """Recreates the combobox contents."""
+        """Populate the combobox contents."""
         # Save currently selected theme (not index, since order may change)
         current_scheme = self.get_option(
-            'selected', default='spyder_themes.spyder/dark')
+            'selected', default='spyder_themes.spyder/dark'
+        )
 
         self.schemes_combobox.blockSignals(True)
 
@@ -484,7 +418,7 @@ class AppearanceConfigPage(PluginConfigPage):
             # Get display name (from config or generate it)
             try:
                 display_name = str(self.get_option('{0}/name'.format(name)))
-            except Exception:
+            except configparser.NoOptionError:
                 display_name = THEME_MANAGER.get_theme_display_name(name)
 
             # Add to dictionary and combobox
@@ -493,11 +427,13 @@ class AppearanceConfigPage(PluginConfigPage):
 
         # Find and select the current theme (by value, not index)
         index = combobox.findData(current_scheme)
+
+        # Theme not found, default to bundled dark variant
         if index == -1:
-            # Theme not found, default to bundled dark variant
             index = combobox.findData('spyder_themes.spyder/dark')
+
+        # Still not found, just use first item
         if index == -1:
-            # Still not found, just use first item
             index = 0
 
         self.schemes_combobox.blockSignals(False)
@@ -550,14 +486,13 @@ class AppearanceConfigPage(PluginConfigPage):
     # ---- Actions
     # -------------------------------------------------------------------------
     def on_scheme_changed(self):
-        """Handle scheme selection change - update preview only."""
-        try:
-            # Only update the preview, don't save to config yet
-            # The theme will be saved when user clicks Apply/OK
-            self.update_editor_preview()
-        except Exception:
-            # Ignore errors during initialization
-            pass
+        """
+        Handle scheme selection change.
+
+        Only update the preview, don't save to config yet. The theme will be
+        saved when user clicks Apply/OK.
+        """
+        self.update_editor_preview()
 
     def edit_scheme(self):
         """Edit current scheme."""
@@ -567,8 +502,7 @@ class AppearanceConfigPage(PluginConfigPage):
 
         if dlg.exec_():
             # Syntax values stay in widgets and ``changed_options`` until the
-            # user clicks **Apply** (or **OK** on Preferences), which runs
-            # :meth:`save_to_conf` / ``apply_changes``.
+            # user clicks Apply or OK, which runs save_to_conf/apply_changes.
             self._remove_temp_syntax_options()
             self.scheme_choices_dict.pop("temp", None)
             self.update_editor_preview()
@@ -600,13 +534,3 @@ class AppearanceConfigPage(PluginConfigPage):
                     self.set_option(option, value)
 
             self.load_from_conf()
-
-    def is_dark_interface(self):
-        """
-        Check if our interface is dark independently from our config
-        system.
-
-        We need to do this because when applying settings we can't
-        detect correctly the current theme.
-        """
-        return dark_color(SpyderPalette.COLOR_BACKGROUND_1)
