@@ -124,7 +124,7 @@ class IconManager():
             'error':                  SpyderPalette.COLOR_ERROR_2,
             'connecting':             SpyderPalette.COLOR_WARN_4,
             # Empty-pane color
-            'empty_pane':             SpyderPalette.COLOR_ACCENT_2,
+            'empty_pane':             SpyderPalette.COLOR_EMPTY,
         }
 
         # Cache for processed icons
