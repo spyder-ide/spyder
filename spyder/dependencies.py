@@ -283,7 +283,7 @@ DESCRIPTIONS = [
      'required_version': SPYDER_KERNELS_REQVER},
     {'modname': "spyder_themes",
      'package_name': "spyder-themes",
-     'features': _("Theme support for the entire interface"),
+     'features': _("Graphical themes for the entire application"),
      'required_version': SPYDER_THEMES_REQVER},
      {'modname': "superqt",
      'package_name': "superqt",
