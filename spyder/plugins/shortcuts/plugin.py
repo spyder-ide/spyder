@@ -49,9 +49,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     """
 
     NAME = 'shortcuts'
-    # Shortcuts should load after Application
-    REQUIRES = [Plugins.Preferences, Plugins.Application]
-    OPTIONAL = [Plugins.MainMenu]
+    REQUIRES = [Plugins.MainMenu, Plugins.Preferences]
     CONF_WIDGET_CLASS = ShortcutsConfigPage
     CONF_SECTION = NAME
     CONF_FILE = False

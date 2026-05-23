@@ -38,7 +38,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
-from spyder.config.manager import CONF
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
@@ -388,9 +387,9 @@ class EditorStack(QWidget, SpyderWidgetMixin):
 
         # Get color scheme from config
         self.color_scheme = self.get_conf(
-            'selected',
-            default='spyder_themes.spyder/dark',
-            section = 'appearance'
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
         )
 
         # Real-time code analysis

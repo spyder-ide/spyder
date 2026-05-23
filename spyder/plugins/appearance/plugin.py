@@ -51,7 +51,6 @@ class Appearance(SpyderPluginV2):
         return cls.create_icon('eyedropper')
 
     def on_initialize(self):
-        """Satisfy SpyderPluginV2 (required by base class)."""
         pass
 
     @on_plugin_available(plugin=Plugins.Preferences)

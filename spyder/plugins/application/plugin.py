@@ -52,8 +52,7 @@ from spyder.utils.qthelpers import add_actions
 
 class Application(SpyderPluginV2):
     NAME = 'application'
-    # Application should load after Appearance
-    REQUIRES = [Plugins.Console, Plugins.Preferences, Plugins.Appearance]
+    REQUIRES = [Plugins.Console, Plugins.Preferences]
     OPTIONAL = [
         Plugins.Editor,
         Plugins.Help,

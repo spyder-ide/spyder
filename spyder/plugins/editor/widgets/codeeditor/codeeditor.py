@@ -382,9 +382,9 @@ class CodeEditor(
         self.highlighter_class = sh.TextSH
         self.highlighter = None
         self.color_scheme = self.get_conf(
-            'selected',
-            default='spyder_themes.spyder/dark',
-            section = 'appearance'
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
         )
         self.highlight_current_line_enabled = False
 
@@ -2828,7 +2828,7 @@ class CodeEditor(
 
             if prevtext.endswith((':', '\\')):
                 # Presume a block was started
-                line_in_block = True # add one level of indent to correct_indent
+                line_in_block = True  # add one level of indent to correct_indent
                 # Does this variable actually do *anything* of relevance?
                 # comment_or_string = True
 
@@ -2981,7 +2981,7 @@ class CodeEditor(
             self.insertPlainText(nbformat.writes(nb))
             self.skip_rstrip = False
         except Exception as e:
-            QMessageBox.critical(self, _('Removal error'), 
+            QMessageBox.critical(self, _('Removal error'),
                            _("It was not possible to remove outputs from "
                              "this notebook. The error is:\n\n") + \
                              str(e))
