@@ -10,14 +10,15 @@ import configparser
 import sys
 
 import qstylizer.style
-from qtpy.QtCore import Qt, Slot
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
     QFontComboBox,
     QGridLayout,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
-    QPushButton,
+    QMessageBox,
     QStackedWidget,
     QVBoxLayout,
 )
@@ -28,6 +29,7 @@ from spyder.api.translations import _
 from spyder.config.manager import CONF
 from spyder.plugins.appearance.widgets import SchemeEditor
 from spyder.utils.fonts import get_font, set_font
+from spyder.utils.icon_manager import ima
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 from spyder.utils.stylesheet import AppStyle
@@ -123,8 +125,16 @@ class AppearanceConfigPage(PluginConfigPage):
         ui_group = QGroupBox(_("Interface Theme"))
 
         # UI theme Widgets
-        edit_button = QPushButton(_("Edit selected syntax theme"))
-        self.reset_button = QPushButton(_("Reset to defaults"))
+        edit_button = self.create_button(
+            icon=ima.icon("edit"),
+            callback=self.edit_scheme,
+            tooltip=_("Edit syntax highlighting colors"),
+        )
+        self.reset_button = self.create_button(
+            icon=ima.icon("restart"),
+            callback=self.reset_to_default,
+            tooltip=_("Reset customized colors to defaults"),
+        )
 
         self.stacked_widget = QStackedWidget(self)
         self.scheme_editor_dialog = SchemeEditor(
@@ -143,18 +153,20 @@ class AppearanceConfigPage(PluginConfigPage):
         self.schemes_combobox = schemes_combobox_widget.combobox
 
         # UI theme layout
-        ui_layout = QGridLayout(ui_group)
+        ui_layout = QVBoxLayout(ui_group)
         if sys.platform == "darwin":
             # Default spacing is too big on Mac
             ui_layout.setVerticalSpacing(2 * AppStyle. MarginSize)
 
-        btns = [self.schemes_combobox, edit_button, self.reset_button]
-        for i, btn in enumerate(btns):
-            ui_layout.addWidget(btn, i, 1)
-        ui_layout.setColumnStretch(0, 1)
-        ui_layout.setColumnStretch(1, 2)
-        ui_layout.setColumnStretch(2, 1)
-        ui_layout.setContentsMargins(0, 12, 0, 12)
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(edit_button)
+        buttons_layout.addWidget(self.reset_button)
+        buttons_layout.addStretch()
+
+        ui_layout.addWidget(self.schemes_combobox)
+        ui_layout.addLayout(buttons_layout)
+        ui_layout.setContentsMargins(12, 12, 12, 12)
 
         # Fonts options
         fonts_group = QGroupBox(_("Fonts"))
@@ -264,8 +276,6 @@ class AppearanceConfigPage(PluginConfigPage):
         self.setLayout(final_layout)
 
         # Signals and slots
-        edit_button.clicked.connect(self.edit_scheme)
-        self.reset_button.clicked.connect(self.reset_to_default)
         self.schemes_combobox.currentIndexChanged.connect(
             lambda index: self.update_editor_preview()
         )
@@ -514,9 +524,20 @@ class AppearanceConfigPage(PluginConfigPage):
         dlg = self.scheme_editor_dialog
         dlg.set_scheme(scheme_name)
 
-    @Slot()
     def reset_to_default(self):
         """Restore initial values for default color schemes."""
+        answer = QMessageBox.question(
+            self,
+            _("Reset to defaults"),
+            _(
+                "Do you want to reset all syntax highlighting colors to "
+                "default values?"
+            )
+        )
+
+        if answer == QMessageBox.No:
+            return
+
         # Checks that this is indeed a default scheme
         scheme = self.current_scheme
         names = self._builtin_theme_variants()
