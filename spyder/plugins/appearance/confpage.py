@@ -202,7 +202,7 @@ class AppearanceConfigPage(PluginConfigPage):
         # Preview widgets
         preview_editor_label = QLabel(_("Editor"))
         self.preview_editor = SimpleCodeEditor(self)
-        self.preview_editor.setFixedWidth(260)
+        self.preview_editor.setFixedSize(260, 280)
         self.preview_editor.set_language('Python')
         self.preview_editor.set_text(PREVIEW_TEXT)
         self.preview_editor.set_blanks_enabled(False)
@@ -240,8 +240,9 @@ class AppearanceConfigPage(PluginConfigPage):
 
         fonts_layout = QVBoxLayout()
         fonts_layout.addLayout(fonts_grid_layout)
-        fonts_layout.addSpacing(5)
+        fonts_layout.addSpacing(3)
         fonts_layout.addWidget(system_font_checkbox)
+        fonts_layout.addStretch()
 
         fonts_group.setLayout(fonts_layout)
 
@@ -249,6 +250,7 @@ class AppearanceConfigPage(PluginConfigPage):
         options_layout = QVBoxLayout()
         options_layout.addWidget(ui_group)
         options_layout.addWidget(fonts_group)
+        options_layout.addStretch()
 
         # Right previews layout
         preview_group = QGroupBox(_("Previews"))
