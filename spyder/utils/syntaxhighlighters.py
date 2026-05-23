@@ -35,9 +35,6 @@ from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.utils.theme_manager import THEME_MANAGER
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 # =============================================================================
 # Constants
@@ -88,9 +85,6 @@ def get_span(match, key=None):
     start16 = qstring_length(match.string[:start])
     end16 = start16 + qstring_length(match.string[start:end])
     return start16, end16
-
-
-
 
 
 def any(name, alternates):
