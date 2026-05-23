@@ -16,17 +16,19 @@ from qtpy.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QMessageBox,
     QVBoxLayout,
     QWidget,
 )
 
+from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 
 
-class SchemeEditor(QDialog):
+class SchemeEditor(QDialog, SpyderFontsMixin):
     """A color scheme editor dialog."""
 
     def __init__(self, parent=None, stack=None):
@@ -37,7 +39,6 @@ class SchemeEditor(QDialog):
 
         # Needed for self.get_edited_color_scheme()
         self.widgets = {}
-        self.scheme_name_textbox = {}
         self.last_edited_color_scheme = None
         self.last_used_scheme = None
         self.original_scheme = None
@@ -144,35 +145,22 @@ class SchemeEditor(QDialog):
 
         # Themes store a ``name`` field in config; default when missing comes
         # from the theme manager display name.
-        try:
-            default_name = THEME_MANAGER.get_theme_display_name(scheme_name)
-        except Exception:
-            # Fallback to scheme_name if we can't get display name
-            default_name = scheme_name
-
-        self.line_edit = parent.create_lineedit(
-            _("Theme name:"),
-            '{0}/name'.format(scheme_name),
-            default=default_name)
-
-        self.widgets[scheme_name] = {}
+        default_name = THEME_MANAGER.get_theme_display_name(scheme_name)
 
         # Widget setup
-        self.line_edit.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.setWindowTitle(_('Syntax highlighting theme editor'))
+        self.setWindowTitle(_('Syntax highlighting editor'))
+
+        theme_label = QLabel(default_name)
+        theme_label.setAlignment(Qt.AlignCenter)
+
+        font = self.get_font(SpyderFontType.Interface)
+        font.setPointSize(font.pointSize() + 1)
+        theme_label.setFont(font)
 
         # Layout
-        name_layout = QHBoxLayout()
-        name_layout.addWidget(self.line_edit.label)
-        name_layout.addWidget(self.line_edit.textbox)
-        self.scheme_name_textbox[scheme_name] = self.line_edit.textbox
-
-        self.line_edit.textbox.setDisabled(True)
-        if not self.isVisible():
-            self.line_edit.setVisible(False)
-
         cs_layout = QVBoxLayout()
-        cs_layout.addLayout(name_layout)
+        cs_layout.addWidget(theme_label)
+        cs_layout.addSpacing(6)
 
         h_layout = QHBoxLayout()
         v_layout = QVBoxLayout()
@@ -189,6 +177,7 @@ class SchemeEditor(QDialog):
                     resolved = THEME_MANAGER.get_color_scheme(scheme_name)
                 return resolved[k]
 
+        self.widgets[scheme_name] = {}
         for index, item in enumerate[tuple[str, list[str]]](
                 color_scheme_groups):
             group_name, keys = item
@@ -238,25 +227,13 @@ class SchemeEditor(QDialog):
         h_layout.addLayout(v_layout)
         cs_layout.addLayout(h_layout)
 
-        stackitem = QWidget()
+        stackitem = QWidget(self)
         stackitem.setLayout(cs_layout)
         self.stack.addWidget(stackitem)
         self.order.append(scheme_name)
 
     def restore_original_scheme(self, scheme_name):
         "Restores the original values of the scheme being edited."
-        parent = self.parent
-
-        name_opt = "{0}/name".format(scheme_name)
-        try:
-            display = str(parent.get_option(name_opt))
-        except Exception:
-            try:
-                display = THEME_MANAGER.get_theme_display_name(scheme_name)
-            except Exception:
-                display = scheme_name
-        self.scheme_name_textbox[scheme_name].setText(display)
-
         for key, value in self.original_scheme.items():
             if isinstance(value, tuple):
                 color = QColor()

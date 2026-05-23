@@ -327,7 +327,7 @@ class AppearanceConfigPage(PluginConfigPage):
         for name in names:
             try:
                 self.scheme_editor_dialog.add_color_scheme_stack(name)
-            except (configparser.NoOptionError, Exception):
+            except configparser.NoOptionError:
                 # Skip themes that can't be loaded
                 pass
 
