@@ -546,7 +546,11 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         this plugin to view (if it's hidden) and gives it focus (if
         possible).
         """
-        self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
+        # This is necessary to avoid an error when layouts is not ready.
+        # Fixes spyder-ide/spyder#22639
+        logger.debug(f"Switch to {plugin} while Layouts plugin is {self.layouts}")
+        if self.layouts is not None:
+            self.layouts.switch_to_plugin(plugin, force_focus=force_focus)
 
     def unmaximize_plugin(self, not_this_plugin=None):
         """
