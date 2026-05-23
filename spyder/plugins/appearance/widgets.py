@@ -6,6 +6,7 @@
 
 """Appearance entry in Preferences."""
 
+import configparser
 import re
 
 from qtpy.QtCore import Qt
@@ -165,21 +166,20 @@ class SchemeEditor(QDialog, SpyderFontsMixin):
         h_layout = QHBoxLayout()
         v_layout = QVBoxLayout()
 
-        resolved = None
-
         def value_for_key(k):
-            nonlocal resolved
+            resolved = None
+
             opt = "{0}/{1}".format(scheme_name, k)
             try:
                 return self.parent.get_option(opt)
-            except Exception:
+            except configparser.NoOptionError:
                 if resolved is None:
                     resolved = THEME_MANAGER.get_color_scheme(scheme_name)
+
                 return resolved[k]
 
         self.widgets[scheme_name] = {}
-        for index, item in enumerate[tuple[str, list[str]]](
-                color_scheme_groups):
+        for index, item in enumerate(color_scheme_groups):
             group_name, keys = item
             group_layout = QGridLayout()
 
@@ -194,7 +194,7 @@ class SchemeEditor(QDialog, SpyderFontsMixin):
                         option,
                         default=value,
                         without_layout=True,
-                        )
+                    )
                     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
                     group_layout.addWidget(label, row+1, 0)
                     group_layout.addLayout(clayout, row+1, 1)
