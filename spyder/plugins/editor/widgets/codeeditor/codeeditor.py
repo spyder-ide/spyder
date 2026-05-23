@@ -531,9 +531,39 @@ class CodeEditor(
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
-        self.current_shell = self.get_ipyconsole_instance()
+        self.current_shell = None
+        self._pdb_namespace = {}
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
+    def _ensure_shell(self):
+        
+        if self.current_shell is None:
+            self.current_shell = self.get_ipyconsole_instance()
+            self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+            self._request_namespace_update()
+        elif not self.current_shell.is_running():
+            self.current_shell = self.get_ipyconsole_instance()
+            self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+            self._request_namespace_update()
+
+    def _on_pdb_event(self, *args):
+        self._request_namespace_update()
+
+    def _request_namespace_update(self):
+        if not self.current_shell:
+            return
+
+        self.current_shell.call_kernel(
+            interrupt=True,
+            blocking=False,
+            callback=self._on_namespace_ready
+        ).get_namespace_view()    
+
+    def _on_namespace_ready(self, ns):
+        # ns is a serialized dict
+        self._pdb_namespace = ns
+
+    #--------------------------------------------------------------------------
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
         if not self._mouse_left_button_pressed:
@@ -579,19 +609,16 @@ class CodeEditor(
 
             text = self.get_word_at(pos)
             value = None
-            shell_active = (
-                            self.current_shell.kernel_client is not None and
-                            self.current_shell.kernel_client.is_alive()
-                            )
+            self._ensure_shell()
+
             if text:
                 try:
-                    if not shell_active:
-                        self.current_shell = self.get_ipyconsole_instance()
-                    if self.current_shell is not None:                        
-                        value = self.current_shell.get_value(text)
+                    if self.current_shell is not None:
+                        value = self._pdb_namespace.get(text)
                     if value is not None:
-                        self.show_tooltip(text=str(value), at_point=pos)
-                        return
+                        if self.current_shell.is_debugging():
+                            self.show_tooltip(text=f"{value['type']}: {value['view']}", at_point=pos)
+                            return
                 except Exception:
                     pass
             cursor = self.cursorForPosition(pos)
