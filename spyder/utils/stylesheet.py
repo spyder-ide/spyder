@@ -153,23 +153,17 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
     def set_stylesheet(self):
         """
-        This takes the stylesheet from the theme and applies our
+        This takes the stylesheet from the current theme and applies our
         customizations to it.
         """
         # Base string comes from the active theme package
-        stylesheet = ""
-        try:
+        theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
+        if not theme_stylesheet:
+            # Theme may not be registered until SpyderPalette is resolved.
+            _ = SpyderPalette
             theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
-            if not theme_stylesheet:
-                # Theme may not be registered until SpyderPalette is resolved.
-                _ = SpyderPalette
-                theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
-            if theme_stylesheet:
-                stylesheet = theme_stylesheet
-        except Exception:
-            stylesheet = ""
 
-        self._stylesheet = parse_stylesheet(stylesheet)
+        self._stylesheet = parse_stylesheet(theme_stylesheet)
 
         # Add our customizations
         self._customize_stylesheet()
