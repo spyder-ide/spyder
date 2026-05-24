@@ -7,6 +7,8 @@ call :redirect 2>&1 >> %PREFIX%\install.log
 @echo Environment Variables:
 set
 
+setlocal
+
 if defined CI set no_launch_spyder=true
 if "%INSTALLER_UNATTENDED%"=="1" set no_launch_spyder=true
 if "%START_SPYDER%"=="False" set no_launch_spyder=true
@@ -33,6 +35,7 @@ set tmpdir=%TMP%\spyder
 set launch_script=%tmpdir%\launch_script.bat
 
 if not exist "%tmpdir%" mkdir "%tmpdir%"
+
 (
     echo @echo off
     echo :loop
@@ -47,4 +50,10 @@ if not exist "%tmpdir%" mkdir "%tmpdir%"
     echo ^)
 ) > "%launch_script%"
 
-C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
+@rem Allow launch_script to be global
+endlocal & set "launch_script=%launch_script%"
+
+@rem Add PowerShell directory to PATH because constructor does not include it
+set "PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0"
+
+powershell -WindowStyle hidden -Command "& {Start-Process -FilePath %launch_script% -NoNewWindow}"
