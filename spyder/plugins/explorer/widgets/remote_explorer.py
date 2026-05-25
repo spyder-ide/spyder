@@ -136,11 +136,19 @@ class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
 
 
 class RemoteExplorer(QWidget, SpyderWidgetMixin):
+
     sig_dir_opened = Signal(str, str)
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
-    def __init__(self, parent=None, class_parent=None, files=None):
+    def __init__(
+        self,
+        parent=None,
+        class_parent=None,
+        files=None,
+        show_root=False,
+        chdir_with_click=False,
+    ):
         super().__init__(parent=parent, class_parent=parent)
 
         # General attributes
@@ -148,6 +156,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.server_id: str | None = None
         self.root_prefix: dict[str, str] = {}
         self.append_root = None
+        self.show_root = show_root
+        self.chdir_with_click = chdir_with_click
 
         self.background_files_load = set()
         self.extra_files = []
@@ -400,7 +410,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 if not self.view.isExpanded(index):
                     self.append_root = self.model.itemFromIndex(source_index)
                     self.refresh(new_path=data_name, force_current=True)
-                else:
+                elif self.chdir_with_click:
                     self.chdir(data_name, emit=True)
             elif (
                 data_type == "file"
@@ -524,7 +534,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self._handle_future_response_error(
             future,
             _("Paste error"),
-            _("An error occured while trying to paste a file or directory"),
+            _(
+                "An error occured while trying to paste a file or directory"
+            ),
         )
 
         if self._files_to_paste[self.server_id] > 0:
@@ -545,9 +557,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self._handle_future_response_error(
             future,
             _("Rename error"),
-            _(
-                "An error occured while trying to rename a file"
-            ),
+            _("An error occured while trying to rename a file"),
         )
 
         if self._files_to_rename[self.server_id] > 0:
@@ -729,7 +739,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         if not error:
             data = future.result()
-            if self.server_id in self.root_prefix:
+            if self.server_id in self.root_prefix and self.show_root:
                 if self.append_root is None:
                     self.model.setRowCount(0)
                     root_dir = self.root_prefix[self.server_id]
@@ -948,7 +958,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             elif (
                 operation == RemoteExistenceOperations.NewDirectoryWithContent
             ):
-
                 @AsyncDispatcher.QtSlot
                 def remote_package(future):
                     self._on_remote_new_package(future, filename)
@@ -1121,7 +1130,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         Adapted from https://stackoverflow.com/a/58201995/438386
         """
-        units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB']
+        units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', "EiB", "ZiB"]
         index = 0
 
         if size > 0:
@@ -1201,8 +1210,6 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         # this method should get as a kwarg the root element where elements/files should be added
         if root is None:
             root = self.model.invisibleRootItem()
-            if self.append_root:
-                root = self.model.invisibleRootItem()
 
         if reset:
             # This is necessary to prevent an error when closing Spyder with
