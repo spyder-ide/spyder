@@ -53,6 +53,14 @@ class TextDelta:
     inserted_text: str = ""
     removed_text: str = ""
 
+    def reverse(self) -> TextDelta:
+        """Return the reverse of this delta, i.e. a delta that would undo this change."""
+        return TextDelta(
+            position=self.position,
+            inserted_text=self.removed_text,
+            removed_text=self.inserted_text,
+        )
+
     def normalized(self) -> TextDelta:
         """Return a normalized delta.
 
@@ -307,6 +315,15 @@ class EditBlock:
     after: CursorState
     timestamp: datetime = datetime.now().astimezone()
 
+    def reverse(self) -> EditBlock:
+        """Return the reverse of this edit, i.e. an edit that would undo this change."""
+        return EditBlock(
+            before=self.after,
+            deltas=[delta.reverse() for delta in reversed(self.deltas)],
+            after=self.before,
+            timestamp=datetime.now().astimezone(),
+        )
+
     def merge(self, other: EditBlock) -> bool:
         if not other.deltas:
             return False
@@ -358,18 +375,15 @@ class EditCommand(QUndoCommand):  # type: ignore[misc]
         if not self._initialized:
             self._initialized = True
             return
-        self._editor._apply_deltas(
-            self._edit.deltas,
-            redo=True,
-            restore_state=self._edit.after or self._edit.before,
-        )
+        with self._editor.suspend_undo_recording():
+            self._editor.apply_edit(self._edit)
+        self._editor.sig_document_change.emit(self._edit)
 
     def undo(self):
-        self._editor._apply_deltas(
-            self._edit.deltas,
-            redo=False,
-            restore_state=self._edit.before,
-        )
+        reversed_edit = self._edit.reverse()
+        with self._editor.suspend_undo_recording():
+            self._editor.apply_edit(reversed_edit)
+        self._editor.sig_document_change.emit(reversed_edit)
 
 
 class EditsStackMixin(TextEditBaseWidget):
@@ -499,51 +513,26 @@ class EditsStackMixin(TextEditBaseWidget):
         else:
             self.clear_extra_cursors()
 
-    def _apply_delta(self, delta: TextDelta, *, redo: bool):
+    def apply_edit(self, edit: EditBlock):
+        for delta in edit.deltas:
+            self._apply_delta(delta)
+        self._apply_cursor_state(edit.after)
+        self.sig_document_change.emit(edit)
+
+    def _apply_delta(self, delta: TextDelta):
         cursor = QTextCursor(self.document())
         cursor.setPosition(delta.position)
-        if redo:
-            if delta.removed_text:
-                cursor.setPosition(
-                    delta.position + len(delta.removed_text),
-                    QTextCursor.KeepAnchor,
-                )
-                cursor.removeSelectedText()
-            if delta.inserted_text:
-                cursor.setPosition(delta.position)
-                cursor.insertText(delta.inserted_text)
-        else:
-            if delta.inserted_text:
-                cursor.setPosition(
-                    delta.position + len(delta.inserted_text),
-                    QTextCursor.KeepAnchor,
-                )
-                cursor.removeSelectedText()
-            if delta.removed_text:
-                cursor.setPosition(delta.position)
-                cursor.insertText(delta.removed_text)
-
-    def _apply_deltas(
-        self,
-        deltas: list[TextDelta],
-        *,
-        redo: bool,
-        restore_state: CursorState,
-    ):
-        logger.debug(
-            "Applying grouped edit: redo=%s deltas=%d",
-            redo,
-            len(deltas),
-        )
-        with self.suspend_undo_recording():
-            if redo:
-                for delta in deltas:
-                    self._apply_delta(delta, redo=True)
-            else:
-                for delta in reversed(deltas):
-                    self._apply_delta(delta, redo=False)
-
-            self._apply_cursor_state(restore_state)
+        cursor.beginEditBlock()
+        if delta.removed_text:
+            cursor.setPosition(
+                delta.position + len(delta.removed_text),
+                QTextCursor.KeepAnchor,
+            )
+            cursor.removeSelectedText()
+        if delta.inserted_text:
+            cursor.setPosition(delta.position)
+            cursor.insertText(delta.inserted_text)
+        cursor.endEditBlock()
 
     def _commit_pending_edit(self):
         if self._pending_edit is None:
