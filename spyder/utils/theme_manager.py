@@ -85,8 +85,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         # Resource files to load after Qt is initialized
         self._pending_resource_files = []
 
-    @staticmethod
-    def get_available_themes():
+    def get_available_themes(self):
         """Get list of available themes from registered theme packages."""
         themes = []
 
@@ -111,9 +110,7 @@ class ThemeManager(SpyderConfigurationAccessor):
                         ):
                             full_theme_name = f"{package_name}.{theme_name}"
                             try:
-                                ThemeManager._load_theme_metadata(
-                                    full_theme_name
-                                )
+                                self._load_theme_metadata(full_theme_name)
                             except Exception as exc:
                                 logger.warning(
                                     (
@@ -133,16 +130,14 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return sorted(themes)
 
-    @staticmethod
-    def _theme_root_path(theme_name):
+    def _theme_root_path(self, theme_name):
         """
         Filesystem root of an installed theme package (importable module path).
         """
         theme_module = importlib.import_module(theme_name)
         return Path(theme_module.__path__[0])
 
-    @staticmethod
-    def get_theme_modes(theme_name):
+    def get_theme_modes(self, theme_name):
         """
         Get available UI modes for a theme.
 
@@ -157,7 +152,7 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         At least one variant must be enabled.
         """
-        meta = ThemeManager._load_theme_metadata(theme_name)
+        meta = self._load_theme_metadata(theme_name)
         theme_module = importlib.import_module(theme_name)
 
         code_modes = []
@@ -215,18 +210,16 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return ordered
 
-    @staticmethod
-    def get_available_theme_variants():
+    def get_available_theme_variants(self):
         """Get list of available theme/mode combinations."""
         variants = []
-        for theme_name in ThemeManager.get_available_themes():
-            for mode in ThemeManager.get_theme_modes(theme_name):
+        for theme_name in self.get_available_themes():
+            for mode in self.get_theme_modes(theme_name):
                 variants.append(f"{theme_name}/{mode}")
 
         return sorted(variants)
 
-    @staticmethod
-    def canonical_theme_variant_id(variant):
+    def canonical_theme_variant_id(self, variant):
         """
         Normalize a theme variant id to ``spyder_themes.<module>/<mode>``.
 
@@ -253,8 +246,7 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return variant
 
-    @staticmethod
-    def get_theme_display_name(theme_variant):
+    def get_theme_display_name(self, theme_variant):
         """
         Get display name for a theme variant.
 
@@ -269,7 +261,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         str
             User-friendly display name (e.g., 'Dracula Dark')
         """
-        meta = ThemeManager.get_theme_metadata(theme_variant)
+        meta = self.get_theme_metadata(theme_variant)
         if "display_name" not in meta:
             raise ValueError(
                 f"Theme metadata for '{theme_variant}' does not contain "
@@ -283,8 +275,7 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return str(theme_name)
 
-    @staticmethod
-    def _load_theme_metadata(theme_name):
+    def _load_theme_metadata(self, theme_name):
         """
         Load raw metadata from ``theme.yaml`` for a theme module.
 
@@ -303,7 +294,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         ValueError
             If the file is missing or contains invalid metadata.
         """
-        theme_path = ThemeManager._theme_root_path(theme_name)
+        theme_path = self._theme_root_path(theme_name)
         metadata_file = theme_path / "theme.yaml"
 
         if not metadata_file.exists():
@@ -324,8 +315,7 @@ class ThemeManager(SpyderConfigurationAccessor):
 
         return metadata
 
-    @staticmethod
-    def get_theme_metadata(theme_variant, field=None):
+    def get_theme_metadata(self, theme_variant, field=None):
         """
         Get metadata for a theme variant from ``theme.yaml``.
 
@@ -349,7 +339,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         ValueError
             If metadata is missing/invalid or requested field does not exist.
         """
-        canonical = ThemeManager.canonical_theme_variant_id(theme_variant)
+        canonical = self.canonical_theme_variant_id(theme_variant)
         if "/" in canonical:
             theme_name, mode = canonical.rsplit("/", 1)
         else:
@@ -357,7 +347,7 @@ class ThemeManager(SpyderConfigurationAccessor):
             mode = None
 
         # Runtime keys (``theme``, ``mode``, ``id``) override YAML homonyms.
-        metadata = dict(ThemeManager._load_theme_metadata(theme_name))
+        metadata = dict(self._load_theme_metadata(theme_name))
         metadata["theme"] = theme_name
         metadata["mode"] = mode
         metadata["id"] = canonical if mode else theme_name
@@ -535,7 +525,7 @@ class ThemeManager(SpyderConfigurationAccessor):
                 self.set_conf(option, value)
 
         # Also save the display name for the theme variant
-        display_name = ThemeManager.get_theme_display_name(variant_name)
+        display_name = self.get_theme_display_name(variant_name)
         self.set_conf(f"{variant_name}/name", display_name)
 
         # Restore original theme if different from what we just exported
@@ -563,9 +553,7 @@ class ThemeManager(SpyderConfigurationAccessor):
                 try:
                     self.get_conf(f"{variant_name}/name")
                 except configparser.NoOptionError:
-                    display_name = ThemeManager.get_theme_display_name(
-                        variant_name
-                    )
+                    display_name = self.get_theme_display_name(variant_name)
                     self.set_conf(f"{variant_name}/name", display_name)
                     logger.info(
                         "Registered theme name for %s in config", variant_name
@@ -584,7 +572,7 @@ class ThemeManager(SpyderConfigurationAccessor):
         if ui_mode is None:
             ui_mode = "dark" if self.is_dark_interface() else "light"
 
-        ThemeManager._load_theme_metadata(theme_name)
+        self._load_theme_metadata(theme_name)
 
         # Import theme module using full module path
         theme_module = importlib.import_module(theme_name)
@@ -640,14 +628,14 @@ class ThemeManager(SpyderConfigurationAccessor):
         try:
             self.get_conf(f"{variant_name}/name")
         except configparser.NoOptionError:
-            display_name = ThemeManager.get_theme_display_name(variant_name)
+            display_name = self.get_theme_display_name(variant_name)
             self.set_conf(f"{variant_name}/name", display_name)
 
         return palette, stylesheet
 
     def _load_stylesheet(self, theme_name, ui_mode):
         """Load the QSS stylesheet for a theme."""
-        theme_path = ThemeManager._theme_root_path(theme_name)
+        theme_path = self._theme_root_path(theme_name)
 
         # Stylesheet and qtpy-based resource modules from spyder-themes
         # (``darkstyle_rc.py`` / ``lightstyle_rc.py``).
