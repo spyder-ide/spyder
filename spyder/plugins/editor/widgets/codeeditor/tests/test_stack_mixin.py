@@ -127,6 +127,22 @@ def test_text_delta_merge_returns_none_for_unrelated_deltas():
     assert TextDelta.merge_text_delta(left, right) is None
 
 
+def test_text_delta_merge_removal_of_recent_insert_collapses_insert_stream():
+    left = TextDelta(position=0, inserted_text="this isas", removed_text="")
+    right = TextDelta(position=8, inserted_text="", removed_text="s")
+    assert TextDelta.merge_text_delta(left, right) == TextDelta(
+        position=0, inserted_text="this isa", removed_text=""
+    )
+
+
+def test_text_delta_merge_remove_then_insert_same_position_becomes_replace():
+    left = TextDelta(position=7, inserted_text="", removed_text="a")
+    right = TextDelta(position=7, inserted_text=" ", removed_text="")
+    assert TextDelta.merge_text_delta(left, right) == TextDelta(
+        position=7, inserted_text=" ", removed_text="a"
+    )
+
+
 def test_text_delta_merge_replace_overlapping_suffix_pattern():
     # Pattern observed during multiline/multicursor edits where each new delta
     # replaces a suffix of the previous inserted text.
