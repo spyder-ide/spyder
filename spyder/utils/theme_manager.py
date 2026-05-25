@@ -76,8 +76,13 @@ class ThemeManager(SpyderConfigurationAccessor):
         self._current_theme = None
         self._current_palette = None
         self._current_stylesheet = None
-        self._current_theme_module = None  # Store the loaded theme module
-        self._loaded_resource_modules = {}  # Keep references to resource modules
+
+        # Store the loaded theme module
+        self._current_theme_module = None
+
+        # Keep references to resource modules
+        self._loaded_resource_modules = {}
+
         # Resource files to load after Qt is initialized
         self._pending_resource_files = []
 
@@ -87,41 +92,45 @@ class ThemeManager(SpyderConfigurationAccessor):
         themes = []
 
         # List of theme packages to search
+        # TODO: Load entry points for custom themes in the future.
         theme_packages = ["spyder_themes"]
 
         for package_name in theme_packages:
-            try:
-                package = importlib.import_module(package_name)
-                if hasattr(package, "THEMES") and hasattr(
-                        package, "get_theme_module"):
-                    # Iterate through registered themes
-                    for theme_name in package.THEMES:
-                        try:
-                            theme_module = package.get_theme_module(theme_name)
-                            # Validate theme has required attributes
-                            if hasattr(theme_module, "THEME_ID") and (
-                                hasattr(theme_module, "SpyderPaletteDark")
-                                or hasattr(theme_module, "SpyderPaletteLight")
-                            ):
-                                full_theme_name = f"{package_name}.{theme_name}"
-                                try:
-                                    ThemeManager._load_theme_metadata(
-                                        full_theme_name)
-                                except Exception as exc:
-                                    logger.warning(
-                                        "Ignoring theme '%s': invalid or missing metadata: %s",
-                                        full_theme_name,
-                                        exc,
-                                    )
-                                    continue
-                                # Store full module path for loading
-                                themes.append(full_theme_name)
-                        except (ImportError, AttributeError, ValueError):
-                            # Skip invalid themes
-                            pass
-            except ImportError:
-                # Package not installed, skip
-                pass
+            package = importlib.import_module(package_name)
+            if hasattr(package, "THEMES") and hasattr(
+                package, "get_theme_module"
+            ):
+                # Iterate through registered themes
+                for theme_name in package.THEMES:
+                    try:
+                        theme_module = package.get_theme_module(theme_name)
+
+                        # Validate theme has required attributes
+                        if hasattr(theme_module, "THEME_ID") and (
+                            hasattr(theme_module, "SpyderPaletteDark")
+                            or hasattr(theme_module, "SpyderPaletteLight")
+                        ):
+                            full_theme_name = f"{package_name}.{theme_name}"
+                            try:
+                                ThemeManager._load_theme_metadata(
+                                    full_theme_name
+                                )
+                            except Exception as exc:
+                                logger.warning(
+                                    (
+                                        "Ignoring theme '%s': invalid or "
+                                        "missing metadata: %s"
+                                    ),
+                                    full_theme_name,
+                                    exc,
+                                )
+                                continue
+
+                            # Store full module path for loading
+                            themes.append(full_theme_name)
+                    except (ImportError, AttributeError, ValueError):
+                        # Skip invalid themes
+                        pass
 
         return sorted(themes)
 
