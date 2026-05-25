@@ -987,10 +987,11 @@ class LSPMixin:
         """Format current document or selected text."""
         formatter = self.get_conf(
             ("provider_configuration", "lsp", "values", "formatting"),
-            "completions",
             default="",
+            section="completions",
         )
         is_ruff = formatter == "ruff"
+
         if (
             self.has_selected_text()
             and self.range_formatting_enabled
