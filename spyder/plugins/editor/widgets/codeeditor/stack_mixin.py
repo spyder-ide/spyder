@@ -173,6 +173,42 @@ class TextDelta:
                 removed_text="",
             )
 
+        # Fold removals of text that was just inserted back into the insert.
+        if (
+            left.removed_text == ""
+            and right.inserted_text == ""
+            and left.inserted_text
+            and right.removed_text
+            and left.position <= right.position
+            and right.position + len(right.removed_text)
+            <= left.position + len(left.inserted_text)
+        ):
+            offset = right.position - left.position
+            if left.inserted_text[offset : offset + len(right.removed_text)] == right.removed_text:
+                return TextDelta(
+                    position=left.position,
+                    inserted_text=(
+                        left.inserted_text[:offset]
+                        + left.inserted_text[offset + len(right.removed_text) :]
+                    ),
+                    removed_text="",
+                )
+
+        # Treat a removal followed by an insertion at the same location as a
+        # replacement at that location.
+        if (
+            left.inserted_text == ""
+            and right.removed_text == ""
+            and left.removed_text
+            and right.inserted_text
+            and right.position == left.position
+        ):
+            return TextDelta(
+                position=left.position,
+                inserted_text=right.inserted_text,
+                removed_text=left.removed_text,
+            )
+
         # Removal to the right
         if (
             left.inserted_text == ""
