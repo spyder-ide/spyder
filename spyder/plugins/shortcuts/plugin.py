@@ -139,7 +139,7 @@ class Shortcuts(SpyderPluginV2, SpyderShortcutsMixin):
     @Slot()
     def show_summary(self):
         """Reset shortcuts."""
-        dlg = ShortcutsSummaryDialog(None)
+        dlg = ShortcutsSummaryDialog(self._main)
         dlg.exec_()
 
     def register_shortcut(self, qaction_or_qshortcut, context, name,
