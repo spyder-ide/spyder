@@ -49,22 +49,17 @@ class FormattingConfigTab(SpyderPreferencesTab):
         autopep8_url = (
             "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
         )
-        yapf_url = (
-            "<a href='https://github.com/google/yapf'>Yapf</a>"
-        )
         black_url = (
             "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
         )
         ruff_url = (
             "<a href='https://docs.astral.sh/ruff/formatter/'>Ruff</a>"
         )
-        formatter_urls = "".join(
-            f"<li>{url}</li>" for url in (autopep8_url, black_url, ruff_url)
-        )
+        formatter_urls = black_url + ", " + ruff_url + ", " + autopep8_url
         code_fmt_label = QLabel(
             _(
-                "Spyder can use one of the following formatters to format your "
-                " code for conformance to the {0} convention:<ul>{1}</ul>"
+                "Spyder can use one of the following formatters to format "
+                "your code for conformance to the {0} convention: {1}."
             ).format(pep_url, formatter_urls)
         )
         code_fmt_label.setOpenExternalLinks(True)
