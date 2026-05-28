@@ -324,8 +324,20 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
     def _update_plugin_info(self, PluginClass: type[SpyderPluginClass]):
         """Update the dependencies and dependents of `plugin_name`."""
         plugin_name = PluginClass.NAME
-        required_plugins = list(set(PluginClass.REQUIRES))
-        optional_plugins = list(set(PluginClass.OPTIONAL))
+        required_plugins = PluginClass.REQUIRES
+        optional_plugins = PluginClass.OPTIONAL
+
+        if len(required_plugins) != len(set(required_plugins)):
+            raise SpyderAPIError(
+                f"There are repeated plugins in the REQUIRES list of "
+                f"{plugin_name}. You need to fix that"
+            )
+
+        if len(optional_plugins) != len(set(optional_plugins)):
+            raise SpyderAPIError(
+                f"There are repeated plugins in the OPTIONAL list of "
+                f"{plugin_name}. You need to fix that"
+            )
 
         for plugin in list(required_plugins):
             if plugin == Plugins.All:
