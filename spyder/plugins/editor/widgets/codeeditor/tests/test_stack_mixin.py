@@ -416,3 +416,50 @@ def test_edit_block_merge_shifts_only_following_items_not_previous_ones():
 )
 def test_text_delta_merge_text_delta_none_for_non_matching_patterns(left, right):
     assert TextDelta.merge_text_delta(left, right) is None
+
+
+def test_text_delta_merge_replacement_inside_previous_insert_general_substring():
+    left = TextDelta(position=5, inserted_text="abcdef", removed_text="")
+    # replace 'cde' -> 'X' at position 7 (5 + 2)
+    right = TextDelta(position=7, inserted_text="X", removed_text="cde")
+    merged = TextDelta.merge_text_delta(left, right)
+    assert merged == TextDelta(position=5, inserted_text="abXf", removed_text="")
+
+
+def test_text_delta_merge_partially_overlapping_removals_union():
+    left = TextDelta(position=10, inserted_text="", removed_text="abcdef")
+    right = TextDelta(position=14, inserted_text="", removed_text="efghi")
+    merged = TextDelta.merge_text_delta(left, right)
+    assert merged == TextDelta(position=10, inserted_text="", removed_text="abcdefghi")
+
+
+def test_text_delta_merge_insertion_bridges_prior_removal_becomes_replace():
+    left = TextDelta(position=5, inserted_text="", removed_text="abc")
+    # insert at end of removed region -> should become replace at left.position
+    right = TextDelta(position=8, inserted_text="X", removed_text="")
+    merged = TextDelta.merge_text_delta(left, right)
+    assert merged == TextDelta(position=5, inserted_text="X", removed_text="abc")
+
+
+def test_edit_block_merge_shifts_same_position_later_deltas():
+    # Multiple deltas at the same position: merging into the first should
+    # shift the later one as well.
+    existing = EditBlock(
+        before=CursorState(main_cursor=create_cursor(0), extra_cursors=()),
+        deltas=[
+            TextDelta(position=10, inserted_text="a", removed_text=""),
+            TextDelta(position=10, inserted_text="b", removed_text=""),
+        ],
+        after=CursorState(main_cursor=create_cursor(1), extra_cursors=()),
+    )
+    incoming = EditBlock(
+        before=CursorState(main_cursor=create_cursor(1), extra_cursors=()),
+        deltas=[TextDelta(position=11, inserted_text="d", removed_text="")],
+        after=CursorState(main_cursor=create_cursor(2), extra_cursors=()),
+    )
+
+    assert existing.merge(incoming)
+    assert existing.deltas == [
+        TextDelta(position=10, inserted_text="ad", removed_text=""),
+        TextDelta(position=11, inserted_text="b", removed_text=""),
+    ]
