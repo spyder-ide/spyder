@@ -42,8 +42,8 @@ from spyder.widgets.arraybuilder import ArrayBuilderDialog
 # ---- Constants
 # -----------------------------------------------------------------------------
 
-# List of possible EOL symbols
-EOL_SYMBOLS = [
+# Tuple of possible EOL symbols
+EOL_SYMBOLS = (
     # Put first as it correspond to a single line return
     "\r\n",  # Carriage Return + Line Feed
     "\r",  # Carriage Return
@@ -58,7 +58,7 @@ EOL_SYMBOLS = [
     "\x85",   # Next Line (C1 Control Code)
     "\u2028",   # Line Separator
     "\u2029",   # Paragraph Separator
-]
+)
 
 # Tips style
 TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
