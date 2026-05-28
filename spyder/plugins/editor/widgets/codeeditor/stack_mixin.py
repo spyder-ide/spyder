@@ -517,7 +517,6 @@ class EditsStackMixin(TextEditBaseWidget):
         for delta in edit.deltas:
             self._apply_delta(delta)
         self._apply_cursor_state(edit.after)
-        self.sig_document_change.emit(edit)
 
     def _apply_delta(self, delta: TextDelta):
         cursor = QTextCursor(self.document())
