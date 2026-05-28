@@ -554,35 +554,34 @@ class EditsStackMixin(TextEditBaseWidget):
         chars_removed: int,
         chars_added: int,
     ):
-        current_text = str(self.toPlainText())
         document = self.document()
-
-        if self._undo_recording_depth > 0:
-            self._undo_last_text = current_text
-            self._undo_cursor_state = self._capture_cursor_state()
-            if document is not None:
-                self._undo_last_revision = document.revision()
+        if document is None:
             return
 
-        previous_text = self._undo_last_text
-        removed_text = previous_text[position : position + chars_removed]
-        inserted_text = current_text[position : position + chars_added]
+        if self._undo_recording_depth > 0:
+            self._undo_last_text = str(self.toPlainText())
+            self._undo_cursor_state = self._capture_cursor_state()
+            self._undo_last_revision = document.revision()
+            return
+
+        removed_text = self._undo_last_text[position : position + chars_removed]
+        cursor = self.textCursor()
+        cursor.setPosition(position)
+        cursor.setPosition(position + chars_added, QTextCursor.KeepAnchor)
 
         delta = TextDelta(
             position=position,
-            inserted_text=inserted_text,
+            inserted_text=self.get_selected_text(cursor),
             removed_text=removed_text,
         )
 
         deltas = [d for d in delta.exploded() if (d.inserted_text or d.removed_text)]
         if not deltas:
-            self._undo_last_text = current_text
-            if document is not None:
-                self._undo_last_revision = document.revision()
+            self._undo_last_text = str(self.toPlainText())
+            self._undo_last_revision = document.revision()
             return
 
         current_cursor = self._capture_cursor_state()
-
         edit = EditBlock(
             before=self._undo_cursor_state,
             deltas=deltas,
@@ -595,8 +594,7 @@ class EditsStackMixin(TextEditBaseWidget):
             self._pending_edit = edit
 
         self._undo_cursor_state = current_cursor
-        self._undo_last_text = current_text
-        if document is not None:
-            self._undo_last_revision = document.revision()
+        self._undo_last_text = str(self.toPlainText())
+        self._undo_last_revision = document.revision()
 
         self._commit_timer.start(_COMMIT_TIMEOUT_MS)
