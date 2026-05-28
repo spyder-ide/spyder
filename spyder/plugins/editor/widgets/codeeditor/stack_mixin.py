@@ -350,7 +350,7 @@ class EditBlock:
 
                 if length_diff:
                     for j in range(i + 1, len(self.deltas)):
-                        if self.deltas[j].position > current.position:
+                        if self.deltas[j].position >= current.position:
                             self.deltas[j] = self.deltas[j].shift(length_diff)
                 break
             else:
