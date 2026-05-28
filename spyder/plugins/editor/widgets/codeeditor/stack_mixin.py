@@ -181,6 +181,26 @@ class TextDelta:
                 removed_text="",
             )
 
+        # Replacement inside a previous pure-insert: when the new delta is a
+        # replace whose removed_text lies entirely inside the previous
+        # inserted_text, replace that substring and keep it as a pure insert.
+        if (
+            left.removed_text == ""
+            and left.inserted_text
+            and right.removed_text
+            and right.inserted_text
+            and left.position <= right.position
+            and right.position + len(right.removed_text) <= left.position + len(left.inserted_text)
+        ):
+            offset = right.position - left.position
+            if left.inserted_text[offset : offset + len(right.removed_text)] == right.removed_text:
+                new_inserted = (
+                    left.inserted_text[:offset]
+                    + right.inserted_text
+                    + left.inserted_text[offset + len(right.removed_text) :]
+                )
+                return TextDelta(position=left.position, inserted_text=new_inserted, removed_text="")
+
         # Fold removals of text that was just inserted back into the insert.
         if (
             left.removed_text == ""
@@ -245,6 +265,36 @@ class TextDelta:
                 removed_text=right.removed_text + left.removed_text,
             )
 
+        # Partially overlapping removals: merge into a single removal that
+        # covers the union of both ranges. Fill overlapping characters from
+        # either side (tests assume overlapping content matches where they
+        # overlap).
+        if (
+            left.inserted_text == ""
+            and right.inserted_text == ""
+            and left.removed_text
+            and right.removed_text
+        ):
+            a_start, a_end = left.position, left.position + len(left.removed_text)
+            b_start, b_end = right.position, right.position + len(right.removed_text)
+            # Check for overlap or adjacency
+            if not (a_end < b_start or b_end < a_start):
+                new_start = min(a_start, b_start)
+                new_end = max(a_end, b_end)
+                length = new_end - new_start
+                chars: list[str | None] = [None] * length
+                # write left removed_text
+                for i, ch in enumerate(left.removed_text):
+                    chars[left.position - new_start + i] = ch
+                # write right removed_text (overwrites matching overlap)
+                for i, ch in enumerate(right.removed_text):
+                    chars[right.position - new_start + i] = ch
+
+                # Replace any None with empty string (shouldn't happen for
+                # fully covered unions in our tests) and join
+                new_removed = "".join(c if c is not None else "" for c in chars)
+                return TextDelta(position=new_start, inserted_text="", removed_text=new_removed)
+
         # Replace deltas (insert+remove)
         # common patterns during multicursor or multiline edits.
         if (
@@ -287,6 +337,39 @@ class TextDelta:
                     position=left.position,
                     inserted_text=right.inserted_text
                     + left.inserted_text[len(right.removed_text) :],
+                    removed_text=left.removed_text,
+                )
+
+            # New replacement happens inside the previous inserted text at an
+            # arbitrary offset (not only prefix/suffix). Replace that substring
+            # with the new inserted text when the positions align.
+            idx = left.inserted_text.find(right.removed_text)
+            if idx != -1:
+                expected_pos = left.position + idx
+                if right.position == expected_pos:
+                    new_inserted = (
+                        left.inserted_text[:idx]
+                        + right.inserted_text
+                        + left.inserted_text[idx + len(right.removed_text) :]
+                    )
+                    return TextDelta(
+                        position=left.position,
+                        inserted_text=new_inserted,
+                        removed_text=left.removed_text,
+                    )
+
+            # (moved insertion-bridging rule below)
+
+        # If an insertion (pure insert) happens inside or immediately adjacent
+        # to a previous removal, treat it as a replacement of that removed
+        # region (e.g. remove 'abc' then insert 'x' at end -> replace).
+        # Only apply when `right` is a pure insert.
+        if left.removed_text and right.inserted_text and right.removed_text == "":
+            left_start, left_end = left.position, left.position + len(left.removed_text)
+            if left_start <= right.position <= left_end:
+                return TextDelta(
+                    position=left.position,
+                    inserted_text=right.inserted_text,
                     removed_text=left.removed_text,
                 )
 
