@@ -9,13 +9,14 @@ Editor mixin and utils to manage connection with the LSP
 """
 
 # Standard library imports
+from __future__ import annotations
 import functools
 import logging
 import random
 import re
+import typing as typ
 
 # Third party imports
-from diff_match_patch import diff_match_patch
 from lsprotocol import types as lsp
 from qtpy.QtCore import (
     QEventLoop,
@@ -31,6 +32,7 @@ from three_merge import merge
 # Local imports
 from spyder.config.base import running_under_pytest
 from spyder.plugins.completion.api import DOCUMENT_CURSOR_EVENT
+from spyder.widgets.mixins import EOL_SYMBOLS
 from spyder.plugins.completion.decorators import (
     request,
     handles,
@@ -46,6 +48,8 @@ from spyder.plugins.editor.panels.utils import (
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils import sourcecode
 
+if typ.TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import EditBlock
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +102,9 @@ class LSPMixin:
     LSP_REQUESTS_SHORT_DELAY = 50
     LSP_REQUESTS_LONG_DELAY = 300
 
+    # Timeout (in milliseconds) to flush buffered text changes to LSP server
+    LSP_TEXT_CHANGE_FLUSH_DELAY = 25
+
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
     sig_perform_completion_request = Signal(str, str, dict)
@@ -147,6 +154,17 @@ class LSPMixin:
         self._server_requests_timer.timeout.connect(
             self._process_server_requests)
 
+        # Text change buffering for incremental LSP updates
+        self._text_change_buffer: list[lsp.TextDocumentContentChangePartial] = []
+        self._text_change_timer = QTimer(self)
+        self._text_change_timer.setSingleShot(True)
+        self._text_change_timer.setInterval(self.LSP_TEXT_CHANGE_FLUSH_DELAY)
+        self._text_change_timer.timeout.connect(
+            self.document_did_change
+        )
+        
+        self.sig_document_change.connect(self._buffer_text_change)
+
         # Code Folding
         self.code_folding = True
         self.update_folding_thread = QThread(None)
@@ -169,19 +187,16 @@ class LSPMixin:
             self.finish_code_analysis)
         self._diagnostics = []
 
-        # Text diffs across versions
-        self.differ = diff_match_patch()
-        self.previous_text = ''
-        self.patch = []
         self.leading_whitespaces = {}
 
         # Other attributes
         self.filename = None
+        self.file_uri = None
+        self.position_encoding = lsp.PositionEncodingKind.Utf16
         self.completions_available = False
-        self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
-        self.sync_mode = lsp.TextDocumentSyncKind.Full
+        self.sync_mode = lsp.TextDocumentSyncKind.Incremental
         self.will_save_notify = False
         self.will_save_until_notify = False
         self.enable_hover = False
@@ -209,18 +224,57 @@ class LSPMixin:
     # -------------------------------------------------------------------------
     def _process_server_requests(self):
         """Process server requests."""
-        # Check if the document needs to be updated
-        if self._document_server_needs_update:
-            self.document_did_change()
-            self.do_automatic_completions()
-            self._document_server_needs_update = False
-
         # Send pending requests
         for method, params, requires_response in self._pending_server_requests:
             self.emit_request(method, params, requires_response)
 
         # Clear pending requests
         self._pending_server_requests = []
+
+    def _get_replaced_range(self, position: int, removed_text: str) -> lsp.Range:
+        """Get the range of text removed in a text change."""
+        line, col = self.get_line_col_from_position(position)
+        start = lsp.Position(line=line, character=col)
+        end = lsp.Position(line=line, character=col)
+
+        if not removed_text:
+            return lsp.Range(start=start, end=end)
+
+        removed_lines = removed_text.splitlines(keepends=True)
+        end_with_newline = removed_lines[-1].endswith(EOL_SYMBOLS)
+        n_lines = len(removed_lines)
+        end.line += n_lines - (not end_with_newline)
+
+        if n_lines > 1 or end_with_newline:
+            end.character = 0
+
+        if not end_with_newline:
+            end.character += len(removed_lines[-1])
+
+        return lsp.Range(start=start, end=end)
+
+    def _buffer_text_change(self, edit: EditBlock):
+        """
+        Buffer a text insertion for incremental LSP updates.
+
+        Parameters
+        ----------
+        edit: EditBlock
+            The text edit to buffer.
+        """
+        if not self.completions_available or self.is_cloned:
+            return
+
+        for delta in edit.deltas:
+            self._text_change_buffer.append(
+                lsp.TextDocumentContentChangePartial(
+                    range=self._get_replaced_range(delta.position, delta.removed_text),
+                    text=delta.inserted_text
+                )
+            )
+
+        # Start (or restart) the flush timer
+        self._text_change_timer.start()
 
     # ---- Basic methods
     # -------------------------------------------------------------------------
@@ -286,6 +340,11 @@ class LSPMixin:
         will_save_wait_until = False
         save_include_text = False
 
+        
+        if capabilities.position_encoding != self.position_encoding:
+            raise LSPHandleError(
+                f"Unsupported position encoding: {capabilities.position_encoding}")
+
         if isinstance(tds, lsp.TextDocumentSyncOptions):
             open_close = tds.open_close or False
             sync_kind = tds.change or lsp.TextDocumentSyncKind.None_
@@ -298,7 +357,8 @@ class LSPMixin:
             sync_kind = tds
 
         self.open_close_notifications = open_close
-        self.sync_mode = sync_kind
+        if sync_kind != lsp.TextDocumentSyncKind.None_:
+            self.sync_mode = sync_kind
         self.will_save_notify = will_save
         self.will_save_until_notify = will_save_wait_until
         self.save_include_text = save_include_text
@@ -376,9 +436,6 @@ class LSPMixin:
 
         cursor = self.textCursor()
         text = self.get_text_with_eol()
-        if self.is_ipython():
-            # Send valid python text to LSP as it doesn't support IPython
-            text = self.ipython_to_python(text)
         params = {
             "file": self.filename,
             "language": self.language,
@@ -432,14 +489,13 @@ class LSPMixin:
 
     # ---- Linting and didChange
     # -------------------------------------------------------------------------
-    def _schedule_document_did_change(self):
-        """Schedule a document update."""
-        self._document_server_needs_update = True
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
-        self._server_requests_timer.start()
-
-    @request(method=lsp.TEXT_DOCUMENT_DID_CHANGE, requires_response=False)
-    def document_did_change(self):
+    @request(
+        method=lsp.TEXT_DOCUMENT_DID_CHANGE,
+        requires_response=False,
+    )
+    def document_did_change(
+        self,
+    ):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
         self.formatting_in_progress = False
@@ -449,29 +505,30 @@ class LSPMixin:
         # Don't send request for cloned editors because it's not necessary.
         # The original file should send the request.
         if self.is_cloned:
+            self._text_change_buffer = []
             return
 
-        # Get text
-        text = self.get_text_with_eol()
-        if self.is_ipython():
-            # Send valid python text to LSP
-            text = self.ipython_to_python(text)
+        # Only fetch full text when not using incremental changes
+        if not self._text_change_buffer:
+            return
 
-        self.text_version += 1
+        if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
+            content_changes = self._text_change_buffer
+        else:
+            text = self.get_text_with_eol()
+            content_changes = [
+                lsp.TextDocumentContentChangeWholeDocument(
+                    text=text
+                )
+            ]
+        
+        self._text_change_buffer = []
 
-        self.patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        cursor = self.textCursor()
-        params = {
+        return {
             "file": self.filename,
             "version": self.text_version,
-            "text": text,
-            "diff": self.patch,
-            "offset": cursor.position(),
-            "selection_start": cursor.selectionStart(),
-            "selection_end": cursor.selectionEnd(),
+            "content_changes": content_changes,
         }
-        return params
 
     @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
@@ -1379,10 +1436,17 @@ class LSPMixin:
         """Send close request."""
         self._pending_server_requests = []
 
+        self._text_change_buffer = []
+
         # This is necessary to prevent an error when closing the file.
         # Fixes spyder-ide/spyder#20071
         try:
             self._server_requests_timer.stop()
+        except RuntimeError:
+            pass
+
+        try:
+            self._text_change_timer.stop()
         except RuntimeError:
             pass
 
