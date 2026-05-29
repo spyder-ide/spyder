@@ -1342,7 +1342,7 @@ class LSPMixin:
 
     def update_whitespace_count(self, line, column):
         self.leading_whitespaces = {}
-        lines = str(self.toPlainText()).splitlines()
+        lines = self.lines()
         for i, text in enumerate(lines):
             total_whitespace = self.compute_whitespace(text)
             self.leading_whitespaces[i] = total_whitespace
@@ -1374,7 +1374,7 @@ class LSPMixin:
     def _update_folding_info(self, ranges):
         """Update folding information with new data from the LSP."""
         try:
-            lines = self.toPlainText().splitlines()
+            lines = self.lines()
 
             current_tree, root = merge_folding(
                 ranges, lines, self.get_line_separator(),
