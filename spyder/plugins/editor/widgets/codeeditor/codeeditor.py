@@ -459,9 +459,6 @@ class CodeEditor(
             lambda value: self.hide_calltip()
         )
 
-        # QTextEdit + LSPMixin
-        self.textChanged.connect(self._schedule_document_did_change)
-
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
