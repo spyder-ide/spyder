@@ -870,6 +870,13 @@ class BaseEditMixin(object):
                             n=col + 1)
         return cursor.position()
 
+    def get_line_col_from_position(self, position):
+        """Get (line, column) coordinates from position offset."""
+        block = self.document().findBlock(position)
+        line = block.blockNumber()
+        column = position - block.position()
+        return line, column
+
     def set_cursor_position(self, position):
         """Set cursor position"""
         position = self.get_position(position)
