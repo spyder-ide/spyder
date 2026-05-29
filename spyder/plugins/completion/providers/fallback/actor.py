@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # Copyright © Spyder Project Contributors
@@ -17,7 +16,6 @@ programming language of that file.
 import logging
 
 # Third-party imports
-from diff_match_patch import diff_match_patch
 from lsprotocol import types as lsp
 from pygments.lexers import get_lexer_by_name
 from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
@@ -44,7 +42,6 @@ class FallbackActor(QObject):
         self.daemon = True
         self.mutex = QMutex()
         self.file_tokens = {}
-        self.diff_patch = diff_match_patch()
         self.thread = QThread(None)
         self.moveToThread(self.thread)
 
@@ -136,18 +133,7 @@ class FallbackActor(QObject):
                 'language': msg['language'],
             }
         elif msg_type == lsp.TEXT_DOCUMENT_DID_CHANGE:
-            if file not in self.file_tokens:
-                self.file_tokens[file] = {
-                    'text': '',
-                    'offset': msg['offset'],
-                    'language': msg['language'],
-                }
-            diff = msg['diff']
-            text = self.file_tokens[file]
-            text['offset'] = msg['offset']
-            text, _ = self.diff_patch.patch_apply(
-                diff, text['text'])
-            self.file_tokens[file]['text'] = text
+            self._apply_content_changes(file, msg.get('content_changes', []))
         elif msg_type == lsp.TEXT_DOCUMENT_DID_CLOSE:
             self.file_tokens.pop(file, {})
         elif msg_type == lsp.TEXT_DOCUMENT_COMPLETION:
@@ -160,3 +146,125 @@ class FallbackActor(QObject):
                     text_info['language'],
                     msg['current_word'])
             self.sig_set_tokens.emit(_id, tokens)
+
+    def _apply_content_changes(self, file, content_changes):
+        """
+        Apply incremental content changes to the stored file text.
+
+        Parameters
+        ----------
+        file : str
+            File path/URI identifier.
+        content_changes : list
+            List of changes, each being either:
+            - lsp.TextDocumentContentChangePartial (incremental range change)
+            - lsp.TextDocumentContentChangeWholeDocument (full document replacement)
+        """
+        if not content_changes:
+            return
+
+        text_info = self.file_tokens.get(file)
+        if not text_info:
+            return
+
+        current_text = text_info['text']
+
+        for change in content_changes:
+            # Handle whole document replacement
+            if hasattr(change, 'text') and not hasattr(change, 'range'):
+                current_text = change.text
+                continue
+
+            # Handle incremental range-based changes
+            if hasattr(change, 'range'):
+                current_text = self._apply_range_change(
+                    current_text, change.range, change.text
+                )
+
+        text_info['text'] = current_text
+
+    def _apply_range_change(self, text, range, new_text):
+        """
+        Apply a range-based text change to the document text.
+
+        Parameters
+        ----------
+        text : str
+            Current document text.
+        range : lsp.Range
+            Start and end positions of the change.
+        new_text : str
+            Text to insert at the range.
+
+        Returns
+        -------
+        str
+            Updated document text.
+        """
+        lines = text.splitlines(keepends=True)
+
+        # Calculate byte offset from line/character position
+        start_offset = self._line_col_to_offset(
+            lines, range.start.line, range.start.character
+        )
+        end_offset = self._line_col_to_offset(
+            lines, range.end.line, range.end.character
+        )
+
+        # Replace the range with new text
+        return text[:start_offset] + new_text + text[end_offset:]
+
+    def _line_col_to_offset(self, lines, line, character):
+        """
+        Convert 0-based line and character position to text offset.
+
+        Parameters
+        ----------
+        lines : list[str]
+            Document split by newlines.
+        line : int
+            0-based line number.
+        character : int
+            0-based character position on the line.
+
+        Returns
+        -------
+        int
+            Offset position in the original text.
+        """
+        # Sum lengths of all previous lines. `lines` was created with
+        # `splitlines(keepends=True)`, so each entry already includes its
+        # line ending (if present) and we must not add extra newline
+        # characters here.
+        prev_lines_len = 0
+        max_line_index = min(line, len(lines))
+        for i in range(max_line_index):
+            prev_lines_len += len(lines[i])
+
+        # If the requested line is beyond the current document, clamp to end
+        if line >= len(lines):
+            return prev_lines_len
+
+        # Work on the line content without its line ending for column counting
+        target_line = lines[line]
+        if target_line.endswith('\r\n'):
+            line_content = target_line[:-2]
+        elif target_line.endswith('\n') or target_line.endswith('\r'):
+            line_content = target_line[:-1]
+        else:
+            line_content = target_line
+
+        # LSP positions use UTF-16 code units. Python strings use code points
+        # (UCS-4 on this build), so characters outside the BMP count as two
+        # UTF-16 units. Walk the line and find the Python index that
+        # corresponds to the requested UTF-16 column.
+        utf16_units = 0
+        idx = 0
+        target_len = len(line_content)
+        while idx < target_len and utf16_units < character:
+            cp = ord(line_content[idx])
+            utf16_units += 1 if cp <= 0xFFFF else 2
+            idx += 1
+
+        # Return the offset in Python string indices
+        return prev_lines_len + idx
