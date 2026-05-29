@@ -675,6 +675,20 @@ class WorkerUpdateUpdater(BaseWorker):
             elif self.asset_info is not None:
                 self._download_asset()
                 self._install_update()
+        except SSLError as err:
+            self.error = SSL_ERROR_MSG
+            logger.warning(err, exc_info=err)
+        except ConnectionError as err:
+            self.error = CONNECT_ERROR_MSG
+            logger.warning(err, exc_info=err)
+        except HTTPError as err:
+            status_code = err.response.status_code
+            self.error = HTTP_ERROR_MSG.format(status_code=status_code)
+            logger.warning(err, exc_info=err)
+        except OSError as err:
+            self.error = OS_ERROR_MSG.format(error=err)
+            self.checkbox = True
+            logger.warning(err, exc_info=err)
         except UpdateUpdaterUACCancelled as err:
             self.error = err
             logger.debug(err)
