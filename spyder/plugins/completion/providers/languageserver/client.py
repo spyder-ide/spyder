@@ -659,4 +659,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                     dynamic_registration=True,
                 ),
             ),
+
+            general=lsp.GeneralClientCapabilities(
+                position_encodings=[
+                    lsp.PositionEncodingKind.Utf16,
+                ],
+            ),
         )
