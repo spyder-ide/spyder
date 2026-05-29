@@ -340,10 +340,13 @@ class LSPMixin:
         will_save_wait_until = False
         save_include_text = False
 
-        
-        if capabilities.position_encoding != self.position_encoding:
+        if (
+            capabilities.position_encoding is not None
+            and capabilities.position_encoding != self.position_encoding
+        ):
             raise LSPHandleError(
-                f"Unsupported position encoding: {capabilities.position_encoding}")
+                f"Unsupported position encoding: {capabilities.position_encoding}"
+            )
 
         if isinstance(tds, lsp.TextDocumentSyncOptions):
             open_close = tds.open_close or False
