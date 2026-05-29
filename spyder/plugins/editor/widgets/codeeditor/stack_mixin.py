@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
-import logging
 from datetime import datetime
-
 
 from qtpy.QtCore import QTimer, Signal  # type: ignore
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import QUndoStack, QUndoCommand
-
+from qtpy.QtWidgets import QUndoCommand, QUndoStack
 
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
-
 
 logger = logging.getLogger(__name__)
 
