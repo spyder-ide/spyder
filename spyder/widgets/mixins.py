@@ -952,6 +952,9 @@ class BaseEditMixin(object):
 
     # ---- Text: get, set, ...
     # -------------------------------------------------------------------------
+    def lines(self, keepends=False):
+        return self.toPlainText().splitlines(keepends=keepends)
+
     def _select_text(self, position_from, position_to):
         """Select text and return cursor."""
         position_from = self.get_position(position_from)
@@ -983,7 +986,7 @@ class BaseEditMixin(object):
             File lines.
         """
         if lines is None:
-            lines = self.toPlainText().splitlines()
+            lines = self.lines()
 
         lines_in_region = lines[start_line:end_line + 1]
         return self.get_line_separator().join(lines_in_region)
