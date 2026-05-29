@@ -1421,7 +1421,7 @@ class LSPMixin:
 
     # ---- Save/close file
     # -------------------------------------------------------------------------
-    @schedule_request(
+    @request(
         method=lsp.TEXT_DOCUMENT_DID_SAVE, requires_response=False
     )
     def notify_save(self):
