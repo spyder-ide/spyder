@@ -920,7 +920,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         """Expose plugins toggle actions menu."""
         return self.get_container()._plugins_menu
 
-    def create_plugins_menu(self):
+    def create_plugins_menu(self, rebuild: bool = False):
         """
         Populate panes menu with the toggle view action of each base plugin.
         """
@@ -945,6 +945,9 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
             "internal_console",
             None,
         ]
+
+        if rebuild:
+            self.plugins_menu.clear_actions()
 
         for plugin in self.get_dockable_plugins():
             action = plugin.toggle_view_action
@@ -977,12 +980,13 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         # available. And disable those shortcuts when the menu is hidden
         # because they allow to hide plugins when pressed twice. See:
         # https://github.com/spyder-ide/spyder/issues/22189#issuecomment-2248644546
-        self.plugins_menu.aboutToShow.connect(
-            lambda: self._update_shortcuts_in_plugins_menu(show=True)
-        )
-        self.plugins_menu.aboutToHide.connect(
-            lambda: self._update_shortcuts_in_plugins_menu(show=False)
-        )
+        if not rebuild:
+            self.plugins_menu.aboutToShow.connect(
+                lambda: self._update_shortcuts_in_plugins_menu(show=True)
+            )
+            self.plugins_menu.aboutToHide.connect(
+                lambda: self._update_shortcuts_in_plugins_menu(show=False)
+            )
 
     @property
     def lock_interface_action(self):
@@ -1090,10 +1094,10 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
         else:
             next_to_plugins = tabify
 
-        # Check if TABIFY is not a list with None as unique value or a default
-        # list
-        if tabify in [[None], []]:
-            return False
+        # Add the Internal Console to next_plugins because it's the only
+        # dockable plugin that can't be disabled. So, if all plugins in TABIFY
+        # are unavailable, at least we'll tabify it next to the console.
+        next_to_plugins += [Plugins.Console]
 
         # Get the actual plugins from their names
         next_to_plugins = [

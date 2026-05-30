@@ -9,17 +9,19 @@ Toolbar Container.
 """
 
 # Standard library imports
+from __future__ import annotations
 from collections import OrderedDict
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 # Third party imports
-from qtpy.QtCore import QSize, Slot
+from qtpy.QtCore import QSize, QTimer, Slot
 from qtpy.QtWidgets import QAction, QWidget
 from qtpy import PYSIDE2, PYSIDE6
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.utils import get_class_values
 from spyder.api.widgets.main_container import PluginMainContainer
@@ -35,7 +37,17 @@ logger = logging.getLogger(__name__)
 
 # Type annotations
 ToolbarItem = Union[SpyderAction, QWidget]
-ItemInfo = Tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
+ItemInfo = tuple[ToolbarItem, Optional[str], Optional[str], Optional[str]]
+
+# Default order for internal toolbars
+INTERNAL_TOOLBARS_ORDER = [
+    ApplicationToolbars.File,
+    ApplicationToolbars.Run,
+    ApplicationToolbars.Debug,
+    ApplicationToolbars.Profile,
+    ApplicationToolbars.Main,
+    ApplicationToolbars.WorkingDirectory,
+]
 
 
 class ToolbarMenus:
@@ -68,10 +80,9 @@ class ToolbarContainer(PluginMainContainer):
         super().__init__(name, plugin, parent=parent)
 
         self._APPLICATION_TOOLBARS = OrderedDict()
-        self._ADDED_TOOLBARS = OrderedDict()
         self._toolbarslist: list[ApplicationToolbar] = []
         self._visible_toolbars: list[ApplicationToolbar] = []
-        self._ITEMS_QUEUE: Dict[str, List[ItemInfo]] = {}
+        self._ITEMS_QUEUE: dict[str, list[ItemInfo]] = {}
 
     # ---- Private Methods
     # ------------------------------------------------------------------------
@@ -175,7 +186,7 @@ class ToolbarContainer(PluginMainContainer):
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
         return toolbar
 
-    def add_application_toolbar(self, toolbar, mainwindow=None):
+    def add_application_toolbar(self, toolbar):
         """
         Add toolbar to application toolbars.
 
@@ -199,30 +210,51 @@ class ToolbarContainer(PluginMainContainer):
                 f"Toolbar `{repr(toolbar)}` doesn't have an identifier!"
             )
 
-        if toolbar_id in self._ADDED_TOOLBARS:
+        if toolbar_id in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
-                'Toolbar with ID "{}" already added!'.format(toolbar_id))
+                'Toolbar with ID "{}" already added!'.format(toolbar_id)
+            )
 
         # Add toolbar to registry and add it to the app toolbars dict
         TOOLBAR_REGISTRY.register_reference(
-            toolbar, toolbar_id, self.PLUGIN_NAME, self.CONTEXT_NAME
+            toolbar, toolbar_id, self.PLUGIN_NAME
         )
         self._APPLICATION_TOOLBARS[toolbar_id] = toolbar
+        self._toolbarslist.append(toolbar)
 
         # TODO: Make the icon size adjustable in Preferences later on.
         iconsize = 24
         toolbar.setIconSize(QSize(iconsize, iconsize))
         toolbar.setObjectName(toolbar_id)
 
-        self._ADDED_TOOLBARS[toolbar_id] = toolbar
-        self._toolbarslist.append(toolbar)
+        # Add toolbar to main window
+        self._plugin.main.addToolBar(toolbar)
 
-        if mainwindow:
-            mainwindow.addToolBar(toolbar)
-
+        # Add toolbar elements in queue
         self._add_missing_toolbar_elements(toolbar, toolbar_id)
 
-    def remove_application_toolbar(self, toolbar_id: str, mainwindow=None):
+        # Actions to take when the plugin that creates this toolbar is
+        # reenabled
+        if not self._plugin.main.is_setting_up:
+            # Reload toolbars to show toolbars of reenabled plugins again
+            self.load_application_toolbars(reload=True)
+
+            # Render toolbar to make its icons visible. This needs to be done
+            # after reloading all toolbars and with a timer (otherwise it
+            # doesn't work)
+            QTimer.singleShot(1, toolbar.render)
+
+            # When the toolbar is readded, Qt adds a handle to move it even if
+            # the toolbars and panes are locked. So, we need to relock them
+            # again.
+            if self.get_conf("panes_locked", section="main"):
+               layout = self._plugin.get_plugin(Plugins.Layout)
+               layout.toggle_lock(True)
+
+            # Rebuild menu to account for the new toolbar
+            self.create_toolbars_menu(rebuild=True)
+
+    def remove_application_toolbar(self, toolbar_id: str):
         """
         Remove toolbar from application toolbars.
 
@@ -233,25 +265,32 @@ class ToolbarContainer(PluginMainContainer):
         mainwindow: QMainWindow
             The main application window.
         """
-
-        if toolbar_id not in self._ADDED_TOOLBARS:
+        if toolbar_id not in self._APPLICATION_TOOLBARS:
             raise SpyderAPIError(
                 'Toolbar with ID "{}" is not in the main window'.format(
-                    toolbar_id))
+                    toolbar_id
+                )
+            )
 
-        toolbar = self._ADDED_TOOLBARS.pop(toolbar_id)
+        toolbar = self._APPLICATION_TOOLBARS.pop(toolbar_id)
         self._toolbarslist.remove(toolbar)
+        TOOLBAR_REGISTRY.remove_reference(toolbar_id, self.PLUGIN_NAME)
+        self._plugin.main.removeToolBar(toolbar)
 
-        if mainwindow:
-            mainwindow.removeToolBar(toolbar)
+        if toolbar in self._visible_toolbars:
+            self._visible_toolbars.remove(toolbar)
+
+        # Rebuild menu to account for the removed toolbar
+        if not self._plugin.main.is_closing:
+            self.create_toolbars_menu(rebuild=True)
 
     def add_item_to_application_toolbar(
         self,
         item: ToolbarItem,
-        toolbar_id: Optional[str] = None,
-        section: Optional[str] = None,
-        before: Optional[str] = None,
-        before_section: Optional[str] = None,
+        toolbar_id: str | None = None,
+        section: str | None = None,
+        before: str | None = None,
+        before_section: str | None = None,
         omit_id: bool = False
     ):
         """
@@ -287,7 +326,7 @@ class ToolbarContainer(PluginMainContainer):
     def remove_item_from_application_toolbar(
         self,
         item_id: str,
-        toolbar_id: Optional[str] = None
+        toolbar_id: str | None = None
     ):
         """
         Remove action or widget from given application toolbar by id.
@@ -331,7 +370,7 @@ class ToolbarContainer(PluginMainContainer):
 
         return self._APPLICATION_TOOLBARS[toolbar_id]
 
-    def get_application_toolbars(self) -> Dict[str, ApplicationToolbar]:
+    def get_application_toolbars(self) -> dict[str, ApplicationToolbar]:
         """
         Return all created application toolbars.
 
@@ -342,8 +381,8 @@ class ToolbarContainer(PluginMainContainer):
         """
         return self._APPLICATION_TOOLBARS
 
-    def load_application_toolbars(self):
-        """Load application toolbars at startup."""
+    def load_application_toolbars(self, reload: bool = False):
+        """Load application toolbars."""
         app_toolbars = self.get_application_toolbars()
 
         # Get internal and external toolbars
@@ -354,25 +393,14 @@ class ToolbarContainer(PluginMainContainer):
             if toolbar_id not in internal_toolbars
         ]
 
-        # Default order for internal toolbars
-        internal_toolbars_order = [
-            ApplicationToolbars.File,
-            ApplicationToolbars.Run,
-            ApplicationToolbars.Debug,
-            ApplicationToolbars.Profile,
-            ApplicationToolbars.Main,
-        ]
-
-        # Check we didn't leave out any internal toolbar from the order above
+        # Check we didn't leave out any internal toolbar from the internal
+        # order
         if DEV:
             if (
-                (set(internal_toolbars) - set(internal_toolbars_order))
-                != {ApplicationToolbars.WorkingDirectory}
-            ):
-                missing_toolbars = (
-                    set(internal_toolbars)
-                    - set(internal_toolbars_order)
-                    - {ApplicationToolbars.WorkingDirectory}
+                set(internal_toolbars) - set(INTERNAL_TOOLBARS_ORDER)
+            ) != set():
+                missing_toolbars = set(internal_toolbars) - set(
+                    INTERNAL_TOOLBARS_ORDER
                 )
 
                 raise SpyderAPIError(
@@ -385,8 +413,12 @@ class ToolbarContainer(PluginMainContainer):
         # new toolbars were added
         last_toolbars = self.get_conf("last_toolbars")
         if (
+            # First time Spyder starts
             not last_toolbars
+            # A new toolbar was added by a plugin
             or set(last_toolbars) != set(app_toolbars.keys())
+            # A plugin that adds a toolbar was reenabled
+            or reload
         ):
             logger.debug("Reorganize application toolbars")
 
@@ -398,7 +430,7 @@ class ToolbarContainer(PluginMainContainer):
             # Add toolbars with the working directory to the right because it's
             # not clear where it ends, so users can have a hard time finding a
             # new toolbar in the interface if it's placed next to it.
-            toolbars_order = internal_toolbars_order + external_toolbars
+            toolbars_order = INTERNAL_TOOLBARS_ORDER[:-1] + external_toolbars
             for toolbar_id in (
                 toolbars_order
                 + [ApplicationToolbars.WorkingDirectory]
@@ -407,6 +439,12 @@ class ToolbarContainer(PluginMainContainer):
                 if toolbar:
                     self._plugin.main.addToolBar(toolbar)
                     toolbar.render()
+                    if reload:
+                        if toolbar_id in self.get_conf(
+                            "last_visible_toolbars"
+                        ):
+                            toolbar.toggleViewAction().setChecked(True)
+                            toolbar.setVisible(True)
         else:
             logger.debug("Render application toolbars")
 
@@ -455,15 +493,24 @@ class ToolbarContainer(PluginMainContainer):
 
         self.update_actions()
 
-    def create_toolbars_menu(self):
-        """
-        Populate the toolbars menu inside the view application menu.
-        """
+    def create_toolbars_menu(self, rebuild: bool = False):
+        """Populate the 'Window > Toolbars' menu."""
         main_section = ToolbarsMenuSections.Main
         secondary_section = ToolbarsMenuSections.Secondary
         default_toolbars = get_class_values(ApplicationToolbars)
 
-        for toolbar_id, toolbar in self._ADDED_TOOLBARS.items():
+        if rebuild:
+            # Remove references to toggleView actions
+            for action_id in self.toolbars_menu._actions_map:
+                ACTION_REGISTRY.remove_reference(
+                    action_id, self._plugin.NAME
+                )
+
+            # Clear menu
+            self.toolbars_menu.clear_actions()
+
+        for toolbar_id in INTERNAL_TOOLBARS_ORDER:
+            toolbar = self._APPLICATION_TOOLBARS.get(toolbar_id)
             if toolbar:
                 action = toolbar.toggleViewAction()
 

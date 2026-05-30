@@ -61,7 +61,7 @@ class HelpWidgetActions:
     ToggleShowSource = 'toggle_show_source_action'
     ToggleWrap = 'toggle_wrap_action'
     CopyAction = "help_widget_copy_action"
-    SelectAll = "select_all_action",
+    SelectAll = "help_widget_select_all_action"
     Home = 'home_action'
 
 

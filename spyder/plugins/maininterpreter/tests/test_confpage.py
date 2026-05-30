@@ -44,7 +44,6 @@ def test_load_time(qtbot):
     main = MainWindowMock(None)
     preferences = main.get_plugin(Plugins.Preferences)
 
-    PLUGIN_REGISTRY._update_plugin_info(MainInterpreter)
     PLUGIN_REGISTRY.register_plugin(main, MainInterpreter)
 
     # Create page and measure time to do it

@@ -21,6 +21,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QAction
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderPluginV2
 from spyder.api.plugin_registration.decorators import (
     on_plugin_available, on_plugin_teardown)
@@ -34,6 +35,7 @@ from spyder.plugins.run.confpage import RunConfigPage
 from spyder.plugins.run.container import RunContainer
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.mainmenu.api import ApplicationMenus, RunMenuSections
+from spyder.utils.registries import ACTION_REGISTRY
 
 
 
@@ -112,6 +114,7 @@ class Run(SpyderPluginV2):
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_main_menu_available(self):
         main_menu = self.get_plugin(Plugins.MainMenu)
+        main_menu.create_application_menu(ApplicationMenus.Run, _("&Run"))
 
         for action in [
             RunActions.Run,
@@ -130,7 +133,8 @@ class Run(SpyderPluginV2):
 
         while self.pending_menu_actions != []:
             action, menu_id, menu_section, before_section = (
-                self.pending_menu_actions.pop(0))
+                self.pending_menu_actions.pop(0)
+            )
             main_menu.add_item_to_application_menu(
                 action,
                 menu_id,
@@ -206,6 +210,8 @@ class Run(SpyderPluginV2):
                 main_menu.remove_item_from_application_menu(
                     action_id, ApplicationMenus.Run
                 )
+
+        main_menu.remove_application_menu(ApplicationMenus.Run)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
     def on_preferences_teardown(self):
@@ -494,17 +500,10 @@ class Run(SpyderPluginV2):
         `run <context> <context_modificator> and <extra_action_name>`
         on the action registry.
 
-        3. The created button will operate over the last focused run input
-        provider.
-
-        4. If the requested button already exists, this method will not do
-        anything, which implies that the first registered shortcut will be the
-        one to be used. For the built-in run contexts (file, cell and
-        selection), the editor will register their corresponding icons and
-        shortcuts.
+        4. For the built-in run contexts (file, cell and selection), the editor
+        will register their corresponding icons and shortcuts.
         """
-        key = (context_name, extra_action_name, context_modificator,
-               re_run)
+        key = (context_name, extra_action_name, context_modificator, re_run)
 
         action = self.get_container().create_run_button(
             context_name,
@@ -611,7 +610,7 @@ class Run(SpyderPluginV2):
             after requesting the run input.
         context_modificator: Optional[str]
             The name of the modification to apply to the action, e.g. run
-            run selection <up to line>.
+            selection <up to line>.
         re_run: bool
             If True, then the button was registered as a re-run button
             instead of a run one.
@@ -619,34 +618,44 @@ class Run(SpyderPluginV2):
         Notes
         -----
         1. The action will be removed from the main menu and toolbar if and
-        only if there is no longer a RunInputProvider that registered the same
-        action and has not called this method.
+        only if there is a single action registered to run a given context.
         """
         main_menu = self.get_plugin(Plugins.MainMenu)
         toolbar = self.get_plugin(Plugins.Toolbar)
         shortcuts = self.get_plugin(Plugins.Shortcuts)
+        container = self.get_container()
 
-        key = (context_name, extra_action_name, context_modificator,
-               re_run)
+        key = (context_name, extra_action_name, context_modificator, re_run)
 
         with self.action_lock:
             action, count, action_id = self.all_run_actions[key]
 
-            if count == 0:
+            if count == 1:
                 self.all_run_actions.pop(key)
                 if key in self.menu_actions:
-                    self.menu_actions.pop(key)
+                    self.menu_actions.remove(key)
                     if main_menu:
-                        main_menu.remove_item_from_application_menu(
-                            action_id, menu_id=ApplicationMenus.Run
-                        )
+                        # The try/except is necessary to prevent errors when
+                        # the menu is no longer available.
+                        try:
+                            main_menu.remove_item_from_application_menu(
+                                action_id, menu_id=ApplicationMenus.Run
+                            )
+                        except SpyderAPIError:
+                            pass
 
                 if key in self.toolbar_actions:
-                    self.toolbar_actions.pop(key)
+                    self.toolbar_actions.remove(key)
                     if toolbar:
-                        toolbar.remove_item_from_application_toolbar(
-                            action_id, toolbar_id=ApplicationToolbars.Run
-                        )
+                        # The try/except is necessary to prevent errors when
+                        # trying to remove actions registered by other plugins,
+                        # which can be in other toolbars.
+                        try:
+                            toolbar.remove_item_from_application_toolbar(
+                                action_id, toolbar_id=ApplicationToolbars.Run
+                            )
+                        except SpyderAPIError:
+                            pass
 
                 if key in self.shortcut_actions:
                     shortcut_context = self.shortcut_actions.pop(key)
@@ -655,6 +664,16 @@ class Run(SpyderPluginV2):
                             action, shortcut_context, action_id
                         )
                         shortcuts.apply_shortcuts()
+
+                if (
+                    context_name,
+                    extra_action_name,
+                ) in container.run_executor_actions:
+                    container.run_executor_actions.pop(
+                        (context_name, extra_action_name)
+                    )
+
+                ACTION_REGISTRY.remove_reference(action_id, self.PLUGIN_NAME)
             else:
                 count -= 1
                 self.all_run_actions[key] = (action, count, action_id)
@@ -788,7 +807,7 @@ class Run(SpyderPluginV2):
                 menu_section = add_to_menu['section']
                 before_section = add_to_menu.get('before_section', None)
 
-            main_menu = self.get_plugin(Plugins.MainMenu)
+            main_menu = self.get_plugin(Plugins.MainMenu, error=False)
             if self.main_menu_ready and main_menu:
                 main_menu.add_item_to_application_menu(
                     action, menu_id, menu_section,
@@ -904,6 +923,9 @@ class Run(SpyderPluginV2):
             if shortcuts:
                 shortcuts.register_shortcut(action, shortcut_context,
                                             action_name)
+
+                if not self.main.is_setting_up:
+                    shortcuts.apply_shortcuts()
             else:
                 self.pending_shortcut_actions.append(
                     (action, shortcut_context, action_name))

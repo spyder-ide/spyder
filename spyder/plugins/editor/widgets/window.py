@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+from __future__ import annotations
 import logging
 import os.path as osp
 import sys
@@ -147,43 +148,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
 
         # ---- Outline.
         self.outlineexplorer = None
-        if outline_plugin is not None:
-            self.outlineexplorer = OutlineExplorerInEditorWindow(
-                'outline_explorer',
-                outline_plugin,
-                self,
-                context=f'editor_window_{str(id(self))}'
-            )
-
-            # Show widget's toolbar
-            self.outlineexplorer.setup()
-            self.outlineexplorer.update_actions()
-            self.outlineexplorer._setup()
-            self.outlineexplorer.render_toolbars()
-
-            # Remove bottom section actions from Options menu because they
-            # don't apply here.
-            options_menu = self.outlineexplorer.get_options_menu()
-            for action in ['undock_pane', 'lock_unlock_position']:
-                options_menu.remove_action(action)
-
-            # Signals
-            self.outlineexplorer.edit_goto.connect(
-                lambda filenames, goto, word:
-                main_widget.load(filenames=filenames, goto=goto, word=word,
-                                 editorwindow=self.parent())
-            )
-
-            self.outlineexplorer.sig_collapse_requested.connect(
-                lambda: self.set_conf("show_outline_in_editor_window", False)
-            )
-
-            # Start symbol services for all supported languages
-            for language in outline_plugin.get_supported_languages():
-                self.outlineexplorer.start_symbol_services(language)
-
-            # Tell Outline's treewidget that is visible
-            self.outlineexplorer.change_tree_visibility(True)
+        self.set_outlineexplorer(outline_plugin)
 
         # ---- Editor widgets
         editor_widgets = QWidget(self)
@@ -323,6 +288,12 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         for es in self.editorstacks:
             es.close()
 
+    def get_current_editorstack(self):
+        return self.editorsplitter.editorstack
+
+    def get_current_editor(self):
+        return self.get_current_editorstack().get_current_editor()
+
     @Slot(object)
     def on_window_state_changed(self, window_state):
         """
@@ -345,6 +316,99 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
             self.outlineexplorer.change_tree_visibility(False)
         else:
             self.outlineexplorer.change_tree_visibility(True)
+
+    def set_outlineexplorer(self, outline_plugin):
+        if outline_plugin is not None:
+            # Create Outline widget
+            self.outlineexplorer = OutlineExplorerInEditorWindow(
+                'outline_explorer',
+                outline_plugin,
+                self,
+                context=f'editor_window_{str(id(self))}'
+            )
+
+            # Show widget's toolbar
+            self.outlineexplorer.setup()
+            self.outlineexplorer.update_actions()
+            self.outlineexplorer._setup()
+            self.outlineexplorer.render_toolbars()
+
+            # Remove bottom section actions from Options menu because they
+            # don't apply here.
+            options_menu = self.outlineexplorer.get_options_menu()
+            for action in ['undock_pane', 'lock_unlock_position']:
+                options_menu.remove_action(action)
+
+            # Signals
+            self.outlineexplorer.edit_goto.connect(
+                lambda filenames, goto, word: self.main_widget.load(
+                    filenames=filenames,
+                    goto=goto,
+                    word=word,
+                    editorwindow=self.parent(),
+                )
+            )
+
+            self.outlineexplorer.sig_collapse_requested.connect(
+                lambda: self.set_conf("show_outline_in_editor_window", False)
+            )
+
+            # Start symbol services for all supported languages
+            for language in outline_plugin.get_supported_languages():
+                self.outlineexplorer.start_symbol_services(language)
+
+            # Tell Outline's treewidget that it's visible
+            self.outlineexplorer.change_tree_visibility(True)
+
+            # This is necessary in case the Outline plugin is reenabled on the
+            # fly
+            if (
+                getattr(self, "splitter", None)
+                and self.splitter.indexOf(self.outlineexplorer) == -1
+            ):
+                for editorstack in self.editorstacks:
+                    # Set new Outline in window stacks
+                    editorstack.set_outlineexplorer(self.outlineexplorer)
+
+                    # Register proxy editors
+                    for finfo in editorstack.data:
+                        oe_proxy = finfo.editor.oe_proxy
+                        if oe_proxy is not None:
+                            self.outlineexplorer.register_editor(oe_proxy)
+
+                # Start symbol services for active LSPs that support them
+                for (
+                    language,
+                    capabilities,
+                ) in self.main_widget.completion_capabilities.items():
+                    if capabilities.get('documentSymbolProvider', False):
+                        self.outlineexplorer.start_symbol_services(language)
+
+                # Add Outline to splitter again, otherwise Qt splits the editor
+                # widgets and Outline 50/50 (the stretch factors are the same
+                # ones set in init)
+                self.splitter.insertWidget(0, self.outlineexplorer)
+                self.splitter.setStretchFactor(0, 1)
+                self.splitter.setStretchFactor(1, 4)
+
+                # Set proxy of current editor to update the Outline contents
+                # automatically (otherwise it's necessary to give focus to the
+                # Editor)
+                current_proxy = self.get_current_editor().oe_proxy
+                if current_proxy is not None:
+                    self.outlineexplorer.set_current_editor(
+                        current_proxy, update=True, clear=False
+                    )
+
+                # Update symbols for all open CodeEditors
+                self.outlineexplorer.update_all_editors()
+        else:
+            if self.outlineexplorer is not None:
+                # This removes the Outline from the splitter
+                self.outlineexplorer.deleteLater()
+
+                # Remove reference to the widget
+                self.outlineexplorer = None
 
     @on_conf_change(option='show_outline_in_editor_window')
     def toggle_outlineexplorer(self, value):
@@ -407,7 +471,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
         # ---- Attributes
         self.main_widget = main_widget
         self.window_size = None
-        self.toolbars = []
+        self._toolbars: dict[str, ApplicationToolbar] = {}
 
         # ---- Main widget
         self.editorwidget = EditorWidget(
@@ -427,8 +491,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             self.menuBar().setStyleSheet(str(MENUBAR_STYLESHEET))
 
         # Give focus to current editor to update/show all status bar widgets
-        editorstack = self.editorwidget.editorsplitter.editorstack
-        editor = editorstack.get_current_editor()
+        editor = self.editorwidget.get_current_editor()
         if editor is not None:
             editor.setFocus()
 
@@ -436,29 +499,14 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
         self.setWindowIcon(main_widget.windowIcon())
 
         # ---- Add toolbars
-        toolbar_list = [
+        self._toolbars_order = [
             ApplicationToolbars.File,
             ApplicationToolbars.Run,
             ApplicationToolbars.Debug
         ]
 
-        for toolbar_id in toolbar_list:
-            # This is necessary to run tests for this widget without Spyder's
-            # main window
-            try:
-                toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
-            except KeyError:
-                continue
-
-            new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
-            for action in toolbar.actions():
-                new_toolbar.add_item(action)
-
-            new_toolbar.render()
-            new_toolbar.setMovable(False)
-
-            self.addToolBar(new_toolbar)
-            self.toolbars.append(new_toolbar)
+        for toolbar_id in self._toolbars_order:
+            self.add_toolbar(toolbar_id)
 
         # ---- Add menus
         menu_list = [
@@ -472,10 +520,18 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             ApplicationMenus.Help
         ]
 
+        self._window_menu = self._create_menu(
+            menu_id=EditorMainWindowMenus.Window,
+            parent=self,
+            title=_("&Window"),
+            register=False,
+            MenuClass=ApplicationMenu
+        )
+        self._populate_window_menu()
+
         for menu_id in menu_list:
             if menu_id == EditorMainWindowMenus.Window:
-                window_menu = self._create_window_menu()
-                self.menuBar().addMenu(window_menu)
+                self.menuBar().addMenu(self._window_menu)
             else:
                 # This is necessary to run tests for this widget without
                 # Spyder's main window
@@ -548,30 +604,57 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
         if splitsettings is not None:
             self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
 
+    def set_outlineexplorer(self, outline_plugin):
+        self.editorwidget.set_outlineexplorer(outline_plugin)
+        self._populate_window_menu()
+
+    def add_toolbar(self, toolbar_id: str, reload: bool = False):
+        # Some toolbars can't be available if their respective plugins are
+        # disabled
+        try:
+            toolbar = self.get_toolbar(toolbar_id, plugin=Plugins.Toolbar)
+        except KeyError:
+            return
+
+        new_toolbar = ApplicationToolbar(self, toolbar_id, toolbar._title)
+        for action in toolbar.actions():
+            new_toolbar.add_item(action)
+
+        new_toolbar.render()
+        new_toolbar.setMovable(False)
+
+        self._toolbars[toolbar_id] = new_toolbar
+
+        if reload:
+            self._reload_toolbars()
+        else:
+            self.addToolBar(new_toolbar)
+
+    def remove_toolbar(self, toolbar_id):
+        toolbar = self._toolbars.pop(toolbar_id)
+        self.removeToolBar(toolbar)
+        self._reload_toolbars()
+
     # ---- Private API
     # -------------------------------------------------------------------------
-    def _create_window_menu(self):
-        # Create menu
-        window_menu = self._create_menu(
-            menu_id=EditorMainWindowMenus.Window,
-            parent=self,
-            title=_("&Window"),
-            register=False,
-            MenuClass=ApplicationMenu
-        )
+    def _populate_window_menu(self):
+        self._window_menu.clear_actions()
 
         # Create Outline action
-        self.toggle_outline_action = self.create_action(
-            EditorMainWindowActions.ToggleOutline,
-            _("Outline"),
-            toggled=True,
-            option="show_outline_in_editor_window"
-        )
+        self.toggle_outline_action = None
+        if self.editorwidget.outlineexplorer is not None:
+            self.toggle_outline_action = self.create_action(
+                EditorMainWindowActions.ToggleOutline,
+                _("Outline"),
+                toggled=True,
+                option="show_outline_in_editor_window",
+                register_action=False,
+            )
 
-        window_menu.add_action(
-            self.toggle_outline_action,
-            section=WindowMenuSections.Outline
-        )
+            self._window_menu.add_action(
+                self.toggle_outline_action,
+                section=WindowMenuSections.Outline
+            )
 
         # Add toolbar toggle window actions
         visible_toolbars = self.get_conf(
@@ -579,7 +662,7 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
             section='toolbar'
         )
 
-        for toolbar in self.toolbars:
+        for toolbar in self._toolbars.values():
             toolbar_action = toolbar.toggleViewAction()
             toolbar_action.action_id = f'toolbar_{toolbar.ID}'
 
@@ -590,12 +673,22 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
                 toolbar_action.setChecked(True)
                 toolbar.setVisible(True)
 
-            window_menu.add_action(
+            self._window_menu.add_action(
                 toolbar_action,
                 section=WindowMenuSections.Toolbars
             )
 
-        return window_menu
+    def _reload_toolbars(self):
+        for toolbar in self._toolbars.values():
+            self.removeToolBar(toolbar)
+
+        for toolbar_id in self._toolbars_order:
+            toolbar = self._toolbars.get(toolbar_id)
+            if toolbar:
+                self.addToolBar(toolbar)
+                toolbar.render()
+
+        self._populate_window_menu()
 
 
 class EditorMainWidgetExample(QSplitter):

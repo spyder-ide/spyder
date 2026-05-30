@@ -124,7 +124,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         plugin_name: str | None = None,
     ) -> None:
         """
-        Register a shortcut for a widget that inherits this mixin.
+        Register a shortcut for a widget.
 
         Parameters
         ----------
@@ -161,7 +161,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
 
         # Register shortcurt for widget
         keystr = self.get_shortcut(name, context, plugin_name)
-        self._register_shortcut(
+        qshortcut = self._register_shortcut(
             keystr, name, triggered, context, widget, plugin_name
         )
 
@@ -175,6 +175,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
             widget=widget,
             plugin_name=plugin_name,
         )
+        qshortcut._observer = config_observer
 
         self.add_configuration_observer(
             config_observer, option=f"{context}/{name}", section="shortcuts"
@@ -188,6 +189,62 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         if data not in SHORTCUTS_FOR_WIDGETS_DATA:
             SHORTCUTS_FOR_WIDGETS_DATA.append(data)
 
+    def unregister_shortcut_from_widget(
+        self,
+        name: str,
+        context: str | None = None,
+        plugin_name: str | None = None,
+    ) -> None:
+        """
+        Unregister a shortcut from a widget.
+
+        Parameters
+        ----------
+        name: str
+            The shortcut name (e.g. ``"run cell"``).
+        context: str | None, optional
+            Name of the shortcut context, e.g. ``"editor"`` for shortcuts
+            that have effect when the :guilabel:`Editor` is focused or
+            ``"_"`` for global shortcuts. If not set, the widget's
+            :attr:`~spyder.api.plugins.SpyderPluginV2.CONF_SECTION` will
+            be used as context.
+        plugin_name: str | None, optional
+            Name of the plugin where the shortcut is defined. Defaults to the
+            context name; necessary for third-party plugins that have shortcuts
+            with a context different from the plugin name.
+
+        Returns
+        -------
+        None
+        """
+        context = self.CONF_SECTION if context is None else context
+
+        # Name and context are saved in lowercase in our config system, so we
+        # need to use them like that here.
+        # Note: That's how the Python ConfigParser class saves options.
+        name = name.lower()
+        context = context.lower()
+
+        # Get shortcurt object
+        shortcut = self._shortcuts.get((context, name, plugin_name))
+
+        # Remove observer
+        self.remove_configuration_observer(
+            shortcut._observer, option=f"{context}/{name}", section="shortcuts"
+        )
+
+        # Delete shortcut
+        shortcut.setEnabled(False)
+        shortcut.deleteLater()
+        self._shortcuts.pop((context, name, plugin_name))
+
+        # Remove shortcut data
+        data = ShortcutData(
+            qobject=None, name=name, context=context, plugin_name=plugin_name
+        )
+        if data not in SHORTCUTS_FOR_WIDGETS_DATA:
+            SHORTCUTS_FOR_WIDGETS_DATA.remove(data)
+
     def _register_shortcut(
         self,
         keystr: str,
@@ -196,7 +253,7 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
         context: str,
         widget: QWidget,
         plugin_name: str | None,
-    ) -> None:
+    ) -> QShortcut:
         """
         Auxiliary function to register a shortcut for a widget.
 
@@ -219,7 +276,8 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
 
         Returns
         -------
-        None
+        QShortcut:
+            Registered QShortcut.
         """
         # Disable current shortcut, if available
         current_shortcut = self._shortcuts.get((context, name, plugin_name))
@@ -243,3 +301,6 @@ class SpyderShortcutsMixin(SpyderConfigurationObserver):
 
         # Save shortcut
         self._shortcuts[(context, name, plugin_name)] = new_shortcut
+
+        # Return shortcut to use it after registration
+        return new_shortcut
