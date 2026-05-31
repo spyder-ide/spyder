@@ -539,12 +539,15 @@ class CodeEditor(
         
         if self.current_shell is None:
             self.current_shell = self.get_ipyconsole_instance()
-            self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
-            self._request_namespace_update()
+            if self.current_shell is not None:
+                self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+                self._request_namespace_update()
+            
         elif not self.current_shell.is_running():
             self.current_shell = self.get_ipyconsole_instance()
-            self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
-            self._request_namespace_update()
+            if self.current_shell is not None:
+                self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+                self._request_namespace_update()
 
     def _on_pdb_event(self, *args):
         self._request_namespace_update()
