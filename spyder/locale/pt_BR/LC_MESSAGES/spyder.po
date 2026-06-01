@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-06-01 20:44\n"
+"PO-Revision-Date: 2026-06-01 21:48\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -2287,7 +2287,7 @@ msgstr ""
 msgid "When opening a file containing mixed end-of-line characters\n"
 "(which may raise syntax errors in the console on Windows),\n"
 "Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "Quando for aberto um arquivo que contenha vários tipos de caracteres de fim de linha (o que pode resultar em erros de sintaxe no console no Windows), o Spyder irá convertê-los automaticamente, se habilitado."
 
 #: spyder/plugins/editor/confpage.py:331
 msgid "Convert end-of-line characters to the following on save:"
@@ -2295,7 +2295,7 @@ msgstr "Converter caracteres de fim de linha para os seguintes caracteres ao sal
 
 #: spyder/plugins/editor/confpage.py:338 spyder/plugins/editor/widgets/main_widget.py:534
 msgid "CR (legacy Mac)"
-msgstr ""
+msgstr "CR (Legado Mac)"
 
 #: spyder/plugins/editor/confpage.py:364
 msgid "Template"
@@ -2303,7 +2303,7 @@ msgstr "Template"
 
 #: spyder/plugins/editor/confpage.py:366
 msgid "Edit new file template"
-msgstr ""
+msgstr "Editar novo modelo de arquivo"
 
 #: spyder/plugins/editor/confpage.py:377
 msgid "Autosave"
@@ -2827,7 +2827,7 @@ msgstr "descomentar"
 
 #: spyder/plugins/editor/widgets/main_widget.py:596
 msgid "Toggle commenting the current line or selection"
-msgstr ""
+msgstr "Alternar comentários na linha atual ou seleção"
 
 #: spyder/plugins/editor/widgets/main_widget.py:603
 msgid "Add &block comment"
@@ -3438,7 +3438,7 @@ msgstr "Abrir arquivos remotos no Editor ainda não é suportado. Este recurso s
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:439
 msgid "New Python Package error"
-msgstr ""
+msgstr "Novo erro do pacote Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:440
 msgid "An error occured while trying to create a new Python package"
@@ -3446,7 +3446,7 @@ msgstr "Ocorreu um erro ao tentar criar um novo pacote Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:456
 msgid "New Python File error"
-msgstr ""
+msgstr "Novo erro no arquivo Python"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:457
 msgid "An error occured while trying to create a new Python file"
@@ -3458,7 +3458,7 @@ msgstr "Novo erro"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:477
 msgid "An error occured while trying to create a file/directory"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar criar um arquivo/diretório"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:500
 msgid "Paste error"
@@ -3482,7 +3482,7 @@ msgstr "Erro ao excluir"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:545
 msgid "An error occured while trying to delete a file/directory"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar excluir um arquivo/diretório"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:580
 msgid "An error occurred while trying to download the file <b>{}</b> from server <b>{}</b>:<br><br>{}"
@@ -3506,7 +3506,7 @@ msgstr "Erro ao enviar"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:662
 msgid "An error occured while trying to upload a file"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar enviar um arquivo"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:700
 msgid "List contents error"
@@ -3514,11 +3514,11 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:701
 msgid "An error occured while trying to view a directory"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar ver um diretório"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:777
 msgid "An error occured while trying to upload files"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar enviar arquivos"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:799
 msgid "The file <b>{}</b> that you're trying to paste on the server <b>{}</b> already exists in the current location."
@@ -4102,7 +4102,8 @@ msgstr "Importar automaticamente módulos NumPy e Matplotlib"
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "This is a convenience to use NumPy and Matplotlib\n"
 "in the console without explicitly importing the modules."
-msgstr ""
+msgstr "Isto facilita usar NumPy e Matplotlib\n"
+"no console sem importar explicitamente os módulos."
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
@@ -4114,7 +4115,7 @@ msgstr "Saída gráfica"
 
 #: spyder/plugins/ipythonconsole/confpage.py:189
 msgid "Choose how figures are displayed"
-msgstr ""
+msgstr "Escolha como as figuras são exibidas"
 
 #: spyder/plugins/ipythonconsole/confpage.py:203
 msgid "Backend:"
@@ -4123,7 +4124,8 @@ msgstr "Saída:"
 #: spyder/plugins/ipythonconsole/confpage.py:207
 msgid "If unsure, select {inline} to show figures in the Plots pane\n"
 "or {auto} to interact with them (zoom and pan) in a new window."
-msgstr ""
+msgstr "Se não tiver certeza, selecione {inline} para mostrar figuras no painel de gráficos\n"
+"ou {auto} para interagir com eles (zoom e pan) em uma nova janela."
 
 #: spyder/plugins/ipythonconsole/confpage.py:222
 msgid "Inline backend"
@@ -4131,7 +4133,7 @@ msgstr "Saída em linha"
 
 #: spyder/plugins/ipythonconsole/confpage.py:223
 msgid "Settings for figures in the Plots pane"
-msgstr ""
+msgstr "Configurações para as figuras no painel de gráficos"
 
 #: spyder/plugins/ipythonconsole/confpage.py:227
 msgid "Format:"
@@ -4208,7 +4210,9 @@ msgstr "Usar um layout com margens estreitas para plots em linha"
 msgid "Sets 'bbox_inches' to 'tight' for inline plots.\n"
 "When enabled, figures displayed in the Plots pane\n"
 "may look different from those output with 'savefig'."
-msgstr ""
+msgstr "Define 'bbox_inches' para 'tight' para gráficos em linha.\n"
+"Quando ativado, figuras exibidas no painel de gráficos\n"
+"podem parecer diferentes daquelas saídas com 'savefig'."
 
 #: spyder/plugins/ipythonconsole/confpage.py:318 spyder/plugins/tours/widgets.py:342
 msgid "Run code"
@@ -4258,7 +4262,7 @@ msgstr "Autocall: "
 #: spyder/plugins/ipythonconsole/confpage.py:372
 msgid "In {smart} mode, Autocall is not applied if there are no arguments after the callable.\n"
 "In {full} mode, callable objects are called even if no arguments are present."
-msgstr ""
+msgstr "No modo {smart}, a Chamada Automática não é aplicada se não houver argumentos depois do objeto \"chamável\". No modo {full}, objetos chamáveis são chamados mesmo se não houver argumentos presentes."
 
 #: spyder/plugins/ipythonconsole/confpage.py:386
 msgid "Autoreload"
@@ -4266,7 +4270,7 @@ msgstr "Autoreload"
 
 #: spyder/plugins/ipythonconsole/confpage.py:387
 msgid "Reload imported modules automatically before running code. This is a different mechanism than the User Module Reloader and can be slow on Windows due to limitations of its file system."
-msgstr ""
+msgstr "Recarregue os módulos importados automaticamente antes de executar o código. Este é um mecanismo diferente do Recarregador de Módulos do Usuário e pode ser lento no Windows devido a limitações do seu sistema de arquivos."
 
 #: spyder/plugins/ipythonconsole/confpage.py:395
 msgid "Use autoreload"
@@ -4274,7 +4278,7 @@ msgstr "Usar autoreload"
 
 #: spyder/plugins/ipythonconsole/confpage.py:397
 msgid "Enables the autoreload magic. Refer to its documentation to learn how to use it."
-msgstr ""
+msgstr "Habilita o autoreload mágico. Consulte sua documentação para aprender a usá-lo."
 
 #: spyder/plugins/ipythonconsole/confpage.py:409
 msgid "Prompts"
@@ -4330,11 +4334,11 @@ msgstr "Execute arquivos Python, células, código e comandos interativamente."
 
 #: spyder/plugins/ipythonconsole/utils/client.py:68
 msgid "It was not possible to open an SSH tunnel to connect to the remote kernel. Please check your credentials and the server connection status."
-msgstr ""
+msgstr "Não foi possível abrir um túnel SSH para se conectar ao kernel remoto. Por favor, verifique suas credenciais e o status de conexão do servidor."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:41
 msgid "The directory <tt>{}</tt> is not writable and it is required to create IPython consoles. Please make it writable."
-msgstr ""
+msgstr "O diretório <tt>{}</tt> não está em modo de escrita e isto é necessário para criar consoles IPython. Por favor, habilite a escrita no diretório."
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:46
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have the right version of <tt>spyder-kernels</tt> installed ({1} instead of >= {2} and < {3}). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{4}</tt></pre>or<pre>    <tt>{5}</tt></pre>"
@@ -4354,23 +4358,23 @@ msgstr "O ambiente do Python ou a instalação cujo intérprete está localizado
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:145
 msgid "Spyder couldn't find pixi in your system to activate the kernel's environment. Please add the directory where the pixi executable is located to your PATH environment variable for it to be detected."
-msgstr ""
+msgstr "O Spyder não conseguiu encontrar pixi no seu sistema para ativar o ambiente do kernel. Por favor, adicione o diretório onde o executável pixi está localizado em sua variável de ambiente PATH para ser detectado."
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:182
 msgid "Spyder couldn't find Conda, Mamba or Micromamba on your system to activate the kernel's environment.<br><br>Please set the path for one of their executables in <tt>Preferences > Python interpreter > Conda executable</tt>"
-msgstr ""
+msgstr "O Spyder não conseguiu encontrar o Conda, Mamba ou o Micromamba no seu sistema para ativar o ambiente do kernel.<br><br>Por favor, defina o caminho para um de seus executáveis em <tt>Preferências > interpretador Python > Conda executável</tt>"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:226
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr ""
+msgstr "A versão detectada do Conda é muito antiga e não é suportada pelo Spyder. A versão mínima suportada é 4.9 e, atualmente, você tem {conda_version}.<br><br>.<b>Nota</b>: É necessário reiniciar o Spyder após a atualizar o Conda para que a alteração tenha efeito."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
-msgstr ""
+msgstr "Aguardando o Kernel remoto responder..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:179
 msgid "Reconnecting to remote kernel..."
-msgstr ""
+msgstr "Reconectando ao kernel remoto..."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:267 spyder/plugins/pythonpath/widgets/pathmanager.py:113 spyder/utils/environ.py:282
 msgid "Retrieving environment variables..."
@@ -4394,7 +4398,7 @@ msgstr "Um erro ocorreu enquanto o kernel era inicializado"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:627
 msgid "It was not possible to connect to the kernel associated to this console. If you are trying to connect to an existing kernel, check that the connection file you selected actually corresponds to the kernel you want to connect to."
-msgstr ""
+msgstr "Não foi possível se conectar ao kernel associado a este console. Se você estiver tentando se conectar a um kernel existente, verifique se o arquivo de conexão selecionado corresponde ao kernel ao qual você deseja se conectar."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:988
 msgid "An error occurred while restarting the remote kernel"
@@ -4402,7 +4406,7 @@ msgstr "Ocorreu um erro ao reiniciar o kernel remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:996
 msgid "An error occurred while reconnecting to the remote kernel"
-msgstr ""
+msgstr "Ocorreu um erro ao se reconectar ao kernel remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1015
 msgid "It was not possible to restart the remote kernel"
@@ -4410,19 +4414,19 @@ msgstr "Não foi possível reiniciar o kernel remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1034
 msgid "The maximum number of attempts to reconnect to the kernel was exceeded."
-msgstr ""
+msgstr "O número máximo de tentativas para reconectar ao kernel foi excedido."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1060
 msgid "The remote kernel info was not found. Most probably the server was restarted."
-msgstr ""
+msgstr "A informação remota do kernel não foi encontrada. Muito provavelmente o servidor foi reiniciado."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:1112
 msgid "There was an error connecting to the server <b>{}</b>.<br><br>Please check your connection is working in the menu entry <tt>Tools > Manage remote connections</tt>."
-msgstr ""
+msgstr "Ocorreu um erro ao se conectar ao servidor <b>{}</b>.<br><br>Por favor, verifique que sua conexão está funcionando no menu <tt>Ferramentas > Gerenciar conexões remotas</tt>."
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:61
 msgid "Figures are displayed in the Plots pane by default. To make them also appear inline in the console, you need to uncheck \"Mute inline plotting\" under the options menu of Plots."
-msgstr "Agora as figuras são renderizadas no painel Plots por padrão. Para que eles também apareçam embutidas no console, desmarque a opção \"Silenciar plotagem embutida\" no menu de opções do painel Plots."
+msgstr "Agora as figuras são renderizadas no painel de gráficos por padrão. Para que eles também apareçam embutidas no console, desmarque a opção \"Silenciar plotagem embutida\" no menu de opções do painel Plots."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:71
 msgid "Connect to existing kernel"
@@ -4482,11 +4486,11 @@ msgstr "Salvar configurações de conexão"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:276
 msgid "The connection file you passed doesn't exist or can't be found by Spyder."
-msgstr ""
+msgstr "O arquivo de conexão que você introduziu não existe ou não pode ser encontrado pelo Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:294
 msgid "The connection file you passed is not valid.<br><br>The following issue was found: {}"
-msgstr ""
+msgstr "O arquivo de conexão que você introduziu não é válido.<br><br>A seguinte issue foi encontrada: {}"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:333
 msgid "Select kernel connection file"
@@ -4518,7 +4522,7 @@ msgstr "Reiniciar kernel"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:475 spyder/plugins/ipythonconsole/widgets/main_widget.py:769 spyder/plugins/ipythonconsole/widgets/main_widget.py:770
 msgid "Reconnect to remote kernel"
-msgstr ""
+msgstr "Reconectar ao Kernel remoto"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:481 spyder/plugins/ipythonconsole/widgets/shell.py:931 spyder/plugins/variableexplorer/widgets/main_widget.py:180
 msgid "Remove all variables"
@@ -4670,7 +4674,7 @@ msgstr "Não é possível reiniciar um kernel que não foi iniciado pelo Spyder\
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2553 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1473 spyder/widgets/collectionseditor.py:1320
 msgid "Don't ask again."
-msgstr ""
+msgstr "Não perguntar novamente."
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:2556
 msgid "Are you sure you want to restart the kernel?"
@@ -4694,7 +4698,7 @@ msgstr "A variável é muito grande para ser recuperada"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:52
 msgid "It was not possible to create a copy of the variable in the kernel or to load that copy in Spyder.<br><br>If the object you're trying to view contains a generator, you need to replace it by a list because generators can't be serialized."
-msgstr ""
+msgstr "Não foi possível criar uma cópia da variável no kernel ou carregar essa cópia no Spyder.<br><br>Se o objeto que você está tentando ver contém um gerador, você precisa substituí-lo por uma lista porque os geradores não podem ser serializados."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:59
 msgid "The kernel is dead"
@@ -4706,11 +4710,11 @@ msgstr "Um erro desconhecido ocorreu, desculpe."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:61
 msgid "The channel used to communicate with the kernel is not working."
-msgstr ""
+msgstr "O canal usado para se comunicar com o kernel não está funcionando."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:64
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed in the console environment. To fix this problem, please install it in the environment which you use to run your code."
-msgstr ""
+msgstr "O módulo '<tt>{}</tt>' é necessário para abrir esta variável e não está instalado no ambiente do console. Para corrigir esse problema, por favor instale-o no ambiente que você usa para executar seu código."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:70
 msgid "The '<tt>{}</tt>' module is required to open this variable. Unfortunately, it's not part of our installer, which means your variable can't be displayed by Spyder."
@@ -4718,39 +4722,39 @@ msgstr "O módulo '<tt>{}</tt>' é necessário para abrir esta variável. Infeli
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:75
 msgid "The '<tt>{}</tt>' module is required to open this variable and it's not installed alongside Spyder. To fix this problem, please install it in the same environment that you use to run Spyder."
-msgstr ""
+msgstr "O módulo '<tt>{}</tt>' é necessário para abrir esta variável e não está instalado junto com o Spyder. Para corrigir este problema, por favor instale-o no mesmo ambiente que você usa para executar o Spyder."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:80
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the environment that you use to run Spyder to version 1.26.1 or higher."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão do Numpy usada pelo Spyder e o kernel do seu console atual. Para corrigir este problema, por favor, atualize <tt>numpy</tt>, no ambiente que você usa para executar Spyder, para a versão 1.26.1 ou superior."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:86
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão do Pandas usada pelo Spyder e o kernel do seu console atual. Para corrigir este problema, por favor, atualize <tt>pandas</tt>, no ambiente do console, para a versão 2.0 ou superior."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
 msgid "There is a mismatch between the Pandas versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>pandas</tt> in the environment where Spyder is installed to version 3.0 or higher, or downgrade it in the console enviroment to version 2.3."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão do Pandas usada pelo Spyder e o kernel do seu console atual. Para corrigir este problema, por favor, atualize <tt>pandas</tt>, no ambiente onde o Spyder é instalado, para versão 3. ou superior, ou faça o downgrade no ambiente do console para a versão 2.3."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:99
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão do Python usada pelo Spyder ({}) e o kernel do seu console atual ({}).<br><br>Para corrigi-lo, você precisa recriar seu ambiente de console com o Python {} ou {}."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:105
 msgid "There is a mismatch between the Python versions used by Spyder ({}) and the kernel of your current console ({}).<br><br>To fix it, you need to either install Spyder in an environment with Python {} or {}, or recreate your console environment with Python {} or {}."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão de Python usada pelo Spyder ({}) e o kernel do seu console atual ({}).<br><br>Para corrigi-lo, você precisa instalar o Spyder em um ambiente com o Python {} ou {}, ou recriar seu ambiente de console com Python {} ou {}."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:114
 msgid "If you want to see this fixed in the future, please make a donation <a href='{}'>here</a>."
-msgstr ""
+msgstr "Se quiser ver isto corrigido no futuro, por favor faça uma doação <a href='{}'>aqui</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:122
 msgid "If the required module is yours, you need to create a <a href='{}'>Spyder project</a> for it or add the path where it's located to the PYTHONPATH manager (available in the <tt>Tools</tt> menu)."
-msgstr ""
+msgstr "Se o módulo necessário for seu, você precisa criar um <a href='{}'>projeto Spyder</a> para ele ou adicionar o caminho onde ele está localizado no Gerenciador PYTHONPATH (disponível no menu <tt>Ferramentas</tt>)."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr ""
+msgstr "<br>%s<br><br><b>Nota</b>: Se você considerar que este é um erro válido que precisa ser corrigido pela equipe do Spyder, por favor, reporte no <a href='{}'>Github</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:178 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:192
 msgid "greater"
@@ -4766,7 +4770,7 @@ msgstr "<b>Notas</b>:"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
-msgstr ""
+msgstr "Há uma incompatibilidade entre a versão do Numpy usada pelo Spyder e o kernel do seu console atual. Para corrigir este problema, por favor, atualize o <tt>numpy</tt> no ambiente do console para a versão 2.0 ou superior."
 
 #: spyder/plugins/ipythonconsole/widgets/restartdialog.py:42
 msgid "Restart kernels"
@@ -4890,7 +4894,7 @@ msgstr "Para o modo de tela cheia, use o recurso integrado do macOS"
 
 #: spyder/plugins/layout/container.py:115
 msgid "Fullscreen mode doesn't work reliably on WSL"
-msgstr ""
+msgstr "O modo de tela cheia não funciona de forma confiável no WSL"
 
 #: spyder/plugins/layout/container.py:131
 msgid "Save current layout"
@@ -5008,7 +5012,7 @@ msgstr "Exibição e ordem de layout"
 
 #: spyder/plugins/layout/widgets/dialog.py:330
 msgid "Remove layout"
-msgstr ""
+msgstr "Remover o layout"
 
 #: spyder/plugins/layout/widgets/dialog.py:331
 msgid "Do you want to remove the layout '<b>{}</b>'?"
@@ -5016,7 +5020,7 @@ msgstr "Você quer remover o layout '<b>{}</b>'?"
 
 #: spyder/plugins/maininterpreter/confpage.py:70
 msgid "Select the default Python interpreter for new IPython consoles and Editor code completion"
-msgstr ""
+msgstr "Selecione o interpretador de Python padrão para novos consoles de IPython e a conclusão do código no Editor"
 
 #: spyder/plugins/maininterpreter/confpage.py:77
 msgid "Internal (same used by Spyder)"
@@ -5040,15 +5044,15 @@ msgstr "Executável Conda"
 
 #: spyder/plugins/maininterpreter/confpage.py:123
 msgid "Use a custom Conda/Mamba/Micromamba executable"
-msgstr ""
+msgstr "Usar um executável personalizado de Conda/Mamba/Micromamba "
 
 #: spyder/plugins/maininterpreter/confpage.py:125
 msgid "Use the specified Conda, Mamba or Micromamba instead of finding the executable from the interpreter path.<br><br>Required if using a custom Conda prefix with a Conda/Mamba installed at a non-standard location."
-msgstr ""
+msgstr "Use o executável de Conda, Mamba ou Micromamba especificado em vez de encontrar pelo caminho do intérprete.<br><br>Obrigatório se usar um prefixo personalizado de Conda com um Conda/Mamba instalado em um local não padrão."
 
 #: spyder/plugins/maininterpreter/confpage.py:138
 msgid "The selected file is not a valid Conda executable"
-msgstr ""
+msgstr "O arquivo selecionado não é um executável de Conda válido"
 
 #: spyder/plugins/maininterpreter/confpage.py:156
 msgid "User Module Reloader (UMR)"
@@ -5056,7 +5060,7 @@ msgstr "Recarregador de Módulos do Usuário (RMU)"
 
 #: spyder/plugins/maininterpreter/confpage.py:158
 msgid "UMR forces Python to reload imported modules when running a file in an IPython console."
-msgstr ""
+msgstr "RMU força o Python a recarregar os módulos importados quando estiver executando um arquivo no console IPython."
 
 #: spyder/plugins/maininterpreter/confpage.py:165
 msgid "Enable UMR"
@@ -5064,19 +5068,19 @@ msgstr "Ativar RMU"
 
 #: spyder/plugins/maininterpreter/confpage.py:167 spyder/plugins/maininterpreter/confpage.py:186
 msgid "This change will only be applied to new consoles"
-msgstr ""
+msgstr "Esta mudança será aplicada somente a novos consoles"
 
 #: spyder/plugins/maininterpreter/confpage.py:168
 msgid "This option will enable the User Module Reloader (UMR) in IPython consoles. UMR forces Python to perform a deep reload of imported modules when running Python files with Spyder's <code>Run</code> command.<br><br>After being enabled, UMR requires a console restart (otherwise only newly imported modules will be reloaded when running files).<br><br>If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute <code>Qt.WA_DeleteOnClose</code> on your main window, using the <code>setAttribute</code> method)."
-msgstr ""
+msgstr "Esta opção ativará o Recarregador de Módulos do Usuário (RMU) nos consoles IPython. O RMU força o Python a recarregar totalmente os módulos que foram importados ao executar um arquivo do Python, usando o comendo do Spyder chamado <code>Run</code>. <br><br>Depois de ativado, o RMU necessita que se reinicie o console (caso contrário, só os módulos que foram importados recentemente serão recarregados ao executar um arquivo).<br><br> Se ocorrer algum erro ao re-executar um programa baseado no PyQt, por favor verifique se os objetos do Qt foram destruídos apropriadamente (por exemplo, você pode ter que utilizar o atributo <code>Qt.WA_DeleteOnClose</code> em sua janela principal, utilizando o método <code>setAttribute</code>)"
 
 #: spyder/plugins/maininterpreter/confpage.py:184
 msgid "Print list of reloaded modules"
-msgstr ""
+msgstr "Imprimir lista de módulos recarregados"
 
 #: spyder/plugins/maininterpreter/confpage.py:189
 msgid "Select modules to exclude from being reloaded"
-msgstr ""
+msgstr "Selecione os módulos para excluir de serem recarregados"
 
 #: spyder/plugins/maininterpreter/confpage.py:212 spyder/plugins/maininterpreter/confpage.py:232 spyder/plugins/maininterpreter/confpage.py:240
 msgid "UMR"
@@ -5094,7 +5098,7 @@ msgstr "Os seguintes módulos não estão instalados:\n"
 
 #: spyder/plugins/maininterpreter/confpage.py:241
 msgid "Changes will only be applied to new IPython consoles"
-msgstr ""
+msgstr "As alterações só serão aplicadas aos novos consoles de IPython"
 
 #: spyder/plugins/maininterpreter/plugin.py:73
 msgid "Manage the default Python interpreter used to run, analyze and profile your code in Spyder."
@@ -5422,19 +5426,19 @@ msgstr "Gerenciar as preferências do Spyder."
 
 #: spyder/plugins/preferences/widgets/container.py:128
 msgid "Reset all preferences to defaults"
-msgstr ""
+msgstr "Redefinir todas as preferências para o padrão"
 
 #: spyder/plugins/profiler/confpage.py:18
 msgid "Open profiler when profiling finishes"
-msgstr ""
+msgstr "Abrir o analisador quando terminar de analisar"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "This option switches to the profiler plugin when a profiling has ended."
-msgstr ""
+msgstr "Esta opção alterna para o plugin de perfil quando a análise termina."
 
 #: spyder/plugins/profiler/confpage.py:27
 msgid "Maximum number of items displayed with large local time"
-msgstr ""
+msgstr "Número máximo de itens exibidos com horário local grande"
 
 #: spyder/plugins/profiler/plugin.py:60 spyder/plugins/profiler/widgets/main_widget.py:121 spyder/plugins/tours/tours.py:186
 msgid "Profiler"
@@ -5446,15 +5450,15 @@ msgstr "Identificar arquivos Python para encontrar gargalos de execução."
 
 #: spyder/plugins/profiler/plugin.py:157 spyder/plugins/profiler/plugin.py:158
 msgid "Profile file"
-msgstr ""
+msgstr "Arquivo de análise"
 
 #: spyder/plugins/profiler/plugin.py:172 spyder/plugins/profiler/plugin.py:173
 msgid "Profile cell"
-msgstr ""
+msgstr "Célula de análise"
 
 #: spyder/plugins/profiler/plugin.py:187 spyder/plugins/profiler/plugin.py:188
 msgid "Profile current line or selection"
-msgstr ""
+msgstr "Analisar linha ou seleção atual"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:84
 msgid "Code not profiled yet"
@@ -5466,15 +5470,15 @@ msgstr "Identifique seu código para explorar quais funções e métodos demorar
 
 #: spyder/plugins/profiler/widgets/main_widget.py:92
 msgid "Show functions or modules that call the root item"
-msgstr ""
+msgstr "Mostrar funções ou módulos que chamam o item raiz"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:93
 msgid "Show functions or modules called by the root item"
-msgstr ""
+msgstr "Exibir funções ou módulos chamados pelo item raiz"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:94
 msgid "Show functions or modules that call an item or are called by it"
-msgstr ""
+msgstr "Mostrar funções ou módulos que chamam um item ou são chamados por ele"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:127
 msgid "Collapse"
@@ -5494,11 +5498,11 @@ msgstr "Descer um nível"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:148 spyder/plugins/profiler/widgets/main_widget.py:149
 msgid "Show items with large local time"
-msgstr ""
+msgstr "Mostrar itens com horário local grande"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:155 spyder/plugins/profiler/widgets/main_widget.py:156
 msgid "Hide calls to external libraries"
-msgstr ""
+msgstr "Ocultar chamadas para bibliotecas externas"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:162 spyder/plugins/variableexplorer/widgets/main_widget.py:166 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:416 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:443
 msgid "Save data"
@@ -5530,11 +5534,11 @@ msgstr "Parar a análise"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:262
 msgid "Show functions or modules called by this item"
-msgstr ""
+msgstr "Mostrar funções ou módulos chamados por este item"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:268
 msgid "Show functions or modules that call this item"
-msgstr ""
+msgstr "Mostrar funções ou módulos que chamam este item"
 
 #: spyder/plugins/profiler/widgets/main_widget.py:654
 msgid "Save profiler result"
@@ -5566,7 +5570,7 @@ msgstr "Diff"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:505
 msgid "Local Time"
-msgstr "Hora Local"
+msgstr "Horário Local"
 
 #: spyder/plugins/profiler/widgets/profiler_data_tree.py:507
 msgid "Calls"
@@ -5658,7 +5662,7 @@ msgstr "Abrir projeto"
 
 #: spyder/plugins/projects/widgets/main_widget.py:376
 msgid "<b>%s</b> is not a Spyder project.<br><br>Do you want to create a project in this location?"
-msgstr ""
+msgstr "<b>%s</b> não é um projeto Spyder.<br><br>Você deseja criar um projeto neste local?"
 
 #: spyder/plugins/projects/widgets/main_widget.py:390
 msgid "It was not possible to create a project in <b>{}</b>. The reason is:<br><br>{}"
@@ -5678,11 +5682,11 @@ msgstr "<b>{}</b> não é mais um projeto do Spyder válido! Já que ele é proj
 
 #: spyder/plugins/projects/widgets/main_widget.py:1067
 msgid "No directory was selected"
-msgstr ""
+msgstr "Nenhum diretório foi selecionado"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1070
 msgid "The directory doesn't exist"
-msgstr ""
+msgstr "O diretório não existe"
 
 #: spyder/plugins/projects/widgets/main_widget.py:1073
 msgid "The directory is not writable"
@@ -5710,11 +5714,11 @@ msgstr "Esse diretório não tem permissão de escrita"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:170
 msgid "You selected a Spyder project"
-msgstr ""
+msgstr "Você selecionou um projeto Spyder"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:185
 msgid "The directory you selected for this project already exists."
-msgstr ""
+msgstr "O diretório que você selecionou para este projeto já existe."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:194
 msgid "This directory is already a Spyder project."
@@ -5722,15 +5726,15 @@ msgstr "Este diretório já é um projeto Spyder."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:200
 msgid "You don't have write permissions in the location you selected."
-msgstr ""
+msgstr "Você não tem permissões de gravação no local selecionado."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:209
 msgid "The location you selected doesn't exist."
-msgstr ""
+msgstr "O local que você selecionou não existe."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:216
 msgid "The directory name you selected is not valid."
-msgstr ""
+msgstr "O nome do diretório que você selecionou não é válido."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:222 spyder/plugins/remoteclient/widgets/connectionpages.py:956
 msgid "There are missing fields on this page."
@@ -5738,7 +5742,7 @@ msgstr "Existem campos ausentes nesta página."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:231
 msgid "Select the location where the project directory will be created"
-msgstr ""
+msgstr "Selecione o local onde o diretório do projeto será criado"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:239
 msgid "New directory"
@@ -5746,11 +5750,11 @@ msgstr "Novo diretório"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:245
 msgid "Start a project in a new directory"
-msgstr ""
+msgstr "Iniciar um projeto em um novo diretório"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:250
 msgid "To learn more about projects, see our <a href=\"{0}\">documentation</a>."
-msgstr ""
+msgstr "Para saber mais sobre projetos, consulte a nossa <a href=\"{0}\">documentação</a>."
 
 #: spyder/plugins/projects/widgets/projectdialog.py:258
 msgid "Project directory"
@@ -5770,7 +5774,7 @@ msgstr "Caminho do projeto"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:328
 msgid "Select the directory to use for the project"
-msgstr ""
+msgstr "Selecione o diretório para usar no projeto"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:331
 msgid "Existing directory"
@@ -5778,7 +5782,7 @@ msgstr "Diretório existente"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:338
 msgid "Create a Spyder project in an existing directory"
-msgstr ""
+msgstr "Criar um projeto Spyder em um diretório existente"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:411
 msgid "Create new project"
@@ -5978,15 +5982,15 @@ msgstr "Exportar"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:398
 msgid "This will export Spyder's path list to the <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br><br>Do you want to keep the inactive system paths?"
-msgstr ""
+msgstr "Isto irá sincronizar a lista de caminhos do Spyder com o <b>PYTHONPATH</b> para o usuário atual, permitindo que você execute seus módulos Python fora do Spyder sem ter que configuraro sys.path. <br><br>Deseja manter os caminhos inativos do sistema?"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:538
 msgid "Paths are prepended to sys.path"
-msgstr ""
+msgstr "Caminhos são precedidos para sys.path"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:543
 msgid "Paths are appended to sys.path"
-msgstr ""
+msgstr "Caminhos estão anexados a sys.path"
 
 #: spyder/plugins/pythonpath/widgets/pathmanager.py:580
 msgid "This directory is already included in the list.<br> Do you want to move it to the top of the list?"
@@ -6010,7 +6014,7 @@ msgstr "A conexão foi perdida"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:248
 msgid "Starting Spyder remote services"
-msgstr ""
+msgstr "Iniciando serviços remotos do Spyder"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:315
 msgid "We're establishing the connection. Please be patient"
@@ -6026,7 +6030,7 @@ msgstr "A conexão foi estabelecida com sucesso"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:366
 msgid "There was an error establishing the connection"
-msgstr ""
+msgstr "Ocorreu um erro ao estabelecer a conexão"
 
 #: spyder/plugins/remoteclient/api/manager/base.py:394 spyder/plugins/remoteclient/api/manager/ssh.py:150 spyder/plugins/remoteclient/api/manager/ssh.py:248 spyder/plugins/remoteclient/api/manager/ssh.py:293 spyder/plugins/remoteclient/api/manager/ssh.py:373
 msgid "The SSH connection is not open"
@@ -6038,7 +6042,7 @@ msgstr "JupyterHub não está conectado"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:81 spyder/plugins/remoteclient/api/manager/jupyterhub.py:143 spyder/plugins/remoteclient/api/manager/ssh.py:169 spyder/plugins/remoteclient/api/manager/ssh.py:184 spyder/plugins/remoteclient/api/manager/ssh.py:231
 msgid "Spyder remote services are active"
-msgstr ""
+msgstr "Os serviços remotos de Spyder estão ativos"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:104 spyder/plugins/remoteclient/api/manager/jupyterhub.py:136 spyder/plugins/remoteclient/api/manager/jupyterhub.py:183 spyder/plugins/remoteclient/api/manager/ssh.py:201
 msgid "Error starting the remote server"
@@ -6046,7 +6050,7 @@ msgstr "Erro ao iniciar o servidor remoto"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:118 spyder/plugins/remoteclient/api/manager/ssh.py:214
 msgid "There was an error when trying to get the remote server information"
-msgstr ""
+msgstr "Ocorreu um erro ao tentar obter as informações do servidor remoto"
 
 #: spyder/plugins/remoteclient/api/manager/jupyterhub.py:199
 msgid "Error staring the remote server"
@@ -6218,7 +6222,7 @@ msgstr "A sua frase secreta foi salva com segurança por Spyder"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:688
 msgid "Server URL *"
-msgstr ""
+msgstr "URL do servidor *"
 
 #: spyder/plugins/remoteclient/widgets/connectionpages.py:690
 msgid "This is the URL of the JupyterHub server"
