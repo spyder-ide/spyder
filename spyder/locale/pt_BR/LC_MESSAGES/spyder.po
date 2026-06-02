@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-03-18 17:17-0500\n"
-"PO-Revision-Date: 2026-06-01 21:48\n"
+"PO-Revision-Date: 2026-06-02 01:14\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -181,7 +181,7 @@ msgstr "Reiniciando"
 
 #: spyder/config/manager.py:591
 msgid "It was not possible to save a configuration setting securely. A possible solution is to install the <tt>keyrings.alt</tt> package with {}.<br><br><bb>Note</bb>: That package may have security risks or other implications. Hence, it's not advised to use it in general production or security-sensitive systems."
-msgstr "Não foi possível salvar uma configuração de forma segura. Uma solução possível é instalar o pacote <tt>keyrings.alt</tt> com {}.<br><br><bb>Nota</bb>: Esse pacote pode ter riscos de segurança ou outras implicações. Portanto, não é aconselhável usá-lo em sistemas gerais de produção ou sensíveis à segurança."
+msgstr "Não foi possível salvar uma configuração de forma segura. Uma solução possível é instalar o pacote <tt>keyrings.alt</tt> com {}.<br><br><bb>Obs</bb>: Esse pacote pode ter riscos de segurança ou outras implicações. Portanto, não é aconselhável usá-lo em sistemas gerais de produção ou sensíveis à segurança."
 
 #: spyder/config/manager.py:734
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -973,7 +973,7 @@ msgstr "Registros de depuração"
 
 #: spyder/plugins/application/container.py:629
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr "<b>Você tem dependências faltando!</b><br><br><tt>%s</tt><br><br><b>Por favor instale elas para evitar esta mensagem.</b><br><br><i>Nota</i>: O Spyder pode funcionar sem algumas dependências, porém para ter uma experiência melhor ao utilizar o software recomendamos <i>fortemente</i> a instalação das dependências faltantes listadas.<br><br>A não instalação destas dependências pode gerar bugs. Antes de relatar um novo problema certifique-se de que quaisquer bugs encontrados não são o resultado das dependências que estão faltando."
+msgstr "<b>Você tem dependências faltando!</b><br><br><tt>%s</tt><br><br><b>Por favor instale elas para evitar esta mensagem.</b><br><br><i>Obs</i>: O Spyder pode funcionar sem algumas dependências, porém para ter uma experiência melhor ao utilizar o software recomendamos <i>fortemente</i> a instalação das dependências faltantes listadas.<br><br>A não instalação destas dependências pode gerar bugs. Antes de relatar um novo problema certifique-se de que quaisquer bugs encontrados não são o resultado das dependências que estão faltando."
 
 #: spyder/plugins/application/container.py:666
 msgid "Question"
@@ -1393,7 +1393,7 @@ msgstr "JSON inválido"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:135
 msgid "To create a new server configuration, you need to select a programming language, set the command to start its associated server and enter any arguments that should be passed to it on startup. Additionally, you can set the server's hostname and port if connecting to an external server, or to a local one using TCP instead of stdio pipes.<br><br><i>Note</i>: You can use the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments field to automatically fill in the respective values.<br>"
-msgstr "Para criar uma nova configuração do servidor, é necessário selecionar uma linguagem de programação, definir o comando para iniciar o servidor associado e inserir os argumentos que devem ser passados na inicialização. Além disso, você pode definir o nome do host e a porta do servidor se for conectar a um servidor externo ou local usando TCP em vez de canais stdio. <br><br><i>Nota</i>: Você pode usar os espaços reservados <tt>{host}</tt> e <tt>{port}</tt> no campo de argumentos do servidor para preencher automaticamente os respectivos valores.<br>"
+msgstr "Para criar uma nova configuração do servidor, é necessário selecionar uma linguagem de programação, definir o comando para iniciar o servidor associado e inserir os argumentos que devem ser passados na inicialização. Além disso, você pode definir o nome do host e a porta do servidor se for conectar a um servidor externo ou local usando TCP em vez de canais stdio. <br><br><i>Obs</i>: Você pode usar os espaços reservados <tt>{host}</tt> e <tt>{port}</tt> no campo de argumentos do servidor para preencher automaticamente os respectivos valores.<br>"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/serversconfig.py:156
 msgid "External server"
@@ -1535,7 +1535,7 @@ msgstr "a gramática LSP"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:51
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr "Spyder permite definir snippets de complementação customizados para usar em adição aos oferecidos pela Linguagem de Protocolo se servidor (do inglês LSP). Cada snippet deverá seguir {} <br><br> <b>Atenção:</b> Todas as mudanças serão efetivas somente quando aplicar as configurações"
+msgstr "Spyder permite definir snippets de complementação customizados para usar em adição aos oferecidos pela Linguagem de Protocolo se servidor (do inglês LSP). Cada snippet deverá seguir {} <br><br> <b>Obs:</b> Todas as mudanças serão efetivas somente quando aplicar as configurações"
 
 #: spyder/plugins/completion/providers/snippets/conftabs.py:75
 msgid "Available snippets:"
@@ -2176,7 +2176,7 @@ msgstr "Automaticamente inserir parênteses, chaves e colchetes"
 
 #: spyder/plugins/editor/confpage.py:180
 msgid "Insert a matching closing bracket when typing an open one"
-msgstr ""
+msgstr "Inserir um colchete de fechamento ao digitar um de abertura"
 
 #: spyder/plugins/editor/confpage.py:183
 msgid "Automatically insert closing quotes"
@@ -2184,7 +2184,7 @@ msgstr "Inserção automática de aspas"
 
 #: spyder/plugins/editor/confpage.py:185
 msgid "Insert a matching closing quote when typing an open one"
-msgstr ""
+msgstr "Inserir uma aspas de fechamento ao digitar uma de abertura"
 
 #: spyder/plugins/editor/confpage.py:188
 msgid "Automatically insert colons after 'for', 'if', 'def', etc"
@@ -2204,7 +2204,7 @@ msgstr "Espaços em branco"
 
 #: spyder/plugins/editor/confpage.py:210
 msgid "Strip all trailing spaces on save"
-msgstr ""
+msgstr "Remover todos os espaços em branco, no final da linha, ao salvar"
 
 #: spyder/plugins/editor/confpage.py:215
 msgid "Strip trailing spaces on changed lines"
@@ -2220,20 +2220,21 @@ msgstr "Se ativado, as linhas de código modificadas (excluindo as strings)\n"
 
 #: spyder/plugins/editor/confpage.py:226
 msgid "Automatically add missing end-of-file newline on save"
-msgstr ""
+msgstr "Ao salvar, adicionar automaticamente uma linha vaziano final do arquivo, se não existir."
 
 #: spyder/plugins/editor/confpage.py:229
 msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file\n"
 "if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
+msgstr "Se ativado, um carácter de nova linha (quebra de linha) será adicionado no final do arquivo\n"
+"Caso não o exista, para corresponder com as convenções de arquivos de texto."
 
 #: spyder/plugins/editor/confpage.py:237
 msgid "Strip blank lines at end of file on save"
-msgstr ""
+msgstr "Remover linhas vazias, no final do arquivo, ao salvar"
 
 #: spyder/plugins/editor/confpage.py:240
 msgid "Any extra newlines at the end of the file besides the first one will be stripped."
-msgstr ""
+msgstr "Quaisquer novas linhas extras no final do arquivo, além da primeira, serão removidas."
 
 #: spyder/plugins/editor/confpage.py:262
 msgid "Indentation"
@@ -2253,7 +2254,7 @@ msgstr "Indentação com espaços em vez de tab"
 
 #: spyder/plugins/editor/confpage.py:276
 msgid "When pressing Tab, insert the configured number of spaces instead of the tab character"
-msgstr ""
+msgstr "Ao pressionar a tecla Tab, insira o número configurado de espaços em vez do caractere de Tab"
 
 #: spyder/plugins/editor/confpage.py:282
 msgid "Intelligent backspace"
@@ -2281,7 +2282,7 @@ msgstr "Caracteres de fim de linha"
 
 #: spyder/plugins/editor/confpage.py:321
 msgid "Fix mixed end-of-lines automatically and show warning dialog"
-msgstr ""
+msgstr "Corrigir fim de linhas mistos automaticamente e mostrar aviso"
 
 #: spyder/plugins/editor/confpage.py:324
 msgid "When opening a file containing mixed end-of-line characters\n"
@@ -2311,7 +2312,7 @@ msgstr "Salvamento automático"
 
 #: spyder/plugins/editor/confpage.py:379
 msgid "Automatically save a backup copy of unsaved files"
-msgstr ""
+msgstr "Salvar automaticamente uma cópia de backup de arquivos não salvos"
 
 #: spyder/plugins/editor/confpage.py:381
 msgid "If Spyder quits unexpectedly, it will offer to recover them on next launch"
@@ -2339,11 +2340,11 @@ msgstr "Estilo:"
 
 #: spyder/plugins/editor/confpage.py:437
 msgid "Multi-cursor"
-msgstr ""
+msgstr "Múltiplos cursores"
 
 #: spyder/plugins/editor/confpage.py:439
 msgid "Enable multi-cursor support"
-msgstr ""
+msgstr "Ativar suporte a múltiplos cursores"
 
 #: spyder/plugins/editor/confpage.py:441
 msgid "Allows adding additional cursors and columns of cursors for simultaneous editing"
@@ -2351,11 +2352,11 @@ msgstr "Permite adicionar cursores adicionais e colunas de cursores para ediçã
 
 #: spyder/plugins/editor/confpage.py:452
 msgid "Multi-cursor paste behavior"
-msgstr ""
+msgstr "Comportamento do colar com múltiplos cursor"
 
 #: spyder/plugins/editor/confpage.py:455
 msgid "Always paste the entire clipboard for each cursor"
-msgstr ""
+msgstr "Sempre colar toda a área de transferência para cada cursor"
 
 #: spyder/plugins/editor/confpage.py:460
 msgid "Paste one line per cursor if the number of lines and cursors match"
@@ -2367,7 +2368,7 @@ msgstr "Sempre colar uma linha por cursor se houver mais de uma linha na área d
 
 #: spyder/plugins/editor/confpage.py:490
 msgid "Mouse shortcuts"
-msgstr ""
+msgstr "Atalhos do Mouse"
 
 #: spyder/plugins/editor/confpage.py:493
 msgid "Edit mouse shortcut modifiers"
@@ -2535,11 +2536,11 @@ msgstr "Este arquivo não faz parte de um repositório local ou os locais remoto
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:87
 msgid "Large number of cursors!"
-msgstr ""
+msgstr "Grande número de cursores!"
 
 #: spyder/plugins/editor/widgets/codeeditor/multicursor_mixin.py:88
 msgid "A large numbers of text cursors can cause Spyder to become unresponsive. Do you want to continue?"
-msgstr ""
+msgstr "Um grande número de cursores de texto pode fazer com que Spyder pare de responder. Deseja continuar?"
 
 #: spyder/plugins/editor/widgets/editorstack/editorstack.py:264 spyder/plugins/explorer/widgets/explorer.py:513 spyder/plugins/explorer/widgets/remote_explorer.py:210
 msgid "Copy absolute path"
@@ -2695,7 +2696,7 @@ msgstr "Pré-visualizar impressão"
 
 #: spyder/plugins/editor/widgets/main_widget.py:337
 msgid "Show a print preview for the current file"
-msgstr ""
+msgstr "Mostrar uma pré-visualização de impressão para o arquivo atual"
 
 #: spyder/plugins/editor/widgets/main_widget.py:342
 msgid "&Print..."
@@ -2803,7 +2804,7 @@ msgstr "Converte as tabulações para espaços"
 
 #: spyder/plugins/editor/widgets/main_widget.py:561
 msgid "Replace tabs with the configured number of spaces"
-msgstr ""
+msgstr "Substituir a tecla Tab pelo número configurado de espaços"
 
 #: spyder/plugins/editor/widgets/main_widget.py:573 spyder/plugins/editor/widgets/main_widget.py:1668
 msgid "Format file or selection with {0}"
@@ -2863,11 +2864,11 @@ msgstr "Desfazer indentação da linha ou seleção atual"
 
 #: spyder/plugins/editor/widgets/main_widget.py:644
 msgid "Toggle UPPERCASE"
-msgstr ""
+msgstr "Ativar/desativar CAIXA-ALTA"
 
 #: spyder/plugins/editor/widgets/main_widget.py:646
 msgid "Change current line or selection to UPPERCASE text"
-msgstr ""
+msgstr "Alterar linha atual ou seleção para texto CAIXA-ALTA"
 
 #: spyder/plugins/editor/widgets/main_widget.py:653
 msgid "Toggle lowercase"
@@ -2875,7 +2876,7 @@ msgstr "Alternar letras minúsculas"
 
 #: spyder/plugins/editor/widgets/main_widget.py:655
 msgid "Change current line or selection to lowercase text"
-msgstr ""
+msgstr "Alterar linha atual ou seleção para texto em caixa-baixa"
 
 #: spyder/plugins/editor/widgets/main_widget.py:674
 msgid "Clear all ouput"
@@ -2931,7 +2932,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:65
 msgid "Go to a code definition"
-msgstr ""
+msgstr "Ir para uma definição de código"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:73
 msgid "Add/remove an additional cursor"
@@ -2939,11 +2940,11 @@ msgstr "Adicionar/remover um cursor adicional"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:81
 msgid "Add a column of cursors"
-msgstr ""
+msgstr "Adicionar uma coluna de cursores"
 
 #: spyder/plugins/editor/widgets/mouse_shortcuts.py:211
 msgid "Shortcut Conflicts With Another"
-msgstr ""
+msgstr "Atalho em conflito com outro"
 
 #: spyder/plugins/editor/widgets/recover.py:60
 msgid "Recover from autosave"
@@ -3166,7 +3167,8 @@ msgstr " (Aplicação não encontrada!)"
 #: spyder/plugins/explorer/widgets/explorer.py:1168
 msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
-msgstr ""
+msgstr "Realmente deseja excluir <b>%s</b>?\n"
+"<br><br><b>Obs</b>: Esse arquivo ou diretório será movido para a lixeira."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1188
 msgid "delete"
@@ -3430,7 +3432,7 @@ msgstr "Anexar arquivos"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:395
 msgid "Unsupported functionality"
-msgstr ""
+msgstr "Funcionalidade não suportada"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:396
 msgid "Opening remote files in the Editor is not yet supported. This feature will be added in Spyder 6.2.0"
@@ -3510,7 +3512,7 @@ msgstr "Ocorreu um erro ao tentar enviar um arquivo"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:700
 msgid "List contents error"
-msgstr ""
+msgstr "Erro na lista de conteúdo"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:701
 msgid "An error occured while trying to view a directory"
@@ -3586,7 +3588,7 @@ msgstr "Novo nome para <b>{}</b>:"
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1503
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note</b>: The file/directory will be removed permanently from the remote filesystem."
-msgstr "Tem certeza que deseja excluir <b>{filename}</b>?<br><br><b>Nota</b>: O arquivo/diretório será removido permanentemente do sistema de arquivos remotos."
+msgstr "Tem certeza que deseja excluir <b>{filename}</b>?<br><br><b>Obs</b>: O arquivo/diretório será removido permanentemente do sistema de arquivos remotos."
 
 #: spyder/plugins/explorer/widgets/remote_explorer.py:1543
 msgid "Download directory"
@@ -3998,7 +4000,7 @@ msgstr "Mostrar tempo de execução"
 
 #: spyder/plugins/ipythonconsole/confpage.py:55
 msgid "Display the time since the current console was started in the tab bar"
-msgstr ""
+msgstr "Exibir o tempo desde que o console atual foi iniciado na barra de abas"
 
 #: spyder/plugins/ipythonconsole/confpage.py:66
 msgid "Confirmation"
@@ -4079,7 +4081,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
-msgstr ""
+msgstr "Renderizar matemática simbólica de SymPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
 msgid "Pretty-print the outputs of SymPy symbolic computations\n"
@@ -4322,11 +4324,11 @@ msgstr "Inicialização"
 
 #: spyder/plugins/ipythonconsole/confpage.py:486
 msgid "Buffer sizes over 10000 lines can slow down Spyder"
-msgstr ""
+msgstr "Buffer de tamanho maior que 10000 pode diminuir a velocidade do Spyder"
 
 #: spyder/plugins/ipythonconsole/confpage.py:488
 msgid "Unlimited buffer size can slow down Spyder severely"
-msgstr ""
+msgstr "Buffer de tamanho ilimitado pode diminuir consideravelmente a velocidade do Spyder"
 
 #: spyder/plugins/ipythonconsole/plugin.py:240
 msgid "Run Python files, cells, code and commands interactively."
@@ -4366,7 +4368,7 @@ msgstr "O Spyder não conseguiu encontrar o Conda, Mamba ou o Micromamba no seu 
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:226
 msgid "The detected version of Conda is too old and not supported by Spyder. The minimum supported version is 4.9 and currently you have {conda_version}.<br><br>.<b>Note</b>: You need to restart Spyder after updating Conda for the change to take effect."
-msgstr "A versão detectada do Conda é muito antiga e não é suportada pelo Spyder. A versão mínima suportada é 4.9 e, atualmente, você tem {conda_version}.<br><br>.<b>Nota</b>: É necessário reiniciar o Spyder após a atualizar o Conda para que a alteração tenha efeito."
+msgstr "A versão detectada do Conda é muito antiga e não é suportada pelo Spyder. A versão mínima suportada é 4.9 e, atualmente, você tem {conda_version}.<br><br>.<b>Obs</b>: É necessário reiniciar o Spyder após a atualizar o Conda para que a alteração tenha efeito."
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:176 spyder/plugins/ipythonconsole/widgets/client.py:325
 msgid "Waiting for the remote kernel to respond..."
@@ -4754,7 +4756,7 @@ msgstr "Se o módulo necessário for seu, você precisa criar um <a href='{}'>pr
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:130 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:288
 msgid "<br>%s<br><br><b>Note</b>: If you consider this to be a valid error that needs to be fixed by the Spyder team, please report it on <a href='{}'>Github</a>."
-msgstr "<br>%s<br><br><b>Nota</b>: Se você considerar que este é um erro válido que precisa ser corrigido pela equipe do Spyder, por favor, reporte no <a href='{}'>Github</a>."
+msgstr "<br>%s<br><br><b>Obs</b>: Se você considerar que este é um erro válido que precisa ser corrigido pela equipe do Spyder, por favor, reporte no <a href='{}'>Github</a>."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:178 spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:192
 msgid "greater"
@@ -4766,7 +4768,7 @@ msgstr "inferior"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:269
 msgid "<b>Notes</b>:"
-msgstr "<b>Notas</b>:"
+msgstr "<b>Obs</b>:"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:282
 msgid "There is a mismatch between the Numpy versions used by Spyder and the kernel of your current console. To fix this problem, please upgrade <tt>numpy</tt> in the console environment to version 2.0 or higher."
@@ -4984,7 +4986,7 @@ msgstr "Troca rápida do layout #%s ainda não foi definida."
 
 #: spyder/plugins/layout/widgets/dialog.py:165
 msgid "Give a name to your layout"
-msgstr ""
+msgstr "Dê um nome para seu layout"
 
 #: spyder/plugins/layout/widgets/dialog.py:177
 msgid "Save layout as"
@@ -5670,7 +5672,7 @@ msgstr "Não foi possível criar um projeto em <b>{}</b>. A razão é:<br><br>{}
 
 #: spyder/plugins/projects/widgets/main_widget.py:502
 msgid "Do you really want to delete the <b>{filename}</b> project?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
-msgstr "Você deseja mesmo deletar o projeto <b>{filename}</b>?<br><br><b>Nota:</b> Isso deletará apenas o projeto. Os arquivos continuarão no disco."
+msgstr "Você deseja mesmo deletar o projeto <b>{filename}</b>?<br><br><b>Obs:</b> Isso deletará apenas o projeto. Os arquivos continuarão no disco."
 
 #: spyder/plugins/projects/widgets/main_widget.py:518
 msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br>{error}"
@@ -7144,11 +7146,11 @@ msgstr "Execute o seguinte comando em um terminal para atualizar manualmente:<br
 
 #: spyder/plugins/updatemanager/widgets/update.py:850
 msgid "<b>Important note:</b> You installed Spyder with pip in a Conda environment, which is not a good idea. See <a href=\"{}\">our video</a> for more details about it."
-msgstr "<b>Nota importante:</b> Você instalou o Spyder com pip em um ambiente Conda, o que não é uma boa ideia. Consulte <a href=\"{}\">nosso vídeo</a> para obter mais detalhes."
+msgstr "<b>Observação importante:</b> Você instalou o Spyder com pip em um ambiente Conda, o que não é uma boa ideia. Consulte <a href=\"{}\">nosso vídeo</a> para obter mais detalhes."
 
 #: spyder/plugins/updatemanager/widgets/update.py:870
 msgid "<b>Important note:</b> Since you installed Spyder with Anaconda, please don't use pip to update it as that will break your installation."
-msgstr "<b>Nota importante:</b> Como você instalou o Spyder com Anaconda, por favor, não use pip para atualizá-lo, pois isso irá quebrar sua instalação."
+msgstr "<b>Observação importante:</b> Como você instalou o Spyder com Anaconda, por favor, não use pip para atualizá-lo, pois isso irá quebrar sua instalação."
 
 #: spyder/plugins/updatemanager/widgets/update.py:879
 msgid "<br><br>For more information, visit our <a href=\"{}\">installation guide</a>."
@@ -7192,7 +7194,7 @@ msgstr "Excluir variáveis que começam em maiúsculas"
 
 #: spyder/plugins/variableexplorer/confpage.py:27
 msgid "Exclude all-uppercase references"
-msgstr "Excluir variáveis em maiúscula"
+msgstr "Excluir variáveis em caixa-alta"
 
 #: spyder/plugins/variableexplorer/confpage.py:29 spyder/plugins/variableexplorer/widgets/main_widget.py:417
 msgid "Exclude unsupported data types"
@@ -7636,11 +7638,11 @@ msgstr "Excluir variáveis que iniciam com um sublinhado"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:400
 msgid "Exclude all-uppercase variables"
-msgstr "Excluir variáveis em maiúscula"
+msgstr "Excluir variáveis em caixa-alta"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:401
 msgid "Exclude variables whose name is uppercase"
-msgstr "Excluir variáveis cujos nomes estejam em letras em maiúsculas"
+msgstr "Excluir variáveis cujos nomes estejam em letras em caixa-alta"
 
 #: spyder/plugins/variableexplorer/widgets/main_widget.py:408
 msgid "Exclude capitalized variables"
