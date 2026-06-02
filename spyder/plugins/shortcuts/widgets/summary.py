@@ -15,10 +15,11 @@ from itertools import groupby
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QScrollArea, QWidget)
-
+                            QDialogButtonBox, QVBoxLayout, QScrollArea, QWidget)
 # Local imports
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 
@@ -28,7 +29,7 @@ MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
 
 
-class ShortcutsSummaryDialog(QDialog):
+class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
     """
     Dialog window listing the spyder and plugins shortcuts.
 
@@ -42,43 +43,23 @@ class ShortcutsSummaryDialog(QDialog):
         QDialog.__init__(self, parent=parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
-        self.font = get_font()
 
         # Calculate font and amount of elements in each column
         # according screen size
         width, height = self.get_screen_resolution()
         font_size = int(round(height / 80))
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
-        shortcuts_column = (height - 8 * font_size) / (font_size +16)
 
-        # Widgets
-        #style = """
-        #    QDialog {
-        #      margin:0px;
-        #      padding:0px;
-        #      border-radius: 2px;
-        #    }"""
-        #self.setStyleSheet(style)
+        font_context = self.get_font(SpyderFontType.Interface)
+        font_context.setBold(True)
 
-        #font_names = QFont()
-        #font_names.setPointSize(font_size)
-        #font_names.setBold(True)
+        font_names = self.get_font(SpyderFontType.MonospaceInterface)
+        font_names.setBold(False)
 
-        font_names = QFont(self.font)
-        font_names.setBold(True)
+        font_keystr = self.get_font(SpyderFontType.Monospace)
 
-        #font_keystr = QFont()
-        #font_keystr.setPointSize(font_size)
-        font_keystr = QFont(self.font)
-
-        #font_title = QFont()
-        #font_title.setPointSize(font_size+2)
-        #font_title.setBold(True)
-        font_title = QFont(self.font)
+        font_title = self.get_font(SpyderFontType.Interface)
         font_title.setBold(True)
-
-        size = font_title.pointSize()
-        font_title.setPointSize(size + 2)
 
         title_label = QLabel(self._shortcuts_summary_title)
         title_label.setAlignment(Qt.AlignCenter)
@@ -91,6 +72,7 @@ class ShortcutsSummaryDialog(QDialog):
         group = None
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
+        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         for __, group_shortcuts in shortcuts:
 
@@ -100,7 +82,7 @@ class ShortcutsSummaryDialog(QDialog):
             if context == '_': context = 'Global'
 
             group = QGroupBox(context.capitalize())
-            group.setFont(font_names)
+            group.setFont(font_context)
 
             group_layout = QGridLayout()
             group.setLayout(group_layout)
@@ -109,10 +91,12 @@ class ShortcutsSummaryDialog(QDialog):
 
                 label_name = QLabel(name.capitalize().replace('_', ' '))
                 label_name.setFont(font_names)
-        
+
                 keystr = QKeySequence(keystr).toString(
                     QKeySequence.NativeText
                 )
+                if keystr == "":
+                    continue
 
                 label_keystr = QLabel(keystr)
                 label_keystr.setFont(font_keystr)
@@ -129,15 +113,13 @@ class ShortcutsSummaryDialog(QDialog):
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.scroll_widget)
 
-        # widget setup
-        #self.setWindowFlags(Qt.FramelessWindowHint)
-        #self.setWindowOpacity(0.95)
 
         # layout
         self._layout = QVBoxLayout()
         self._layout.addWidget(title_label)
 
         self._layout.addWidget(self.scroll_area)
+        self._layout.addWidget(ok_btn)
         self.setLayout(self._layout)
 
         width, height = self.get_screen_resolution()
