@@ -78,7 +78,7 @@ def schedule_request(
                 (i for i, item in enumerate(pending_reqeusts) if item[0] == method),
                 None,
             )
-            if index:
+            if index is not None:
                 self._pending_server_requests = (
                     pending_reqeusts[:index] + pending_reqeusts[index + 1 :]
                 )
