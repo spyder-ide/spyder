@@ -507,7 +507,7 @@ class EditsStackMixin(TextEditBaseWidget):
         self._undo_recording_depth = 0
         self._undo_last_text = str(
             self.toPlainText()
-        )  # TODO: optimize to avoid full text snapshots
+        ).encode("utf-16-le")  # TODO: optimize to avoid full text snapshots
         self._undo_cursor_state = self._capture_cursor_state()
         self._undo_last_revision = 0
         self._pending_edit: EditBlock | None = None
@@ -536,7 +536,7 @@ class EditsStackMixin(TextEditBaseWidget):
         logger.debug("Clearing custom undo stack")
         self._undo_stack.clear()
         self._pending_edit = None
-        self._undo_last_text = str(self.toPlainText())
+        self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
         self._undo_cursor_state = self._capture_cursor_state()
         document = self.document()
         self._undo_last_revision = document.revision() if document is not None else 0
@@ -664,15 +664,27 @@ class EditsStackMixin(TextEditBaseWidget):
             return
 
         if self._undo_recording_depth > 0:
-            self._undo_last_text = str(self.toPlainText())
+            self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
             self._undo_cursor_state = self._capture_cursor_state()
             self._undo_last_revision = document.revision()
             return
 
-        removed_text = self._undo_last_text[position : position + chars_removed]
-        cursor = self.textCursor()
+        # Create a fresh cursor as contentsChange sometimes resets document's
+        # internal cursor, causing `textCursor()` to return an invalid/null cursor.
+        cursor = QTextCursor(document)
+        # Qt always appends an implicit paragraph separator at the end of the document,
+        # clamp the selection to end of document to avoid out-of-range.
+        cursor.movePosition(QTextCursor.End)
+        end = min(position + chars_added, cursor.position())
         cursor.setPosition(position)
-        cursor.setPosition(position + chars_added, QTextCursor.KeepAnchor)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+
+        bytes_position = position * 2
+        bytes_removed_position = bytes_position + chars_removed * 2
+
+        removed_text = self._undo_last_text[
+            bytes_position : bytes_removed_position
+        ].decode("utf-16-le")
 
         delta = TextDelta(
             position=position,
@@ -680,16 +692,22 @@ class EditsStackMixin(TextEditBaseWidget):
             removed_text=removed_text,
         )
 
-        deltas = [d for d in delta.exploded() if (d.inserted_text or d.removed_text)]
-        if not deltas:
-            self._undo_last_text = str(self.toPlainText())
-            self._undo_last_revision = document.revision()
+        self._undo_last_text = (
+            self._undo_last_text[:bytes_position]
+            + delta.inserted_text.encode("utf-16-le")
+            + self._undo_last_text[bytes_removed_position:]
+        )
+
+        self._undo_last_revision = document.revision()
+
+        if not delta.inserted_text and not delta.removed_text:
+            self._undo_cursor_state = self._capture_cursor_state()
             return
 
         current_cursor = self._capture_cursor_state()
         edit = EditBlock(
             before=self._undo_cursor_state,
-            deltas=deltas,
+            deltas=[d for d in delta.exploded() if (d.inserted_text or d.removed_text)],
             after=current_cursor,
         )
         if self._pending_edit is None:
@@ -699,7 +717,4 @@ class EditsStackMixin(TextEditBaseWidget):
             self._pending_edit = edit
 
         self._undo_cursor_state = current_cursor
-        self._undo_last_text = str(self.toPlainText())
-        self._undo_last_revision = document.revision()
-
         self._commit_timer.start(_COMMIT_TIMEOUT_MS)
