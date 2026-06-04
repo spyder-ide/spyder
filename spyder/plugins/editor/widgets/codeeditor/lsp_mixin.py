@@ -734,6 +734,8 @@ class LSPMixin:
             "current_word": current_word,
         }
         self.completion_args = (self.textCursor().position(), automatic)
+        # Make sure that the document is up to date before requesting completions.
+        self._commit_pending_edit()
         return params
 
     @handles(lsp.TEXT_DOCUMENT_COMPLETION)
