@@ -431,6 +431,11 @@ class LSPMixin:
 
         cursor = self.textCursor()
         text = self.get_text_with_eol()
+        # TODO: LSP now supports IPython, update this workaround when
+        #       using a language server that also supports it.
+        if self.is_ipython():
+            # Send valid python text to LSP as it doesn't support IPython
+            text = self.ipython_to_python(text)
         params = {
             "file": self.filename,
             "language": self.language,
