@@ -247,7 +247,7 @@ class LSPMixin:
             end.character = 0
 
         if not end_with_newline:
-            end.character += len(removed_lines[-1])
+            end.character += len(removed_lines[-1].encode("utf-16-le")) // 2
 
         return lsp.Range(start=start, end=end)
 
