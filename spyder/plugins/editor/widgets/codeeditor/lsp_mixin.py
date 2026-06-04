@@ -757,7 +757,7 @@ class LSPMixin:
             completions = params or []
             completions = [
                 c for c in completions
-                if c.insert_text or (c.text_edit and c.text_edit.new_text)
+                if c.insert_text or c.label or (c.text_edit and c.text_edit.new_text)
             ]
 
             prefix = self.get_current_word(
@@ -766,7 +766,7 @@ class LSPMixin:
 
             if (
                 len(completions) == 1
-                and completions[0].insert_text == prefix
+                and (completions[0].insert_text or completions[0].label) == prefix
                 and not (
                     completions[0].text_edit
                     and completions[0].text_edit.new_text
