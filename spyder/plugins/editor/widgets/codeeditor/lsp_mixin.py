@@ -57,25 +57,34 @@ logger = logging.getLogger(__name__)
 NOQA_INLINE_REGEXP = re.compile(r"#?noqa", re.IGNORECASE)
 
 
-def schedule_request(req=None, method=None, requires_response=True):
+def schedule_request(
+    req=None, method=None, requires_response=True, cancel_previous=False
+):
     """Call function req and then emit its results to the completion server."""
     if req is None:
         return functools.partial(
             schedule_request,
             method=method,
             requires_response=requires_response,
+            cancel_previous=cancel_previous,
         )
 
     @functools.wraps(req)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, _cancel_previous=False, **kwargs):
         params = req(self, *args, **kwargs)
+        if _cancel_previous or cancel_previous:
+            pending_reqeusts = self._pending_server_requests
+            index = next(
+                (i for i, item in enumerate(pending_reqeusts) if item[0] == method),
+                None,
+            )
+            if index:
+                self._pending_server_requests = (
+                    pending_reqeusts[:index] + pending_reqeusts[index + 1 :]
+                )
+
         if params is not None and self.completions_available:
-            self._pending_server_requests.append(
-                (method, params, requires_response)
-            )
-            self._server_requests_timer.setInterval(
-                self.LSP_REQUESTS_SHORT_DELAY
-            )
+            self._pending_server_requests.append((method, params, requires_response))
             self._server_requests_timer.start()
 
     return wrapper
@@ -99,11 +108,7 @@ class LSPMixin:
     }
 
     # Timeout (in milliseconds) to send pending requests to LSP server
-    LSP_REQUESTS_SHORT_DELAY = 50
-    LSP_REQUESTS_LONG_DELAY = 300
-
-    # Timeout (in milliseconds) to flush buffered text changes to LSP server
-    LSP_TEXT_CHANGE_FLUSH_DELAY = 25
+    LSP_REQUESTS_DELAY = 50
 
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
@@ -150,20 +155,11 @@ class LSPMixin:
         self._pending_server_requests = []
         self._server_requests_timer = QTimer(self)
         self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_SHORT_DELAY)
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_DELAY)
         self._server_requests_timer.timeout.connect(
             self._process_server_requests)
 
-        # Text change buffering for incremental LSP updates
-        self._text_change_buffer: list[lsp.TextDocumentContentChangePartial] = []
-        self._text_change_timer = QTimer(self)
-        self._text_change_timer.setSingleShot(True)
-        self._text_change_timer.setInterval(self.LSP_TEXT_CHANGE_FLUSH_DELAY)
-        self._text_change_timer.timeout.connect(
-            self.document_did_change
-        )
-        
-        self.sig_document_change.connect(self._buffer_text_change)
+        self.sig_document_change.connect(self._handle_document_change)
 
         # Code Folding
         self.code_folding = True
@@ -253,28 +249,13 @@ class LSPMixin:
 
         return lsp.Range(start=start, end=end)
 
-    def _buffer_text_change(self, edit: EditBlock):
-        """
-        Buffer a text insertion for incremental LSP updates.
-
-        Parameters
-        ----------
-        edit: EditBlock
-            The text edit to buffer.
-        """
-        if not self.completions_available or self.is_cloned:
-            return
-
-        for delta in edit.deltas:
-            self._text_change_buffer.append(
-                lsp.TextDocumentContentChangePartial(
-                    range=self._get_replaced_range(delta.position, delta.removed_text),
-                    text=delta.inserted_text
-                )
-            )
-
-        # Start (or restart) the flush timer
-        self._text_change_timer.start()
+    def _handle_document_change(self, edit: EditBlock):
+        """Handle document change."""
+        if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
+            self.document_did_change(edit)
+        else:
+            self.document_did_change(_cancel_previous=True)
+        self.do_automatic_completions()
 
     # ---- Basic methods
     # -------------------------------------------------------------------------
@@ -492,12 +473,12 @@ class LSPMixin:
 
     # ---- Linting and didChange
     # -------------------------------------------------------------------------
-    @request(
+    @schedule_request(
         method=lsp.TEXT_DOCUMENT_DID_CHANGE,
         requires_response=False,
     )
     def document_did_change(
-        self,
+        self, edit: EditBlock | None = None
     ):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
@@ -507,16 +488,16 @@ class LSPMixin:
 
         # Don't send request for cloned editors because it's not necessary.
         # The original file should send the request.
-        if self.is_cloned:
-            self._text_change_buffer = []
+        if not self.completions_available or self.is_cloned:
             return
 
-        # Only fetch full text when not using incremental changes
-        if not self._text_change_buffer:
-            return
-
-        if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
-            content_changes = self._text_change_buffer
+        if edit:
+            content_changes = [
+                lsp.TextDocumentContentChangePartial(
+                    range=self._get_replaced_range(delta.position, delta.removed_text),
+                    text=delta.inserted_text
+                ) for delta in edit.deltas
+            ]
         else:
             text = self.get_text_with_eol()
             content_changes = [
@@ -524,8 +505,6 @@ class LSPMixin:
                     text=text
                 )
             ]
-        
-        self._text_change_buffer = []
 
         return {
             "file": self.filename,
@@ -726,7 +705,7 @@ class LSPMixin:
 
     # ---- Completion
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION, cancel_previous=True)
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -1439,8 +1418,6 @@ class LSPMixin:
         """Send close request."""
         self._pending_server_requests = []
 
-        self._text_change_buffer = []
-
         # This is necessary to prevent an error when closing the file.
         # Fixes spyder-ide/spyder#20071
         try:
@@ -1448,10 +1425,6 @@ class LSPMixin:
         except RuntimeError:
             pass
 
-        try:
-            self._text_change_timer.stop()
-        except RuntimeError:
-            pass
 
         if self.completions_available:
             # This is necessary to prevent an error in our tests.
