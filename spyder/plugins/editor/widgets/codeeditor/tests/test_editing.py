@@ -46,12 +46,14 @@ def block_position(editor, line, column=0):
 
 def flush_document_change(editor, qtbot):
     editor._commit_pending_edit()
+    editor._server_requests_timer.stop()
+
     with qtbot.waitSignal(editor.sig_perform_completion_request, timeout=1000) as blocker:
-        editor.document_did_change()
+        editor._process_server_requests()
 
     assert blocker.args[1] == lsp.TEXT_DOCUMENT_DID_CHANGE
     payload = blocker.args[2]
-    assert editor._text_change_buffer == []
+    assert editor._pending_server_requests == []
     return payload
 
 
