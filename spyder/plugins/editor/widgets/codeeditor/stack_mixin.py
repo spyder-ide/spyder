@@ -357,18 +357,44 @@ class TextDelta:
 
             # (moved insertion-bridging rule below)
 
+        # A pure insert that lands within (or immediately after) the text
+        # inserted by a previous replacement: extend that inserted text.
+        # right.position is in new-document coords, so the valid range is
+        # [left.position, left.position + len(left.inserted_text)].
+        if (
+            left.inserted_text
+            and left.removed_text
+            and right.inserted_text
+            and right.removed_text == ""
+            and left.position <= right.position <= left.position + len(left.inserted_text)
+        ):
+            offset = right.position - left.position
+            new_inserted = (
+                left.inserted_text[:offset]
+                + right.inserted_text
+                + left.inserted_text[offset:]
+            )
+            return TextDelta(
+                position=left.position,
+                inserted_text=new_inserted,
+                removed_text=left.removed_text,
+            )
+
         # If an insertion (pure insert) happens inside or immediately adjacent
-        # to a previous removal, treat it as a replacement of that removed
-        # region (e.g. remove 'abc' then insert 'x' at end -> replace).
-        # Only apply when `right` is a pure insert.
-        if left.removed_text and right.inserted_text and right.removed_text == "":
-            left_start, left_end = left.position, left.position + len(left.removed_text)
-            if left_start <= right.position <= left_end:
-                return TextDelta(
-                    position=left.position,
-                    inserted_text=right.inserted_text,
-                    removed_text=left.removed_text,
-                )
+        # to a previous pure removal, treat it as a replacement at that location.
+        # Only apply when `right` is a pure insert and `left` is a pure removal.
+        if (
+            left.removed_text
+            and not left.inserted_text
+            and right.inserted_text
+            and right.removed_text == ""
+            and right.position == left.position
+        ):
+            return TextDelta(
+                position=left.position,
+                inserted_text=right.inserted_text,
+                removed_text=left.removed_text,
+            )
 
         return None
 

@@ -435,10 +435,22 @@ def test_text_delta_merge_partially_overlapping_removals_union():
 
 def test_text_delta_merge_insertion_bridges_prior_removal_becomes_replace():
     left = TextDelta(position=5, inserted_text="", removed_text="abc")
-    # insert at end of removed region -> should become replace at left.position
-    right = TextDelta(position=8, inserted_text="X", removed_text="")
+    right = TextDelta(position=5, inserted_text="X", removed_text="")
     merged = TextDelta.merge_text_delta(left, right)
     assert merged == TextDelta(position=5, inserted_text="X", removed_text="abc")
+
+
+def test_text_delta_merge_replace_then_sequential_inserts():
+    # Reproduce: replace + two subsequent pure inserts should accumulate all
+    # inserted chars, not just the last one.
+    d1 = TextDelta(position=14, inserted_text="o", removed_text="someintg=1\nsomething=2\nhahah=3\n\na\ns\nd\nas")
+    d2 = TextDelta(position=15, inserted_text="b", removed_text="")
+    d3 = TextDelta(position=16, inserted_text="s", removed_text="")
+    m12 = TextDelta.merge_text_delta(d1, d2)
+    assert m12 == TextDelta(position=14, inserted_text="ob", removed_text=d1.removed_text)
+    assert m12 is not None
+    m123 = TextDelta.merge_text_delta(m12, d3)
+    assert m123 == TextDelta(position=14, inserted_text="obs", removed_text=d1.removed_text)
 
 
 def test_edit_block_merge_shifts_same_position_later_deltas():
