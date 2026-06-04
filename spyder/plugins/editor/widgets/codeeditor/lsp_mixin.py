@@ -160,6 +160,7 @@ class LSPMixin:
             self._process_server_requests)
 
         self.sig_document_change.connect(self._handle_document_change)
+        self.new_text_set.connect(self._handle_new_text_set)
 
         # Code Folding
         self.code_folding = True
@@ -255,6 +256,16 @@ class LSPMixin:
             self.document_did_change(edit)
         else:
             self.document_did_change(_cancel_previous=True)
+        self.do_automatic_completions()
+
+    def _handle_new_text_set(self):
+        """Handle full document replacement.
+
+        Notifies the LSP server with the full document text so its view stays
+        in sync after a programmatic text replacement that bypasses the normal
+        incremental-edit path.
+        """
+        self.document_did_change(_cancel_previous=True)
         self.do_automatic_completions()
 
     # ---- Basic methods

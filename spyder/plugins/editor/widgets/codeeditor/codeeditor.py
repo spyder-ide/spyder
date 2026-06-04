@@ -4391,8 +4391,9 @@ class CodeEditor(
                           pygments lexer.
         :param encoding: text encoding
         """
-        super().setPlainText(txt)
-        self.clear_undo_stack()        
+        with self.suspend_undo_recording():
+            super().setPlainText(txt)
+        self.clear_undo_stack()
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):
