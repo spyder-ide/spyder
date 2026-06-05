@@ -11,7 +11,6 @@ import copy
 import functools
 
 # Third party imports
-from diff_match_patch import diff_match_patch
 from qtpy.QtCore import QMutex, QMutexLocker, Qt
 from qtpy.QtGui import QTextCursor, QColor
 from superqt.utils import qdebounced
@@ -28,7 +27,6 @@ from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
-VALID_UPDATES = {diff_match_patch.DIFF_DELETE, diff_match_patch.DIFF_INSERT}
 
 
 def no_undo(f):
@@ -93,6 +91,7 @@ class SnippetsExtension(EditorExtension):
         self.snippets_map = {}
         self.undo_stack = []
         self.redo_stack = []
+        self._last_doc_edit = None
         if rtree_available:
             self.index = index.Index()
 
@@ -108,6 +107,7 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_will_paste_text.connect(self._process_text)
             self.editor.sig_will_remove_selection.connect(
                 self.remove_selection)
+            self.editor.sig_document_change.connect(self._on_last_doc_change)
             self.editor.sig_undo.connect(self._undo)
             self.editor.sig_redo.connect(self._redo)
         else:
@@ -123,10 +123,24 @@ class SnippetsExtension(EditorExtension):
                 self.editor.sig_will_paste_text.disconnect(self._process_text)
                 self.editor.sig_will_remove_selection.disconnect(
                     self.remove_selection)
+                self.editor.sig_document_change.disconnect(
+                    self._on_last_doc_change)
                 self.editor.sig_undo.disconnect(self._undo)
                 self.editor.sig_redo.disconnect(self._redo)
             except TypeError:
                 pass
+
+    def _on_last_doc_change(self, edit):
+        self._last_doc_edit = edit
+
+    def _num_pops_from_last_edit(self):
+        if self._last_doc_edit is None:
+            return 1
+        total = sum(
+            len(delta.inserted_text) + len(delta.removed_text)
+            for delta in self._last_doc_edit.deltas
+        )
+        return max(total, 1)
 
     def update_undo_stack(self):
         ast_copy = copy.deepcopy(self.ast)
@@ -139,12 +153,7 @@ class SnippetsExtension(EditorExtension):
         if len(self.undo_stack) == 0:
             self.reset()
         if self.is_snippet_active:
-            num_pops = 0
-            patch = self.editor.patch
-            for diffs in patch:
-                for (op, data) in diffs.diffs:
-                    if op in VALID_UPDATES:
-                        num_pops += len(data)
+            num_pops = self._num_pops_from_last_edit()
             if len(self.undo_stack) > 0:
                 for _ in range(num_pops):
                     if len(self.undo_stack) == 0:
@@ -164,12 +173,7 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _redo(self):
         if self.is_snippet_active:
-            num_pops = 0
-            patch = self.editor.patch
-            for diffs in patch:
-                for (op, data) in diffs.diffs:
-                    if op in VALID_UPDATES:
-                        num_pops += len(data)
+            num_pops = self._num_pops_from_last_edit()
             if len(self.redo_stack) > 0:
                 for _ in range(num_pops):
                     if len(self.redo_stack) == 0:
