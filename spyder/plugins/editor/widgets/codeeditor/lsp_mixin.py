@@ -213,9 +213,16 @@ class LSPMixin:
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
+        self.symbols_sync_version = 0
+        self.folding_sync_version = 0
         self.pyflakes_linting_enabled = True
+
+        self._text_version = 0
+
+    @property
+    def text_version(self):
+        """Return the current text version."""
+        return self._text_version
 
     # ---- Helper private methods
     # -------------------------------------------------------------------------
@@ -252,6 +259,7 @@ class LSPMixin:
 
     def _handle_document_change(self, edit: EditBlock):
         """Handle document change."""
+        self._text_version += 1
         if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
             self.document_did_change(edit)
         else:
@@ -265,6 +273,7 @@ class LSPMixin:
         in sync after a programmatic text replacement that bypasses the normal
         incremental-edit path.
         """
+        self._text_version += 1
         self.document_did_change(_cancel_previous=True)
         self.do_automatic_completions()
 
@@ -450,7 +459,7 @@ class LSPMixin:
 
     # ---- Symbols
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, cancel_previous=True)
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
@@ -458,11 +467,15 @@ class LSPMixin:
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {"file": self.filename}
+        self.symbols_sync_version = self.text_version
         return params
 
     @handles(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
+        if self.text_version > self.symbols_sync_version:
+            # Ignore outdated response
+            return
         try:
             symbols = params or []
             self._update_classfuncdropdown(symbols)
@@ -475,8 +488,6 @@ class LSPMixin:
             return
         except Exception:
             self.manage_lsp_handle_errors("Error when processing symbols")
-        finally:
-            self.symbols_in_sync = True
 
     def _update_classfuncdropdown(self, symbols):
         """Update class/function dropdown."""
@@ -499,8 +510,6 @@ class LSPMixin:
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
         self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
 
         # Don't send request for cloned editors because it's not necessary.
         # The original file should send the request.
@@ -570,9 +579,9 @@ class LSPMixin:
         """
         Synchronize symbols and folding after linting results arrive.
         """
-        if not self.folding_in_sync:
+        if self.text_version > self.folding_sync_version:
             self.request_folding()
-        if not self.symbols_in_sync:
+        if self.text_version > self.symbols_sync_version:
             self.request_symbols()
 
     def process_code_analysis(self, diagnostics):
@@ -1351,17 +1360,20 @@ class LSPMixin:
         """Cleanup folding pane."""
         self.folding_panel.folding_regions = {}
 
-    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE, cancel_previous=True)
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
         params = {"file": self.filename}
+        self.folding_sync_version = self.text_version
         return params
 
     @handles(lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
+        if self.text_version > self.folding_sync_version:
+            return
         ranges = response or []
         if not ranges:
             return
@@ -1416,8 +1428,6 @@ class LSPMixin:
             # original one after making edits in any one of them.
             # See spyder-ide/spyder#23297
             self.update()
-
-        self.folding_in_sync = True
 
     # ---- Save/close file
     # -------------------------------------------------------------------------

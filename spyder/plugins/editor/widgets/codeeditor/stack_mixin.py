@@ -503,7 +503,6 @@ class EditsStackMixin(TextEditBaseWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._undo_stack = QUndoStack(self)
-        self._text_version = 0
         self._undo_recording_depth = 0
         self._undo_last_text = str(
             self.toPlainText()
@@ -526,11 +525,6 @@ class EditsStackMixin(TextEditBaseWidget):
         """Return the editor undo stack."""
         return self._undo_stack
 
-    @property
-    def text_version(self):
-        """Return the current text version number."""
-        return self._text_version
-
     def clear_undo_stack(self):
         """Clear the editor undo stack and any pending edit capture."""
         logger.debug("Clearing custom undo stack")
@@ -540,7 +534,6 @@ class EditsStackMixin(TextEditBaseWidget):
         self._undo_cursor_state = self._capture_cursor_state()
         document = self.document()
         self._undo_last_revision = document.revision() if document is not None else 0
-        self._text_version = 0
 
     @contextmanager
     def suspend_undo_recording(self):
@@ -650,7 +643,6 @@ class EditsStackMixin(TextEditBaseWidget):
         self._pending_edit = None
 
         self._undo_stack.push(command)
-        self._text_version += 1
         self.sig_document_change.emit(command._edit)
 
     def _on_document_contents_change(
