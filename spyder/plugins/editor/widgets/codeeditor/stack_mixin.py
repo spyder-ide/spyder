@@ -467,7 +467,7 @@ class EditBlock:
         return True
 
     def __str__(self):
-        return f"EditBlock(timestamp={self.timestamp.isoformat()})"
+        return f"EditBlock(before={self.before}, deltas={self.deltas}, after={self.after}, timestamp={self.timestamp.isoformat()})"
 
 
 class EditCommand(QUndoCommand):  # type: ignore[misc]
@@ -585,7 +585,7 @@ class EditsStackMixin(TextEditBaseWidget):
             # syntax highlighting) without any plain-text edits. If the text is
             # unchanged, resync our stored revision so subsequent cursor moves
             # keep the pre-edit snapshot fresh.
-            if str(self.toPlainText()) == self._undo_last_text:
+            if (str(self.toPlainText()).encode("utf-16-le") == self._undo_last_text):
                 self._undo_last_revision = document.revision()
             else:
                 return
