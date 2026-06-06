@@ -945,11 +945,16 @@ def test_ipython_files(base_editor_bot, qtbot):
 
     # Assert we transform IPython cells to valid Python code when modifying
     # the file
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.End)
     with qtbot.waitSignal(editor.sig_perform_completion_request) as blocker:
-        editor.document_did_change()
+        cursor.insertText('\n# %%\n%%timeit 1+1\n')
+        
 
+    
     params = blocker.args[2]
-    assert 'get_ipython' in params['text']
+
+    assert 'get_ipython' in params['content_changes'][0].text
 
     # Mock linting results for this file. This is actually what's returned by
     # Pyflakes.
