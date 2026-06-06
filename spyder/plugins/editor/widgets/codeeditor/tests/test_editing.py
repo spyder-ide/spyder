@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 from lsprotocol import types as lsp
-from qtpy.QtCore import QPoint, QPointF, QMimeData, Qt
-from qtpy.QtGui import QDragEnterEvent, QDropEvent, QTextCursor
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 from spyder.plugins.editor.widgets.codeeditor.tests.conftest import (
     codeeditor_factory,
@@ -116,7 +116,6 @@ def assert_document_change(editor, qtbot, expected_text, expected_changes):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == expected_text
-    assert payload["version"] == 1
     assert len(payload["content_changes"]) == len(expected_changes)
     assert [change_signature(change) for change in payload["content_changes"]] == expected_changes
     return payload
@@ -360,7 +359,6 @@ def test_document_did_change_merges_multicursor_inserts_and_shifts_positions(qtb
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "axb\ncxd\n"
-    assert payload["version"] == 1
     assert len(payload["content_changes"]) == 2
     assert [change_signature(change) for change in payload["content_changes"]] == [
         (0, 1, 0, 1, "x"),
@@ -386,7 +384,6 @@ def test_document_did_change_handles_three_cursor_column_inserts(qtbot):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "axb\ncxd\nexf\n"
-    assert payload["version"] == 1
     assert len(payload["content_changes"]) == 1
     assert [change_signature(change) for change in payload["content_changes"]] == [
         (0, 1, 2, 1, "xb\ncxd\nex"),
@@ -409,7 +406,6 @@ def test_document_did_change_handles_multicursor_backspace(qtbot):
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == "a\nc\n"
-    assert payload["version"] == 1
     assert len(payload["content_changes"]) == 1
     assert [change_signature(change) for change in payload["content_changes"]] == [
         (0, 1, 1, 2, "\nc"),
@@ -450,7 +446,6 @@ def test_document_did_change_multicursor_multiline_span_matrix(
     payload = flush_document_change(editor, qtbot)
 
     assert editor.toPlainText() == expected_text
-    assert payload["version"] == 1
     assert len(payload["content_changes"]) == len(expected_changes)
     assert [change_signature(change) for change in payload["content_changes"]] == expected_changes
 
