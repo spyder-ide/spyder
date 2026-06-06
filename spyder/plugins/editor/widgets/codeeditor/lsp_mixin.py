@@ -891,9 +891,12 @@ class LSPMixin:
 
     # ---- Signature Hints
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP, cancel_previous=True)
     def request_signature(self):
         """Ask for signature."""
+        # Ensure the pending edit is committed so that document_did_change is
+        # queued before the signatureHelp request.
+        self._commit_pending_edit()
         line, column = self.get_cursor_line_column()
         offset = self.get_position("cursor")
         params = {
