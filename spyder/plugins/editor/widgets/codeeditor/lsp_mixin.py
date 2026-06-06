@@ -516,18 +516,20 @@ class LSPMixin:
         if not self.completions_available or self.is_cloned:
             return
 
+        is_ipython = self.is_ipython()
+
         if edit:
             content_changes = [
                 lsp.TextDocumentContentChangePartial(
                     range=self._get_replaced_range(delta.position, delta.removed_text),
-                    text=delta.inserted_text
+                    text=self.ipython_to_python(delta.inserted_text) if is_ipython else delta.inserted_text,
                 ) for delta in edit.deltas
             ]
         else:
             text = self.get_text_with_eol()
             content_changes = [
                 lsp.TextDocumentContentChangeWholeDocument(
-                    text=text
+                    text=self.ipython_to_python(text) if is_ipython else text
                 )
             ]
 
