@@ -41,15 +41,12 @@ def test_document_formatting(formatter, newline, completions_codeeditor,
     qtbot.wait(2000)
 
     # Set text in editor
-    code_editor.set_text(text)
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        code_editor.set_text(text)
 
     # Assert eols are the expected ones
     assert code_editor.get_line_separator() == newline
-
-    # Notify changes
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
 
     # Perform formatting
     with qtbot.waitSignal(
@@ -101,15 +98,12 @@ def test_document_range_formatting(formatter, newline, completions_codeeditor,
     qtbot.wait(2000)
 
     # Set text in editor
-    code_editor.set_text(text)
+    with qtbot.waitSignal(
+            code_editor.completions_response_signal, timeout=30000):
+        code_editor.set_text(text)
 
     # Assert eols are the expected ones
     assert code_editor.get_line_separator() == newline
-
-    # Notify changes
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
 
     # Select region to format
     code_editor.go_to_line(12)
@@ -157,12 +151,10 @@ def test_max_line_length(formatter, completions_codeeditor, qtbot):
     qtbot.wait(2000)
 
     # Set text in editor
-    code_editor.set_text(text)
-
-    # Notify changes
     with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+        code_editor.completions_response_signal, timeout=30000
+    ):
+        code_editor.set_text(text)
 
     # Perform formatting
     with qtbot.waitSignal(
