@@ -2715,11 +2715,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             self.editor_cursor_position_changed)
         editor.textChanged.connect(self.start_stop_analysis_timer)
 
-        def perform_completion_request(lang, method, params):
-            self.sig_perform_completion_request.emit(lang, method, params)
-
         editor.sig_perform_completion_request.connect(
-            perform_completion_request)
+            self.sig_perform_completion_request)
         editor.sig_start_operation_in_progress.connect(self.spinner.start)
         editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(
