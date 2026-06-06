@@ -210,6 +210,8 @@ def test_multi_cursor_typing_undo_stack(codeeditor, qtbot):
 
     qtbot.keyClick(codeeditor, Qt.Key.Key_A)
 
+    codeeditor._commit_pending_edit()
+
     assert codeeditor.toPlainText() == "0123a456789\n01234a56789\n"
     assert codeeditor.undo_stack.canUndo()
 
