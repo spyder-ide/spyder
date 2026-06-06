@@ -580,11 +580,11 @@ def test_get_help_editor(main_window, qtbot, object_info):
 
     # Write some object in the editor
     object_name, expected_text = object_info
-    code_editor.set_text(object_name)
-    code_editor.move_cursor(len(object_name))
     with qtbot.waitSignal(code_editor.completions_response_signal,
                           timeout=COMPLETION_TIMEOUT):
-        code_editor.document_did_change()
+        code_editor.set_text(object_name)
+
+    code_editor.move_cursor(len(object_name))
 
     # Get help
     with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):

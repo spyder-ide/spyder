@@ -342,14 +342,12 @@ def test_save_as_with_outline(completions_editor, mocker, qtbot, tmpdir):
             return y
     """)
 
-    code_editor.set_text(code)
-    editorstack.save(force=True)
-
-    # Notify changes
     with qtbot.waitSignal(
         code_editor.completions_response_signal, timeout=30000
     ):
-        code_editor.document_did_change()
+        code_editor.set_text(code)
+
+    editorstack.save(force=True)
 
     # Wait until the outline is filled
     qtbot.waitUntil(

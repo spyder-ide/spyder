@@ -58,9 +58,6 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     """Test that the editor is ignoring some warnings."""
     editor, completion_plugin = completions_codeeditor_linting
 
-    # Set text in editor
-    editor.set_text(TEXT)
-
     CONF.set('completions',
              ('provider_configuration', 'lsp', 'values', 'flake8/extendIgnore'),
              'E261')
@@ -69,9 +66,9 @@ def test_ignore_warnings(qtbot, completions_codeeditor_linting):
     completion_plugin.after_configuration_update([])
     qtbot.wait(2000)
 
-    # Notify changes
+    # Set text in editor
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.set_text(TEXT)
 
     # Get current warnings
     qtbot.wait(2000)
@@ -103,11 +100,8 @@ def test_adding_warnings(qtbot, completions_codeeditor_linting):
     editor, _ = completions_codeeditor_linting
 
     # Set text in editor
-    editor.set_text(TEXT)
-
-    # Notify changes
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.set_text(TEXT)
 
     qtbot.wait(2000)
     block = editor.textCursor().block()
@@ -136,12 +130,11 @@ def test_move_warnings(qtbot, completions_codeeditor_linting):
     """Test that moving to next/previous warnings is working."""
     editor, _ = completions_codeeditor_linting
 
-    # Set text in editor
-    editor.set_text(TEXT)
 
-    # Notify changes
+    # Set text in editor
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.set_text(TEXT)
+
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
@@ -170,11 +163,8 @@ def test_get_warnings(qtbot, completions_codeeditor_linting):
     editor, _ = completions_codeeditor_linting
 
     # Set text in editor
-    editor.set_text(TEXT)
-
-    # Notify changes
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.set_text(TEXT)
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
@@ -201,11 +191,10 @@ def test_update_warnings_after_delete_line(qtbot, completions_codeeditor_linting
     Regression test for spyder-ide/spyder#9299.
     """
     editor, _ = completions_codeeditor_linting
-    editor.set_text(TEXT)
-
-    # Notify changes.
+    
+    # Set text in editor
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.set_text(TEXT)
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
@@ -237,7 +226,6 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
     Regression test for spyder-ide/spyder#9323.
     """
     editor, _ = completions_codeeditor_linting
-    editor.textCursor().insertText("print('test)\n")
 
     if sys.version_info >= (3, 12):
         expected = [
@@ -250,7 +238,7 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.textCursor().insertText("print('test)\n")
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
@@ -281,7 +269,6 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     Regression test for spyder-ide/spyder#9323.
     """
     editor, _ = completions_codeeditor_linting
-    editor.textCursor().insertText("print('test'\n")
 
     if sys.version_info >= (3, 12):
         expected = [
@@ -296,7 +283,7 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.textCursor().insertText("print('test'\n")
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
@@ -331,10 +318,6 @@ def test_ignore_warnings_with_comments(
     expected.
     """
     editor, _ = completions_codeeditor_linting
-    editor.textCursor().insertText(
-        f"foo {ignore_comment}\n"
-        "bar\n"
-    )
 
     if ignore_comment == '# no-work':
         expected = [
@@ -349,7 +332,10 @@ def test_ignore_warnings_with_comments(
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
-        editor.document_did_change()
+        editor.textCursor().insertText(
+            f"foo {ignore_comment}\n"
+            "bar\n"
+        )
 
     # Wait for linting info to arrive
     qtbot.wait(2000)
