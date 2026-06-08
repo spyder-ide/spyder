@@ -503,13 +503,15 @@ class EditsStackMixin(TextEditBaseWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._undo_stack = QUndoStack(self)
+        self.__edit_block_tstmp = None
+        self.__edit_block = False
         self._undo_recording_depth = 0
         self._undo_last_text = str(
             self.toPlainText()
         ).encode("utf-16-le")  # TODO: optimize to avoid full text snapshots
-        self._undo_cursor_state = self._capture_cursor_state()
+        self.__undo_cursor_state = self._capture_cursor_state()
         self._undo_last_revision = 0
-        self._pending_edit: EditBlock | None = None
+        self.__pending_edit: EditBlock | None = None
         self._commit_timer = QTimer(self)
         self._commit_timer.setSingleShot(True)
         self._commit_timer.timeout.connect(self._commit_pending_edit)
@@ -529,9 +531,9 @@ class EditsStackMixin(TextEditBaseWidget):
         """Clear the editor undo stack and any pending edit capture."""
         logger.debug("Clearing custom undo stack")
         self._undo_stack.clear()
-        self._pending_edit = None
+        self.__pending_edit = None
         self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
-        self._undo_cursor_state = self._capture_cursor_state()
+        self.__undo_cursor_state = self._capture_cursor_state()
         document = self.document()
         self._undo_last_revision = document.revision() if document is not None else 0
 
@@ -571,7 +573,7 @@ class EditsStackMixin(TextEditBaseWidget):
             return
 
         if self._undo_recording_depth > 0:
-            self._undo_cursor_state = current_state
+            self.__undo_cursor_state = current_state
             self._undo_last_revision = document.revision()
             return
 
@@ -590,7 +592,7 @@ class EditsStackMixin(TextEditBaseWidget):
             else:
                 return
 
-        self._undo_cursor_state = current_state
+        self.__undo_cursor_state = current_state
 
     def _apply_cursor_state(self, state: CursorState):
         main = state.main_cursor
@@ -633,14 +635,14 @@ class EditsStackMixin(TextEditBaseWidget):
         cursor.endEditBlock()
 
     def _commit_pending_edit(self):
-        if self._pending_edit is None:
+        if self.__pending_edit is None:
             return
 
         command = EditCommand(
-            self._pending_edit,
+            self.__pending_edit,
             self,
         )
-        self._pending_edit = None
+        self.__pending_edit = None
 
         self._undo_stack.push(command)
         self.sig_document_change.emit(command._edit)
@@ -657,7 +659,7 @@ class EditsStackMixin(TextEditBaseWidget):
 
         if self._undo_recording_depth > 0:
             self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
-            self._undo_cursor_state = self._capture_cursor_state()
+            self.__undo_cursor_state = self._capture_cursor_state()
             self._undo_last_revision = document.revision()
             return
 
@@ -693,20 +695,40 @@ class EditsStackMixin(TextEditBaseWidget):
         self._undo_last_revision = document.revision()
 
         if not delta.inserted_text and not delta.removed_text:
-            self._undo_cursor_state = self._capture_cursor_state()
+            self.__undo_cursor_state = self._capture_cursor_state()
             return
 
         current_cursor = self._capture_cursor_state()
         edit = EditBlock(
-            before=self._undo_cursor_state,
+            before=self.__undo_cursor_state,
             deltas=[d for d in delta.exploded() if (d.inserted_text or d.removed_text)],
             after=current_cursor,
         )
-        if self._pending_edit is None:
-            self._pending_edit = edit
-        elif not self._pending_edit.merge(edit):
-            self._commit_pending_edit()
-            self._pending_edit = edit
+        self.__undo_cursor_state = current_cursor
 
-        self._undo_cursor_state = current_cursor
-        self._commit_timer.start(_COMMIT_TIMEOUT_MS)
+        if self.__pending_edit is None:
+            self.__pending_edit = edit
+        elif self.__edit_block_tstmp is not None and self.__pending_edit.timestamp == self.__edit_block_tstmp:
+            self._commit_pending_edit()
+            self.__pending_edit = edit
+        elif not self.__pending_edit.merge(edit):
+            self._commit_pending_edit()
+            self.__pending_edit = edit
+
+        if not self.__edit_block:
+            self._commit_timer.start(_COMMIT_TIMEOUT_MS)
+
+    @contextmanager
+    def single_edit_block(self):
+        """Context manager to group multiple edits into a single undo entry."""
+        self.__edit_block = True
+        if self.__pending_edit is not None:
+            self.__edit_block_tstmp = self.__pending_edit.timestamp
+
+        try:
+            yield
+        finally:
+            if self.__pending_edit is not None and self.__pending_edit.timestamp != self.__edit_block_tstmp:
+                self._commit_pending_edit()
+            self.__edit_block_tstmp = None
+            self.__edit_block = False
