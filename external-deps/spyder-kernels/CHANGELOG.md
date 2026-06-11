@@ -1,5 +1,21 @@
 # History of changes
 
+## Version 3.1.4 (2026/03/25)
+
+### Issues Closed
+
+* [Issue 584](https://github.com/spyder-ide/spyder-kernels/issues/584) - `FileNotFoundError` when connecting from Spyder to a kernel running on a WSL instance ([PR 585](https://github.com/spyder-ide/spyder-kernels/pull/585) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 585](https://github.com/spyder-ide/spyder-kernels/pull/585) - PR: Check if a directory exists before trying to change the current working directory, by [@ccordoba12](https://github.com/ccordoba12) ([584](https://github.com/spyder-ide/spyder-kernels/issues/584))
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 3.1.3 (2026/02/09)
 
 ### Pull Requests Merged
