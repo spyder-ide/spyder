@@ -21,6 +21,7 @@ except Exception:
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
 from packaging.version import parse
+from qtpy.QtCore import QEventLoop, QProcess
 from requests.structures import CaseInsensitiveDict
 from spyder_kernels.utils.pythonenv import (
     get_conda_env_path,
@@ -45,6 +46,7 @@ from spyder.utils.conda import conda_version, find_conda, find_pixi
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import (
+    find_program,
     get_module_version,
     get_temp_dir,
     is_python_interpreter,
@@ -136,6 +138,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
 
         # Command used to start kernels
         kernel_cmd = []
+        global_pixi_pyexec = None
 
         if is_pixi_env(pyexec=pyexec):
             pixi_exe = find_pixi()
@@ -152,14 +155,75 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
             pixi_manifest, pixi_env = get_pixi_manifest_path_and_env_name(
                 pyexec,
             )
-            kernel_cmd.extend([
-                pixi_exe,
-                'run',
-                '--environment',
-                pixi_env,
-                '--manifest-path',
-                pixi_manifest,
-            ])
+
+            if "pixi-global.toml" in pixi_manifest:
+                # For global envs we need to create an activated Python
+                # executable to start the kernel because `pixi run` doesn't
+                # work for them
+                global_pixi_pyexec = (
+                    f"__python_for_global_pixi_{pixi_env}_env__"
+                )
+
+                # Only do this if the executable hasn't been created yet
+                if not find_program(global_pixi_pyexec):
+                    # Loop to wait until the executable has been created
+                    wait_loop = QEventLoop(None)
+
+                    # To display errors on executable creation
+                    error_output = None
+
+                    # Process to create the executable
+                    process = QProcess()
+
+                    # Slot to run when the process finishes
+                    def on_process_finished(exit_code, exit_status):
+                        nonlocal error_output
+                        wait_loop.quit()
+
+                        if exit_code != 0:
+                            error_output = str(
+                                process.readAllStandardError().data(), "utf-8"
+                            )
+
+                    process.finished.connect(on_process_finished)
+
+                    # Create the executable
+                    process.start(
+                        pixi_exe,
+                        [
+                            "global",
+                            "expose",
+                            "add",
+                            f"{global_pixi_pyexec}=python",
+                            "--environment",
+                            pixi_env,
+                        ]
+                    )
+
+                    wait_loop.exec_()
+
+                    # Handle errors
+                    if error_output is not None:
+                        raise SpyderKernelError(
+                            _(
+                                "There was an error while creating a Python "
+                                "executable to activate the kernel of your "
+                                "Pixi environment. The error is:<br><br>"
+                                "<tt>{}</tt>"
+                            ).format(error_output.replace("\n\n", "\n"))
+                        )
+            else:
+                # For local envs we can call `pixi run` to activate the env
+                kernel_cmd.extend(
+                    [
+                        pixi_exe,
+                        'run',
+                        '--environment',
+                        pixi_env,
+                        '--manifest-path',
+                        pixi_manifest,
+                    ]
+                )
 
         elif is_conda_env(pyexec=pyexec):
             # If executable is a conda environment, use "run" subcommand to
@@ -233,7 +297,7 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
                 )
 
         kernel_cmd.extend([
-            pyexec,
+            pyexec if global_pixi_pyexec is None else global_pixi_pyexec,
             # This is necessary to avoid a spurious message on Windows.
             # Fixes spyder-ide/spyder#20800.
             '-Xfrozen_modules=off',
