@@ -385,6 +385,16 @@ class SpyderKernelSpec(KernelSpec, SpyderConfigurationAccessor):
         if not (running_in_ci() and os.name == "nt"):
             env_vars["SPY_PARENT_PID"] = str(os.getpid())
 
+        # Add Pixi global `bin` location to PATH when testing on CIs because
+        # for some reason it's not picked up by jupyter_client when starting
+        # the kernel
+        if running_in_ci() and os.name != "nt" and find_pixi():
+            env_vars["PATH"] = (
+                env_vars["PATH"]
+                + os.pathsep
+                + (osp.join(env_vars["HOME"], ".pixi", "bin"))
+            )
+
         # App considerations
         # ??? Do we need this?
         if is_conda_based_app() and default_interpreter:
