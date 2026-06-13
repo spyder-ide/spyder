@@ -566,6 +566,12 @@ class CodeEditor(
         # ns is a serialized dict
         self._pdb_namespace = ns
 
+    def get_expression_value(self, expr):
+        parts = expr.split('.')
+        value = self.current_shell.get_value(parts[0])
+        for attr in parts[1:]:
+            value = getattr(value, attr)
+        return value
     #--------------------------------------------------------------------------
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
@@ -609,21 +615,33 @@ class CodeEditor(
                 and self.tooltip_widget.is_hovered()
             ):
                 return
-
-            text = self.get_word_at(pos)
+            
             value = None
             self._ensure_shell()
+            text = self.get_word_at(pos)
+            if self.textCursor().hasSelection():
+                selStart = self.textCursor().selectionStart()
+                selEnd = self.textCursor().selectionEnd()
+                if  selStart <= self.cursorForPosition(pos).position() <= selEnd :
+                    text = self.get_selected_text()
 
             if text:
                 try:
                     if self.current_shell is not None:
-                        value = self._pdb_namespace.get(text)
+                        if "." in text:
+                            class_value = self.get_expression_value(text)
+                            value={}
+                            value['type'] = str(type(class_value).__name__)
+                            value['view'] = class_value
+                        else:
+                            value = self._pdb_namespace.get(text)
                     if value is not None:
                         if self.current_shell.is_debugging():
                             self.show_tooltip(text=f"{value['type']}: {value['view']}", at_point=pos)
                             return
                 except Exception:
                     pass
+
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
