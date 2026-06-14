@@ -1074,9 +1074,18 @@ def test_functions_with_locals_in_pdb(kernel):
     This is a regression test for spyder-ide/spyder-kernels#345
     """
     pdb_obj = SpyderPdb()
-    Frame = namedtuple("Frame", ["f_globals"])
-    pdb_obj.curframe = Frame(f_globals=kernel.shell.user_ns)
-    pdb_obj.curframe_locals = kernel.shell.user_ns
+
+    if sys.version_info[:2] >= (3, 14):
+        Frame = namedtuple("Frame", ["f_globals", "f_locals"])
+        pdb_obj.curframe = Frame(
+            f_globals=kernel.shell.user_ns,
+            f_locals=kernel.shell.user_ns
+        )
+    else:
+        Frame = namedtuple("Frame", ["f_globals"])
+        pdb_obj.curframe = Frame(f_globals=kernel.shell.user_ns)
+        pdb_obj.curframe_locals = kernel.shell.user_ns
+
     kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
