@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = https://github.com/ccordoba12/spyder-kernels.git
-	branch = fix-detecting-pixi-global-envs
-	commit = 5a9f72cb0024fbfe97ffa9c5d13f0cbef4b5c767
-	parent = dbc574418812d4c94a58f393506664e2cc9ba301
+	remote = https://github.com/spyder-ide/spyder-kernels.git
+	branch = master
+	commit = 2ec649e700194a35ad724635842e208ab7c956c6
+	parent = 0d7247409d0e298561ecbe26654631839cc041f8
 	method = merge
 	cmdver = 0.4.9
