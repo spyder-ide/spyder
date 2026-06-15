@@ -162,7 +162,6 @@ class TextDelta:
     def merge_text_delta(left: TextDelta, right: TextDelta) -> TextDelta | None:
         """Apply merge rules for insert/remove deltas."""
         left = left.normalized()
-        right = right.normalized()
 
         # Sequential inserts.
         if (
