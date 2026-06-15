@@ -293,7 +293,6 @@ DEFAULTS = [
                   'add_remove_cursor': 'Ctrl+Alt',
                   'column_cursor': 'Ctrl+Alt+Shift'
               },
-              'not_show_info_messages': False,
               }),
             ('historylog',
              {
@@ -315,7 +314,6 @@ DEFAULTS = [
               'rich_mode': True,
               'show_source': False,
               'locked': False,
-              'not_show_info_messages': False,
               }),
             ('onlinehelp',
              {
@@ -732,4 +730,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.0.0'
+CONF_VERSION = '88.1.0'
