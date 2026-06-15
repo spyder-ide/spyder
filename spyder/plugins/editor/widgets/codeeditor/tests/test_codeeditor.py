@@ -258,7 +258,7 @@ def test_undo_return(codeeditor, qtbot):
     editor.setTextCursor(cursor)
     qtbot.keyPress(editor, Qt.Key_Return)
     assert editor.toPlainText() == returned_text
-    qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
+    editor.undo()
     assert editor.toPlainText() == text
 
 
