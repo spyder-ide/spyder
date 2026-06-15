@@ -764,6 +764,7 @@ class FoldingPanel(Panel):
             if line_number in self.folding_regions:
                 end_line = self.folding_regions[line_number]
                 self.fold_region(block, line_number, end_line)
+                self.folding_status[line_number] = True
             block = block.next()
         self._refresh_editor_and_scrollbars()
         tc = self.editor.textCursor()
@@ -807,6 +808,7 @@ class FoldingPanel(Panel):
             if line_number in self.folding_regions:
                 end_line = self.folding_regions[line_number]
                 self.unfold_region(block, line_number, end_line)
+                self.folding_status[line_number] = False
             block = block.next()
         self._clear_block_decos()
         self._refresh_editor_and_scrollbars()
