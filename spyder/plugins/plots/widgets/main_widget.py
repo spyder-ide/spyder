@@ -75,7 +75,7 @@ class PlotsWidget(ShellConnectMainWidget):
         "your figures appear here. This pane only supports static images, so "
         "it can't display interactive plots like Bokeh, Plotly or Altair."
     )
-    MESSAGE_INFO_WIDGET= _("")
+    SHOW_INFO_MESSAGE = True
 
     # Signals
     sig_figure_loaded = Signal()
@@ -337,7 +337,7 @@ class PlotsWidget(ShellConnectMainWidget):
             self.sig_free_memory_requested
         )
         fig_browser.sig_show_info_message_requested.connect(
-            self.switch_info_message
+            self.set_info_message
         )
 
         return fig_browser
@@ -539,7 +539,3 @@ class PlotsWidget(ShellConnectMainWidget):
             dialog.show()
         else:
             self.set_conf('max_plots', value)
-    
-    def switch_info_message(self, message):
-        if self._info_widget is not None:
-            self._info_widget.set_text(message)

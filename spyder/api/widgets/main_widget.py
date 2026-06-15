@@ -58,7 +58,7 @@ from spyder.utils.stylesheet import (
 )
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
-from spyder.widgets.helperwidgets import InfoWidget
+from spyder.widgets.helperwidgets import InfoMessage
 from spyder.widgets.tabs import Tabs
 
 if TYPE_CHECKING:
@@ -209,6 +209,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     --------
     The :guilabel:`Debugger` plugin is an example of a core plugin
     that uses it.
+    """
+
+    SHOW_INFO_MESSAGE: bool = False
+    """
+    Show an informative message below the main toolbar or tabs.
+
+    Examples
+    --------
+    The :guilabel:`Plots` plugin is an example of a core plugin that uses this.
     """
 
     # ---- Signals
@@ -388,7 +397,6 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.windowwidget: SpyderWindowWidget | None = None
         self.dockwidget: spyder.widgets.dock.SpyderDockWidget | None = None
         self._icon = QIcon()
-        self._info_widget = None
         self._spinner = None
         self._stack = None
         self._content_widget = None
@@ -399,8 +407,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
             )
 
-        self._info_widget = InfoWidget(self, text=None, section="plots")
-        self._info_widget.setVisible(False)
+        if self.SHOW_INFO_MESSAGE:
+            self._info_message = InfoMessage(self)
+            self._info_message.setVisible(False)
 
         self._corner_widget = MainCornerWidget(
             parent=self,
@@ -474,8 +483,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_toolbar_layout.addWidget(self._main_toolbar, stretch=10000)
         self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
         self._toolbars_layout.addLayout(self._main_toolbar_layout)        
-        self._toolbars_layout.addWidget(self._info_widget)
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
+
+        if self.SHOW_INFO_MESSAGE:
+            self._main_layout.addWidget(self._info_message)
 
         # Create a stacked layout when the widget displays an empty message
         if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
@@ -1139,6 +1150,26 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             "show_message_when_panes_are_empty", section="main"
         ):
             self._stack.setCurrentWidget(self._pane_empty)
+
+    # ---- For informative messages
+    # -------------------------------------------------------------------------
+    def set_info_message(self, text: str, option: str | None = None) -> None:
+        """
+        Set some text in the info message widget.
+
+        Parameters
+        ----------
+        text: str
+            Text to show in the info message.
+        option: str or None, optional
+            This is the name of a configuration option to save if users don't
+            want to see the message anymore after hiding it.
+
+        Returns
+        -------
+        None
+        """
+        self._info_message.set_text(text, option)
 
     # ---- SpyderWindowWidget handling
     # -------------------------------------------------------------------------

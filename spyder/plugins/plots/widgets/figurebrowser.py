@@ -34,7 +34,7 @@ from qtpy.QtCore import (
 from qtpy.QtGui import QDrag, QPainter, QPixmap
 from qtpy.QtWidgets import (QApplication, QFrame, QGridLayout, QLayout,
                             QScrollArea, QScrollBar, QSplitter, QStyle,
-                            QVBoxLayout, QWidget, QLabel)
+                            QVBoxLayout, QWidget)
 from superqt.utils import qdebounced
 
 # Local library imports
@@ -150,7 +150,17 @@ class FigureBrowser(
         The new value for the zoom property.
     """
     
-    sig_show_info_message_requested = Signal(str)
+    sig_show_info_message_requested = Signal(str, str)
+    """
+    This signal is emitted to request showing the main widget info message.
+
+    Parameters
+    ----------
+    text: str
+        Text of the message.
+    option: str
+        Config option to not show the message in the future.
+    """
 
     def __init__(self, parent=None, background_color=None):
         if not PYSIDE2:
@@ -190,7 +200,8 @@ class FigureBrowser(
         self.thumbnails_sb.sig_redirect_stdio_requested.connect(
             self.sig_redirect_stdio_requested)
         self.thumbnails_sb.sig_show_info_message_requested.connect(
-            self.sig_show_info_message_requested)
+            self.sig_show_info_message_requested
+        )
 
         # Create the layout.
         self.splitter = splitter = QSplitter(parent=self)
@@ -727,7 +738,17 @@ class ThumbnailScrollBar(QFrame):
     sig_free_memory_requested = Signal()
     """Request to free memory after thumbnail is removed."""
 
-    sig_show_info_message_requested = Signal(str)
+    sig_show_info_message_requested = Signal(str, str)
+    """
+    This signal is emitted to request showing the main widget info message.
+
+    Parameters
+    ----------
+    text: str
+        Text of the message.
+    option: str
+        Config option to not show the message in the future.
+    """
 
     def __init__(
         self, figure_viewer, parent=None, background_color=None, max_plots=30
@@ -1209,12 +1230,15 @@ class ThumbnailScrollBar(QFrame):
 
     def update_limit_label(self):
         """Update plots usage label."""
-        message = _("Maximum number of plots reached. Oldest plots will be replaced.")
-        current = len(self._thumbnails)
-        limit = self._max_plots
+        message = _(
+            "The maximum number of plots was reached. Oldest plots will be "
+            "replaced"
+        )
 
-        if current >= limit:
-            self.sig_show_info_message_requested.emit(message)
+        if len(self._thumbnails) >= self._max_plots:
+            self.sig_show_info_message_requested.emit(
+                message, "show_max_plots_message"
+            )
 
 
 class FigureThumbnail(QWidget):

@@ -16,7 +16,7 @@ from typing import Callable, Dict
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5
+from qtpy import PYQT5, PYSIDE2
 from qtpy.QtCore import (
     QEvent,
     QPoint,
@@ -828,28 +828,28 @@ class MessageLabel(QLabel):
         self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
         self.setText(text)
 
-class InfoWidget(QWidget, SpyderWidgetMixin):
 
-    sig_text_changed = Signal(str)
+class InfoMessage(QWidget, SpyderWidgetMixin):
+    """Widget to show an informative message in a widget."""
 
-    def __init__(
-        self,
-        parent: QWidget,
-        section: str,
-        text: str = "",
-        set_min_width: bool = False,
-    ):
-        super().__init__(parent)
-        
-        self.section = section
+    def __init__(self, parent: QWidget, set_min_width: bool = False):
+        if not PYSIDE2:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
 
+        # Attributes
+        self._text_to_option: dict[str, str] = {}
+
+        # Widgets
         self.label = QLabel(self)
-        self.label.setText(text)
 
         close_button = QToolButton(self)
         close_button.setIcon(ima.icon("DialogCloseButton"))
         close_button.clicked.connect(self.hide)
 
+        # Layout
         layout = QHBoxLayout()
 
         layout.addWidget(self.label)
@@ -863,42 +863,47 @@ class InfoWidget(QWidget, SpyderWidgetMixin):
             2 * AppStyle.MarginSize,
             AppStyle.MarginSize,
             0,
-            0
+            0,
         )
 
         self.setLayout(layout)
 
     def hide(self):
         """Hide widget."""
-        reset_str = _("Show warnings again")
-        warn_str = _("Do you want to hide this warning in the future?")
-        answer = QMessageBox.warning(
-            self,
-            reset_str,
-            warn_str,
-            QMessageBox.Yes | QMessageBox.No
-        )
+        option = self._text_to_option[self.text()]
 
-        if answer == QMessageBox.Yes:
-            self.set_conf('not_show_info_messages', True, section=self.section)
-        else:
-            self.set_conf('not_show_info_messages', False, section=self.section)
-        
+        if option is not None:
+            answer = QMessageBox.question(
+                self,
+                _("Hide message"),
+                _("Do you want to hide this message in the future?"),
+                QMessageBox.Yes | QMessageBox.No
+            )
+
+            if answer == QMessageBox.Yes:
+                self.set_conf(option, False, section=self.CONF_SECTION)
+
         self.setVisible(False)
-
-    def set_visible(self, visible):
-        """Set visibility of widget."""
-        self.setVisible(visible)
 
     def text(self):
         """Get current text."""
         return self.label.text()
 
-    def set_text(self, text: str):
-        """Set label text."""
+    def set_text(self, text: str, option: str | None):
+        """Set label text and config option to not show the message anymore."""
+        if text not in self._text_to_option:
+            self._text_to_option[text] = option
+
         self.label.setText(text)
-        visible = not self.get_conf('not_show_info_messages', section=self.sectio)
-        self.set_visible(visible)
+
+        if option is not None:
+            visible = self.get_conf(
+                option, section=self.CONF_SECTION, default=True
+            )
+        else:
+            visible = True
+
+        self.setVisible(visible)
 
 
 def test_msgcheckbox():
