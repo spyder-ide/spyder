@@ -843,30 +843,35 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
         self._text_to_option: dict[str, str] = {}
 
         # Widgets
-        self.label = QLabel(self)
+        self._label = QLabel(self)
 
-        close_button = QToolButton(self)
-        close_button.setIcon(ima.icon("DialogCloseButton"))
-        close_button.clicked.connect(self.hide)
+        self._close_button = QToolButton(self)
+        self._close_button.setIcon(ima.icon("DialogCloseButton"))
+        self._close_button.clicked.connect(self.hide)
+
+        self._close_button_container = QWidget(self)
 
         # Layout
-        layout = QHBoxLayout()
+        container_layout = QHBoxLayout()
+        container_layout.addWidget(self._close_button)
+        self._close_button_container.setLayout(container_layout)
 
-        layout.addWidget(self.label)
+        layout = QHBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         layout.addStretch()
-        layout.addWidget(close_button)
+        layout.addWidget(self._label)
+        layout.addWidget(self._close_button_container)
+        layout.addStretch()
 
         if set_min_width:
             layout.addStretch()
 
-        layout.setContentsMargins(
-            2 * AppStyle.MarginSize,
-            AppStyle.MarginSize,
-            0,
-            0,
-        )
-
         self.setLayout(layout)
+
+        # Style
+        self._set_stylesheet()
 
     def hide(self):
         """Hide widget."""
@@ -887,14 +892,14 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
 
     def text(self):
         """Get current text."""
-        return self.label.text()
+        return self._label.text()
 
     def set_text(self, text: str, option: str | None):
         """Set label text and config option to not show the message anymore."""
         if text not in self._text_to_option:
             self._text_to_option[text] = option
 
-        self.label.setText(text)
+        self._label.setText(text)
 
         if option is not None:
             visible = self.get_conf(
@@ -904,6 +909,58 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
             visible = True
 
         self.setVisible(visible)
+
+    def _set_stylesheet(self):
+        base_css = qstylizer.style.StyleSheet()
+        base_css.setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
+            padding=f"{2 * AppStyle.MarginSize}px",
+            marginTop=f"{2 * AppStyle.MarginSize}px",
+            marginBottom=f"{2 * AppStyle.MarginSize}px",
+        )
+
+        label_css = base_css.copy()
+        label_css.setValues(
+            paddingLeft=f"{2 * AppStyle.MarginSize}px",
+            paddingRight="0px",
+            marginLeft=f"{4 * AppStyle.MarginSize}px",
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius="0px",
+            borderBottomRightRadius="0px",
+        )
+
+        self._label.setStyleSheet(label_css.toString())
+
+        container_css = base_css.copy()
+        container_css.setValues(
+            marginRight=f"{4 * AppStyle.MarginSize}px",
+            borderTopLeftRadius="0px",
+            borderBottomLeftRadius="0px",
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        self._close_button_container.setStyleSheet(container_css.toString())
+
+        button_css = qstylizer.style.StyleSheet()
+        button_css.setValues(
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            padding="1px",
+            marginTop="0px",
+            marginBottom="0px",
+            marginLeft="0px",
+            marginRight=f"{2 * AppStyle.MarginSize}px",
+        )
+
+        button_css['QToolButton:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+        )
+        button_css['QToolButton:pressed'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        self._close_button.setStyleSheet(button_css.toString())
 
 
 def test_msgcheckbox():
