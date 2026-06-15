@@ -71,6 +71,7 @@ def test_editor_undo_stack_exposed(codeeditor):
 
     editor.set_text('')
     editor.insert_text('abc')
+    editor._commit_pending_edit()
 
     assert stack.canUndo()
     assert editor.get_text('sof', 'eof') == 'abc'
