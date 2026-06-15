@@ -872,7 +872,8 @@ def test_docstring_delayed_popup(
     for __ in range(3):
         qtbot.keyPress(editor, Qt.Key_QuoteDbl)
     initial_text = editor.toPlainText()
-    qtbot.wait(600)
+    qtbot.wait(300)
+    editor._commit_pending_edit()
     qtbot.keyPress(editor.menu_docstring, key)
 
     assert editor.toPlainText() == test_case.get_expected(doc_type).rstrip()
