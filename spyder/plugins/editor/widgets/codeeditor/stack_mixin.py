@@ -186,16 +186,22 @@ class TextDelta:
             and right.removed_text
             and right.inserted_text
             and left.position <= right.position
-            and right.position + len(right.removed_text) <= left.position + len(left.inserted_text)
+            and right.position + len(right.removed_text)
+            <= left.position + len(left.inserted_text)
         ):
             offset = right.position - left.position
-            if left.inserted_text[offset : offset + len(right.removed_text)] == right.removed_text:
+            if (
+                left.inserted_text[offset : offset + len(right.removed_text)]
+                == right.removed_text
+            ):
                 new_inserted = (
                     left.inserted_text[:offset]
                     + right.inserted_text
                     + left.inserted_text[offset + len(right.removed_text) :]
                 )
-                return TextDelta(position=left.position, inserted_text=new_inserted, removed_text="")
+                return TextDelta(
+                    position=left.position, inserted_text=new_inserted, removed_text=""
+                )
 
         # Fold removals of text that was just inserted back into the insert.
         if (
@@ -208,7 +214,10 @@ class TextDelta:
             <= left.position + len(left.inserted_text)
         ):
             offset = right.position - left.position
-            if left.inserted_text[offset : offset + len(right.removed_text)] == right.removed_text:
+            if (
+                left.inserted_text[offset : offset + len(right.removed_text)]
+                == right.removed_text
+            ):
                 return TextDelta(
                     position=left.position,
                     inserted_text=(
@@ -289,7 +298,9 @@ class TextDelta:
                 # Replace any None with empty string (shouldn't happen for
                 # fully covered unions in our tests) and join
                 new_removed = "".join(c if c is not None else "" for c in chars)
-                return TextDelta(position=new_start, inserted_text="", removed_text=new_removed)
+                return TextDelta(
+                    position=new_start, inserted_text="", removed_text=new_removed
+                )
 
         # Replace deltas (insert+remove)
         # common patterns during multicursor or multiline edits.
@@ -365,7 +376,9 @@ class TextDelta:
             and left.removed_text
             and right.inserted_text
             and right.removed_text == ""
-            and left.position <= right.position <= left.position + len(left.inserted_text)
+            and left.position
+            <= right.position
+            <= left.position + len(left.inserted_text)
         ):
             offset = right.position - left.position
             new_inserted = (
@@ -415,6 +428,7 @@ class TextDelta:
 @dataclass
 class EditBlock:
     """Logical edit unit that can be merged with subsequent edits when possible."""
+
     before: CursorState
     deltas: list[TextDelta]
     after: CursorState
@@ -497,6 +511,7 @@ class EditsStackMixin(TextEditBaseWidget):
     Changes are captured from `QTextDocument.contentsChange`, grouped into
     edit blocks, and then pushed as one `QUndoCommand`.
     """
+
     sig_document_change = Signal(EditBlock)
 
     def __init__(self, *args, **kwargs):
@@ -504,12 +519,13 @@ class EditsStackMixin(TextEditBaseWidget):
         self._undo_stack = QUndoStack(self)
         self.__edit_block_tstmp = None
         self.__edit_block = False
-        self._undo_recording_depth = 0
-        self._undo_last_text = str(
-            self.toPlainText()
-        ).encode("utf-16-le")  # TODO: optimize to avoid full text snapshots
+        self.__revision_in_sync = False
+        self.__undo_recording_depth = 0
+        self.__undo_last_text = bytearray(
+            self.toPlainText().encode("utf-16-le")
+        )  # TODO: optimize to avoid full text snapshots
         self.__undo_cursor_state = self._capture_cursor_state()
-        self._undo_last_revision = 0
+        self.__undo_last_revision = 0
         self.__pending_edit: EditBlock | None = None
         self._commit_timer = QTimer(self)
         self._commit_timer.setSingleShot(True)
@@ -517,7 +533,7 @@ class EditsStackMixin(TextEditBaseWidget):
         self._commit_timer.timeout.connect(self._commit_pending_edit)
         document = self.document()
         assert document is not None
-        self._undo_last_revision = document.revision()
+        self.__undo_last_revision = document.revision()
         document.setUndoRedoEnabled(False)
         document.contentsChange.connect(self._on_document_contents_change)
         self.sig_cursor_position_changed.connect(self._on_cursor_position_changed)
@@ -532,19 +548,19 @@ class EditsStackMixin(TextEditBaseWidget):
         logger.debug("Clearing custom undo stack")
         self._undo_stack.clear()
         self.__pending_edit = None
-        self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
         self.__undo_cursor_state = self._capture_cursor_state()
         document = self.document()
-        self._undo_last_revision = document.revision() if document is not None else 0
+        self.__undo_last_revision = document.revision() if document is not None else 0
+        self.__revision_in_sync = False  # revision changes after setting text
 
     @contextmanager
     def suspend_undo_recording(self):
         """Temporarily disable undo recording while applying a state."""
-        self._undo_recording_depth += 1
+        self.__undo_recording_depth += 1
         try:
             yield
         finally:
-            self._undo_recording_depth -= 1
+            self.__undo_recording_depth -= 1
 
     def _capture_cursor_state(self) -> CursorState:
         cursor = self.textCursor()
@@ -572,9 +588,21 @@ class EditsStackMixin(TextEditBaseWidget):
         if document is None:
             return
 
-        if self._undo_recording_depth > 0:
+        if self.__undo_recording_depth > 0:
+            self.__revision_in_sync = True
             self.__undo_cursor_state = current_state
-            self._undo_last_revision = document.revision()
+            self.__undo_last_revision = document.revision()
+            return
+
+        current_revision = document.revision()
+
+        if (
+            self.__revision_in_sync is False
+            and self.__undo_last_revision != current_revision
+        ):
+            self.__revision_in_sync = True
+            self.__undo_cursor_state = current_state
+            self.__undo_last_revision = current_revision
             return
 
         # Only treat this as a cursor-only move if the document revision
@@ -582,15 +610,8 @@ class EditsStackMixin(TextEditBaseWidget):
         # cursor-position signals emitted during an edit from overwriting the
         # pre-edit cursor snapshot (needed so undo restores the caret to just
         # before the inserted text).
-        if document.revision() != self._undo_last_revision:
-            # QTextDocument.revision() can also change due to formatting (e.g.
-            # syntax highlighting) without any plain-text edits. If the text is
-            # unchanged, resync our stored revision so subsequent cursor moves
-            # keep the pre-edit snapshot fresh.
-            if (str(self.toPlainText()).encode("utf-16-le") == self._undo_last_text):
-                self._undo_last_revision = document.revision()
-            else:
-                return
+        if current_revision != self.__undo_last_revision:
+            return
 
         self.__undo_cursor_state = current_state
 
@@ -656,13 +677,6 @@ class EditsStackMixin(TextEditBaseWidget):
         document = self.document()
         if document is None:
             return
-
-        if self._undo_recording_depth > 0:
-            self._undo_last_text = str(self.toPlainText()).encode("utf-16-le")
-            self.__undo_cursor_state = self._capture_cursor_state()
-            self._undo_last_revision = document.revision()
-            return
-
         # Create a fresh cursor as contentsChange sometimes resets document's
         # internal cursor, causing `textCursor()` to return an invalid/null cursor.
         cursor = QTextCursor(document)
@@ -676,39 +690,44 @@ class EditsStackMixin(TextEditBaseWidget):
         bytes_position = position * 2
         bytes_removed_position = bytes_position + chars_removed * 2
 
-        removed_text = self._undo_last_text[
-            bytes_position : bytes_removed_position
-        ].decode("utf-16-le")
-
         delta = TextDelta(
             position=position,
             inserted_text=self.get_selected_text(cursor),
-            removed_text=removed_text,
+            removed_text=self.__undo_last_text[
+                bytes_position:bytes_removed_position
+            ].decode("utf-16-le"),
         )
 
-        self._undo_last_text = (
-            self._undo_last_text[:bytes_position]
-            + delta.inserted_text.encode("utf-16-le")
-            + self._undo_last_text[bytes_removed_position:]
-        )
+        self.__undo_last_revision = document.revision()
 
-        self._undo_last_revision = document.revision()
+        if self.__revision_in_sync is False:
+            self.__revision_in_sync = True
 
         if not delta.inserted_text and not delta.removed_text:
             self.__undo_cursor_state = self._capture_cursor_state()
             return
 
-        current_cursor = self._capture_cursor_state()
+        self.__undo_last_text[bytes_position:bytes_removed_position] = (
+            delta.inserted_text.encode("utf-16-le")
+        )
+
+        if self.__undo_recording_depth > 0:
+            self.__undo_cursor_state = self._capture_cursor_state()
+            return
+
         edit = EditBlock(
             before=self.__undo_cursor_state,
             deltas=[d for d in delta.exploded() if (d.inserted_text or d.removed_text)],
-            after=current_cursor,
+            after=self._capture_cursor_state(),
         )
-        self.__undo_cursor_state = current_cursor
+        self.__undo_cursor_state = edit.after
 
         if self.__pending_edit is None:
             self.__pending_edit = edit
-        elif self.__edit_block_tstmp is not None and self.__pending_edit.timestamp == self.__edit_block_tstmp:
+        elif (
+            self.__edit_block_tstmp is not None
+            and self.__pending_edit.timestamp == self.__edit_block_tstmp
+        ):
             self._commit_pending_edit()
             self.__pending_edit = edit
         elif not self.__pending_edit.merge(edit):
@@ -728,7 +747,10 @@ class EditsStackMixin(TextEditBaseWidget):
         try:
             yield
         finally:
-            if self.__pending_edit is not None and self.__pending_edit.timestamp != self.__edit_block_tstmp:
+            if (
+                self.__pending_edit is not None
+                and self.__pending_edit.timestamp != self.__edit_block_tstmp
+            ):
                 self._commit_pending_edit()
             self.__edit_block_tstmp = None
             self.__edit_block = False
