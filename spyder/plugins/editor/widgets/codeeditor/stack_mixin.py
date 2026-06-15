@@ -512,6 +512,7 @@ class EditsStackMixin(TextEditBaseWidget):
         self.__pending_edit: EditBlock | None = None
         self._commit_timer = QTimer(self)
         self._commit_timer.setSingleShot(True)
+        self._commit_timer.setInterval(_COMMIT_TIMEOUT_MS)
         self._commit_timer.timeout.connect(self._commit_pending_edit)
         document = self.document()
         assert document is not None
@@ -714,7 +715,7 @@ class EditsStackMixin(TextEditBaseWidget):
             self.__pending_edit = edit
 
         if not self.__edit_block:
-            self._commit_timer.start(_COMMIT_TIMEOUT_MS)
+            self._commit_timer.start()
 
     @contextmanager
     def single_edit_block(self):
