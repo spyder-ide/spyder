@@ -464,6 +464,8 @@ class LSPMixin:
         """Request document symbols."""
         if not self.document_symbols_enabled:
             return
+        # ensure document is up to date before requesting symbols
+        self._commit_pending_edit()
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {"file": self.filename}
