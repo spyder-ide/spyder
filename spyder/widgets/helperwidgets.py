@@ -16,7 +16,7 @@ from typing import Callable, Dict
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5
+from qtpy import PYQT5, PYSIDE2
 from qtpy.QtCore import (
     QEvent,
     QPoint,
@@ -60,6 +60,7 @@ from qtpy.QtWidgets import (
 # Local imports
 from spyder.api.translations import _
 from spyder.api.widgets.comboboxes import SpyderComboBox
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.utils.icon_manager import ima
 from spyder.utils.stringmatching import get_search_regex
 from spyder.utils.palette import SpyderPalette
@@ -826,6 +827,167 @@ class MessageLabel(QLabel):
 
         self.setAlignment(Qt.AlignCenter if n_reasons == 1 else Qt.AlignLeft)
         self.setText(text)
+
+
+class InfoMessage(QWidget, SpyderWidgetMixin):
+    """Widget to show an informative message in a widget."""
+
+    def __init__(self, parent: QWidget, set_min_width: bool = False):
+        if not PYSIDE2:
+            super().__init__(parent, class_parent=parent)
+        else:
+            QWidget.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=parent)
+
+        # Attributes
+        self._text_to_option: dict[str, str] = {}
+
+        # Widgets
+        self._label = QLabel(self)
+
+        self._close_button = QToolButton(self)
+        self._close_button.setIcon(ima.icon("DialogCloseButton"))
+        self._close_button.clicked.connect(self.hide)
+
+        self._close_button_container = QWidget(self)
+
+        # Layout
+        container_layout = QHBoxLayout()
+        container_layout.setContentsMargins(0, 0, AppStyle.MarginSize, 0)
+        container_layout.addWidget(self._close_button)
+        self._close_button_container.setLayout(container_layout)
+
+        layout = QHBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.addStretch()
+        layout.addWidget(self._label)
+        layout.addWidget(self._close_button_container)
+        layout.addStretch()
+
+        if set_min_width:
+            layout.addStretch()
+
+        self.setLayout(layout)
+
+        # Style
+        self._set_stylesheet()
+
+    def hide(self):
+        """Hide widget."""
+        option = self._text_to_option[self.text()]
+
+        if option is not None:
+            answer = QMessageBox.question(
+                self,
+                _("Hide message"),
+                _("Do you want to hide this message in the future?"),
+                QMessageBox.Yes | QMessageBox.No
+            )
+
+            if answer == QMessageBox.Yes:
+                self.set_conf(option, False, section=self.CONF_SECTION)
+
+        self.setVisible(False)
+
+    def text(self):
+        """Get current text."""
+        return self._label.text()
+
+    def set_text(self, text: str, option: str | None):
+        """Set label text and config option to not show the message anymore."""
+        if text not in self._text_to_option:
+            self._text_to_option[text] = option
+
+        self._label.setText(text)
+
+        if option is not None:
+            visible = self.get_conf(
+                option, section=self.CONF_SECTION, default=True
+            )
+        else:
+            visible = True
+
+        self.set_width()
+        self.setVisible(visible)
+
+    def set_width(self):
+        """Set width and word wrap for the label that holds the message."""
+        if not self.text():
+            return
+
+        # Text width
+        metrics = QFontMetrics(self.font())
+        text_width = (
+            metrics.width(self.text())
+            + self.font().pointSize()
+        )
+
+        # Max width for the label that holds the message
+        max_label_width = (
+            # Max width for the widget. We use the parent width instead of the
+            # widget one because we expect the parent to always be visible, and
+            # in that case Qt always computes the width correctly.
+            self.parent().width()
+            # Left/right margins for the widget
+            - 2 * (8 * AppStyle.MarginSize)
+            # Button container width
+            - self._close_button_container.width()
+        )
+
+        # Enable/disable word wrap according to the text width
+        if text_width > max_label_width:
+            self._label.setMinimumWidth(max_label_width)
+            self._label.setWordWrap(True)
+        else:
+            self._label.setMinimumWidth(10)
+            self._label.setWordWrap(False)
+
+    def _set_stylesheet(self):
+        base_css = qstylizer.style.StyleSheet()
+        base_css.setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_3,
+            padding=f"{2 * AppStyle.MarginSize}px",
+            marginTop=f"{2 * AppStyle.MarginSize}px",
+            marginBottom=f"{2 * AppStyle.MarginSize}px",
+        )
+
+        label_css = base_css.copy()
+        label_css.setValues(
+            borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderTopRightRadius="0px",
+            borderBottomRightRadius="0px",
+        )
+
+        self._label.setStyleSheet(label_css.toString())
+
+        container_css = base_css.copy()
+        container_css.setValues(
+            borderTopLeftRadius="0px",
+            borderBottomLeftRadius="0px",
+            borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            borderBottomRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+        )
+
+        self._close_button_container.setStyleSheet(container_css.toString())
+
+        button_css = qstylizer.style.StyleSheet()
+        button_css.setValues(
+            borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
+            padding="1px",
+            margin="0px"
+        )
+
+        button_css['QToolButton:hover'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_4
+        )
+        button_css['QToolButton:pressed'].setValues(
+            backgroundColor=SpyderPalette.COLOR_BACKGROUND_5
+        )
+
+        self._close_button.setStyleSheet(button_css.toString())
 
 
 def test_msgcheckbox():
