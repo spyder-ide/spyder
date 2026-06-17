@@ -58,10 +58,11 @@ from spyder.utils.stylesheet import (
 )
 from spyder.widgets.dock import DockTitleBar, SpyderDockWidget
 from spyder.widgets.emptymessage import EmptyMessageWidget
+from spyder.widgets.helperwidgets import InfoMessage
 from spyder.widgets.tabs import Tabs
 
 if TYPE_CHECKING:
-    from qtpy.QtGui import QCloseEvent, QFocusEvent
+    from qtpy.QtGui import QCloseEvent, QFocusEvent, QResizeEvent
     from qtpy.QWidget import QLayout
 
     import spyder.app.mainwindow  # For MainWindow
@@ -208,6 +209,19 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
     --------
     The :guilabel:`Debugger` plugin is an example of a core plugin
     that uses it.
+    """
+
+    SHOW_INFO_MESSAGE: bool = False
+    """
+    Show an informative message below the main toolbar.
+
+    .. note ::
+
+        This doesn't work for plugins with tabs yet.
+
+    Examples
+    --------
+    The :guilabel:`Plots` plugin is an example of a core plugin that uses this.
     """
 
     # ---- Signals
@@ -397,6 +411,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
                 size=16, parent=self, name=PluginMainWidgetWidgets.Spinner
             )
 
+        if self.SHOW_INFO_MESSAGE:
+            self._info_message = InfoMessage(self)
+            self._info_message.setVisible(False)
+
         self._corner_widget = MainCornerWidget(
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
@@ -442,7 +460,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         # Margins
         # --------------------------------------------------------------------
         # These margins are necessary to give some space between the widgets
-        # inside this one and the window separator and borders.
+        # inside this one and the window separators and borders.
         self._margin_right = AppStyle.MarginSize
         self._margin_bottom = AppStyle.MarginSize
         if not self.get_conf("vertical_tabs", section="main"):
@@ -465,11 +483,14 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_layout.setContentsMargins(0, 0, 0, 0)
         self._main_layout.setSpacing(0)
 
-        # Add inititals layouts
+        # Add initial layouts
         self._main_toolbar_layout.addWidget(self._main_toolbar, stretch=10000)
         self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
-        self._toolbars_layout.addLayout(self._main_toolbar_layout)
+        self._toolbars_layout.addLayout(self._main_toolbar_layout)        
         self._main_layout.addLayout(self._toolbars_layout, stretch=1)
+
+        if self.SHOW_INFO_MESSAGE:
+            self._main_layout.addWidget(self._info_message)
 
         # Create a stacked layout when the widget displays an empty message
         if self.SHOW_MESSAGE_WHEN_EMPTY and self.get_conf(
@@ -707,6 +728,24 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.sig_focus_status_changed.emit(False)
         self.on_focus_out()
         return super().focusOutEvent(event)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        Handle the widget being resized.
+
+        Parameters
+        ----------
+        event : QResizeEvent
+            The resize event object.
+
+        Returns
+        -------
+        None
+        """
+        super().resizeEvent(event)
+
+        if self.SHOW_INFO_MESSAGE:
+            self._info_message.set_width()
 
     # ---- Public methods to use
     # -------------------------------------------------------------------------
@@ -1133,6 +1172,33 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             "show_message_when_panes_are_empty", section="main"
         ):
             self._stack.setCurrentWidget(self._pane_empty)
+
+    # ---- For informative messages
+    # -------------------------------------------------------------------------
+    def set_info_message(self, text: str, option: str | None = None) -> None:
+        """
+        Set some text in the info message widget.
+
+        .. note::
+
+            This doesn't work for plugins with tabs yet.
+
+        Parameters
+        ----------
+        text: str
+            Text to show in the info message.
+        option: str or None, optional
+            This is the name of a configuration option to save if users don't
+            want to see the message anymore after hiding it.
+
+        Returns
+        -------
+        None
+        """
+        if self._is_tab:
+            return
+
+        self._info_message.set_text(text, option)
 
     # ---- SpyderWindowWidget handling
     # -------------------------------------------------------------------------
