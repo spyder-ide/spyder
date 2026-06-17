@@ -92,6 +92,9 @@ class FigureBrowser(
     console to be plotted inline.
     """
 
+    # This is needed to run tests that work only for this widget
+    CONF_SECTION = "plots"
+
     sig_figure_loaded = Signal()
     """This signal is emitted when a new figure is loaded."""
 

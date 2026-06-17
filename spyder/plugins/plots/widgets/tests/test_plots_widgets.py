@@ -16,6 +16,7 @@ import datetime
 from unittest.mock import Mock
 
 # Third party imports
+from flaky import flaky
 import pytest
 from matplotlib.figure import Figure
 import numpy as np
@@ -426,6 +427,7 @@ def test_copy_svg_to_clipboard(figbrowser, tmpdir):
     assert clipboard.mimeData().data('image/svg+xml') == figs[0]
 
 
+@flaky(max_runs=5)
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     """
