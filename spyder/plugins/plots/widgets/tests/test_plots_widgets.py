@@ -78,8 +78,10 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
         figs.append(create_figure(figname))
         figbrowser.add_figure(figs[-1], fmt)
 
-    assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
-    assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
+    max_plots = figbrowser.get_conf("max_plots")
+    nfigs_in_browser = len(figbrowser.thumbnails_sb._thumbnails)
+    assert nfigs_in_browser <= max_plots
+    assert figbrowser.thumbnails_sb.get_current_index() == nfigs_in_browser - 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
     assert figbrowser.figviewer.figcanvas.fig == figs[-1]
 
