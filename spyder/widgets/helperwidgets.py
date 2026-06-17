@@ -853,6 +853,7 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
 
         # Layout
         container_layout = QHBoxLayout()
+        container_layout.setContentsMargins(0, 0, AppStyle.MarginSize, 0)
         container_layout.addWidget(self._close_button)
         self._close_button_container.setLayout(container_layout)
 
@@ -908,7 +909,40 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
         else:
             visible = True
 
+        self.set_width()
         self.setVisible(visible)
+
+    def set_width(self):
+        """Set width and word wrap for the label that holds the message."""
+        if not self.text():
+            return
+
+        # Text width
+        metrics = QFontMetrics(self.font())
+        text_width = (
+            metrics.width(self.text())
+            + self.font().pointSize()
+        )
+
+        # Max width for the label that holds the message
+        max_label_width = (
+            # Max width for the widget. We use the parent width instead of the
+            # widget one because we expect the parent to always be visible, and
+            # in that case Qt always computes the width correctly.
+            self.parent().width()
+            # Left/right margins for the widget
+            - 2 * (8 * AppStyle.MarginSize)
+            # Button container width
+            - self._close_button_container.width()
+        )
+
+        # Enable/disable word wrap according to the text width
+        if text_width > max_label_width:
+            self._label.setMinimumWidth(max_label_width)
+            self._label.setWordWrap(True)
+        else:
+            self._label.setMinimumWidth(10)
+            self._label.setWordWrap(False)
 
     def _set_stylesheet(self):
         base_css = qstylizer.style.StyleSheet()
@@ -921,9 +955,6 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
 
         label_css = base_css.copy()
         label_css.setValues(
-            paddingLeft=f"{2 * AppStyle.MarginSize}px",
-            paddingRight="0px",
-            marginLeft=f"{4 * AppStyle.MarginSize}px",
             borderTopLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             borderBottomLeftRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             borderTopRightRadius="0px",
@@ -934,7 +965,6 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
 
         container_css = base_css.copy()
         container_css.setValues(
-            marginRight=f"{4 * AppStyle.MarginSize}px",
             borderTopLeftRadius="0px",
             borderBottomLeftRadius="0px",
             borderTopRightRadius=SpyderPalette.SIZE_BORDER_RADIUS,
@@ -947,10 +977,7 @@ class InfoMessage(QWidget, SpyderWidgetMixin):
         button_css.setValues(
             borderRadius=SpyderPalette.SIZE_BORDER_RADIUS,
             padding="1px",
-            marginTop="0px",
-            marginBottom="0px",
-            marginLeft="0px",
-            marginRight=f"{2 * AppStyle.MarginSize}px",
+            margin="0px"
         )
 
         button_css['QToolButton:hover'].setValues(

@@ -62,7 +62,7 @@ from spyder.widgets.helperwidgets import InfoMessage
 from spyder.widgets.tabs import Tabs
 
 if TYPE_CHECKING:
-    from qtpy.QtGui import QCloseEvent, QFocusEvent
+    from qtpy.QtGui import QCloseEvent, QFocusEvent, QResizeEvent
     from qtpy.QWidget import QLayout
 
     import spyder.app.mainwindow  # For MainWindow
@@ -724,6 +724,24 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self.sig_focus_status_changed.emit(False)
         self.on_focus_out()
         return super().focusOutEvent(event)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        Handle the widget being resized.
+
+        Parameters
+        ----------
+        event : QResizeEvent
+            The resize event object.
+
+        Returns
+        -------
+        None
+        """
+        super().resizeEvent(event)
+
+        if self.SHOW_INFO_MESSAGE:
+            self._info_message.set_width()
 
     # ---- Public methods to use
     # -------------------------------------------------------------------------
