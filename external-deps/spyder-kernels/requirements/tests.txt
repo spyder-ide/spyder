@@ -5,6 +5,7 @@ matplotlib
 mock
 numpy
 pandas
+pip
 polars
 pyarrow
 pytest

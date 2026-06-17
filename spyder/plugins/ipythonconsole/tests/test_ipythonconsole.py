@@ -11,8 +11,10 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
+import json
 import os
 import os.path as osp
+from pathlib import Path
 import re
 import shutil
 import sys
@@ -40,10 +42,16 @@ from spyder.api.plugins import Plugins
 from spyder.config.base import running_in_ci, running_in_ci_with_conda
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.tests.conftest import (
-    get_conda_test_env, get_console_background_color, get_console_font_color,
-    NEW_DIR, SHELL_TIMEOUT, PY312_OR_GREATER)
+    get_conda_test_env,
+    get_console_background_color,
+    get_console_font_color,
+    NEW_DIR,
+    PY312_OR_GREATER,
+    SHELL_TIMEOUT,
+)
+from spyder.utils.programs import run_shell_command
 from spyder.plugins.ipythonconsole.widgets import ShellWidget
-from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.conda import get_list_conda_envs, find_pixi
 from spyder.utils.theme_manager import THEME_MANAGER
 
 
@@ -2748,6 +2756,39 @@ def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
     # Check we entered the debugger and stopped where the breakpoint was set
     assert "\nIPdb [1]" in control.toPlainText()
     assert "---> 2 def func():\n" in control.toPlainText()
+
+
+@pytest.mark.order(1)
+@pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
+@pytest.mark.skipif(not find_pixi(), reason="Needs Pixi to work")
+def test_pixi_global_envs(ipyconsole, qtbot):
+    """Test that the console works with Pixi global envs."""
+    # Get Pixi info
+    cmd = ' '.join([find_pixi(), 'info', '--json'])
+    out, __ = run_shell_command(cmd).communicate()
+    pixi_info = json.loads(out)
+    global_envs_dir = Path(pixi_info["global_info"]["env_dir"])
+
+    # Python executable for the global env to test
+    if os.name == "nt":
+        pyexec = global_envs_dir / "pip" / "python.exe"
+    else:
+        pyexec = global_envs_dir / "pip" / "bin" / "python"
+
+    # Create client for that env
+    ipyconsole.get_widget().create_environment_client(
+        "pixi-global", str(pyexec)
+    )
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT
+    )
+
+    # Check prompt is available and no errors are present
+    control = shell._control
+    assert "In [1]" in control.toPlainText()
+    assert "error" not in control.toPlainText()
+    assert "Error" not in control.toPlainText()
 
 
 if __name__ == "__main__":
