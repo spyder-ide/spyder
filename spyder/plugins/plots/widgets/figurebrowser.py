@@ -1234,8 +1234,9 @@ class ThumbnailScrollBar(QFrame):
     def update_limit_label(self):
         """Update plots usage label."""
         message = _(
-            "The maximum number of plots was reached. Oldest plots will be "
-            "replaced"
+            "The maximum number of plots was reached, so the oldest ones will "
+            "be discarded. If you want to increase it, check the Options menu "
+            "on the top right (a large number can consume a lot of memory)."
         )
 
         if len(self._thumbnails) >= self._max_plots:
