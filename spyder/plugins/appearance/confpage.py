@@ -156,7 +156,7 @@ class AppearanceConfigPage(PluginConfigPage):
         ui_layout = QVBoxLayout(ui_group)
         if sys.platform == "darwin":
             # Default spacing is too big on Mac
-            ui_layout.setVerticalSpacing(2 * AppStyle. MarginSize)
+            ui_layout.setSpacing(2 * AppStyle. MarginSize)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()

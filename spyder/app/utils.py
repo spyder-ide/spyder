@@ -305,10 +305,12 @@ def create_application():
     selected = resolved
     if '/' in selected:
         theme_name, ui_mode = selected.rsplit('/', 1)
-        THEME_MANAGER.load_theme(theme_name, ui_mode)
+        if not running_under_pytest():
+            THEME_MANAGER.load_theme(theme_name, ui_mode)
 
     # Load any pending theme resources that were deferred during initialization
-    THEME_MANAGER.load_pending_resources()
+    if not running_under_pytest():
+        THEME_MANAGER.load_pending_resources()
 
     # ---- Set icon
     app_icon = QIcon(get_image_path("spyder"))
