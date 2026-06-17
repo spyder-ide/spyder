@@ -488,5 +488,22 @@ def test_copy_string_array(qtbot):
     assert clipboard.text() == "ü\ntest\n"
 
 
+def test_copy_bytes_array(qtbot):
+    arr = np.array([b"\xc3\xb1", b"world"], dtype="S5")
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '2D array')
+    with qtbot.waitExposed(dlg):
+        dlg.show()
+
+    # Select all contents and copy them
+    view = dlg.arraywidget.view
+    qtbot.keyPress(view, Qt.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyPress(view, Qt.Key_C, modifier=Qt.ControlModifier)
+
+    # Check we get the expected result
+    clipboard = QApplication.clipboard()
+    assert clipboard.text() == "b'\\xc3\\xb1'\nb'world'\n"
+
+
 if __name__ == "__main__":
     pytest.main()

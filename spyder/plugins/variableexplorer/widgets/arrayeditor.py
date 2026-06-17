@@ -1005,8 +1005,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                 # We don't know what's inside these arrays, so we can't handle
                 # edits
                 self.readonly = readonly = True
-            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
-                    and not dtn.startswith('unicode')):
+            elif (
+                dtn not in SUPPORTED_FORMATS
+                and not dtn.startswith("str")
+                and not dtn.startswith("bytes")
+            ):
                 arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False
