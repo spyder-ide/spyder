@@ -1,5 +1,14 @@
 # History of changes for Spyder 6
 
+## Version 6.1.5 (Unreleased)
+
+### API changes
+
+* Add `SHOW_INFO_MESSAGE` and `set_info_message` to `PluginMainWidget` to show
+  informative messages in dockable plugins.
+
+----
+
 ## Version 6.1.4 (2026-04-06)
 
 ### New features
