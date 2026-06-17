@@ -213,7 +213,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
 
     SHOW_INFO_MESSAGE: bool = False
     """
-    Show an informative message below the main toolbar or tabs.
+    Show an informative message below the main toolbar.
+
+    .. note ::
+
+        This doesn't work for plugins with tabs yet.
 
     Examples
     --------
@@ -456,7 +460,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         # Margins
         # --------------------------------------------------------------------
         # These margins are necessary to give some space between the widgets
-        # inside this one and the window separator and borders.
+        # inside this one and the window separators and borders.
         self._margin_right = AppStyle.MarginSize
         self._margin_bottom = AppStyle.MarginSize
         if not self.get_conf("vertical_tabs", section="main"):
@@ -479,7 +483,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         self._main_layout.setContentsMargins(0, 0, 0, 0)
         self._main_layout.setSpacing(0)
 
-        # Add inititals layouts
+        # Add initial layouts
         self._main_toolbar_layout.addWidget(self._main_toolbar, stretch=10000)
         self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
         self._toolbars_layout.addLayout(self._main_toolbar_layout)        
@@ -1175,6 +1179,10 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         """
         Set some text in the info message widget.
 
+        .. note::
+
+            This doesn't work for plugins with tabs yet.
+
         Parameters
         ----------
         text: str
@@ -1187,6 +1195,9 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
         -------
         None
         """
+        if self._is_tab:
+            return
+
         self._info_message.set_text(text, option)
 
     # ---- SpyderWindowWidget handling
