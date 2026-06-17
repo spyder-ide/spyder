@@ -21,7 +21,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QApplication, QMessageBox
 from scipy.io import loadmat
 
 # Local imports
@@ -469,6 +469,23 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
         qtbot.wait(500)
         assert np.sum(expected_array ==
                       dialog.get_value()) == len(expected_array)
+
+
+def test_copy_string_array(qtbot):
+    arr = np.array(["ü", "test"])
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '2D array')
+    with qtbot.waitExposed(dlg):
+        dlg.show()
+
+    # Select all contents and copy them
+    view = dlg.arraywidget.view
+    qtbot.keyPress(view, Qt.Key_A, modifier=Qt.ControlModifier)
+    qtbot.keyPress(view, Qt.Key_C, modifier=Qt.ControlModifier)
+
+    # Check we get the expected result
+    clipboard = QApplication.clipboard()
+    assert clipboard.text() == "ü\ntest\n"
 
 
 if __name__ == "__main__":
