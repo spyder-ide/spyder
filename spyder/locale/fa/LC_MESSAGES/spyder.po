@@ -1,22 +1,21 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-03-18 22:48\n"
+"PO-Revision-Date: 2026-06-18 22:30\n"
 "Last-Translator: \n"
 "Language-Team: Persian\n"
-"Language: fa_IR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
-"X-Crowdin-File-ID: 104\n"
-"X-Crowdin-Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Project-ID: 381272\n"
+"X-Crowdin-Language: fa\n"
+"X-Crowdin-File: /6.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 104\n"
+"Language: fa_IR\n"
 
 #: spyder/api/plugin_registration/_confpage.py:29
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
@@ -139,27 +138,21 @@ msgid "It was not possible to load Spyder's icon theme, so Spyder cannot start o
 msgstr ""
 
 #: spyder/app/restart.py:138
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr ""
-"ممکن نبود که دوره قبلی اسپایدر بسته شود.\n"
+msgstr "ممکن نبود که دوره قبلی اسپایدر بسته شود.\n"
 "دوباره راه‌اندازی بی نتیجه بود."
 
 #: spyder/app/restart.py:140
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr ""
-"اسپایدر نمیتواند به حالت کارخانه بازگردد.\n"
+msgstr "اسپایدر نمیتواند به حالت کارخانه بازگردد.\n"
 "دوباره راه‌اندازی بی تنیجه ماند."
 
 #: spyder/app/restart.py:142
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr ""
-"دوباره راه‌اندازی اسپایدر ممکن نبود.\n"
+msgstr "دوباره راه‌اندازی اسپایدر ممکن نبود.\n"
 "عملکرد بی نتیجه ماند."
 
 #: spyder/app/restart.py:144
@@ -195,12 +188,9 @@ msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr "متن میانبر باید با '_' و یا با افزونه `CONF_SECTION`برابر باشد!"
 
 #: spyder/config/manager.py:812
-msgid ""
-"There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n"
-"\n"
+msgid "There was an error while loading Spyder configuration options. You need to reset them for Spyder to be able to launch.\n\n"
 "Do you want to proceed?"
-msgstr ""
-"یک خطا در بارگذاری گزینه های کانفیگ اسپایدر به وجود آمد. اسپایدر نیاز به دوباره راه‌اندازی برای شروع مجدد دارد.\n"
+msgstr "یک خطا در بارگذاری گزینه های کانفیگ اسپایدر به وجود آمد. اسپایدر نیاز به دوباره راه‌اندازی برای شروع مجدد دارد.\n"
 "آیا میخواهید ادامه دهید?"
 
 #: spyder/config/manager.py:820
@@ -660,9 +650,8 @@ msgid "Use a single instance"
 msgstr "از یک instance استفاده کنید"
 
 #: spyder/plugins/application/confpage.py:65
-#, fuzzy
 msgid "Set this to open external Python files in an already running instance (Requires a restart)"
-msgstr "تنظیم فایل‌های خارجی <br> پایتون در نمونه‌ای که قبلاً در حال اجرا است باز شود (نیاز به راه‌اندازی مجدد دارد)"
+msgstr ""
 
 #: spyder/plugins/application/confpage.py:69
 msgid "Prompt when exiting"
@@ -1189,9 +1178,8 @@ msgid "Line length"
 msgstr "طول خط"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:60
-#, fuzzy
 msgid "Spyder can use one of the following formatters to format your code for conformance to the {0} convention: {1}."
-msgstr "اسپایدر می تواند از {0} یا {1} برای قالب بندی کد شما برای مطابقت با قرارداد {2} استفاده کند."
+msgstr ""
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:70
 msgid "Choose the code formatting provider: "
@@ -1218,12 +1206,8 @@ msgid "Enable Go to definition"
 msgstr "فعال سازی Go to definition"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
-#, fuzzy
 msgid "If enabled, left-clicking on an object name while pressing the {} key will go to that object's definition (if resolved)."
 msgstr ""
-"در صورت فعال بودن، روی نام شیء کلیک چپ کنید و\n"
-"با فشار دادن کلید {} به تعریف آن شی میتوانید به آن شیء بروید \n"
-"(اگر حل شده باشد)."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:40
 msgid "Follow imports when going to a definition"
@@ -1238,12 +1222,8 @@ msgid "Enable hover hints"
 msgstr "نکات hover را فعال کنید"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
-#, fuzzy
 msgid "If enabled, hovering the mouse pointer over an object name will display that object's signature and/or docstring (if present)."
 msgstr ""
-"اگر فعال باشد، نشانگر ماوس را روی یک شی قرار دهید\n"
-"نام، امضا و/یا آن شی را نمایش می دهد\n"
-"docstring (در صورت وجود)."
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:63
 msgid "Preload the following modules to make completion faster and more accurate:"
@@ -1526,8 +1506,7 @@ msgid "down"
 msgstr "پایین"
 
 #: spyder/plugins/completion/providers/languageserver/widgets/status.py:42
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
@@ -1732,27 +1711,18 @@ msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with 
 msgstr "به منظور استفاده از دستوراتی مانند \"raw_input\" یا \"input\" Spyder میتوانید گزینه multithread (--multithread) در ترمینال سیستم خود اجرا کنید"
 
 #: spyder/plugins/console/widgets/main_widget.py:118
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please do not use it to run your code\n"
-"\n"
-msgstr ""
-"کنسول داخلی اسپایدر\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please do not use it to run your code\n\n"
+msgstr "کنسول داخلی اسپایدر\n\n"
 "این کنسول برای گزارش برنامه استفاده می شود\n"
 "خطاهای داخلی و بازرسی اسپایدر\n"
-"داخلی با دستورها زیر:\n"
-"\n"
-"  spy.app، spy.window، dir(spy)\n"
-"\n"
-"لطفا از آن برای اجرای کد خود استفاده نکنید\n"
-"\n"
+"داخلی با دستورها زیر:\n\n"
+"  spy.app، spy.window، dir(spy)\n\n"
+"لطفا از آن برای اجرای کد خود استفاده نکنید\n\n"
 
 #: spyder/plugins/console/widgets/main_widget.py:172
 msgid "Internal console"
@@ -2523,24 +2493,16 @@ msgid "Removal error"
 msgstr "خطای حذف"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2914
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
-msgstr ""
-"امکان حذف خروجی ها از این نوت بوک وجود نداشت. خطا این است:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
+msgstr "امکان حذف خروجی ها از این نوت بوک وجود نداشت. خطا این است:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2925 spyder/plugins/explorer/widgets/explorer.py:1807
 msgid "Conversion error"
 msgstr "خطای تبدیل"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:2926 spyder/plugins/explorer/widgets/explorer.py:1808
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
-msgstr ""
-"امکان تبدیل این نوت بوک وجود نداشت. خطا این است:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
+msgstr "امکان تبدیل این نوت بوک وجود نداشت. خطا این است:\n\n"
 
 #: spyder/plugins/editor/widgets/codeeditor/codeeditor.py:4039 spyder/widgets/config.py:1211
 msgid "Information"
@@ -2967,13 +2929,9 @@ msgid "Recover from autosave"
 msgstr "بازیابی از ذخیره خودکار"
 
 #: spyder/plugins/editor/widgets/recover.py:140
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
-"فایل‌های ذخیره خودکار پیدا شد. دوست دارید چه کار کنید؟\n"
-"\n"
+msgstr "فایل‌های ذخیره خودکار پیدا شد. دوست دارید چه کار کنید؟\n\n"
 "اگر فایل‌های ذخیره خودکار بازیابی، انتقال یا حذف نشدند، در راه‌اندازی بعدی دوباره نشان داده می‌شود."
 
 #: spyder/plugins/editor/widgets/recover.py:159
@@ -3185,8 +3143,7 @@ msgid " (Application not found!)"
 msgstr " (برنامه یافت نشد!)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1168
-msgid ""
-"Do you really want to delete <b>%s</b>?\n"
+msgid "Do you really want to delete <b>%s</b>?\n"
 "<br><br><b>Note</b>: This file or directory will be moved to the trash can."
 msgstr ""
 
@@ -3263,24 +3220,16 @@ msgid "File/Folder copy error"
 msgstr "خطای کپی فایل/پوشه"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1503
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
-msgstr ""
-"نمی توان این نوع فایل(ها) یا پوشه(ها) را کپی کرد. خطا این بود:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
+msgstr "نمی توان این نوع فایل(ها) یا پوشه(ها) را کپی کرد. خطا این بود:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1543
 msgid "Error pasting file"
 msgstr "خطا در چسباندن فایل"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1544 spyder/plugins/explorer/widgets/explorer.py:1572
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
-msgstr ""
-"عملیات کپی پشتیبانی نشده خطا این بود:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
+msgstr "عملیات کپی پشتیبانی نشده خطا این بود:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1563
 msgid "Recursive copy"
@@ -4359,12 +4308,8 @@ msgid "This Python environment doesn't have the right version of <tt>spyder-kern
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernel_handler.py:523
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
-msgstr ""
-"هنگام تلاش برای بارگیری فایل اتصال کرنل، خطایی روی داد. خطا این بود:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
+msgstr "هنگام تلاش برای بارگیری فایل اتصال کرنل، خطایی روی داد. خطا این بود:\n\n"
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:59
 msgid "The Python environment or installation whose interpreter is located at<pre>    <tt>{0}</tt></pre>doesn't have <tt>spyder-kernels</tt> version <tt>{1}</tt> installed. Without this module and specific version is not possible for Spyder to create a console for you.<br><br>You can install it by activating your environment (if necessary) and then running in a system terminal:<pre>    <tt>{2}</tt></pre>or<pre>    <tt>{3}</tt></pre>"
@@ -4375,9 +4320,8 @@ msgid "Spyder couldn't find pixi in your system to activate the kernel's environ
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:208
-#, fuzzy
 msgid "There was an error while creating a Python executable to activate the kernel of your Pixi environment. The error is:<br><br><tt>{}</tt>"
-msgstr "هنگام تلاش برای نشان دادن متغیرهای محیط شما خطایی روی داد. خطا<br><br><tt>{0}</tt> بود"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/kernelspec.py:246
 msgid "Spyder couldn't find Conda, Mamba or Micromamba on your system to activate the kernel's environment.<br><br>Please set the path for one of their executables in <tt>Preferences > Python interpreter > Conda executable</tt>"
@@ -4948,8 +4892,7 @@ msgid "Layout <b>{0}</b> will be overwritten. Do you want to continue?"
 msgstr "طرح بندی <b>{0}</b> رونویسی خواهد شد. می خواهید ادامه دهید?"
 
 #: spyder/plugins/layout/container.py:376
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr "طرح پنجره به تنظیمات پیش فرض بازگردانی می شود: این بر وضعیت پنجره ، اندازه و داک ویجت تأثیر می گذارد. می خواهید ادامه دهید?"
 
@@ -5110,8 +5053,7 @@ msgid "List of excluded modules (e.g. {})"
 msgstr ""
 
 #: spyder/plugins/maininterpreter/confpage.py:233
-msgid ""
-"The following modules are not installed:\n"
+msgid "The following modules are not installed:\n"
 "{}"
 msgstr ""
 
@@ -6416,9 +6358,8 @@ msgid "The version of <tt>spyder-remote-services</tt> on the remote host <b>{ser
 msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:176
-#, fuzzy
 msgid "Remote connections error"
-msgstr "اتصالات اتوماتیک"
+msgstr ""
 
 #: spyder/plugins/remoteclient/widgets/container.py:177
 msgid "This functionality is not available in your system because it's not possible to save your server credentials securely.<br><br>Please install <tt>kwallet</tt> or <tt>libsecret</tt> and restart Spyder to enable it."
@@ -6977,8 +6918,7 @@ msgid "Manage application updates."
 msgstr ""
 
 #: spyder/plugins/updatemanager/widgets/status.py:72
-msgid ""
-"Downloading the update will continue in the background.\n"
+msgid "Downloading the update will continue in the background.\n"
 "Click here to show the download dialog again."
 msgstr ""
 
@@ -7291,13 +7231,9 @@ msgid "Refresh array editor?"
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:189 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:739
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
-msgstr ""
-"باز کردن این متغیر می تواند کند باشد\n"
-"\n"
+msgstr "باز کردن این متغیر می تواند کند باشد\n\n"
 "به هر حال میخواهید ادامه بدی?"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:201
@@ -7333,8 +7269,7 @@ msgid "Spyder was unable to retrieve the value of this variable from the console
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:537
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error occurred while trying to do it"
 msgstr ""
 
@@ -8063,8 +7998,7 @@ msgid "Magic:"
 msgstr "جادو:"
 
 #: spyder/widgets/arraybuilder.py:228
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Type an array using the syntax: <tt>1 2;3 4</tt><br>\n"
 "           * Use two spaces or tabs to generate a <b>;</b>.<br>\n"
@@ -8073,8 +8007,7 @@ msgid ""
 msgstr ""
 
 #: spyder/widgets/arraybuilder.py:236
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy array helper</b><br><br>\n"
 "           * Introduce an array in the table.<br>\n"
 "           * Use <b>Tab</b> to move between cells or introduce additional\n"
@@ -8457,14 +8390,12 @@ msgid "Type and press Enter to search"
 msgstr ""
 
 #: spyder/widgets/helperwidgets.py:884
-#, fuzzy
 msgid "Hide message"
-msgstr "پیام"
+msgstr ""
 
 #: spyder/widgets/helperwidgets.py:885
-#, fuzzy
 msgid "Do you want to hide this message in the future?"
-msgstr "آیا می خواهید مورد انتخاب شده را حذف کنید?"
+msgstr ""
 
 #: spyder/widgets/helperwidgets.py:997
 msgid "Spyder updates"
@@ -8610,47 +8541,3 @@ msgstr "برگه ها را مرور کنید"
 msgid "Close current tab"
 msgstr "بستن برگه کنونی"
 
-#~ msgid "Commands"
-#~ msgstr "دستورات"
-
-#~ msgid "change view"
-#~ msgstr "تغییر دیدگاه"
-
-#~ msgid "Indent Using Spaces"
-#~ msgstr "Indent با استفاده از Space ها"
-
-#~ msgid "Indent Using Tabs"
-#~ msgstr "Indent با استفاده از Tab ها"
-
-#~ msgid "Detect Indentation from Content"
-#~ msgstr "تشخیص Indentation از محتوا"
-
-#~ msgid "convert file"
-#~ msgstr "تبدیل فایل"
-
-#~ msgid "Convert Indentation to Spaces"
-#~ msgstr "Indentation را به Spaces تبدیل کنید"
-
-#~ msgid "Convert Indentation to Tabs"
-#~ msgstr "تبدیل Indentation به Tabs"
-
-#~ msgid "Trim Trailing Whitespace"
-#~ msgstr "فضای سفید انتهایی را برش دهید"
-
-#~ msgid "Help me!"
-#~ msgstr "به من كمك كنید!"
-
-#~ msgid "Help me 2!"
-#~ msgstr "به من كمك كنید 2!"
-
-#~ msgid "Help me 3!"
-#~ msgstr "به من كمك كنید 3!"
-
-#~ msgid "Current line, type something"
-#~ msgstr "خط فعلی، چیزی تایپ کنید"
-
-#~ msgid "Some symbol"
-#~ msgstr "چند symbol"
-
-#~ msgid "another symbol"
-#~ msgstr "symbol دیگر"
