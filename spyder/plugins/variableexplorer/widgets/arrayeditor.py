@@ -605,6 +605,7 @@ class ArrayView(QTableView, SpyderWidgetMixin):
         """Copy an array portion to a unicode string"""
         if not cell_range:
             return
+
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         if col_min == 0 and col_max == (self.model().cols_loaded-1):
             # we've selected a whole column. It isn't possible to
@@ -615,17 +616,33 @@ class ArrayView(QTableView, SpyderWidgetMixin):
             row_max = self.model().total_rows-1
 
         _data = self.model().get_data()
-        output = io.BytesIO()
+        output = io.StringIO()
         try:
-            fmt = '%' + self.model().get_format_spec()
-            np.savetxt(output, _data[row_min:row_max+1, col_min:col_max+1],
-                       delimiter='\t', fmt=fmt)
-        except:
-            QMessageBox.warning(self, _("Warning"),
-                                _("It was not possible to copy values for "
-                                  "this array"))
+            # Use the right format to copy non-numeric arrays
+            # Fixes spyder-ide/spyder#26088
+            if any(
+                name in _data.dtype.name
+                for name in ["str", "bytes", "object", "bool"]
+            ):
+                fmt = "%s"
+            else:
+                fmt = '%' + self.model().get_format_spec()
+
+            np.savetxt(
+                output,
+                _data[row_min : row_max + 1, col_min : col_max + 1],
+                delimiter="\t",
+                fmt=fmt,
+            )
+        except Exception:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _("It was not possible to copy values for this array")
+            )
             return
-        contents = output.getvalue().decode('utf-8')
+
+        contents = output.getvalue()
         output.close()
         return contents
 
@@ -963,8 +980,11 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
                 # We don't know what's inside these arrays, so we can't handle
                 # edits
                 self.readonly = readonly = True
-            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
-                    and not dtn.startswith('unicode')):
+            elif (
+                dtn not in SUPPORTED_FORMATS
+                and not dtn.startswith("str")
+                and not dtn.startswith("bytes")
+            ):
                 arr = _("%s arrays") % dtn
                 self.error(_("%s are currently not supported") % arr)
                 return False
