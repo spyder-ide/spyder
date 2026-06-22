@@ -536,7 +536,7 @@ class Switcher(QDialog, SpyderFontsMixin):
         )
 
         # Ensure that the selected item is visible
-        self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+        self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
     
     def init_current_row(self, row):
         """Set the current row, center view, skip editor cursor jump."""
@@ -550,7 +550,7 @@ class Switcher(QDialog, SpyderFontsMixin):
                 proxy_index,
                 QItemSelectionModel.ClearAndSelect
             )
-            self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+            self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
 
     def previous_row(self):
         """Select previous row in list widget."""
