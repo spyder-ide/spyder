@@ -1873,12 +1873,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
-        
         self.close_all_editors_action = self.create_action(
             name=DataframeEditorActions.CloseAllEditors,
             text=_("Close all viewers"),
             icon=self.create_icon("filecloseall"),
-            triggered=self.sig_close_all_editors_requested.emit
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
         )
 
         # Destroying the C++ object right after closing the dialog box,

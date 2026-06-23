@@ -346,8 +346,10 @@ def test_arrayeditor_edit_1d_array(qtbot):
     qtbot.keyPress(view, Qt.Key_Down)
     qtbot.keyClicks(view, '0')
     qtbot.keyPress(view, Qt.Key_Down)
-    qtbot.keyPress(view, Qt.Key_Return)
-    assert np.sum(exp_arr == dlg.get_value()) == 5
+
+    assert dlg.btn_save_and_close.isEnabled()
+    dlg.btn_save_and_close.clicked.emit()
+    assert_array_equal(dlg.get_value(), exp_arr)
 
 
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It fails on macOS")
