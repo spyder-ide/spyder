@@ -536,13 +536,12 @@ class Switcher(QDialog, SpyderFontsMixin):
         )
 
         # Ensure that the selected item is visible
-        self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+        self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
     
     def init_current_row(self, row):
         """Set the current row, center view, skip editor cursor jump."""
         proxy_index = self.proxy.index(row, 0)
         selection_model = self.list.selectionModel()
-        self.initial_flag = True
 
         # Select current item without moving the editor view
         with signals_blocked(self):
@@ -550,19 +549,10 @@ class Switcher(QDialog, SpyderFontsMixin):
                 proxy_index,
                 QItemSelectionModel.ClearAndSelect
             )
-            self.list.scrollTo(proxy_index, QAbstractItemView.PositionAtCenter)
+            self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
 
     def previous_row(self):
         """Select previous row in list widget."""
-        if self.initial_flag:
-            # Move to the beginning of the current symbol
-            current_row = self.current_row()
-            self.list.selectionModel().clear()
-            self.set_current_row(current_row)
-            self.initial_flag = False
-            return
-
-        # Normal march
         steps = 1
         prev_row = self.current_row() - steps
 
@@ -580,15 +570,14 @@ class Switcher(QDialog, SpyderFontsMixin):
 
     def next_row(self):
         """Select next row in list widget."""
-        self.initial_flag = False
         steps = 1
         next_row = self.current_row() + steps
+
         # Need to map the filtered list to the actual model items
         list_index = self.proxy.index(next_row, 0)
         model_index = self.proxy.mapToSource(list_index)
         item = self.model.item(model_index.row(), 0)
 
-        # Normal march
         if next_row >= self.count():
             self.set_current_row(0)
         else:

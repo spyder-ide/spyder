@@ -523,19 +523,25 @@ class PlotsWidget(ShellConnectMainWidget):
 
             # Set dialog properties
             dialog.setModal(False)
+            dialog.setWindowFlags(
+                dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint
+            )
             dialog.setWindowTitle(_('Max plots'))
             dialog.setLabelText(_('Set maximum number of plots: '))
             dialog.setInputMode(QInputDialog.IntInput)
             dialog.setIntStep(1)
-            dialog.setIntValue(self.get_conf('max_plots'))
-
             dialog.setIntRange(10, 10000)
+            dialog.setIntValue(self.get_conf('max_plots'))
 
             # Connect slot
             dialog.intValueSelected.connect(
                 lambda value: self.set_conf('max_plots', value)
             )
 
+            # Show
             dialog.show()
+
+            # Set min width. It can only be done at this point
+            dialog.setMinimumWidth(250)
         else:
             self.set_conf('max_plots', value)
