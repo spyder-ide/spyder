@@ -836,7 +836,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
             name=ArrayEditorActions.CloseAllEditors,
             text=_("Close all viewers"),
             icon=self.create_icon("filecloseall"),
-            triggered=self.sig_close_all_editors_requested.emit
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
         )
         self.close_all_editors_action.setVisible(from_variable_explorer)
 
