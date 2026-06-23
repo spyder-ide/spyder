@@ -668,10 +668,10 @@ class ArrayEditorWidget(QWidget):
         self.old_data_shape = None
         if len(self.data.shape) == 1:
             self.old_data_shape = self.data.shape
-            self.data.shape = (self.data.shape[0], 1)
+            self.data = self.data.reshape((self.data.shape[0], 1))
         elif len(self.data.shape) == 0:
             self.old_data_shape = self.data.shape
-            self.data.shape = (1, 1)
+            self.data = self.data.reshape((1, 1))
 
         # Use '' as default format specifier, because 's' does not produce
         # a `str` for arrays with strings, see spyder-ide/spyder#22466
@@ -679,7 +679,9 @@ class ArrayEditorWidget(QWidget):
 
         self.model = ArrayModel(self.data, format_spec=format_spec,
                                 readonly=readonly, parent=self)
-        self.view = ArrayView(self, self.model, data.dtype, data.shape)
+        self.view = ArrayView(
+            self, self.model, self.data.dtype, self.data.shape
+        )
 
         layout = QVBoxLayout()
         layout.addWidget(self.view)
@@ -691,12 +693,12 @@ class ArrayEditorWidget(QWidget):
         for (i, j), value in list(self.model.changes.items()):
             self.data[i, j] = value
         if self.old_data_shape is not None:
-            self.data.shape = self.old_data_shape
+            self.data = self.data.reshape(self.old_data_shape)
 
     def reject_changes(self):
         """Reject changes"""
         if self.old_data_shape is not None:
-            self.data.shape = self.old_data_shape
+            self.data = self.data.reshape(self.old_data_shape)
 
     @Slot()
     def change_format(self):
