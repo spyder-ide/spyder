@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 3.1.5 (2026/06/23)
+
+### Pull Requests Merged
+
+* [PR 595](https://github.com/spyder-ide/spyder-kernels/pull/595) - PR: Increase min Python version tested on Windows to 3.10 on CI, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 593](https://github.com/spyder-ide/spyder-kernels/pull/593) - PR: Fix detecting Pixi global environments, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 591](https://github.com/spyder-ide/spyder-kernels/pull/591) - PR: Use generic args/kwargs in `SpyderPdb` init method, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 3.1.4 (2026/03/25)
 
 ### Issues Closed
