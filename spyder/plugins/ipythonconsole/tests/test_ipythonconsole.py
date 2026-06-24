@@ -2750,5 +2750,46 @@ def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
     assert "---> 2 def func():\n" in control.toPlainText()
 
 
+def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
+    """Test that add_tab respects the give_focus parameter."""
+    from spyder.plugins.ipythonconsole.widgets.client import ClientWidget
+
+    class DummyClient(ClientWidget):
+        def __init__(self):
+            pass
+
+    widget = ipyconsole.get_widget()
+    mock_client = mocker.MagicMock(spec=DummyClient)
+
+    # Mock activateWindow on the widget
+    mock_activate = mocker.patch.object(widget, 'activateWindow')
+
+    # Mock client.get_control().setFocus
+    mock_control = mocker.MagicMock()
+    mock_client.get_control.return_value = mock_control
+
+    # Stub out the Qt/tab methods and other side-effects to isolate the test
+    mocker.patch.object(widget.tabwidget, 'addTab', return_value=0)
+    mocker.patch.object(widget.tabwidget, 'setCurrentIndex')
+    mocker.patch.object(widget, 'update_tabs_text')
+    mocker.patch.object(widget, 'register_client')
+
+    # 1. Test with give_focus=False
+    widget.add_tab(mock_client, name="TestFocusFalse", give_focus=False)
+    mock_activate.assert_not_called()
+    mock_control.setFocus.assert_not_called()
+
+    # Clean up clients list to avoid issues
+    widget.clients.remove(mock_client)
+
+    # 2. Test with give_focus=True
+    widget.add_tab(mock_client, name="TestFocusTrue", give_focus=True)
+    mock_activate.assert_called_once()
+    mock_control.setFocus.assert_called_once()
+
+    # Clean up
+    widget.clients.remove(mock_client)
+
+
 if __name__ == "__main__":
     pytest.main()
