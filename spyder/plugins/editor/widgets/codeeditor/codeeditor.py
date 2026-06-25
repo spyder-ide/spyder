@@ -2171,12 +2171,12 @@ class CodeEditor(
         """
         # Flush pending edits to undo immediately
         self._commit_pending_edit()
-        if self.undo_stack.canUndo():
+        if self.undo_stack.can_undo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
             self.skip_rstrip = True
             self.is_undoing = True
-            self.undo_stack.undo()
+            super().undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2186,10 +2186,10 @@ class CodeEditor(
     def redo(self):
         """Reimplement redo to increase text version number."""
         self._commit_pending_edit()
-        if self.undo_stack.canRedo():
+        if self.undo_stack.can_redo():
             self.skip_rstrip = True
             self.is_redoing = True
-            self.undo_stack.redo()
+            super().redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False

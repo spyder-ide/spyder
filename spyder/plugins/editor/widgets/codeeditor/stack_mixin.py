@@ -9,7 +9,6 @@ from datetime import datetime
 
 from qtpy.QtCore import QTimer, Signal  # type: ignore
 from qtpy.QtGui import QTextCursor
-from qtpy.QtWidgets import QUndoCommand, QUndoStack
 
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 
@@ -483,26 +482,43 @@ class EditBlock:
         return f"EditBlock(before={self.before}, deltas={self.deltas}, after={self.after}, timestamp={self.timestamp.isoformat()})"
 
 
-class EditCommand(QUndoCommand):  # type: ignore[misc]
-    def __init__(self, edit: EditBlock, editor: EditsStackMixin):
-        super().__init__(str(edit))
-        self._edit = edit
-        self._editor = editor
-        self._initialized = False
+class UndoStack:
+    __slots__ = ("__stack", "__index")
 
-    def redo(self):
-        if not self._initialized:
-            self._initialized = True
-            return
-        with self._editor.suspend_undo_recording():
-            self._editor.apply_edit(self._edit)
-        self._editor.sig_document_change.emit(self._edit)
+    def __init__(self):
+        self.__stack = []
+        self.__index = -1
 
-    def undo(self):
-        reversed_edit = self._edit.reverse()
-        with self._editor.suspend_undo_recording():
-            self._editor.apply_edit(reversed_edit)
-        self._editor.sig_document_change.emit(reversed_edit)
+    def push(self, edit: EditBlock):
+        if self.__index < len(self.__stack) - 1:
+            self.__stack = self.__stack[: self.__index + 1]
+
+        self.__stack.append(edit)
+        self.__index += 1
+
+    def get_previous(self) -> EditBlock:
+        if self.__index < 0:
+            raise IndexError("No previous command in the undo stack.")
+    
+        edit = self.__stack[self.__index]
+        self.__index -= 1
+        return edit
+    
+    def get_next(self) -> EditBlock:
+        if self.__index >= len(self.__stack) - 1:
+            raise IndexError("No next command in the undo stack.")
+        self.__index += 1
+        return self.__stack[self.__index]
+
+    def clear(self):
+        self.__stack.clear()
+        self.__index = -1
+
+    def can_redo(self) -> bool:
+        return self.__index < len(self.__stack) - 1
+    
+    def can_undo(self) -> bool:
+        return self.__index >= 0
 
 
 class EditsStackMixin(TextEditBaseWidget):
@@ -516,7 +532,7 @@ class EditsStackMixin(TextEditBaseWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._undo_stack = QUndoStack(self)
+        self._undo_stack = UndoStack()
         self.__edit_block_tstmp = None
         self.__edit_block = False
         self.__revision_in_sync = False
@@ -537,6 +553,19 @@ class EditsStackMixin(TextEditBaseWidget):
         document.setUndoRedoEnabled(False)
         document.contentsChange.connect(self._on_document_contents_change)
         self.sig_cursor_position_changed.connect(self._on_cursor_position_changed)
+
+    def undo(self):
+        edit = self.undo_stack.get_previous()
+        reversed_edit = edit.reverse()
+        with self.suspend_undo_recording():
+            self.apply_edit(reversed_edit)
+        self.sig_document_change.emit(reversed_edit)
+
+    def redo(self):
+        edit = self.undo_stack.get_next()
+        with self.suspend_undo_recording():
+            self.apply_edit(edit)
+        self.sig_document_change.emit(edit)
 
     @property
     def undo_stack(self):
@@ -659,14 +688,11 @@ class EditsStackMixin(TextEditBaseWidget):
         if self.__pending_edit is None:
             return
 
-        command = EditCommand(
-            self.__pending_edit,
-            self,
-        )
+        edit = self.__pending_edit
         self.__pending_edit = None
 
-        self._undo_stack.push(command)
-        self.sig_document_change.emit(command._edit)
+        self._undo_stack.push(edit)
+        self.sig_document_change.emit(edit)
 
     def _on_document_contents_change(
         self,
