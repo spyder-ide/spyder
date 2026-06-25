@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-06-19 06:24\n"
+"PO-Revision-Date: 2026-06-26 16:22\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -1179,7 +1179,7 @@ msgstr "线长度"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:60
 msgid "Spyder can use one of the following formatters to format your code for conformance to the {0} convention: {1}."
-msgstr ""
+msgstr "Spyder 可以使用下列格式之一来格式化你的代码以符合 {0} 约定规范: {1}。"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/formatting.py:70
 msgid "Choose the code formatting provider: "
@@ -1207,7 +1207,7 @@ msgstr "启用“转到”定义"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:37
 msgid "If enabled, left-clicking on an object name while pressing the {} key will go to that object's definition (if resolved)."
-msgstr ""
+msgstr "如果启用，则在按下 {} 键时单击鼠标左键将会转到该对象的定义（若能解析的话）。"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:40
 msgid "Follow imports when going to a definition"
@@ -1223,7 +1223,7 @@ msgstr "启用鼠标悬停提示"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:47
 msgid "If enabled, hovering the mouse pointer over an object name will display that object's signature and/or docstring (if present)."
-msgstr ""
+msgstr "如果启用，则鼠标在对象名称上悬停将会显示该对象的签名和/或文档字符串（若存在的话）。"
 
 #: spyder/plugins/completion/providers/languageserver/conftabs/introspection.py:63
 msgid "Preload the following modules to make completion faster and more accurate:"
@@ -2086,7 +2086,7 @@ msgstr "显示标签栏"
 
 #: spyder/plugins/editor/confpage.py:60
 msgid "If hidden, the file switcher, Outline pane and Ctrl-Tab can still be used to navigate between open files."
-msgstr ""
+msgstr "如果隐藏，文档切换器、概览面板和 Ctrl-Tab 仍可被用于在打开的文件之间进行导航。"
 
 #: spyder/plugins/editor/confpage.py:66
 msgid "Show full file path above editor"
@@ -2202,7 +2202,7 @@ msgstr "在行内容更改时去除末尾空格"
 
 #: spyder/plugins/editor/confpage.py:218
 msgid "If enabled, modified lines of code (excluding strings) will have trailing whitespace stripped when leaving them. If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
+msgstr "如果启用，被修改的代码行（不包括字符串）将在离开时去除末尾的空格。 如果禁用，则只有 Spyder 添加的空格会被去除。"
 
 #: spyder/plugins/editor/confpage.py:226
 msgid "Automatically add missing end-of-file newline on save"
@@ -2210,7 +2210,7 @@ msgstr "在保存时自动添加缺失的末尾换行符"
 
 #: spyder/plugins/editor/confpage.py:229
 msgid "If enabled, a trailing newline character (line break) will automatically be appended to the end of the file if the file does not already end with one, to conform to standard text file conventions."
-msgstr ""
+msgstr "如果启用，则当文件不是以换行符结束时会在文件结束位置自动添加一个末尾换行符（行分隔符），以遵循标准文本文件的惯例。"
 
 #: spyder/plugins/editor/confpage.py:237
 msgid "Strip blank lines at end of file on save"
@@ -2254,7 +2254,7 @@ msgstr "Tab 键总是执行缩进"
 
 #: spyder/plugins/editor/confpage.py:294
 msgid "If enabled, pressing Tab will always add an indent, even when the cursor is not at the beginning of a line. Code completion can still be triggered using the shortcut Ctrl+Space."
-msgstr ""
+msgstr "如果启用，则按下 Tab 总是会添加一级缩进，即使光标不位于一行的开头位置。 代码补全仍可使用快捷键 Ctrl+Space 来触发。"
 
 #: spyder/plugins/editor/confpage.py:319
 msgid "End-of-line characters"
@@ -2266,7 +2266,7 @@ msgstr "自动修复混合的行结束符并显示警告对话框"
 
 #: spyder/plugins/editor/confpage.py:324
 msgid "When opening a file containing mixed end-of-line characters (which may raise syntax errors in the console on Windows), Spyder will convert them automatically if enabled."
-msgstr ""
+msgstr "当打开包含混用行结束符的文件时（这可能会在 Windows 的控制台中引发语法错误），Spyder 将在选项启用时自动转换它们。"
 
 #: spyder/plugins/editor/confpage.py:331
 msgid "Convert end-of-line characters to the following on save:"
