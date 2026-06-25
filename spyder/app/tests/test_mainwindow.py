@@ -201,7 +201,7 @@ def test_leaks(main_window, qtbot):
             timeout=SHELL_TIMEOUT)
         with qtbot.waitSignal(shell.executed):
             shell.execute("%debug print()")
-
+        qtbot.wait(1000)
         # Close all files and consoles
         main_window.editor.close_all_files()
         main_window.ipyconsole.restart()
