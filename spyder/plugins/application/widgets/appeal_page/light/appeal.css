@@ -105,7 +105,7 @@
   --tw-contain-paint:  ;
   --tw-contain-style:  ;
 }/*
-! tailwindcss v3.4.13 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com
 *//*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
 2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
@@ -496,7 +496,7 @@ video {
 }
 
 /* Make elements with the HTML hidden attribute stay hidden by default */
-[hidden] {
+[hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
 .prose {
@@ -937,17 +937,21 @@ video {
   margin-left: -1.25rem;
   margin-right: -1.25rem;
 }
-.mb-10 {
-  margin-bottom: 2.5rem;
+.my-10 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
-.mt-10 {
-  margin-top: 2.5rem;
+.mt-5 {
+  margin-top: 1.25rem;
 }
 .flex {
   display: flex;
 }
 .grid {
   display: grid;
+}
+.h-16 {
+  height: 4rem;
 }
 .h-full {
   height: 100%;
@@ -970,6 +974,12 @@ video {
 .justify-center {
   justify-content: center;
 }
+.gap-10 {
+  gap: 2.5rem;
+}
+.gap-5 {
+  gap: 1.25rem;
+}
 .overflow-hidden {
   overflow: hidden;
 }
@@ -990,7 +1000,7 @@ video {
 }
 .text-white {
   --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 @plugin "@tailwindcss/typography";
 
@@ -1020,7 +1030,7 @@ video {
 
 a {
   font-weight: 500;
-  color: var(--action);
+  color: var(--highlight);
   text-decoration: inherit;
 }
 
@@ -1067,11 +1077,10 @@ p {
 }
 
 .button {
-  width: 240px;
-  height: 100px;
+  min-width: 240px;
+  min-height: 100px;
   border-radius: 8px;
   padding: 15px;
-  margin: 20px auto;
   background-color: var(--highlight);
   color: var(--light);
   cursor: pointer;
@@ -1079,14 +1088,20 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+}
+
+.button.medium {
+  min-width: 180px;
+  min-height: 60px;
+  padding: 15px;
+  color: var(--light);
 }
 
 .button.small {
-  width: auto;
-  height: auto;
+  min-width: auto;
+  min-height: auto;
   padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
   color: var(--light);
 }
 
@@ -1095,8 +1110,13 @@ p {
 }
 
 .button img {
+  -o-object-fit: contain;
+     object-fit: contain;
+  -o-object-position: center;
+     object-position: center;
   width: 100%;
   height: auto;
+  margin: 0 auto;
 }
 
 .heart-container {
@@ -1118,7 +1138,7 @@ p {
 
 .heart::before,
 .heart::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background-color: inherit;
@@ -1264,4 +1284,79 @@ p {
 @keyframes slideDown {
   from { transform: translateY(0); }
   to { transform: translateY(100%); }
+}
+
+/* --- Scrollbar -- */
+
+::-webkit-scrollbar {
+  background-color: var(--light);
+  width: 14px;
+  height: 14px;
+  margin: 16px 2px 16px 2px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-light);
+  border: 1px solid #cccccc;
+  min-height: 8px;
+  border-radius: 10px;
+  width: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #cccccc;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  min-height: 8px;
+  width: 1px;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBU73DsMmwAAACpJREFUCNdjYMAAjAwMcz4gC6QIMDIwIAumCDAwMEKYEMEUARQTULWjAQDGuQeQXWYfgwAAAABJRU5ErkJggg==');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBQf+SPZCwAAACNJREFUCNdjYMAN5nyAsRiRBVIE4EIIFSkCDAyMyAIIlWgAAKysB5BOZTSsAAAAAElFTkSuQmCC');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:increment:hover {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAJxTNPxdAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCwIEbZgbaQAAAClJREFUCNdjYMAAjAwM/8+jCBgyMjAgCzIaMjAwQpgQQUZDFBNQtaMBANYQB9IvSN9KAAAAAElFTkSuQmCC');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBUP/Y/4LgAAACJJREFUCNdjYMAN/p+HsRiRBRgN4UJIKgwZGBiRBRAq0QAAyrUH0na7ssUAAAAASUVORK5CYII=');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRAD/h4/MvwAAAAd0SU1FB9wIFwgVO9w7DJsAAAA4SURBVBhXYyAazJkz5wOIZgLzoAAmCAJwCWRBEABLoAuCAFgiJSVFAMxDAnCjsEmiAGzGIgEGBgCaOBBXvDiq/AAAAABJRU5ErkJggg==');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRAD/h4/MvwAAAAd0SU1FB9wIFwgUH/kj2QsAAAA1SURBVBhXY8AL5syZ8wHKhAMmKI0hCZcAAWRJFAkQgEliSKSkpAiAaBQJmCAcYHMVDsDAAACnqBBX7dfI1AAAAABJRU5ErkJggg==');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRACcUzT8XQAAAAd0SU1FB9wIFwsCBG2YG2kAAAA4SURBVBhXYyAa/P///zyIZgLzoAAmCAJwCWRBEABLoAuCAFiCkZHREMxDAnCjsEmiAGzGIgEGBgCE9BNvQimS0gAAAABJRU5ErkJggg==');
+  background-position: center center;
+}
+
+::-webkit-scrollbar-button:decrement:hover {
+  background-repeat: no-repeat;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBUP/Y/4LgAAACJJREFUCNdjYMAN/p+HsRiRBRgN4UJIKgwZGBiRBRAq0QAAyrUH0na7ssUAAAAASUVORK5CYII=');
+  background-position: center center;
 }
