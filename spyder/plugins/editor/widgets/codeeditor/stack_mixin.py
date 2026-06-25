@@ -21,11 +21,11 @@ _COMMIT_TIMEOUT_MS = 1_200  # 1.2 seconds, similar to Qt's default
 class CursorState:
     """Cursors snapshot of the editor state.
 
-    Stores `QTextCursor` objects captured at the time of the snapshot.
+    Stores `states` objects captured at the time of the snapshot.
     """
 
-    main_cursor: QTextCursor
-    extra_cursors: tuple[QTextCursor, ...]
+    main_cursor: tuple[int, int]  # (selectionStart, selectionEnd)
+    extra_cursors: tuple[tuple[int, int], ...]
 
     def __eq__(self, other):
         if not isinstance(other, CursorState):
@@ -35,11 +35,20 @@ class CursorState:
     def signature(self) -> tuple:
         """Create a comparable signature for cursor state continuity checks."""
         return (
-            self.main_cursor.position(),
-            self.main_cursor.anchor(),
-            tuple((c.position(), c.anchor()) for c in self.extra_cursors),
+            self.main_cursor,
+            self.extra_cursors,
         )
 
+    @classmethod
+    def from_editor(cls, editor: TextEditBaseWidget) -> CursorState:
+        """Capture the current cursor state from the editor."""
+        main_cursor = editor.textCursor()
+        main_state = (main_cursor.selectionStart(), main_cursor.selectionEnd())
+        extra_states = tuple(
+            (c.selectionStart(), c.selectionEnd())
+            for c in getattr(editor, "extra_cursors", [])
+        )
+        return cls(main_cursor=main_state, extra_cursors=extra_states)
 
 @dataclass(frozen=True)
 class TextDelta:
@@ -540,7 +549,7 @@ class EditsStackMixin(TextEditBaseWidget):
         self.__undo_last_text = bytearray(
             self.toPlainText().encode("utf-16-le")
         )  # TODO: optimize to avoid full text snapshots
-        self.__undo_cursor_state = self._capture_cursor_state()
+        self.__undo_cursor_state = CursorState.from_editor(self)
         self.__undo_last_revision = 0
         self.__pending_edit: EditBlock | None = None
         self._commit_timer = QTimer(self)
@@ -577,7 +586,7 @@ class EditsStackMixin(TextEditBaseWidget):
         logger.debug("Clearing custom undo stack")
         self._undo_stack.clear()
         self.__pending_edit = None
-        self.__undo_cursor_state = self._capture_cursor_state()
+        self.__undo_cursor_state = CursorState.from_editor(self)
         document = self.document()
         self.__undo_last_revision = document.revision() if document is not None else 0
         self.__revision_in_sync = False  # revision changes after setting text
@@ -591,16 +600,6 @@ class EditsStackMixin(TextEditBaseWidget):
         finally:
             self.__undo_recording_depth -= 1
 
-    def _capture_cursor_state(self) -> CursorState:
-        cursor = self.textCursor()
-        # store copies of the QTextCursor objects so the undo entry keeps the
-        # cursor state as it was when the edit happened
-        main_copy = QTextCursor(cursor)
-        extra_copies = tuple(
-            QTextCursor(extra) for extra in getattr(self, "extra_cursors", [])
-        )
-        return CursorState(main_cursor=main_copy, extra_cursors=extra_copies)
-
     def _on_cursor_position_changed(self, *args):
         """Keep the stored cursor state in sync with cursor movements.
 
@@ -612,7 +611,7 @@ class EditsStackMixin(TextEditBaseWidget):
         the pre-edit snapshot by only updating when the document revision has
         not changed since the last recorded revision.
         """
-        current_state = self._capture_cursor_state()
+        current_state = CursorState.from_editor(self)
         document = self.document()
         if document is None:
             return
@@ -647,15 +646,15 @@ class EditsStackMixin(TextEditBaseWidget):
     def _apply_cursor_state(self, state: CursorState):
         main = state.main_cursor
         cursor = QTextCursor(self.document())
-        cursor.setPosition(main.selectionStart())
-        cursor.setPosition(main.selectionEnd(), QTextCursor.KeepAnchor)
+        cursor.setPosition(main[0])
+        cursor.setPosition(main[1], QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
         extra_cursors = []
         for stored in state.extra_cursors:
             extra_cursor = QTextCursor(self.document())
-            extra_cursor.setPosition(stored.selectionStart())
-            extra_cursor.setPosition(stored.selectionEnd(), QTextCursor.KeepAnchor)
+            extra_cursor.setPosition(stored[0])
+            extra_cursor.setPosition(stored[1], QTextCursor.KeepAnchor)
             extra_cursors.append(extra_cursor)
 
         self.extra_cursors = extra_cursors
@@ -730,7 +729,7 @@ class EditsStackMixin(TextEditBaseWidget):
             self.__revision_in_sync = True
 
         if not delta.inserted_text and not delta.removed_text:
-            self.__undo_cursor_state = self._capture_cursor_state()
+            self.__undo_cursor_state = CursorState.from_editor(self)
             return
 
         self.__undo_last_text[bytes_position:bytes_removed_position] = (
@@ -738,13 +737,13 @@ class EditsStackMixin(TextEditBaseWidget):
         )
 
         if self.__undo_recording_depth > 0:
-            self.__undo_cursor_state = self._capture_cursor_state()
+            self.__undo_cursor_state = CursorState.from_editor(self)
             return
 
         edit = EditBlock(
             before=self.__undo_cursor_state,
             deltas=[d for d in delta.exploded() if (d.inserted_text or d.removed_text)],
-            after=self._capture_cursor_state(),
+            after=CursorState.from_editor(self),
         )
         self.__undo_cursor_state = edit.after
 
