@@ -32,7 +32,6 @@ from three_merge import merge
 # Local imports
 from spyder.config.base import running_under_pytest
 from spyder.plugins.completion.api import DOCUMENT_CURSOR_EVENT
-from spyder.widgets.mixins import EOL_SYMBOLS
 from spyder.plugins.completion.decorators import (
     request,
     handles,
@@ -49,7 +48,7 @@ from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils import sourcecode
 
 if typ.TYPE_CHECKING:
-    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import EditBlock
+    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import EditBlock, TextDelta
 
 logger = logging.getLogger(__name__)
 
@@ -235,27 +234,14 @@ class LSPMixin:
         # Clear pending requests
         self._pending_server_requests = []
 
-    def _get_replaced_range(self, position: int, removed_text: str) -> lsp.Range:
+    def _get_edit_range(self, delta: TextDelta) -> lsp.Range:
         """Get the range of text removed in a text change."""
-        line, col = self.get_line_col_from_position(position)
-        start = lsp.Position(line=line, character=col)
-        end = lsp.Position(line=line, character=col)
+        start = lsp.Position(line=delta.line, character=delta.col)
 
-        if not removed_text:
-            return lsp.Range(start=start, end=end)
+        if not delta.removed_text:
+            return lsp.Range(start=start, end=start)
 
-        removed_lines = removed_text.splitlines(keepends=True)
-        end_with_newline = removed_lines[-1].endswith(EOL_SYMBOLS)
-        n_lines = len(removed_lines)
-        end.line += n_lines - (not end_with_newline)
-
-        if n_lines > 1 or end_with_newline:
-            end.character = 0
-
-        if not end_with_newline:
-            end.character += len(removed_lines[-1].encode("utf-16-le")) // 2
-
-        return lsp.Range(start=start, end=end)
+        return lsp.Range(start=start, end=lsp.Position(*delta.get_end_line_col()))
 
     def _handle_document_change(self, edit: EditBlock):
         """Handle document change."""
@@ -523,9 +509,9 @@ class LSPMixin:
         if edit:
             content_changes = [
                 lsp.TextDocumentContentChangePartial(
-                    range=self._get_replaced_range(delta.position, delta.removed_text),
-                    text=self.ipython_to_python(delta.inserted_text) if is_ipython else delta.inserted_text,
-                ) for delta in edit.deltas
+                    range=self._get_edit_range(delta),
+                    text=self.ipython_to_python(str(delta.inserted_text)) if is_ipython else str(delta.inserted_text),
+                ) for delta in edit.deltas if delta.inserted_text or delta.removed_text
             ]
         else:
             text = self.get_text_with_eol()
