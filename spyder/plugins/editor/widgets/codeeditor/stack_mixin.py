@@ -498,6 +498,13 @@ class UndoStack:
         self.__stack = []
         self.__index = -1
 
+    def count(self) -> int:
+        return len(self.__stack)
+
+    @property
+    def index(self) -> int:
+        return self.__index
+
     def push(self, edit: EditBlock):
         if self.__index < len(self.__stack) - 1:
             self.__stack = self.__stack[: self.__index + 1]
