@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from sys import byteorder as sys_byteorder
 from typing import Iterable, Literal
@@ -166,8 +166,8 @@ class TextDelta:
     line: int
     col: int
 
-    inserted_text: UTF16String = UTF16String("")
-    removed_text: UTF16String = UTF16String("")
+    inserted_text: UTF16String = field(default_factory=UTF16String)
+    removed_text: UTF16String = field(default_factory=UTF16String)
 
     def get_end_line_col(self) -> tuple[int, int]:
         """Return the line and column after this delta is applied."""
@@ -652,7 +652,7 @@ class EditBlock:
     before: CursorState
     deltas: list[TextDelta]
     after: CursorState
-    timestamp: datetime = datetime.now().astimezone()
+    timestamp: datetime = field(default_factory=lambda: datetime.now().astimezone())
 
     def reverse(self) -> EditBlock:
         """Return the reverse of this edit, i.e. an edit that would undo this change."""
