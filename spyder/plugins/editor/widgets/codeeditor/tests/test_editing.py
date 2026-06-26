@@ -121,6 +121,36 @@ def assert_document_change(editor, qtbot, expected_text, expected_changes):
     return payload
 
 
+def type_chars(editor, qtbot, text):
+    """Type ``text`` one character at a time.
+
+    Unlike ``QTextCursor.insertText`` (which inserts a whole string in a single
+    ``contentsChange``), this mirrors real user typing where every character
+    emits its own ``contentsChange``.
+    """
+    qtbot.keyClicks(editor, text)
+
+
+def replay_content_changes(text, changes):
+    """Reconstruct a document by applying incremental LSP changes in order.
+
+    This mirrors how a downstream consumer (e.g. the fallback completion
+    provider) keeps its own copy of the document in sync, and is the invariant
+    that a correct ``didChange`` stream must satisfy. Assumes BMP-only text so
+    UTF-16 code units map 1:1 to Python characters.
+    """
+    for start_line, start_col, end_line, end_col, new_text in changes:
+        lines = text.split("\n")
+
+        def offset(line, col):
+            return sum(len(lines[i]) + 1 for i in range(line)) + col
+
+        start = offset(start_line, start_col)
+        end = offset(end_line, end_col)
+        text = text[:start] + new_text + text[end:]
+    return text
+
+
 def test_document_did_change_merges_sequential_single_cursor_inserts(qtbot):
     editor = create_lsp_editor(qtbot, "abc")
 
@@ -450,4 +480,57 @@ def test_document_did_change_multicursor_multiline_span_matrix(
     assert [change_signature(change) for change in payload["content_changes"]] == expected_changes
 
 
+def test_document_did_change_char_by_char_typing_merges_midline(qtbot):
+    # Typing a word one character at a time in the middle of a line should
+    # collapse into a single insert change at the right column.
+    editor = create_lsp_editor(qtbot, "ab\ncd\n")
 
+    set_cursor(editor, block_position(editor, 1, 1))
+    type_chars(editor, qtbot, "another")
+
+    assert_document_change(
+        editor, qtbot, "ab\ncanotherd\n", [(1, 1, 1, 1, "another")]
+    )
+
+
+def test_document_did_change_retype_word_char_by_char_after_delete(qtbot):
+    # Regression test for a stale ``QTextCursor.columnNumber()`` read during
+    # incremental edits. Deleting a word and retyping a longer one character by
+    # character produced a follow-up delta whose column was left at 0, so the
+    # reported range corrupted a downstream document mirror (reconstructing
+    # 'eranoth' instead of 'another'). See test_fallback_completions.
+    editor = create_lsp_editor(qtbot, "wh\n")
+
+    set_cursor(editor, block_position(editor, 0, 2))
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace)
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace)
+    type_chars(editor, qtbot, "another")
+
+    payload = flush_document_change(editor, qtbot)
+    changes = [change_signature(change) for change in payload["content_changes"]]
+
+    assert editor.toPlainText() == "another\n"
+    # The second change must start at column 5 (after 'anoth'), not column 0.
+    assert changes == [(0, 0, 0, 2, "anoth"), (0, 5, 0, 5, "er")]
+    # Replaying the change stream must reproduce the document exactly.
+    assert replay_content_changes("wh\n", changes) == editor.toPlainText()
+
+
+def test_document_did_change_retype_word_then_newline_char_by_char(qtbot):
+    # Same stale-column scenario, but spanning a newline and a following line,
+    # exercising the line/col bookkeeping across a paragraph boundary.
+    editor = create_lsp_editor(qtbot, "wh\n")
+
+    set_cursor(editor, block_position(editor, 0, 2))
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace)
+    qtbot.keyClick(editor, Qt.Key.Key_Backspace)
+    type_chars(editor, qtbot, "another")
+    qtbot.keyClick(editor, Qt.Key.Key_Enter)
+    type_chars(editor, qtbot, "a")
+
+    payload = flush_document_change(editor, qtbot)
+    changes = [change_signature(change) for change in payload["content_changes"]]
+
+    assert editor.toPlainText() == "another\na\n"
+    # Whatever the merge produces, replaying it must rebuild the document.
+    assert replay_content_changes("wh\n", changes) == editor.toPlainText()
