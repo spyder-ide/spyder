@@ -11,7 +11,6 @@ dependencies:
   - cython
   - matplotlib-base
   - numpy
-  - openpyxl
   - pandas
   - pyarrow
   - scipy
