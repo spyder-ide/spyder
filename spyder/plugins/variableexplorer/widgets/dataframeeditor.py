@@ -40,7 +40,7 @@ from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from packaging.version import parse
-from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.compat import from_qvariant, to_qvariant, getsavefilename
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
@@ -79,6 +79,7 @@ from spyder.plugins.variableexplorer.widgets.preferences import (
     PreferencesDialog
 )
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import keybinding, qapplication
 from spyder.utils.stylesheet import AppStyle, MAC
@@ -122,6 +123,7 @@ class DataframeEditorActions:
     ResizeColumns = 'resize_columns_action'
     ResizeRows = 'resize_rows_action'
     CloseAllEditors = 'close_all_editors_action'
+    Export = 'export_action'
 
 
 class DataframeEditorMenus:
@@ -143,6 +145,7 @@ class DataframeEditorContextMenuSections:
     Row = 'row_section'
     Column = 'column_section'
     Convert = 'convert_section'
+    Export = 'export_section'
 
 
 class DataframeEditorToolbarSections:
@@ -766,6 +769,8 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.resize_action = None
         self.resize_columns_action = None
         self.histogram_action = None
+        self.export_action = None
+        self.export_filename = None
 
         self.menu = self.setup_menu()
         self.menu_header_h = self.setup_menu_header()
@@ -1002,6 +1007,14 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
             triggered=self.plot_hist,
             register_action=False
         )
+        self.export_action = self.create_action(
+            name=DataframeEditorActions.Export,
+            text=_("Export..."),
+            tip=_("Export DataFrame to CSV, Excel or JSON file"),
+            icon=ima.icon('fileexport'),
+            triggered=self.export_data,
+            register_action=False
+        )
 
         # ---- Create context menu and fill it
 
@@ -1026,8 +1039,71 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 menu,
                 section=DataframeEditorContextMenuSections.Column
             )
+        self.add_item_to_menu(
+            self.export_action,
+            menu,
+            section=DataframeEditorContextMenuSections.Export
+        )
 
         return menu
+
+    @Slot()
+    def export_data(self):
+        """Export DataFrame to CSV or Excel file."""
+        title = _("Export DataFrame")
+        if self.export_filename is None:
+            self.export_filename = getcwd_or_home()
+
+        filename, selected_filter = getsavefilename(
+            self,
+            title,
+            self.export_filename,
+            _("CSV file") + " (*.csv);;" +
+            _("Excel file") + " (*.xlsx);;" +
+            _("JSON file") + " (*.json)"
+        )
+
+        if filename:
+            self.export_filename = filename
+            # Append correct extension if missing
+            if "xlsx" in selected_filter:
+                if not filename.endswith(('.xlsx', '.xls')):
+                    filename += '.xlsx'
+                    self.export_filename = filename
+            elif "json" in selected_filter:
+                if not filename.endswith('.json'):
+                    filename += '.json'
+                    self.export_filename = filename
+            elif "csv" in selected_filter:
+                if not filename.endswith('.csv'):
+                    filename += '.csv'
+                    self.export_filename = filename
+
+            df = self.model().get_data()
+
+            # If the index is a RangeIndex with no name, do not export it
+            if isinstance(df.index, pd.RangeIndex) and df.index.name is None:
+                index = False
+            else:
+                index = True
+
+            try:
+                if filename.endswith(('.xlsx', '.xls')):
+                    df.to_excel(filename, index=index)
+                elif filename.endswith('.json'):
+                    if isinstance(df.index, pd.RangeIndex) and df.index.name is None:
+                        df.to_json(filename, orient='records', indent=4)
+                    else:
+                        df.to_json(filename, orient='index', indent=4)
+                else:
+                    df.to_csv(filename, index=index)
+            except Exception as error:
+                QMessageBox.critical(
+                    self,
+                    title,
+                    _("<b>Unable to export DataFrame</b>"
+                      "<br><br>Error message:<br>%s") % str(error)
+                )
 
     @Slot()
     def copy(self):
@@ -2099,6 +2175,7 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.dataTable.histogram_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
+            self.dataTable.export_action,
             self.refresh_action,
             options_button
         ]:
