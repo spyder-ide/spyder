@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-06-26 16:22\n"
+"PO-Revision-Date: 2026-06-27 04:37\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4018,7 +4018,7 @@ msgstr "显示："
 
 #: spyder/plugins/ipythonconsole/confpage.py:93
 msgid "Graphical shows a list of completion matches in a GUI. Plain displays matches in the Console output, like Bash. Terminal is Plain plus Tab selecting matches, like Zsh."
-msgstr ""
+msgstr "在 GUI 中图形化显示一个补全匹配列表。 在控制台输出如 Bash 中纯文本显示匹配。 在终端如 Zsh 中为纯文本加 Tab 选择匹配。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:100
 msgid "Use Jedi completion"
@@ -4026,7 +4026,7 @@ msgstr "使用 Jedi 补全"
 
 #: spyder/plugins/ipythonconsole/confpage.py:102
 msgid "Enable Jedi-based tab-completion in the IPython console. Similar to the greedy completer, but without evaluating the code and allows completion of dictionary keys, nested lists and similar. Warning: Can slow down the Console when working with large dataframes."
-msgstr ""
+msgstr "在 IPython 控制台中启用基于 Jedi 的 tab 补全。 类似于贪婪补全，但不会对代码求值并允许补全字典键、嵌套列表及类似条目。 警告：在使用大型数据网格时可能拖慢控制台的运行。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:112
 msgid "Use greedy completion"
@@ -4050,7 +4050,7 @@ msgstr " 行"
 
 #: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "The maximum number of output lines retained in each console at a time. Warning; Buffer sizes greater than 10000 lines can slow down Spyder."
-msgstr ""
+msgstr "每个控制台每次可保留的最大输出行数。 警告：大于 10000 行的缓冲运大小将拖慢 Spyder 的运行。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:149
 msgid "Render SymPy symbolic math"
@@ -4058,7 +4058,7 @@ msgstr "渲染 SymPy 数学符号"
 
 #: spyder/plugins/ipythonconsole/confpage.py:151
 msgid "Pretty-print the outputs of SymPy symbolic computations (requires SymPy installed in the console environment). Refer to SymPy's documentation for details on using it."
-msgstr ""
+msgstr "美化打印 SymPy 符号计算的输出（要求已在控制台环境中安装 SymPy）。 请参阅 SymPy 的文档了解其使用详情。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:165
 msgid "Matplotlib support"
@@ -4074,7 +4074,7 @@ msgstr "自动导入 NumPy 和 Matplotlib 模块"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "This is a convenience to use NumPy and Matplotlib in the console without explicitly importing the modules."
-msgstr ""
+msgstr "这是在控制台中使用 NumPy 和 Matplotlib 的便捷方式而不必显式地导入这些模块。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:186 spyder/plugins/ipythonconsole/widgets/status.py:113
 msgid "Inline"
