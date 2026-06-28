@@ -1,47 +1,31 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 6.1.4 is released!
+**Subject**: [ANN] Spyder 6.1.5 is released!
 
 
 Hi all,
 
 On behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **6.1.4** has been released and is available for
+I'm pleased to announce that Spyder **6.1.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes eight weeks after version 6.1.3 and with the following interesting new features, fixes and API changes:
+This release comes eleven weeks after version 6.1.4 and with the following interesting new features, fixes and API changes:
 
 - New features
-    * Add option to disable `Enter` for accepting code completions in the Editor.
-      The option is available in `Preferences > Completion and linting > General`.
-    * Support SSH config files to create connections in
-      `Tools > Manage remote connections`.
-    * Add support to delete, upload and download multiple files when working with
-      remote filesystems in Files.
-    * Add button to Files to go to the directory of the current file in the Editor.
+    * Add support to use Ruff as code formatter in
+        `Preferences > Completion and linting > Code formatting`.
 
 - Important fixes
-    * Docstring generation has been massively overhauled to:
-        * Parse and incorporate the sections of the function's existing docstring.
-        * Support generating return types from the function body for Sphinxdoc.
-        * Fix dozens of bugs and limitations with the existing docstring generation.
-        * Resolve numerous formatting issues and follow the relevant specifications.
-    * Default shortcut for docstring generation was changed to `Ctrl/Cmd+Alt+Shift+D`
-      to avoid a conflict on macOS.
-    * Allow macOS standalone app to access the microphone and camera.
-    * Include `pyarrow` in the standalone installers to allow viewing dataframes
-      created with Pandas 3.0+.
-    * Remove the deprecated `atomicwrites` package as a dependency.
-    * Constraint `chardet` version for licensing reasons in the standalone installers
-      and fix compatibility with its latest versions.
-    * Several fixes for remote connections:
-        * Fix errors when stopping SSH connections.
-        * Fix some misspelling in error messages.
-        * Handle keyring backend load failures on Linux.
-        * Fix connections to JupyterHub servers.
+    * Make the IPython console work for Pixi global environments.
+    * Increase max number of plots in the Plots pane to 10,000. Also, show message
+      when that number is reached.
+    * Correctly show signatures with type annotations in the Help pane.
+    * Fix hard crash when restarting the kernel of related IPython consoles.
+    * Several fixes to the update process of the standalone installers.
 
 - API changes
-    * Add `remove_item_from_menu` method to `SpyderMenuMixin`.
+    * Add `SHOW_INFO_MESSAGE` and `set_info_message` to `PluginMainWidget` to show
+      informative messages in dockable plugins.
 
 For a more complete list of changes, please see our
 [changelog](https://github.com/spyder-ide/spyder/blob/master/changelogs/Spyder-6.md)
