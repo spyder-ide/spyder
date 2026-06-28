@@ -72,7 +72,7 @@ def get_pixi_manifest_path_and_env_name(pyexec, quote=False):
     pixi_manifest_paths = [
         pixi_dir_path.parent / "pixi.toml",
         pixi_dir_path.parent / "pyproject.toml",
-        pixi_dir_path.parent / "manifests" / "pixi-global.toml",
+        pixi_dir_path / "manifests" / "pixi-global.toml",
     ]
 
     for manifest_path in pixi_manifest_paths:

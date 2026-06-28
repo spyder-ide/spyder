@@ -254,7 +254,8 @@ class ObjectExplorer(BaseDialog, SpyderWidgetMixin, SpyderFontsMixin):
             name=ObjectExplorerActions.CloseAllEditors,
             text=_("Close all viewers"),
             icon=self.create_icon("filecloseall"),
-            triggered=self.sig_close_all_editors_requested.emit
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
         )
 
         stretcher = self.create_stretcher(
