@@ -11,7 +11,7 @@ Helper widgets.
 # Standard imports
 from __future__ import annotations
 import re
-import textwrap
+import math
 from typing import Callable, Dict
 
 # Third party imports
@@ -691,9 +691,7 @@ class TipWidget(QLabel):
     ):
         super().__init__()
 
-        if wrap_text:
-            tip_text = '\n'.join(textwrap.wrap(tip_text, 50))
-        self.tip_text = tip_text
+        self.tip_text = self._format_tooltip(tip_text)
 
         size = size if size is not None else AppStyle.ConfigPageIconSize
         self.icon = icon.pixmap(QSize(size, size))
@@ -737,6 +735,25 @@ class TipWidget(QLabel):
     def mouseReleaseEvent(self, event):
         """Show tooltip when the widget is clicked."""
         self.show_tip()
+
+    def _format_tooltip(self, tip_text, max_width=300):
+        """Wrap tooltip in HTML table and set width."""
+        text = tip_text.replace("\n", "<br>")
+
+        doc = QTextDocument()
+        doc.setDefaultFont(QToolTip.font())
+        doc.setDocumentMargin(0)
+        doc.setTextWidth(max_width)
+        doc.setHtml(text)
+        width = math.ceil(doc.idealWidth()) + 1
+
+        html_tooltip = (
+            '<table cellspacing="0" cellpadding="0" '
+            'style="margin:0;padding:0">'
+            '<tr><td width="{}">{}</td></tr></table>'
+        )
+
+        return html_tooltip.format(width, text)
 
 
 class ValidationLineEdit(QLineEdit):
