@@ -941,6 +941,8 @@ class ArrayEditor(BaseDialog, SpyderWidgetMixin):
         self.setMinimumSize(500, 300)
 
         if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
             self.setWindowFlags(Qt.Tool)
         else:
             # Make the dialog act as a window
