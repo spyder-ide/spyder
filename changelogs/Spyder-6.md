@@ -1,5 +1,88 @@
 # History of changes for Spyder 6
 
+## Version 6.1.5 (2026-06-26)
+
+### New features
+
+* Add support to use Ruff as code formatter in
+  `Preferences > Completion and linting > Code formatting`.
+
+### Important fixes
+
+* Make the IPython console work for Pixi global environments.
+* Increase max number of plots in the Plots pane to 10,000. Also, show message
+  when that number is reached.
+* Correctly show signatures with type annotations in the Help pane.
+* Fix hard crash when restarting the kernel of related IPython consoles.
+* Several fixes to the update process of the standalone installers.
+
+### API changes
+
+* Add `SHOW_INFO_MESSAGE` and `set_info_message` to `PluginMainWidget` to show
+  informative messages in dockable plugins.
+
+### Issues Closed
+
+* [Issue 26108](https://github.com/spyder-ide/spyder/issues/26108) - Error output when updating from 6.1.4 to 6.1.5rc1 on Windows while Spyder is closing
+* [Issue 26088](https://github.com/spyder-ide/spyder/issues/26088) - Error when copying array of strings in Variable explorer ([PR 26090](https://github.com/spyder-ide/spyder/pull/26090) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 26063](https://github.com/spyder-ide/spyder/issues/26063) - SSLError when trying to download `spyder-updater.zip` ([PR 26065](https://github.com/spyder-ide/spyder/pull/26065) by [@mrclary](https://github.com/mrclary))
+* [Issue 26052](https://github.com/spyder-ide/spyder/issues/26052) - Spyder segfaults at startup with `fontconfig` 2.18 when using Conda-forge packages
+* [Issue 26031](https://github.com/spyder-ide/spyder/issues/26031) - SyntaxError when starting the kernel in Spyder 6.1.4 standalone Windows installer
+* [Issue 25980](https://github.com/spyder-ide/spyder/issues/25980) - Viewing plot triggers error ([PR 25998](https://github.com/spyder-ide/spyder/pull/25998) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 25938](https://github.com/spyder-ide/spyder/issues/25938) - Spyder fails to launch kernel for pixi environments when `PIXI_HOME` is set ([PR 25946](https://github.com/spyder-ide/spyder/pull/25946) by [@saaketp](https://github.com/saaketp))
+* [Issue 25931](https://github.com/spyder-ide/spyder/issues/25931) - Plugins disabling/enabling related issues ([PR 25942](https://github.com/spyder-ide/spyder/pull/25942) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 25915](https://github.com/spyder-ide/spyder/issues/25915) - `-FilePath` error message when attempting to update just installed and auto launched Spyder from Windows installer ([PR 25985](https://github.com/spyder-ide/spyder/pull/25985) by [@mrclary](https://github.com/mrclary))
+* [Issue 25911](https://github.com/spyder-ide/spyder/issues/25911) - Can the maximum number of plots be increased? ([PR 25987](https://github.com/spyder-ide/spyder/pull/25987) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 25794](https://github.com/spyder-ide/spyder/issues/25794) - pytest 9 incompatible with fixtures ([PR 25932](https://github.com/spyder-ide/spyder/pull/25932) by [@officialasishkumar](https://github.com/officialasishkumar))
+* [Issue 25735](https://github.com/spyder-ide/spyder/issues/25735) - Error when trying to read updater logs ([PR 25933](https://github.com/spyder-ide/spyder/pull/25933) by [@officialasishkumar](https://github.com/officialasishkumar))
+* [Issue 25677](https://github.com/spyder-ide/spyder/issues/25677) - Weird button appears on top of console when Status bar is disabled  ([PR 25942](https://github.com/spyder-ide/spyder/pull/25942) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 25399](https://github.com/spyder-ide/spyder/issues/25399) - Pixi global environment can't open its own internal kernel. ([PR 26079](https://github.com/spyder-ide/spyder/pull/26079) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 23973](https://github.com/spyder-ide/spyder/issues/23973) - Spyder crashes when restarting kernel with two consoles ([PR 25984](https://github.com/spyder-ide/spyder/pull/25984) by [@mrclary](https://github.com/mrclary))
+* [Issue 23138](https://github.com/spyder-ide/spyder/issues/23138) - Fix symbol switcher opening behavior, which moves the cursor to first symbol of the file ([PR 25926](https://github.com/spyder-ide/spyder/pull/25926) by [@hprodh](https://github.com/hprodh))
+* [Issue 22639](https://github.com/spyder-ide/spyder/issues/22639) - AttributeError when calling switch_to_plugin ([PR 26044](https://github.com/spyder-ide/spyder/pull/26044) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 22249](https://github.com/spyder-ide/spyder/issues/22249) - Verbose type annotations in help panel ([PR 25747](https://github.com/spyder-ide/spyder/pull/25747) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 21357](https://github.com/spyder-ide/spyder/issues/21357) - [Feature Request]: AutoFormat using Ruff ([PR 25725](https://github.com/spyder-ide/spyder/pull/25725) by [@rear1019](https://github.com/rear1019))
+* [Issue 13118](https://github.com/spyder-ide/spyder/issues/13118) - Editor scrollbar covers class and function selector; console scrollbar covers console pane ([PR 25873](https://github.com/spyder-ide/spyder/pull/25873) by [@mrclary](https://github.com/mrclary))
+
+In this release 20 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26120](https://github.com/spyder-ide/spyder/pull/26120) - PR: Add new features/important fixes for 6.1.5 user facing changelog, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26117](https://github.com/spyder-ide/spyder/pull/26117) - PR: Fix in-app appeal report button on Mac and Windows (Application), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26115](https://github.com/spyder-ide/spyder/pull/26115) - PR: Update translations from Crowdin (new translations), by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 26113](https://github.com/spyder-ide/spyder/pull/26113) - PR: Add "2025 Report" button to in-app appeal message (Application), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26107](https://github.com/spyder-ide/spyder/pull/26107) - PR: Update core dependencies for 6.1.5, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26102](https://github.com/spyder-ide/spyder/pull/26102) - PR: Avoid reshaping arrays in place when instantiating `ArrayEditor` for Numpy 2.5+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26101](https://github.com/spyder-ide/spyder/pull/26101) - PR: Fix setting max number of plots through the UI and a couple of regressions in the switcher, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26097](https://github.com/spyder-ide/spyder/pull/26097) - PR: Update translations from Crowdin, by [@spyder-bot](https://github.com/spyder-bot)
+* [PR 26096](https://github.com/spyder-ide/spyder/pull/26096) - PR: Update translations for 6.1.5, by [@dalthviz](https://github.com/dalthviz)
+* [PR 26090](https://github.com/spyder-ide/spyder/pull/26090) - PR: Fix copying string, bytes, object and bool arrays in Array editor (Variable Explorer), by [@ccordoba12](https://github.com/ccordoba12) ([26088](https://github.com/spyder-ide/spyder/issues/26088))
+* [PR 26079](https://github.com/spyder-ide/spyder/pull/26079) - PR: Fix kernel activation for Pixi global environments (IPython console), by [@ccordoba12](https://github.com/ccordoba12) ([25399](https://github.com/spyder-ide/spyder/issues/25399))
+* [PR 26065](https://github.com/spyder-ide/spyder/pull/26065) - PR: Add handling for `requests` related errors when updating Spyder-updater, by [@mrclary](https://github.com/mrclary) ([26063](https://github.com/spyder-ide/spyder/issues/26063))
+* [PR 26053](https://github.com/spyder-ide/spyder/pull/26053) - PR: Fix error when trying to format code and make Black the default formatter (Editor/Completions), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26044](https://github.com/spyder-ide/spyder/pull/26044) - PR: Handle Layouts plugin being `None` when calling `switch_to_plugin` (Main window), by [@dalthviz](https://github.com/dalthviz) ([22639](https://github.com/spyder-ide/spyder/issues/22639))
+* [PR 25998](https://github.com/spyder-ide/spyder/pull/25998) - PR: Fix error when clicking on a thumbnail (Plots), by [@ccordoba12](https://github.com/ccordoba12) ([25980](https://github.com/spyder-ide/spyder/issues/25980))
+* [PR 25987](https://github.com/spyder-ide/spyder/pull/25987) - PR: Increase maximum number of plots and show message when it's been reached (Plots), by [@jsbautista](https://github.com/jsbautista) ([25911](https://github.com/spyder-ide/spyder/issues/25911))
+* [PR 25986](https://github.com/spyder-ide/spyder/pull/25986) - PR: Update Github actions (CI), by [@mrclary](https://github.com/mrclary)
+* [PR 25985](https://github.com/spyder-ide/spyder/pull/25985) - PR: Fix issue where `powershell` is not found by Spyder on initial launch from installer, by [@mrclary](https://github.com/mrclary) ([25915](https://github.com/spyder-ide/spyder/issues/25915))
+* [PR 25984](https://github.com/spyder-ide/spyder/pull/25984) - PR: Fix hard crash when restarting kernel of related clients (IPython console), by [@mrclary](https://github.com/mrclary) ([23973](https://github.com/spyder-ide/spyder/issues/23973))
+* [PR 25959](https://github.com/spyder-ide/spyder/pull/25959) - PR: Fix errors with splits in Editor windows & other fixes, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25946](https://github.com/spyder-ide/spyder/pull/25946) - PR: Update `find_pixi` logic to use `$PIXI_HOME/bin/pixi` as the pixi executable (Utils), by [@saaketp](https://github.com/saaketp) ([25938](https://github.com/spyder-ide/spyder/issues/25938))
+* [PR 25942](https://github.com/spyder-ide/spyder/pull/25942) - PR: Fix errors when disabling several plugins, by [@ccordoba12](https://github.com/ccordoba12) ([25931](https://github.com/spyder-ide/spyder/issues/25931), [25677](https://github.com/spyder-ide/spyder/issues/25677))
+* [PR 25933](https://github.com/spyder-ide/spyder/pull/25933) - PR: Handle missing updater logs on Windows (Update manager), by [@officialasishkumar](https://github.com/officialasishkumar) ([25735](https://github.com/spyder-ide/spyder/issues/25735))
+* [PR 25932](https://github.com/spyder-ide/spyder/pull/25932) - PR: Support dynamic plugin fixtures with pytest 9, by [@officialasishkumar](https://github.com/officialasishkumar) ([25794](https://github.com/spyder-ide/spyder/issues/25794))
+* [PR 25930](https://github.com/spyder-ide/spyder/pull/25930) - PR: Revert multicursor addition on changing direction (up/down) with keyboard shortcuts (Editor), by [@hprodh](https://github.com/hprodh)
+* [PR 25926](https://github.com/spyder-ide/spyder/pull/25926) - PR: Prevent symbol switcher from moving view in Editor on opening, by [@hprodh](https://github.com/hprodh) ([23138](https://github.com/spyder-ide/spyder/issues/23138))
+* [PR 25921](https://github.com/spyder-ide/spyder/pull/25921) - PR: Wrap text in tooltips shown in Preferences, by [@jsbautista](https://github.com/jsbautista)
+* [PR 25873](https://github.com/spyder-ide/spyder/pull/25873) - PR: Only increase scrollflag width for macOS when not launched through an application bundle (Editor), by [@mrclary](https://github.com/mrclary) ([13118](https://github.com/spyder-ide/spyder/issues/13118))
+* [PR 25747](https://github.com/spyder-ide/spyder/pull/25747) - PR: Fix showing signatures with type annotations in Help pane, by [@jsbautista](https://github.com/jsbautista) ([22249](https://github.com/spyder-ide/spyder/issues/22249))
+* [PR 25725](https://github.com/spyder-ide/spyder/pull/25725) - PR: Add support for ruff formatter (Editor/Completions), by [@rear1019](https://github.com/rear1019) ([21357](https://github.com/spyder-ide/spyder/issues/21357))
+
+In this release 30 pull requests were closed.
+
+----
+
 ## Version 6.1.4 (2026-04-06)
 
 ### New features
