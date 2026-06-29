@@ -28,6 +28,20 @@ for /F "tokens=*" %%i in (
 ) do (
     set shortcut=%%~fi
 )
+
+@rem  Fallback: if shortcut not found with the detected mode, try the other
+if not exist "%shortcut%" (
+    if "%mode%"=="system" (
+        set mode=user
+    ) else (
+        set mode=system
+    )
+    for /F "tokens=*" %%i in (
+        '%PREFIX%\python %PREFIX%\Scripts\menuinst_cli.py shortcut --mode=%mode%'
+    ) do (
+        set shortcut=%%~fi
+    )
+)
 @echo shortcut = %shortcut%
 
 @rem  Launch Spyder
