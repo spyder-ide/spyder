@@ -51,7 +51,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     SHELL_TIMEOUT,
 )
 from spyder.utils.programs import run_shell_command
-from spyder.plugins.ipythonconsole.widgets import ShellWidget
+from spyder.plugins.ipythonconsole.widgets import ClientWidget, ShellWidget
 from spyder.utils.conda import get_list_conda_envs, find_pixi
 
 
@@ -2757,9 +2757,9 @@ def test_no_stop_on_first_line(ipyconsole, qtbot, tmp_path):
     assert "\nIPdb [1]" in control.toPlainText()
     assert "---> 2 def func():\n" in control.toPlainText()
 
+
 def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
     """Test that add_tab respects the give_focus parameter."""
-    from spyder.plugins.ipythonconsole.widgets.client import ClientWidget
 
     class DummyClient(ClientWidget):
         def __init__(self):
