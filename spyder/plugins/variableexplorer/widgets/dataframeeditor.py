@@ -35,6 +35,7 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 # Standard library imports
 from __future__ import annotations
 import io
+import sys
 from time import perf_counter
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
@@ -1987,8 +1988,13 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         self.setWindowTitle(title)
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data) -> bool:
         """
