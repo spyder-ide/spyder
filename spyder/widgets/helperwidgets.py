@@ -742,10 +742,10 @@ class TipWidget(QLabel):
 
         doc = QTextDocument()
         doc.setDefaultFont(QToolTip.font())
-        doc.setDocumentMargin(0)
+        doc.setDocumentMargin(1)
         doc.setTextWidth(max_width)
         doc.setHtml(text)
-        width = math.ceil(doc.idealWidth()) + 1
+        width = math.ceil(doc.idealWidth())
 
         html_tooltip = (
             '<table cellspacing="0" cellpadding="0" '
