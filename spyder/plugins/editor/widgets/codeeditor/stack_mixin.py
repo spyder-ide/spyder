@@ -125,7 +125,7 @@ class UTF16String:
     def join(cls, iterable: Iterable[UTF16String | str], byteorder: Literal["big", "little"] = sys_byteorder) -> UTF16String:
         return cls("".join(str(item) for item in iterable), byteorder)
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CursorState:
     """Cursors snapshot of the editor state.
 
@@ -158,7 +158,7 @@ class CursorState:
         )
         return cls(main_cursor=main_state, extra_cursors=extra_states)
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TextDelta:
     """Single document change item"""
 
@@ -645,7 +645,7 @@ class TextDelta:
         return line, col + len(text)
 
 
-@dataclass
+@dataclass(slots=True)
 class EditBlock:
     """Logical edit unit that can be merged with subsequent edits when possible."""
 
