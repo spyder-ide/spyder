@@ -588,5 +588,8 @@ class SidebarDialog(QDialog, SpyderFontsMixin):
     def _add_pages(self):
         """Add pages to the dialog."""
         for PageClass in self.PAGE_CLASSES:
-            page = PageClass(self)
-            self.add_page(page)
+            if PageClass:
+                page = PageClass(self)
+                self.add_page(page)
+            else:
+                self.add_separator()
