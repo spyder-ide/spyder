@@ -15,10 +15,12 @@ from itertools import groupby
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QVBoxLayout, QHBoxLayout, QScrollArea, QWidget)
-
+                            QDialogButtonBox, QVBoxLayout, QScrollArea, QWidget)
 # Local imports
+from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
+from spyder.api.widgets.dialogs import SpyderDialogButtonBox
+from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 
 # Constants
@@ -27,7 +29,7 @@ MAX_FONT_SIZE = 16
 MIN_FONT_SIZE = 8
 
 
-class ShortcutsSummaryDialog(QDialog):
+class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
     """
     Dialog window listing the spyder and plugins shortcuts.
 
@@ -39,6 +41,7 @@ class ShortcutsSummaryDialog(QDialog):
     """
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
 
         # Calculate font and amount of elements in each column
@@ -46,26 +49,16 @@ class ShortcutsSummaryDialog(QDialog):
         width, height = self.get_screen_resolution()
         font_size = int(round(height / 80))
         font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
-        shortcuts_column = (height - 8 * font_size) / (font_size +16)
 
-        # Widgets
-        style = """
-            QDialog {
-              margin:0px;
-              padding:0px;
-              border-radius: 2px;
-            }"""
-        self.setStyleSheet(style)
+        font_context = self.get_font(SpyderFontType.Interface)
+        font_context.setBold(True)
 
-        font_names = QFont()
-        font_names.setPointSize(font_size)
-        font_names.setBold(True)
+        font_names = self.get_font(SpyderFontType.MonospaceInterface)
+        font_names.setBold(False)
 
-        font_keystr = QFont()
-        font_keystr.setPointSize(font_size)
+        font_keystr = self.get_font(SpyderFontType.Monospace)
 
-        font_title = QFont()
-        font_title.setPointSize(font_size+2)
+        font_title = self.get_font(SpyderFontType.Interface)
         font_title.setBold(True)
 
         title_label = QLabel(self._shortcuts_summary_title)
@@ -75,75 +68,77 @@ class ShortcutsSummaryDialog(QDialog):
         # iter over shortcuts and create GroupBox for each context
         # with shortcuts in a grid
 
-        columns_layout = QHBoxLayout()
-        added_shortcuts = 0
+        main_layout = QVBoxLayout()
         group = None
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
+        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         for __, group_shortcuts in shortcuts:
+
+            group_shortcuts = list(group_shortcuts)
+            context = group_shortcuts[0][0]
+
+            if context == '_': context = 'Global'
+
+            group = QGroupBox(context.capitalize())
+            group.setFont(font_context)
+
+            group_layout = QGridLayout()
+            group.setLayout(group_layout)
+
             for i, (context, name, keystr) in enumerate(group_shortcuts):
-                # start of every column
-                if added_shortcuts == 0:
-                    column_layout = QVBoxLayout()
 
-                # at start of new context add previous context group
-                if i == 0 and added_shortcuts > 0:
-                    column_layout.addWidget(group)
-
-                # create group at start of column or context
-                if added_shortcuts == 0 or i == 0:
-                    if context == '_': context = 'Global'
-
-                    group = QGroupBox(context.capitalize())
-                    group.setFont(font_names)
-
-                    group_layout = QGridLayout()
-                    group.setLayout(group_layout)
-
-                    # Count space for titles
-                    added_shortcuts += 1
-
-                # Widgets
                 label_name = QLabel(name.capitalize().replace('_', ' '))
                 label_name.setFont(font_names)
 
-                keystr = QKeySequence(keystr).toString(QKeySequence.NativeText)
+                keystr = QKeySequence(keystr).toString(
+                    QKeySequence.NativeText
+                )
+                if keystr == "":
+                    continue
+
                 label_keystr = QLabel(keystr)
                 label_keystr.setFont(font_keystr)
 
                 group_layout.addWidget(label_name, i, 0)
                 group_layout.addWidget(label_keystr, i, 1)
 
-                added_shortcuts += 1
+            main_layout.addWidget(group)
 
-                if added_shortcuts >= shortcuts_column:
-                    column_layout.addWidget(group)
-                    columns_layout.addLayout(column_layout)
-                    added_shortcuts = 0
-
-        column_layout.addWidget(group)
-        column_layout.addStretch()  # avoid lasts sections to appear too big
-        columns_layout.addLayout(column_layout)
-
+        main_layout.addStretch()
         # Scroll widget
         self.scroll_widget = QWidget()
-        self.scroll_widget.setLayout(columns_layout)
+        self.scroll_widget.setLayout(main_layout)
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.scroll_widget)
 
-        # widget setup
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        self.setWindowOpacity(0.95)
 
         # layout
         self._layout = QVBoxLayout()
         self._layout.addWidget(title_label)
 
         self._layout.addWidget(self.scroll_area)
+        self._layout.addWidget(ok_btn)
         self.setLayout(self._layout)
 
-        self.setGeometry(0, 0, width, height)
+        width, height = self.get_screen_resolution()
+
+        self.adjustSize()
+
+        max_height = int(height * 0.7)
+        
+        if self.height() > max_height:
+            self.resize(self.width(), max_height)
+        
+        geometry = self.frameGeometry()
+        screen_center = self.screen().availableGeometry().center()
+        
+        geometry.moveCenter(screen_center)
+        
+        self.move(geometry.topLeft())
+
+        #self.setGeometry(0, 0, width, height)
 
     def get_screen_resolution(self):
         """Return the screen resolution of the primary screen."""
