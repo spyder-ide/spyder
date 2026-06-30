@@ -70,8 +70,10 @@ if is_conda_based_app():
     conda_root = get_conda_root_prefix()
     if os.name == 'nt':
         os.environ['CONDA_EXE'] = conda_root + r'\Scripts\conda.exe'
+        os.environ["MAMBA_EXE"] = conda_root + r"\condabin\mamba.bat"
     else:
         os.environ['CONDA_EXE'] = conda_root + '/bin/conda'
+        os.environ["MAMBA_EXE"] = conda_root + "/bin/mamba"
 
 # Qt needs to find libraries in Library\bin to render splash screen properly.
 # If running in a conda environment that is not activated, then we need to add
