@@ -20,6 +20,7 @@ from unittest.mock import Mock, patch, ANY
 from flaky import flaky
 import numpy
 from packaging.version import parse
+import pandas as pd
 from pandas import (
     __version__ as pandas_version, DataFrame, date_range, read_csv, concat,
     Index, RangeIndex, MultiIndex, CategoricalIndex, Series)
@@ -1197,6 +1198,63 @@ def test_dataframeeditor_remove_column_with_strings(qtbot):
     ).getHsvF()
     a = dataframeeditor.BACKGROUND_STRING_ALPHA
     assert colorclose(bgcolor(model, 0, 0), (h, s, v, a))
+
+
+def test_dataframeeditor_export(qtbot, tmpdir):
+    """
+    Test exporting a dataframe from the editor to CSV, Excel, and JSON formats.
+    """
+    test_df = DataFrame(
+        [[1, 2], [3, 4]],
+        columns=['first', 'second']
+    )
+    editor = DataFrameEditor()
+    assert editor.setup_and_check(test_df, 'Test Dataframe')
+    view = editor.dataTable
+
+    # Test exporting to CSV
+    csv_file = os.path.join(str(tmpdir), "export.csv")
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor.getsavefilename', return_value=(csv_file, "CSV file (*.csv)")):
+        view.export_action.trigger()
+
+    assert os.path.exists(csv_file)
+    loaded_df = pd.read_csv(csv_file)
+    expected_df = test_df.reset_index(drop=True)
+    assert_frame_equal(loaded_df, expected_df)
+
+    # Test exporting to Excel (mocking to_excel to avoid dependencies on openpyxl/xlsxwriter)
+    excel_file = os.path.join(str(tmpdir), "export.xlsx")
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor.getsavefilename', return_value=(excel_file, "Excel file (*.xlsx)")):
+        with patch.object(test_df, 'to_excel') as mock_to_excel:
+            view.export_action.trigger()
+            mock_to_excel.assert_called_once_with(excel_file, index=False)
+
+    # Test exporting to JSON
+    json_file = os.path.join(str(tmpdir), "export.json")
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor.getsavefilename', return_value=(json_file, "JSON file (*.json)")):
+        view.export_action.trigger()
+
+    assert os.path.exists(json_file)
+    loaded_df = pd.read_json(json_file)
+    assert_frame_equal(loaded_df, expected_df)
+
+    # Test exporting to JSON with custom index
+    custom_df = DataFrame(
+        [[1, 2], [3, 4]],
+        index=['a', 'b'],
+        columns=['first', 'second']
+    )
+    custom_editor = DataFrameEditor()
+    assert custom_editor.setup_and_check(custom_df, 'Custom Dataframe')
+    custom_view = custom_editor.dataTable
+
+    json_file_custom = os.path.join(str(tmpdir), "export_custom.json")
+    with patch('spyder.plugins.variableexplorer.widgets.dataframeeditor.getsavefilename', return_value=(json_file_custom, "JSON file (*.json)")):
+        custom_view.export_action.trigger()
+
+    assert os.path.exists(json_file_custom)
+    loaded_custom_df = pd.read_json(json_file_custom, orient='index')
+    assert_frame_equal(loaded_custom_df, custom_df)
 
 
 if __name__ == "__main__":
