@@ -89,6 +89,9 @@ from spyder.plugins.editor.widgets.codeeditor.lsp_mixin import LSPMixin
 from spyder.plugins.editor.widgets.codeeditor.multicursor_mixin import (
     MultiCursorMixin
 )
+from spyder.plugins.editor.widgets.codeeditor.stack_mixin import (
+    EditsStackMixin,
+)
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
 from spyder.utils import encoding, sourcecode
@@ -141,7 +144,8 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, TextEditBaseWidget, MultiCursorMixin, InlineCompletionsMixin
+    LSPMixin, EditsStackMixin, TextEditBaseWidget, MultiCursorMixin,
+    InlineCompletionsMixin
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -454,9 +458,6 @@ class CodeEditor(
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.hide_calltip()
         )
-
-        # QTextEdit + LSPMixin
-        self.textChanged.connect(self._schedule_document_did_change)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -2163,22 +2164,19 @@ class CodeEditor(
         """
         Reimplementation of undo with additional functionality.
 
-        For instance, this decreases the ``text_version`` number and emits some
-        required signals.
-
         Parameters
         ----------
         delete_inline_completion: bool, optional
             Whether this is called to delete an inline completion.
         """
-        if self.document().isUndoAvailable():
+        # Flush pending edits to undo immediately
+        self._commit_pending_edit()
+        if self.undo_stack.can_undo():
             if not delete_inline_completions:
                 self.reject_inline_completions()
-
-            self.text_version -= 1
             self.skip_rstrip = True
             self.is_undoing = True
-            TextEditBaseWidget.undo(self)
+            super().undo()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.is_undoing = False
@@ -2187,11 +2185,11 @@ class CodeEditor(
     @Slot()
     def redo(self):
         """Reimplement redo to increase text version number."""
-        if self.document().isRedoAvailable():
-            self.text_version += 1
+        self._commit_pending_edit()
+        if self.undo_stack.can_redo():
             self.skip_rstrip = True
             self.is_redoing = True
-            TextEditBaseWidget.redo(self)
+            super().redo()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.is_redoing = False
@@ -4389,7 +4387,9 @@ class CodeEditor(
                           pygments lexer.
         :param encoding: text encoding
         """
-        super().setPlainText(txt)
+        with self.suspend_undo_recording():
+            super().setPlainText(txt)
+        self.clear_undo_stack()
         self.new_text_set.emit()
 
     def focusOutEvent(self, event):

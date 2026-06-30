@@ -191,11 +191,8 @@ def foo():
 
     # Remove content
     code_editor.selectAll()
-    qtbot.keyPress(code_editor, Qt.Key_Delete)
 
-    with qtbot.waitSignal(
-            code_editor.completions_response_signal, timeout=30000):
-        code_editor.document_did_change()
+    qtbot.keyPress(code_editor, Qt.Key_Delete)
 
     qtbot.wait(3000)
 

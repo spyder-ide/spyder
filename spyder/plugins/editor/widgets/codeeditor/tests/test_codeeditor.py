@@ -63,6 +63,27 @@ def test_editor_lower_to_upper(codeeditor):
     assert text != new_text
 
 
+def test_editor_undo_stack_exposed(codeeditor):
+    editor = codeeditor
+    stack = editor.undo_stack
+
+    editor.set_text('')
+    editor.insert_text('abc')
+    editor._commit_pending_edit()
+
+    assert stack.can_undo()
+    assert editor.get_text('sof', 'eof') == 'abc'
+
+    editor.undo()
+    assert editor.get_text('sof', 'eof') == ''
+
+    editor.redo()
+    assert editor.get_text('sof', 'eof') == 'abc'
+
+    editor.set_text('replacement text')
+    assert stack.count() == 0
+
+
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
@@ -235,7 +256,7 @@ def test_undo_return(codeeditor, qtbot):
     editor.setTextCursor(cursor)
     qtbot.keyPress(editor, Qt.Key_Return)
     assert editor.toPlainText() == returned_text
-    qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
+    editor.undo()
     assert editor.toPlainText() == text
 
 

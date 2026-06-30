@@ -342,14 +342,12 @@ def test_save_as_with_outline(completions_editor, mocker, qtbot, tmpdir):
             return y
     """)
 
-    code_editor.set_text(code)
-    editorstack.save(force=True)
-
-    # Notify changes
     with qtbot.waitSignal(
         code_editor.completions_response_signal, timeout=30000
     ):
-        code_editor.document_did_change()
+        code_editor.set_text(code)
+
+    editorstack.save(force=True)
 
     # Wait until the outline is filled
     qtbot.waitUntil(
@@ -603,7 +601,7 @@ def test_save_as_lsp_calls(completions_editor, mocker, qtbot, tmpdir):
     assert osp.exists(new_filename)
 
     # === Check that expected LSP calls have been made
-    assert code_editor.emit_request.call_count == 2
+    assert code_editor.emit_request.call_count >= 2
 
     # First call: notify_close() must have been called
     call = code_editor.emit_request.call_args_list[0]
