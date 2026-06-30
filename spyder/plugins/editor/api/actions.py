@@ -60,3 +60,5 @@ class EditorWidgetActions:
     Unindent = "unindent_action"
     TransformToUppercase = "transform to uppercase"
     TransformToLowercase = "transform to lowercase"
+    MultilineSplit = "multiline split"
+    MultilineMerge = "multiline merge"

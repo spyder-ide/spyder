@@ -174,6 +174,8 @@ class IconManager():
             'unindent':                [('mdi.format-indent-decrease',), {'color': self.MAIN_FG_COLOR}],
             'toggle_lowercase':        [('mdi.format-letter-case-lower',), {'color': self.MAIN_FG_COLOR}],
             'toggle_uppercase':        [('mdi.format-letter-case-upper',), {'color': self.MAIN_FG_COLOR}],
+            'multiline_split':         [('mdi.set-split',), {'color': self.MAIN_FG_COLOR}],
+            'multiline_merge':         [('mdi.set-merge',), {'color': self.MAIN_FG_COLOR}],
             'gotoline':                [('mdi.format-line-spacing',), {'color': self.MAIN_FG_COLOR}],
             'error':                   [('mdi.close-circle',), {'color': SpyderPalette.COLOR_ERROR_1}],
             'warning':                 [('mdi.alert',), {'color': SpyderPalette.COLOR_WARN_2}],
