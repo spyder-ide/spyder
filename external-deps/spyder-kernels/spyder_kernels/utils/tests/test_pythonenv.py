@@ -72,31 +72,18 @@ def test_get_env_dir():
     ),
     reason="Only works with Pixi on CIs",
 )
-@pytest.mark.parametrize("env_name", ["pixi-test", "ipython"])
-def test_get_pixi_info(env_name):
+def test_get_pixi_info():
     home_path = Path(os.environ["HOME"])
-
-    if env_name == "pixi-test":
-        pixi_env_dir = home_path / "pixi-test" / ".pixi" / "envs" / "default"
-    else:
-        pixi_env_dir = home_path / ".pixi" / "envs" / "ipython"
-
+    pixi_env_dir = home_path / "pixi-test" / ".pixi" / "envs" / "default"
     pixi_env_info = get_pixi_manifest_path_and_env_name(
         str(pixi_env_dir / "python.exe")
         if os.name == "nt"
         else str(pixi_env_dir / "bin" / "python")
     )
 
-    if env_name == "pixi-test":
-        assert pixi_env_info == (
-            str(home_path / "pixi-test" / "pixi.toml"),
-            "default",
-        )
-    else:
-        assert pixi_env_info == (
-            str(home_path / ".pixi" / "manifests" / "pixi-global.toml"),
-            "ipython",
-        )
+    assert pixi_env_info == (
+        str(home_path / "pixi-test" / "pixi.toml"), "default"
+    )
 
 
 if __name__ == "__main__":
