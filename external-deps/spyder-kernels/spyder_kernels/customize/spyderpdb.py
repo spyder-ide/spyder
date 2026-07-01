@@ -81,7 +81,8 @@ class SpyderPdb(ipyPdb):
      - Add completion to non-command code.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, completekey='tab', stdin=None, stdout=None,
+                 skip=None, nosigint=False):
         """Init Pdb."""
         self.curframe_locals = None
         # Only set to true when calling debugfile
