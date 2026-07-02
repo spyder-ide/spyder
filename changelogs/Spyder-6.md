@@ -1,5 +1,13 @@
 # History of changes for Spyder 6
 
+## Version 6.2.0 (unreleased)
+
+* Add a new set of interface themes for the entire application, including popular
+  ones from other IDEs such as Dracula, Miami Nights and Grubvox. They can be
+  set in `Preferences > Appearance`.
+
+### New features
+
 ## Version 6.1.5 (2026-06-26)
 
 ### New features

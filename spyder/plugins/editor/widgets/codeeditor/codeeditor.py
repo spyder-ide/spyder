@@ -381,11 +381,11 @@ class CodeEditor(
 
         self.highlighter_class = sh.TextSH
         self.highlighter = None
-        ccs = 'Spyder'
-        if ccs not in sh.COLOR_SCHEME_NAMES:
-            ccs = sh.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = ccs
-
+        self.color_scheme = self.get_conf(
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
+        )
         self.highlight_current_line_enabled = False
 
         # Vertical scrollbar
@@ -707,12 +707,16 @@ class CodeEditor(
             )
 
     def closeEvent(self, event):
-        if isinstance(self.highlighter, sh.PygmentsSH):
+        if hasattr(self, "highlighter") and isinstance(
+            self.highlighter, sh.PygmentsSH
+        ):
             self.highlighter.stop()
-        self.update_folding_thread.quit()
-        self.update_folding_thread.wait()
-        self.update_diagnostics_thread.quit()
-        self.update_diagnostics_thread.wait()
+        if hasattr(self, "update_folding_thread"):
+            self.update_folding_thread.quit()
+            self.update_folding_thread.wait()
+        if hasattr(self, "update_diagnostics_thread"):
+            self.update_diagnostics_thread.quit()
+            self.update_diagnostics_thread.wait()
         TextEditBaseWidget.closeEvent(self, event)
 
     def get_document_id(self):

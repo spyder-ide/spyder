@@ -12,7 +12,6 @@ import os
 import sys
 
 # Third-party imports
-import qdarkstyle
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
 
@@ -20,9 +19,8 @@ import qstylizer.style
 from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.api.utils import classproperty
-from spyder.config.gui import is_dark_interface
 from spyder.utils.palette import SpyderPalette
-
+from spyder.utils.theme_manager import THEME_MANAGER
 
 # =============================================================================
 # ---- Constants
@@ -155,11 +153,17 @@ class AppStylesheet(SpyderStyleSheet, SpyderConfigurationAccessor):
 
     def set_stylesheet(self):
         """
-        This takes the stylesheet from QDarkstyle and applies our
+        This takes the stylesheet from the current theme and applies our
         customizations to it.
         """
-        stylesheet = qdarkstyle.load_stylesheet(palette=SpyderPalette)
-        self._stylesheet = parse_stylesheet(stylesheet)
+        # Base string comes from the active theme package
+        theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
+        if not theme_stylesheet:
+            # Theme may not be registered until SpyderPalette is resolved.
+            _ = SpyderPalette
+            theme_stylesheet = THEME_MANAGER.get_current_stylesheet()
+
+        self._stylesheet = parse_stylesheet(theme_stylesheet)
 
         # Add our customizations
         self._customize_stylesheet()
@@ -594,8 +598,9 @@ class BaseDockTabBarStyleSheet(BaseTabBarStyleSheet):
         # Style for selected tabs
         css['QTabBar::tab:selected'].setValues(
             color=(
-                SpyderPalette.COLOR_TEXT_1 if is_dark_interface() else
-                SpyderPalette.COLOR_BACKGROUND_1
+                SpyderPalette.COLOR_TEXT_1
+                if THEME_MANAGER.is_dark_interface()
+                else SpyderPalette.COLOR_BACKGROUND_1
             ),
             backgroundColor=SpyderPalette.SPECIAL_TABS_SELECTED,
         )

@@ -501,6 +501,14 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         return config.options(section)
 
+    def has_option(self, section, option):
+        """Return whether *option* exists in *section*.
+
+        Same rules as :meth:`get`.
+        """
+        config = self.get_active_conf(section)
+        return config.has_option(section, option)
+
     def get(self, section, option, default=NoDefault, secure=False):
         """
         Get an `option` on a given `section`.
