@@ -35,6 +35,7 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 # Standard library imports
 from __future__ import annotations
 import io
+import sys
 from time import perf_counter
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
@@ -1873,12 +1874,12 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
         )
         self.register_shortcut_for_widget(name='close', triggered=self.reject)
 
-        
         self.close_all_editors_action = self.create_action(
             name=DataframeEditorActions.CloseAllEditors,
             text=_("Close all viewers"),
             icon=self.create_icon("filecloseall"),
-            triggered=self.sig_close_all_editors_requested.emit
+            triggered=self.sig_close_all_editors_requested.emit,
+            register_action=False,
         )
 
         # Destroying the C++ object right after closing the dialog box,
@@ -2005,8 +2006,13 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
 
         self.setWindowTitle(title)
 
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # This makes the dialog stay on top.
+            # Fixes spyder-ide/spyder#22901
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
     def set_data_and_check(self, data) -> bool:
         """

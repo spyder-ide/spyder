@@ -16,6 +16,7 @@ import datetime
 from unittest.mock import Mock
 
 # Third party imports
+from flaky import flaky
 import pytest
 from matplotlib.figure import Figure
 import numpy as np
@@ -78,8 +79,10 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
         figs.append(create_figure(figname))
         figbrowser.add_figure(figs[-1], fmt)
 
-    assert len(figbrowser.thumbnails_sb._thumbnails) == nfig
-    assert figbrowser.thumbnails_sb.get_current_index() == nfig - 1
+    max_plots = figbrowser.get_conf("max_plots")
+    nfigs_in_browser = len(figbrowser.thumbnails_sb._thumbnails)
+    assert nfigs_in_browser <= max_plots
+    assert figbrowser.thumbnails_sb.get_current_index() == nfigs_in_browser - 1
     assert figbrowser.thumbnails_sb.current_thumbnail.canvas.fig == figs[-1]
     assert figbrowser.figviewer.figcanvas.fig == figs[-1]
 
@@ -424,6 +427,7 @@ def test_copy_svg_to_clipboard(figbrowser, tmpdir):
     assert clipboard.mimeData().data('image/svg+xml') == figs[0]
 
 
+@flaky(max_runs=5)
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     """

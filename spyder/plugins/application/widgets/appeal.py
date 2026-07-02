@@ -20,7 +20,7 @@ from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import get_module_source_path
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
-from spyder.utils.stylesheet import WIN
+from spyder.utils.stylesheet import MAC, WIN
 from spyder.utils.theme_manager import THEME_MANAGER
 
 
@@ -99,9 +99,19 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
 
     def set_message(self, appeal: bool):
         template = Template(self._appeal_page)
+
         rendered_page = template.substitute(
             changelog_html=self._changelog,
             show_changelog="false" if appeal else "true",
+            icon_report=(
+                "icon_report_sm_mac.svg"
+                if MAC
+                else (
+                    "icon_report_sm_win.svg"
+                    if WIN
+                    else "icon_report_sm_linux.svg"
+                )
+            ),
         )
 
         # Load page
