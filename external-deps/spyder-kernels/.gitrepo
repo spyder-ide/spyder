@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/hroncok/spyder-kernels.git
 	branch = patch-1
-	commit = 0ad35b79a6b6486289488fcf79e868e8b0b34fd6
-	parent = 5945a6c4f9a81ba2c3b5997881259c68ca436f09
+	commit = 5ebf3b2442cc5dbca68a1d925061fde8c10a046b
+	parent = 0ed82dbd083cac8c9420f07bfad7668f1d650eb0
 	method = merge
 	cmdver = 0.4.9

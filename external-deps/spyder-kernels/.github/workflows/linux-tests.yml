@@ -64,6 +64,7 @@ jobs:
           pixi init pixi-test
           cd pixi-test
           pixi add python
+          pixi global install ipython
       - name: Show environment information
         shell: bash -l {0}
         run: |
