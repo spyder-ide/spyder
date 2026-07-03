@@ -18,10 +18,10 @@ from qtpy.QtWidgets import QDialog, QVBoxLayout
 # Local imports
 from spyder.api.fonts import SpyderFontType, SpyderFontsMixin
 from spyder.config.base import get_module_source_path
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import start_file
 from spyder.utils.stylesheet import MAC, WIN
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 class FakeInAppAppealDialog:
@@ -57,7 +57,7 @@ class InAppAppealDialog(QDialog, SpyderFontsMixin):
         changelog_path = osp.join(appeal_page_dir, "changelog.md")
         self._appeal_page_path = osp.join(
             appeal_page_dir,
-            "dark" if is_dark_interface() else "light",
+            "dark" if THEME_MANAGER.is_dark_interface() else "light",
             "index.html",
         )
 
