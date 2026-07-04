@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-06-18 22:30\n"
+"PO-Revision-Date: 2026-07-04 09:53\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -19,11 +19,11 @@ msgstr ""
 
 #: spyder/api/plugin_registration/_confpage.py:29
 msgid "Disable a Spyder plugin (external or built-in) to prevent it from loading until re-enabled here, to simplify the interface or in case it causes problems."
-msgstr ""
+msgstr "Отключите плагин в Spyder (внешний либо встроенный) чтобы предотвратить его загрузку. Это может упростить интерфейс, если плагин вызовет проблемы."
 
 #: spyder/api/plugin_registration/_confpage.py:68
 msgid "Built-in"
-msgstr ""
+msgstr "Встроенный"
 
 #: spyder/api/plugin_registration/registry.py:870
 msgid "Plugins"
@@ -31,7 +31,7 @@ msgstr "Плагины"
 
 #: spyder/api/shellconnect/main_widget.py:63
 msgid "No connected console"
-msgstr ""
+msgstr "Нет подключенной консоли"
 
 #: spyder/api/shellconnect/main_widget.py:64
 msgid "The current console has no active kernel, so there is no content to show here"
