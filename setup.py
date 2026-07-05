@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[:2] < (3, 9):
-    error = "ERROR: Spyder requires Python version 3.9 and above."
+if v[:2] < (3, 11):
+    error = "ERROR: Spyder requires Python version 3.11 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 

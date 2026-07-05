@@ -152,10 +152,6 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 @pytest.mark.use_introspection
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-@pytest.mark.skipif(
-    sys.platform.startswith("linux") and sys.version_info < (3, 10),
-    reason="Fails on Linux with Python 3.9"
-)
 def test_leaks(main_window, qtbot):
     """
     Test leaks in mainwindow when closing a file or a console.
@@ -4850,16 +4846,10 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.order(after="test_debug_unsaved_function")
 @pytest.mark.preload_complex_project
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
-    reason="Only works on Linux"
+    not sys.platform.startswith('linux'), reason="Only works on Linux"
 )
 @pytest.mark.skipif(
-    sys.version_info[:2] < (3, 10),
-    reason="Too flaky in old Python versions"
-)
-@pytest.mark.skipif(
-    not running_in_ci_with_conda(),
-    reason="Too flaky with pip packages"
+    not running_in_ci_with_conda(), reason="Too flaky with pip packages"
 )
 @pytest.mark.known_leak
 @pytest.mark.xfail(
@@ -7831,7 +7821,6 @@ def test_view_own_class_in_variable_explorer(main_window, qtbot):
     assert instance_value.var == 123
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="Fails with Python 3.9")
 def test_help_long_type_alias_rendering(main_window, qtbot):
     """Test that long type annotations from __main__ are readable."""
     shell = main_window.ipyconsole.get_current_shellwidget()

@@ -70,12 +70,8 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['pip', 'conda']
-        PYTHON_VERSION: ['3.9', '3.12.12']
+        PYTHON_VERSION: ['3.11', '3.12.12']
         TEST_TYPE: ['fast', 'slow']
-        exclude:
-          # Only test Python 3.9 with pip to save CI time
-          - INSTALL_TYPE: 'conda'
-            PYTHON_VERSION: '3.9'
     timeout-minutes: 90
 
     steps:
@@ -122,15 +118,9 @@ jobs:
 
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v3
+        uses: actions/setup-python@v6
         with:
-          micromamba-version: '1.5.10-0'
-          environment-name: test
-          cache-downloads: true
-          create-args: python=${{ matrix.PYTHON_VERSION }}
-          condarc: |
-            channels:
-              - conda-forge
+          python-version: ${{ matrix.PYTHON_VERSION }}
 
       - name: Install Pixi
         uses: prefix-dev/setup-pixi@v0.9.6

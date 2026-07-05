@@ -12,9 +12,8 @@ from __future__ import annotations
 # Standard library imports
 import configparser as cp
 import logging
-import sys
 import traceback
-from typing import Any, Union, TYPE_CHECKING
+from typing import Any, TypeAlias, TYPE_CHECKING, Union
 
 # Third-party library imports
 from qtpy.QtCore import QObject, Signal
@@ -33,12 +32,6 @@ from spyder.api.plugin_registration._confpage import PluginsConfigPage
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.plugins import Plugins, SpyderDockablePlugin, SpyderPluginV2
 from spyder.utils.icon_manager import ima
-
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
 
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon

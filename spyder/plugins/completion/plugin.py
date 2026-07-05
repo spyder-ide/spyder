@@ -13,9 +13,9 @@ introspection providers.
 
 # Standard library imports
 import functools
+from importlib.metadata import entry_points
 import inspect
 import logging
-import sys
 from typing import List, Union
 import weakref
 
@@ -37,13 +37,6 @@ from spyder.plugins.completion.api import (
 )
 from spyder.plugins.completion.confpage import CompletionConfigPage
 from spyder.plugins.completion.container import CompletionContainer
-
-# See compatibility note on `group` keyword:
-# https://docs.python.org/3/library/importlib.metadata.html#entry-points
-if sys.version_info < (3, 10):  # pragma: no cover
-    from importlib_metadata import entry_points
-else:  # pragma: no cover
-    from importlib.metadata import entry_points
 
 
 logger = logging.getLogger(__name__)
