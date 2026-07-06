@@ -16,12 +16,7 @@ import os
 import sys
 import uuid
 from collections import OrderedDict
-from typing import Literal, Union, TYPE_CHECKING
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
+from typing import Literal, TypeAlias, TYPE_CHECKING, Union
 
 # Third part imports
 from qtpy.QtCore import QEvent, QObject, QSize, Qt, Signal
