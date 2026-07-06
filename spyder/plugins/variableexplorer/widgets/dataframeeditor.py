@@ -41,7 +41,7 @@ from typing import Any, Callable, Optional, TYPE_CHECKING
 
 # Third party imports
 from packaging.version import parse
-from qtpy.compat import from_qvariant, to_qvariant, getsavefilename
+from qtpy.compat import from_qvariant, getsavefilename, to_qvariant
 from qtpy.QtCore import (
     QAbstractTableModel, QEvent, QItemSelectionModel, QModelIndex, QPoint, Qt,
     Signal, Slot)
@@ -146,7 +146,6 @@ class DataframeEditorContextMenuSections:
     Row = 'row_section'
     Column = 'column_section'
     Convert = 'convert_section'
-    Export = 'export_section'
 
 
 class DataframeEditorToolbarSections:
@@ -1020,7 +1019,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         # ---- Create context menu and fill it
 
         menu = self.create_menu(DataframeEditorMenus.Context, register=False)
-        for action in [self.copy_action, self.edit_action]:
+        for action in [self.copy_action, self.edit_action, self.export_action]:
             self.add_item_to_menu(
                 action,
                 menu,
@@ -1040,11 +1039,6 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 menu,
                 section=DataframeEditorContextMenuSections.Column
             )
-        self.add_item_to_menu(
-            self.export_action,
-            menu,
-            section=DataframeEditorContextMenuSections.Export
-        )
 
         return menu
 
@@ -1092,7 +1086,10 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 if filename.endswith(('.xlsx', '.xls')):
                     df.to_excel(filename, index=index)
                 elif filename.endswith('.json'):
-                    if isinstance(df.index, pd.RangeIndex) and df.index.name is None:
+                    if (
+                        isinstance(df.index, pd.RangeIndex)
+                        and df.index.name is None
+                    ):
                         df.to_json(filename, orient='records', indent=4)
                     else:
                         df.to_json(filename, orient='index', indent=4)
@@ -1102,8 +1099,10 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
                 QMessageBox.critical(
                     self,
                     title,
-                    _("<b>Unable to export DataFrame</b>"
-                      "<br><br>Error message:<br>%s") % str(error)
+                    _(
+                        "It was not possible to export this DataFrame."
+                        "<br><br>The error was:<br>%s"
+                    ) % str(error)
                 )
 
     @Slot()
@@ -2179,9 +2178,9 @@ class DataFrameEditor(BaseDialog, SpyderWidgetMixin):
             self.close_all_editors_action,
             stretcher,
             self.dataTable.histogram_action,
+            self.dataTable.export_action,
             self.dataTable.resize_action,
             self.dataTable.resize_columns_action,
-            self.dataTable.export_action,
             self.refresh_action,
             options_button
         ]:
