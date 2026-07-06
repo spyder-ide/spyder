@@ -44,8 +44,13 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
     """
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
-        self.setAttribute(Qt.WA_StyledBackground, True)
 
+        # Attributes
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        )
+
+        # Fonts
         interface_font = self.get_font(SpyderFontType.Interface)
 
         font_context = QFont(interface_font)
@@ -65,9 +70,9 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
 
         # iter over shortcuts and create GroupBox for each context
         # with shortcuts in a grid
-
         main_layout = QVBoxLayout()
         group = None
+
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
         ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
