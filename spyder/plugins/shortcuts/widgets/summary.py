@@ -25,7 +25,9 @@ from qtpy.QtWidgets import (
 )
 
 # Local imports
+from spyder.api.exceptions import SpyderAPIError
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
+from spyder.api.plugin_registration.registry import PLUGIN_REGISTRY
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.manager import CONF
@@ -78,11 +80,18 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
         for __, group_shortcuts in shortcuts:
 
             group_shortcuts = list(group_shortcuts)
+
             context = group_shortcuts[0][0]
+            if context == "_":
+                context = _("Global")
+            else:
+                try:
+                    plugin = PLUGIN_REGISTRY.get_plugin(context)
+                    context = plugin.get_name()
+                except SpyderAPIError:
+                    context = context.capitalize().replace('_', ' ')
 
-            if context == '_': context = 'Global'
-
-            group = QGroupBox(context.capitalize())
+            group = QGroupBox(context)
             group.setFont(font_context)
 
             group_layout = QGridLayout()
