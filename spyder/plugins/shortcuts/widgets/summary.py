@@ -110,9 +110,10 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
         main_layout.addStretch()
 
         # Scroll widget
-        self.scroll_widget = QWidget()
+        self.scroll_widget = QWidget(self)
         self.scroll_widget.setLayout(main_layout)
-        self.scroll_area = QScrollArea()
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidget(self.scroll_widget)
 
         # Buttons
@@ -127,23 +128,20 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
         self._layout.addWidget(ok_btn)
         self.setLayout(self._layout)
 
-        width, height = self.get_screen_resolution()
-
+        # Size
         self.adjustSize()
+        self.setMinimumWidth(self.width() + 15)
 
+        width, height = self.get_screen_resolution()
         max_height = int(height * 0.7)
-        
+
         if self.height() > max_height:
             self.resize(self.width(), max_height)
-        
+
+        # Position
         geometry = self.frameGeometry()
         screen_center = self.screen().availableGeometry().center()
-        
         geometry.moveCenter(screen_center)
-        
-        self.move(geometry.topLeft())
-
-        #self.setGeometry(0, 0, width, height)
 
     def get_screen_resolution(self):
         """Return the screen resolution of the primary screen."""
