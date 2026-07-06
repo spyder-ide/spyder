@@ -117,15 +117,9 @@ jobs:
 
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v3
+        uses: actions/setup-python@v6
         with:
-          micromamba-version: '1.5.10-0'
-          environment-name: test
-          cache-downloads: true
-          create-args: python=${{ matrix.PYTHON_VERSION }}
-          condarc: |
-            channels:
-              - conda-forge
+          python-version: ${{ matrix.PYTHON_VERSION }}
 
       - name: Install Pixi
         uses: prefix-dev/setup-pixi@v0.9.6
@@ -151,9 +145,7 @@ jobs:
         if: env.USE_CONDA != 'true'
         shell: bash -l {0}
         run: |
-          micromamba info
           conda info
-          micromamba list
           pip list
 
       - name: Run manifest checks
