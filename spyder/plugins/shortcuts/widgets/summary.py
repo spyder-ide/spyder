@@ -13,7 +13,7 @@ from itertools import groupby
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QKeySequence
+from qtpy.QtGui import QFont, QKeySequence
 from qtpy.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -31,11 +31,6 @@ from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.manager import CONF
 
-# Constants
-SHORTCUTS_SUMMARY_TITLE = _("Spyder Keyboard ShortCuts")
-MAX_FONT_SIZE = 16
-MIN_FONT_SIZE = 8
-
 
 class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
     """
@@ -50,26 +45,21 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent=parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self._shortcuts_summary_title = SHORTCUTS_SUMMARY_TITLE
 
-        # Calculate font and amount of elements in each column
-        # according screen size
-        width, height = self.get_screen_resolution()
-        font_size = int(round(height / 80))
-        font_size = max(min(font_size, MAX_FONT_SIZE), MIN_FONT_SIZE)
+        interface_font = self.get_font(SpyderFontType.Interface)
 
-        font_context = self.get_font(SpyderFontType.Interface)
+        font_context = QFont(interface_font)
         font_context.setBold(True)
 
-        font_names = self.get_font(SpyderFontType.MonospaceInterface)
+        font_names = interface_font
         font_names.setBold(False)
 
-        font_keystr = self.get_font(SpyderFontType.Monospace)
+        font_keystr = self.get_font(SpyderFontType.MonospaceInterface)
 
-        font_title = self.get_font(SpyderFontType.Interface)
-        font_title.setBold(True)
+        font_title = QFont(interface_font)
+        font_title.setPointSize(font_title.pointSize() + 1)
 
-        title_label = QLabel(self._shortcuts_summary_title)
+        title_label = QLabel(_("Spyder keyboard shortcuts"))
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(font_title)
 
@@ -115,6 +105,7 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
             main_layout.addWidget(group)
 
         main_layout.addStretch()
+
         # Scroll widget
         self.scroll_widget = QWidget()
         self.scroll_widget.setLayout(main_layout)
