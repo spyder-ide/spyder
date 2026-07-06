@@ -68,7 +68,6 @@ PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
-QDARKSTYLE_REQVER = '>=3.2.0,<3.3.0'
 QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.4.1,<1.5.0'
 QTCONSOLE_REQVER = '>=5.7.2,<5.8.0'
@@ -76,6 +75,7 @@ QTPY_REQVER = '>=2.4.0'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=7.2.0'
 SPYDER_KERNELS_REQVER = '>=3.1.0b1,<3.2.0a2'
+SPYDER_THEMES_REQVER = '>=1.0.5,<2.0.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -253,10 +253,6 @@ DESCRIPTIONS = [
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
      'required_version': PYZMQ_REQVER},
-    {'modname': "qdarkstyle",
-     'package_name': "qdarkstyle",
-     'features': _("Dark style for the entire interface"),
-     'required_version': QDARKSTYLE_REQVER},
     {'modname': "qstylizer",
      'package_name': "qstylizer",
      'features': _("Customize Qt stylesheets"),
@@ -285,6 +281,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "spyder_themes",
+     'package_name': "spyder-themes",
+     'features': _("Graphical themes for the entire application"),
+     'required_version': SPYDER_THEMES_REQVER},
      {'modname': "superqt",
      'package_name': "superqt",
      'features': _("Special widgets and utilities for PyQt applications"),

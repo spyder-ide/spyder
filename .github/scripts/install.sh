@@ -122,7 +122,7 @@ else
     if [ "$RUN_SLOW" = "false" ]; then
         if [ "$OS" = "linux" ]; then
             curl https://pyenv.run | bash
-            $HOME/.pyenv/bin/pyenv install 3.10.6
+            $HOME/.pyenv/bin/pyenv install 3.12.8
         fi
     fi
 fi

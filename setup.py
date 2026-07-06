@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[:2] < (3, 9):
-    error = "ERROR: Spyder requires Python version 3.9 and above."
+if v[:2] < (3, 11):
+    error = "ERROR: Spyder requires Python version 3.11 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -307,13 +307,13 @@ install_requires += [
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=24.0.0',
-    'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.4.1,<1.5.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'sphinx>=7.2.0',
     'spyder-kernels>=3.1.0b1,<3.2.0a2',
+    'spyder-themes>=1.0.5,<2.0.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',

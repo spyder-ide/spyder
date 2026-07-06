@@ -12,7 +12,7 @@ Style for IPython Console
 from qtconsole.styles import dark_color
 
 # Local imports
-from spyder.config.gui import get_color_scheme
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 def create_qss_style(color_scheme):
@@ -36,7 +36,7 @@ def create_qss_style(color_scheme):
         else:
             return 'normal'
 
-    color_scheme = get_color_scheme(color_scheme)
+    color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
     fon_c, fon_fw, fon_fs = color_scheme['normal']
     font_color =  fon_c
     if dark_color(font_color):

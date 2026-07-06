@@ -119,7 +119,7 @@ def test_update_decorations_when_scrolling(qtbot):
         editor = CodeEditor(parent=None)
         editor.setup_editor(
             language='Python',
-            color_scheme='spyder/dark',
+            color_scheme='spyder_themes.spyder/dark',
             font=QFont("Monospace", 10),
         )
         editor.resize(640, 480)

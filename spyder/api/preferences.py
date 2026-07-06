@@ -13,13 +13,7 @@ from __future__ import annotations
 
 # Standard library imports
 import types
-import sys
-from typing import TYPE_CHECKING
-
-if sys.version_info < (3, 10):
-    from typing_extensions import TypeAlias
-else:
-    from typing import TypeAlias  # noqa: ICN003
+from typing import TypeAlias, TYPE_CHECKING
 
 # Local imports
 from spyder.api.utils import PrefixedTuple
