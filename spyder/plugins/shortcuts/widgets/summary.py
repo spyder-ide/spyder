@@ -13,14 +13,22 @@ from itertools import groupby
 
 # Third party imports
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QFont, QKeySequence
-from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
-                            QDialogButtonBox, QVBoxLayout, QScrollArea, QWidget)
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
+
 # Local imports
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.api.widgets.dialogs import SpyderDialogButtonBox
-from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 
 # Constants
