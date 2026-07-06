@@ -4,8 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Shortcut Summary dialog"""
-
+"""Shortcut summary dialog"""
 
 # Standard library imports
 from operator import itemgetter
@@ -75,7 +74,6 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
 
         # group shortcuts by context
         shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
-        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
 
         for __, group_shortcuts in shortcuts:
 
@@ -117,6 +115,9 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.scroll_widget)
 
+        # Buttons
+        ok_btn = SpyderDialogButtonBox(QDialogButtonBox.Ok)
+        ok_btn.accepted.connect(self.accept)
 
         # layout
         self._layout = QVBoxLayout()
