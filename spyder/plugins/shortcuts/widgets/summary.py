@@ -81,6 +81,10 @@ class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
 
             group_shortcuts = list(group_shortcuts)
 
+            # Skip groups when all its shortcuts are unassigned
+            if all([sc[2] == "" for sc in group_shortcuts]):
+                continue
+
             context = group_shortcuts[0][0]
             if context == "_":
                 context = _("Global")
