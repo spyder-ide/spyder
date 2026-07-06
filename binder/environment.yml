@@ -49,7 +49,6 @@ dependencies:
 - pyuca >=1.2
 - pyxdg >=0.26
 - pyzmq >=24.0.0
-- qdarkstyle >=3.2.0,<3.3.0
 - qstylizer >=0.2.2
 - qtawesome >=1.4.1,<1.5.0
 - qtconsole >=5.7.2,<5.8.0
@@ -57,6 +56,7 @@ dependencies:
 - rtree >=0.9.7
 - sphinx >=7.2.0
 - spyder-kernels >=3.1.0b1,<3.2.0a2
+- spyder-themes >=1.0.5,<2.0.0
 - superqt >=0.6.2,<1.0.0
 - textdistance >=4.2.0
 - three-merge >=0.1.1

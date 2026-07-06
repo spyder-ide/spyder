@@ -243,10 +243,8 @@ def test_update_warnings_after_closequotes(qtbot, completions_codeeditor_linting
         expected = [
             ['unterminated string literal (detected at line 1)', 1]
         ]
-    elif sys.version_info >= (3, 10):
-        expected = [['unterminated string literal (detected at line 1)',1]]
     else:
-        expected = [['EOL while scanning string literal' ,1]]
+        expected = [['unterminated string literal (detected at line 1)',1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):
@@ -284,15 +282,9 @@ def test_update_warnings_after_closebrackets(qtbot, completions_codeeditor_linti
     editor.textCursor().insertText("print('test'\n")
 
     if sys.version_info >= (3, 12):
-        expected = [
-            ["'(' was never closed", 1]
-        ]
-    elif sys.version_info >= (3, 10):
-        expected = [
-            ["'(' was never closed", 1]
-        ]
+        expected = [["'(' was never closed", 1]]
     else:
-        expected = [['unexpected EOF while parsing', 1]]
+        expected = [["'(' was never closed", 1]]
 
     # Notify changes.
     with qtbot.waitSignal(editor.completions_response_signal, timeout=30000):

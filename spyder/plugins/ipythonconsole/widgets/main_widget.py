@@ -868,17 +868,6 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 value
             )
 
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def change_clients_color_scheme(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        for idx, client in enumerate(self.clients):
-            self._change_client_conf(
-                client,
-                client.set_color_scheme,
-                value)
-
     @on_conf_change(option='show_elapsed_time')
     def change_clients_show_elapsed_time(self, value):
         for idx, client in enumerate(self.clients):
@@ -1716,8 +1705,13 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and give_focus:
             self.sig_switch_to_plugin_requested.emit()
-        self.activateWindow()
-        client.get_control().setFocus()
+        # Only give focus when necessary to prevent the main window from
+        # stealing focus at startup.
+        # Fixes spyder-ide/spyder#24231.
+        if give_focus:
+            self.activateWindow()
+            client.get_control().setFocus()
+
         self.update_tabs_text()
 
         # Register client
@@ -2056,7 +2050,7 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         client.hostname = hostname
 
         # Adding a new tab for the client
-        self.add_tab(client, name=client.get_name())
+        self.add_tab(client, name=client.get_name(), give_focus=give_focus)
 
         # Set elapsed time, if possible
         if master_client is not None:

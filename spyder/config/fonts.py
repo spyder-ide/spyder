@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder font variables
+Font constants.
 """
 
 import os

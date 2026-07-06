@@ -15,7 +15,6 @@
 import os.path as osp
 
 # Third party imports
-from qdarkstyle.colorsystem import Gray
 import qstylizer.style
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
@@ -26,7 +25,6 @@ from qtpy.QtWidgets import (
 from spyder.api.shortcuts import SpyderShortcutsMixin
 from spyder.api.translations import _
 from spyder.api.widgets.menus import SpyderMenu
-from spyder.config.gui import is_dark_interface
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.palette import SpyderPalette
@@ -174,9 +172,7 @@ class CloseTabButton(QToolButton):
         self._hover_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
         self._hover_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_5
 
-        self._clicked_selected_tab_color = (
-            Gray.B70 if is_dark_interface() else Gray.B80
-        )
+        self._clicked_selected_tab_color = SpyderPalette.COLOR_DISABLED
         self._clicked_not_selected_tab_color = SpyderPalette.COLOR_BACKGROUND_6
 
         # To keep track of the tab's current color

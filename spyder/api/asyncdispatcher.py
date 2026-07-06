@@ -28,6 +28,7 @@ import os
 import sys
 import threading
 import typing
+from typing import ParamSpec, TypeAlias
 from asyncio.futures import (
     _chain_future,  # type: ignore[attr-defined] # noqa: PLC2701
 )
@@ -36,13 +37,6 @@ from asyncio.tasks import (
 )
 from concurrent.futures import Future
 from heapq import heappop
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
-    from typing_extensions import TypeAlias
-else:
-    from typing import ParamSpec  # noqa: ICN003
-    from typing import TypeAlias  # noqa: ICN003
 
 # Third party imports
 from qtpy.QtCore import QCoreApplication, QEvent, QObject

@@ -82,7 +82,6 @@ from spyder.config.base import (
     is_conda_based_app,
     running_under_pytest,
 )
-from spyder.config.gui import is_dark_font_color
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.manager import CONF
 from spyder.utils import encoding, programs
@@ -664,19 +663,13 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         # TODO: Remove circular dependency between help and ipython console
         # and remove this import. Help plugin should take care of it
         from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
+        from spyder.utils.theme_manager import THEME_MANAGER
 
-        ui_theme = self.get_conf('ui_theme', section='appearance')
-        color_scheme = self.get_conf('selected', section='appearance')
-
-        if ui_theme == 'dark':
+        # Determine CSS path based on whether interface is dark
+        if THEME_MANAGER.is_dark_interface():
             css_path = DARK_CSS_PATH
-        elif ui_theme == 'light':
+        else:
             css_path = CSS_PATH
-        elif ui_theme == 'automatic':
-            if not is_dark_font_color(color_scheme):
-                css_path = DARK_CSS_PATH
-            else:
-                css_path = CSS_PATH
 
         self.set_conf('css_path', css_path, section='appearance')
 

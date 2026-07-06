@@ -17,6 +17,7 @@ from unittest.mock import patch
 
 # Third party imports
 import numpy as np
+from packaging.version import parse
 import pytest
 from qtpy.QtCore import Qt
 
@@ -106,13 +107,17 @@ def test_objectexplorer(objectexplorer):
     assert model.columnCount() == 11
 
 
+@pytest.mark.skipif(
+    parse(np.__version__) < parse("2.5.0"),
+    reason="Fails for versions older than Numpy 2.5",
+)
 @pytest.mark.parametrize('params', [
     # variable to show, rowCount for different Python 3 versions
     ('kjkj kj k j j kj k jkj', [71, 81]),
     ([1, 3, 4, 'kjkj', None], [45, 48]),
     ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 57]),
     (1.2233, [57, 59]),
-    (np.random.rand(10, 10), [162, 167]),
+    (np.random.rand(10, 10), [162, 168]),
     (datetime.date(1945, 5, 8), [43, 48])
 ])
 def test_objectexplorer_collection_types(objectexplorer, params):

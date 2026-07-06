@@ -109,7 +109,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
 
         # Variables
         self._linenumber_enabled = None
-        self._color_scheme = "spyder/dark"
+        self._color_scheme = "spyder_themes.spyder/dark"
         self._language = None
         self._blanks_enabled = None
         self._scrollpastend_enabled = None
@@ -196,7 +196,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
     def setup_editor(
         self,
         linenumbers=True,
-        color_scheme="spyder/dark",
+        color_scheme="spyder_themes.spyder/dark",
         language="py",
         font=None,
         show_blanks=False,
@@ -210,7 +210,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         Parameters
         ----------
         color_scheme: str, optional
-            Default is "spyder/dark".
+            Default is "spyder_themes.spyder/dark".
         language: str, optional
             Default is "py".
         font: QFont or None

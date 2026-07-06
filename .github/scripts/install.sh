@@ -109,11 +109,21 @@ else
     install_spyder_kernels spytest-ž
     conda list -n spytest-ž
 
+    # Install spyder-kernels in global Pixi env
+    echo "Installing subrepo version of spyder-kernels in Pixi global env..."
+    pushd external-deps/spyder-kernels
+    if [ "$OS" = "win" ]; then
+        $HOME/.pixi/envs/pip/python.exe -m pip install -q .
+    else
+        $HOME/.pixi/envs/pip/bin/python -m pip install -q .
+    fi
+    popd
+
     # Install pyenv on Linux systems
     if [ "$RUN_SLOW" = "false" ]; then
         if [ "$OS" = "linux" ]; then
             curl https://pyenv.run | bash
-            $HOME/.pyenv/bin/pyenv install 3.10.6
+            $HOME/.pyenv/bin/pyenv install 3.12.8
         fi
     fi
 fi

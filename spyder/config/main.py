@@ -17,10 +17,11 @@ import sys
 
 # Local import
 from spyder.plugins.toolbar.api import ApplicationToolbars
-from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
+from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES, running_under_pytest
+from spyder.config.fonts import MEDIUM, MONOSPACE
 from spyder.config.utils import IMPORT_EXT
-from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
+from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
 
@@ -53,7 +54,6 @@ CTRL = "Meta" if MAC else "Ctrl"
 
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
-
 
 # =============================================================================
 #  Defaults
@@ -230,7 +230,7 @@ DEFAULTS = [
              {
               'mute_inline_plotting': True,
               'show_plot_outline': False,
-              'max_plots': 50,
+              'max_plots': 100,
              }),
             ('editor',
              {
@@ -624,7 +624,34 @@ DEFAULTS = [
               # -- Find --
               'find_in_files/find in files': 'Alt+Shift+F',
               }),
-            ('appearance', APPEARANCE),
+            ('appearance',
+             {
+              "css_path": CSS_PATH,
+              "icon_theme": "spyder 3",
+              # This is our monospace font
+              "font/family": MONOSPACE,
+              "font/size": MEDIUM,
+              "font/italic": False,
+              "font/bold": False,
+              # We set the app font used in the system when Spyder starts,
+              # so we don't need to do it here.
+              "app_font/family": "Arial" if running_under_pytest() else "",
+              # This default value helps to do visual checks in our tests when
+              # run independently and avoids Qt warnings related to a null font
+              # size. It can also be useful in case we fail to detect the
+              # interface font.
+              "app_font/size": 10,
+              "app_font/italic": False,
+              "app_font/bold": False,
+              "use_system_font": True,
+              # We set these values at startup too.
+              "monospace_app_font/family": "",
+              "monospace_app_font/size": 0,
+              "monospace_app_font/italic": False,
+              "monospace_app_font/bold": False,
+              # Default to spyder_themes.spyder/dark if no selection exists
+              "selected": "spyder_themes.spyder/dark",
+             }),
             ]
 
 
@@ -729,4 +756,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '88.0.0'
+CONF_VERSION = '88.1.0'
