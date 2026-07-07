@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-07-07 18:21\n"
+"PO-Revision-Date: 2026-07-07 20:12\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1071,7 +1071,7 @@ msgstr "Показывать автодополнение на лету"
 
 #: spyder/plugins/completion/confpage.py:52
 msgid "Use Enter to accept code completions"
-msgstr ""
+msgstr "Нажмите Enter, чтобы принять предложенный вариант автодополнения"
 
 #: spyder/plugins/completion/confpage.py:54
 msgid "If this option is disabled, completions will be accepted with the Tab key only."
