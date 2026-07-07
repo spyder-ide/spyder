@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-06-18 16:44-0500\n"
-"PO-Revision-Date: 2026-07-04 09:53\n"
+"PO-Revision-Date: 2026-07-07 18:21\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1023,7 +1023,7 @@ msgstr "Обеспечение основных действий приложе�
 
 #: spyder/plugins/application/widgets/about.py:51
 msgid "About Spyder"
-msgstr ""
+msgstr "О Spyder"
 
 #: spyder/plugins/application/widgets/about.py:228
 msgid "Overview"
@@ -1043,7 +1043,7 @@ msgstr "Копировать информацию о версии"
 
 #: spyder/plugins/application/widgets/status.py:60
 msgid "Help Spyder!"
-msgstr ""
+msgstr "Справка Spyder!"
 
 #: spyder/plugins/completion/confpage.py:29
 msgid "Providers"
