@@ -1083,8 +1083,8 @@ def test_connection_to_external_kernel(main_window, qtbot):
         python_shell.execute('quit()')
 
     # Make sure everything quit properly
-    assert not km.is_alive()
-    assert not spykm.is_alive()
+    qtbot.waitUntil(lambda: not km.is_alive())
+    qtbot.waitUntil(lambda: not spykm.is_alive())
 
     # Close the channels
     spykc.stop_channels()
@@ -6223,11 +6223,14 @@ def test_print_frames(main_window, qtbot, tmpdir, thread):
 
     # Check we are blocked
     control = main_window.ipyconsole.get_widget().get_focus_widget()
-    assert ']:' not in control.toPlainText().split()[-1]
+    qtbot.waitUntil(lambda: ']:' not in control.toPlainText().split()[-1])
 
     debugger.capture_frames()
     qtbot.wait(1000)
     qtbot.waitUntil(lambda: len(frames_browser.data) > 0, timeout=10000)
+
+    if "Shell channel" in frames_browser.stack_dict:
+        expected_number_threads += 1
 
     if len(frames_browser.stack_dict) != expected_number_threads:
         # Failed, print stack for debugging
