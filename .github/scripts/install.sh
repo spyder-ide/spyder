@@ -56,6 +56,9 @@ if [ "$USE_CONDA" = "true" ]; then
         micromamba install bzip2=1.0.8=h2466b09_7
     fi
 
+    # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
+    micromamba install ipykernel=7.2.0
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
