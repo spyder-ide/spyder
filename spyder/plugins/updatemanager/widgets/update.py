@@ -7,6 +7,7 @@
 """Update Manager widgets."""
 
 # Standard library imports
+import errno
 import json
 import logging
 import os
@@ -296,10 +297,20 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
 
     def _validate_download(self):
         update_downloaded = False
-        if osp.exists(self.installer_path):
-            update_downloaded = validate_download(
-                self.installer_path, self.asset_info["checksum"]
-            )
+        try:
+            if osp.exists(self.installer_path):
+                update_downloaded = validate_download(
+                    self.installer_path, self.asset_info["checksum"]
+                )
+        except OSError as err:
+            if err.errno == errno.ENOSPC:
+                error_messagebox(
+                    self,
+                    _("There is not enough free disk space to perform the update. "
+                      "Please free some space and try again.")
+                )
+                return False
+            raise
 
         logger.debug(f"Update already downloaded: {update_downloaded}")
 
