@@ -459,8 +459,8 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    match_kw = r"\s*(?P<match_kw>match)(?=\s+.+:)"
-    case_kw = r"\s+(?P<case_kw>case)(?=\s+.+:)"
+    match_kw = r"(?<!\w)(?P<match_kw>match)(?!\w)(?=\s+.+:)"
+    case_kw  = r"(?<!\w)(?P<case_kw>case)(?!\w)(?=\s+.+:)"
 
     prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
