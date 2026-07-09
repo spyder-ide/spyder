@@ -297,7 +297,10 @@ class SpyderShell(ZMQInteractiveShell):
         for session in self._namespace_stack[::-1]:
             if isinstance(session, SpyderPdb) and session.curframe is not None:
                 if frame is None or frame == session.curframe:
-                    return session.curframe_locals
+                    if sys.version_info[:2] <= (3, 12):
+                        return session.curframe_locals
+                    else:
+                        return session.curframe.f_locals
             elif frame is None and isinstance(session, NamespaceManager):
                 return session.ns_locals
 

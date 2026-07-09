@@ -2365,10 +2365,10 @@ def test_old_kernel_version(ipyconsole, qtbot):
     info_page = w.get_current_client().infowidget.page()
 
     qtbot.waitUntil(
-        lambda: check_text(info_page, "1.0.0"), timeout=6000
+        lambda: check_text(info_page, "1.0.0"), timeout=SHELL_TIMEOUT
     )
     qtbot.waitUntil(
-        lambda: check_text(info_page, "pip install spyder"), timeout=6000
+        lambda: check_text(info_page, "pip install spyder"), timeout=SHELL_TIMEOUT
     )
 
 

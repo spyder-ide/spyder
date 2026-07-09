@@ -56,6 +56,9 @@ if [ "$USE_CONDA" = "true" ]; then
         micromamba install bzip2=1.0.8=h2466b09_7
     fi
 
+    # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
+    micromamba install ipykernel=7.2.0
+
 else
     # Update pip and setuptools
     python -m pip install -U pip setuptools wheel build
@@ -72,9 +75,8 @@ else
     # To check our manifest
     pip install -q check-manifest
 
-    # Pin IPykernel to the last version 6 available because version 7 has some
-    # issues
-    pip install ipykernel==6.30.1
+    # Pin IPykernel to 7.2.0 because version 7.3.0+ causes segfaults
+    pip install ipykernel==7.2.0
 
     # Pin Jedi to 0.19.1 because test_update_outline fails frequently with
     # 0.19.2, although it passes locally

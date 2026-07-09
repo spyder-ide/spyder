@@ -979,7 +979,8 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
@@ -995,7 +996,8 @@ def test_comprehensions_with_locals_in_pdb(kernel):
     assert kernel.get_value('in_globals') is False
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 def test_comprehensions_with_locals_in_pdb_2(kernel):
@@ -1006,7 +1008,8 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     """
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local variable.
@@ -1020,7 +1023,8 @@ def test_comprehensions_with_locals_in_pdb_2(kernel):
     assert kernel.get_value('res') == [[(1, 3), (1, 4)], [(2, 3), (2, 4)]]
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 def test_namespaces_in_pdb(kernel):
@@ -1032,7 +1036,8 @@ def test_namespaces_in_pdb(kernel):
     kernel.shell.user_ns["test"] = 0
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell._namespace_stack = [pdb_obj]
 
     # Check adding something to globals works
@@ -1055,7 +1060,10 @@ def test_namespaces_in_pdb(kernel):
     assert not pdb_obj._error_occured
 
     # Test locals are visible
-    pdb_obj.curframe_locals["test4"] = 0
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals["test4"] = 0
+    else:
+        pdb_obj.curframe.f_locals["test4"] = 0
     pdb_obj.default("%timeit test4")
     assert not pdb_obj._error_occured
 
@@ -1064,7 +1072,8 @@ def test_namespaces_in_pdb(kernel):
     assert pdb_obj._error_occured
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 def test_functions_with_locals_in_pdb(kernel):
@@ -1075,7 +1084,7 @@ def test_functions_with_locals_in_pdb(kernel):
     """
     pdb_obj = SpyderPdb()
 
-    if sys.version_info[:2] >= (3, 14):
+    if sys.version_info[:2] >= (3, 13):
         Frame = namedtuple("Frame", ["f_globals", "f_locals"])
         pdb_obj.curframe = Frame(
             f_globals=kernel.shell.user_ns,
@@ -1104,7 +1113,8 @@ def test_functions_with_locals_in_pdb(kernel):
     assert kernel.get_value('zz') == 1
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 def test_functions_with_locals_in_pdb_2(kernel):
@@ -1116,7 +1126,8 @@ def test_functions_with_locals_in_pdb_2(kernel):
     baba = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell._namespace_stack = [pdb_obj]
 
     # Create a local function.
@@ -1143,7 +1154,8 @@ def test_functions_with_locals_in_pdb_2(kernel):
     assert "baba" not in kernel.get_value('gg')
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 def test_locals_globals_in_pdb(kernel):
@@ -1153,7 +1165,8 @@ def test_locals_globals_in_pdb(kernel):
     a = 1  # noqa
     pdb_obj = SpyderPdb()
     pdb_obj.curframe = inspect.currentframe()
-    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
     kernel.shell._namespace_stack = [pdb_obj]
 
     assert kernel.get_value('a') == 1
@@ -1185,7 +1198,8 @@ def test_locals_globals_in_pdb(kernel):
     assert kernel.get_value('test') is True
 
     pdb_obj.curframe = None
-    pdb_obj.curframe_locals = None
+    if sys.version_info[:2] <= (3, 12):
+        pdb_obj.curframe_locals = None
 
 
 @pytest.mark.flaky(max_runs=3)
