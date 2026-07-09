@@ -102,12 +102,12 @@ else
     popd
 
     # Create environment for Jedi environment tests
-    conda create -n jedi-test-env -q -y python=3.9 flask pip
+    conda create -n jedi-test-env -q -y python=3.11 flask pip
     install_spyder_kernels jedi-test-env
     conda list -n jedi-test-env
 
     # Create environment to test conda env activation before launching a kernel
-    conda create -n spytest-ž -q -y -c conda-forge python=3.9 pip
+    conda create -n spytest-ž -q -y -c conda-forge python=3.11 pip
     install_spyder_kernels spytest-ž
     conda list -n spytest-ž
 

@@ -101,8 +101,7 @@ class SpyderPdb(ipyPdb):
         # content of tuple: (filename, line number)
         self._previous_step = None
 
-        # Don't report hidden frames for IPython 7.24+. This attribute
-        # has no effect in previous versions.
+        # Don't report hidden frames
         self.report_skipped = False
 
         # Keep track of remote filename
