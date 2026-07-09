@@ -1208,10 +1208,6 @@ def test_locals_globals_in_pdb(kernel):
     os.environ.get('USE_CONDA') != 'true',
     reason="Doesn't work with pip packages"
 )
-@pytest.mark.skipif(
-    sys.version_info[:2] == (3, 9) and sys.platform.startswith("linux"),
-    reason="Fails with Python 3.9 on Linux"
-)
 def test_get_interactive_backend(backend):
     """
     Test that we correctly get the interactive backend set in the kernel.

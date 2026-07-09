@@ -21,8 +21,7 @@ from spyder_kernels.customize.spyderpdb import SpyderPdb
 
 # =============================================================================
 # sys.argv can be missing when Python is embedded, taking care of it.
-# Fixes Issue 1473 and other crazy crashes with IPython 0.13 trying to
-# access it.
+# Fixes spyder-ide/spyder#1473 and other crazy crashes trying to access it.
 # =============================================================================
 if not hasattr(sys, 'argv'):
     sys.argv = ['']

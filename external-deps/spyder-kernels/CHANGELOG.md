@@ -1,5 +1,24 @@
 # History of changes
 
+## Version 3.2.0a1 (2026/07/08)
+
+### Issues Closed
+
+* [Issue 574](https://github.com/spyder-ide/spyder-kernels/issues/574) - Support ipykernel >=7 ([PR 589](https://github.com/spyder-ide/spyder-kernels/pull/589) by [@hroncok](https://github.com/hroncok))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 599](https://github.com/spyder-ide/spyder-kernels/pull/599) - PR: Drop support for Python 3.9 and 3.10 and bump IPython requirement to 9.15.0+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 590](https://github.com/spyder-ide/spyder-kernels/pull/590) - PR: Use `curframe.f_locals` instead of `curframe_locals` in debugger for newer Python versions, by [@Nowa-Ammerlaan](https://github.com/Nowa-Ammerlaan)
+* [PR 589](https://github.com/spyder-ide/spyder-kernels/pull/589) - PR: Add support for IPykernel 7 (<7.3.0), by [@hroncok](https://github.com/hroncok) ([574](https://github.com/spyder-ide/spyder-kernels/issues/574))
+* [PR 581](https://github.com/spyder-ide/spyder-kernels/pull/581) - PR: Support Polars series, by [@jitseniesen](https://github.com/jitseniesen)
+
+In this release 4 pull requests were closed.
+
+----
+
 ## Version 3.1.5 (2026/06/23)
 
 ### Pull Requests Merged
