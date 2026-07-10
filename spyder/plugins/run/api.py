@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 from datetime import datetime
 import logging
 from typing import Any, Callable, Set, List, Union, Optional, Dict, TypedDict
@@ -451,6 +452,13 @@ class RunExecutor(QObject):
         self._exec_context_methods: Dict[str, RunExecuteFunc] = {}
 
         for method_name in dir(self):
+            # Use getattr_static first to avoid triggering descriptors
+            # (e.g. properties/cached_properties) that have side effects
+            # or should only be evaluated lazily, later on.
+            static_attr = inspect.getattr_static(self, method_name, None)
+            if not hasattr(static_attr, '_run_exec'):
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, '_run_exec'):
                 if not isinstance(method._run_exec, list):

@@ -24,6 +24,7 @@ Spyder API plugin registration mixins.
 from __future__ import annotations
 
 # Standard library imports
+import inspect
 import logging
 
 from spyder.api.exceptions import SpyderAPIError
@@ -74,6 +75,16 @@ class SpyderPluginObserver:
         self._plugin_listeners = {}
         self._plugin_teardown_listeners = {}
         for method_name in dir(self):
+            # Use getattr_static first to avoid triggering descriptors
+            # (e.g. properties/cached_properties) that have side effects
+            # or should only be evaluated lazily, later on.
+            static_attr = inspect.getattr_static(self, method_name, None)
+            if not (
+                hasattr(static_attr, "_plugin_listen")
+                or hasattr(static_attr, "_plugin_teardown")
+            ):
+                continue
+
             method = getattr(self, method_name, None)
             if hasattr(method, "_plugin_listen"):
                 plugin_listen = method._plugin_listen
