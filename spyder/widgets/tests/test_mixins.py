@@ -13,8 +13,11 @@ import pytest
 from spyder.widgets import mixins
 
 
-class BaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
-    pass
+class BaseWidget(mixins.BaseEditMixin, QPlainTextEdit):
+
+    def __init__(self, parent=None):
+        QPlainTextEdit.__init__(self, parent)
+        mixins.BaseEditMixin.__init__(self)
 
 
 # --- Fixtures

@@ -18,6 +18,7 @@ import sys
 
 # Third party imports
 import qstylizer.style
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QByteArray, QEvent, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
@@ -89,14 +90,15 @@ class OutlineExplorerInEditorWindow(OutlineExplorerWidget):
         self.sig_collapse_requested.emit()
 
 
-class EditorWidget(QSplitter, SpyderConfigurationObserver):
+class EditorWidget(SpyderConfigurationObserver, QSplitter):
     """Main widget to show in EditorMainWindow."""
 
     CONF_SECTION = 'editor'
     SPLITTER_WIDTH = "7px"
 
     def __init__(self, parent, main_widget, menu_actions, outline_plugin):
-        super().__init__(parent)
+        QSplitter.__init__(self, parent)
+        SpyderConfigurationObserver.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
@@ -393,7 +395,7 @@ class EditorWidget(QSplitter, SpyderConfigurationObserver):
         super().showEvent(event)
 
 
-class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
+class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
     CONF_SECTION = "editor"
 
     sig_window_state_changed = Signal(object)
@@ -401,7 +403,11 @@ class EditorMainWindow(QMainWindow, SpyderWidgetMixin):
     def __init__(self, main_widget, menu_actions, outline_plugin, parent=None):
         # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        super().__init__(parent, class_parent=main_widget)
+        if not (PYSIDE2 or PYSIDE6):
+            super().__init__(parent, class_parent=main_widget)
+        else:
+            QMainWindow.__init__(self, parent)
+            SpyderWidgetMixin.__init__(self, class_parent=main_widget)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes

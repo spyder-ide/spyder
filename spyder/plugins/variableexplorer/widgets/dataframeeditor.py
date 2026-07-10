@@ -216,7 +216,7 @@ def global_max(col_vals, index):
 # ---- Main classes
 # =============================================================================
 
-class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Model encapsulating a dataframe for the datafgrame editor
 
@@ -692,7 +692,7 @@ class DataFrameModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class DataFrameView(QTableView, SpyderWidgetMixin):
+class DataFrameView(SpyderWidgetMixin, QTableView):
     """
     View displaying a dataframe in the dataframe editor
 
@@ -745,6 +745,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         readonly: bool = False
     ):
         QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
 
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
@@ -1517,7 +1518,7 @@ class DataFrameView(QTableView, SpyderWidgetMixin):
         self.namespacebrowser.plot(plot_function)
 
 
-class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameHeaderModel(SpyderFontsMixin, QAbstractTableModel):
     """
     This class is the model for the header and index of the DataFrameEditor.
 
@@ -1729,7 +1730,7 @@ class DataFrameHeaderModel(QAbstractTableModel, SpyderFontsMixin):
         return False
 
 
-class DataFrameLevelModel(QAbstractTableModel, SpyderFontsMixin):
+class DataFrameLevelModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Data Frame level class.
 

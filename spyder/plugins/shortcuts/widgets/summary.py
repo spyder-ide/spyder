@@ -33,7 +33,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.config.manager import CONF
 
 
-class ShortcutsSummaryDialog(QDialog, SpyderFontsMixin):
+class ShortcutsSummaryDialog(SpyderFontsMixin, QDialog):
     """
     Dialog window listing the spyder and plugins shortcuts.
 

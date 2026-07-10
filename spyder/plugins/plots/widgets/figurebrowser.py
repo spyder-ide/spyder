@@ -1385,7 +1385,7 @@ class FigureThumbnail(QWidget):
             drag.exec_(Qt.MoveAction)
 
 
-class FigureCanvas(QFrame, SpyderConfigurationAccessor):
+class FigureCanvas(SpyderConfigurationAccessor, QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """

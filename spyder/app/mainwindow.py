@@ -43,12 +43,12 @@ requirements.check_qt()
 #==============================================================================
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtGui import QColor, QKeySequence, QMoveEvent, QResizeEvent
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
-from qtpy import QtSvg, PYSIDE6  # analysis:ignore
+from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 try:
@@ -135,8 +135,8 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")
-    sig_moved = Signal("QMoveEvent")
+    sig_resized = Signal(QResizeEvent)
+    sig_moved = Signal(QMoveEvent)
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     sig_window_state_changed = Signal(object)
@@ -923,9 +923,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         QMainWindow.resizeEvent(self, event)
 
         # To be used by the tour to be able to resize
-        # TODO: Figure out why this doesn't work on PySide6.9+
-        if not PYSIDE6:
-            self.sig_resized.emit(event)
+        self.sig_resized.emit(event)
 
     def moveEvent(self, event):
         """Reimplement Qt method"""
@@ -937,9 +935,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 self.window_position = self.pos()
         QMainWindow.moveEvent(self, event)
         # To be used by the tour to be able to move
-        # TODO: Figure out why this doesn't work on PySide6.9+
-        if not PYSIDE6:
-            self.sig_moved.emit(event)
+        self.sig_moved.emit(event)
 
     def hideEvent(self, event):
         """Reimplement Qt method"""

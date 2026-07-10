@@ -320,7 +320,7 @@ class FramesBrowser(
         })
 
 
-class LineFrameItem(QTreeWidgetItem, SpyderFontsMixin):
+class LineFrameItem(SpyderFontsMixin, QTreeWidgetItem):
 
     def __init__(self, parent, index, filename, line, lineno, name):
         self.index = index

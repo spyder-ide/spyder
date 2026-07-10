@@ -37,7 +37,7 @@ from typing import TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
-from qtpy.QtGui import QCursor, QFont, QIcon
+from qtpy.QtGui import QCursor, QFont, QIcon, QMoveEvent, QResizeEvent
 from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
@@ -415,7 +415,7 @@ class SpyderPluginV2(
         error dialog.
     """
 
-    sig_mainwindow_resized: Signal = Signal("QResizeEvent")
+    sig_mainwindow_resized: Signal = Signal(QResizeEvent)
     """
     Emitted when the main window is resized.
 
@@ -427,7 +427,7 @@ class SpyderPluginV2(
         The event triggered on main window resize.
     """
 
-    sig_mainwindow_moved: Signal = Signal("QMoveEvent")
+    sig_mainwindow_moved: Signal = Signal(QMoveEvent)
     """
     Emitted when the main window is moved.
 

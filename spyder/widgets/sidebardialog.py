@@ -93,7 +93,7 @@ class SidebarPage(QWidget):
         return QSize(self.MAX_WIDTH, self.MIN_HEIGHT)
 
 
-class SidebarDialog(QDialog, SpyderFontsMixin):
+class SidebarDialog(SpyderFontsMixin, QDialog):
     """Sidebar dialog."""
 
     # Constants

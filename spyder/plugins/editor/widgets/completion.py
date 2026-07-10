@@ -29,7 +29,7 @@ COMPLETION_ITEM_WIDTH = 250
 COMPLETION_DELTA_FOR_SCROLLBAR = 7 if sys.platform.startswith("linux") else 0
 
 
-class CompletionWidget(QListWidget, SpyderConfigurationAccessor):
+class CompletionWidget(SpyderConfigurationAccessor, QListWidget):
     """Completion list widget."""
 
     ITEM_TYPE_MAP = {

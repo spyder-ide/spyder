@@ -31,7 +31,7 @@ from spyder.utils.icon_manager import ima
 from spyder.widgets.helperwidgets import TipWidget
 
 
-class MouseShortcutEditor(QDialog, SpyderConfigurationAccessor):
+class MouseShortcutEditor(SpyderConfigurationAccessor, QDialog):
     """A dialog to edit the modifier keys for CodeEditor mouse interactions."""
 
     CONF_SECTION = "editor"

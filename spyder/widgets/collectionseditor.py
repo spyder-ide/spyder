@@ -206,7 +206,7 @@ class ProxyObject(object):
 # =============================================================================
 # ---- Widgets
 # =============================================================================
-class ReadOnlyCollectionsModel(QAbstractTableModel, SpyderFontsMixin):
+class ReadOnlyCollectionsModel(SpyderFontsMixin, QAbstractTableModel):
     """CollectionsEditor Read-Only Table Model"""
 
     sig_setting_data = Signal()

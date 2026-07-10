@@ -108,7 +108,7 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
         return super().focusOutEvent(event)
 
 
-class PageControlWidget(QTextEdit, BaseEditMixin):
+class PageControlWidget(BaseEditMixin, QTextEdit):
     """
     Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
     use as the paging widget for IPython widgets
