@@ -19,13 +19,26 @@ from spyder.plugins.completion.providers.languageserver.provider import (
     LanguageServerProvider)
 
 
-class CompletionPluginMock(MagicMock, QObject):
-    """Mock for the completion plugin."""
+class CompletionPluginMock(QObject):
+    """
+    Mock for the completion plugin.
+
+    This is a genuine QObject subclass (rather than a MagicMock/QObject
+    multiple-inheritance mix) because unittest.mock's __new__ reassigns
+    each instance's __class__ to a freshly-created dynamic subclass, which
+    breaks Shiboken's ability to associate the Python wrapper with its C++
+    QObject counterpart under PySide6. Arbitrary attribute access still
+    behaves like a mock via delegation to an internal MagicMock.
+    """
     CONF_SECTION = 'completions'
 
     def __init__(self, conf):
-        super().__init__()
+        QObject.__init__(self)
         self.conf = conf
+        self._mock = MagicMock()
+
+    def __getattr__(self, name):
+        return getattr(self._mock, name)
 
     def get_conf(self, option, default=None, section=None):
         if section == 'completions':

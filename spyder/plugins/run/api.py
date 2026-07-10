@@ -435,6 +435,17 @@ class RunExecutor(QObject):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self._setup_run_executor()
+
+    def _setup_run_executor(self):
+        """
+        Gather methods decorated for run execution.
+
+        Split out from __init__ so that classes which combine RunExecutor
+        with another QObject-derived base via multiple inheritance (and
+        therefore construct the QObject part themselves) can call this
+        directly, without re-invoking QObject.__init__.
+        """
         self._exec_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_ext_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_context_methods: Dict[str, RunExecuteFunc] = {}

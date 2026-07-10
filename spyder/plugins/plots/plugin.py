@@ -27,6 +27,13 @@ class Plots(SpyderDockablePlugin, ShellConnectPluginMixin):
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+        # Combined with ShellConnectPluginMixin via multiple inheritance;
+        # set up its state here since SpyderDockablePlugin.__init__ doesn't
+        # reach it.
+        ShellConnectPluginMixin.__init__(self)
+
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
     @staticmethod

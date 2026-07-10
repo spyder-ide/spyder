@@ -61,6 +61,13 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
         Word to select on given row.
     """
 
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+        # Combined with RunExecutor via multiple inheritance; set up its
+        # state here since SpyderDockablePlugin.__init__ doesn't call
+        # RunExecutor.__init__ (which would also re-init the QObject part).
+        self._setup_run_executor()
+
     # ---- SpyderPluginV2 API
     # -------------------------------------------------------------------------
     @staticmethod

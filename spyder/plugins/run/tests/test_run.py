@@ -57,7 +57,24 @@ from spyder.plugins.run.plugin import Run
 logger = logging.getLogger(__name__)
 
 
-class MockedMainWindow(MagicMock, QWidget):
+class MockedMainWindow(QWidget):
+    """
+    Mocked main window.
+
+    This is a genuine QWidget subclass (rather than a MagicMock/QWidget
+    multiple-inheritance mix) because unittest.mock's __new__ reassigns
+    each instance's __class__ to a freshly-created dynamic subclass, which
+    breaks Shiboken's ability to associate the Python wrapper with its C++
+    QObject counterpart under PySide6. Arbitrary attribute access still
+    behaves like a mock via delegation to an internal MagicMock.
+    """
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._mock = MagicMock()
+
+    def __getattr__(self, name):
+        return getattr(self._mock, name)
 
     def get_plugin(self, name, error=True):
         return MagicMock()
