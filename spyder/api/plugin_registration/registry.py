@@ -89,7 +89,7 @@ class _DummyPlugin:
 # =============================================================================
 # ---- Registry
 # =============================================================================
-class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
+class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
     """
     Global Spyder plugin registry.
 
@@ -131,7 +131,7 @@ class SpyderPluginRegistry(QObject, _PluginRegistryPreferencesAdapter):
         -------
         None
         """
-        super().__init__()
+        QObject.__init__(self)
         _PluginRegistryPreferencesAdapter.__init__(self)
 
         self.main: spyder.app.mainwindow.MainWindow | None = None

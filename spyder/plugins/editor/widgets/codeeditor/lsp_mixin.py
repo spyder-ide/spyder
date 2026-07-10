@@ -127,9 +127,7 @@ class LSPMixin:
     # Used to start the status spinner in the editor
     sig_stop_operation_in_progress = Signal()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def __init__(self):
         # Request symbols and folding after a timeout.
         # See: process_diagnostics
         # Connecting the timeout signal is performed in document_did_open()

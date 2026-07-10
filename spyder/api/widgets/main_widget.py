@@ -20,7 +20,7 @@ from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QByteArray, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
@@ -75,7 +75,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PluginMainWidget(QWidget, SpyderWidgetMixin):
+class PluginMainWidget(SpyderWidgetMixin, QWidget):
     """
     Spyder plugin main widget class.
 
@@ -359,7 +359,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin):
             If :attr:`SHOW_MESSAGE_WHEN_EMPTY` is set to ``True`` but
             :attr:`MESSAGE_WHEN_EMPTY` is not set to a non-empty string.
         """
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)

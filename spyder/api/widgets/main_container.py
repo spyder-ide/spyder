@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Third party imports
-from qtpy import PYSIDE2
+from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from spyder.api.plugins import SpyderPluginV2
 
 
-class PluginMainContainer(QWidget, SpyderWidgetMixin):
+class PluginMainContainer(SpyderWidgetMixin, QWidget):
     """
     Main container widget class for non-dockable Spyder plugins.
 
@@ -144,7 +144,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
     ) -> None:
         """
         Create a new container class for a plugin.
-        
+
         This method is not meant to be overridden by container subclasses.
         Use the :meth:`setup` method instead to instantiate the widgets that
         this one will contain.
@@ -164,7 +164,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin):
         -------
         None
         """
-        if not PYSIDE2:
+        if not (PYSIDE2 or PYSIDE6):
             super().__init__(parent=parent, class_parent=plugin)
         else:
             QWidget.__init__(self, parent)

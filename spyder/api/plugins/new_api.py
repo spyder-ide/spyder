@@ -77,10 +77,10 @@ logger = logging.getLogger(__name__)
 
 
 class SpyderPluginV2(
-    QObject,
     SpyderActionMixin,
     SpyderConfigurationObserver,
     SpyderPluginObserver,
+    QObject,
 ):
     """
     Base class for all Spyder plugins.
@@ -509,11 +509,11 @@ class SpyderPluginV2(
         -------
         None
         """
-        super().__init__(parent)
-
-        # This is required since the MRO of this class does not call
+        # This is required since the MRO of this class does not go up until
         # SpyderPluginObserver and SpyderConfigurationObserver when using
         # super(), see https://fuhm.net/super-harmful/
+        QObject.__init__(self, parent)
+        SpyderActionMixin.__init__(self)
         SpyderPluginObserver.__init__(self)
         SpyderConfigurationObserver.__init__(self)
 

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from spyder.api.widgets.main_widget import PluginMainWidget
 
 
-class SpyderWindowWidget(QMainWindow, SpyderMainWindowMixin):
+class SpyderWindowWidget(SpyderMainWindowMixin, QMainWindow):
     """
     An undocked window for a :class:`~spyder.api.plugins.SpyderDockablePlugin`.
     """

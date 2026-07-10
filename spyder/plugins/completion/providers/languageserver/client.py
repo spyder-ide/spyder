@@ -70,7 +70,7 @@ _LSP_LOOP = 'lsp'
 
 
 @class_register
-class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
+class LSPClient(LSPMethodProviderMixIn, SpyderConfigurationAccessor, QObject):
     """
     Wraps a pygls BaseLanguageClient running in a dedicated asyncio thread.
     """

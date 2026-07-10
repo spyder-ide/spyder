@@ -25,7 +25,7 @@ from spyder.utils.stylesheet import (
 # =============================================================================
 # Tab filter
 # =============================================================================
-class TabFilter(QObject, SpyderConfigurationAccessor):
+class TabFilter(SpyderConfigurationAccessor, QObject):
     """Filter event attached to each DockWidget QTabBar."""
 
     CONF_SECTION = 'main'
