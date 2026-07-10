@@ -29,6 +29,47 @@
 
 ----
 
+## Version 6.2.0a1 (2026-07-09)
+
+### Issues Closed
+
+* [Issue 26016](https://github.com/spyder-ide/spyder/issues/26016) - Missing collapse arrow icon when folding all sections ([PR 26019](https://github.com/spyder-ide/spyder/pull/26019) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 25844](https://github.com/spyder-ide/spyder/issues/25844) - No "Close all" button for numerous Variable Explorer viewer windows ([PR 25906](https://github.com/spyder-ide/spyder/pull/25906) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 25106](https://github.com/spyder-ide/spyder/issues/25106) - Polars series are not supported in the Variable Explorer ([PR 25707](https://github.com/spyder-ide/spyder/pull/25707) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 24949](https://github.com/spyder-ide/spyder/issues/24949) - Feature request: Add functionality (and shortcut) to create new Markdown cells ([PR 25791](https://github.com/spyder-ide/spyder/pull/25791) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 6810](https://github.com/spyder-ide/spyder/issues/6810) - Code un/folding with a keyboard shortcut ([PR 25868](https://github.com/spyder-ide/spyder/pull/25868) by [@jsbautista](https://github.com/jsbautista))
+* [Issue 3768](https://github.com/spyder-ide/spyder/issues/3768) - Support UI themes for the entire interface ([PR 26012](https://github.com/spyder-ide/spyder/pull/26012) by [@conradolandia](https://github.com/conradolandia))
+* [Issue 1585](https://github.com/spyder-ide/spyder/issues/1585) - Syntax coloring of operators, brackets, parentheses etc. ([PR 25805](https://github.com/spyder-ide/spyder/pull/25805) by [@jsbautista](https://github.com/jsbautista))
+
+In this release 7 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 26156](https://github.com/spyder-ide/spyder/pull/26156) - PR: Update core dependencies for 6.2.0a1 and bump IPython requirement to 9.15.0+, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26155](https://github.com/spyder-ide/spyder/pull/26155) - PR: Update user facing changelog with changes added in 6.2.0a1, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26142](https://github.com/spyder-ide/spyder/pull/26142) - PR: Drop support for Python 3.9 and 3.10, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 26137](https://github.com/spyder-ide/spyder/pull/26137) - PR: Support IPykernel 7 (<7.3.0), by [@dalthviz](https://github.com/dalthviz) ([](https://github.com/tests/issues/))
+* [PR 26019](https://github.com/spyder-ide/spyder/pull/26019) - PR: Show collapse icon when folding all sections (Editor), by [@jsbautista](https://github.com/jsbautista) ([26016](https://github.com/spyder-ide/spyder/issues/26016))
+* [PR 26012](https://github.com/spyder-ide/spyder/pull/26012) - PR: Add support for interface themes, by [@conradolandia](https://github.com/conradolandia) ([3768](https://github.com/spyder-ide/spyder/issues/3768))
+* [PR 25937](https://github.com/spyder-ide/spyder/pull/25937) - PR: Use `pygls` for json-rpc language client and add support for `lsprotocol` (Completions), by [@hlouzada](https://github.com/hlouzada)
+* [PR 25918](https://github.com/spyder-ide/spyder/pull/25918) - PR: Several fixes & improvements to the plugin registry, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25906](https://github.com/spyder-ide/spyder/pull/25906) - PR: Add `Close all` button to Variable Explorer editors, by [@jsbautista](https://github.com/jsbautista) ([25844](https://github.com/spyder-ide/spyder/issues/25844))
+* [PR 25868](https://github.com/spyder-ide/spyder/pull/25868) - PR: Add actions and shortcuts for code folding (Editor), by [@jsbautista](https://github.com/jsbautista) ([6810](https://github.com/spyder-ide/spyder/issues/6810))
+* [PR 25855](https://github.com/spyder-ide/spyder/pull/25855) - PR: Add a `Close all viewers` action to the Variable Explorer, by [@ReinerBRO](https://github.com/ReinerBRO)
+* [PR 25840](https://github.com/spyder-ide/spyder/pull/25840) - PR: Add support for inline completions (Editor), by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 25823](https://github.com/spyder-ide/spyder/pull/25823) - PR: Add initial implementation of a combobox that shows available connections (Remote client), by [@dalthviz](https://github.com/dalthviz)
+* [PR 25805](https://github.com/spyder-ide/spyder/pull/25805) - PR: Add syntax highlighting of operators, brackets, parentheses and other symbols (Editor), by [@jsbautista](https://github.com/jsbautista) ([1585](https://github.com/spyder-ide/spyder/issues/1585))
+* [PR 25791](https://github.com/spyder-ide/spyder/pull/25791) - PR: Add API to register Editor extensions, panels and shortcuts, by [@ccordoba12](https://github.com/ccordoba12) ([24949](https://github.com/spyder-ide/spyder/issues/24949))
+* [PR 25707](https://github.com/spyder-ide/spyder/pull/25707) - PR: Support Polars series in Variable Explorer, by [@jitseniesen](https://github.com/jitseniesen) ([25106](https://github.com/spyder-ide/spyder/issues/25106))
+* [PR 25304](https://github.com/spyder-ide/spyder/pull/25304) - PR: Correct color in `interrupt and debug` icon and remove typos in some color definitions, by [@conradolandia](https://github.com/conradolandia)
+* [PR 25134](https://github.com/spyder-ide/spyder/pull/25134) - PR: Fix variable names for Spyder logo colors in dark and light mode, by [@conradolandia](https://github.com/conradolandia)
+* [PR 25077](https://github.com/spyder-ide/spyder/pull/25077) - PR: Fix some strings for translation, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 24199](https://github.com/spyder-ide/spyder/pull/24199) - PR: Automatic colorization of SVG icons according to the interface theme, by [@conradolandia](https://github.com/conradolandia)
+
+In this release 20 pull requests were closed.
+
+----
+
 ## Version 6.1.5 (2026-06-26)
 
 ### New features
