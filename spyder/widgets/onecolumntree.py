@@ -5,7 +5,6 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
@@ -37,11 +36,8 @@ class OneColumnTree(SpyderWidgetMixin, QTreeWidget):
     """
 
     def __init__(self, parent):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QTreeWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QTreeWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.__expanded_state = None
 

@@ -22,7 +22,6 @@ import tempfile
 import textwrap
 
 # Third party imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (
@@ -79,12 +78,9 @@ class ProfilerSubWidget(
     sig_refresh = Signal()
 
     def __init__(self, parent=None):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
-            ShellConnectWidgetForStackMixin.__init__(self)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
 
         self.data_tree: ProfilerDataTree | None = None
         self.finder: FinderWidget | None = None
@@ -494,10 +490,7 @@ class ProfilerDataTree(SpyderConfigurationAccessor, QTreeWidget):
     sig_refresh = Signal()
 
     def __init__(self, parent=None):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent)
-        else:
-            QTreeWidget.__init__(self, parent)
+        QTreeWidget.__init__(self, parent)
 
         self.header_list = [
             _("Function/Module"),

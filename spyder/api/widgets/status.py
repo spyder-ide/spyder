@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 # Third party imports
 import qstylizer.parser
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Qt, QSize, QTimer, Signal
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
@@ -103,11 +102,8 @@ class StatusBarWidget(SpyderWidgetMixin, QWidget):
         * To use an icon, you need to redefine the :meth:`get_icon` method.
         * To use a label, you need to call :meth:`set_value`.
         """
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self._parent = parent
 

@@ -16,7 +16,7 @@ from typing import Callable, Dict
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYQT5, PYSIDE2, PYSIDE6
+from qtpy import PYQT5
 from qtpy.QtCore import (
     QEvent,
     QPoint,
@@ -850,11 +850,8 @@ class InfoMessage(SpyderWidgetMixin, QWidget):
     """Widget to show an informative message in a widget."""
 
     def __init__(self, parent: QWidget, set_min_width: bool = False):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self._text_to_option: dict[str, str] = {}

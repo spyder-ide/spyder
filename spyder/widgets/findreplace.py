@@ -17,7 +17,6 @@ import re
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QEvent, QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QPixmap, QTextCursor
 from qtpy.QtWidgets import (QAction, QGridLayout, QHBoxLayout, QLabel,
@@ -78,11 +77,8 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
         margin_top: int | None = None,
         margin_bottom: int | None = None,
     ):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderShortcutsMixin.__init__(self)
+        QWidget.__init__(self, parent)
+        SpyderShortcutsMixin.__init__(self)
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None

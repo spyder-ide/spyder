@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Third party imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QWidget
 
@@ -164,11 +163,8 @@ class PluginMainContainer(SpyderWidgetMixin, QWidget):
         -------
         None
         """
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent=parent, class_parent=plugin)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=plugin)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=plugin)
 
         # ---- Attributes
         # --------------------------------------------------------------------

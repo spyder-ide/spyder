@@ -18,7 +18,6 @@ import sys
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.QtCore import QByteArray, QEvent, QPoint, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
@@ -403,11 +402,8 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
     def __init__(self, main_widget, menu_actions, outline_plugin, parent=None):
         # Parent needs to be `None` if the created widget is meant to be
         # independent. See spyder-ide/spyder#17803
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=main_widget)
-        else:
-            QMainWindow.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=main_widget)
+        QMainWindow.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=main_widget)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes

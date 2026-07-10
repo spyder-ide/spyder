@@ -13,7 +13,6 @@ import os.path as osp
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
@@ -74,11 +73,8 @@ class PathManager(SpyderWidgetMixin, QDialog):
 
     def __init__(self, parent, sync=True):
         """Path manager dialog."""
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QDialog.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QDialog.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Style
         # NOTE: This needs to be here so all buttons are styled correctly

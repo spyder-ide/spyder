@@ -23,7 +23,6 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QTextCursor
@@ -220,11 +219,8 @@ class EditorStack(SpyderWidgetMixin, QWidget):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 

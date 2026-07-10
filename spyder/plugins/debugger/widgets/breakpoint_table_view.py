@@ -17,7 +17,6 @@ Breakpoint widget.
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from qtpy.QtWidgets import QAbstractItemView, QTableView
@@ -175,11 +174,8 @@ class BreakpointTableView(SpyderWidgetMixin, QTableView):
     sig_conditional_breakpoint_requested = Signal()
 
     def __init__(self, parent, data):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent, class_parent=parent)
-        else:
-            QTableView.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Widgets
         self.model = BreakpointTableModel(self, data)

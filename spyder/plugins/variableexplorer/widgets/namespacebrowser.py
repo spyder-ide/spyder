@@ -19,7 +19,6 @@ import tarfile
 from typing import Callable, TYPE_CHECKING
 
 # Third library imports
-from qtpy import PYSIDE2, PYSIDE6
 from qtpy.compat import getopenfilenames, getsavefilename
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
@@ -86,12 +85,9 @@ class NamespaceBrowser(
     """
 
     def __init__(self, parent):
-        if not (PYSIDE2 or PYSIDE6):
-            super().__init__(parent=parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
-            ShellConnectWidgetForStackMixin.__init__(self)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
+        ShellConnectWidgetForStackMixin.__init__(self)
 
         # Attributes
         self.filename = None
