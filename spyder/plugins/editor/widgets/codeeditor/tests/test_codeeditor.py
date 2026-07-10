@@ -31,8 +31,8 @@ ASSETS = osp.join(HERE, 'assets')
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._cli_options = MagicMock()
 
     def get_plugin(self, name, error=True):
