@@ -791,6 +791,14 @@ class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR09
         try:
             self.close()
             self.setParent(None)
+
+            # Explicitly schedule the C++ object for deletion. This is
+            # necessary on PySide because signal connections there hold
+            # strong, GC-invisible references to lambda/closure slots, so
+            # this widget (and its children, e.g. the shellwidget) would
+            # otherwise never be garbage-collected, i.e. leak, because the
+            # C++ side is only destroyed with the Python wrapper.
+            self.deleteLater()
         except RuntimeError:
             pass
 

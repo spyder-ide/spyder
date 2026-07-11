@@ -211,22 +211,29 @@ def test_leaks(main_window, qtbot):
         return n_shell_init, n_code_editor_init
 
     n_shell_init, n_code_editor_init = ns_fun(main_window, qtbot)
-    qtbot.wait(1000)
-    # Count final objects
-    gc.collect()
-    objects = gc.get_objects()
-    n_code_editor = 0
-    for o in objects:
-        if type(o).__name__ == "CodeEditor":
-            n_code_editor += 1
-    n_shell = 0
-    for o in objects:
-        if type(o).__name__ == "ShellWidget":
-            n_shell += 1
 
-    # Make sure no new objects have been created
-    assert n_shell <= n_shell_init
-    assert n_code_editor <= n_code_editor_init
+    def count_alive(class_name):
+        # Note: Several collection passes are necessary because destroying
+        # the C++ part of a widget releases references, e.g. to slots held
+        # by its signal connections, that can make other objects collectable
+        # in turn.
+        for __ in range(3):
+            gc.collect()
+        return sum(
+            type(o).__name__ == class_name for o in gc.get_objects()
+        )
+
+    # Make sure no new objects have been created. We need to wait for this
+    # because clients are destroyed with deleteLater, i.e. asynchronously
+    # during event loop runs (and only after the kernel's prompt is ready if
+    # they were closed while debugging).
+    qtbot.waitUntil(
+        lambda: count_alive("ShellWidget") <= n_shell_init, timeout=10000
+    )
+    qtbot.waitUntil(
+        lambda: count_alive("CodeEditor") <= n_code_editor_init,
+        timeout=10000,
+    )
 
 
 def test_lock_action(main_window, qtbot):

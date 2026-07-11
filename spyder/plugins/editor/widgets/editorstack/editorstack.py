@@ -1663,6 +1663,15 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             editor.setParent(None)
             editor.completion_widget.setParent(None)
 
+            # Explicitly schedule the C++ objects for deletion. This is
+            # necessary on PySide because signal connections there hold
+            # strong, GC-invisible references to lambda/closure slots, so
+            # these widgets would otherwise never be garbage-collected, i.e.
+            # leak, because the C++ side is only destroyed with the Python
+            # wrapper.
+            editor.deleteLater()
+            editor.completion_widget.deleteLater()
+
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
             # by long all the time is not working on some 32bit platforms.

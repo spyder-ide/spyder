@@ -82,7 +82,13 @@ def editor_splitter_bot(qtbot):
     qtbot.addWidget(es)
     es.show()
     yield es
-    es.destroy()
+    try:
+        es.destroy()
+    except RuntimeError:
+        # The C++ object can already be deleted at this point on PySide,
+        # e.g. when the test closed all the splitter's files (it closes
+        # itself in that case because it has the WA_DeleteOnClose flag set).
+        pass
 
 
 @pytest.fixture
