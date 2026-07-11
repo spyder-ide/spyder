@@ -829,7 +829,7 @@ class ProfilerDataTree(SpyderConfigurationAccessor, QTreeWidget):
                 grandchildren_list = self.find_children(child_key)
                 if grandchildren_list:
                     child_item.setChildIndicatorPolicy(
-                        child_item.ShowIndicator
+                        QTreeWidgetItem.ShowIndicator
                     )
                     self.items_to_be_shown[id(child_item)] = grandchildren_list
 

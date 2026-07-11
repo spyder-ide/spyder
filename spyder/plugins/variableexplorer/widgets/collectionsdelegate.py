@@ -328,14 +328,15 @@ class CollectionsDelegate(
                 return None
             else:
                 if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent=parent)
-                    # Needed to handle NaT values
+                    # Needed to handle NaT values, whose conversion also
+                    # crashes the QDateTimeEdit constructor on PySide6.
                     # See spyder-ide/spyder#8329
                     try:
                         value.time()
                     except ValueError:
                         self.sig_editor_shown.emit()
                         return None
+                    editor = QDateTimeEdit(value, parent=parent)
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)

@@ -369,7 +369,7 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
     qtbot.wait(500)
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to list((my$))
     qtbot.keyPress(code_editor, Qt.Key_Left)
@@ -389,7 +389,7 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
     qtbot.wait(500)
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to my_dic[on$]
     qtbot.keyPress(code_editor, Qt.Key_Left)
@@ -408,7 +408,7 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
     qtbot.wait(500)
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Move cursor next to {on*}
     qtbot.keyPress(code_editor, Qt.Key_Left)

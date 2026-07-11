@@ -18,7 +18,6 @@ from unittest.mock import MagicMock
 
 # Third-part imports
 import pytest
-from qtpy import PYQT6
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import (
     QAction,
@@ -406,7 +405,6 @@ def run_mock(qtbot, tmpdir):
     return run, mock_main_window, temp_dir
 
 
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
 def test_run_plugin(qtbot, run_mock):
     run, main_window, temp_cwd = run_mock
 
@@ -742,8 +740,14 @@ def test_run_plugin(qtbot, run_mock):
     assert working_dir['source'] == WorkingDirSource.ConfigurationDirectory
     assert working_dir['path'] == ''
 
-    # Run a subordinate context on a different executor
+    # Run a subordinate context on a different executor.
+    # Note: We need to focus a configuration of the second provider first so
+    # that its action is enabled. On Qt 5 this wasn't necessary because
+    # trigger() invoked disabled actions too, but Qt 6 makes it a no-op for
+    # them.
+    exec_provider_2.switch_focus('ext1', 'RegisteredContext')
     subordinate_act = exec_provider_2.actions['SubordinateContext2']
+    assert subordinate_act.isEnabled()
     with qtbot.waitSignal(executor_2.sig_run_invocation) as sig:
         subordinate_act.trigger()
 

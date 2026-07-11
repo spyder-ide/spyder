@@ -20,7 +20,7 @@ from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
 
 
 class ControlWidget(TracebackLinksMixin, GetHelpMixin,
-                    QTextEdit, BaseEditMixin):
+                    BaseEditMixin, QTextEdit):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets

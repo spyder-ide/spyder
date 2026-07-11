@@ -12,7 +12,8 @@ import pytest
 import shutil
 
 # Third party imports
-from qtpy.QtWidgets import QDialogButtonBox, QPushButton, QTableWidget
+from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QPushButton,
+                            QTableWidget)
 
 # Local imports
 from spyder.plugins.editor.widgets.recover import (make_temporary_files,
@@ -77,7 +78,7 @@ def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
     """
     dialog = RecoveryDialog([('ham', 'spam')])
     mocker.patch.object(dialog, 'exec_')
-    assert dialog.exec_if_nonempty() == dialog.Accepted
+    assert dialog.exec_if_nonempty() == QDialog.Accepted
     dialog.exec_.assert_not_called()
 
 
@@ -102,7 +103,7 @@ def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
     shutil.rmtree(autosave_dir)
     dialog = RecoveryDialog(autosave_mapping)
     mocker.patch.object(dialog, 'exec_')
-    assert dialog.exec_if_nonempty() == dialog.Accepted
+    assert dialog.exec_if_nonempty() == QDialog.Accepted
     dialog.exec_.assert_not_called()
 
 

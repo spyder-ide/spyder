@@ -533,7 +533,12 @@ def get_application_icon(fpath):
                 if os.path.isfile(icon_path):
                     icon = QIcon(icon_path)
                 else:
-                    icon = QIcon.fromTheme(icon_path)
+                    theme_icon = QIcon.fromTheme(icon_path)
+                    # Keep the default icon if the theme doesn't provide this
+                    # one (e.g. when no icon theme is available, which gives
+                    # a null icon).
+                    if not theme_icon.isNull():
+                        icon = theme_icon
     else:
         icon = ima.icon('help')
 

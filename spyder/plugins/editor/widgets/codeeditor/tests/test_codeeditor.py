@@ -11,9 +11,9 @@ from textwrap import dedent
 from unittest.mock import MagicMock
 
 # Third party imports
-from qtpy import QT_VERSION, PYQT6
+from qtpy import QT_VERSION
 from qtpy.QtCore import Qt, QEvent, QPointF
-from qtpy.QtGui import QTextCursor, QMouseEvent
+from qtpy.QtGui import QClipboard, QTextCursor, QMouseEvent
 from qtpy.QtWidgets import QApplication, QMainWindow, QTextEdit
 import pytest
 
@@ -442,7 +442,7 @@ def test_editor_delete_selection(codeeditor, qtbot):
 
 @pytest.mark.skipif(QT_VERSION.startswith('5.15'),
                     reason='Fixed on Qt 5.15')
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(QT_VERSION.startswith('6'), reason="Fails with Qt 6")
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
     If that happens, then the workarounds for spyder-ide/spyder#12663
@@ -654,7 +654,7 @@ def test_paste_text(codeeditor, text, line_ending_char):
     editor = codeeditor
     text = text.replace(osp.os.linesep, line_ending_char)
     cb = QApplication.clipboard()
-    cb.setText(text, mode=cb.Clipboard)
+    cb.setText(text, mode=QClipboard.Clipboard)
     cursor = editor.textCursor()
     cursor.movePosition(QTextCursor.Start)
     editor.setTextCursor(cursor)

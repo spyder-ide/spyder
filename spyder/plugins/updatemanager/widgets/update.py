@@ -16,7 +16,7 @@ import sys
 from sysconfig import get_path
 
 # Third-party imports
-from qtpy.QtCore import Qt, QThread, QTimer, Signal
+from qtpy.QtCore import QEvent, Qt, QThread, QTimer, Signal
 from qtpy.QtWidgets import (
     QGridLayout,
     QMessageBox,
@@ -701,7 +701,7 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
         self.details = self.findChild(QTextEdit)
 
         self.details.setFont(self.get_font(SpyderFontType.Monospace))
-        self.details.setLineWrapMode(self.details.NoWrap)
+        self.details.setLineWrapMode(QTextEdit.NoWrap)
         self.details.setMinimumSize(400, 110)
         self.details.setLineWrapMode(0)
 
@@ -711,8 +711,8 @@ class DetailedUpdateMessageBox(UpdateMessageBox, SpyderFontsMixin):
 
     def event(self, event):
         """Override to allow resizing the dialog when details are visible."""
-        if event.type() in (event.LayoutRequest, event.Resize):
-            if event.type() == event.Resize:
+        if event.type() in (QEvent.LayoutRequest, QEvent.Resize):
+            if event.type() == QEvent.Resize:
                 result = super().event(event)
             else:
                 result = False

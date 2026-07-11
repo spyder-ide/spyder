@@ -688,9 +688,10 @@ class EditorMainWidgetExample(QSplitter):
         editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
-        logger.debug(
-            "EditorMainWidget.unregister_editorstack: %r" % editorstack
-        )
+        # Note: don't log editorstack's repr here because this is called when
+        # its C++ object is being destroyed, which makes repr() raise a
+        # RuntimeError on PySide.
+        logger.debug("EditorMainWidget.unregister_editorstack")
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):

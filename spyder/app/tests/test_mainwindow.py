@@ -280,8 +280,15 @@ def test_default_plugin_actions(main_window, qtbot):
     main_widget = file_explorer.get_widget()
 
     # Undock action
-    main_widget.undock_action.triggered.emit(True)
+    main_widget.undock_action.trigger()
     qtbot.wait(500)
+
+    # Resize the window so that it fits the screen. Otherwise the geometry
+    # save/restore roundtrip below fails on Qt 6 because its restoreGeometry
+    # sanitizes geometries that don't fit the screen (the undocked window
+    # inherits the widget's docked size, which can exceed the headless screen
+    # used in CI).
+    main_widget.windowwidget.resize(500, 400)
     main_widget.windowwidget.move(200, 200)
     assert not file_explorer.dockwidget.isVisible()
     assert main_widget.undock_action is not None
@@ -289,7 +296,7 @@ def test_default_plugin_actions(main_window, qtbot):
     assert main_widget.windowwidget.centralWidget() == main_widget
 
     # Dock action
-    main_widget.dock_action.triggered.emit(True)
+    main_widget.dock_action.trigger()
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
     assert main_widget.windowwidget is None
@@ -308,7 +315,7 @@ def test_default_plugin_actions(main_window, qtbot):
     main_widget.windowwidget.close()
 
     # Close action
-    main_widget.close_action.triggered.emit(True)
+    main_widget.close_action.trigger()
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
     assert not file_explorer.toggle_view_action.isChecked()
