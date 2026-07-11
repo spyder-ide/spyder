@@ -29,7 +29,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
-from qtpy import PYQT6
+from qtpy import PYQT6, PYSIDE6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -173,7 +173,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
