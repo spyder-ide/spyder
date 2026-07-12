@@ -475,6 +475,15 @@ def test_toggle_eol_chars(editor_plugin, python_files, qtbot, os_name):
     qtbot.wait(500)
     codeeditor = editor_plugin.get_current_editor()
 
+    # Ensure the editor's current eol differs from the target one, so that
+    # toggling actually changes it (and thus marks the document as modified).
+    # Without this the test is order-dependent: it only passes when a previous
+    # parametrization saved the file with a non-matching eol, and fails when
+    # run in isolation on a platform whose native eol equals os_name.
+    other_eol = '\r\n' if os_name != 'nt' else '\n'
+    codeeditor.set_eol_chars(eol_chars=other_eol)
+    codeeditor.document().setModified(False)
+
     # Change to a different eol, save and check that file has the right eol.
     editor_plugin.get_widget().toggle_eol_chars(os_name, True)
     assert codeeditor.document().isModified()
