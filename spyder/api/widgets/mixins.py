@@ -8,6 +8,13 @@
 
 """
 Mixin classes for the Spyder widget API.
+
+Note: when combining these (or any plain Python class) with a Qt class, list
+the Qt class *last* in the bases, call its ``__init__`` *first* and then each
+mixin's ``__init__`` explicitly by name. Getting this wrong breaks in
+different — sometimes silent — ways under PyQt vs PySide; see the section
+"Mixing Qt and plain Python classes (multiple inheritance)" in CONTRIBUTING.md
+for the details and canonical examples.
 """
 
 from __future__ import annotations
