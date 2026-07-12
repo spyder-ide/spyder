@@ -52,6 +52,7 @@ LXML_REQVER = ">=4.9.0"
 MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
+OPENPYXL_REQVER = '>=3.0.0'
 PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -185,6 +186,10 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
+    {'modname': "openpyxl",
+     'package_name': "openpyxl",
+     'features': _("Export DataFrames to Excel files in the Variable Explorer"),
+     'required_version': OPENPYXL_REQVER},
     {'modname': "packaging",
      'package_name': "packaging",
      'features': _("Compare version numbers of Python packages"),

@@ -289,6 +289,7 @@ install_requires += [
     'markdown-it-py>=3.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
+    'openpyxl>=3.0.0',
     'packaging>=20.0',
     'parso>=0.7.0,<0.9.0',
     'pickleshare>=0.4',
