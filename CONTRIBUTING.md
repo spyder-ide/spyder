@@ -268,7 +268,9 @@ that inherit from both a Qt class and plain Python classes (mixins):
   skips the C++ method wrappers while searching, so the wrong order happens
   to work there — don't rely on it.)
 
-All of these are satisfied simultaneously by a single pattern:
+All of these are satisfied simultaneously by the following pattern for
+widgets (i.e. when inheriting from a Qt class directly, or from a Spyder
+class like `PluginMainWidget` that already composes one):
 
 1. List mixins first and the Qt class **last** in the bases.
 2. In `__init__`, call the Qt class' `__init__` **first**. (With the Qt class
@@ -276,6 +278,10 @@ All of these are satisfied simultaneously by a single pattern:
    harmless.)
 3. Then call each mixin's `__init__` **explicitly by name**. Don't rely on a
    cooperative `super().__init__()` chain that crosses the Qt/mixin boundary.
+   (If none of the mixins define an `__init__`, e.g. for pure accessor mixins
+   like `SpyderFontsMixin` or `SpyderConfigurationAccessor`, a plain
+   `super().__init__(parent)` is fine — it falls through them straight to the
+   Qt class.)
 
 ```python
 class MyWidget(FooMixin, BarMixin, QWidget):
@@ -286,11 +292,31 @@ class MyWidget(FooMixin, BarMixin, QWidget):
         BarMixin.__init__(self, some_arg)
 ```
 
+**Plugins** follow a variation of this: the plugin base
+(`SpyderPluginV2`/`SpyderDockablePlugin`, which is QObject-derived and
+already puts `QObject` last in its own bases) stays **first** so that its
+methods take precedence, with interface mixins after it. The `__init__` order
+is the same: plugin base first, then each mixin explicitly:
+
+```python
+class MyPlugin(SpyderDockablePlugin, ShellConnectPluginMixin):
+
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+        ShellConnectPluginMixin.__init__(self)
+```
+
+This is safe because these interface mixins don't override Qt virtual
+methods, so the MRO position of the Qt lineage doesn't hide anything.
+
 Canonical examples of the patterns used in the codebase:
 
 * Widget plus mixins:
   [`ControlWidget`](spyder/plugins/ipythonconsole/widgets/control.py) and
   [`ClientWidget`](spyder/plugins/ipythonconsole/widgets/client.py).
+* Plugin plus interface mixins:
+  [`Plots`](spyder/plugins/plots/plugin.py) and
+  [`Layout`](spyder/plugins/layout/plugin.py).
 * Plugin plus a QObject-derived mixin whose state setup must not re-init the
   QObject part: [`Debugger`](spyder/plugins/debugger/plugin.py), which calls
   `RunExecutor._setup_run_executor()` — a method split out of
