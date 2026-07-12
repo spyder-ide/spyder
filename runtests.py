@@ -74,11 +74,24 @@ def run_pytest(run_slow=False, extra_args=None, remoteclient=False):
     except TypeError:  # raised when no signals are connected
         pass
 
-    # sys.exit doesn't work here because some things could be running in the
-    # background (e.g. closing the main window) when this point is reached.
-    # If that's the case, sys.exit doesn't stop the script as you would expect.
-    if errno != 0:
-        raise SystemExit(errno)
+    # Exit immediately with pytest's status, skipping interpreter (and hence
+    # Qt objects) finalization:
+    # - sys.exit doesn't work here because some things could be running in
+    #   the background (e.g. closing the main window) when this point is
+    #   reached. If that's the case, sys.exit doesn't stop the script as you
+    #   would expect.
+    # - Finalization can also crash after all tests passed (e.g. with
+    #   "QThread: Destroyed while thread is still running" aborts when a
+    #   kernel's std pipe reader thread is still alive at this point), which
+    #   would turn a green test run into a red one for no reason.
+    # Note: os._exit is public API despite its name (it mirrors POSIX
+    # _exit(2)); it's the only way to skip interpreter finalization. It also
+    # skips flushing the std streams, so we need to do that here to not lose
+    # the end of the test output when they're block-buffered (e.g. when piped
+    # on CI).
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(errno)
 
 
 def main():
