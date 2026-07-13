@@ -18,7 +18,6 @@ dependencies:
 - diff-match-patch >=20181111
 - fcitx-qt5 >=1.2.7
 - fzf >=0.42.0
-- importlib-metadata >=4.6.0
 - intervaltree >=3.0.2
 - ipython >=9.15.0,<10.0.0
 - ipython_pygments_lexers >=1.0
@@ -31,6 +30,7 @@ dependencies:
 - markdown-it-py >=3.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
+- openpyxl >=3.0.0
 - packaging >=20.0
 - parso >=0.7.0,<0.9.0
 - pickleshare >=0.4

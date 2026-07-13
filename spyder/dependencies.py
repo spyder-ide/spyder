@@ -39,7 +39,6 @@ CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=9.15.0,<10.0.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
@@ -52,6 +51,7 @@ LXML_REQVER = ">=4.9.0"
 MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
+OPENPYXL_REQVER = '>=3.0.0'
 PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -132,10 +132,6 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': 'importlib_metadata',
-     'package_name': 'importlib-metadata',
-     'features': _('Access the metadata for a Python package'),
-     'required_version': IMPORTLIB_METADATA_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
@@ -185,6 +181,10 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
+    {'modname': "openpyxl",
+     'package_name': "openpyxl",
+     'features': _("Export DataFrames to Excel files in the Variable Explorer"),
+     'required_version': OPENPYXL_REQVER},
     {'modname': "packaging",
      'package_name': "packaging",
      'features': _("Compare version numbers of Python packages"),
