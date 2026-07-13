@@ -25,6 +25,14 @@ os.environ['SPYDER_PYTEST'] = 'True'
 # ---- Tests to skip on the first CI run
 SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
 
+# ---- File where we record tests that passed, so a CI restart (e.g. after a
+# segfault) can skip them. This is written directly by a pytest hook (see
+# pytest_runtest_logreport), which is robust to output getting printed inline
+# with a test's result line -- unlike parsing the textual log, where e.g. a Qt
+# warning on Windows can split the node id from its PASSED marker and prevent
+# the test from ever being recorded (so it re-runs, and may re-flake, forever).
+PASSED_TESTS_FILE = "passed_tests.txt"
+
 
 # ---- Pytest adjustments
 import pytest
@@ -49,6 +57,16 @@ def get_passed_tests():
     This is useful on CIs to restart the test suite from the point where a
     segfault was thrown by it.
     """
+    tests = set()
+
+    # Primary source: tests recorded directly by the pytest_runtest_logreport
+    # hook. Robust to inline output corrupting the textual result line.
+    if osp.isfile(PASSED_TESTS_FILE):
+        with open(PASSED_TESTS_FILE) as f:
+            tests.update(line.strip() for line in f if line.strip())
+
+    # Fallback source: parse the textual pytest log. Kept for robustness (and
+    # to honor the SKIP_ON_FIRST_CI_RUN special-casing below).
     # This assumes the pytest log is placed next to this file. That's where
     # we put it on CIs.
     if osp.isfile('pytest_log.txt'):
@@ -65,7 +83,6 @@ def get_passed_tests():
         test_re = re.compile(
             r'(spyder\S*\.py(?:::\w+)*(?:\[.*?\])?) .*(SKIPPED|PASSED|XFAIL)'
         )
-        tests = set()
         for line in logfile:
             match = test_re.match(line)
             if match:
@@ -90,9 +107,7 @@ def get_passed_tests():
                 else:
                     tests.add(match.group(1))
 
-        return tests
-    else:
-        return []
+    return tests
 
 
 def pytest_collection_modifyitems(config, items):
@@ -166,6 +181,31 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_passed)
 
     concurrent.futures.ThreadPoolExecutor().map(mark_item, items)
+
+
+def pytest_runtest_logreport(report):
+    """Record tests that pass (or xfail) so a CI restart can skip them.
+
+    Writing the node id directly here -- rather than parsing it back out of
+    the textual pytest log in get_passed_tests() -- is robust to output
+    printed inline with a test's result line (e.g. a Qt "setGeometry" warning
+    on Windows that splits the node id from its PASSED marker), which would
+    otherwise prevent the test from ever being recorded and make it re-run
+    (and possibly re-flake) on every restart.
+
+    Only active on CIs, where the restart mechanism is used. Locally it would
+    otherwise silently skip tests on the next run. A test skipped on the first
+    CI run (see SKIP_ON_FIRST_CI_RUN) is not recorded here: skips are ignored,
+    so it still runs on later attempts until it actually passes.
+    """
+    if not os.environ.get("CI"):
+        return
+
+    passed = report.when == "call" and report.passed
+    xfailed = report.skipped and hasattr(report, "wasxfail")
+    if passed or xfailed:
+        with open(PASSED_TESTS_FILE, "a") as f:
+            f.write(report.nodeid + "\n")
 
 
 @pytest.fixture(scope="session", autouse=True)
