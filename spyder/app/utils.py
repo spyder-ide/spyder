@@ -181,6 +181,9 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
     even if the actual message does not apply. This filter adds a
     blacklist for messages that are unnecessary. Anything else will
     get printed in the internal console.
+
+    Entries are matched as substrings, so messages that embed variable
+    content (e.g. geometry values) can be blacklisted by a stable prefix.
     """
     BLACKLIST = [
         'QMainWidget::resizeDocks: all sizes need to be larger than 0',
@@ -200,19 +203,14 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
         "QPainter::restore: Unbalanced save/restore",
         # This warning is shown at startup when using PyQt6
         "<use> element image0 in wrong context!",
-    ]
-    # Some messages embed variable content (e.g. geometry values), so they
-    # can't be matched exactly; match a stable substring instead.
-    BLACKLIST_PATTERNS = [
         # On Windows, showing the (large/maximized) main window can emit this.
-        # It's harmless, but because it's printed to stdout it can appear
-        # inline with pytest's result line on CI and split the test node id
-        # from its PASSED marker, breaking passed-test detection on restarts.
+        # It's harmless, but because it's printed to stdout it can appear inline
+        # with pytest's result line on CI and split the test node id from its
+        # PASSED marker, breaking passed-test detection on restarts. It embeds
+        # variable geometry values, hence the substring matching below.
         "QWindowsWindow::setGeometry: Unable to set geometry",
     ]
-    if msg_string not in BLACKLIST and not any(
-        pattern in msg_string for pattern in BLACKLIST_PATTERNS
-    ):
+    if not any(warning in msg_string for warning in BLACKLIST):
         print(msg_string)  # spyder: test-skip
 
 

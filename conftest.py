@@ -16,6 +16,7 @@ import os
 import os.path as osp
 import re
 import sys
+from unittest.mock import patch
 
 # ---- To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
@@ -25,12 +26,13 @@ os.environ['SPYDER_PYTEST'] = 'True'
 # ---- Tests to skip on the first CI run
 SKIP_ON_FIRST_CI_RUN = ["test_mainwindow.py::test_update_outline"]
 
-# ---- File where we record tests that passed, so a CI restart (e.g. after a
-# segfault) can skip them. This is written directly by a pytest hook (see
-# pytest_runtest_logreport), which is robust to output getting printed inline
-# with a test's result line -- unlike parsing the textual log, where e.g. a Qt
-# warning on Windows can split the node id from its PASSED marker and prevent
-# the test from ever being recorded (so it re-runs, and may re-flake, forever).
+# ---- Main file where we record tests that passed
+# This way a CI restart (e.g. after a segfault) can skip them. This is written
+# directly by a pytest hook (see pytest_runtest_logreport), which is robust to
+# output getting printed inline with a test's result line -- unlike parsing
+# the textual log, where e.g. a Qt warning on Windows can split the node id
+# from its PASSED marker and prevent the test from ever being recorded
+# (so it re-runs, and may re-flake, forever).
 PASSED_TESTS_FILE = "passed_tests.txt"
 
 
@@ -40,7 +42,7 @@ import pytest
 
 def pytest_addoption(parser):
     """Add extra options for pytest.
-    
+
     --run-slow: Run slow tests.
     --remote-client: Run remote-client tests.
     """
@@ -57,13 +59,13 @@ def get_passed_tests():
     This is useful on CIs to restart the test suite from the point where a
     segfault was thrown by it.
     """
-    tests = set()
+    tests = []
 
     # Primary source: tests recorded directly by the pytest_runtest_logreport
     # hook. Robust to inline output corrupting the textual result line.
     if osp.isfile(PASSED_TESTS_FILE):
         with open(PASSED_TESTS_FILE) as f:
-            tests.update(line.strip() for line in f if line.strip())
+            tests.extend(line.strip() for line in f if line.strip())
 
     # Fallback source: parse the textual pytest log. Kept for robustness (and
     # to honor the SKIP_ON_FIRST_CI_RUN special-casing below).
@@ -94,18 +96,18 @@ def get_passed_tests():
                     if "PASSED" in line or "XFAIL" in line:
                         with open(passed_first_run, "w+") as f:
                             f.write(match.group(1))
-                            tests.add(match.group(1))
+                            tests.append(match.group(1))
                             continue
                     else:
                         if osp.isfile(passed_first_run):
                             with open(passed_first_run) as f:
                                 passed_first_run_contents = f.readlines()
                             if match.group(1) in passed_first_run_contents:
-                                tests.add(match.group(1))
+                                tests.append(match.group(1))
                             else:
                                 continue
                 else:
-                    tests.add(match.group(1))
+                    tests.append(match.group(1))
 
     return tests
 
@@ -227,7 +229,6 @@ def mute_error_message_box(request):
         yield
         return
 
-    from unittest.mock import patch
     from qtpy.QtWidgets import QMessageBox
 
     with patch.object(

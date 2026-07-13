@@ -1101,7 +1101,8 @@ def test_debug_and_backend_external_kernel(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(
         lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
-        timeout=SHELL_TIMEOUT)
+        timeout=SHELL_TIMEOUT
+    )
 
     # Try enabling a qt backend and debugging
     if os.name != 'nt':
