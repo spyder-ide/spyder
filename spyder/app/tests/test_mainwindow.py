@@ -1078,19 +1078,16 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
 
-    # Try enabling a qt backend and debugging.
-    # Note: these use SHELL_TIMEOUT (instead of the default 5s) because
-    # entering/stepping the debugger on an external kernel can be slow on
-    # loaded CI runners, which made this section flaky.
+    # Try enabling a qt backend and debugging
     if os.name != 'nt':
         # Fails on windows
-        with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+        with qtbot.waitSignal(shell.executed):
             shell.execute('%matplotlib qt5')
-    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+    with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
-    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+    with qtbot.waitSignal(shell.executed):
         shell.execute('1 + 1')
-    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+    with qtbot.waitSignal(shell.executed):
         shell.execute('q')
 
     # Try quitting the kernels
