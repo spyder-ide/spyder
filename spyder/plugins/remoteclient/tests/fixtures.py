@@ -31,6 +31,12 @@ __all__ = [
 USERNAME = "ubuntu"
 PASSWORD = USERNAME
 
+# Max seconds to wait when closing a remote client during fixture teardown.
+# Closing is normally sub-second; a broken connection can otherwise block the
+# close forever and hang the whole test run. On timeout the close raises,
+# failing the teardown, which the CI retry recovers from.
+_CLOSE_TIMEOUT = 30
+
 _COMPOSE_FILE = str(Path(__file__).resolve().parent / "docker-compose.yml")
 _COMPOSE_PROJECT_NAME = "spyder-remote-client-tests"
 
@@ -191,6 +197,7 @@ def ssh_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
+            timeout=_CLOSE_TIMEOUT,
         )(remote_client._remote_clients[config_id].close)()
 
 
@@ -220,6 +227,7 @@ def jupyterhub_client_id(
         AsyncDispatcher(
             loop="asyncssh",
             early_return=False,
+            timeout=_CLOSE_TIMEOUT,
         )(remote_client._remote_clients[config_id].close)()
 
 
