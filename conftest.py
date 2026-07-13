@@ -160,6 +160,35 @@ def pytest_collection_modifyitems(config, items):
     concurrent.futures.ThreadPoolExecutor().map(mark_item, items)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def mute_error_message_box(request):
+    """
+    Prevent modal error dialogs from freezing headless remote-client tests.
+
+    When a remote session drops, the remote explorer's error handler shows a
+    modal ``QMessageBox.critical()``. With no user to dismiss it, that call
+    blocks the Qt event loop forever, hanging the whole test run until the CI
+    job times out (30 min). Turn it into a no-op for the remote-client test
+    session (it can fire from async callbacks at any point, including during
+    fixture setup/teardown, so this is session-scoped).
+
+    Only ``critical`` (the error dialog) is muted; ``warning``/``question`` are
+    used and asserted on by some tests, so they are left untouched.
+    """
+    if not request.config.getoption("--remote-client"):
+        yield
+        return
+
+    from unittest.mock import patch
+    from qtpy.QtWidgets import QMessageBox
+
+    with patch.object(
+        QMessageBox, "critical",
+        return_value=QMessageBox.StandardButton.Ok,
+    ):
+        yield
+
+
 @pytest.fixture(autouse=True)
 def reset_conf_before_test(request):
     # To prevent running this fixture for a specific test, you need to use this
