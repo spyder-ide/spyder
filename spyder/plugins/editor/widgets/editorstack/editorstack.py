@@ -38,7 +38,6 @@ from spyder.api.plugins import Plugins
 from spyder.api.translations import _
 from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import running_under_pytest
-from spyder.config.gui import is_dark_interface
 from spyder.config.utils import (
     get_edit_filetypes, get_edit_filters, get_filter, is_kde_desktop
 )
@@ -58,7 +57,7 @@ from spyder.plugins.explorer.widgets.utils import fixpath
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.plugins.switcher.api import SwitcherActions
-from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils import encoding, sourcecode
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import mimedata2url, create_waitspinner
@@ -386,11 +385,12 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             'column_cursor': 'Ctrl+Alt+Shift'
         }
 
-        # Set default color scheme
-        color_scheme = 'spyder/dark' if is_dark_interface() else 'spyder'
-        if color_scheme not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            color_scheme = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
-        self.color_scheme = color_scheme
+        # Get color scheme from config
+        self.color_scheme = self.get_conf(
+            "selected",
+            default="spyder_themes.spyder/dark",
+            section="appearance",
+        )
 
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
@@ -820,14 +820,6 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     @on_conf_change(section='help', option='connect/editor')
     def on_help_connection_change(self, value):
         self.set_help_enabled(value)
-
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def on_color_scheme_change(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        logger.debug(f"Set color scheme to {value}")
-        self.set_color_scheme(value)
 
     def set_closable(self, state):
         """Parent widget must handle the closable state"""

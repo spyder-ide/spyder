@@ -128,7 +128,7 @@ def codeeditor_factory():
                         markers=True,
                         close_quotes=True,
                         close_parentheses=True,
-                        color_scheme='spyder/dark',
+                        color_scheme='spyder_themes.spyder/dark',
                         font=QFont("Monospace", 10),
                         automatic_completions=True,
                         automatic_completions_after_chars=1,
@@ -244,7 +244,8 @@ def codeeditor(qtbot):
                         markers=True,
                         tab_mode=False,
                         font=QFont("Courier New", 10),
-                        show_blanks=True, color_scheme='spyder/dark',
+                        show_blanks=True,
+                        color_scheme='spyder_themes.spyder/dark',
                         scroll_past_end=True)
     widget.setup_editor(language='Python')
     widget.resize(640, 480)

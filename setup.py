@@ -39,8 +39,8 @@ from setuptools.command.install import install
 # Taken from the notebook setup.py -- Modified BSD License
 # =============================================================================
 v = sys.version_info
-if v[:2] < (3, 9):
-    error = "ERROR: Spyder requires Python version 3.9 and above."
+if v[:2] < (3, 11):
+    error = "ERROR: Spyder requires Python version 3.11 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -220,18 +220,17 @@ setup_args = dict(
     package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST)},
     scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
     data_files=get_data_files(),
-    python_requires='>=3.9',
+    python_requires='>=3.11',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -275,12 +274,8 @@ install_requires += [
     'cloudpickle>=0.5.0',
     'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
-    # While this is only required for python <3.10, it is safe enough to
-    # install in all cases and helps the tests to pass.
-    'importlib-metadata>=4.6.0',
     'intervaltree>=3.0.2',
-    # Note that on IPython 9.0.0 Python 3.10 support was dropped
-    'ipython>=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0',
+    'ipython>=9.15.0,<10.0.0',
     'ipython_pygments_lexers>=1.0',
     'jedi>=0.17.2,<0.20.0',
     'jellyfish>=0.7',
@@ -291,6 +286,7 @@ install_requires += [
     'markdown-it-py>=3.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
+    'openpyxl>=3.0.0',
     'packaging>=20.0',
     'parso>=0.7.0,<0.9.0',
     'pickleshare>=0.4',
@@ -307,13 +303,13 @@ install_requires += [
     'pyuca>=1.2',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=24.0.0',
-    'qdarkstyle>=3.2.0,<3.3.0',
     'qstylizer>=0.2.2',
     'qtawesome>=1.4.1,<1.5.0',
     'qtpy>=2.4.0',
     'rtree>=0.9.7',
     'sphinx>=7.2.0',
-    'spyder-kernels>=3.1.0b1,<3.2.0a2',
+    'spyder-kernels>=3.2.0a1,<3.2.0a2',
+    'spyder-themes>=1.0.5,<2.0.0',
     'superqt>=0.6.2,<1.0.0',
     'textdistance>=4.2.0',
     'three-merge>=0.1.1',

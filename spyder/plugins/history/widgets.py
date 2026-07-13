@@ -149,14 +149,6 @@ class HistoryWidget(PluginMainWidget):
         for editor in self.editors:
             editor.toggle_line_numbers(value)
 
-    @on_conf_change(section='appearance', option=['selected', 'ui_theme'])
-    def on_color_scheme_change(self, option, value):
-        if option == 'ui_theme':
-            value = self.get_conf('selected', section='appearance')
-
-        for editor in self.editors:
-            editor.set_color_scheme(value)
-
     # --- Public API
     # ------------------------------------------------------------------------
     def update_font(self, font, color_scheme):

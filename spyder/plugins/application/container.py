@@ -66,7 +66,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 DONATIONS_URL = "https://www.spyder-ide.org/donate"
 CHANGELOG_URL = (
     "https://github.com/spyder-ide/spyder/blob/6.x/changelogs/"
-    "Spyder-6.md#version-614-2026-04-06"
+    "Spyder-6.md#version-620a1-2026-07-09"
 )
 
 

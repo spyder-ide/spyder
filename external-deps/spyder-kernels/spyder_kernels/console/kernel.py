@@ -27,7 +27,6 @@ import cloudpickle
 from ipykernel.ipkernel import IPythonKernel
 from ipykernel import get_connection_info
 from IPython.core import release as ipython_release
-from packaging.version import parse as parse_version
 from traitlets.config.loader import Config, LazyConfigValue
 import zmq
 from zmq.utils.garbage import gc
@@ -50,7 +49,7 @@ from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.mpl import automatic_backend, MPL_BACKENDS_TO_SPYDER
 from spyder_kernels.utils.nsview import (
     get_remote_data, make_remote_view, get_size)
-from spyder_kernels.utils.style import create_pygments_dict, create_style_class
+from spyder_kernels.utils.style import create_pygments_dict
 from spyder_kernels.console.shell import SpyderShell
 from spyder_kernels.comms.utils import WriteContext
 
@@ -669,12 +668,7 @@ class SpyderKernel(IPythonKernel):
             elif key == "color scheme":
                 self.set_color_scheme(value)
             elif key == "traceback_highlight_style":
-                # This doesn't work in Python 3.8 because the last IPython
-                # version compatible with it doesn't allow to customize the
-                # syntax highlighting scheme used for tracebacks.
-                # Fixes spyder-ide/spyder#23484
-                if sys.version_info >= (3, 9):
-                    self.set_traceback_syntax_highlighting(value)
+                self.set_traceback_syntax_highlighting(value)
             elif key == "jedi_completer":
                 self.set_jedi_completer(value)
             elif key == "greedy_completer":
@@ -709,37 +703,24 @@ class SpyderKernel(IPythonKernel):
 
     def set_traceback_syntax_highlighting(self, syntax_style):
         """Set the traceback syntax highlighting style."""
-        if parse_version(ipython_release.version) >= parse_version("9.0"):
-            # Create spyder theme definition and set it (IPython 9.x+)
-            import IPython.utils.PyColorize
-            from IPython.utils.PyColorize import (
-                Theme,
-                linux_theme,
-                neutral_theme,
-            )
+        # Create spyder theme definition and set it
+        import IPython.utils.PyColorize
+        from IPython.utils.PyColorize import (
+            Theme,
+            linux_theme,
+            neutral_theme,
+        )
 
-            base = "default"
-            extra_style = neutral_theme.extra_style
-            if self.shell.get_spyder_theme() == "dark":
-                base = "monokai"
-                extra_style = linux_theme.extra_style
+        base = "default"
+        extra_style = neutral_theme.extra_style
+        if self.shell.get_spyder_theme() == "dark":
+            base = "monokai"
+            extra_style = linux_theme.extra_style
 
-            extra_style.update(create_pygments_dict(syntax_style))
-            theme = Theme("spyder_theme", base, extra_style)
-            IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
-            self.shell.run_line_magic("colors", "spyder_theme")
-        else:
-            # Use `tb_highlight_style` class attribute to set the style (
-            # IPython 8.x)
-            import IPython.core.ultratb
-            from IPython.core.ultratb import VerboseTB
-
-            IPython.core.ultratb.get_style_by_name = create_style_class
-
-            if getattr(VerboseTB, "tb_highlight_style", None) is not None:
-                VerboseTB.tb_highlight_style = syntax_style
-            elif getattr(VerboseTB, "_tb_highlight_style", None) is not None:
-                VerboseTB._tb_highlight_style = syntax_style
+        extra_style.update(create_pygments_dict(syntax_style))
+        theme = Theme("spyder_theme", base, extra_style)
+        IPython.utils.PyColorize.theme_table["spyder_theme"] = theme
+        self.shell.run_line_magic("colors", "spyder_theme")
 
     def get_cwd(self):
         """Get current working directory."""

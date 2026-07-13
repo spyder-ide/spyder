@@ -27,15 +27,13 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.translations import _
-from spyder.config.manager import CONF
 from spyder.plugins.editor.utils.languages import CELL_LANGUAGES
 from spyder.plugins.editor.utils.editor import TextBlockHelper as tbh
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qstringhelpers import qstring_length
-
+from spyder.utils.theme_manager import THEME_MANAGER
 
 
 # =============================================================================
@@ -52,50 +50,6 @@ DEFAULT_PATTERNS = {
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
 }
-
-COLOR_SCHEME_KEYS = {
-    "background":     _("Background:"),
-    "currentline":    _("Current line:"),
-    "currentcell":    _("Current cell:"),
-    "occurrence":     _("Occurrence:"),
-    "ctrlclick":      _("Link:"),
-    "sideareas":      _("Side areas:"),
-    "matched_p":      _("Matched <br>parens:"),
-    "unmatched_p":    _("Unmatched <br>parens:"),
-    "normal":         _("Normal text:"),
-    "keyword":        _("Keyword:"),
-    "builtin":        _("Builtin:"),
-    "definition":     _("Definition:"),
-    "comment":        _("Comment:"),
-    "string":         _("String:"),
-    "number":         _("Number:"),
-    "instance":       _("Instance:"),
-    "magic":          _("Magic:"),
-    "symbols":        _("Symbols:"),
-}
-
-COLOR_SCHEME_DEFAULT_VALUES = {
-    "background":  "#19232D",
-    "currentline": "#3a424a",
-    "currentcell": "#292d3e",
-    "occurrence":  "#1A72BB",
-    "ctrlclick":   "#179ae0",
-    "sideareas":   "#222b35",
-    "matched_p":   "#0bbe0b",
-    "unmatched_p": "#ff4340",
-    "normal":     ("#ffffff", False, False),
-    "keyword":    ("#c670e0", False, False),
-    "builtin":    ("#fab16c", False, False),
-    "definition": ("#57d6e4", True, False),
-    "comment":    ("#999999", False, False),
-    "string":     ("#b0e686", False, True),
-    "number":     ("#faed5c", False, False),
-    "instance":   ("#ee6772", False, True),
-    "magic":      ("#c670e0", False, False),
-    "symbols":    ("#ff0000", False, False),
-}
-
-COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
@@ -131,18 +85,6 @@ def get_span(match, key=None):
     start16 = qstring_length(match.string[:start])
     end16 = start16 + qstring_length(match.string[start:end])
     return start16, end16
-
-
-def get_color_scheme(name):
-    """Get a color scheme from config using its name"""
-    name = name.lower()
-    scheme = {}
-    for key in COLOR_SCHEME_KEYS:
-        try:
-            scheme[key] = CONF.get('appearance', name+'/'+key)
-        except:
-            scheme[key] = CONF.get('appearance', 'spyder/'+key)
-    return scheme
 
 
 def any(name, alternates):
@@ -197,7 +139,7 @@ class BaseSH(QSyntaxHighlighter):
 
         self.font = font
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -299,7 +241,7 @@ class BaseSH(QSyntaxHighlighter):
 
     def set_color_scheme(self, color_scheme):
         if isinstance(color_scheme, str):
-            self.color_scheme = get_color_scheme(color_scheme)
+            self.color_scheme = THEME_MANAGER.get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
 
@@ -367,7 +309,7 @@ class BaseSH(QSyntaxHighlighter):
         This only has an effect when 'Show blank space' is turned on.
         """
         flags_text = self.document().defaultTextOption().flags()
-        show_blanks =  flags_text & QTextOption.ShowTabsAndSpaces
+        show_blanks = flags_text & QTextOption.ShowTabsAndSpaces
         if show_blanks:
             format_leading = self.formats.get("leading", None)
             format_trailing = self.formats.get("trailing", None)
@@ -459,8 +401,8 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
                                 r"\bcls\b",
                                 (r"^\s*@([a-zA-Z_][a-zA-Z0-9_]*)"
                                      r"(\.[a-zA-Z_][a-zA-Z0-9_]*)*")])
-    match_kw = r"\s*(?P<match_kw>match)(?=\s+.+:)"
-    case_kw = r"\s+(?P<case_kw>case)(?=\s+.+:)"
+    match_kw = r"(?<!\w)(?P<match_kw>match)(?!\w)(?=\s+.+:)"
+    case_kw = r"(?<!\w)(?P<case_kw>case)(?!\w)(?=\s+.+:)"
 
     prefix = "r|u|R|U|f|F|fr|Fr|fR|FR|rf|rF|Rf|RF|b|B|br|Br|bR|BR|rb|rB|Rb|RB"
     sqstring =     r"(\b(%s))?'[^'\\\n]*(\\.[^'\\\n]*)*'?" % prefix
@@ -502,10 +444,10 @@ def make_python_patterns(additional_keywords=None, additional_builtins=None):
     ufstring4 = any("uf_dq3string", [uf_dq3string])
     ufstring5 = any("ufe_sqstring", [ufe_sqstring])
     ufstring6 = any("ufe_dqstring", [ufe_dqstring])
-    symbols = r"(?P<symbols>[()\[\]{}:=<>.,%+\-*/&|~;!])"
+    symbol_pat = r"(?P<symbol>[()\[\]{}:=<>.,%+\-*/&|~;!])"
     return "|".join([instance, kw, builtin, comment, match_kw, case_kw,
                      ufstring1, ufstring2, ufstring3, ufstring4, ufstring5,
-                     ufstring6, string, number, symbols, any("SYNC", [r"\n"])])
+                     ufstring6, string, number, symbol_pat, any("SYNC", [r"\n"])])
 
 
 def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
@@ -878,6 +820,7 @@ class CppSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     INSIDE_COMMENT = 1
+
     def __init__(self, parent, font=None, color_scheme=None):
         BaseSH.__init__(self, parent, font, color_scheme)
 
@@ -1019,7 +962,7 @@ def make_idl_patterns():
     number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-		  r"\b\.[0-9]d0|\.d0+[lL]?\b",
+                  r"\b\.[0-9]d0|\.d0+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'

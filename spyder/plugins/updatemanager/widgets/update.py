@@ -34,7 +34,6 @@ from spyder.api.config.mixins import SpyderConfigurationAccessor
 from spyder.api.fonts import SpyderFontsMixin, SpyderFontType
 from spyder.api.translations import _
 from spyder.config.base import is_conda_based_app, is_installed_all_users
-from spyder.config.gui import is_dark_interface
 from spyder.plugins.updatemanager.workers import (
     UpdateType,
     validate_download,
@@ -50,6 +49,7 @@ from spyder.utils.programs import (
     is_program_installed,
     find_program
 )
+from spyder.utils.theme_manager import THEME_MANAGER
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 # Logger setup
@@ -650,7 +650,10 @@ class UpdateManagerWidget(QWidget, SpyderConfigurationAccessor):
             "monospace_font_size": int(
                 self.get_conf("monospace_app_font/size", section="appearance")
             ),
-            "interface_theme": "dark" if is_dark_interface() else "light",
+            "interface_theme": (
+                # FIXME
+                "dark" if THEME_MANAGER.is_dark_interface() else "light"
+            ),
             "icon_color": SpyderPalette.ICON_1,
         }
 

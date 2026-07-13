@@ -39,9 +39,8 @@ CHARDET_REQVER = '>=5.2.0,<8.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-IMPORTLIB_METADATA_REQVER = '>=4.6.0'
 INTERVALTREE_REQVER = '>=3.0.2'
-IPYTHON_REQVER = ">=8.15.0,<10.0.0,!=8.17.1,!=9.1.0,!=9.2.0,!=9.3.0,!=9.4.0"
+IPYTHON_REQVER = ">=9.15.0,<10.0.0"
 IPYTHON_PYGMENTS_LEXERS_REQVER = ">=1.0"
 JEDI_REQVER = '>=0.17.2,<0.20.0'
 JELLYFISH_REQVER = '>=0.7'
@@ -52,6 +51,7 @@ LXML_REQVER = ">=4.9.0"
 MARKDOWN_IT_REQVER = ">=3.0.0"
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
+OPENPYXL_REQVER = '>=3.0.0'
 PACKAGING_REQVER = '>=20.0'
 PARSO_REQVER = '>=0.7.0,<0.9.0'
 PICKLESHARE_REQVER = '>=0.4'
@@ -68,14 +68,14 @@ PYLS_SPYDER_REQVER = '>=0.4.0'
 PYUCA_REQVER = '>=1.2'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=24.0.0'
-QDARKSTYLE_REQVER = '>=3.2.0,<3.3.0'
 QSTYLIZER_REQVER = '>=0.2.2'
 QTAWESOME_REQVER = '>=1.4.1,<1.5.0'
 QTCONSOLE_REQVER = '>=5.7.2,<5.8.0'
 QTPY_REQVER = '>=2.4.0'
 RTREE_REQVER = '>=0.9.7'
 SPHINX_REQVER = '>=7.2.0'
-SPYDER_KERNELS_REQVER = '>=3.1.0b1,<3.2.0a2'
+SPYDER_KERNELS_REQVER = '>=3.2.0a1,<3.2.0a2'
+SPYDER_THEMES_REQVER = '>=1.0.5,<2.0.0'
 SUPERQT_REQVER = '>=0.6.2,<1.0.0'
 TEXTDISTANCE_REQVER = '>=4.2.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -132,10 +132,6 @@ DESCRIPTIONS = [
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': 'importlib_metadata',
-     'package_name': 'importlib-metadata',
-     'features': _('Access the metadata for a Python package'),
-     'required_version': IMPORTLIB_METADATA_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
@@ -185,6 +181,10 @@ DESCRIPTIONS = [
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
+    {'modname': "openpyxl",
+     'package_name': "openpyxl",
+     'features': _("Export DataFrames to Excel files in the Variable Explorer"),
+     'required_version': OPENPYXL_REQVER},
     {'modname': "packaging",
      'package_name': "packaging",
      'features': _("Compare version numbers of Python packages"),
@@ -253,10 +253,6 @@ DESCRIPTIONS = [
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
      'required_version': PYZMQ_REQVER},
-    {'modname': "qdarkstyle",
-     'package_name': "qdarkstyle",
-     'features': _("Dark style for the entire interface"),
-     'required_version': QDARKSTYLE_REQVER},
     {'modname': "qstylizer",
      'package_name': "qstylizer",
      'features': _("Customize Qt stylesheets"),
@@ -285,6 +281,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "spyder_themes",
+     'package_name': "spyder-themes",
+     'features': _("Graphical themes for the entire application"),
+     'required_version': SPYDER_THEMES_REQVER},
      {'modname': "superqt",
      'package_name': "superqt",
      'features': _("Special widgets and utilities for PyQt applications"),

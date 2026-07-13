@@ -157,9 +157,7 @@ class ShellConnectStatusBarWidget(StatusBarWidget, ShellConnectMixin):
             functools.partial(self.config_spyder_kernel, shellwidget)
         )
         shellwidget.sig_kernel_is_ready.connect(
-            # We can't use functools.partial here because it gives memory leaks
-            # in Python versions older than 3.10
-            lambda sw=shellwidget: self.on_kernel_start(sw)
+            functools.partial(self.on_kernel_start, shellwidget)
         )
 
         self.shellwidget_to_status[shellwidget] = None
