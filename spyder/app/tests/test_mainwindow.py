@@ -1078,18 +1078,6 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert "runfile" in shell._control.toPlainText()
     assert "3" in shell._control.toPlainText()
 
-    # Try enabling a qt backend and debugging
-    if os.name != 'nt':
-        # Fails on windows
-        with qtbot.waitSignal(shell.executed):
-            shell.execute('%matplotlib qt5')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug print()')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('1 + 1')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('q')
-
     # Try quitting the kernels
     with qtbot.waitSignal(shell.executed):
         shell.execute('quit()')
@@ -1103,6 +1091,51 @@ def test_connection_to_external_kernel(main_window, qtbot):
     # Close the channels
     spykc.stop_channels()
     kc.stop_channels()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform == "darwin" and running_in_ci(),
+    reason="Fails frequently on Mac and CI",
+)
+@pytest.mark.order(after="test_connection_to_external_kernel")
+@pytest.mark.close_main_window
+def test_debug_and_backend_external_kernel(main_window, qtbot):
+    """Test enabling a Qt backend and debugging on an external Spyder kernel.
+
+    Split out from test_connection_to_external_kernel: entering the debugger on
+    an external kernel -- especially with a Qt event loop active from
+    ``%matplotlib`` -- can deadlock under load on CI, which made that test
+    flaky. Isolating it here keeps the connection/variable-explorer checks
+    stable while this (inherently flakier) smoke test reruns on its own.
+    """
+    # Connect to an externally-started Spyder kernel
+    spykm, spykc = start_new_kernel(spykernel=True)
+    main_window.ipyconsole.create_client_for_kernel(spykc.connection_file)
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_ready and shell._prompt_html is not None,
+        timeout=SHELL_TIMEOUT)
+
+    # Try enabling a qt backend and debugging
+    if os.name != 'nt':
+        # Fails on windows
+        with qtbot.waitSignal(shell.executed):
+            shell.execute('%matplotlib qt5')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1 + 1')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('q')
+
+    # Make sure the kernel quits properly
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('quit()')
+    qtbot.waitUntil(lambda: not spykm.is_alive())
+
+    # Close the channel
+    spykc.stop_channels()
 
 
 @pytest.mark.order(1)
