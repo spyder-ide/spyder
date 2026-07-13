@@ -56,7 +56,15 @@ def get_passed_tests():
             logfile = f.readlines()
 
         # Detect all tests that passed before.
-        test_re = re.compile(r'(spyder.*) [^ ]*(SKIPPED|PASSED|XFAIL)')
+        # Note: capture only the test node id (path::class::test[params]), not
+        # a greedy `.*`. Otherwise output printed inline with the result -- e.g.
+        # a Qt warning on Windows like "... test_x QWindowsWindow::setGeometry:
+        # ... PASSED" -- gets folded into group(1), which then never matches the
+        # clean node id, so the test is never recorded as passed and is re-run
+        # (and possibly re-flakes) on every CI restart.
+        test_re = re.compile(
+            r'(spyder\S*\.py(?:::\w+)*(?:\[.*?\])?) .*(SKIPPED|PASSED|XFAIL)'
+        )
         tests = set()
         for line in logfile:
             match = test_re.match(line)
