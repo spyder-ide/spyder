@@ -6215,6 +6215,9 @@ def test_out_runfile_runcell(main_window, qtbot):
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Does not work on Mac and Windows")
+@pytest.mark.skipif(
+    running_in_ci_with_conda(), reason="Fails with Conda packages"
+)
 @pytest.mark.parametrize("thread", [False, True])
 @pytest.mark.order(after="test_debug_unsaved_function")
 def test_print_frames(main_window, qtbot, tmpdir, thread):
