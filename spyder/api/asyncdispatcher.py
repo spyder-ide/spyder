@@ -265,6 +265,7 @@ class AsyncDispatcher(typing.Generic[_RT]):
                 AsyncDispatcher._running_tasks.append(task)
                 task.add_done_callback(self._callback_task_done)
                 return task
+
             # ``self._timeout`` is None by default, i.e. block indefinitely
             # (the historical behavior). Callers that can't afford to hang
             # forever (e.g. test fixtures closing a possibly-dead remote
