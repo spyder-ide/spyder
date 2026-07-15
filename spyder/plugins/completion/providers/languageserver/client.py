@@ -124,6 +124,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
 
         self.server_host = server_settings['host']
         self.configurations = server_settings.get('configurations', {})
+        self.initialization_options = server_settings.get(
+            'initialization_options', self.configurations
+        )
 
         if not server_settings['external']:
             self.server_port = select_port(
@@ -349,6 +352,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                     ).as_uri(),
                     capabilities=self.client_capabilites,
                     trace=TRACE,
+                    initialization_options=self.initialization_options,
                 ),
             )
         )
@@ -658,5 +662,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn, SpyderConfigurationAccessor):
                 rename=lsp.RenameClientCapabilities(
                     dynamic_registration=True,
                 ),
+            ),
+
+            general=lsp.GeneralClientCapabilities(
+                position_encodings=[
+                    lsp.PositionEncodingKind.Utf16,
+                ],
             ),
         )

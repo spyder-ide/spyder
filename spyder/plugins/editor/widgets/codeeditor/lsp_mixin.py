@@ -9,13 +9,14 @@ Editor mixin and utils to manage connection with the LSP
 """
 
 # Standard library imports
+from __future__ import annotations
 import functools
 import logging
 import random
 import re
+import typing as typ
 
 # Third party imports
-from diff_match_patch import diff_match_patch
 from lsprotocol import types as lsp
 from qtpy.QtCore import (
     QEventLoop,
@@ -46,6 +47,8 @@ from spyder.plugins.editor.panels.utils import (
 from spyder.plugins.editor.utils.editor import BlockUserData
 from spyder.utils import sourcecode
 
+if typ.TYPE_CHECKING:
+    from spyder.plugins.editor.widgets.codeeditor.stack_mixin import EditBlock, TextDelta
 
 logger = logging.getLogger(__name__)
 
@@ -53,25 +56,34 @@ logger = logging.getLogger(__name__)
 NOQA_INLINE_REGEXP = re.compile(r"#?noqa", re.IGNORECASE)
 
 
-def schedule_request(req=None, method=None, requires_response=True):
+def schedule_request(
+    req=None, method=None, requires_response=True, cancel_previous=False
+):
     """Call function req and then emit its results to the completion server."""
     if req is None:
         return functools.partial(
             schedule_request,
             method=method,
             requires_response=requires_response,
+            cancel_previous=cancel_previous,
         )
 
     @functools.wraps(req)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, _cancel_previous=False, **kwargs):
         params = req(self, *args, **kwargs)
+        if _cancel_previous or cancel_previous:
+            pending_reqeusts = self._pending_server_requests
+            index = next(
+                (i for i, item in enumerate(pending_reqeusts) if item[0] == method),
+                None,
+            )
+            if index is not None:
+                self._pending_server_requests = (
+                    pending_reqeusts[:index] + pending_reqeusts[index + 1 :]
+                )
+
         if params is not None and self.completions_available:
-            self._pending_server_requests.append(
-                (method, params, requires_response)
-            )
-            self._server_requests_timer.setInterval(
-                self.LSP_REQUESTS_SHORT_DELAY
-            )
+            self._pending_server_requests.append((method, params, requires_response))
             self._server_requests_timer.start()
 
     return wrapper
@@ -95,8 +107,7 @@ class LSPMixin:
     }
 
     # Timeout (in milliseconds) to send pending requests to LSP server
-    LSP_REQUESTS_SHORT_DELAY = 50
-    LSP_REQUESTS_LONG_DELAY = 300
+    LSP_REQUESTS_DELAY = 50
 
     # -- LSP signals
     #: Signal emitted when an LSP request is sent to the LSP manager
@@ -143,9 +154,12 @@ class LSPMixin:
         self._pending_server_requests = []
         self._server_requests_timer = QTimer(self)
         self._server_requests_timer.setSingleShot(True)
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_SHORT_DELAY)
+        self._server_requests_timer.setInterval(self.LSP_REQUESTS_DELAY)
         self._server_requests_timer.timeout.connect(
             self._process_server_requests)
+
+        self.sig_document_change.connect(self._handle_document_change)
+        self.new_text_set.connect(self._handle_new_text_set)
 
         # Code Folding
         self.code_folding = True
@@ -169,19 +183,16 @@ class LSPMixin:
             self.finish_code_analysis)
         self._diagnostics = []
 
-        # Text diffs across versions
-        self.differ = diff_match_patch()
-        self.previous_text = ''
-        self.patch = []
         self.leading_whitespaces = {}
 
         # Other attributes
         self.filename = None
+        self.file_uri = None
+        self.position_encoding = lsp.PositionEncodingKind.Utf16
         self.completions_available = False
-        self.text_version = 0
         self.save_include_text = True
         self.open_close_notifications = True
-        self.sync_mode = lsp.TextDocumentSyncKind.Full
+        self.sync_mode = lsp.TextDocumentSyncKind.Incremental
         self.will_save_notify = False
         self.will_save_until_notify = False
         self.enable_hover = False
@@ -201,26 +212,56 @@ class LSPMixin:
         self.is_cloned = False
         self.operation_in_progress = False
         self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
+        self.symbols_sync_version = 0
+        self.folding_sync_version = 0
         self.pyflakes_linting_enabled = True
+
+        self._text_version = 0
+
+    @property
+    def text_version(self):
+        """Return the current text version."""
+        return self._text_version
 
     # ---- Helper private methods
     # -------------------------------------------------------------------------
     def _process_server_requests(self):
         """Process server requests."""
-        # Check if the document needs to be updated
-        if self._document_server_needs_update:
-            self.document_did_change()
-            self.do_automatic_completions()
-            self._document_server_needs_update = False
-
         # Send pending requests
         for method, params, requires_response in self._pending_server_requests:
             self.emit_request(method, params, requires_response)
 
         # Clear pending requests
         self._pending_server_requests = []
+
+    def _get_edit_range(self, delta: TextDelta) -> lsp.Range:
+        """Get the range of text removed in a text change."""
+        start = lsp.Position(line=delta.line, character=delta.col)
+
+        if not delta.removed_text:
+            return lsp.Range(start=start, end=start)
+
+        return lsp.Range(start=start, end=lsp.Position(*delta.get_end_line_col()))
+
+    def _handle_document_change(self, edit: EditBlock):
+        """Handle document change."""
+        self._text_version += 1
+        if self.sync_mode == lsp.TextDocumentSyncKind.Incremental:
+            self.document_did_change(edit)
+        else:
+            self.document_did_change(_cancel_previous=True)
+        self.do_automatic_completions()
+
+    def _handle_new_text_set(self):
+        """Handle full document replacement.
+
+        Notifies the LSP server with the full document text so its view stays
+        in sync after a programmatic text replacement that bypasses the normal
+        incremental-edit path.
+        """
+        self._text_version += 1
+        self.document_did_change(_cancel_previous=True)
+        self.do_automatic_completions()
 
     # ---- Basic methods
     # -------------------------------------------------------------------------
@@ -286,6 +327,14 @@ class LSPMixin:
         will_save_wait_until = False
         save_include_text = False
 
+        if (
+            capabilities.position_encoding is not None
+            and capabilities.position_encoding != self.position_encoding
+        ):
+            raise LSPHandleError(
+                f"Unsupported position encoding: {capabilities.position_encoding}"
+            )
+
         if isinstance(tds, lsp.TextDocumentSyncOptions):
             open_close = tds.open_close or False
             sync_kind = tds.change or lsp.TextDocumentSyncKind.None_
@@ -298,7 +347,8 @@ class LSPMixin:
             sync_kind = tds
 
         self.open_close_notifications = open_close
-        self.sync_mode = sync_kind
+        if sync_kind != lsp.TextDocumentSyncKind.None_:
+            self.sync_mode = sync_kind
         self.will_save_notify = will_save
         self.will_save_until_notify = will_save_wait_until
         self.save_include_text = save_include_text
@@ -376,6 +426,8 @@ class LSPMixin:
 
         cursor = self.textCursor()
         text = self.get_text_with_eol()
+        # TODO: LSP now supports IPython, update this workaround when
+        #       using a language server that also supports it.
         if self.is_ipython():
             # Send valid python text to LSP as it doesn't support IPython
             text = self.ipython_to_python(text)
@@ -393,19 +445,25 @@ class LSPMixin:
 
     # ---- Symbols
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL, cancel_previous=True)
     def request_symbols(self):
         """Request document symbols."""
         if not self.document_symbols_enabled:
             return
+        # ensure document is up to date before requesting symbols
+        self._commit_pending_edit()
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {"file": self.filename}
+        self.symbols_sync_version = self.text_version
         return params
 
     @handles(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
+        if self.text_version > self.symbols_sync_version:
+            # Ignore outdated response
+            return
         try:
             symbols = params or []
             self._update_classfuncdropdown(symbols)
@@ -418,8 +476,6 @@ class LSPMixin:
             return
         except Exception:
             self.manage_lsp_handle_errors("Error when processing symbols")
-        finally:
-            self.symbols_in_sync = True
 
     def _update_classfuncdropdown(self, symbols):
         """Update class/function dropdown."""
@@ -432,46 +488,44 @@ class LSPMixin:
 
     # ---- Linting and didChange
     # -------------------------------------------------------------------------
-    def _schedule_document_did_change(self):
-        """Schedule a document update."""
-        self._document_server_needs_update = True
-        self._server_requests_timer.setInterval(self.LSP_REQUESTS_LONG_DELAY)
-        self._server_requests_timer.start()
-
-    @request(method=lsp.TEXT_DOCUMENT_DID_CHANGE, requires_response=False)
-    def document_did_change(self):
+    @schedule_request(
+        method=lsp.TEXT_DOCUMENT_DID_CHANGE,
+        requires_response=False,
+    )
+    def document_did_change(
+        self, edit: EditBlock | None = None
+    ):
         """Send textDocument/didChange request to the server."""
         # Cancel formatting
         self.formatting_in_progress = False
-        self.symbols_in_sync = False
-        self.folding_in_sync = False
 
         # Don't send request for cloned editors because it's not necessary.
         # The original file should send the request.
-        if self.is_cloned:
+        if not self.completions_available or self.is_cloned:
             return
 
-        # Get text
-        text = self.get_text_with_eol()
-        if self.is_ipython():
-            # Send valid python text to LSP
-            text = self.ipython_to_python(text)
+        is_ipython = self.is_ipython()
 
-        self.text_version += 1
+        if edit:
+            content_changes = [
+                lsp.TextDocumentContentChangePartial(
+                    range=self._get_edit_range(delta),
+                    text=self.ipython_to_python(str(delta.inserted_text)) if is_ipython else str(delta.inserted_text),
+                ) for delta in edit.deltas if delta.inserted_text or delta.removed_text
+            ]
+        else:
+            text = self.get_text_with_eol()
+            content_changes = [
+                lsp.TextDocumentContentChangeWholeDocument(
+                    text=self.ipython_to_python(text) if is_ipython else text
+                )
+            ]
 
-        self.patch = self.differ.patch_make(self.previous_text, text)
-        self.previous_text = text
-        cursor = self.textCursor()
-        params = {
+        return {
             "file": self.filename,
             "version": self.text_version,
-            "text": text,
-            "diff": self.patch,
-            "offset": cursor.position(),
-            "selection_start": cursor.selectionStart(),
-            "selection_end": cursor.selectionEnd(),
+            "content_changes": content_changes,
         }
-        return params
 
     @handles(lsp.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
     def process_diagnostics(self, params):
@@ -515,9 +569,9 @@ class LSPMixin:
         """
         Synchronize symbols and folding after linting results arrive.
         """
-        if not self.folding_in_sync:
+        if self.text_version > self.folding_sync_version:
             self.request_folding()
-        if not self.symbols_in_sync:
+        if self.text_version > self.symbols_sync_version:
             self.request_symbols()
 
     def process_code_analysis(self, diagnostics):
@@ -666,7 +720,7 @@ class LSPMixin:
 
     # ---- Completion
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_COMPLETION, cancel_previous=True)
     def do_completion(self, automatic=False):
         """Trigger completion."""
         cursor = self.textCursor()
@@ -684,6 +738,8 @@ class LSPMixin:
             "current_word": current_word,
         }
         self.completion_args = (self.textCursor().position(), automatic)
+        # Make sure that the document is up to date before requesting completions.
+        self._commit_pending_edit()
         return params
 
     @handles(lsp.TEXT_DOCUMENT_COMPLETION)
@@ -707,7 +763,7 @@ class LSPMixin:
             completions = params or []
             completions = [
                 c for c in completions
-                if c.insert_text or (c.text_edit and c.text_edit.new_text)
+                if c.insert_text or c.label or (c.text_edit and c.text_edit.new_text)
             ]
 
             prefix = self.get_current_word(
@@ -716,7 +772,7 @@ class LSPMixin:
 
             if (
                 len(completions) == 1
-                and completions[0].insert_text == prefix
+                and (completions[0].insert_text or completions[0].label) == prefix
                 and not (
                     completions[0].text_edit
                     and completions[0].text_edit.new_text
@@ -823,9 +879,12 @@ class LSPMixin:
 
     # ---- Signature Hints
     # -------------------------------------------------------------------------
-    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_SIGNATURE_HELP, cancel_previous=True)
     def request_signature(self):
         """Ask for signature."""
+        # Ensure the pending edit is committed so that document_did_change is
+        # queued before the signatureHelp request.
+        self._commit_pending_edit()
         line, column = self.get_cursor_line_column()
         offset = self.get_position("cursor")
         params = {
@@ -1285,7 +1344,7 @@ class LSPMixin:
 
     def update_whitespace_count(self, line, column):
         self.leading_whitespaces = {}
-        lines = str(self.toPlainText()).splitlines()
+        lines = self.lines()
         for i, text in enumerate(lines):
             total_whitespace = self.compute_whitespace(text)
             self.leading_whitespaces[i] = total_whitespace
@@ -1294,17 +1353,20 @@ class LSPMixin:
         """Cleanup folding pane."""
         self.folding_panel.folding_regions = {}
 
-    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE)
+    @schedule_request(method=lsp.TEXT_DOCUMENT_FOLDING_RANGE, cancel_previous=True)
     def request_folding(self):
         """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
         params = {"file": self.filename}
+        self.folding_sync_version = self.text_version
         return params
 
     @handles(lsp.TEXT_DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
+        if self.text_version > self.folding_sync_version:
+            return
         ranges = response or []
         if not ranges:
             return
@@ -1317,7 +1379,7 @@ class LSPMixin:
     def _update_folding_info(self, ranges):
         """Update folding information with new data from the LSP."""
         try:
-            lines = self.toPlainText().splitlines()
+            lines = self.lines()
 
             current_tree, root = merge_folding(
                 ranges, lines, self.get_line_separator(),
@@ -1360,11 +1422,9 @@ class LSPMixin:
             # See spyder-ide/spyder#23297
             self.update()
 
-        self.folding_in_sync = True
-
     # ---- Save/close file
     # -------------------------------------------------------------------------
-    @schedule_request(
+    @request(
         method=lsp.TEXT_DOCUMENT_DID_SAVE, requires_response=False
     )
     def notify_save(self):
@@ -1385,6 +1445,7 @@ class LSPMixin:
             self._server_requests_timer.stop()
         except RuntimeError:
             pass
+
 
         if self.completions_available:
             # This is necessary to prevent an error in our tests.

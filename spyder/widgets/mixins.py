@@ -42,8 +42,8 @@ from spyder.widgets.arraybuilder import ArrayBuilderDialog
 # ---- Constants
 # -----------------------------------------------------------------------------
 
-# List of possible EOL symbols
-EOL_SYMBOLS = [
+# Tuple of possible EOL symbols
+EOL_SYMBOLS = (
     # Put first as it correspond to a single line return
     "\r\n",  # Carriage Return + Line Feed
     "\r",  # Carriage Return
@@ -58,7 +58,7 @@ EOL_SYMBOLS = [
     "\x85",   # Next Line (C1 Control Code)
     "\u2028",   # Line Separator
     "\u2029",   # Paragraph Separator
-]
+)
 
 # Tips style
 TIP_TEXT_COLOR = SpyderPalette.COLOR_TEXT_2
@@ -870,6 +870,13 @@ class BaseEditMixin(object):
                             n=col + 1)
         return cursor.position()
 
+    def get_line_col_from_position(self, position):
+        """Get (line, column) coordinates from position offset."""
+        block = self.document().findBlock(position)
+        line = block.blockNumber()
+        column = position - block.position()
+        return line, column
+
     def set_cursor_position(self, position):
         """Set cursor position"""
         position = self.get_position(position)
@@ -945,6 +952,9 @@ class BaseEditMixin(object):
 
     # ---- Text: get, set, ...
     # -------------------------------------------------------------------------
+    def lines(self, keepends=False):
+        return self.toPlainText().splitlines(keepends=keepends)
+
     def _select_text(self, position_from, position_to):
         """Select text and return cursor."""
         position_from = self.get_position(position_from)
@@ -976,7 +986,7 @@ class BaseEditMixin(object):
             File lines.
         """
         if lines is None:
-            lines = self.toPlainText().splitlines()
+            lines = self.lines()
 
         lines_in_region = lines[start_line:end_line + 1]
         return self.get_line_separator().join(lines_in_region)
