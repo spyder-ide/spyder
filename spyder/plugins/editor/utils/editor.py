@@ -26,8 +26,14 @@ import weakref
 
 # Third party imports
 from qtpy.QtCore import QTimer
-from qtpy.QtGui import (QColor, QTextBlockUserData, QTextCursor, QTextBlock,
-                        QTextDocument, QTextFormat)
+from qtpy.QtGui import (
+    QColor,
+    QTextBlockUserData,
+    QTextCursor,
+    QTextBlock,
+    QTextDocument,
+    QTextFormat,
+)
 
 # Local imports
 from spyder.utils import encoding

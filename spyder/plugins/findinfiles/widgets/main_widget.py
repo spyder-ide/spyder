@@ -140,6 +140,7 @@ class FindInFilesWidget(PluginMainWidget):
 
     def __init__(self, name=None, plugin=None, parent=None):
         PluginMainWidget.__init__(self, name, plugin, parent=parent)
+
         self.set_conf('text_color', MAIN_TEXT_COLOR)
         self.set_conf('hist_limit', MAX_PATH_HISTORY)
 

@@ -60,6 +60,7 @@ class Profiler(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
 
     def __init__(self, parent, configuration=None):
         SpyderDockablePlugin.__init__(self, parent, configuration)
+
         # Combined with ShellConnectPluginMixin and RunExecutor via multiple
         # inheritance; set up their state here since SpyderDockablePlugin's
         # __init__ doesn't reach them (and RunExecutor.__init__ would also

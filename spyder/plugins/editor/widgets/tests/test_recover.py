@@ -12,8 +12,12 @@ import pytest
 import shutil
 
 # Third party imports
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QPushButton,
-                            QTableWidget)
+from qtpy.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QPushButton,
+    QTableWidget,
+)
 
 # Local imports
 from spyder.plugins.editor.widgets.recover import (make_temporary_files,

@@ -24,6 +24,7 @@ class TabSwitcherWidget(SpyderShortcutsMixin, QListWidget):
     def __init__(self, parent, stack_history, tabs):
         QListWidget.__init__(self, parent)
         SpyderShortcutsMixin.__init__(self)
+
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
 
         self.editor = parent

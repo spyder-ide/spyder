@@ -82,6 +82,7 @@ class Layout(SpyderPluginV2, SpyderShortcutsMixin):
 
     def __init__(self, parent, configuration=None):
         SpyderPluginV2.__init__(self, parent, configuration)
+
         # Combined with SpyderShortcutsMixin via multiple inheritance; set
         # up its state here since SpyderPluginV2.__init__ doesn't reach it.
         SpyderShortcutsMixin.__init__(self)

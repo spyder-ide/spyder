@@ -91,6 +91,7 @@ class CollectionsDelegate(
     ):
         QItemDelegate.__init__(self, parent)
         SpyderFontsMixin.__init__(self)
+
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self._editors = {}  # keep references on opened editors

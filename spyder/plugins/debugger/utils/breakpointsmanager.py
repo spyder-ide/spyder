@@ -75,6 +75,7 @@ class BreakpointsManager(Manager, SpyderConfigurationObserver, QObject):
         QObject.__init__(self, editor)
         Manager.__init__(self, editor)
         SpyderConfigurationObserver.__init__(self)
+
         self.filename = editor.filename
         self._breakpoint_blocks = {}
         self.breakpoints = []

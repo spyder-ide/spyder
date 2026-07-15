@@ -47,6 +47,7 @@ class ExternalTerminal(SpyderPluginV2, RunExecutor):
 
     def __init__(self, parent, configuration=None):
         SpyderPluginV2.__init__(self, parent, configuration)
+
         # Combined with RunExecutor via multiple inheritance; set up its
         # state here since SpyderPluginV2.__init__ doesn't call
         # RunExecutor.__init__ (which would also re-init the QObject part).

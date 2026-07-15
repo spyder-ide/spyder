@@ -773,8 +773,9 @@ class QInputDialogMultiline(QDialog):
         cancel_button.clicked.connect(self.reject)
 
 
-class SpyderApplication(SpyderConfigurationAccessor, SpyderFontsMixin,
-                        QApplication):
+class SpyderApplication(
+    SpyderConfigurationAccessor, SpyderFontsMixin, QApplication
+):
     """Subclass with several adjustments for Spyder."""
 
     sig_open_external_file = Signal(str)

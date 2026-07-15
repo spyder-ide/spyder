@@ -207,6 +207,7 @@ class LayoutSettingsDialog(SpyderWidgetMixin, QDialog):
     def __init__(self, parent, names, ui_names, order, active, read_only):
         QDialog.__init__(self, parent)
         SpyderWidgetMixin.__init__(self)
+
         # variables
         self._parent = parent
         self._selection_model = None

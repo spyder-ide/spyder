@@ -19,8 +19,18 @@ import sys
 import qstylizer.style
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
                          Signal)
-from qtpy.QtGui import (QBrush, QColor, QIcon, QMoveEvent, QPainter,
-                        QPainterPath, QPen, QPixmap, QRegion, QResizeEvent)
+from qtpy.QtGui import (
+    QBrush,
+    QColor,
+    QIcon,
+    QMoveEvent,
+    QPainter,
+    QPainterPath,
+    QPen,
+    QPixmap,
+    QRegion,
+    QResizeEvent,
+)
 from qtpy.QtWidgets import (
     QAction,
     QApplication,

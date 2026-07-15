@@ -339,7 +339,8 @@ class CodeEditor(
         self._timer_popup_docstring.setInterval(300)
         self._timer_popup_docstring.setSingleShot(True)
         self._timer_popup_docstring.timeout.connect(
-            self._popup_docstring_saved)
+            self._popup_docstring_saved
+        )
 
         # Typing keys / handling for on the fly completions
         self._last_key_pressed_text = ''
@@ -4668,7 +4669,7 @@ class CodeEditor(
         waits 300ms. If there was no input for 300ms, show the context menu.
         """
         # Note: we deliberately use a persistent timer connected to a bound
-        # method instead of a per-call QTimer connected to a closure. PyQt
+        # method instead of a per-call QTimer connected to a closure. PySide
         # does not protect a closure connected to a signal from being
         # garbage-collected (the closure <-> editor reference cycle can be
         # collected while the C++ connection still points to it), which

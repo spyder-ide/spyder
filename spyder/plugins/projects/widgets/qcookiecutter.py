@@ -137,7 +137,8 @@ class CookiecutterWidget(QtWidgets.QWidget):
         # Layout
         self._form_layout = QtWidgets.QFormLayout()
         self._form_layout.setFieldGrowthPolicy(
-            QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+            QtWidgets.QFormLayout.AllNonFixedFieldsGrow
+        )
         self.setLayout(self._form_layout)
 
     # --- Helpers

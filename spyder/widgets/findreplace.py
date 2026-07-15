@@ -79,6 +79,7 @@ class FindReplace(SpyderShortcutsMixin, QWidget):
     ):
         QWidget.__init__(self, parent)
         SpyderShortcutsMixin.__init__(self)
+
         self.enable_replace = enable_replace
         self.editor = None
         self.is_code_editor = None

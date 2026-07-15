@@ -98,6 +98,7 @@ class EditorWidget(SpyderConfigurationObserver, QSplitter):
     def __init__(self, parent, main_widget, menu_actions, outline_plugin):
         QSplitter.__init__(self, parent)
         SpyderConfigurationObserver.__init__(self)
+
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes
@@ -404,6 +405,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         # independent. See spyder-ide/spyder#17803
         QMainWindow.__init__(self, parent)
         SpyderWidgetMixin.__init__(self, class_parent=main_widget)
+
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # ---- Attributes

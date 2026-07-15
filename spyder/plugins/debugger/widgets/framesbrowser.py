@@ -83,6 +83,7 @@ class FramesBrowser(
         QWidget.__init__(self, parent)
         ShellConnectWidgetForStackMixin.__init__(self)
         SpyderWidgetMixin.__init__(self, class_parent=parent)
+
         self.shellwidget = shellwidget
         self.results_browser = None
         # -1 means never clear, otherwise number of calls

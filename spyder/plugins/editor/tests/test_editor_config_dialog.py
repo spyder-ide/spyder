@@ -20,6 +20,7 @@ from spyder.plugins.preferences.tests.conftest import config_dialog
 class MainWindowMock(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.register_shortcut = Mock()
         self.file_menu_actions = []
         self.file_toolbar_actions = []

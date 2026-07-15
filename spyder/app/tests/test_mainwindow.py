@@ -219,6 +219,7 @@ def test_leaks(main_window, qtbot):
         # in turn.
         for __ in range(3):
             gc.collect()
+
         return sum(
             type(o).__name__ == class_name for o in gc.get_objects()
         )
@@ -296,6 +297,7 @@ def test_default_plugin_actions(main_window, qtbot):
     # inherits the widget's docked size, which can exceed the headless screen
     # used in CI).
     main_widget.windowwidget.resize(500, 400)
+
     main_widget.windowwidget.move(200, 200)
     assert not file_explorer.dockwidget.isVisible()
     assert main_widget.undock_action is not None

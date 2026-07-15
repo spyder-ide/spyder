@@ -45,6 +45,7 @@ class VariableExplorer(SpyderDockablePlugin, ShellConnectPluginMixin):
 
     def __init__(self, parent, configuration=None):
         SpyderDockablePlugin.__init__(self, parent, configuration)
+
         # Combined with ShellConnectPluginMixin via multiple inheritance;
         # set up its state here since SpyderDockablePlugin.__init__ doesn't
         # reach it.

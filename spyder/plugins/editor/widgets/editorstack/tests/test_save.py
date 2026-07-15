@@ -82,6 +82,7 @@ def editor_splitter_bot(qtbot):
     qtbot.addWidget(es)
     es.show()
     yield es
+
     try:
         es.destroy()
     except RuntimeError:

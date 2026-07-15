@@ -283,6 +283,8 @@ class like `PluginMainWidget` that already composes one):
    `super().__init__(parent)` is fine — it falls through them straight to the
    Qt class.)
 
+This is a simple example:
+
 ```python
 class MyWidget(FooMixin, BarMixin, QWidget):
 
@@ -321,7 +323,7 @@ Canonical examples of the patterns used in the codebase:
   QObject part: [`Debugger`](spyder/plugins/debugger/plugin.py), which calls
   `RunExecutor._setup_run_executor()` — a method split out of
   `RunExecutor.__init__` (see [spyder/plugins/run/api.py](spyder/plugins/run/api.py))
-  precisely so it can be invoked without running `QObject.__init__` twice.
+  precisely so that it can be invoked without running `QObject.__init__` twice.
 * Deliberate exception with the Qt class **first**:
   [`WorkspaceEventHandler`](spyder/plugins/projects/utils/watcher.py), where
   the other base is a third-party class that calls `super().__init__()`

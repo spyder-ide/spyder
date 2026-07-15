@@ -1647,7 +1647,8 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
             for instance_client in self.clients:
                 try:
                     with warnings.catch_warnings():
-                        # RuntimeWarning: Failed to disconnect (None) from signal "timeout()".
+                        # RuntimeWarning: Failed to disconnect (None) from
+                        # signal "timeout()".
                         warnings.simplefilter("ignore")
                         instance_client.timer.timeout.disconnect()
                 except (RuntimeError, TypeError):
