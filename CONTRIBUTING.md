@@ -285,6 +285,8 @@ class like `PluginMainWidget` that already composes one):
 
 This is a simple example:
 
+This is a simple example:
+
 ```python
 class MyWidget(FooMixin, BarMixin, QWidget):
 
