@@ -436,16 +436,17 @@ class RunExecutor(QObject):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self._setup_run_executor()
+        self.setup_run_executor()
 
-    def _setup_run_executor(self):
+    def setup_run_executor(self):
         """
         Gather methods decorated for run execution.
 
-        Split out from __init__ so that classes which combine RunExecutor
-        with another QObject-derived base via multiple inheritance (and
-        therefore construct the QObject part themselves) can call this
-        directly, without re-invoking QObject.__init__.
+        This is called by __init__, but it's public because plugins that are
+        also run executors need to call it themselves: they combine
+        RunExecutor with another QObject-derived base via multiple
+        inheritance, and therefore construct the QObject part on their own,
+        so they can't rely on RunExecutor.__init__ running.
         """
         self._exec_methods: Dict[str, RunExecuteFunc] = {}
         self._exec_ext_methods: Dict[str, RunExecuteFunc] = {}

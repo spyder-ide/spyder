@@ -64,7 +64,7 @@ class Debugger(SpyderDockablePlugin, ShellConnectPluginMixin, RunExecutor):
         # __init__ doesn't reach them (and RunExecutor.__init__ would also
         # re-init the QObject part).
         ShellConnectPluginMixin.__init__(self)
-        self._setup_run_executor()
+        self.setup_run_executor()
 
     # ---- SpyderDockablePlugin API
     # ------------------------------------------------------------------------

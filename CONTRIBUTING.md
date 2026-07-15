@@ -285,8 +285,6 @@ class like `PluginMainWidget` that already composes one):
 
 This is a simple example:
 
-This is a simple example:
-
 ```python
 class MyWidget(FooMixin, BarMixin, QWidget):
 
@@ -337,12 +335,14 @@ Two related gotchas to keep in mind:
 * Enum members must be accessed on the **class**, not on instances
   (`QClipboard.Clipboard`, not `clipboard_instance.Clipboard`) — instance
   access raises `AttributeError` on PySide6.
-* For overloaded signals like `Signal((), (object,))`, PySide matches slots
-  to overloads by the *slot's* signature: a slot with an optional argument
-  connects to the `(object,)` overload even if you connect the `()` one, so
-  no-arg emits never reach it. Use a dedicated no-arg slot for the `()`
-  overload (see `MainWindow._unmaximize_plugin_no_args` in
-  [spyder/app/mainwindow.py](spyder/app/mainwindow.py)).
+* For overloaded signals like `Signal((), (object,))`, a slot is attached to
+  a *single* overload, and the bindings pick it differently: PySide uses the
+  slot's signature (a slot with an optional argument lands on `(object,)`),
+  while PyQt uses the first overload. Either way emits of the other overload
+  never reach the slot, so connect each overload explicitly and give the
+  no-arg one a slot that can't take arguments — e.g. by wrapping it in
+  `functools.partial` (see how `sig_unmaximize_plugin_requested` is connected
+  in [spyder/app/mainwindow.py](spyder/app/mainwindow.py)).
 
 
 ## Adding Third-Party Content

@@ -251,7 +251,7 @@ class IPythonConsole(SpyderDockablePlugin, RunExecutor):
         # Combined with RunExecutor via multiple inheritance; set up its
         # state here since SpyderDockablePlugin.__init__ doesn't call
         # RunExecutor.__init__ (which would also re-init the QObject part).
-        self._setup_run_executor()
+        self.setup_run_executor()
 
     # ---- SpyderDockablePlugin API
     # -------------------------------------------------------------------------

@@ -4669,12 +4669,12 @@ class CodeEditor(
         waits 300ms. If there was no input for 300ms, show the context menu.
         """
         # Note: we deliberately use a persistent timer connected to a bound
-        # method instead of a per-call QTimer connected to a closure. PySide
-        # does not protect a closure connected to a signal from being
+        # method instead of a per-call QTimer connected to a closure. Neither
+        # PyQt nor PySide protects a closure connected to a signal from being
         # garbage-collected (the closure <-> editor reference cycle can be
-        # collected while the C++ connection still points to it), which
-        # leads to a hard crash when the timer fires. Bound methods are
-        # tracked with weak references and disconnected automatically.
+        # collected while the C++ connection still points to it), which leads
+        # to a hard crash when the timer fires. Bound methods are tracked with
+        # weak references and disconnected automatically.
         self._popup_docstring_text = self.textCursor().block().text()
         self._popup_docstring_position = self.textCursor().position()
         self._timer_popup_docstring.start()

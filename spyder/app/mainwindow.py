@@ -22,6 +22,7 @@ Licensed under the terms of the MIT License
 from collections import OrderedDict
 from enum import Enum
 import errno
+import functools
 import gc
 import logging
 import os
@@ -407,13 +408,11 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
-        # Note: don't connect unmaximize_plugin directly to the no-arg
-        # overload. PySide matches slots to overloads using the slot's
-        # signature, so a slot that *can* take an argument gets attached to
-        # the (object,) overload even when connecting the () one, which then
-        # makes no-arg emits go nowhere.
+        # Note: connect each overload explicitly. A slot is attached to a
+        # single overload only, so the no-arg one needs a slot that can't take
+        # arguments -- hence the partial (see CONTRIBUTING.md for why).
         plugin.sig_unmaximize_plugin_requested.connect(
-            self._unmaximize_plugin_no_args
+            functools.partial(self.unmaximize_plugin)
         )
         plugin.sig_unmaximize_plugin_requested[object].connect(
             self.unmaximize_plugin)
@@ -580,15 +579,6 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                 self.layouts.unmaximize_other_dockwidget(
                     plugin_instance=not_this_plugin
                 )
-
-    def _unmaximize_plugin_no_args(self):
-        """
-        Slot for the no-arg overload of sig_unmaximize_plugin_requested.
-
-        It must not take any (optional) arguments so that PySide connects it
-        to the () overload of that signal (see the note where it's connected).
-        """
-        self.unmaximize_plugin()
 
     def remove_dockwidget(self, plugin):
         """
