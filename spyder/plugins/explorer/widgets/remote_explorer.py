@@ -107,19 +107,29 @@ class RemoteQSortFilterProxyModel(QSortFilterProxyModel):
         right_data = self.sourceModel().data(
             self.sourceModel().index(right.row(), 0), Qt.UserRole + 1
         )
-        if right_data["type"] == "ACTION":
+        if right_data and right_data["type"] == "ACTION":
             return self.sortOrder() == Qt.AscendingOrder
 
         left_data = self.sourceModel().data(
             self.sourceModel().index(left.row(), 0), Qt.UserRole + 1
         )
-        if left_data["type"] == "ACTION":
+        if left_data and left_data["type"] == "ACTION":
             return self.sortOrder() == Qt.DescendingOrder
 
-        if left_data["type"] == "directory" and right_data["type"] == "file":
+        if (
+            left_data
+            and left_data["type"] == "directory"
+            and right_data
+            and right_data["type"] == "file"
+        ):
             return True
 
-        if left_data["type"] == "file" and right_data["type"] == "directory":
+        if (
+            left_data
+            and left_data["type"] == "file"
+            and right_data
+            and right_data["type"] == "directory"
+        ):
             return False
 
         return super().lessThan(left, right)
@@ -131,13 +141,23 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
     sig_start_spinner_requested = Signal()
     sig_stop_spinner_requested = Signal()
 
-    def __init__(self, parent=None, class_parent=None, files=None):
+    def __init__(
+        self,
+        parent=None,
+        class_parent=None,
+        files=None,
+        show_root=False,
+        chdir_with_click=False,
+    ):
         super().__init__(parent=parent, class_parent=parent)
 
         # General attributes
         self.remote_files_manager: SpyderRemoteFileServicesAPI | None = None
         self.server_id: str | None = None
         self.root_prefix: dict[str, str] = {}
+        self.append_root = None
+        self.show_root = show_root
+        self.chdir_with_click = chdir_with_click
 
         self.background_files_load = set()
         self.extra_files = []
@@ -297,9 +317,12 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             QAbstractItemView.SelectionBehavior.SelectRows
         )
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.setRootIsDecorated(True)
         self.view.customContextMenuRequested.connect(
             self._on_show_context_menu
         )
+        self.view.expanded.connect(self._on_expanded_item)
+        self.view.collapsed.connect(self._on_collapsed_item)
 
         if files:
             self.set_files(files)
@@ -347,11 +370,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             data_available = False
             is_file = False
         else:
-            source_index = self.proxy_model.mapToSource(
-                self.view.currentIndex()
+            data = self.proxy_model.mapToSource(self.view.currentIndex()).data(
+                Qt.UserRole + 1
             )
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
             data_available = bool(data)
             is_file = (
                 data_available and data.get("type", "directory") == "file"
@@ -379,13 +400,18 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
     def _on_clicked_item(self, index):
         source_index = self.proxy_model.mapToSource(index)
-        data_index = self.model.index(source_index.row(), 0)
-        data = self.model.data(data_index, Qt.UserRole + 1)
+        data = index.data(Qt.UserRole + 1)
         if data:
             data_name = data["name"]
             data_type = data["type"]
             if data_type == "directory":
-                self.chdir(data_name, emit=True)
+                # TODO: Should call ls and append to node children?
+                # Get item from index
+                if not self.view.isExpanded(index):
+                    self.append_root = self.model.itemFromIndex(source_index)
+                    self.refresh(new_path=data_name, force_current=True)
+                elif self.chdir_with_click:
+                    self.chdir(data_name, emit=True)
             elif (
                 data_type == "file"
                 and os.path.splitext(data_name)[1] in EDIT_EXTENSIONS
@@ -401,6 +427,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 )
             elif data_type == "ACTION" and data_name == "FETCH_MORE":
                 self.fetch_more_files()
+
+    def _on_expanded_item(self, index):
+        item = self.model.itemFromIndex(self.proxy_model.mapToSource(index))
+        if item:
+            item.setIcon(ima.icon("DirOpenIcon"))
+
+    def _on_collapsed_item(self, index):
+        item = self.model.itemFromIndex(self.proxy_model.mapToSource(index))
+        if item:
+            item.setIcon(ima.icon("DirClosedIcon"))
 
     @property
     def _operation_in_progress(self):
@@ -703,7 +739,30 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         if not error:
             data = future.result()
-            self.set_files(data)
+            if self.server_id in self.root_prefix and self.show_root:
+                if self.append_root is None:
+                    self.model.setRowCount(0)
+                    root_dir = self.root_prefix[self.server_id]
+                    icon = ima.icon("DirClosedIcon")
+                    file_name = QStandardItem(icon, os.path.basename(root_dir))
+                    file_name.setData({"type": "directory", "name": root_dir})
+                    file_name.setToolTip(root_dir)
+
+                    file_size = QStandardItem("")
+                    file_type = QStandardItem("directory")
+                    file_date_modified = QStandardItem("")
+
+                    items = [
+                        file_name,
+                        file_size,
+                        file_type,
+                        file_date_modified,
+                    ]
+                    for standard_item in items:
+                        standard_item.setEditable(False)
+                    self.model.invisibleRootItem().appendRow(items)
+                    self.append_root = file_name
+            self.set_files(data, root=self.append_root)
         else:
             # Set parent directory as root because the selected one can't be
             # accessed
@@ -763,6 +822,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 )
                 self.background_files_load.add(task)
                 task.add_done_callback(self.background_files_load.discard)
+            self.set_current_folder(path)
         except SpyderRemoteSessionClosed:
             self.remote_files_manager = None
 
@@ -1116,6 +1176,8 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         browsing_history=False,
         remote_files_manager=None,
     ):
+        # TODO: Will not be used for project explorer? Or only call once to set the project root directory?
+        self.append_root = None
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -1143,18 +1205,22 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         if emit:
             self.sig_dir_opened.emit(directory, self.server_id)
 
-    def set_files(self, files, reset=True):
+    def set_files(self, files, reset=True, root=None):
+        # TODO: Allow defining a root element (for files explorer invisibleRoot for project explorer project root dir)
+        # this method should get as a kwarg the root element where elements/files should be added
+        if root is None:
+            root = self.model.invisibleRootItem()
+
         if reset:
             # This is necessary to prevent an error when closing Spyder with
             # mixed local and remote consoles.
             try:
-                self.model.setRowCount(0)
+                root.setRowCount(0)
             except RuntimeError:
                 pass
 
         if files:
             logger.debug(f"Setting {len(files)} files")
-            root = self.model.invisibleRootItem()
 
             more_files_items = self.model.match(
                 self.model.index(0, 0), Qt.DisplayRole, _("Show more files")
@@ -1186,6 +1252,11 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 file_name.setToolTip(file["name"])
 
                 if file_type == "directory":
+                    # TODO: Append dummy item to show expanded/collapsed arrow
+                    # Commented out since this also will need logic to handle
+                    # the expansion to replace dummy widget with actual content
+                    # when required
+                    # file_name.appendRow(QStandardItem(""))
                     file_size = QStandardItem("")
                 else:
                     file_size = QStandardItem(
@@ -1231,13 +1302,16 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
                 self.view.setFirstColumnSpanned(
                     more_items_available.index().row(), root.index(), True
                 )
-
+            self.view.setExpanded(
+                self.proxy_model.mapFromSource(root.index()), True
+            )
             self.view.resizeColumnToContents(0)
 
     def fetch_more_files(self):
         fetch_files_display = self.get_conf("fetch_files_display")
         new_files = self.extra_files[:fetch_files_display]
         del self.extra_files[:fetch_files_display]
+        # TODO: Should take into account if there is a root defined?
         self.set_files(new_files, reset=False)
         logger.debug(
             f"{len(self.extra_files)} extra files remaining to be shown"
@@ -1352,9 +1426,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
 
         self._files_to_copy[self.server_id] = []
         for index in indexes:
-            source_index = self.proxy_model.mapToSource(index)
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
+            data = self.proxy_model.mapToSource(index).data(Qt.UserRole + 1)
             if data:
                 self._files_to_copy[self.server_id].append(data["name"])
 
@@ -1419,9 +1491,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.sig_start_spinner_requested.emit()
 
         for index in indexes:
-            source_index = self.proxy_model.mapToSource(index)
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
+            data = self.proxy_model.mapToSource(index).data(Qt.UserRole + 1)
             if data:
                 old_path = data["name"]
                 relpath = os.path.relpath(
@@ -1449,9 +1519,9 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             paths.append(self.root_prefix[self.server_id])
         else:
             for index in indexes:
-                source_index = self.proxy_model.mapToSource(index)
-                data_index = self.model.index(source_index.row(), 0)
-                data = self.model.data(data_index, Qt.UserRole + 1)
+                data = self.proxy_model.mapToSource(index).data(
+                    Qt.UserRole + 1
+                )
                 if data:
                     paths.append(data["name"])
 
@@ -1487,9 +1557,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
         self.sig_start_spinner_requested.emit()
 
         for index in indexes:
-            source_index = self.proxy_model.mapToSource(index)
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
+            data = self.proxy_model.mapToSource(index).data(Qt.UserRole + 1)
             if data:
                 path = data["name"]
                 filename = os.path.relpath(
@@ -1569,9 +1637,7 @@ class RemoteExplorer(QWidget, SpyderWidgetMixin):
             buttons = QMessageBox.Yes | QMessageBox.No
 
         for index in indexes:
-            source_index = self.proxy_model.mapToSource(index)
-            data_index = self.model.index(source_index.row(), 0)
-            data = self.model.data(data_index, Qt.UserRole + 1)
+            data = self.proxy_model.mapToSource(index).data(Qt.UserRole + 1)
             if data:
                 path = data["name"]
                 filename = os.path.relpath(
