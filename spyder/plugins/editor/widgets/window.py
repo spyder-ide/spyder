@@ -698,6 +698,7 @@ class EditorMainWidgetExample(QSplitter):
             # This can be called while editorstack's C++ object is being
             # destroyed, which makes repr() raise a RuntimeError on PySide.
             logger.debug("EditorMainWidget.unregister_editorstack")
+
         self.editorstacks.pop(self.editorstacks.index(editorstack))
 
     def clone_editorstack(self, editorstack):

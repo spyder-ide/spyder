@@ -408,6 +408,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
+
         # Note: connect each overload explicitly. A slot is attached to a
         # single overload only, so the no-arg one needs a slot that can't take
         # arguments -- hence the partial (see CONTRIBUTING.md for why).
