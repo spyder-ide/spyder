@@ -1848,6 +1848,7 @@ class CollectionsEditorWidget(SpyderWidgetMixin, QWidget):
     ):
         QWidget.__init__(self, parent)
         SpyderWidgetMixin.__init__(self)
+
         if remote:
             self.editor = RemoteCollectionsEditorTableView(
                 self, data, readonly, create_menu=True)
