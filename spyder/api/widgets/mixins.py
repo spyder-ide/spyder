@@ -15,7 +15,7 @@ mixin's ``__init__`` explicitly by name. (Plugin classes are the exception:
 there, the plugin base — itself QObject-derived — stays first.) Getting this
 wrong breaks in different — sometimes silent — ways under PyQt vs PySide; see
 the section "Mixing Qt and plain Python classes (multiple inheritance)" in
-CONTRIBUTING.md for the details and canonical examples.
+Spyder's repo contributing guide for the details and canonical examples.
 """
 
 from __future__ import annotations
