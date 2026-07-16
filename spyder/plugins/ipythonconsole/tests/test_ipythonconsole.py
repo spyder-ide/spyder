@@ -2029,7 +2029,10 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+# Note: PySide6 is skipped until our Spyder-kernels copy detects it as a Qt
+# binding in automatic_backend() (otherwise the auto backend resolves to tk);
+# revisit once that change is synced here (see spyder-ide/spyder#25422).
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different

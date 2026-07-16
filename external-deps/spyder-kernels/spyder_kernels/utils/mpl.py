@@ -31,10 +31,7 @@ MPL_BACKENDS_TO_SPYDER = {
 
 def automatic_backend():
     """Get Matplolib automatic backend option."""
-    if any(
-        is_module_installed(qt_binding)
-        for qt_binding in ('PyQt5', 'PySide2', 'PyQt6', 'PySide6')
-    ):
+    if is_module_installed('PyQt5'):
         auto_backend = 'qt'
     elif is_module_installed('_tkinter'):
         auto_backend = 'tk'
