@@ -291,6 +291,16 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         self._timer_mouse_moving.setSingleShot(True)
         self._timer_mouse_moving.timeout.connect(self._handle_hover)
 
+        # Timer to show the docstring popup after typing triple quotes.
+        # See delayed_popup_docstring
+        self._popup_docstring_text = ""
+        self._popup_docstring_position = 0
+        self._timer_popup_docstring = QTimer(self)
+        self._timer_popup_docstring.setInterval(300)
+        self._timer_popup_docstring.setSingleShot(True)
+        self._timer_popup_docstring.timeout.connect(
+            self._popup_docstring_saved)
+
         # Typing keys / handling for on the fly completions
         self._last_key_pressed_text = ''
         self._last_pressed_key = None
@@ -4558,14 +4568,22 @@ class CodeEditor(LSPMixin, TextEditBaseWidget, MultiCursorMixin):
         This method is called after typing '''. After typing ''', this function
         waits 300ms. If there was no input for 300ms, show the context menu.
         """
-        line_text = self.textCursor().block().text()
-        pos = self.textCursor().position()
+        # Note: we deliberately use a persistent timer connected to a bound
+        # method instead of a per-call QTimer connected to a closure. PyQt
+        # does not protect a closure connected to a signal from being
+        # garbage-collected (the closure <-> editor reference cycle can be
+        # collected while the C++ connection still points to it), which
+        # leads to a hard crash when the timer fires. Bound methods are
+        # tracked with weak references and disconnected automatically.
+        self._popup_docstring_text = self.textCursor().block().text()
+        self._popup_docstring_position = self.textCursor().position()
+        self._timer_popup_docstring.start()
 
-        timer = QTimer(self)
-        timer.setInterval(300)
-        timer.setSingleShot(True)
-        timer.timeout.connect(lambda: self.popup_docstring(line_text, pos))
-        timer.start()
+    def _popup_docstring_saved(self):
+        """Show the docstring popup at the saved trigger position."""
+        self.popup_docstring(
+            self._popup_docstring_text, self._popup_docstring_position
+        )
 
     def set_current_project_path(self, root_path=None):
         """
