@@ -1079,20 +1079,19 @@ class DocstringWriterExtension:
 
         # If return values are tuples of different length, return a placeholder
         if tuple_vals:
-            num_elements = [return_val.count(',') + 1
-                            for return_val in tuple_vals]
-            if num_elements.count(num_elements[0]) != len(num_elements):
+            num_each = [return_val.count(',') + 1 for return_val in tuple_vals]
+            if num_each.count(num_each[0]) != len(num_each):
                 return header + placeholder
-            num_elements = num_elements[0]
+            num_elements = num_each[0]
         else:
             num_elements = 1
 
         # If all have the same len but some ambiguous return placeholders
         if len(unambiguous_vals) != len(non_none_vals):
             if expand_tuple:
-                return header + '\n'.join([placeholder] * len(num_elements))
+                return header + '\n'.join([placeholder] * num_elements)
 
-            return_elements_out = ', '.join(['TYPE'] * len(num_elements))
+            return_elements_out = ', '.join(['TYPE'] * num_elements)
             return header + return_element_type.format(
                 return_type=f'tuple[{return_elements_out}]'
             )
