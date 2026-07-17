@@ -118,7 +118,7 @@ def test_objectexplorer(objectexplorer):
     ({1, 2, 1, 3, None, 'A', 'B', 'C', True, False}, [54, 57]),
     (1.2233, [57, 59]),
     (np.random.rand(10, 10), [162, 168]),
-    (datetime.date(1945, 5, 8), [43, 48])
+    (datetime.date(1945, 5, 8), [43, 49])
 ])
 def test_objectexplorer_collection_types(objectexplorer, params):
     """Test to validate proper handling of collection data types."""
@@ -145,7 +145,7 @@ def test_objectexplorer_collection_types(objectexplorer, params):
 
 @pytest.mark.parametrize('params', [
             # show_callable_, show_special_, rowCount for python 3 and 2
-            (True, True, [35, 34, 26], ),  # 35: py3.11, 34: py3.x, 26: py2.7
+            (True, True, [37, 35, 34, 26], ),  # 37: py3.13, 35: py3.11, 34: py3.x, 26: py2.7
             (False, False, [8, 8], )
         ])
 def test_objectexplorer_types(objectexplorer, params):

@@ -15,6 +15,7 @@ import concurrent.futures
 import os
 import os.path as osp
 import re
+import stat
 import sys
 from unittest.mock import patch
 
@@ -206,6 +207,8 @@ def pytest_runtest_logreport(report):
     passed = report.when == "call" and report.passed
     xfailed = report.skipped and hasattr(report, "wasxfail")
     if passed or xfailed:
+        if osp.isfile(PASSED_TESTS_FILE):
+            os.chmod(PASSED_TESTS_FILE, stat.S_IRUSR | stat.S_IWUSR)
         with open(PASSED_TESTS_FILE, "a") as f:
             f.write(report.nodeid + "\n")
 

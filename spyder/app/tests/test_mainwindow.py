@@ -6528,7 +6528,7 @@ def test_interrupt(main_window, qtbot):
     qtbot.wait(200)
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
-    assert 0 < shell.get_value("i") < 99
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
     assert list(frames_browser.stack_dict.keys())[0] == "KeyboardInterrupt"
 
     # Interrupt debugging
@@ -6539,9 +6539,9 @@ def test_interrupt(main_window, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.call_kernel(interrupt=True).raise_interrupt_signal()
     assert "Program interrupted" in shell._control.toPlainText()
-    assert 0 < shell.get_value("i") < 99
     with qtbot.waitSignal(shell.executed):
         shell.execute('q')
+    qtbot.waitUntil(lambda: 0 < shell.get_value("i") < 99)
 
     # Interrupt while waiting for debugger
     with qtbot.waitSignal(shell.executed):

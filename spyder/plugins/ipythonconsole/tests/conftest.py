@@ -37,7 +37,7 @@ from spyder.utils.theme_manager import THEME_MANAGER
 # =============================================================================
 SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 NEW_DIR = 'new_workingdir'
-PY312_OR_GREATER = sys.version_info[:2] >= (3, 12)
+PY313_OR_GREATER = sys.version_info[:2] >= (3, 12)
 
 
 # =============================================================================

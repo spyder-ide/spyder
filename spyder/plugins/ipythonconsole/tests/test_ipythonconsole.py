@@ -46,7 +46,7 @@ from spyder.plugins.ipythonconsole.tests.conftest import (
     get_console_background_color,
     get_console_font_color,
     NEW_DIR,
-    PY312_OR_GREATER,
+    PY313_OR_GREATER,
     SHELL_TIMEOUT,
 )
 from spyder.utils.programs import run_shell_command
@@ -1978,7 +1978,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
     control = ipyconsole.get_widget().get_focus_widget()
 
     # Code to run
-    code = "locals = 1\nx = [locals + i for i in range(2)]"
+    code = "locals = 1\nx = [\n\tlocals + i for i in range(2)\n]"
 
     # Write code to file on disk
     file = tmpdir.join('test_breakpoint.py')
@@ -1989,7 +1989,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.execute(f"%debugfile {repr(str(file))}")
 
     # steps into the comprehension
-    comprehension_steps = 2 if PY312_OR_GREATER else 4
+    comprehension_steps = 4
     for i in range(comprehension_steps):
         with qtbot.waitSignal(shell.executed):
             shell.pdb_execute("s")
@@ -1999,7 +1999,7 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.pdb_execute("print('test', locals + i + 10)")
 
     assert "Error" not in control.toPlainText()
-    assert "test 11" in control.toPlainText()
+    assert "test 12" in control.toPlainText() if PY313_OR_GREATER else "test 11" in control.toPlainText()
 
     settings = {
         'check_all': False,
