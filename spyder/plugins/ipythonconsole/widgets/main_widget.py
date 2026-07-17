@@ -1046,7 +1046,21 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
                 else:
                     # Must ask the kernel. Will not work if the kernel was set
                     # to another backend and is not now inline
-                    interactive_backend = sw.get_mpl_interactive_backend()
+                    try:
+                        interactive_backend = sw.get_mpl_interactive_backend()
+                    except TimeoutError:
+                        # Show error message when it's not possible to get the
+                        # backend
+                        # Fixes spyder-ide/spyder#26173
+                        QMessageBox.critical(
+                            self,
+                            _('Error'),
+                            _(
+                                "It was not possible to detect the current "
+                                "Matplotlib backend in the kernel, so the one "
+                                "you selected can't be set."
+                            )
+                        )
 
                 if (
                     # There was an error getting the interactive backend in
