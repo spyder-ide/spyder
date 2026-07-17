@@ -84,7 +84,7 @@ KERNEL_ERROR = open(osp.join(TEMPLATES_PATH, 'kernel_error.html')).read()
 # ----------------------------------------------------------------------------
 # Client widget
 # ----------------------------------------------------------------------------
-class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR0904
+class ClientWidget(SaveHistoryMixin, SpyderWidgetMixin, QWidget):  # noqa: PLR0904
     """
     Client widget for the IPython Console
 
@@ -124,7 +124,8 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         files_api=None,
         can_close=True,
     ):
-        super().__init__(parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
         SaveHistoryMixin.__init__(self, get_conf_path('history.py'))
 
         # --- Init attrs
@@ -790,6 +791,14 @@ class ClientWidget(QWidget, SaveHistoryMixin, SpyderWidgetMixin):  # noqa: PLR09
         try:
             self.close()
             self.setParent(None)
+
+            # Explicitly schedule the C++ object for deletion. This is
+            # necessary on PySide because signal connections there hold
+            # strong, GC-invisible references to lambda/closure slots, so
+            # this widget (and its children, e.g. the shellwidget) would
+            # otherwise never be garbage-collected, i.e. leak, because the
+            # C++ side is only destroyed with the Python wrapper.
+            self.deleteLater()
         except RuntimeError:
             pass
 

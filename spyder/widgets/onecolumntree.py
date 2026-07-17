@@ -5,7 +5,6 @@
 # (see spyder/__init__.py for details)
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtWidgets import QAbstractItemView, QHeaderView, QTreeWidget
 
@@ -31,17 +30,14 @@ class OneColumnTreeContextMenuSections:
     History = "history_section"
 
 
-class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
+class OneColumnTree(SpyderWidgetMixin, QTreeWidget):
     """
     One-column tree widget with context menu.
     """
 
     def __init__(self, parent):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QTreeWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QTreeWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.__expanded_state = None
 

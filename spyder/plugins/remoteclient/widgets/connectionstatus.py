@@ -90,10 +90,10 @@ LOG_LEVEL_TO_FMT_STRING = {
 # ---- Widget
 # -----------------------------------------------------------------------------
 class ConnectionStatusWidget(
-    QWidget,
     SpyderFontsMixin,
     SvgToScaledPixmap,
     SpyderConfigurationAccessor,
+    QWidget,
 ):
 
     CONF_SECTION = "remoteclient"

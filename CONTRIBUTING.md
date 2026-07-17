@@ -249,6 +249,102 @@ Please note that the Spyder API must be changed according to the following guide
 * For major versions (e.g. `7.0.0`), there are no restrictions on API changes.
 
 
+## Mixing Qt and plain Python classes (multiple inheritance)
+
+Spyder runs on PyQt5/PyQt6 (SIP) and PySide2/PySide6 (Shiboken), and the two
+binding families have different — partly contradictory — rules for classes
+that inherit from both a Qt class and plain Python classes (mixins):
+
+* **SIP** requires the Qt class' `__init__` to run before anything else
+  touches `self` (otherwise you get `RuntimeError: super-class __init__() of
+  type ... was never called`).
+* **Shiboken** auto-invokes the `__init__` of whatever class *follows* the Qt
+  class in the MRO when the Qt `__init__` runs — even when you call it
+  explicitly by name. If you then also call that class' `__init__` yourself,
+  the process aborts with `You can't initialize an object twice`.
+* **Shiboken** resolves reimplemented Qt virtual methods (e.g.
+  `mouseDoubleClickEvent`) to the first hit in the MRO. So if the Qt class is
+  listed before a mixin, the mixin's overrides are **silently ignored**. (SIP
+  skips the C++ method wrappers while searching, so the wrong order happens
+  to work there — don't rely on it.)
+
+All of these are satisfied simultaneously by the following pattern for
+widgets (i.e. when inheriting from a Qt class directly, or from a Spyder
+class like `PluginMainWidget` that already composes one):
+
+1. List mixins first and the Qt class **last** in the bases.
+2. In `__init__`, call the Qt class' `__init__` **first**. (With the Qt class
+   last in the MRO, Shiboken's auto-invocation only reaches `object`, so it's
+   harmless.)
+3. Then call each mixin's `__init__` **explicitly by name**. Don't rely on a
+   cooperative `super().__init__()` chain that crosses the Qt/mixin boundary.
+   (If none of the mixins define an `__init__`, e.g. for pure accessor mixins
+   like `SpyderFontsMixin` or `SpyderConfigurationAccessor`, a plain
+   `super().__init__(parent)` is fine — it falls through them straight to the
+   Qt class.)
+
+This is a simple example:
+
+```python
+class MyWidget(FooMixin, BarMixin, QWidget):
+
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+        FooMixin.__init__(self)
+        BarMixin.__init__(self, some_arg)
+```
+
+**Plugins** follow a variation of this: the plugin base
+(`SpyderPluginV2`/`SpyderDockablePlugin`, which is QObject-derived and
+already puts `QObject` last in its own bases) stays **first** so that its
+methods take precedence, with interface mixins after it. The `__init__` order
+is the same: plugin base first, then each mixin explicitly:
+
+```python
+class MyPlugin(SpyderDockablePlugin, ShellConnectPluginMixin):
+
+    def __init__(self, parent, configuration=None):
+        SpyderDockablePlugin.__init__(self, parent, configuration)
+        ShellConnectPluginMixin.__init__(self)
+```
+
+This is safe because these interface mixins don't override Qt virtual
+methods, so the MRO position of the Qt lineage doesn't hide anything.
+
+Canonical examples of the patterns used in the codebase:
+
+* Widget plus mixins:
+  [`ControlWidget`](spyder/plugins/ipythonconsole/widgets/control.py) and
+  [`ClientWidget`](spyder/plugins/ipythonconsole/widgets/client.py).
+* Plugin plus interface mixins:
+  [`Plots`](spyder/plugins/plots/plugin.py) and
+  [`Layout`](spyder/plugins/layout/plugin.py).
+* Plugin plus a QObject-derived mixin whose state setup must not re-init the
+  QObject part: [`Debugger`](spyder/plugins/debugger/plugin.py), which calls
+  `RunExecutor._setup_run_executor()` — a method split out of
+  `RunExecutor.__init__` (see [spyder/plugins/run/api.py](spyder/plugins/run/api.py))
+  precisely so that it can be invoked without running `QObject.__init__` twice.
+* Deliberate exception with the Qt class **first**:
+  [`WorkspaceEventHandler`](spyder/plugins/projects/utils/watcher.py), where
+  the other base is a third-party class that calls `super().__init__()`
+  internally; the comment there explains why the usual order would abort
+  under Shiboken.
+
+Two related gotchas to keep in mind:
+
+* Enum members must be accessed on the **class**, not on instances
+  (`QClipboard.Clipboard`, not `clipboard_instance.Clipboard`) — instance
+  access raises `AttributeError` on PySide6.
+* For overloaded signals like `Signal((), (object,))`, a slot is attached to
+  a *single* overload, and the bindings pick it differently: PySide uses the
+  slot's signature (a slot with an optional argument lands on `(object,)`),
+  while PyQt uses the first overload. Either way emits of the other overload
+  never reach the slot, so connect each overload explicitly and give the
+  no-arg one a slot that can't take arguments — e.g. by wrapping it in
+  `functools.partial` (see how `sig_unmaximize_plugin_requested` is connected
+  in [spyder/app/mainwindow.py](spyder/app/mainwindow.py)).
+
+
 ## Adding Third-Party Content
 
 All files or groups of files, including source code, images, icons, and other assets, that originate from projects outside of the Spyder organization (regardless of the license), must be first approved by the Spyder team. Always check with us (on Github, Gitter, Google Group, etc) before attempting to add content from an external project, and only do so when necessary.

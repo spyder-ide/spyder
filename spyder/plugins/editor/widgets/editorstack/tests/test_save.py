@@ -20,6 +20,7 @@ from lsprotocol import types as lsp
 import pytest
 from qtpy import PYQT6
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 # Local imports
 from spyder.api.plugins import Plugins
@@ -81,7 +82,14 @@ def editor_splitter_bot(qtbot):
     qtbot.addWidget(es)
     es.show()
     yield es
-    es.destroy()
+
+    try:
+        es.destroy()
+    except RuntimeError:
+        # The C++ object can already be deleted at this point on PySide,
+        # e.g. when the test closed all the splitter's files (it closes
+        # itself in that case because it has the WA_DeleteOnClose flag set).
+        pass
 
 
 @pytest.fixture
@@ -500,7 +508,7 @@ def test_save_when_completions_are_visible(completions_editor, qtbot):
     code_editor.set_text('some = 0\nsomething = 1\n')
     editorstack.save(force=True)
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Complete some -> [some, something]
     with qtbot.waitSignal(completion.sig_show_completions,

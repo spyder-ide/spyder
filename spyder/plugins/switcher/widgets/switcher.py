@@ -70,7 +70,7 @@ class SwitcherDelegate(HTMLDelegate):
         super().paint(painter, option, index)
 
 
-class Switcher(QDialog, SpyderFontsMixin):
+class Switcher(SpyderFontsMixin, QDialog):
     """
     A multi purpose switcher.
 

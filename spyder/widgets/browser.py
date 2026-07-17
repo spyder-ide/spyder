@@ -12,7 +12,6 @@ import sys
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, Qt, QUrl, Signal, Slot
 from qtpy.QtGui import QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
@@ -82,7 +81,7 @@ class WebPage(QWebEnginePage):
         )
 
 
-class WebView(QWebEngineView, SpyderWidgetMixin):
+class WebView(SpyderWidgetMixin, QWebEngineView):
     """
     Web view.
     """
@@ -98,11 +97,8 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
 
     def __init__(self, parent, handle_links=True, class_parent=None):
         class_parent = parent if class_parent is None else class_parent
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=class_parent)
-        else:
-            QWebEngineView.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=class_parent)
+        QWebEngineView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=class_parent)
 
         self.zoom_factor = 1.
         self.context_menu = None

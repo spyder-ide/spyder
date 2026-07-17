@@ -29,7 +29,7 @@ class FakeInAppAppealDialog:
     pass
 
 
-class InAppAppealDialog(QDialog, SpyderFontsMixin):
+class InAppAppealDialog(SpyderFontsMixin, QDialog):
 
     CONF_SECTION = "main"
     WIDTH = 530

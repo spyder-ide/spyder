@@ -198,14 +198,16 @@ class LayoutSaveDialog(QDialog):
             self.button_ok.setEnabled(True)
 
 
-class LayoutSettingsDialog(QDialog, SpyderWidgetMixin):
+class LayoutSettingsDialog(SpyderWidgetMixin, QDialog):
     """Layout settings dialog"""
 
     # Dummy variable to avoid a warning
     CONF_SECTION = ""
 
     def __init__(self, parent, names, ui_names, order, active, read_only):
-        super().__init__(parent)
+        QDialog.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
+
         # variables
         self._parent = parent
         self._selection_model = None

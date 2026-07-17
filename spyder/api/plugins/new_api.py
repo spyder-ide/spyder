@@ -37,7 +37,7 @@ from typing import TYPE_CHECKING
 
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot
-from qtpy.QtGui import QCursor, QFont, QIcon
+from qtpy.QtGui import QCursor, QFont, QIcon, QMoveEvent, QResizeEvent
 from qtpy.QtWidgets import QApplication, QWidget
 
 # Local imports
@@ -77,10 +77,10 @@ logger = logging.getLogger(__name__)
 
 
 class SpyderPluginV2(
-    QObject,
     SpyderActionMixin,
     SpyderConfigurationObserver,
     SpyderPluginObserver,
+    QObject,
 ):
     """
     Base class for all Spyder plugins.
@@ -415,7 +415,7 @@ class SpyderPluginV2(
         error dialog.
     """
 
-    sig_mainwindow_resized: Signal = Signal("QResizeEvent")
+    sig_mainwindow_resized: Signal = Signal(QResizeEvent)
     """
     Emitted when the main window is resized.
 
@@ -427,7 +427,7 @@ class SpyderPluginV2(
         The event triggered on main window resize.
     """
 
-    sig_mainwindow_moved: Signal = Signal("QMoveEvent")
+    sig_mainwindow_moved: Signal = Signal(QMoveEvent)
     """
     Emitted when the main window is moved.
 
@@ -509,11 +509,11 @@ class SpyderPluginV2(
         -------
         None
         """
-        super().__init__(parent)
-
-        # This is required since the MRO of this class does not call
+        # This is required since the MRO of this class does not go up until
         # SpyderPluginObserver and SpyderConfigurationObserver when using
         # super(), see https://fuhm.net/super-harmful/
+        QObject.__init__(self, parent)
+        SpyderActionMixin.__init__(self)
         SpyderPluginObserver.__init__(self)
         SpyderConfigurationObserver.__init__(self)
 

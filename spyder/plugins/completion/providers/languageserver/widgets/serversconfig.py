@@ -110,7 +110,7 @@ class LSPServer(object):
             self.remove_option(language)
 
 
-class LSPServerEditor(QDialog, SpyderFontsMixin):
+class LSPServerEditor(SpyderFontsMixin, QDialog):
     DEFAULT_HOST = '127.0.0.1'
     DEFAULT_PORT = 2084
     DEFAULT_CMD = ''

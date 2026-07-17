@@ -29,7 +29,7 @@ from flaky import flaky
 import numpy as np
 from packaging.version import parse
 import pytest
-from qtpy import PYQT6
+from qtpy import PYQT6, PYSIDE6
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -173,7 +173,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_auto_backend(ipyconsole, qtbot):
     """Test that the automatic backend was set correctly."""
     # Wait until the window is fully up
@@ -2029,7 +2029,10 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
 
 @flaky(max_runs=10)
 @pytest.mark.auto_backend
-@pytest.mark.skipif(PYQT6, reason="Fails with PyQt6")
+# Note: PySide6 is skipped until our Spyder-kernels copy detects it as a Qt
+# binding in automatic_backend() (otherwise the auto backend resolves to tk);
+# revisit once that change is synced here (see spyder-ide/spyder#25422).
+@pytest.mark.skipif(PYQT6 or PYSIDE6, reason="Fails with Qt6")
 def test_restart_interactive_backend(ipyconsole, qtbot):
     """
     Test that we ask for a restart or not after switching to different

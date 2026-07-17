@@ -341,6 +341,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def handle_kernel_is_ready(self):
         """The kernel is ready"""
+        # This can be called after the shell started to shut down (e.g. when
+        # pending events are processed while closing a client), in which case
+        # we must not set up the kernel or show the banner (the latter makes
+        # a blocking kernel call that would never be answered).
+        if self.shutting_down:
+            return
+
         if (
             self.kernel_handler.connection_state ==
             KernelConnectionState.SpyderKernelReady

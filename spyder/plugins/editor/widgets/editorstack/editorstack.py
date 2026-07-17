@@ -23,7 +23,6 @@ import unicodedata
 
 # Third party imports
 import qstylizer.style
-from qtpy import PYSIDE2
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import QFileInfo, Qt, QTimer, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QTextCursor
@@ -99,7 +98,7 @@ class EditorStackMenuSections:
     MainWidgetSection = "main_widget_section"
 
 
-class EditorStack(QWidget, SpyderWidgetMixin):
+class EditorStack(SpyderWidgetMixin, QWidget):
 
     # This is necessary for the EditorStack tests to run independently of the
     # Editor plugin.
@@ -220,11 +219,8 @@ class EditorStack(QWidget, SpyderWidgetMixin):
     """
 
     def __init__(self, parent, actions, use_switcher=True):
-        if not PYSIDE2:
-            super().__init__(parent, class_parent=parent)
-        else:
-            QWidget.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QWidget.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -1666,6 +1662,15 @@ class EditorStack(QWidget, SpyderWidgetMixin):
             editor.notify_close()
             editor.setParent(None)
             editor.completion_widget.setParent(None)
+
+            # Explicitly schedule the C++ objects for deletion. This is
+            # necessary on PySide because signal connections there hold
+            # strong, GC-invisible references to lambda/closure slots, so
+            # these widgets would otherwise never be garbage-collected, i.e.
+            # leak, because the C++ side is only destroyed with the Python
+            # wrapper.
+            editor.deleteLater()
+            editor.completion_widget.deleteLater()
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing

@@ -10,6 +10,7 @@
 from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 
 
 @pytest.mark.order(1)
@@ -27,7 +28,7 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
 
     code_editor.set_text('some = 0\nsomething = 1\n')
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
 
     # Complete some -> [some, something]
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -55,14 +56,14 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     assert completion.isHidden()
 
     # Hide if removing spaces before a word
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
     qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, 'some', delay=delay)
     qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, '  None', delay=delay)
     if completion.isVisible():
         qtbot.keyPress(completion, Qt.Key_Enter)
-    code_editor.moveCursor(cursor.StartOfWord)
+    code_editor.moveCursor(QTextCursor.StartOfWord)
     qtbot.keyPress(code_editor, Qt.Key_Backspace)
     qtbot.wait(2000)
     assert completion.isHidden()
@@ -71,7 +72,7 @@ def test_automatic_completions_hide_complete(completions_codeeditor, qtbot):
     assert completion.isHidden()
 
     # Hide if removing spaces before a word even not at the start of line.
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
     qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
     qtbot.keyClicks(code_editor, 'some +  some ', delay=delay)
     qtbot.keyPress(code_editor, Qt.Key_Left)
@@ -101,7 +102,7 @@ def test_automatic_completions_widget_visible(completions_codeeditor, qtbot):
 
     code_editor.set_text('import math')
     cursor = code_editor.textCursor()
-    code_editor.moveCursor(cursor.End)
+    code_editor.moveCursor(QTextCursor.End)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
 
     with qtbot.waitSignal(completion.sig_show_completions,

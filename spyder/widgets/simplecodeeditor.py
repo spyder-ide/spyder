@@ -74,7 +74,7 @@ class LineNumberArea(QWidget):
         self._editor.linenumberarea_paint_event(event)
 
 
-class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
+class SimpleCodeEditor(BaseEditMixin, QPlainTextEdit):
     """Simple editor with highlight features."""
 
     LANGUAGE_HIGHLIGHTERS = {
@@ -105,7 +105,8 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
     """
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        QPlainTextEdit.__init__(self, parent)
+        BaseEditMixin.__init__(self)
 
         # Variables
         self._linenumber_enabled = None

@@ -19,7 +19,6 @@ import shutil
 import sys
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import (
     QDir,
@@ -255,7 +254,7 @@ class QInputDialogCombobox(QDialog):
             return '', '', False
 
 
-class DirView(QTreeView, SpyderWidgetMixin):
+class DirView(SpyderWidgetMixin, QTreeView):
     """Base file/directory tree view."""
 
     # Signals
@@ -371,11 +370,8 @@ class DirView(QTreeView, SpyderWidgetMixin):
         parent: QWidget
             Parent QWidget of the widget.
         """
-        if not PYSIDE2:
-            super().__init__(parent=parent, class_parent=parent)
-        else:
-            QTreeView.__init__(self, parent)
-            SpyderWidgetMixin.__init__(self, class_parent=parent)
+        QTreeView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self, class_parent=parent)
 
         # Attributes
         self._parent = parent

@@ -728,7 +728,7 @@ class FoldingPanel(Panel):
                         end = tc.selectionEnd()
 
                     tc.setPosition(start)
-                    tc.setPosition(end, tc.KeepAnchor)
+                    tc.setPosition(end, QTextCursor.KeepAnchor)
 
                     self.editor.setTextCursor(tc)
 
@@ -768,7 +768,7 @@ class FoldingPanel(Panel):
             block = block.next()
         self._refresh_editor_and_scrollbars()
         tc = self.editor.textCursor()
-        tc.movePosition(tc.Start)
+        tc.movePosition(QTextCursor.Start)
         self.editor.setTextCursor(tc)
         self.collapse_all_triggered.emit()
 

@@ -141,7 +141,7 @@ class DocstringContext(TypedDict):
 
 
 class CodeEditor(
-    LSPMixin, TextEditBaseWidget, MultiCursorMixin, InlineCompletionsMixin
+    LSPMixin, MultiCursorMixin, InlineCompletionsMixin, TextEditBaseWidget
 ):
     """Source Code Editor Widget based exclusively on Qt"""
 
@@ -286,7 +286,9 @@ class CodeEditor(
             list[tuple[str, Callable[[CodeEditor], None], str]] | None
         ) = None,
     ):
-        super().__init__(parent, class_parent=parent)
+        TextEditBaseWidget.__init__(self, parent, class_parent=parent)
+        InlineCompletionsMixin.__init__(self)
+        LSPMixin.__init__(self)
 
         # Editor extensions
         self.external_extensions = extensions

@@ -15,7 +15,7 @@ from unittest.mock import Mock
 
 # Third party imports
 import pytest
-from qtpy.QtGui import QFont
+from qtpy.QtGui import QClipboard, QFont
 from qtpy.QtCore import QMimeData, QUrl
 from qtpy.QtWidgets import QApplication
 
@@ -273,5 +273,5 @@ def copy_files_clipboard(create_folders_files):
     file_content = QMimeData()
     file_content.setUrls([QUrl.fromLocalFile(fname) for fname in file_paths])
     cb = QApplication.clipboard()
-    cb.setMimeData(file_content, mode=cb.Clipboard)
+    cb.setMimeData(file_content, mode=QClipboard.Clipboard)
     return file_paths

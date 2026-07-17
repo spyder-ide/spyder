@@ -74,9 +74,9 @@ MAX_INT_BIT_LENGTH_FOR_EDITING = (
 
 
 class CollectionsDelegate(
-    QItemDelegate,
     SpyderConfigurationAccessor,
     SpyderFontsMixin,
+    QItemDelegate,
 ):
     """CollectionsEditor Item Delegate"""
     sig_free_memory_requested = Signal()
@@ -90,6 +90,8 @@ class CollectionsDelegate(
         data_function: Optional[Callable[[], Any]] = None
     ):
         QItemDelegate.__init__(self, parent)
+        SpyderFontsMixin.__init__(self)
+
         self.namespacebrowser = namespacebrowser
         self.data_function = data_function
         self._editors = {}  # keep references on opened editors
@@ -327,14 +329,15 @@ class CollectionsDelegate(
                 return None
             else:
                 if isinstance(value, datetime.datetime):
-                    editor = QDateTimeEdit(value, parent=parent)
-                    # Needed to handle NaT values
+                    # Needed to handle NaT values, whose conversion also
+                    # crashes the QDateTimeEdit constructor on PySide6.
                     # See spyder-ide/spyder#8329
                     try:
                         value.time()
                     except ValueError:
                         self.sig_editor_shown.emit()
                         return None
+                    editor = QDateTimeEdit(value, parent=parent)
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)

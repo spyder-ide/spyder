@@ -158,7 +158,7 @@ class CompletionConfigurationObserver(SpyderConfigurationObserver):
         return option
 
 
-class SpyderCompletionProvider(QObject, CompletionConfigurationObserver):
+class SpyderCompletionProvider(CompletionConfigurationObserver, QObject):
     """
     Spyder provider API for completion providers.
 

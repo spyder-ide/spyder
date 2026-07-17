@@ -29,7 +29,7 @@ from spyder.api.widgets.dialogs import SpyderDialogButtonBox
 from spyder.utils.theme_manager import COLOR_SCHEME_KEYS, THEME_MANAGER
 
 
-class SchemeEditor(QDialog, SpyderFontsMixin):
+class SchemeEditor(SpyderFontsMixin, QDialog):
     """A color scheme editor dialog."""
 
     def __init__(self, parent=None, stack=None):

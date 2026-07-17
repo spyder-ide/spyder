@@ -154,7 +154,7 @@ def get_idx_rect(index_list):
 # ---- Main classes
 #==============================================================================
 
-class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
+class ArrayModel(SpyderFontsMixin, QAbstractTableModel):
     """
     Array Editor Table Model
 
@@ -433,7 +433,7 @@ class ArrayModel(QAbstractTableModel, SpyderFontsMixin):
         self.endResetModel()
 
 
-class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
+class ArrayDelegate(SpyderFontsMixin, QItemDelegate):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -481,13 +481,14 @@ class ArrayDelegate(QItemDelegate, SpyderFontsMixin):
 
 
 #TODO: Implement "Paste" (from clipboard) feature
-class ArrayView(QTableView, SpyderWidgetMixin):
+class ArrayView(SpyderWidgetMixin, QTableView):
     """Array view class"""
 
     CONF_SECTION = 'variable_explorer'
 
     def __init__(self, parent, model, dtype, shape):
         QTableView.__init__(self, parent)
+        SpyderWidgetMixin.__init__(self)
 
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))

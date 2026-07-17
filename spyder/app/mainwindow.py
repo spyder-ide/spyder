@@ -22,6 +22,7 @@ Licensed under the terms of the MIT License
 from collections import OrderedDict
 from enum import Enum
 import errno
+import functools
 import gc
 import logging
 import os
@@ -43,7 +44,7 @@ requirements.check_qt()
 #==============================================================================
 from qtpy.QtCore import (QCoreApplication, Qt, QTimer, Signal, Slot,
                          qInstallMessageHandler)
-from qtpy.QtGui import QColor, QKeySequence
+from qtpy.QtGui import QColor, QKeySequence, QMoveEvent, QResizeEvent
 from qtpy.QtWidgets import (
     QApplication, QMainWindow, QMessageBox, QShortcut, QTabBar)
 
@@ -120,7 +121,7 @@ qInstallMessageHandler(qt_message_handler)
 #==============================================================================
 # Main Window
 #==============================================================================
-class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
+class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
     """Spyder main window"""
     CONF_SECTION = 'main'
 
@@ -135,8 +136,8 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")
-    sig_moved = Signal("QMoveEvent")
+    sig_resized = Signal(QResizeEvent)
+    sig_moved = Signal(QMoveEvent)
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     sig_window_state_changed = Signal(object)
@@ -407,7 +408,13 @@ class MainWindow(QMainWindow, SpyderMainWindowMixin, SpyderShortcutsMixin):
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
-        plugin.sig_unmaximize_plugin_requested.connect(self.unmaximize_plugin)
+
+        # Note: connect each overload explicitly. A slot is attached to a
+        # single overload only, so the no-arg one needs a slot that can't take
+        # arguments -- hence the partial (see CONTRIBUTING.md for why).
+        plugin.sig_unmaximize_plugin_requested.connect(
+            functools.partial(self.unmaximize_plugin)
+        )
         plugin.sig_unmaximize_plugin_requested[object].connect(
             self.unmaximize_plugin)
 

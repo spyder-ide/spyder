@@ -16,6 +16,7 @@ import sys
 # Third party imports
 import pytest
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QClipboard
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QInputDialog, QMessageBox, QTextEdit)
 
@@ -97,7 +98,7 @@ def test_copy_path(explorer_with_files, path_method):
     copied_from = project.explorer.treewidget._parent.__class__.__name__
     project.explorer.treewidget.copy_path(fnames=file_paths,
                                           method=path_method)
-    cb_output = cb.text(mode=cb.Clipboard)
+    cb_output = cb.text(mode=QClipboard.Clipboard)
     path_list = [path.strip(',"') for path in cb_output.splitlines()]
     assert len(path_list) == len(file_paths)
     for path, expected_path in zip(path_list, file_paths):

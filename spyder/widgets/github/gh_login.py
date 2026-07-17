@@ -138,7 +138,7 @@ class DlgGitHubLogin(QDialog):
     @classmethod
     def login(cls, parent, token, remember_token):
         dlg = DlgGitHubLogin(parent, token, remember_token)
-        if dlg.exec_() == dlg.Accepted:
+        if dlg.exec_() == QDialog.Accepted:
             token = dlg.le_token.text()
             if dlg.cb_remember_token:
                 remember_token = dlg.cb_remember_token.isChecked()

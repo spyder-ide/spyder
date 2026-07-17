@@ -216,7 +216,7 @@ class Snippet:
                             recursive_notification=False)
 
 
-class SnippetEditor(QDialog, SpyderFontsMixin):
+class SnippetEditor(SpyderFontsMixin, QDialog):
     SNIPPET_VALID = _('Valid snippet')
     SNIPPET_INVALID = _('Invalid snippet')
     INVALID_CB_CSS = "QComboBox {border: 1px solid red;}"

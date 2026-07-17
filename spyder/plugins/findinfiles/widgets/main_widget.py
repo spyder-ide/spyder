@@ -11,7 +11,6 @@ import os.path as osp
 import re
 
 # Third party imports
-from qtpy import PYSIDE2
 from qtpy.QtCore import QEvent, Qt, Signal
 from qtpy.QtGui import QFontMetricsF
 from qtpy.QtWidgets import (
@@ -140,10 +139,8 @@ class FindInFilesWidget(PluginMainWidget):
     """
 
     def __init__(self, name=None, plugin=None, parent=None):
-        if not PYSIDE2:
-            super().__init__(name, plugin, parent=parent)
-        else:
-            PluginMainWidget.__init__(self, name, plugin, parent=parent)
+        PluginMainWidget.__init__(self, name, plugin, parent=parent)
+
         self.set_conf('text_color', MAIN_TEXT_COLOR)
         self.set_conf('hist_limit', MAX_PATH_HISTORY)
 
@@ -291,7 +288,7 @@ class FindInFilesWidget(PluginMainWidget):
                     self.exclude_pattern_edit.lineEdit().width() - 42,
                     self.messages_button_exclude.y()
                 )
-            elif widget == self.search_text_edit:                
+            elif widget == self.search_text_edit:
                 self.messages_button.move(
                     self.search_text_edit.lineEdit().width() - 42,
                     self.messages_button.y()

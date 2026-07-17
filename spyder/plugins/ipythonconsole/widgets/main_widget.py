@@ -17,6 +17,7 @@ import os.path as osp
 import shlex
 import sys
 import time
+import warnings
 
 # Third-party imports
 from jupyter_client.connect import find_connection_file
@@ -1647,11 +1648,23 @@ class IPythonConsoleWidget(PluginMainWidget, CachedKernelMixin):  # noqa: PLR090
         Refreshes corner widgets and actions as well as the info widget and
         sets the shellwidget and client signals
         """
+        # Don't refresh while the console is being torn down. This slot is
+        # connected to the tabwidget's currentChanged signal, which fires as
+        # tabs are removed during close_all_clients; at that point the current
+        # client's widgets may already be scheduled for deletion, so touching
+        # them (e.g. get_control().setFocus() below) crashes on PySide.
+        if self.mainwindow_close:
+            return
+
         client = None
         if self.tabwidget.count():
             for instance_client in self.clients:
                 try:
-                    instance_client.timer.timeout.disconnect()
+                    with warnings.catch_warnings():
+                        # RuntimeWarning: Failed to disconnect (None) from
+                        # signal "timeout()".
+                        warnings.simplefilter("ignore")
+                        instance_client.timer.timeout.disconnect()
                 except (RuntimeError, TypeError):
                     pass
 
