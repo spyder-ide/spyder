@@ -197,6 +197,24 @@ def test_find_parents(tmpdir) -> None:
     ]
 
 
+def test_find_parents_cross_mount(tmpdir, monkeypatch) -> None:
+    """find_parents returns [] when root and path are on different mounts (Windows UNC)."""
+    import unittest.mock as mock
+
+    subsubdir = tmpdir.ensure_dir("subdir", "subsubdir")
+    path = subsubdir.ensure("path.py")
+
+    with mock.patch(
+        "os.path.relpath",
+        side_effect=ValueError(
+            "path is on mount 'C:', start on mount '\\\\unc\\share'"
+        ),
+    ):
+        result = _utils.find_parents(tmpdir.strpath, path.strpath, ["test.cfg"])
+
+    assert result == []
+
+
 def test_merge_dicts() -> None:
     assert _utils.merge_dicts(
         {"a": True, "b": {"x": 123, "y": {"hello": "world"}}},
