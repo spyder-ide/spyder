@@ -3,6 +3,8 @@
 
 import os
 
+import jedi
+
 from pylsp import uris
 from pylsp.plugins.definition import pylsp_definitions
 from pylsp.workspace import Document
@@ -173,3 +175,27 @@ def foo():
     assert [{"uri": module_uri, "range": def_range}] == pylsp_definitions(
         config, doc, cursor_pos
     )
+
+
+def test_definition_without_source_position(config, workspace, monkeypatch) -> None:
+    # A definition jedi resolves without a source position (e.g. a compiled
+    # builtin, where line/column are None) must be dropped, not crash with
+    # `TypeError: unsupported operand type(s) for -: 'NoneType' and 'int'`.
+    # Regression test for #623 and #624.
+    class _NoPositionName:
+        line = None
+        column = None
+        module_path = None
+        name = "compiled"
+
+        def is_definition(self) -> bool:
+            return True
+
+    monkeypatch.setattr(
+        jedi.api.Script, "goto", lambda *args, **kwargs: [_NoPositionName()]
+    )
+
+    doc = Document(DOC_URI, workspace, DOC)
+    # follow_builtin_definitions defaults to True, so the None-guard in the
+    # return comprehension is the only thing preventing the crash.
+    assert pylsp_definitions(config, doc, {"line": 3, "character": 6}) == []

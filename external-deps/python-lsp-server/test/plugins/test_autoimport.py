@@ -346,3 +346,94 @@ def test_autoimport_code_actions_and_completions_for_notebook_document(
     context = {"diagnostics": [{"message": "A random message"}]}
     quick_fixes = server.code_actions("cell_4_uri", {}, context)
     assert len(quick_fixes) == 0
+
+
+def make_mypy_context(module_name, line, character_start, character_end):
+    return {
+        "diagnostics": [
+            {
+                "range": {
+                    "start": {"line": line, "character": character_start},
+                    "end": {"line": line, "character": character_end},
+                },
+                "code": "name-defined",
+            }
+        ]
+    }
+
+
+@pytest.mark.skipif(IS_WIN, reason="Flaky on Windows")
+def test_autoimport_code_actions_and_completions_based_on_mypy_error(
+    client_server_pair,
+) -> None:
+    client, server = client_server_pair
+    send_initialize_request(
+        client,
+        {
+            "pylsp": {
+                "plugins": {
+                    "rope_autoimport": {
+                        "memory": True,
+                        "enabled": True,
+                        "completions": {"enabled": True},
+                    },
+                }
+            }
+        },
+    )
+    with patch.object(server._endpoint, "notify") as mock_notify:
+        # Expectations:
+        # 1. We receive an autoimport suggestion for "os" in the first cell because
+        #    os is imported after that.
+        # 2. We don't receive an autoimport suggestion for "os" in the second cell because it's
+        #    already imported in the second cell.
+        # 3. We don't receive an autoimport suggestion for "os" in the third cell because it's
+        #    already imported in the second cell.
+        # 4. We receive an autoimport suggestion for "sys" because it's not already imported.
+        # 5. If diagnostics doesn't contain "undefined name ...", we send empty quick fix suggestions.
+        send_notebook_did_open(client, ["os", "import os\nos", "os", "sys"])
+        wait_for_condition(lambda: mock_notify.call_count >= 4)
+        # We received diagnostics messages for every cell
+        assert all(
+            "textDocument/publishDiagnostics" in c.args
+            for c in mock_notify.call_args_list
+        )
+
+    rope_autoimport_settings = server.workspace._config.plugin_settings(
+        "rope_autoimport"
+    )
+    assert rope_autoimport_settings.get("completions", {}).get("enabled", False) is True
+    assert rope_autoimport_settings.get("memory", False) is True
+    wait_for_condition(lambda: not cache.is_blocked())
+
+    # 1.
+    quick_fixes = server.code_actions(
+        "cell_1_uri", {}, make_mypy_context("os", 0, 0, 2)
+    )
+    assert any(s for s in quick_fixes if contains_autoimport_quickfix(s, "os"))
+
+    completions = server.completions("cell_1_uri", position(0, 2)).get("items")
+    assert any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 2.
+    # We don't test code actions here as in this case, there would be no code actions sent bc
+    # there wouldn't be a diagnostics message.
+    completions = server.completions("cell_2_uri", position(1, 2)).get("items")
+    assert not any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 3.
+    # Same as in 2.
+    completions = server.completions("cell_3_uri", position(0, 2)).get("items")
+    assert not any(s for s in completions if contains_autoimport_completion(s, "os"))
+
+    # 4.
+    quick_fixes = server.code_actions("cell_4_uri", {}, make_context("sys", 0, 0, 3))
+    assert any(s for s in quick_fixes if contains_autoimport_quickfix(s, "sys"))
+
+    completions = server.completions("cell_4_uri", position(0, 3)).get("items")
+    assert any(s for s in completions if contains_autoimport_completion(s, "sys"))
+
+    # 5.
+    context = {"diagnostics": [{"code": "some-code"}]}
+    quick_fixes = server.code_actions("cell_4_uri", {}, context)
+    assert len(quick_fixes) == 0
