@@ -777,7 +777,7 @@ def run_general_file_in_terminal(
 
         # python_exe must be quoted in case it has spaces
         cmd = f'start {windows_shell} ""{executable}" '
-        cmd += ' '.join(p_args)  # + '"'
+        cmd += ' '.join(p_args) + '"'
         logger.info('Executing on external console: %s', cmd)
 
         try:
