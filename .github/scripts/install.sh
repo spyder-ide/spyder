@@ -47,8 +47,13 @@ if [ "$USE_CONDA" = "true" ]; then
     # Remove pylsp before installing its subrepo below
     micromamba remove --force python-lsp-server python-lsp-server-base -y
 
-    # Force installation of Jedi 0.20
-    micromamba install jedi=0.20
+    # Force installation of Jedi 0.19 on Linux and 0.20 on Windows and Mac. The
+    # first is necessary for a few tests that fail in some slots
+    if [ "$OS" = "linux" ]; then
+        micromamba install jedi=0.19
+    else
+        micromamba install jedi=0.20
+    fi
 
     if [ "$OS" = "win" ]; then
         # Build 8 of this version makes tests fail in odd ways.
@@ -75,8 +80,13 @@ else
     # issues
     pip install ipykernel==6.30.1
 
-    # Force installation of Jedi 0.20
-    pip install jedi==0.20.0
+    # Force installation of Jedi 0.19 on Linux and 0.20 on Windows and Mac. The
+    # first is necessary for a few tests that fail in some slots
+    if [ "$OS" = "linux" ]; then
+        pip install jedi==0.19.2
+    else
+        pip install jedi==0.20.0
+    fi
 fi
 
 # Install subrepos from source
