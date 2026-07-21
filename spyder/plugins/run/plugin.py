@@ -54,6 +54,7 @@ class Run(SpyderPluginV2):
         Plugins.Toolbar,
         Plugins.WorkingDirectory,
     ]
+    OPTIONAL = [Plugins.Editor]
     CONTAINER_CLASS = RunContainer
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = RunConfigPage
@@ -174,6 +175,12 @@ class Run(SpyderPluginV2):
                 before_section,
             )
 
+        # Readd toolbar to active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor and not self.main.is_setting_up:
+            for window in editor.get_widget().editorwindows:
+                window.add_toolbar(ApplicationToolbars.Run, reload=True)
+
     @on_plugin_available(plugin=Plugins.Shortcuts)
     def on_shortcuts_available(self):
         shortcuts = self.get_plugin(Plugins.Shortcuts)
@@ -231,6 +238,12 @@ class Run(SpyderPluginV2):
                 toolbar.remove_item_from_application_toolbar(
                     action_id, ApplicationToolbars.Run
                 )
+
+        # Remove toolbar from active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor:
+            for window in editor.get_widget().editorwindows:
+                window.remove_toolbar(ApplicationToolbars.Run)
 
         toolbar.remove_application_toolbar(ApplicationToolbars.Run)
 
