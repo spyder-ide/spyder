@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2026-07-20 15:29-0500\n"
-"PO-Revision-Date: 2026-07-20 20:45\n"
+"PO-Revision-Date: 2026-07-21 13:21\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -4606,7 +4606,7 @@ msgstr "控制台帮助"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1068
 msgid "It was not possible to detect the current Matplotlib backend in the kernel, so the one you selected can't be set."
-msgstr ""
+msgstr "无法在内核中检测当前的 Matplotlib 后端，因此你选择的后端不能被设置。"
 
 #: spyder/plugins/ipythonconsole/widgets/main_widget.py:1284
 msgid "IPython"
@@ -6610,7 +6610,7 @@ msgstr "快捷方式汇总"
 
 #: spyder/plugins/shortcuts/widgets/summary.py:68
 msgid "Spyder keyboard shortcuts"
-msgstr ""
+msgstr "Spyder 键盘快捷键"
 
 #: spyder/plugins/shortcuts/widgets/summary.py:90 spyder/plugins/variableexplorer/widgets/preferences.py:121
 msgid "Global"
@@ -6968,7 +6968,7 @@ msgstr "Spyder已经更新到最新。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:311
 msgid "There is not enough space in your computer to perform the update. Please free some space and try again."
-msgstr ""
+msgstr "你的计算机中没有足够空间用来执行更新。 请释放一些空间然后重试。"
 
 #: spyder/plugins/updatemanager/widgets/update.py:353
 msgid "Would you like to download the update?"
