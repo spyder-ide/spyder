@@ -39,7 +39,7 @@ class Pylint(SpyderDockablePlugin, RunExecutor):
     WIDGET_CLASS = PylintWidget
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
-    REQUIRES = [Plugins.MainMenu, Plugins.Preferences, Plugins.Run]
+    REQUIRES = [Plugins.Preferences, Plugins.Run, Plugins.MainMenu]
     OPTIONAL = [Plugins.Editor, Plugins.Projects]
     TABIFY = [Plugins.VariableExplorer, Plugins.Help]
     CONF_FILE = False
