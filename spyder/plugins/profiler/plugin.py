@@ -48,8 +48,8 @@ class Profiler(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
     NAME = 'profiler'
     REQUIRES = [
         Plugins.Preferences,
-        Plugins.IPythonConsole,
         Plugins.Run,
+        Plugins.IPythonConsole,
         Plugins.Toolbar,
     ]
     OPTIONAL = [Plugins.Editor]
