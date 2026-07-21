@@ -42,10 +42,10 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
 
     NAME = 'debugger'
     REQUIRES = [
-        Plugins.IPythonConsole,
-        Plugins.MainMenu,
         Plugins.Preferences,
         Plugins.Run,
+        Plugins.IPythonConsole,
+        Plugins.MainMenu,
         Plugins.Toolbar,
     ]
     OPTIONAL = [Plugins.Editor]
