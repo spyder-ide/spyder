@@ -62,7 +62,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 LARGE_COLLECTION = 1e5
-LARGE_ARRAY = 5e6
+LARGE_ARRAY = 5e7
 SELECT_ROW_BUTTON_SIZE = 22
 
 # The maximum length of the text in a QLineEdit is 32_767, so do not allow
