@@ -476,6 +476,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         self.main_widget = main_widget
         self.window_size = None
         self._toolbars: dict[str, ApplicationToolbar] = {}
+        self._menus: dict[str, ApplicationMenu] = {}
 
         # ---- Main widget
         self.editorwidget = EditorWidget(
@@ -513,38 +514,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
             self.add_toolbar(toolbar_id)
 
         # ---- Add menus
-        menu_list = [
-            ApplicationMenus.File,
-            ApplicationMenus.Edit,
-            ApplicationMenus.Search,
-            ApplicationMenus.Source,
-            ApplicationMenus.Run,
-            ApplicationMenus.Tools,
-            EditorMainWindowMenus.Window,
-            ApplicationMenus.Help
-        ]
-
-        self._window_menu = self._create_menu(
-            menu_id=EditorMainWindowMenus.Window,
-            parent=self,
-            title=_("&Window"),
-            register=False,
-            MenuClass=ApplicationMenu
-        )
-        self._populate_window_menu()
-
-        for menu_id in menu_list:
-            if menu_id == EditorMainWindowMenus.Window:
-                self.menuBar().addMenu(self._window_menu)
-            else:
-                # This is necessary to run tests for this widget without
-                # Spyder's main window
-                try:
-                    self.menuBar().addMenu(
-                        self.get_menu(menu_id, plugin=Plugins.MainMenu)
-                    )
-                except KeyError:
-                    continue
+        self._add_menus()
 
     # ---- Qt methods
     # -------------------------------------------------------------------------
@@ -634,15 +604,34 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
         else:
             self.addToolBar(new_toolbar)
 
-    def remove_toolbar(self, toolbar_id):
+    def remove_toolbar(self, toolbar_id: str):
         toolbar = self._toolbars.pop(toolbar_id)
         self.removeToolBar(toolbar)
         self._reload_toolbars()
 
+    def add_menu(self, menu_id: str, readd: bool = False):
+        try:
+            menu = self.get_menu(menu_id, plugin=Plugins.MainMenu)
+        except KeyError:
+            return
+
+        self._menus[menu_id] = menu
+
+        if readd:
+            self._add_menus(readd=True)
+
+        return menu
+
+    def remove_menu(self, menu_id: str):
+        menu = self.get_menu(menu_id, plugin=Plugins.MainMenu)
+        self.menuBar().removeAction(menu.menuAction())
+        self._menus.pop(menu_id)
+
     # ---- Private API
     # -------------------------------------------------------------------------
     def _populate_window_menu(self):
-        self._window_menu.clear_actions()
+        window_menu = self._menus[EditorMainWindowMenus.Window]
+        window_menu.clear_actions()
 
         # Create Outline action
         self.toggle_outline_action = None
@@ -655,7 +644,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
                 register_action=False,
             )
 
-            self._window_menu.add_action(
+            window_menu.add_action(
                 self.toggle_outline_action,
                 section=WindowMenuSections.Outline
             )
@@ -677,7 +666,7 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
                 toolbar_action.setChecked(True)
                 toolbar.setVisible(True)
 
-            self._window_menu.add_action(
+            window_menu.add_action(
                 toolbar_action,
                 section=WindowMenuSections.Toolbars
             )
@@ -693,6 +682,55 @@ class EditorMainWindow(SpyderWidgetMixin, QMainWindow):
                 toolbar.render()
 
         self._populate_window_menu()
+
+    def _add_menus(self, readd: bool = False):
+        menu_ids = set(self._menus.keys())
+
+        # Remove all menus to readd them again
+        if readd:
+            for menu_id in menu_ids:
+                menu = self._menus[menu_id]
+                self.menuBar().removeAction(menu.menuAction())
+
+        # Window menu needs to be created only once
+        if EditorMainWindowMenus.Window not in self._menus:
+            window_menu = self._create_menu(
+                menu_id=EditorMainWindowMenus.Window,
+                parent=self,
+                title=_("&Window"),
+                register=False,
+                MenuClass=ApplicationMenu
+            )
+            self._menus[EditorMainWindowMenus.Window] = window_menu
+            self._populate_window_menu()
+
+        # Menu order
+        menu_list = [
+            ApplicationMenus.File,
+            ApplicationMenus.Edit,
+            ApplicationMenus.Search,
+            ApplicationMenus.Source,
+            ApplicationMenus.Run,
+            ApplicationMenus.Tools,
+            EditorMainWindowMenus.Window,
+            ApplicationMenus.Help
+        ]
+
+        # Add menus
+        for menu_id in menu_list:
+            # Get reference to menu
+            menu = self._menus.get(menu_id)
+            if not menu:
+                menu = self.add_menu(menu_id)
+
+                # If the menu is still not available after trying to add it,
+                # there's nothing else to do
+                if menu_id not in self._menus:
+                    continue
+
+            # Add menu
+            if menu:
+                self.menuBar().addMenu(menu)
 
 
 class EditorMainWidgetExample(QSplitter):
