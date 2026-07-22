@@ -145,7 +145,8 @@ def test_objectexplorer_collection_types(objectexplorer, params):
 
 @pytest.mark.parametrize('params', [
             # show_callable_, show_special_, rowCount for python 3 and 2
-            (True, True, [37, 35, 34, 26], ),  # 37: py3.13, 35: py3.11, 34: py3.x, 26: py2.7
+            # 37: py3.13, 35: py3.11, 34: py3.x, 26: py2.7
+            (True, True, [37, 35, 34, 26], ),
             (False, False, [8, 8], )
         ])
 def test_objectexplorer_types(objectexplorer, params):

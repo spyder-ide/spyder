@@ -1999,7 +1999,11 @@ def test_pdb_comprehension_namespace(ipyconsole, qtbot, tmpdir):
         shell.pdb_execute("print('test', locals + i + 10)")
 
     assert "Error" not in control.toPlainText()
-    assert "test 12" in control.toPlainText() if PY313_OR_GREATER else "test 11" in control.toPlainText()
+    assert (
+        "test 12" in control.toPlainText()
+        if PY313_OR_GREATER
+        else "test 11" in control.toPlainText()
+    )
 
     settings = {
         'check_all': False,
