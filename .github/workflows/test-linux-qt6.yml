@@ -54,7 +54,7 @@ jobs:
     # Use this to disable the workflow
     # if: false
     name: Linux - Py${{ matrix.PYTHON_VERSION }}, ${{ matrix.SPYDER_QT_BINDING }}, ${{ matrix.INSTALL_TYPE }}, ${{ matrix.TEST_TYPE }}
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-22.04
     env:
       CI: 'true'
       QTCONSOLE_TESTING: 'true'
@@ -119,17 +119,9 @@ jobs:
 
       - name: Create pip test environment
         if: env.USE_CONDA != 'true'
-        uses: mamba-org/setup-micromamba@v3
+        uses: actions/setup-python@v6
         with:
-          micromamba-version: '1.5.10-0'
-          environment-name: test
-          cache-downloads: true
-          create-args: >-
-            python=${{ matrix.PYTHON_VERSION }}
-            libexpat=2.7.4
-          condarc: |
-            channels:
-              - conda-forge
+          python-version: ${{ matrix.PYTHON_VERSION }}
 
       - name: Install Pixi
         uses: prefix-dev/setup-pixi@v0.9.6
