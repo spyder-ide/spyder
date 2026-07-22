@@ -143,6 +143,12 @@ class Run(SpyderPluginV2):
                 before_section=before_section
             )
 
+        # Add menu to active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor and not self.main.is_setting_up:
+            for window in editor.get_widget().editorwindows:
+                window.add_menu(ApplicationMenus.Run, readd=True)
+
     @on_plugin_available(plugin=Plugins.Preferences)
     def on_preferences_available(self):
         preferences = self.get_plugin(Plugins.Preferences)
@@ -218,6 +224,13 @@ class Run(SpyderPluginV2):
                     action_id, ApplicationMenus.Run
                 )
 
+        # Remove menu from active editor windows
+        editor = self.get_plugin(Plugins.Editor)
+        if editor:
+            for window in editor.get_widget().editorwindows:
+                window.remove_menu(ApplicationMenus.Run)
+
+        # Remove menu from the main window
         main_menu.remove_application_menu(ApplicationMenus.Run)
 
     @on_plugin_teardown(plugin=Plugins.Preferences)
