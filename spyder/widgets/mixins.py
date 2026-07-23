@@ -300,7 +300,14 @@ class BaseEditMixin(object):
             else:
                 text = '\n'.join(lines)
 
+        text = re.sub(
+            r'(?m)^( +)',
+            lambda m: '&nbsp;' * len(m.group(1)),
+            text
+        )
+
         text = text.replace('\n', '<br>')
+
         if text_new_line and signature:
             # If there's enough content in the docstring or signature, then we
             # add an hr to separate them.
@@ -342,6 +349,9 @@ class BaseEditMixin(object):
                     '<span style="color:white;text-decoration:none;">'
                     '' + help_text + '</span></div>'
                 )
+
+        print("=" * 80)
+        print(template)
 
         return template
 
