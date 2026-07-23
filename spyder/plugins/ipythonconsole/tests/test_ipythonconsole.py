@@ -2805,6 +2805,96 @@ def test_add_tab_give_focus(ipyconsole, qtbot, mocker):
     widget.clients.remove(mock_client)
 
 
+@flaky(max_runs=3)
+def test_jump_to_prompt(ipyconsole, qtbot):
+    """
+    Test that jump_to_previous_prompt/jump_to_next_prompt move the cursor
+    between the blocks where "In" prompts are shown.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2", "c = 3"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    # There should be at least one prompt block per statement executed above,
+    # plus the initial one.
+    assert len(shell._prompt_blocks) >= 4
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    last_block = control.textCursor().blockNumber()
+
+    # Jump backwards twice
+    shell.jump_to_previous_prompt()
+    after_first_jump = control.textCursor().blockNumber()
+    assert after_first_jump < last_block
+
+    shell.jump_to_previous_prompt()
+    after_second_jump = control.textCursor().blockNumber()
+    assert after_second_jump < after_first_jump
+
+    # Jump forward and check we're back to where the first jump left us
+    shell.jump_to_next_prompt()
+    assert control.textCursor().blockNumber() == after_first_jump
+
+    # Jumping past the first/last prompt should be a no-op
+    for __ in range(10):
+        shell.jump_to_previous_prompt()
+    first_jump_block = control.textCursor().blockNumber()
+
+    shell.jump_to_previous_prompt()
+    assert control.textCursor().blockNumber() == first_jump_block
+
+
+@flaky(max_runs=3)
+def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
+    """
+    Test that the "go to previous/next prompt" shortcuts are registered and
+    correctly wired to ShellWidget.jump_to_previous_prompt/jump_to_next_prompt.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+
+    for code in ["a = 1", "b = 2"]:
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(code)
+
+    cursor = control.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    control.setTextCursor(cursor)
+    control.setFocus()
+
+    before = control.textCursor().blockNumber()
+
+    def modifiers_for(keystr):
+        keystr = keystr.lower()
+        mods = Qt.NoModifier
+        if 'ctrl' in keystr:
+            mods |= Qt.ControlModifier
+        if 'alt' in keystr:
+            mods |= Qt.AltModifier
+        if 'shift' in keystr:
+            mods |= Qt.ShiftModifier
+        if 'meta' in keystr:
+            mods |= Qt.MetaModifier
+        return mods
+
+    prev_keystr = shell.get_shortcut('go to previous prompt')
+    next_keystr = shell.get_shortcut('go to next prompt')
+
+    qtbot.keyClick(control, Qt.Key_Up, modifier=modifiers_for(prev_keystr))
+    qtbot.wait(300)
+    after_previous = control.textCursor().blockNumber()
+    assert after_previous < before
+
+    qtbot.keyClick(control, Qt.Key_Down, modifier=modifiers_for(next_keystr))
+    qtbot.wait(300)
+    assert control.textCursor().blockNumber() > after_previous
+
+
 @pytest.mark.order(1)
 @pytest.mark.skipif(not running_in_ci(), reason="Only works on CIs")
 @pytest.mark.skipif(not find_pixi(), reason="Needs Pixi to work")
