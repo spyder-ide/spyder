@@ -1096,9 +1096,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
                     layouts_container.close()
                     layouts_container.deleteLater()
                 self.layouts.deleteLater()
-                PLUGIN_REGISTRY.delete_plugin(
-                    Plugins.Layout, teardown=False
-                )
+                PLUGIN_REGISTRY.delete_plugin(Plugins.Layout, teardown=False)
             except RuntimeError:
                 pass
 
@@ -1119,7 +1117,7 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
 
         return True
 
-    def add_dockwidget(self, plugin):
+    def add_dockwidget(self, plugin: SpyderDockablePlugin):
         """
         Add a plugin QDockWidget to the main window.
         """
@@ -1127,6 +1125,19 @@ class MainWindow(SpyderMainWindowMixin, SpyderShortcutsMixin, QMainWindow):
             dockwidget, location = plugin.create_dockwidget(self)
             self.addDockWidget(location, dockwidget)
             self.widgetlist.append(plugin)
+
+            # Hide plugin if it was hidden and then disabled/reenabled in the
+            # same session
+            if not self.is_setting_up:
+                if not plugin.get_conf(
+                    "visible_before_deletion", default=False
+                ):
+                    QTimer.singleShot(
+                        10,
+                        functools.partial(
+                            plugin.get_widget().toggle_view, False
+                        )
+                    )
 
     def redirect_internalshell_stdio(self, state):
         console = self.get_plugin(Plugins.Console, error=False)
