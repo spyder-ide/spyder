@@ -37,14 +37,14 @@ jobs:
         os: [ubuntu-latest]
         pkg: [python-lsp-server, qtconsole, spyder-kernels]
         include:
-          - python-version: '3.12'
+          - python-version: '3.13'
           - cache-arch: noarch
           - os: ubuntu-latest
             pkg: spyder-kernels
             cache-arch: unix
           - os: windows-2022
             pkg: spyder-kernels
-            python-version: '3.12'
+            python-version: '3.13'
             cache-arch: win-64
     defaults:
       run:

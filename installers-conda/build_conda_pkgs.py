@@ -184,7 +184,7 @@ class BuildCondaPkg:
         file.rename(file.parent / ("_" + file.name))  # copy of original
 
         pyver = sys.version_info
-        contents['python'] = [f"{pyver.major}.{pyver.minor}.* *_cpython"]
+        contents['python'] = [f"{pyver.major}.{pyver.minor}"]
         yaml.dump(contents, file)
 
         self.logger.info(
