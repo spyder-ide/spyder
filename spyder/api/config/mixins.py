@@ -373,6 +373,31 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         section_listeners[option] = option_listeners
         self._configuration_listeners[section] = section_listeners
 
+    def _remove_listener(
+        self, func: Callable, option: ConfigurationKey, section: str
+    ):
+        """
+        Add a callable as a listener of a specific configuration option.
+
+        Parameters
+        ----------
+        func: Callable
+            Function/method that will be called when ``option`` changes.
+        option: spyder.config.types.ConfigurationKey
+            Name/tuple path of the configuration option to observe.
+        section: str
+            Name of the section containing ``option``, e.g. ``"shortcuts"``.
+
+        Returns
+        -------
+        None
+        """
+        section_listeners = self._configuration_listeners.get(section, {})
+        option_listeners = section_listeners.get(option, [])
+        option_listeners.remove(func)
+        section_listeners[option] = option_listeners
+        self._configuration_listeners[section] = section_listeners
+
     def on_configuration_change(
         self, option: ConfigurationKey, section: str, value: BasicTypes
     ) -> None:
@@ -442,3 +467,41 @@ class SpyderConfigurationObserver(SpyderConfigurationAccessor):
         )
         self._add_listener(func, option, section)
         CONF.observe_configuration(self, section, option)
+
+    def remove_configuration_observer(
+        self,
+        func: Callable,
+        option: ConfigurationKey,
+        section: str | None = None,
+    ) -> None:
+        """
+        Remove callable to observe changes to a specific configuration option.
+
+        Parameters
+        ----------
+        func: Callable
+            Function/method that will be removed.
+        option: spyder.config.types.ConfigurationKey
+            Name/tuple path of the configuration option that is observed.
+        section: str | None, optional
+            Name of the section containing ``option``, e.g. ``"shortcuts"``.
+            If ``None``, then the value of
+            :attr:`~SpyderConfigurationAccessor.CONF_SECTION` is used.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        - This is only necessary if you need to remove a callable that is not a
+          class method to observe an option.
+        """
+        if section is None:
+            section = self.CONF_SECTION
+
+        logger.debug(
+            f'{self} is observing "{option}" option on section "{section}"'
+        )
+        self._remove_listener(func, option, section)
+        CONF.unobserve_configuration(self, section, option)

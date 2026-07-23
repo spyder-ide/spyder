@@ -275,9 +275,9 @@ class EditorMainWidget(PluginMainWidget):
         self.checkable_actions = {}
 
         self.__first_open_files_setup = True
-        self.editorstacks = []
+        self.editorstacks: list[EditorStack] = []
         self.last_focused_editorstack = {}
-        self.editorwindows = []
+        self.editorwindows: list[EditorMainWindow] = []
         self.editorwindows_to_be_created = []
 
         # Configuration dialog size
@@ -907,6 +907,25 @@ class EditorMainWidget(PluginMainWidget):
         file_id = self.id_per_file.get(filename, None)
         self.sig_editor_focus_changed_uuid.emit(file_id)
 
+    def handle_run_status(self, filename: str):
+        """Handle run status of a given filename."""
+        __, filename_ext = osp.splitext(filename)
+        filename_ext = filename_ext[1:]
+
+        able_to_run_file = False
+        if filename_ext in self.supported_run_configurations:
+            ext_contexts = self.supported_run_configurations[filename_ext]
+
+            if (
+                filename not in self.id_per_file
+                and RunContext.File in ext_contexts
+            ):
+                self.register_file_run_metadata(filename)
+                able_to_run_file = True
+
+        if not able_to_run_file:
+            self.pending_run_files |= {(filename, filename_ext)}
+
     def register_file_run_metadata(self, filename):
         """Register opened files with the Run plugin."""
         all_uuids = self.get_conf('file_uuids', default={})
@@ -980,22 +999,8 @@ class EditorMainWidget(PluginMainWidget):
         filename = options['filename']
         language = options['language']
         codeeditor = options['codeeditor']
-        __, filename_ext = osp.splitext(filename)
-        filename_ext = filename_ext[1:]
 
-        able_to_run_file = False
-        if filename_ext in self.supported_run_configurations:
-            ext_contexts = self.supported_run_configurations[filename_ext]
-
-            if (
-                filename not in self.id_per_file
-                and RunContext.File in ext_contexts
-            ):
-                self.register_file_run_metadata(filename)
-                able_to_run_file = True
-
-        if not able_to_run_file:
-            self.pending_run_files |= {(filename, filename_ext)}
+        self.handle_run_status(filename)
 
         status, fallback_only = self._plugin._register_file_completions(
             language.lower(), filename, codeeditor
@@ -1220,11 +1225,20 @@ class EditorMainWidget(PluginMainWidget):
 
     # ---- For other plugins
     # -------------------------------------------------------------------------
-    def set_outlineexplorer(self, outlineexplorer_widget):
+    def set_outlineexplorer(self, outline_plugin):
         # TODO: Is there another way to do this?
-        self.outlineexplorer = outlineexplorer_widget
+        self.outline_plugin = outline_plugin
+        self.outlineexplorer = (
+            outline_plugin.get_widget() if outline_plugin is not None else None
+        )
+
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
+
+        # This is necessary when the Outline plugin is disabled/reenabled
+        if not self._plugin.main.is_setting_up:
+            for window in self.editorwindows:
+                window.set_outlineexplorer(self.outline_plugin)
 
     def set_switcher(self, switcher):
         # TODO: Is there another way to do this?

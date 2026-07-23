@@ -32,7 +32,7 @@ class Toolbar(SpyderPluginV2):
     Docstrings viewer widget.
     """
     NAME = 'toolbar'
-    REQUIRES = [Plugins.MainMenu]
+    REQUIRES = [Plugins.Layout, Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
@@ -123,7 +123,8 @@ class Toolbar(SpyderPluginV2):
             The created application toolbar.
         """
         toolbar = self.get_container().create_application_toolbar(
-            toolbar_id, title)
+            toolbar_id, title
+        )
         self.add_application_toolbar(toolbar)
         return toolbar
 
@@ -139,7 +140,7 @@ class Toolbar(SpyderPluginV2):
         toolbar: spyder.api.widgets.toolbars.ApplicationToolbar
             The application toolbar to add to the main window.
         """
-        self.get_container().add_application_toolbar(toolbar, self._main)
+        self.get_container().add_application_toolbar(toolbar)
 
     def remove_application_toolbar(self, toolbar_id: str):
         """
@@ -153,7 +154,7 @@ class Toolbar(SpyderPluginV2):
         toolbar: str
             The application toolbar to remove from the main window.
         """
-        self.get_container().remove_application_toolbar(toolbar_id, self._main)
+        self.get_container().remove_application_toolbar(toolbar_id)
 
     def add_item_to_application_toolbar(self,
                                         item: Union[SpyderAction, QWidget],

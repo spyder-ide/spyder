@@ -14,6 +14,7 @@
 # Standard library imports
 from __future__ import annotations
 from collections.abc import Callable
+import inspect
 import functools
 import logging
 import os
@@ -803,6 +804,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.send_to_help(name, help_text, force=True)
 
     # ---- Editor Widget Settings
+    # -------------------------------------------------------------------------
     @on_conf_change(
         option=("provider_configuration", "lsp", "values", "pyflakes"),
         section='completions',
@@ -1179,6 +1181,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
             finfo.editor.set_current_project_path(root_path)
 
     # ---- Stacked widget management
+    # -------------------------------------------------------------------------
     def get_stack_index(self):
         return self.tabs.currentIndex()
 
@@ -1337,6 +1340,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.tabs.setTabToolTip(index, tab_tip)
 
     # ---- Context menu
+    # -------------------------------------------------------------------------
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
         self.menu.clear_actions()
@@ -1409,6 +1413,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.menu.render()
 
     # ---- Hor/Ver splitting actions
+    # -------------------------------------------------------------------------
     def __get_split_actions(self):
         self.versplit_action = self.create_action(
             EditorStackActions.SplitVertically,
@@ -1450,6 +1455,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         return actions
 
     # ---- Window actions
+    # -------------------------------------------------------------------------
     def __get_window_actions(self):
         actions = []
         if self.new_window_action:
@@ -1470,6 +1476,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         return actions
 
     # ---- New window and close/docking/undocking actions
+    # -------------------------------------------------------------------------
     def __get_main_widget_actions(self):
         actions = []
         if self.parent() is not None:
@@ -1624,6 +1631,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.refresh()
 
     # ---- Close file, tabwidget...
+    # -------------------------------------------------------------------------
     def close_file(self, index=None, force=False):
         """Close file (index=None -> close current file)
         Keep current file index unchanged (if current file
@@ -1802,6 +1810,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.last_closed_files = fnames
 
     # ---- Save
+    # -------------------------------------------------------------------------
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified.
 
@@ -2568,6 +2577,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
         self.sig_refresh_eol_chars.emit(os_name)
 
     # ---- Load, reload
+    # -------------------------------------------------------------------------
     def reload(self, index):
         """Reload file from disk."""
         finfo = self.data[index]
@@ -3002,6 +3012,7 @@ class EditorStack(SpyderWidgetMixin, QWidget):
                 )
 
     # ---- Run
+    # -------------------------------------------------------------------------
     def _get_lines_cursor(self, direction):
         """ Select and return all lines from cursor in given direction"""
         editor = self.get_current_editor()
@@ -3119,7 +3130,63 @@ class EditorStack(SpyderWidgetMixin, QWidget):
 
         return text, off_pos, col_pos, cell_name, encoding
 
+    # ---- For panels, extensions and shortcuts
+    # -------------------------------------------------------------------------
+    def add_extension(self, extension: type[EditorExtension]):
+        """Add an extension to all CodeEditors."""
+        for finfo in self.data:
+            finfo.editor.editor_extensions.add(extension())
+
+    def remove_extension(self, extension: type[EditorExtension]):
+        """Remove an extension from all CodeEditors."""
+        for finfo in self.data:
+            finfo.editor.editor_extensions.remove(extension)
+
+    def add_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    ):
+        """Add a panel to all CodeEditors."""
+        for finfo in self.data:
+            panel_instance = finfo.editor.panels.register(panel(), position)
+            panel_instance.show()
+            finfo.editor.panels.refresh()
+
+    def remove_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    ):
+        """Remove a panel from all CodeEditors."""
+        for finfo in self.data:
+            finfo.editor.panels.remove(panel, position)
+
+    def add_shortcut(
+        self,
+        name: str,
+        triggered: Callable[[], None] | Callable[[CodeEditor], None],
+        plugin_name: str,
+    ):
+        """Add a shortcut to all CodeEditors."""
+        for finfo in self.data:
+            # Qt objects don't have signatures, which generates a ValueError.
+            # In that case we assume `triggered` has no args.
+            try:
+                if len(inspect.signature(triggered).parameters) == 1:
+                    triggered = functools.partial(triggered, finfo.editor)
+            except ValueError:
+                pass
+
+            finfo.editor.register_shortcut_for_widget(
+                name=name, triggered=triggered, plugin_name=plugin_name
+            )
+
+    def remove_shortcut(self, name: str, plugin_name: str):
+        """Remove a shortcut from all CodeEditors."""
+        for finfo in self.data:
+            finfo.editor.unregister_shortcut_from_widget(
+                name=name, plugin_name=plugin_name
+            )
+
     # ---- Drag and drop
+    # -------------------------------------------------------------------------
     def dragEnterEvent(self, event):
         """
         Reimplemented Qt method.

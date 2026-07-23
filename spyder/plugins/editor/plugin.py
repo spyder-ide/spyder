@@ -53,6 +53,7 @@ from spyder.plugins.run.api import RunContext
 
 if TYPE_CHECKING:
     from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+    from spyder.plugins.editor.widgets.editorstack import EditorStack
 
 
 logger = logging.getLogger(__name__)
@@ -64,18 +65,22 @@ class Editor(SpyderDockablePlugin):
     """
 
     NAME = 'editor'
-    REQUIRES = [Plugins.Console, Plugins.Application, Plugins.Preferences]
+    REQUIRES = [
+        Plugins.Application,
+        Plugins.Console,
+        Plugins.MainMenu,
+        Plugins.Preferences,
+        Plugins.Toolbar,
+    ]
     OPTIONAL = [
         Plugins.Completions,
         Plugins.Debugger,
         Plugins.IPythonConsole,
-        Plugins.MainMenu,
         Plugins.Projects,
         Plugins.OutlineExplorer,
         Plugins.Run,
         Plugins.StatusBar,
         Plugins.Switcher,
-        Plugins.Toolbar
     ]
     WIDGET_CLASS = EditorMainWidget
     CONF_SECTION = NAME
@@ -292,16 +297,10 @@ class Editor(SpyderDockablePlugin):
             run.switch_focused_run_configuration
         )
         widget.sig_register_run_configuration_provider_requested.connect(
-            lambda supported_extensions:
-                run.register_run_configuration_provider(
-                    self.NAME, supported_extensions
-                )
+            self._register_run_configuration_provider
         )
         widget.sig_deregister_run_configuration_provider_requested.connect(
-            lambda unsupported_extensions:
-                run.deregister_run_configuration_provider(
-                    self.NAME, unsupported_extensions
-                )
+            self._deregister_run_configuration_provider
         )
 
         # This is necessary to register run configs that were added before Run
@@ -374,6 +373,12 @@ class Editor(SpyderDockablePlugin):
 
         self.get_widget().add_run_actions_to_codeeditor_context_menu()
 
+        # Re-register open files to the plugin if it's reenabled
+        if not self.main.is_setting_up:
+            editorstack = self.get_current_editorstack()
+            for finfo in editorstack.data:
+                widget.handle_run_status(finfo.filename)
+
     @on_plugin_teardown(plugin=Plugins.Run)
     def on_run_teardown(self):
         widget = self.get_widget()
@@ -383,6 +388,16 @@ class Editor(SpyderDockablePlugin):
 
         run.deregister_run_configuration_provider(
             self.NAME, widget.supported_run_extensions
+        )
+
+        widget.sig_editor_focus_changed_uuid.disconnect(
+            run.switch_focused_run_configuration
+        )
+        widget.sig_register_run_configuration_provider_requested.disconnect(
+            self._register_run_configuration_provider
+        )
+        widget.sig_deregister_run_configuration_provider_requested.disconnect(
+            self._deregister_run_configuration_provider
         )
 
         run.destroy_run_button(RunContext.Cell)
@@ -403,6 +418,14 @@ class Editor(SpyderDockablePlugin):
             RunContext.Selection,
             context_modificator=SelectionContextModificator.FromLine
         )
+
+        # Deregister all runnable files
+        for filename in self.get_widget().id_per_file.copy():
+            widget.deregister_file_run_metadata(filename)
+
+        # Clear files that could be with a run config added by another plugin
+        # or users
+        widget.pending_run_files = set()
 
     @on_plugin_available(plugin=Plugins.MainMenu)
     def on_mainmenu_available(self):
@@ -689,10 +712,8 @@ class Editor(SpyderDockablePlugin):
     def on_outlineexplorer_available(self):
         widget = self.get_widget()
         outline = self.get_plugin(Plugins.OutlineExplorer)
-        outline_widget = outline.get_widget()
 
-        widget.set_outlineexplorer(outline_widget)
-        widget.outline_plugin = outline
+        widget.set_outlineexplorer(outline)
 
     @on_plugin_teardown(plugin=Plugins.OutlineExplorer)
     def on_outlinexplorer_teardown(self):
@@ -1042,6 +1063,17 @@ class Editor(SpyderDockablePlugin):
         """
         return self.get_widget().get_current_editorstack()
 
+    def get_editorstacks(self) -> list["EditorStack"]:
+        """
+        Get all `EditorStack` instances.
+
+        Returns
+        -------
+        list[spyder.plugins.editor.editorstack.EditorStack]
+            List of `EditorStack` instances.
+        """
+        return self.get_widget().editorstacks
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to.
@@ -1269,11 +1301,71 @@ class Editor(SpyderDockablePlugin):
 
         self.extensions.append(extension)
 
+        # This is necessary to readd the extension for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_extension(extension)
+
+    def remove_extension(self, extension: type[EditorExtension]) -> None:
+        """
+        Remove an editor extension from all CodeEditors.
+
+        Parameters
+        ----------
+        extension: type[EditorExtension]
+            Subclass of EditorExtension to be removed.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the extension is not a subclass of EditorExtension.
+        """
+        if not issubclass(extension, EditorExtension):
+            raise SpyderAPIError(
+                "The extension you provided is not a subclass of "
+                "EditorExtension."
+            )
+
+        self.extensions.remove(extension)
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_extension(extension)
+
     def add_panel(
         self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
     ) -> None:
         """
         Add a panel to every CodeEditor.
+
+        Parameters
+        ----------
+        panel: type[Panel]
+            Subclass of Panel to be added to the editor.
+        position: PanelPosition, optional
+            Position to add the panel to. Default is to the left.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the panel is not a subclass of Panel.
+        """
+        if not issubclass(panel, Panel):
+            raise SpyderAPIError(
+                "The panel you provided is not a subclass of Panel."
+            )
+
+        self.panels.append((panel, position))
+
+        # This is necessary to readd the panel for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_panel(panel, position)
+
+    def remove_panel(
+        self, panel: type[Panel], position: PanelPosition = PanelPosition.LEFT
+    )-> None:
+        """
+        Remove a panel from all CodeEditors.
 
         Parameters
         ----------
@@ -1292,28 +1384,31 @@ class Editor(SpyderDockablePlugin):
                 "The panel you provided is not a subclass of Panel."
             )
 
-        self.panels.append((panel, position))
+        self.panels.remove((panel, position))
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_panel(panel, position)
 
     def add_shortcut(
         self,
         name: str,
-        triggered: Callable[["CodeEditor"], None],
-        plugin_name: str,
+        triggered: Callable[[], None] | Callable[["CodeEditor"], None],
+        plugin_name: str | None = None,
     ) -> None:
         """
-        Add a keyboard shorcut to every CodeEditor.
+        Add a keyboard shortcut to every CodeEditor.
 
         Parameters
         ----------
         name: str
             The shortcut name (e.g. ``"add text"``).
-        triggered: Callable[["CodeEditor"], None]
+        triggered: Callable[[], None] | Callable[["CodeEditor"], None]
             Callable (i.e. function or method) to be triggered by the shortcut.
-            It must have a single parameter that receives an instance of
-            CodeEditor to work with and it doesn't need to return anything
-            because it's expected result is to have a side effect on the
-            editor (e.g. adding some text to it).
-        plugin_name: str
+            It must have no args or a single arg that receives an instance of
+            CodeEditor to work with. In addition, the callable must not return
+            anything because it's expected result is to have a side effect on
+            the editor (e.g. adding some text to it).
+        plugin_name: str, optional
             Name of the plugin that attempts to register the shortcut. This
             allows Spyder to get the shortcut from its configuration options.
 
@@ -1341,6 +1436,49 @@ class Editor(SpyderDockablePlugin):
 
         self.shortcuts.append((name, triggered, plugin_name))
 
+        # This is necessary to readd the shortcut for reenabled plugins
+        if not self.main.is_setting_up:
+            for editorstack in self.get_editorstacks():
+                editorstack.add_shortcut(name, triggered, plugin_name)
+
+    def remove_shortcut(
+        self, name: str, plugin_name: str | None = None
+    ) -> None:
+        """
+        Remove a keyboard shortcut from all CodeEditors.
+
+        Parameters
+        ----------
+        name: str
+            The shortcut name (e.g. ``"add text"``).
+        plugin_name: str, optional
+            Name of the plugin that attempts to register the shortcut. This
+            allows Spyder to get the shortcut from its configuration options.
+
+        Raises
+        ------
+        SpyderAPIError
+            If the shortcut context is not 'editor', or the shortcut is not
+            part of the external plugin's configuration options.
+        """
+        try:
+            self.get_widget().get_shortcut(
+                name=name, context="editor", plugin_name=plugin_name
+            )
+        except configparser.NoOptionError:
+            raise SpyderAPIError(
+                f"The shortcut context is not 'editor' or the shortcut is not "
+                f"part of the config options of the plugin {plugin_name}"
+            )
+
+        for sc in self.shortcuts:
+            if sc[0] == name and sc[2] == plugin_name:
+                triggered = sc[1]
+                self.shortcuts.remove((name, triggered, plugin_name))
+
+        for editorstack in self.get_editorstacks():
+            editorstack.remove_shortcut(name, plugin_name)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     # ---- Run related methods
@@ -1365,6 +1503,20 @@ class Editor(SpyderDockablePlugin):
         run = self.get_plugin(Plugins.Run, error=False)
         if run is not None:
             run.switch_focused_run_configuration(file_id)
+
+    def _register_run_configuration_provider(self, supported_extensions):
+        run = self.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.register_run_configuration_provider(
+                self.NAME, supported_extensions
+            )
+
+    def _deregister_run_configuration_provider(self, unsupported_extensions):
+        run = self.get_plugin(Plugins.Run, error=False)
+        if run is not None:
+            run.deregister_run_configuration_provider(
+                self.NAME, unsupported_extensions
+            )
 
     # ---- Completions related methods
     def _register_file_completions(self, language, filename, codeeditor):
