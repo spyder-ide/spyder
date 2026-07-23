@@ -31,7 +31,7 @@ from packaging.version import parse
 import pytest
 from qtpy import PYQT6, PYSIDE6
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QTextCursor
+from qtpy.QtGui import QKeySequence, QShortcut, QTextCursor
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder_kernels import __version__ as spyder_kernels_version
 from spyder_kernels.utils.pythonenv import is_conda_env
@@ -2849,11 +2849,15 @@ def test_jump_to_prompt(ipyconsole, qtbot):
     assert control.textCursor().blockNumber() == first_jump_block
 
 
-@flaky(max_runs=3)
 def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
     """
     Test that the "go to previous/next prompt" shortcuts are registered and
     correctly wired to ShellWidget.jump_to_previous_prompt/jump_to_next_prompt.
+
+    Note: this triggers the registered QShortcut objects directly (i.e. the
+    same connection a real key press would activate) instead of simulating
+    key presses, since delivering those depends on the window actually
+    being focused/active, which isn't reliable in headless CI environments.
     """
     shell = ipyconsole.get_current_shellwidget()
     control = shell._control
@@ -2865,37 +2869,28 @@ def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
     cursor = control.textCursor()
     cursor.movePosition(QTextCursor.End)
     control.setTextCursor(cursor)
-    control.setFocus()
 
     before = control.textCursor().blockNumber()
 
-    def modifiers_for(keystr):
-        keystr = keystr.lower()
-        mods = Qt.NoModifier
-        if 'ctrl' in keystr:
-            mods |= Qt.ControlModifier
-        if 'alt' in keystr:
-            mods |= Qt.AltModifier
-        if 'shift' in keystr:
-            mods |= Qt.ShiftModifier
-        if 'meta' in keystr:
-            mods |= Qt.MetaModifier
-        return mods
+    shortcuts = shell.findChildren(QShortcut)
+
+    def shortcut_for(keystr):
+        matches = [
+            s for s in shortcuts
+            if s.key().toString() == QKeySequence(keystr).toString()
+        ]
+        assert len(matches) == 1
+        return matches[0]
 
     prev_keystr = shell.get_shortcut('go to previous prompt')
     next_keystr = shell.get_shortcut('go to next prompt')
 
-    qtbot.keyClick(control, Qt.Key_Up, modifier=modifiers_for(prev_keystr))
-    qtbot.waitUntil(
-        lambda: control.textCursor().blockNumber() < before, timeout=SHELL_TIMEOUT
-    )
+    shortcut_for(prev_keystr).activated.emit()
     after_previous = control.textCursor().blockNumber()
+    assert after_previous < before
 
-    qtbot.keyClick(control, Qt.Key_Down, modifier=modifiers_for(next_keystr))
-    qtbot.waitUntil(
-        lambda: control.textCursor().blockNumber() > after_previous,
-        timeout=SHELL_TIMEOUT,
-    )
+    shortcut_for(next_keystr).activated.emit()
+    assert control.textCursor().blockNumber() > after_previous
 
 
 @pytest.mark.order(1)
