@@ -2886,13 +2886,16 @@ def test_jump_to_prompt_shortcuts(ipyconsole, qtbot):
     next_keystr = shell.get_shortcut('go to next prompt')
 
     qtbot.keyClick(control, Qt.Key_Up, modifier=modifiers_for(prev_keystr))
-    qtbot.wait(300)
+    qtbot.waitUntil(
+        lambda: control.textCursor().blockNumber() < before, timeout=SHELL_TIMEOUT
+    )
     after_previous = control.textCursor().blockNumber()
-    assert after_previous < before
 
     qtbot.keyClick(control, Qt.Key_Down, modifier=modifiers_for(next_keystr))
-    qtbot.wait(300)
-    assert control.textCursor().blockNumber() > after_previous
+    qtbot.waitUntil(
+        lambda: control.textCursor().blockNumber() > after_previous,
+        timeout=SHELL_TIMEOUT,
+    )
 
 
 @pytest.mark.order(1)
