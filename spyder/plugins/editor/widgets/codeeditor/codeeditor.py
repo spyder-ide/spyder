@@ -63,6 +63,8 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # Local imports
 from spyder.api.translations import _
+from spyder.api.plugins import Plugins
+from spyder.app.mainwindow import MainWindow
 from spyder.config.base import running_under_pytest
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.api.editorextension import EditorExtension
@@ -541,8 +543,48 @@ class CodeEditor(
         self._rehighlight_timer.setSingleShot(True)
         self._rehighlight_timer.setInterval(150)
 
+        self.current_shell = None
+        self._pdb_namespace = {}
     # ---- Hover/Hints
     # -------------------------------------------------------------------------
+    def _ensure_shell(self):
+        
+        if self.current_shell is None:
+            self.current_shell = self.get_ipyconsole_instance()
+            if self.current_shell is not None:
+                self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+                self._request_namespace_update()
+            
+        elif not self.current_shell.is_running():
+            self.current_shell = self.get_ipyconsole_instance()
+            if self.current_shell is not None:
+                self.current_shell.sig_pdb_state_changed.connect(self._on_pdb_event)
+                self._request_namespace_update()
+
+    def _on_pdb_event(self, *args):
+        self._request_namespace_update()
+
+    def _request_namespace_update(self):
+        if not self.current_shell:
+            return
+
+        self.current_shell.call_kernel(
+            interrupt=True,
+            blocking=False,
+            callback=self._on_namespace_ready
+        ).get_namespace_view()    
+
+    def _on_namespace_ready(self, ns):
+        # ns is a serialized dict
+        self._pdb_namespace = ns
+
+    def get_expression_value(self, expr):
+        parts = expr.split('.')
+        value = self.current_shell.get_value(parts[0])
+        for attr in parts[1:]:
+            value = getattr(value, attr)
+        return value
+    #--------------------------------------------------------------------------
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
         if not self._mouse_left_button_pressed:
@@ -585,8 +627,33 @@ class CodeEditor(
                 and self.tooltip_widget.is_hovered()
             ):
                 return
-
+            
+            value = None
+            self._ensure_shell()
             text = self.get_word_at(pos)
+            if self.textCursor().hasSelection():
+                selStart = self.textCursor().selectionStart()
+                selEnd = self.textCursor().selectionEnd()
+                if  selStart <= self.cursorForPosition(pos).position() <= selEnd :
+                    text = self.get_selected_text()
+
+            if text:
+                try:
+                    if self.current_shell is not None:
+                        if "." in text:
+                            class_value = self.get_expression_value(text)
+                            value={}
+                            value['type'] = str(type(class_value).__name__)
+                            value['view'] = class_value
+                        else:
+                            value = self._pdb_namespace.get(text)
+                    if value is not None:
+                        if self.current_shell.is_debugging():
+                            self.show_tooltip(text=f"{value['type']}: {value['view']}", at_point=pos)
+                            return
+                except Exception:
+                    pass
+
             cursor = self.cursorForPosition(pos)
             cursor_offset = cursor.position()
             line, col = cursor.blockNumber(), cursor.columnNumber()
@@ -600,6 +667,15 @@ class CodeEditor(
                     self.hide_tooltip()
         elif not self.is_completion_widget_visible():
             self.hide_tooltip()
+    
+    def get_ipyconsole_instance(self):
+        """Get ipyconsole instance."""
+        parent = self.parent()
+        while parent is not None and not isinstance(parent, MainWindow):
+            parent = parent.parent()
+        if parent is None or not isinstance(parent, MainWindow):
+            return None
+        return parent.get_plugin(Plugins.IPythonConsole).get_current_shellwidget()
 
     def blockuserdata_list(self):
         """Get the list of all user data in document."""
