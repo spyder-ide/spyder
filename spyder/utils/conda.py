@@ -13,6 +13,7 @@ import json
 import os
 import os.path as osp
 import sys
+from typing import Union, Optional
 
 # Third-party imports
 from packaging.version import parse
@@ -23,8 +24,9 @@ from spyder_kernels.utils.pythonenv import (
 )
 
 # Local imports
-from spyder.utils.programs import find_program, run_program, run_shell_command
 from spyder.config.base import is_conda_based_app
+from spyder.config.manager import CONF
+from spyder.utils.programs import find_program, run_program, run_shell_command
 
 WINDOWS = os.name == 'nt'
 CONDA_ENV_LIST_CACHE = {}
@@ -73,34 +75,59 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     return root_prefix
 
 
-def find_conda(pyexec=None):
+def find_conda(pyexec=None, mamba=False):
     """
-    Find conda executable.
+    Find a conda or (micro)mamba executable.
+    The search priority order is:
+      1. Custom conda executable set in preferences
+      2. The (CONDA|MAMBA)_EXE environment variable
+      3. Relative to pyexec, if provided
+      4. Relative to sys.executable
+      5. Standard conda install path locations
+      6. If mamba=True, attempt to find micromamba with the above priority
 
-    `pyexec` is a python executable, the relative location from which to
-    attempt to locate a conda executable.
+    Parameters
+    ----------
+    pyexec: str | None
+        Path to a python executable, the relative location from which is added
+        to the search paths.
+    mamba: bool (False)
+        Whether to find a conda (False) or mamba (True) executable.
+
+    Returns
+    -------
+    exe: str | None
+        Path to found executable. None if not found.
+
     """
-    conda = None
+    exe = "conda"
+    env_var = "CONDA_EXE"
+    if mamba:
+        exe = "mamba"
+        env_var = "MAMBA_EXE"
+    exec_path = None
 
-    # First try Spyder's conda executable
-    if is_conda_based_app():
-        root = osp.dirname(os.environ['CONDA_EXE'])
-        conda = osp.join(root, 'conda.exe' if WINDOWS else 'conda')
+    custom_exe = CONF.get(section="main_interpreter", option="conda_path")
 
-    # Next try the environment variables
-    if conda is None:
-        conda = os.environ.get('CONDA_EXE') or os.environ.get('MAMBA_EXE')
+    extra_paths = [
+        osp.dirname(custom_exe),  # First check custom executable
+        osp.dirname(os.environ.get(env_var, "")),  # Then environment variable
+        osp.join(get_conda_root_prefix(pyexec), 'condabin'),  # Then pyexec
+        osp.join(get_conda_root_prefix(sys.executable), 'condabin'),
+    ]
+    extra_paths = dict.fromkeys(extra_paths)  # Remove duplicates
+    extra_paths.pop("", None)    # Remove empty string
+    extra_paths.pop(None, None)  # Remove None
+    extra_paths = list(extra_paths)
 
-    # Next try searching for the executable
-    if conda is None:
-        conda_exec = 'conda.bat' if WINDOWS else 'conda'
-        extra_paths = [
-            osp.join(get_conda_root_prefix(_pyexec), 'condabin')
-            for _pyexec in [sys.executable, pyexec]
-        ]
-        conda = find_program(conda_exec, extra_paths)
+    # Try to find executable
+    exec_path = find_program(exe, extra_paths)
 
-    return conda
+    # Next try searching for micromamba
+    if exec_path is None and mamba:
+        exec_path = find_program("micromamba", extra_paths)
+
+    return exec_path
 
 
 def find_pixi(pyexec=None):
@@ -209,15 +236,33 @@ def is_anaconda_pkg(prefix=sys.prefix):
     return False
 
 
-def get_spyder_conda_channel():
-    """Get the conda channel from which Spyder was installed."""
+def get_conda_channel(
+    pyexec: str, pkg: str
+) -> Union[Optional[str], Optional[str]]:
+    """
+    Get the channel from which the given package is installed.
+
+    Parameters
+    ----------
+    pyexec : str
+        Path to the Python executable in the relevant environment.
+    pkg : str
+        Name of the package for which to get the installation channel.
+
+    Returns
+    -------
+    channel : str | None
+        Conda channel from which pkg is installed.
+    channel_url : str | None
+        URL for the channel from which pkg is installed.
+    """
     conda = find_conda()
 
     if conda is None:
         return None, None
 
-    env = get_conda_env_path(sys.executable)
-    cmdstr = ' '.join([conda, 'list', 'spyder', '--json', '--prefix', env])
+    env = get_conda_env_path(pyexec, quote=True)
+    cmdstr = ' '.join([conda, 'list', pkg, '--json', '--prefix', env])
 
     try:
         out, __ = run_shell_command(cmdstr, env=_env_for_conda()).communicate()
@@ -236,7 +281,7 @@ def get_spyder_conda_channel():
     channel, channel_url = None, None
 
     for package_info in out:
-        if package_info["name"] == 'spyder':
+        if package_info["name"] == pkg:
             channel = package_info["channel"]
             channel_url = package_info["base_url"]
 
@@ -244,6 +289,11 @@ def get_spyder_conda_channel():
         channel_url = None
 
     return channel, channel_url
+
+
+def get_spyder_conda_channel() -> Union[Optional[str], Optional[str]]:
+    """Get the conda channel from which Spyder was installed."""
+    return get_conda_channel(sys.executable, "spyder")
 
 
 @lru_cache(maxsize=10)
