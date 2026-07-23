@@ -668,6 +668,11 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
             if not can_delete:
                 return False
 
+        # Perform plugin closure tasks.
+        # NOTE: This **must** be done before deleting the main widget/container
+        # because code present in on_close can depend on it (e.g. see Projects)
+        plugin_instance.on_close(True)
+
         # Cleanly delete plugin widgets. This avoids segfaults with PyQt 5.15
         if isinstance(plugin_instance, SpyderDockablePlugin):
             if not self.main.is_closing:
@@ -705,12 +710,6 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
 
             # Disconnect depending plugins from the plugin to delete
             self._notify_plugin_teardown(plugin_name)
-
-        # Perform plugin closure tasks
-        try:
-            plugin_instance.on_close(True)
-        except RuntimeError:
-            pass
 
         try:
             for registry in [
