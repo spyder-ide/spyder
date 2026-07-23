@@ -278,9 +278,7 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                 ):
                     continue
 
-                self.register_plugin(
-                    self.main, PluginClass, external=False
-                )
+                self.register_plugin(self.main, PluginClass, external=False)
 
         # Instantiate external plugins
         for plugin_name in external_plugins:
@@ -296,9 +294,7 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
                     continue
 
                 try:
-                    self.register_plugin(
-                        self.main, PluginClass, external=True
-                    )
+                    self.register_plugin(self.main, PluginClass, external=True)
                 except Exception as error:
                     print("%s: %s" % (PluginClass, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
@@ -674,6 +670,15 @@ class SpyderPluginRegistry(_PluginRegistryPreferencesAdapter, QObject):
 
         # Cleanly delete plugin widgets. This avoids segfaults with PyQt 5.15
         if isinstance(plugin_instance, SpyderDockablePlugin):
+            if not self.main.is_closing:
+                # This is necessary to check if the plugin should be hidden
+                # after being disabled/re-enabled in the same session, if it
+                # was initially hidden.
+                plugin_instance.set_conf(
+                    "visible_before_deletion",
+                    plugin_instance.get_widget().isVisible()
+                )
+
             try:
                 plugin_instance.get_widget().close()
                 plugin_instance.get_widget().deleteLater()
