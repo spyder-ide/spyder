@@ -163,6 +163,16 @@ class SpyderCodeRunner(Magics):
             namelist=os.environ.get("SPY_UMR_NAMELIST", None),
             shell=self.shell,
         )
+    
+    @line_magic  
+    def rename_tab(self, line):  
+        """Rename the current console tab."""
+        # Emulate prior eval of the name and send request
+        # (ipython magics have precedence over eval of the line)
+        globals_ = {"__builtins__": {}}  # Restrict scope for safety
+        locals_ = self.shell.user_ns  # Fetch locals
+        new_name = str(eval(line, globals_, locals_))
+        frontend_request(blocking=False).rename_tab(new_name)
 
     @runfile_arguments
     @needs_local_scope
