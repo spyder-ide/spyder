@@ -14,6 +14,7 @@ import sys
 # Third-party imports
 from qstylizer.parser import parse as parse_stylesheet
 import qstylizer.style
+from qtpy.QtWidgets import QCommonStyle, QStyle, QTabBar
 
 # Local imports
 from spyder.api.config.mixins import SpyderConfigurationAccessor
@@ -430,6 +431,36 @@ PANES_TOOLBAR_STYLESHEET = PanesToolbarStyleSheet()
 # =============================================================================
 # ---- Tabbar stylesheets
 # =============================================================================
+class CloseButtonTabBarStyle(QCommonStyle, SpyderConfigurationAccessor):
+    """
+    Style for QTabBar instances which should pull
+    QStyle.SH_TabBar_CloseButtonPosition from a CONF entry.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        position = self.get_conf(
+            "tab_close_position",
+            section="main"
+        )
+        if position == "left":
+            self.close_btn_side = QTabBar.LeftSide
+        elif position == "right":
+            self.close_btn_side = QTabBar.RightSide
+        else:
+            self.close_btn_side = (
+                QTabBar.LeftSide if MAC else QTabBar.RightSide
+            )
+        
+    def styleHint(self, hint, options=None, widget=None, returnData=None):
+        if hint == QStyle.SH_TabBar_CloseButtonPosition:
+            return self.close_btn_side
+        else:
+            return super().styleHint(hint, options, widget, returnData)
+
+
+CLOSE_BUTTON_TABBAR_STYLE = CloseButtonTabBarStyle()
+
+
 class BaseTabBarStyleSheet(SpyderStyleSheet):
     """Base style for tabbars."""
 
@@ -504,12 +535,17 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         # be. The added top margin allows the toolbuttons to expand to their
         # normal size.
         # See: spyder-ide/spyder#13600
+        
+        close_btn_left = (
+            CLOSE_BUTTON_TABBAR_STYLE.close_btn_side == QTabBar.LeftSide
+        )
+            
         css['QTabBar::tab'].setValues(
             marginTop=self.TOP_MARGIN,
             paddingTop='4px',
             paddingBottom='4px',
-            paddingLeft='4px' if MAC else '10px',
-            paddingRight='10px' if MAC else '4px'
+            paddingLeft='4px' if close_btn_left else '10px',
+            paddingRight='10px' if close_btn_left else '4px'
         )
 
         if MAC:
@@ -534,16 +570,16 @@ class PanesTabBarStyleSheet(PanesToolbarStyleSheet, BaseTabBarStyleSheet):
         css['QTabBar::tab:hover'].setValues(
             paddingTop='3px',
             paddingBottom='3px',
-            paddingLeft='3px' if MAC else '9px',
-            paddingRight='9px' if MAC else '3px'
+            paddingLeft='3px' if close_btn_left else '9px',
+            paddingRight='9px' if close_btn_left else '3px'
         )
 
         for state in ['selected', 'selected:hover']:
             css[f'QTabBar::tab:{state}'].setValues(
                 paddingTop='4px',
                 paddingBottom='3px',
-                paddingLeft='4px' if MAC else '10px',
-                paddingRight='10px' if MAC else '4px'
+                paddingLeft='4px' if close_btn_left else '10px',
+                paddingRight='10px' if close_btn_left else '4px'
             )
 
         # Remove border between selected tab and pane below

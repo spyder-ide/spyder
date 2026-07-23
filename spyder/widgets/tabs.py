@@ -19,7 +19,13 @@ import qstylizer.style
 from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (
-    QHBoxLayout, QLineEdit, QTabBar, QTabWidget, QToolButton, QWidget)
+    QHBoxLayout,
+    QLineEdit,
+    QTabBar,
+    QTabWidget,
+    QToolButton,
+    QWidget
+)
 
 # Local imports
 from spyder.api.shortcuts import SpyderShortcutsMixin
@@ -30,7 +36,12 @@ from spyder.utils.misc import get_common_path
 from spyder.utils.palette import SpyderPalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton)
-from spyder.utils.stylesheet import MAC, PANES_TABBAR_STYLESHEET, WIN
+from spyder.utils.stylesheet import (
+    CLOSE_BUTTON_TABBAR_STYLE,
+    MAC,
+    PANES_TABBAR_STYLESHEET,
+    WIN
+)
 
 
 class EditTabNamePopup(QLineEdit):
@@ -274,7 +285,8 @@ class TabBar(QTabBar):
         else:
             self.tab_name_editor = None
 
-        self.close_btn_side = QTabBar.LeftSide if MAC else QTabBar.RightSide
+        self.setStyle(CLOSE_BUTTON_TABBAR_STYLE)
+        self.close_btn_side = CLOSE_BUTTON_TABBAR_STYLE.close_btn_side
 
         # Signals
         self.currentChanged.connect(self._on_tab_changed)
