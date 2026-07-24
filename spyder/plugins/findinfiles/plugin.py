@@ -135,7 +135,6 @@ class FindInFiles(SpyderDockablePlugin):
         self.get_widget()._update_options()
         if self.get_widget().running:
             self.get_widget()._stop_and_reset_thread(ignore_results=True)
-        return True
 
     # --- Public API
     # ------------------------------------------------------------------------
