@@ -215,7 +215,6 @@ class Help(SpyderDockablePlugin):
 
     def on_close(self, cancelable=False):
         self.save_history()
-        return True
 
     def apply_conf(self, options_set, notify=False):
         super().apply_conf(options_set)
