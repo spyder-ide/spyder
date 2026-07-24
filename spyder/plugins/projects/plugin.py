@@ -299,9 +299,18 @@ class Projects(SpyderDockablePlugin):
         )
 
     def on_close(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        self.get_widget().save_config()
-        self.get_widget().watcher.stop()
+        """Perform actions when the plugin is closed."""
+        if self.main.is_closing:
+            # Actions to take when the main window is closed. We don't close
+            # the project here so that Spyder opens it automatically in the
+            # next session
+            self.get_widget().save_config()
+            self.get_widget().watcher.stop()
+        else:
+            # Close project if the plugin is disabled while the session is
+            # active
+            self.close_project()
+
         return True
 
     def on_mainwindow_visible(self):

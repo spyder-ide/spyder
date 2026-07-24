@@ -475,6 +475,20 @@ class Debugger(ShellConnectPluginMixin, SpyderDockablePlugin, RunExecutor):
             for window in editor.get_widget().editorwindows:
                 window.remove_toolbar(ApplicationToolbars.Debug)
 
+    def on_close(self, cancelable: bool = False) -> None:
+        if not self.main.is_closing:
+            # Stop debugging in all consoles if the plugin is disabled while
+            # the session is active. Otherwise it's not possible to correctly
+            # restore the debugging session after the plugin is re-enabled.
+            console = self.get_plugin(Plugins.IPythonConsole)
+
+            clients = console.get_clients()
+            for client in clients:
+                if client.shellwidget.is_debugging():
+                    client.shellwidget.stop_debugging()
+
+        super().on_close(cancelable)
+
     # ---- Private API
     # ------------------------------------------------------------------------
     def _load_pdb_file_in_editor(self, fname, lineno):
