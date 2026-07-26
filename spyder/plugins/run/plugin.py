@@ -91,9 +91,9 @@ class Run(SpyderPluginV2):
         self.main_menu_ready = False
         self.pending_shortcut_actions = []
         self.all_run_actions = {}
-        self.menu_actions = set({})
-        self.toolbar_actions = set({})
-        self.shortcut_actions = {}
+        self.menu_actions: dict[tuple, str] = {}
+        self.toolbar_actions: dict[tuple, str] = {}
+        self.shortcut_actions: dict[tuple, str] = {}
         self.action_lock = Lock()
 
         container = self.get_container()
@@ -220,8 +220,9 @@ class Run(SpyderPluginV2):
         for key in self.menu_actions:
             (_, count, action_id) = self.all_run_actions[key]
             if count > 0:
+                menu_id = self.menu_actions[key]
                 main_menu.remove_item_from_application_menu(
-                    action_id, ApplicationMenus.Run
+                    action_id, menu_id
                 )
 
         # Remove menu from active editor windows
@@ -248,8 +249,9 @@ class Run(SpyderPluginV2):
         for key in self.toolbar_actions:
             (_, count, action_id) = self.all_run_actions[key]
             if count > 0:
+                toolbar_id = self.toolbar_actions[key]
                 toolbar.remove_item_from_application_toolbar(
-                    action_id, ApplicationToolbars.Run
+                    action_id, toolbar_id
                 )
 
         # Remove toolbar from active editor windows
@@ -578,7 +580,7 @@ class Run(SpyderPluginV2):
                     )
                 )
 
-            self.toolbar_actions |= {key}
+            self.toolbar_actions[key] = toolbar_id
 
         if add_to_menu:
             menu_id, menu_section, before_section = (
@@ -604,7 +606,7 @@ class Run(SpyderPluginV2):
                     before_section
                 ))
 
-            self.menu_actions |= {key}
+            self.menu_actions[key] = menu_id
 
         if register_shortcut:
             self.shortcut_actions[key] = shortcut_context
@@ -659,29 +661,36 @@ class Run(SpyderPluginV2):
             if count == 1:
                 self.all_run_actions.pop(key)
                 if key in self.menu_actions:
-                    self.menu_actions.remove(key)
+                    menu_id = self.menu_actions.pop(key)
                     if main_menu:
-                        # The try/except is necessary to prevent errors when
-                        # the menu is no longer available.
+                        # Check if the menu is available first to prevent
+                        # unnecessary errors
+                        menu_available = True
                         try:
-                            main_menu.remove_item_from_application_menu(
-                                action_id, menu_id=ApplicationMenus.Run
-                            )
+                            main_menu.get_application_menu(menu_id)
                         except SpyderAPIError:
-                            pass
+                            menu_available = False
+
+                        if menu_available:
+                            main_menu.remove_item_from_application_menu(
+                                action_id, menu_id=menu_id
+                            )
 
                 if key in self.toolbar_actions:
-                    self.toolbar_actions.remove(key)
+                    toolbar_id = self.toolbar_actions.pop(key)
                     if toolbar:
-                        # The try/except is necessary to prevent errors when
-                        # trying to remove actions registered by other plugins,
-                        # which can be in other toolbars.
+                        # Check if the toolbar is available first to prevent
+                        # unnecessary errors
+                        toolbar_available = True
                         try:
-                            toolbar.remove_item_from_application_toolbar(
-                                action_id, toolbar_id=ApplicationToolbars.Run
-                            )
+                            toolbar.get_application_toolbar(toolbar_id)
                         except SpyderAPIError:
-                            pass
+                            toolbar_available = False
+
+                        if toolbar_available:
+                            toolbar.remove_item_from_application_toolbar(
+                                action_id, toolbar_id=toolbar_id
+                            )
 
                 if key in self.shortcut_actions:
                     shortcut_context = self.shortcut_actions.pop(key)
@@ -821,7 +830,7 @@ class Run(SpyderPluginV2):
                     )
                 )
 
-            self.toolbar_actions |= {key}
+            self.toolbar_actions[key] = toolbar_id
 
         if add_to_menu:
             menu_id, menu_section, before_section = (
@@ -847,7 +856,7 @@ class Run(SpyderPluginV2):
                     before_section
                 ))
 
-            self.menu_actions |= {key}
+            self.menu_actions[key] = menu_id
 
         if register_shortcut:
             self.shortcut_actions[key] = shortcut_context
