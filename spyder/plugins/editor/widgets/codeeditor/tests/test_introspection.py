@@ -952,8 +952,7 @@ def test_text_snippet_completions(completions_codeeditor, qtbot):
     ]
 
     # Assert all retrieved words start with 'f'
-    assert all({x.sort_text.split('_', 1)[-1] in {'for', 'from'}
-                for x in results})
+    assert all({x.filter_text in {'for', 'from'} for x in results})
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
