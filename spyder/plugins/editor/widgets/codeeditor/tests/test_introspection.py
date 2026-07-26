@@ -419,10 +419,21 @@ def test_automatic_completions_parens_bug(completions_codeeditor, qtbot):
 
 @pytest.mark.order(1)
 @flaky(max_runs=5)
-def test_completions(completions_codeeditor, qtbot):
+def test_completions(completions_codeeditor, qtbot, request):
     """Exercise code completion in several ways."""
-    code_editor, _ = completions_codeeditor
+    code_editor, completion_plugin = completions_codeeditor
     completion = code_editor.completion_widget
+
+    # This test asserts on the exact set of completions returned by the Python
+    # language server (exactly Jedi's six ``math.f*`` functions and the
+    # single-match auto-insert for ``math.h``). The fallback (buffer words and
+    # keywords) and snippet providers race with file registration on the shared
+    # completion plugin and also adds items to member-access popups.
+    language_status = completion_plugin.language_status['python']
+    saved_status = dict(language_status)
+    for provider in ('fallback', 'snippets'):
+        language_status[provider] = False
+    request.addfinalizer(lambda: language_status.update(saved_status))
 
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
